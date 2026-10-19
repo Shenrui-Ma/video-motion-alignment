@@ -1,0 +1,117 @@
+下一步最多两个机制假说：历史完整核对后的限定建议
+2026-10-17；只读设计，未执行新指标、编码或生成；new_method_claim=false。
+
+结论
+优先保留“稀疏语义证据的时间对应多义性”这一机制问题。另保留一个成本很低、先尝试否决的“参考微噪声直接扰乱运动时间读数”检查。第二项先验较弱，不应因此立刻开 GPU 或包装成架构创新。现有证据尚不能解释为何所有旧例延后、新例正常；实际上同一个旧 source05 已经存在原生正常种子。
+这两项的通过仅支持下一次有控制的机制实验。下面的低成本检查各自只能否决写明的必要前提，不能用代理分数替代 DiT 内部因果证据。
+
+1. 本次采用的事实边界
+A = /Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+R2 = /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016
+R14 = /Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016
+R24 = /Users/researcher/DevProjects/h3-timing-fresh-source-r24-20261016
+
+[1] A/review/RESULTS.txt：24 次实际完整推理，包括重放与消融，并非 24 个独立样本。source05 主窗50..65，native方向 +13/+13；Full6..14约+1；late11..19约+11/+12。source07预定右臂+15→−1，但部分高阈值拒判和窗口外质量代价保留。source05 seed1312原生+15，原生与干预均有背景失败。
+[2] R14/analysis/pose/R14_FINAL_REVIEW.md 和 actual_condition_seed_gate.json：source05同几何、同提示词、干净参考、语义条件、采样配置，seed2026101313原生方向/腕×.3/.5四值都是−1。该种子同时改变初始噪声和原生参考噪声增强，不能把它叫纯初始噪声实验。
+[3] 本次只读取 R24/analysis/postrun/COMPACT_RESULTS.json 中已完成的两条 seed2026101610 native：
+  fresh_a：方向主44..61为−1/−1；另外17..34为−1/−1、82..99为−2/−2。
+  fresh_b：方向主64..81为−1/−1；另外23..40为−1/−1、103..120为−1/UNKNOWN。
+  两主窗高阈值腕部及部分单臂支持不足，全部保留 UNKNOWN。fresh_b有多人物检测，既有跟踪诊断保留，不能把成功检测等同正确身份匹配。
+  本文不引用尚未完成后验配对评价的 Full 或 seed1611结论；实际新源没有“完全同步”的全指标证书。
+[4] R24 与旧source05/07的变化同时包含视频内容、种子、窗口、提示词。旧提示词是较长结构化编辑指令，新提示词是简短替换/保留动作指令；source05旧条件text段6960行，新fresh_a为6729行。相同尺寸和20步不意味着只改了素材。当前样本既不能估计发生率，也不能把近景/全身舞、背景、动作密度判作原因。原片宽高比、预处理裁剪/letterbox、画面中人物占比、背景复杂度也需逐项登记；最终张量同为1312×736并不能控制这些变量。
+[5] R2/analysis/semantic_sampling_history_inventory.txt：phase0/6的P×T四组已成功完整跑过。
+  A(P0,T0)=13；B(P6,T6)=5；C(P0,T6)=13；D(P6,T0)=13，双阈值方向一致。
+  P移动实际画面.25秒；T经过一位小数格式化实际文字移动.3秒。两个一致主效应门都失败；这里只能记录一次条件性交互。后续不能再把phase0/6称未测候选。
+[6] R2/analysis/semantic_token_time_mapping.txt：Qwen两帧merge和文字timestamp有真实输入ledger；Qwen输出经过混合后，H3 TokenRefiner继续双向混合，packed DiT把整个condition作为一维text位置(j,0,0)。稀疏视频原点可追踪，输出语义并不仍是纯净局部运动向量。没有直接物理时间坐标不证明网络丢失了时间信息。
+
+2. 假说一：稀疏语义画面允许多个近似动作对应，生成轨迹有时选择延后的对应
+
+精确定义
+对于同一段源动作，实际提供给Qwen的2fps两帧组可能保留“做什么”，却对“短窗口里是哪一次相似姿态/动作转折”缺少唯一证据。完整dense参考包含更强的时间顺序。两路共同进入生成器后，某些噪声状态落入延后对应，另一些保持原时序。待检验的是稀疏证据的对应多义性与后续选择的关系；不预先断言Qwen分支在和dense分支发生冲突。
+它能容纳“同source05有坏seed和正常seed”，也能容纳“新源原生正常”。它不预测每个相似动作都延后，也不把当前三四条视频当统计验证。
+
+必要前提
+a. 在已发生延后的窗口，实际稀疏采样对相邻不同时间片段的区分度，确实比完整轨迹弱；这种弱化不只是遮挡或pose失败。
+b. 时间歧义在旧坏例的候选对应附近存在，不能只展示一个全局低运动量指标。
+c. 若要进一步提出“直接video-semantic rows的读取是中介”，还必须新增真实分支因果证据。现有最终视频、condition哈希和x0都不够；本次只检查a/b。
+
+现有支持与反证
+支持：P/T四组保持dense条件与初始噪声不变，B单组改善，说明这条语义输入链有能力改变时间结果；same-bin强基线证明dense信息在当前网络内可用于修复。已有局部窗lag不同，符合多个事件对应而非全片统一播放慢。
+限制：C/D各自不改善；P/T交互也可以来自一般内容/提示语境变化，不能单独证明时钟冲突。R14同source、同条件正常，已经否定“源端语义稀疏就必然延后”的强版本。完整VAE分支可能已足以分辨动作；静态编码歧义与模型实际读出歧义不能等同。
+
+低成本、可否决的既有数据检查（设计，未运行）
+固定已有各源原定主窗及两个辅助窗；不挑新窗口，不改已冻结.3/.5拒判。不跑新的Qwen/VAE/pose。
+输入：
+  A/analysis/pose/old_sam/05_real_megumi_v.pose.json
+  A/analysis/pose/old_sam/07_real_ary_v.pose.json
+  R24/analysis/source_pose/fresh_a/fresh_a.pose.json
+  R24/analysis/source_pose/fresh_b/fresh_b.pose.json
+  各实际conditioning.json的sample_indices/两帧组、原准备RGB/实际sampled_frames张量签名。
+这些pose是已有张量的JSON存档，可直接CPU读取；RGB张量只有在核验帧映射确有需要时复用，不能重新下载或生成不同源替代。
+
+用既有arm_direction构造源视频自相似曲线：对固定窗W和位移d∈[−24,24]，计算D_dense(d)=mean_{t∈共同有效W}(1−cos(u_t,u_{t+d}))。所有候选使用共同关节/帧支持，越界和低置信直接UNKNOWN，不填充、不DTW。
+再把W附近实际Qwen两帧组作为稀疏证据，计算D_sparse(d)：保留每组两帧各自的姿态向量并连接，按同样规则比较同组与平移d后的两帧。组选择仅依据原frame ledger与W相交，不能按输出结果挑组；若样本/覆盖不足，这一窗UNKNOWN。不能把两个pose平均冒充真实Qwen时间卷积的特征。
+报告全49点曲线、共同支持、非零近邻的相似程度，以及与各实际生成lag的关系；0必为自匹配最优，因此“0第一”没有意义。主要问：排除|d|≤2后，是否出现稀疏证据明显比dense更难区分的竞争对应，以及竞争对应是否接近实际坏例lag。
+不要用这四个源拟合阈值、选最有利肢体或训练分类器。source05所有种子共用同一源端曲线，必须在报告中明确它无法单独预测哪一个seed失败。
+
+加入一个有限的条件/布局预检，不增第三个假说：
+  (i) 从各actual conditioning读取text长度、全部segment边界、位置坐标、video latent尺寸、identity参考尺寸。用已冻结PackedLayout公式核对source video与target video的相对时间坐标，而不只看绝对origin。当前old source05 text6960与fresh_a6729相差231；相同visual geometry下，共同text前缀导致两组visual origin一起平移，其source→target相对时间差应保持235。这个预期必须以各实际position_ids张量核验；若相对差相同，便可否决“仅仅text长度改变dense→target相对RoPE位置就造成延后”的直接解释。text内容、text到visual相对关系和refiner混合影响仍未被排除。绝对origin不能直接当物理帧延迟。
+  (ii) 从原provenance核原视频尺寸、缩放/裁剪/填边和141帧映射；复用已准备RGB tensor计算各帧近黑边占比/有效内容边界，保留原阈值设置与不确定画面，不把黑衣/暗背景自动识别为letterbox。用已有pose的torso尺度和人物bbox相对于画布的分布描述人物占比。原始属性与模型实际prepared tensor要分开记录。
+  (iii) 将上述面积/背景描述作为混杂注释；不能据此选择有利ROI、修改原lag门，或把新旧差异归成画布不变性失败。R14同source同letterbox正常已否定“这种边框必然造成延后”。该审计可以用既有tensor/JSON完成；本文尚未执行，亦不建议为它追加变宽高比GPU队列。
+
+
+可否决结果：若旧坏例在稀疏视图仍清楚区分发生延后的对应，或新正常源的这种歧义同样/更强，则“源端稀疏歧义足以作为干预前提/风险分数”的版本不成立；不应据此实现稀疏条件去抑制器。即使支持，也只获得前提，不能宣称分支因果或足以解释seed。
+
+与已有工作的关系
+A/literature/semantic_address_prior_art.txt与semantic_motion_conflict_audit.txt已经核对：Baton将semantic/dense网格做坐标对齐；SAMA作语义/运动分解；Kiwi-Edit把MLLM语义与source latent分路；MotionEditor处理运动条件冲突；ST-DRC已有条件强度重平衡。因此普通去掉语义视频、video-token缩放、加时间坐标均不能作为新颖性结论。
+原文链接：https://arxiv.org/html/2605.25195v1 （Baton）；https://arxiv.org/html/2603.19228v1 （SAMA）；https://arxiv.org/html/2603.02175v1 （Kiwi-Edit）；https://arxiv.org/html/2606.02441v1 （ST-DRC）。这些内容沿用已有原文审查，本次未重新复现实现。各方法完整官方代码的未核实范围仍按旧review，不因引用而填补。
+补核历史与直接近邻：A/literature/observability_control_gap_candidates.txt 第四节已经提出temporal self-similarity读出并引Dexter等2009年视频同步；因此自相似这个工具也不是本次新增思想。本文仅建议把它用作源端稀疏采样可辨性的必要条件检查，不建立一个新SSM observer或新guidance模块。
+本次另外打开原文方法段核实：DreamMotion §3.3–3.4 Eq11–15用扩散K特征的空间/时间自相似对应来约束视频编辑，时间项将K空间均值后组成N×N余弦矩阵并作L2对齐；SimulateMotion §3.3–3.4用稀疏点对后续帧的feature相关softmax图作运动一致性与推理梯度引导；TSA §4.1–4.2用温度softmax后的时空对应KL训练扩散模型，并选top20%运动区域。它们分别直接覆盖自相似编辑、相关图运动引导和局部相似结构对齐。普通SSM或相关图不能重命名为新架构。
+https://www.scitepress.org/Papers/2009/15610/15610.pdf （沿旧审查）
+https://arxiv.org/html/2403.12002v1
+https://arxiv.org/html/2501.07563v1
+https://arxiv.org/html/2605.24962v1
+此处未被本会话完整测试的是“实际输入的时间对应多义性与已观察到的相位分支”这一必要条件；SSM相关思想已提过且已有直接文献，不能称新创意。旧P/T实验也不重跑。
+
+3. 假说二：seed改变的参考微噪声在低运动能量窗口直接损伤可读的时间对应
+
+精确定义与优先级
+本项刻意收窄到可用CPU否决的版本：参考增强微噪声本身，使一个原本可识别的源运动方向/时间对应在bad seed变得不可识别或产生竞争lag。不是笼统的“所有神经网络对seed敏感”。先检查输入端扰动是否有足够影响，再考虑昂贵的两种seed解耦；目前不建议新生成。
+
+实际代码事实
+冻结core归档：/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+  comfy/ldm/minimax/model.py:32，VISUAL_COND_TIMESTEP=.999。
+  同文件:532–545，_cond_video_rows：先patchify干净latent，每份视觉条件都重启CPU Generator(seed)，r_s=.999*r+.001*epsilon_s，然后送入模型。
+  comfy/model_base.py:2192–2203，把当前sampler seed放入payload；模型前向中的视觉condition噪声默认固定，不随去噪步重新抽样。
+  model.py:632–637同步设置condition timestep；若以后调整augmentation，必须连同其时间标签定义核对，不能只缩放噪声就称同模型原生操作。
+R14 protocol已明确seed同时改变两个随机通道；actual_condition_seed_gate核实干净条件相同，却没有存每次实际postaugmentation张量。这个缺口不能用clean reference SHA代替。
+
+为什么值得一个很小的检查
+同source05、相同编码/语义输入，却有1311坏、1313好，这是最干净的现有seed对照。参考噪声与初始目标噪声尚未分开操控，故“完全由初始目标噪声决定”的结论也未成立。另一方面噪声系数只有.001，强烈限制本假说先验；很可能CPU门就能排除直接输入可读性损伤，应接受这个负结果。
+B的语义修改在相同噪声下也能改善，已反证“参考微噪声唯一决定结果”。即使本项成立，也只能是一个与上下文相互作用的因素。
+
+低成本、可否决的既有张量检查（设计，未运行）
+严格使用同.9输入链source05的clean reference，不能取.41不同prepared RGB的cc5c11版本混用。
+绑定入口：R14/analysis/pose/actual_condition_seed_gate.json 及 key_evidence/audit/r14_s05_seed1313_native_host9_conditioning.json；其parent R3/R12、旧seed1312的actual manifests给出相同reference tensor SHA。从该manifest解析已有tensor_blob，不按文件名猜。参考形状[1,24,42,46,82]，patchify规则取上述冻结core，CPU Generator仅重建已知seed1311/1312/1313的原生参考增强；无需加载模型。
+保留seed的两个来源：保存的初始noise和重建reference noise分别标记，不把二者当同一数组。旧实际postaugmentation未存，因此CPU重建仅是冻结代码重建值；没有GPU逐位证书，不称实际运行捕获。
+
+固定F为已冻结gap5线性差分与空间/通道展开，固定W50..65、全49lag及原拒判。分别测F(clean)、F(r_s)的能量、方向差、同一clean参考的完整lag曲线/拒判；这个检查既不移动RGB也不新建校准bank。只比较现有实际seed，不扫augmentation或噪声seed。
+同时给出扰动上界：设a=.999F(r)，e=.001F(epsilon_s)，eta=||e||/||a||。当eta<1，可用保守界 ||normalize(a+e)−normalize(a)||≤2eta/(1−eta)。各比较项的余弦距离变化不超过相应方向变化界；若候选间clean margin大于全部扰动界，就足以排除该F下因参考微噪声而翻转排名。能量近零则UNKNOWN，不能靠归一化放大噪声制造证据。
+
+否决规则：三个seed都保留零附近对应、拒判状态相同，且扰动界远小于竞争lag margin，则关闭“输入端直接时间可读性损伤”这个解释，不提交augmentation参数扫描。该结论不排除DiT的非线性放大/初始噪声轨迹选择；后者需要未来固定目标noise、单独改变ref seed的真正因果对照，现有缓存不能补出未跑过的轨迹。
+如果看到bad seed特有的可读性下降，也只形成一个机制线索；还须检查同source正常seed及新源的同尺度信号，避免把低能量窗口读数当实际动作时延。不得把该结果直接称新架构。
+
+近邻与未核实处
+本次补查原始来源：Cascaded Diffusion Models已使用conditioning augmentation；FreeInit说明初始噪声时空频率能影响视频生成，并提出训练自由初始化改进。
+https://arxiv.org/abs/2106.15282
+https://arxiv.org/abs/2312.07537
+https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00423.pdf
+前者是级联超分条件，后者是视频噪声初始化；均不能直接替代H3参考增强因果证据。任何“换seed/调conditioning noise/改低频noise”本身都不构成新机制。此次只核原文摘要/正式论文来源，没有复现其代码，也没有声称不存在更近的H3先例。
+
+4. 建议的执行顺序与停止条件
+先等R24全部预选配对完成，保留全部成功、退化和UNKNOWN，不因主窗正常更换素材。现有24run和R14已经使“所有源都会延后”“仅提高动作幅度/密度能稳定触发”缺乏支持。
+若批准一个CPU检查，先做假说一的源端必要条件；第二项仅作seed混杂的有限排除，预计价值在于尽快否决。两项不重跑phase0/6、不重编码reference bank、不做QRoPE/ROI/layer扫描。
+尚无任何一项足够直接开“新架构”实现。真正值得投入模型干预的下一步，应由R24完整paired结果和上述必要条件共同决定；如果没有可分机制，应先报告故障条件有限，避免继续给同一个坏样例叠加模块。
+
+证据与修改范围
+本次读取了指定两份历史盘点、两个semantic prior-art review、24run总结果与旧next_candidate_gate、R14独立验收、R24当前完成native记录，以及冻结core相关函数。只新增本文；没有运行张量评分/推理、下载模型、改变GPU服务或sealed文件。不存在本文假说已验证成功的结论。

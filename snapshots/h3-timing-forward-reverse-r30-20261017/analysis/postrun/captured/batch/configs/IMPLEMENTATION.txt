@@ -1,0 +1,78 @@
+R30: one joint forward Full + reverse BLOCK mechanism diagnostic
+
+Scientific freeze: design/PROTOCOL.json v2, source05/Sam seed2026101311,
+1312x736x141 @24fps, CFG1 Euler20/noTurbo, denoising indices6..14,
+50blocks, physical frames50..65 -> latent bins14..19. One actual Native full
+attention output; copy exact frozen R3 Full T rows and frozen R25 BLOCK R rows
+from unchanged QKV. Other rows including target audio remain Native bitwise.
+An active call adds one full Flash attention versus a direct algebra assembly;
+there are still20 model evaluations/20 Euler updates/20 callbacks. All0..19 x0
+and final AV tensors are saved. The first active call compares unmodified full
+Flash against original Native SDPA bitwise before any row is written.
+
+Files and reuse:
+- H3ForwardReverseRouter/core.py is the joint wrapper. base_router.py and
+  reverse_frozen.py remain byte-exact R3/R25 paths; kernel_provenance.json binds.
+- sampler_gate.py verifies current R25 B original/processed condition tree,
+  ignoring only two mutually equal positive UUID strings. Native0..5 are
+  compared to actual archived R10 PTs, with005 additionally actual R3 Native.
+- PairAudit/EventAudit/readout inherit R29 current condition/noise blob capture
+  and21 snapshots. Historical R3 complete postaugmentation tree was not stored;
+  this missing evidence is disclosed, not reconstructed from clean signatures.
+- Runtime shell follows R29 preCUDA same-PID gate, exclusive controller lock,
+  exact-generation submit/stop/exception cleanup, 600-second strict admission
+  wait, 2-hour job timeout,12-hour service ceiling,1800-second bounded hold.
+- scripts/verify_completed.py independently checks success graph/owner, all21
+  actual PTs, real condition/noise blobs, per-record scale/time metadata,
+  20/1000/450 counts, all6 eligible actual prefix files, both UUID exceptions,
+  passive feature file inventory, backend/code provenance and residency/cleanup.
+
+CPU evidence:
+configs/CPU_EVIDENCE.json binds current consumed source hashes to actual .9
+CPU attempt1:5 cases,18.4 seconds, official Comfy loader/processed H3 condition
+objects/Guider/ModelPatcher/Euler/readout, no weights or CUDA. Native unchanged,
+joint both wrapper orders exact, bad prefix stops before first intervention,
+bad processed condition rejected before prediction. Linux attempt2:57/57
+unit tests pass including real preCUDA PID identity; Mac56 pass/1 Linux skip.
+Small CPU attention is synthetic, not a claim about actual model outputs.
+
+Root deployment/run sequence (no GPU has been launched by the builder):
+1. Extract audit/runtime_bundle_v1.tar.gz in the exact remote root. Copy the
+   three inputs with same basenames from R25 reverse_block/inputs. Verify all
+   deploy_manifest.json files and scripts/preflight.py. Inputs excluded tar.
+2. The model-free GPU gate must be root-admitted using gpu_gate_entry.py.
+   Set CUDA_VISIBLE_DEVICES to exact GPU2 UUID and PYTHONPATH to existing
+   runtime_deps, run with existing comfyui Python:
+   scripts/gpu_gate_entry.py --gate-dir RUN/audit/kernel_preCUDA
+       --output RUN/audit/gpu_joint_gate.json
+   This pauses before torch import. Register exact future PID/UID/startticks/
+   cmdSHA in R27 admission, then atomically copy the ready JSON to same
+   directory's cuda_gate_go.json. After completion remove only that registered
+   identity. Gate result passed=true covers4 modes and actual87592x56x128,
+   component exact paths, selected/nonselected invariants, RNG, BF16 dense
+   tolerances and peak/time; it loads no model and cannot prove resident DiT
+   memory. Root decides full-model resource admission using these measurements.
+3. Fill configs/admission.json exact peer identities/ready flag. Run
+   python3 scripts/launch_remote.py --service-only. Read processes/service.json
+   and processes/cuda_gate_ready.json, register exact new service in R27 peer
+   admission, atomically release cuda_gate_go.json. No controller submitted yet.
+4. Wait actual HTTP8493 readiness. Run python3 scripts/start_controller.py
+   --pid PID --start-ticks TICKS.
+   One frozen job only. Root may set queue.finalize=true or keep bounded hold.
+5. Under shared CPU locks run existing comfyui Python scripts/verify_completed.py
+   --output RUN/analysis/runtime_integrity.json. Its default parent root is R3;
+   actual R10 prefix paths come from frozen design/PREFIX_0TO5_BINDING.json.
+6. Use design/PROTOCOL outcomes: whole186 windows and original four windows,
+   common support/UNKNOWN, fixed55/86/105 and42..82 clip. No endpoint quality
+   inference follows merely from implementation integrity PASS.
+
+Time naming: legacy physical_index in prefix files is the zero-based DENoising
+index. Physical video frames/windows are separate 24fps source coordinates.
+Costs: sampler and total job wall time,20 intermediate capture times; final
+capture is inside job wall time. First-call timing includes audit clones and
+checks; snapshot_bytes reports audit-only clones, excludes working F rows.
+GPU gate peaks also include saved component rows. Do not present these as pure
+routing latency or memory. No extra DiT replay or new ordinary baseline run.
+
+No novelty claim: manual single-case causal cell completing N/F/B/FB. Motion
+quality, generalization and automation remain separate research questions.

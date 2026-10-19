@@ -1,0 +1,48 @@
+R23 source07/Sam：冻结混合反馈的换源设计草案
+仅设计；不实现 runtime、不启动 GPU/服务。不更改已封存 R19/R20/R21/R22。
+
+1. 所检验的问题与依赖
+复用 R21 同一规则、同一两个观察器和原 Full 算子，把事件从 source05 的50..65改为已预定 source07 的54..69。source07及其历史视频已经被看过，是第二源开发案例，不是未见测试。seed仍为实际 source07/Sam图的2026101311；提示词逐字沿其实际图，不从source05拼接。种子同时控制噪声与原H3参考增强。
+
+启动前先等 R20 两臂实际成功、严格配对验收及最终动作/质量：native确有可靠延后，固定 Full6..14对本源有可控性支持。若Full不改善/质量破坏/观察未知，当前问题可能在执行器或可观测性，必须返回root讨论，不能靠换阈值、换窗或多抽卡掩盖。R19/R21实际因果/正常例结果也要进入root审查，草案不预支它们。
+
+prior-art代理已预冻结 R20/analysis/early_gap5/PROTOCOL.json和evaluate.py，RESULTS.json尚待实际配对验收后生成。其actual native005+actual clean reference的完整49点曲线、接受/拒判及runner-up是早期信号必要检查。accepted正大lag可支持继续；UNKNOWN/负值/对齐但最终native明显延后会暴露不匹配，需保留并讨论。005是第六次预测，不能替代控制索引6的当前观测；不得把005结果写入HOLD初值，更不能从它推出2帧精度或整段可控性。
+
+2. 精确定义
+20次原始Euler更新/20chosen callbacks不变。每个实际状态x_n,sigma_n先算原生条件预测native；Full若被选择，则在同一x_n/sigma_n/完整c/RNG再次预测一次，返回被选端点给原Euler，避免代数改写舍入。实际NFE20+K，0<=K<=14；全50层、CFG1、video/audio shift12/3、无Turbo。保留完整grid和原单头接口的事实，不将grid位置误称多head PDD分支。
+
+0..5始终native；5只被动记录。6..9在该步native端点读full-frame signed gap5：accepted lag>=4开，[-2,2]关，lag3保持前一个物理步实际选择，<=-3关并标提前，unknown关并保留unknown。初始previous=false；Full/native的实际完成选择后更新，unknown不能继承此前Full。
+10..19完整141帧VAE解码当前native，再用固定DWPose CPU。主窗54:69的方向与腕位置各置信0.3/0.5四读数，原可靠性门通过且全>2才Full；全在±2关为aligned；全<-2关为advanced；其余/拒判unknown并native。缺失/损坏/超时是运行错误ABORT，不伪装unknown。晚期不读取early HOLD。采样index、真实视频帧、latent bin严格分开。
+
+执行器 O_new=O+m_ref*(O_same−O_ref)，alpha1/radius0/time_offset0，所有空间query/全部50block。54..69选query bins16..21，即半开[16,22)，按既有位置映射名义覆盖52..72。bins只是压缩token的位置集合，不代表每个bin为独立RGB帧；gap5跨约17RGB帧，不声称精确2帧。
+
+3. 只换源与窗口仍需检查的代码接线
+R21 observer.py将WINDOW硬编码(50,65)；新副本仅改(54,69)，纯signal/scan/reject函数与float64/49点扫描保持SHA/AST一致。R21 selector.pose_select硬编码observability和diagnostics['50:65']，新副本仅换主key['54:69']，决策数值分支逐项等价测试。
+现有 old analysis/pose/evaluate_x0.py 的WINDOWS实际也硬编码source05四窗，不能仅改protocol文本就以为执行了source07窗。未来新R23私有观察入口仅把窗口换为R20预定的[(54,69),(75,88),(98,111)]，保留gate函数及所有timing_metrics调用/阈值字节或AST相同，不能修改共享旧脚本。pose_live_child.py的源姿态路径也从05改07，旧冻结source07 pose SHA962d87b14a569515c01424e1b074dc8a827f02ee2b8cd8ca3fc7b23a534760bc；实际source视频SHA46637c…须一并核。
+源pose路径为 /data5/researcher/h3_runs/timing_autoresearch_20261016/analysis/pose/old_sam/07_real_ary_v.pose.json。模型、LoRA为空、reference semantic2fps、全RGB/latent几何均沿R20冻结。完整frames141为RGB时间基；2fps只是语义视觉分支，不以它替换dense视频参考。
+
+4. 配对和观察通道：不能复制source05证书
+必须取R20实际source07 clean reference/prepared RGB/Qwen/tags/layout/noise/seed、成功history与完整sigma，而非只使用同seed标签。R20 producer archive不等于完整postaugmentation条件；如没有实际旧processed tree，记录缺失。新run捕获自身完整processed condition并全程冻结；旧配对由实际clean/noise/core-helper/seed及共同prefix005 AV逐位补证。
+R20 native、Full都是20单次预测轨迹；Full臂没有每步未被选择的native probe。因此即使R23早期6..9全Full，native010通常也不是R20 Full010（后者是Full端点）。R14/R21 source05 native010同样不是本源可用桥接，严禁硬用。
+历史native桥资格：在从未选择Full前，可比较R20已存native005/010/015/019等端点；首次Full发生n，该步native仍可比，Full(n)和此后native永久N/A，即使以后OFF也不能自动恢复。另一Full旧轨迹只有实际过去mask完全相等且分支类型相等时才有资格；不把它的未来chosen端点当当前native。
+G2应分清两层：每次当前endpoint→request→isolated decoder→RGB→pose→response的hash、规范化、141帧、原fallback守卫是当前事实；旧source05同几何、同decoder函数的实际数值桥接是复用实现证据。没有source07同状态旧decode/pose时，不伪造“当前G2逐位匹配旧结果”。实施前由root审查是否接受同SHA decoder实际桥证据+新请求完整绑定，或另加一次显式独立同端点decode作新的数值桥。该额外编码未在本草案执行或默默加入科学计数。
+G3保留每次观察前后actual x/native/sigma、原sampler sigmas与model_options sample_sigmas、完整conditions/RNG/env/threads、参数指针/dtype/device/patcher与驻留门。CPU copy无修改。隔离exec VAE不调用父进程model_manager，不自动卸载/重载/empty_cache。OOM tiled fallback必须拒绝，不能悄悄换解码算法。
+
+5. 必要CPU门（仅规划、未执行）
+A. 对early全部accepted lag−24..24×previous两个值、所有拒判，与R21 next_decision逐项完全等价；0..5不更新HOLD；6开始、9→10、19→final分别核。
+B. late四值/unknown/方向腕不一致/阈值分歧全部与R21同规则，唯主key由50:65换54:69。证明旧source05 key不能混入新有效response。新私有pose入口的gate/timing计算AST与旧相同，仅WINDOWS与来源变化。
+C. 实际Comfy CPU loader/ModelPatcher/Guider/KSAMPLER Euler接口：全OFF20NFE、全ON34NFE、HOLD/停/重启混合；20chosen与final对独立单forward固定mask逐位；真实extra_conds/本地Generator、完整sigmas和AV归一化不变。手动block循环不能代替此项。
+D. source07图/实际condition/noise签名负例拒绝source05或seed1313混入。唯一参考video、实际pos/layout与[16,22)路由plan验证，不以shape相同认定输入相同。
+E. 已有R20 native005纯CPU49点曲线与新observer对同tensor逐值等价，保留全曲线；仅检查接线和necessary signal，不当独立实验。
+F. 首次ON配对资格测试、Native vs Full branch错配、current019 vs sampler_final错配均拒绝。旧source05G2不能冒用；允许N/A须有真实历史mask分歧理由且不削弱当前请求/父状态门。
+G. 新schema/路径/身份请求负例和真实隔离child入口；未经修改的R21资源/父进程死亡/CPU锁等待/超时清理代码以SHA复用已有CPU证据。实际准入与同卡VAE共驻留仍由root现查，最多两张我们的GPU，不干扰其他用户。
+
+6. 结果与文献边界
+完整评估沿R20：主54..69、副75..88与98..111，两置信、方向/左右臂/腕与形状、共同支持及unknown；固定视觉60/63/81/105、42..88短片和全片原速，保留身份、背景、肢体重影/躯干腿部副作用。R20原生/Full与R23实际最终结果共同支持重新求交，不能跨不同arm集合直接比误差数值。统一pose工具控制并评分仍有闭环指标偏差，人工视频证据不能省略。
+
+若R23只重放R20 Full同mask而成功，说明固定策略可迁移，不是adaptive增益；若少干预仍同样好，只记录动作/质量和总成本，不能用减少Full次数自动推出省时。若当前对齐而最终反弹、unknown过多或质量变差，保留失败并区分观察/可控性/持久性，不调阈值补答案。R23运行一次仍是开发样例，不能统计成未见泛化集。
+
+沿已冻结 R2/literature/coarse_to_pose_observer_scope_20261016.txt 的MotionEcho、FlowMotion、Frame Guidance、身体局部相位控制、Adaptive Guidance、IB-CFG、DIAL邻域审查；此轮没有新机制、新检索或空白断言。阶段切换10固定、预训练DWPose外部模型、training-free而无生成教师的边界保持。设计只是冻结规则的跨源可行性测试。
+
+交付与下一步
+本目录仅design三文件。先等R20 actual完整验收与early_gap5 RESULTS，以及R19/R21当前结果，root决定是否进入本地实现。不能因草案准备好就启动GPU或自动排队。真实source07引用与资源具体port/GPU到实施授权时冻结；任何协议调整保留新版本与理由。

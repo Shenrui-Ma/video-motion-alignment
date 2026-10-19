@@ -1,0 +1,114 @@
+{
+  "schema": "h3-two-aligned-hold-baseline-v1",
+  "created_utc": "2026-10-16T07:48:27.539778+00:00",
+  "scope": "Ordinary two-consecutive-aligned stopping baseline on the known R6 failure; no novel method claim",
+  "new_method_claim": false,
+  "prior_art": {
+    "path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/query_time_posterior_gate_review.txt",
+    "sha256": "87a0fd8238932f7d317c0729baade32ef69290f74fa618e6dedbbb59d636fecd",
+    "section": "6",
+    "nearest": [
+      "MotionEcho",
+      "Adaptive Guidance",
+      "PAG/CAG"
+    ],
+    "purpose": "Cheap short-hold control explicitly requested by the prior-art audit; no independent novelty claim."
+  },
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "sampler": "Euler",
+    "NFE": 20,
+    "seed": 2026101311,
+    "Turbo": false
+  },
+  "event_frames_inclusive": [
+    50,
+    65
+  ],
+  "event_localization": "fixed manual source event; no automatic detection",
+  "target_bin_range_half_open": [
+    14,
+    20
+  ],
+  "target_nominal_physical_coverage_inclusive": [
+    47,
+    67
+  ],
+  "observation": "Frozen full-frame same_phase_gap5 signed cosine constant-lag search over [-24,24], per physical frame; 17-frame span",
+  "feedback_first_observation_callback_index": 5,
+  "feedback_first_possible_forward_index": 6,
+  "feedback_last_decision_callback_index": 18,
+  "feedback_last_possible_forward_index": 19,
+  "final_callback_index": 19,
+  "index_convention": "all indices zero-based; first observation after model call6, first actuation call7",
+  "state_machine": {
+    "accepted_lag_at_least4": "ON; reset aligned streak to0",
+    "accepted_lag_from_minus2_to2_currently_active": "increment aligned streak; first keepsON HOLD_FIRST_ALIGNED; second OFF_ALIGNED and resets streak to0",
+    "accepted_lag_from_minus2_to2_currently_inactive": "remain OFF_ALIGNED and reset streak to0",
+    "accepted_lag_equal3": "keep prior active flag; reset aligned streak to0",
+    "accepted_lag_at_most_minus3": "OFF_ADVANCED; reset streak to0; not alignment success",
+    "unknown": "OFF_UNKNOWN; reset streak to0; not alignment success",
+    "terminal_callback19": "audit proposed transition only; no actual state or streak mutation"
+  },
+  "actuator": "unchanged R2 mass_preserve alpha1 radius0 all50blocks, query window only",
+  "baseline_fixed_router_indices": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "causality": "Actual current x0 callback controls next forward only. No future snapshots or independent mass/native future trajectories. Early inactive prefix x0_step005 must match R4 native bitwise before first actuation.",
+  "tests": {
+    "primary": "same frozen four windows / pose thresholds .3 and .5; main50..65 lag <=2; unknown preserved",
+    "quality": "fixed frames55/86/105 plus same-support direction/amplitude and before/after/tail errors, compare R2 Full and native",
+    "dynamic": "actual on/off counts/reasons, recurrence after stopping; endpoint estimator compared to independent final pose",
+    "efficiency": "NFE remains20; include observer CPU copy/compute time and routing timing, sigma intervals, blocks. Fewer routed blocks alone not claimed inference speedup."
+  },
+  "paired_followup_control": "After feedback yields K active forwards, run a fixed K-call consecutive pulse starting zero-based6 if K>0 and different from realized schedule. This is post hoc paired budget matching; no placement optimization. Identical schedule should exactly replay and alone does not establish feedback advantage. Cross-instance schedule swap or normal cases later required.",
+  "limitations": [
+    "Frozen numerical degeneracy checks are not calibrated confidence.",
+    "Known delayed example, limited early pose truth, independent normal native early false-trigger evaluation outstanding.",
+    "gap5 lowpass may merge short actions and cannot prove omission detection.",
+    "One-instance success permits next validation; no universal method/paper claim."
+  ],
+  "resources": ".41 GPU1 UUID GPU-REDACTED port8470; only one owned inference/GPU-postprocess at a time; root validates idle admission and launch.",
+  "scientific_change": "Only stopping on accepted near-zero lag while active requires two consecutive causal observer callbacks. All frozen observer, thresholds, actuator, sampler, prompt, inputs, seed and geometry retained.",
+  "warmup": "Reuse hash-validated successful R6 two-step warmup on the same .41 backend. Require archived warmup evidence and parent successful runtime provenance before launch; no new benchmark inference.",
+  "comparisons": [
+    "R6 single-aligned stopping, same known sample and backend",
+    "R2 fixed Full zero-based indices6..14",
+    "R2/R4 native exact-replay references"
+  ],
+  "failure_interpretation": "If hold works, cheap stopping memory may explain R6 failure; no need to credit native-first/double-forward. If hold fails, it only rejects this two-consecutive rule on this instance.",
+  "observational_amendment": {
+    "created_utc": "2026-10-16T07:55:47.435425+00:00",
+    "authorized_by": "root before target outcomes",
+    "previous_protocol_sha256": "5bfb292227a2ce699689007d9387cc4b20d6b60c640debc3e180357d9b730d32",
+    "capture_steps_zero_based": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      15,
+      19
+    ],
+    "original_capture_steps_zero_based": [
+      5,
+      10,
+      15,
+      19
+    ],
+    "purpose": "Record the first on/hold/off transition for independent later decoding; original R6 does not have x0 index6/7 saved",
+    "causal_limit": "Only copies callback tensors. No change to sampling, decision timing, random state or reference. Original and expanded recorders must preserve all common endpoints and final tensors in CPU integration."
+  }
+}

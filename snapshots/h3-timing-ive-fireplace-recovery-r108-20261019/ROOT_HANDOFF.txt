@@ -1,0 +1,23 @@
+R108：补跑 R100 中尚未提交的壁炉删除任务。
+
+源任务 short_0392，完整57有效帧、73采样帧、24fps、1312×736。原始视频、prepared 视频、六段 P1、seed2026101701、20 Euler、无 Turbo、CFG1、sigma12/3，与 R100 未运行的0392图逐字段保持；只更改实验根目录与审计标识。
+普通编辑先出片，确认完整壁炉删除、原女人/白套装/房间/手势保留，再使用现有 decide guide/skip。固定引导仍为 steps6..14、alpha1、50层、有效时刻对应bin。科学算法未新增。
+
+本地 /Users/researcher/DevProjects/h3-timing-ive-fireplace-recovery-r108-20261019
+远端 /data5/researcher/h3_runs/timing_ive_fireplace_recovery_r108_20261019
+.9 GPU0，port8571，正常显存策略reserve8。等待R102精确释放；当前另一活跃service作为peer-root。启动前重新确认至少40GiB显存、20GiB磁盘、至多2张自己的GPU。
+
+本机96 CPU tests、输入PTS检查通过；目标96 tests、107files seal、4inputs、9core校验通过。
+producer seal SHA 69b9c594813b97be6048f3780ee3774a017e396259ebac9ea3fb5667baa56381
+首次被动包遗漏configs/queue.json，目标CPU预检失败。已补传原本地冻结registry要求的queue，重新通过全部目标CPU检查。未启动GPU。
+
+原R100服务52063/start2637465939的ROOT_EXIT_RECEIPT为PASS，篮球pair保留。其0392没有job记录；本次独立执行保留原timeout/ledger，原批次不宣称全部完成。
+
+运行：
+python3 -u audit/root_run_batch.py --execute --attempt root_fireplace_recovery_attempt1 --peer-root <当时真实存活的另一任务根>
+没有peer则省略。每次awaiting_native_review与首guided_review由实际成片审阅后执行scripts/execution_gate.py。结束按准确PID身份释放。
+
+消费者 /Users/researcher/DevProjects/h3-ive-fireplace-recovery-metrics-r108-20261019
+48项CPU测试通过，freeze SHA37e2729110c46f522fd4fa73ad0ceb6eebf3b14eec3bad64374f12d8e315a56b。
+scripts/consume_native.py或consume_pair.py --source short_0392 --attempt root_fireplace_recovery_attempt1。
+官方MF输入自动生成，实际追踪和打分需成片后进行。不得复用原失败视频分数。

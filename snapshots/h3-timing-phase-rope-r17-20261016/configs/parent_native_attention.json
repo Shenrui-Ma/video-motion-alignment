@@ -1,0 +1,140 @@
+{
+  "source": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/router_audit.json",
+  "source_sha256": "a3ca1c2c8f983e8ea5fa2d933bbf4d072f0d43f2dc53bfa6aa027b2a2fbbb333",
+  "first_attention": {
+    "qkv_shape": [
+      1,
+      56,
+      87592,
+      128
+    ],
+    "dtype": "torch.bfloat16",
+    "device": "cuda:0",
+    "heads": 56,
+    "flash_lse": true,
+    "returned_shape": [
+      1,
+      87592,
+      7168
+    ]
+  },
+  "metadata": {
+    "text_len": 6960,
+    "context_shape": [
+      1,
+      6960,
+      5120
+    ],
+    "refs": [
+      {
+        "kind": "image",
+        "index": 0,
+        "latent_t": 1,
+        "latent_h": 76,
+        "latent_w": 50,
+        "latent_shape": [
+          1,
+          24,
+          1,
+          76,
+          50
+        ],
+        "frame_rows": 950,
+        "ref_audio_t": 0
+      },
+      {
+        "kind": "video",
+        "index": 1,
+        "latent_t": 42,
+        "latent_h": 46,
+        "latent_w": 82,
+        "latent_shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "frame_rows": 943,
+        "ref_audio_t": 0
+      }
+    ]
+  },
+  "validated_layout": {
+    "seq_len": 87592,
+    "segments": [
+      [
+        0,
+        6960,
+        "text"
+      ],
+      [
+        6960,
+        7910,
+        "ref_img"
+      ],
+      [
+        7910,
+        47516,
+        "ref_img"
+      ],
+      [
+        47516,
+        47986,
+        "audio"
+      ],
+      [
+        47986,
+        87592,
+        "video"
+      ]
+    ],
+    "signature": [
+      6960,
+      42,
+      46,
+      82,
+      235
+    ],
+    "reference_index": 1,
+    "reference_kind": "video",
+    "reference_video_segment": [
+      7910,
+      47516
+    ],
+    "reference_image_segments": [
+      [
+        6960,
+        7910
+      ]
+    ],
+    "target_video_segment": [
+      47986,
+      87592
+    ],
+    "latent_interval_half_open": [
+      14,
+      20
+    ],
+    "pixel_interval_inclusive": [
+      50,
+      65
+    ],
+    "position_bin_coverage_inclusive": [
+      47,
+      67
+    ],
+    "key_interval_half_open": [
+      21112,
+      26770
+    ],
+    "query_interval_half_open": [
+      61188,
+      66846
+    ],
+    "key_first_time_coordinate": 7039.333333333333,
+    "query_first_time_coordinate": 7274.333333333333,
+    "frame_rows": 943
+  },
+  "distinction": "attention inner56*128=7168 differs from residual/final head hidden5376"
+}

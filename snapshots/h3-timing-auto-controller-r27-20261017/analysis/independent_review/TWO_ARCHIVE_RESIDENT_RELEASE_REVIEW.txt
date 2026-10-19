@@ -1,0 +1,13 @@
+R27 two-archive resident release review
+
+Verdict: PASS for exact-owner direct stop with queue unchanged, preserving the resulting administrative controller exit.
+
+Both local RUN_GATE files passed for owner PID14216; both original FILE_INVENTORY records bind the same queue SHA and service record SHA. They contain configs/queue.json and processes/service.json, but exclude controller_state, cleanup and supervisor exit records.
+
+The single root_release_request gate cannot simultaneously match two different archive RUN_GATE paths. Keeping queue bytes unchanged avoids this exception: verify_source_archive returns as soon as all original source hashes still match. service.stop(expected_record=the complete frozen original owner) changes cleanup files, signals only the identity-checked own parent, and verifies its registered descendants/compute. It does not edit the queue, service registry, success history or outputs.
+
+The resident controller will detect the absent parent at its next loop, write status=failed with the completed job list, rethrow and repeat exact-owner cleanup in finally. This is an expected administrative exit after successful jobs. snapshot classifies each job from actual success history/job and complete inventory before considering terminal incompleteness, so both completed jobs remain success_files_present. bound accepts an absent original PID and retains exact registry binding. The supervisor records the real child exit; the watchdog naturally exits after parent disappearance.
+
+Recommended root procedure: retain both gate paths/hashes and unchanged queue SHA in a separate release journal; verify both jobs successful and no pending observer; call the existing stop function with the frozen owner; wait for exact parent/children compute absence and original controller/supervisor/watchdog exit; preserve the actual controller error and final cleanup. Do not rewrite controller status or restart the same R27 registry. Cleanup may be written twice by the explicit stop and controller finally; atomic per-PID temporary writes keep the JSON intact, while timestamps legitimately differ.
+
+This review performed no process operation, SSH, GPU action, consumer execution, or numerical computation. Full hashes and original archive bindings are in the companion JSON.

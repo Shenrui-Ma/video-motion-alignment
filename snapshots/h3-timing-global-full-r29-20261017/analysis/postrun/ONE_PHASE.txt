@@ -1,0 +1,10 @@
+Root scheduling addendum: prefer the bounded one_phase.py entry. Do not launch the optional consume.py resident driver while R27 coordinator49078 is active.
+
+Command (only after final review and exact root BINDING):
+PYTHONDONTWRITEBYTECODE=1 python3 /Users/researcher/DevProjects/h3-timing-global-full-r29-20261017/analysis/postrun/one_phase.py --execute
+
+Without --execute it performs no setup or remote request. Each invocation has no waiting loop and runs at most one archive/case/finalize phase; status/complete may verify existing results. Busy locks or incomplete/stabilizing producer states return immediately. Root can call again at a suitable time. The first successful snapshot registers60s stability; subsequent calls must observe the same file token.
+
+It shares unique_consumer.lock with the optional R29 resident coordinator and the same Mac→remote global CPU locks with R27. A pending R27/R28 online pose also blocks the remote phase. It never stops or changes coordinator49078. Each phase log is retained, uncertain failures require explicit review, and root retains sole process/GPU/release ownership.
+
+Each invocation performs small postrun-only source synchronization. CPU-intensive status/hash/archive/pose/media work occurs only while the Mac lock is held; server functions acquire the remote lock nonblocking. Work may delay a later online request until the current bounded phase ends, but it cannot run concurrently with it under the shared lock. No claim of preemptive cancellation is made.

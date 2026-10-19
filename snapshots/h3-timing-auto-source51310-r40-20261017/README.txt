@@ -1,0 +1,1 @@
+R40 source51310/Sam seed2026101701 automatic controller case transfer. Root controls GPU launch. Same frozen R27/R32/R35 method, no manual action window. Physical_index in legacy audit means denoising index, not a video-frame time.

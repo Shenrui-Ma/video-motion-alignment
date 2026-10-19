@@ -1,0 +1,18 @@
+R31 supplementary leg evaluation — independent bounded review
+Verdict: CONDITIONAL PASS for supplementary evaluation. No producer/GPU blocker found.
+
+Reviewed frozen current files and source hashes; no model, pose, GPU, or tests rerun. FREEZE and all four listed entries match. The 10-test log is actual prior CPU evidence, not a new run by this reviewer.
+
+COCO17 chains are correct: left hip11–knee13–ankle15 and right hip12–knee14–ankle16. Unit direction features use raw2D coordinates and per-bone minimum confidence; uniform scale/translation cancel. No mirror/rotation alignment is added. The parent metric module and input arm arrays are unchanged. The leg aliases deliberately enter the frozen arm-direction estimator interface; output anatomical_feature preserves that these are legs.
+
+49 signed lags, nearest physical-time pairing, coverage>=.8, at least8 frames, same-frame coverage, unconstrained-basin coverage, distant-basin ambiguity, residual>.5 and search-boundary rules are inherited unchanged. Positive lag means edited later. Two confidence estimates must agree within2 frames, and UNKNOWN is preserved. Missing torso anchors retain the frozen loader's conservative UNKNOWN even if a leg alone might be visible; this is a sensitivity limit, not evidence of absent motion.
+
+Common support is correctly the intersection over source and every output; all compared outputs use the same minimum clipped-confidence weight on each surviving joint-frame. This is equal weighting across compared arms of the experiment, NOT uniform unit weight across joints or frames. Existing single-target test verifies zeros from missing knees and .7 weights. Multi-target order invariance/asymmetric-missingness is not yet directly tested.
+
+Conditions before actual reported use:
+1. An outer immutable intake must verify source/target pose/video hashes, original detector/weights/person selection, 141 frames, fps24 and time_s=i/24. compare() only asserts frame indices; it does not itself validate fps/timestamps or raw provenance. The source-event file SHA is correct now, but the function does not read/reverify it during each comparison. These checks may remain outside numerical code, provided the actual report binds their evidence.
+2. Keep tail observability explicit. In window116..132 a +8 shift still has full observed support; +9..11 lose1..3 of17 source frames, while the old>=.8 rule can still accept14/17. +12 loses4 and fails that coverage threshold. This explains a censoring limit, not a special new threshold. A reliable interior match cannot rule out the true event occurring after the clip. Do not infer zero delay or absence of a kick from late-window UNKNOWN. Preserve full49-lag curves/coverage and fixed visual evidence.
+
+Useful small regression additions before interpreting actual legs: known positive delay beyond clip tail should retain UNKNOWN/unsupported truth; constant or repeated leg direction should be ambiguous; two output poses with different missing joints should have identical shared weights under target-order swap. Current tests establish sign, translation/scale invariance, missing-leg/zero-bone rejection, frozen module,141-frame scan grid and one-target integration. The missing tests need not delay R31 generation, and they do not justify changing frozen thresholds.
+
+Scope: prospective source-only supplemental geometry, four stated physical windows plus186 overlapping rows. This is not a kick semantic classifier, depth-motion estimator, calibrated probability, or186 independent cases. Existing arm protocol remains primary; no controller change is introduced.

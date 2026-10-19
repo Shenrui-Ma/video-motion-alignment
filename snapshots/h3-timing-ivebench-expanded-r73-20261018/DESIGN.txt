@@ -1,0 +1,17 @@
+R73：新增五条 IVEBench 官方短片，CPU 生产包准备完成
+
+顺序：0252（人物替换）、0344（箱子颜色）、0065（砧板材质）、0135（机械臂）、0035（键盘灯色）。固定分母5，全部保留，包括后续失败/编辑未实现/动作不可测。
+选片只依据官方元数据与源视频，来自已冻结SELECTED_5_MANIFEST；10条Native/固定引导将按每源成对串行。
+
+输入继承R64：原始PTS最近邻24fps，等距离取较早帧；保留完整官方短片，末帧补齐17k+5。1280x720内容加16/8黑边得到1312x736；评测去掉这些边及末尾padding。输入无音频；内部联合音频沿同一图。
+T/valid依次107/98、73/58、56/47、124/112、73/70。
+
+两边同seed2026101701、20Euler/20NFE、video/audio shift12/3、CFG1、原INT8/Qwen/VAEs、.9实际Comfy/runtime、原数值kernel。无Turbo、无online observer。
+固定引导沿当前已跑算子：alpha1、步骤index6..14、50层、覆盖有效物理帧的全部position bins；纯padding bins原生。Native使用同mask参数、mode=native。每对保存相同实际噪声/条件、前6步相等、20x0/输出证据。
+
+最终P1模板经root查看R71成片后批准：只将appearance edit改为中性requested edit，官方edit_prompt逐字保留，source/target context来自官方元数据。0252的elderly要求由明确edit_prompt优先；没有手工事件时间写入提示词。Root已确认R71 P1保留站姿、蓝幕和手势，批准该中性模板。
+生产包包含固定10条queue与首对review hold；GPU admission保持false，实际启动由root负责。输入计划中的pending标签是预处理当时的历史状态，当前prompt决定以design/PROMPT_DECISION.json为准。
+
+准备运行目标：.9 GPU3 UUID GPU-REDACTED / port8541，normal reserve8；actual free、健康、own<=2和首次大形状容量由root实测。原R71运行时/数值文件保留SHA依据。首条T107不能替代T124的容量证据。
+
+评估：官方MF加任务编辑实现、接触事件与时间顺序人工检查。0135机械臂与源手不适用同构人体关节假设；0344/0065/0035身体观察器可返回UNKNOWN，仍保留在固定5条结果中。

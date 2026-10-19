@@ -1,0 +1,42 @@
+R96 CPU 媒体消费者（已冻结）
+
+本机：/Users/researcher/DevProjects/h3-ive-native-screen-metrics-r96-20261018
+Producer：/Users/researcher/DevProjects/h3-timing-ive-native-screen-r96-20261018
+远端：H3_SERVER_B（direct SSH），/data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018
+运行身份：UID1004，GPU2 / port8560；最终 runtime 与 seal 由 configs/contract.json 精确绑定。
+
+1. 普通编辑完成后
+生产端真实 NATIVE_RUNTIME_GATE.json 通过，root 调用下面的一次性命令。
+
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_native.py --source long_0047 --attempt ACTUAL_ROOT_ATTEMPT
+
+输出：incoming/<source> 实际 gate、job/history、graph、视频和小型绑定 JSON；
+showcase/<source>/source_native_full_valid.mp4，6_times.jpg、12_times.jpg，单文件 HTML 默认保存 Downloads。
+仅 source / Native 两栏。root 看结果决定 guide 或 skip，消费者没有提交队列或做决定的代码。
+
+2. 同源引导完成后
+生产端真实 PAIR_RUNTIME_GATE.json 通过，再调用：
+
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_pair.py --source long_0047 --attempt ACTUAL_ROOT_ATTEMPT
+
+输出：incoming_pairs/<source>，showcase_pairs/<source>/source_native_guided_full_valid.mp4；
+完整有效帧三栏：参考视频、普通编辑、固定时序引导。黑色底部 caption，统一1280×720画面，每栏相同原帧时刻。
+6/12固定时刻图和单文件HTML同样内嵌；Native预览保留。
+
+五源顺序：long_0047, long_0123, long_0167, long_0173, long_0174。
+有效帧 / 总帧：97/107, 144/158, 144/158, 145/158, 145/158；24fps，crop=16,8,1280,720。
+这些是 IVEBench 长视频派生片段。5个源全部保留在合同中，skip也由生产台账记录。
+
+真实证据门
+- 绑定 root STARTED 中 owner/controller/unix 和实际 service.json 的 PID、UID、start_ticks、cmdline；精确核最终 producer/runtime/scientific contract 的 SHA。
+- Native gate 要求实际20步、0次路由和所有实际检查成功；配对 gate 额外要求450次路由、实际条件/noise一致、前6步 video/audio x0 逐位一致。
+- 两个实际 job/history/graph/输出SHA对应各自run；已展示的Native与后续pair的Native必须同一文件和原始证据。
+- 收集小型JSON与成片，PT留在远端。所有输出帧的PTS和帧数在渲染前检查。
+- 未到 gate 返回 PENDING_GATE；命令退出3，root稍后再次调用。相同实际证据重复调用复用本地成品。
+- 新旧服务身份不同或任何绑定改变即拒绝，需独立恢复收据。
+
+CPU验证
+python -m unittest discover -s tests -v
+已有45项测试通过。synthetic_media_fixture与synthetic_paired_media_fixture验证2/3列、18/20有效帧、实际PTS、原列颜色顺序、黑色底栏。纯色测试不进入incoming或实验统计。
+最终 producer seal 4a92c38b97bb420ef09816a3c0e90a8d41ada9bfa2a3fd5bec4e9517c800c87a；consumer freeze 085e8541d5dc07123f8e98f56e07597b675df11f6d9aeb07a2b306d463c828ea。冻结后45项CPU测试再次通过，direct .41的最终seal/runtime/scientific contract逐项SHA一致。FINAL_PREPARATION.json保留验证收据。
+本消费者没有 watcher、GPU/模型加载、API队列提交或 producer verifier 调用。

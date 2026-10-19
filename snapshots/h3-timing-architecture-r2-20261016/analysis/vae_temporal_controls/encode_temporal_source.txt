@@ -1,0 +1,14 @@
+def encode_temporal(self, x, device):
+        # chunked input io: x may live on the CPU, clips move to the device as they encode
+        z_list = []
+        for i in range(math.ceil(x.shape[2] / self.clip_length)):
+            clip_x = x[:, :, i * self.clip_length:(i + 1) * self.clip_length, :, :].to(device)
+            if clip_x.shape[2] < self.clip_length:
+                pad_frames = clip_x[:, :, -1:].repeat(1, 1, self.clip_length - clip_x.shape[2], 1, 1)
+                clip_x = torch.cat([clip_x, pad_frames], dim=2)
+            z_list.append(self._adaptive_encode(self._normalize_pixels(clip_x)))
+
+        z = torch.cat(z_list, dim=2)
+        if self.token_drop > 0:
+            z = z[:, :, :-self.token_drop]
+        return z

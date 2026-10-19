@@ -1,0 +1,8 @@
+R79 prompt protocol P1-local-v1
+Official source: https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/skills/h3-prompt-writing/references/ref-en.txt
+Local frozen copy: design/official_ref-en.txt, SHA256 1e574f356716ad55612247ffb7bbccbcdb484ad96599d63c7dca1af186b1fab7.
+The inherited R73/R76 P1 has six English sections, correct video-editing summary and Video1 editing source role. Guide2.3 says reusable visible content also belongs under Subject labels; guide4 specifies preservation markers; guide5.1 specifies Shot1 opening.
+R79 adds Subject1 for unedited content and Subject2 for the content named by the original requested edit, explicit fully_preserved/partially_preserved roles and Shot1. Both selected full source clips show a continuous shot. This is a prompt-protocol revision; the fixed routing mechanism is unchanged and both arms receive identical text.
+All official source_prompt, edit_prompt, target_prompt remain verbatim. The guide recommends detailed shot descriptions; we retain the dataset caption rather than inventing camera or action details. Metadata wording (0144 clapping/high-fiving) is not a frame-level ground truth; source-visible fist contact will be evaluated separately.
+No source audio is supplied to H3. The video stream is prepared with -an, so there is no Audio1 or audio-reuse task claim.
+The two cases remain in the denominator even if editing fails. Task fidelity, unedited content and action content are reviewed before timing. Legitimate billboard/animal/branch occlusion is recorded separately.

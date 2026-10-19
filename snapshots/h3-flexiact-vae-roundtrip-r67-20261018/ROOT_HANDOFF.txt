@@ -1,0 +1,39 @@
+R67 fitness clean-reference VAE roundtrip — ready for root GPU execution
+
+Remote package already passively deployed:
+/data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018
+Python: /home/researcher/miniconda3/envs/comfyui/bin/python
+Target: .9 GPU1 UUID GPU-REDACTED
+Source: actual R65 .41 fitness reference encode, not a regenerated VAE input.
+No GPU/model execution has been performed by this preparation agent.
+
+Root foreground command, after fresh capacity review:
+CUDA_VISIBLE_DEVICES=GPU-REDACTED /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/scripts/decode_reference.py --inputs /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/inputs/fitness --output /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/outputs/fitness_attempt1 --gpu-uuid GPU-REDACTED --execute
+
+The process checks GPU UUID dynamically, free >=16384 MiB, temperature<85C, own UID uses<=2 cards. Foreign processes/utilization are allowed. It does not start a server, has no diffusion model/NFE, and unloads its VAE before exiting. Parent independently verifies exact PID exit/GPU allocation after completion. A failure preserves RESULT.json; no automatic retry or shape/profile change.
+
+CPU preflight already passed on .9, torch2.5.1+cu121, PyAV16.0.1, CUDA uninitialized. All four actual core file SHAs plus full 5.2GB checkpoint SHA matched. 9 CPU tests passed on Mac and .9, including tensor identity/finiteness rejection, UUID/free-memory gates, busy-foreign-process admission, OOM fallback guard, and RGB lossless roundtrip.
+
+Expected outputs:
+outputs/fitness_attempt1/RESULT.json: success status, input/latent hashes, exact native decode time, peak allocated/reserved, fallback count and cleanup.
+reconstruction_158.mp4: full24fps result.
+reconstruction_valid147.mp4: original valid duration, terminal fill excluded.
+reconstruction_original49.mp4: actual frame indices0,3,...144 at8fps.
+All encode libx264rgb CRF0, native clamp/truncate RGB, each pixel checked after decode. No additional video compression distortion in the comparison. Input counterparts are inputs/fitness/prepared_*.mp4, exported from the actual captured preparedRGB tensor and verified lossless.
+
+After RESULT.json complete, CPU-only pose/timing command (about 2x80 seconds):
+CUDA_VISIBLE_DEVICES='' /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/scripts/evaluate_roundtrip.py --inputs /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/inputs/fitness --decoded /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/outputs/fitness_attempt1 --output /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/analysis/fitness_attempt1
+This fresh-tracks both preparedRGB and reconstruction with the same frozen CPU DWPose. Uses the existing original49 views, confidence0.3/0.5, all fixed windows and features from R26/R65. No frame-window adjustment after results. It outputs PHYSICAL.json and full158 raw pose. Parent may run this once GPU process exits or assign it back to this agent.
+
+Normalization evidence:
+H3EventAudit.VAEProxy.encode records native.encode(frames) return unchanged (audit/source_code/H3EventAudit.py:93-101).
+Actual native H3 reference builder takes z=vae.encode(frames) and assigns ref latent directly (nodes_minimax_h3.py:343-349; hash in contract).
+MiniMaxH3VideoVAE.encode returns (mean-latents_mean)/latents_std (h3_vae.py:685-689).
+MiniMaxH3VideoVAE.decode performs z*latents_std+latents_mean (698-702).
+Therefore decoder feeds the saved raw VAE.encode result directly into comfy.sd.VAE.decode. No manual mean/std or model process_latent_out; doing that again would double-normalize. Comfy model latent scale is1 forvideo. No audio in this diagnostic.
+
+Memory evidence:
+Prior same-shape .9 full1581152x768 native VAE decode measured max_reserved5981077504 bytes (5.57GiB), allocated5736780288; native internal tiling, zero wrapper fallback. Exact evidence audit/source_code/full158_split_gate.json and decoder_memory_profile.json. The 16GiB gate is conservative empirical headroom, not a mathematically guaranteed upper bound. Current cross-user free memory can change; native OOM is recorded, fallback is forbidden, parent handles capacity change.
+
+Scope:
+Actual clean latent was encoded on .41 Torch2.11 and is decoded on .9 Torch2.5.1; four core SHAs/checkpoint match. Report this cross-runtime decode explicitly. Small reconstruction artifacts cannot automatically be assigned to a unique stage. This establishes whether this exact stored reference representation supports the action under the existing decoder. A0-lag result narrows the cause to later generation/conditioning but does not isolate one Attention mechanism. R66 source1 is a future same-shape input reuse, not executed or added here.

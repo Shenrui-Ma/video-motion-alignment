@@ -1,0 +1,16 @@
+v3真实63端点适配：准备完成
+2026-10-17
+
+新目录phase_shape_profile_execution_v3，原冻结v1/v2/v3科学代码与旧结果保持。14项适配正确性测试通过，真实68pose文件hash与141帧/24fps/0-based时间网格检查通过，63个目标和顺序保持。首个真实端点在v1计算后因v2冷启动导入路径缺失退出；没有RESULT/COMPLETE提交。失败保留，后续真实评分仍需新封版授权。
+
+输入转换直接调用封存execution_v1的load/from_features，保留.3/.5独立输入、有限>1原置信度、原关节非有限拒判与唯一已知缺躯干异常。三个核用私有实例的threshold-grid代理调用；每次相同转换结果供v1/v2/v3使用。v2与v3只差选择器。
+
+实际执行计划：每个target调用一个有界共享锁phase，三版并列留证，v2/v3全部evidence数组及候选counts必须一致，v1 K/parts/selected必须复现封存历史RESULT。一次target产生RESULT、EVIDENCE、COMPLETE，63目标累计189产物；finalize保存各版K/窗口/共同支持名义骨槽和计时。全部原身份/授权literal boolean/原子提交保护保留，新增三版输出集合与未解决安全性标记检查。
+
+14测试覆盖：真实转换器合成输入、独立阈值缺失、+Inf原关节、有限>1置信度、错误JSON、finite时间网格、授权严格True和target范围、无授权拒绝、提交前SHA变化拒绝、交换marker和输入身份拒绝、直接v3核等价、三版合成对照与v2/v3候选全数组等价、方法版本/安全性字段。seal001首真实target失败后，显式加入v2模块路径，新增独立冷进程v1→v2→v3调用顺序及same-evidence回归测试。全部14项通过，phase2.765909708秒。68输入metadata重新通过。首次测试BUSY75和首target技术失败完整保留。
+
+全部真实数据为开发诊断集。3条历史受旧控制轨迹+3项final-only、source07只有final压力测试，不能作独立泛化准确率/FPR。v3遮挡孤立反向候选安全性FAIL已绑定，当前不具备上线准入。这里完成封存供独立审查；实际target/finalize必须root新授权绑定本目录FREEZE、v3 CODE/PROTOCOL、原INPUTS SHA和63个目标。
+
+修订2的唯一兼容改动为显式添加冻结v2目录到模块搜索路径；旧seal001、root授权/审查和原封存10文件复制保存于prior_seal001，原失败收据保持在audit。未更改科学核、公式、阈值、输入、原43合成结果或运行顺序。
+
+修订3：首端点只读差异审计确认K和selected原本严格一致，parts差异全部是旧JSON的NaN/Inf→null表示；采用原clean后K/parts/selected完整结构逐值全部一致。只把历史验收封装为validate_historical_v1并沿用原clean。新增1项回归验证缺测表示相等，有限浮点1e−12差异、额外字段、嵌套结构和K变化仍严格拒绝。未改任何数值公式或容差。旧14测试绑定seal002并保持，新增测试绑定当前源码。seal002、授权、两次真实失败完整保留；当前无成功端点提交。

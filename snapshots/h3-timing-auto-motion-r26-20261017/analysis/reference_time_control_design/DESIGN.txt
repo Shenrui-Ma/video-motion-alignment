@@ -1,0 +1,65 @@
+固定 query、错位参考时间：最小机制对照设计
+2026-10-17；只写设计，未实现、未部署、未新增服务器/GPU任务。是否执行由root结合R34/R37/R38决定。
+
+结论与范围
+保留两个可比较的21NFE/20Euler完整轨迹：C在实际R27坏例index4，对query13..17读取reference13..17；W只把对应reference改为23..27。其余步骤Native。C是已知成功操作的静态重放，W是预固定+10bin负对照。历史Native可在完整绑定成立后复用；whole-reference在当前公式中等价Native，不再占一条实验。
+本试验可否证“正确物理时间对应是该次主窗修复的必要条件”。若W失败而C成功，只能先支持所读参考内容/位置的联合影响，尚不能隔离纯时间关系、RoPE距离或扰动强度。没有新方法/首创声明。
+
+1. 实际绑定与索引
+源05真人书记舞，Sam Altman，seed2026101311，1312×736，141帧24fps，87592 packed tokens。R27实际RUN_GATE通过；唯一ON为零起始去噪index4，代表物理窗44..59，querybins13..17。此次固定这个已观察的选择，不重新运行检测器或依据W的反馈改变后续schedule。
+42latent bins的名义span循环是[1,4,4,4,4]。13..17名义范围43..59，23..27为77..93：逐bin相位相同，整体名义+34RGB帧。这是位置分箱，不是VAE精确感受野；实际latent及contextualized V可包含其他时刻信息。
+R33既有对照为Q23..27→K/V23..27；新W为Q13..17→K/V23..27。因此R33测试干预位置，新W测试固定干预位置下的参考读取。它们不能互相替代。
+实际R33位置证据还给出：C的target−reference temporal coordinate=235；W约178.333333。原生RoPE坐标均保留，这个距离变化是设计内显式混杂。没有额外重旋转K/Q，也不把235预设为编码错误。
+
+2. 精确操作
+令q属于目标bin t∈{13,14,15,16,17}；每bin全部943空间行、全部原头、全部50blocks。
+A_R(q)=softmax(q K_R^T/sqrt(d))，R为完整reference-video组，不包括角色参考图。
+A_u(q)=softmax(q K_{R,u}^T/sqrt(d))，u单bin的943个空间keys。
+m_R(q)=exp(LSE_R(q)−LSE_all(q))。
+O_C(q)=O_native_local(q)+m_R(q)[A_t(q)V_{R,t}−A_R(q)V_R]。
+O_W(q)=O_native_local(q)+m_R(q)[A_{t+10}(q)V_{R,t+10}−A_R(q)V_R]。
+alpha=1，radius=0，V用完整值，其他query不直接改写。selected t+10均在0..41内，不wrap、不边界夹取。原实现完整42bin plan可能仍计算未写入行的边界夹取；不得将这些无效计算描述为selected集合发生wrap。
+每层的O_native_local/m_R指该分支当前Q/K/V下未路由的局部attention结果。两条分支自第一个修改层后hidden不同，故后续m_R也可不同。保相同组质量规则≠两支具有相同数值m_R，亦≠同修正向量范数。参考序列仍参加全模型其他交互；稀疏读取干预不是仅输入五个参考帧。
+
+3. 当前state的可复现门
+采用root确认的完整重放：同实际初始AV噪声、sigma序列、输入预处理、条件实体/签名、模型、量化和attention后端；Native0..3后在index4再算一次Native桥接，再从完全相同x4/sigma4/condition/RNG计算C或W。只用所选端点执行一次Euler。每臂20Native+1guided=21NFE，20update/20callback，1050blocks/50路由调用。
+R27原raw input4实体未保存，不能声称从旧PT直接分叉。R33 RUNTIME_GATE已经独立重载R27 Native0..4 AV并逐位一致、packed input签名一致；root另存R33 actual input4，可作为新增诊断实体。这个设计本轮没有读取大PT，只绑定其现成验收证据。
+未来必须保存两新臂actual raw input4，逐位核相互一致，并核R33实体与旧packed签名；Native0..4同旧档逐位；chosen0..3同旧档。C guided4及以后轨迹应复现R27成功轨迹。W干预后不同是预期，不把旧后续Native拿作same-state参考。若C不能复现，先报告工程/条件漂移，暂停用旧成功为W解释。
+观察器不参与此次选支，故无需新增20次pose/VAE在线开销。不得编造在线观测记录。遵循R33/R37的事务与无RNG改变接口，未来实现仍需独立审核。
+
+4. 最小对照和剂量问题
+必须：历史Native、当前C正对照、W错位参考。C/W均固定alpha1和50blocks，无结果驱动调参。
+Whole-ref没有新增信息：把A_u替换为A_R时，m_R(A_RV−A_RV)=0，精确数学上退化Native。额外提高whole-ref组质量会变成另一种增权实验，不属于本最小对照。
+先在C/W被动记录每层修正L2/RMS、m_R统计；最终同状态guided−Native的AV差、42个video bin能量、Euler实际系数。m_R相同规则不能排除W因更大扰动而损坏。端点范数也不等于pose收益。
+最小两臂已足够发现反例：W也可靠修复，则强时间必要性叙述不能保留。若C成功/W失败，建议先停止在“所选参考内容与坐标联合相关”的窄结论；要升级时间特异性，需另冻结范数与位置拆分控制，而非立即称因果证明。
+一个可预先定义、但本轮不排队的范数诊断是终端差分Δ_C与Δ_W，构造Native+rΔ_W，r=||Δ_C||/||Δ_W||，分别保留video/audio处理定义与零分母拒判。它匹配当步端点/Euler L2，却不匹配逐层方向、m_R和曲率，且已是额外输出算子；不能当alpha1的原W，也不能用看完画质后的r。更完整的C/W双向降到min范数会增加两臂，当前不建议先做。若只记录范数相近，也不能声称已完成随机化剂量控制。
+
+5. 防止“错误时间其实同一动作”
+在执行前，仅用现有source.pose和源视频比较固定source43..59与77..93：逐帧f↔f+34的左/右/双臂骨方向、腕轨迹、相邻有符号运动以及可靠覆盖；同时保留连续源上下文。沿用原.3/.5可见性和数值规则，不新增可调阈值，不看生成结果选动作。
+本设计没有执行该数值检查或确认两段必然不同。若它们重复相同姿势、运动顺序也相似，或支持不足，标记ALIAS_RISK/UNKNOWN；+10仍不改变。届时W只能叫预定错位地址，不能说输入了明确不同的运动内容。静止一帧不同不够证明完整动作不同；不同一帧也不意味着V特征完全不同。+10保持编码分块相位，减少一个已知混杂，不能消除全局上下文和RoPE混杂。
+
+6. 判读与可推翻结果
+评估沿R27封存流程：原主窗50..65、外窗69..81/80..92/99..111；两confidence、方向/腕与左右臂、49lag曲线、共同支持、残差与歧义拒判；186条全时间扫描全部保留。固定0/55/86/105/140及全141同帧视频，盲审身份/背景/重影/动作幅度。旧主窗是开发终点，不冒称独立测试集。
+若C复现且W可靠主窗也在±2，正确参考物理时间不是这次主窗修复的必要条件。即使W画质较差，这个时序必要性反例仍成立；画质代价另报。若仅一个描述符可判，其结论只限该描述符。
+若C通过、W可靠不通过，支持此操作对参考选择敏感；先不能排除强度、位置坐标或参考动作内容差异。若W为UNKNOWN/形变破坏，不把测量失败写成确定时延。
+若C/W主窗均改善但外窗不同，拒绝“全片相位锁定”概括；报告具体多事件结果。只有形状/顺序与source+34一致，才能讨论错时内容迁移，单一lag极小值不能证明。
+两条生成不是统计等价检验。若结果不稳定，不追改偏移寻找可讲故事的负例。
+
+7. 最近先例与本试验差分（沿既有已核原文/代码，不另宣称穷尽）
+Wan-Animate-2：官方模型q_frame==kv_frame的reference mask已明确同帧路由；本试验不是发明这一原语，而是在frozen H3的一次干预中测试它是否必要。
+https://arxiv.org/html/2608.06009v2#S3
+https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L581
+DIAL：§3.3对参考attention logits加logγ与空间引导；参考内容强化已有。当前保组质量/固定时间子集控制不自动构成新机制，错误时间对照只是区分内容对应和泛条件扰动的实验。
+https://arxiv.org/html/2609.11507v1#S3.SS3
+Frame Guidance：§4.2/Fig4c已直接研究少帧早期指导向全视频传播。源码对稀疏帧loss反传至全latent。故R33的少量query影响远时刻不是独有现象；本对照只问它是否依赖被读参考的正确时间。
+https://arxiv.org/html/2506.07177v2#S4.SS2
+https://github.com/agwmon/frame-guidance/blob/e9719c0bcec45800932099b25ac8d7e8ce5b9210/pipelines/pipeline_wan_i2v.py#L620
+TokenFlow：§4关键帧feature按原视频对应向整段传播，稀疏锚点/时间一致性一般思想已有。H3这里不显式NN传播，不足以因此称新。
+https://arxiv.org/html/2307.10373v1#S4
+https://github.com/omerbt/TokenFlow/blob/5dd6a696277e9d18c23adc034dc4c052ccd64cb5/tokenflow_utils.py#L325
+PhaseLock：早期低步全序列motion prior及后续差分保持已存在；Fourier phase不等于本文动作物理lag。不能把一次早期锚点效果直接命名为新phase locking算法。
+https://arxiv.org/html/2606.06361v1#S4
+我们历史offset±4bin已经做过不同schedule的参考错时研究；它不能替代当前same-state/index4/同query的必要性对照，也不应从历史失败中挑偏移。本轮+10由root事先给定并冻结。
+
+交接
+PROTOCOL.json为可机读设计；SOURCE_BINDING.json为本次实际读取的小文件SHA；FREEZE.json仅锁设计产物，不是GPU执行许可。所有新文件位于本目录。源姿态别名检查、未来实现与CPU/GPU验收均未执行。root收到当前四组结果后决定是否值得开展。

@@ -1,0 +1,1 @@
+R41 prepared manual physical span56..127, prior fixeddenoise6..14; same-state Native+Full29NFE20Euler. Root GPU permission required. No online observer. Actual87361 source51310 with nominal bins17..37.

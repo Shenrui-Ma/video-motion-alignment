@@ -1,0 +1,19 @@
+R26三新源 Native 完成验收
+
+三条生成均通过实际条件/噪声、21端点、20NFE/1000 blocks/0路由、141帧24fps几何时基与逐文件SHA门。A/B批门及跨源同seed真实噪声相等均PASS。接收器PID31226正常exit0，自己的CPU锁已释放。
+
+全片扫描（每条186重叠部位窗，非独立样本）：
+40372: {'delayed_candidate': 97, 'advanced_candidate': 11, 'aligned': 14, 'unknown': 64}；GPU job observed 1566.01s，20次端点保存 60.21s，pose 67.35s。
+51317: {'delayed_candidate': 0, 'advanced_candidate': 0, 'aligned': 86, 'unknown': 100}；GPU job observed 1565.61s，20次端点保存 59.60s，pose 76.42s。
+51304: {'delayed_candidate': 54, 'advanced_candidate': 0, 'aligned': 25, 'unknown': 107}；GPU job observed 1525.49s，20次端点保存 62.95s，pose 79.85s。
+
+40372和51304在固定图存在明显动作姿态不一致；40372额外+13诊断后仍有形状残差，51304多窗最优触及+24边界。二者不可概括成全片恒定纯延后。51317固定图主要阶段对应，可判扫描近同步，100 UNKNOWN以及强透视/遮挡边界仍保留。
+
+B源消费曾因root行政finalize变化失败；v1完整保留，v2经独立复审和真实逐SHA恢复，未重跑pose/推理。A随后同一窄例外正常通过。详情ADMIN_RECOVERY_REPORT.txt。
+
+总展示：/Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/media/index.html
+40372: /Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/media/40372/index.html
+51317: /Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/media/51317/index.html
+51304: /Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/media/51304/index.html
+
+自动控制、改进收益与跨新源泛化尚未由本Native筛查验证。完整测量和证据SHA见FINAL_SUMMARY.json。

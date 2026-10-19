@@ -1,0 +1,17 @@
+R13 retry2 独立失败验收
+
+结论：在第一个 n6→m7 replay_full 原生预测的 final_layer PDD pre-hook 失败；没有完成任何 clean endpoint。已完成的 50 个 DiT blocks 不等于一条可用预测。错误：ValueError：expected H3 PDD head bank
+.
+
+失败点位于实际归档 extensions/H3OneStepForkAudit/__init__.py 第67–68行：用 video_out.weight.shape[0] // video_out.out_features 判断 bank>1。实际运行没有记录 weight shape，不能从本次日志补造其数值。builder 正在核对真实接口，审查者未改实现。
+
+已通过：n6 的 Full Euler next-input 重建与 R10 原输入完全一致；两份 raw next-input .pt 的 SHA、packed/stream 签名、形状、metadata 与有限值检查通过。预期完整12个pt，实际仅2个；它们不是预测输出。
+
+成本：prompt 用时 173.400s；服务存活 189.804s；一个50块 DiT 遍历已发生。没有完成预测，故模型端点/observer归档独立计时不可得，不能按零成本报告。
+
+资源：cleanup_22793.json 精确绑定原 service，process_absent 和 own_compute_absent 均 true；复核22793/22790/23635/23634均不存在；当时GPU2 8MiB、0%，无compute。该状态为R12后续VAE-only解码前的快照，不保证后来仍空闲。未启动或重启任何GPU任务。
+
+归档：/Users/researcher/DevProjects/h3-timing-one-step-fork-r13-20261016/audit/attempt2_failed_pdd/failure_evidence.tar.gz
+SHA256 d286ad4158c40132e11a87df3ec2ccb3851a5a1695f4fecec2a6c83bc838ad52，59139 bytes，30份取回文件另有SHA清单。大pt留remote，文件哈希和CPU检查记录本地 cpu_inventory.stdout.json。
+
+科学边界：本次不能判断 native/Full 一步修正是否留存，不能执行 n10→R12 native11 桥接；没有运行要求完整结果的 verify_fork.py。n6重建门通过不代表PDD或endpoint复现通过。旧失败日志/当前实际源码快照均保留。

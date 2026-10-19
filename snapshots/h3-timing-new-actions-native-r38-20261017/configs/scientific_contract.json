@@ -1,0 +1,145 @@
+{
+  "schema": "r38-two-new-sources-native-screen-v1",
+  "new_method_claim": false,
+  "seeds": [
+    2026101701
+  ],
+  "arms": [
+    "native"
+  ],
+  "case_order": [
+    "r38_source_51310_seed2026101701_native",
+    "r38_source_43210_seed2026101701_native"
+  ],
+  "cases": [
+    {
+      "source_id": "51310",
+      "parent_graph": "configs/parent/graph.json",
+      "parent_graph_sha256": "78b3f6c57609f2793eb4165ab0ce2332d3e38d4c89fb9117a678e63d2deb7a5b",
+      "parent_root": "/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a",
+      "parent_run": "r26_source_40372_seed2026101701_native",
+      "video": "source_51310_video.mp4",
+      "portrait": "source_51310_portrait.jpg",
+      "provenance": "source_51310_provenance.json",
+      "video_sha256": "e4e387f56fa7e0bfde67ee54817576b1a9df0d468cad68d0469f4ce8c8190a27",
+      "portrait_sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42",
+      "provenance_sha256": "6a5eec4174d1a4904c07ae92aa3ec3b9eeefe7d2ae79b9cd9a80918cde57af67",
+      "seed": 2026101701,
+      "run_id": "r38_source_51310_seed2026101701_native"
+    },
+    {
+      "source_id": "43210",
+      "parent_graph": "configs/parent/graph.json",
+      "parent_graph_sha256": "78b3f6c57609f2793eb4165ab0ce2332d3e38d4c89fb9117a678e63d2deb7a5b",
+      "parent_root": "/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a",
+      "parent_run": "r26_source_40372_seed2026101701_native",
+      "video": "source_43210_video.mp4",
+      "portrait": "source_43210_portrait.jpg",
+      "provenance": "source_43210_provenance.json",
+      "video_sha256": "95d8b33cb4d7d168905ab82a5543b8fb23df774bcc7cc8d529bfce742ca9d82d",
+      "portrait_sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42",
+      "provenance_sha256": "a6f54ef98c98128336bd41511617c3da37aa2f95b0160cfac79f3a597e2f10cd",
+      "seed": 2026101701,
+      "run_id": "r38_source_43210_seed2026101701_native"
+    }
+  ],
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24
+  },
+  "CFG": 1,
+  "sampler": "Euler20",
+  "no_Turbo": true,
+  "NFE_per_job": 20,
+  "callback_count": 20,
+  "blocks_per_job": 1000,
+  "routed_blocks_per_job": 0,
+  "captures": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "router": {
+    "mode": "native",
+    "physical_window_metadata_only": [
+      0,
+      140
+    ],
+    "window_not_used_for_intervention": true
+  },
+  "purpose": "Two preselected additional real-video sources; fixed one seed each; all outcomes retained",
+  "condition_scope": "Per-source actual Qwen/tag/dense reference/position/noise entities. Same seed and shape share random AV noise; source content and embeddings differ. No historical new-source prefix exists.",
+  "continuous": {
+    "retain_service_between_jobs": true,
+    "cache_none": false,
+    "idle_hold_seconds": 1800,
+    "max_service_seconds": 43200,
+    "job_timeout_seconds": 7200,
+    "root_final_close_releases": true,
+    "failure_releases_exact_owned": true
+  },
+  "single_CUDA_process": true,
+  "preCUDA_gate": true,
+  "source_event_annotations": "evaluation-only analysis/source_evidence, no graph/controller dependency",
+  "cost": "record20NFE/20callbacks/1000blocks/0routes; intermediate20 snapshot time and21files; final capture inside total wall",
+  "source_ids": [
+    "51310",
+    "43210"
+  ],
+  "evaluation": {
+    "fixed_windows": [
+      [
+        0,
+        31
+      ],
+      [
+        32,
+        63
+      ],
+      [
+        64,
+        95
+      ],
+      [
+        96,
+        127
+      ],
+      [
+        125,
+        140
+      ]
+    ],
+    "whole_scan": "Inherited186 correlated16/32frame windows stride4 plus tail, both confidence levels, preserveUNKNOWN",
+    "stills": [
+      0,
+      24,
+      48,
+      72,
+      96,
+      120,
+      140
+    ],
+    "video": "full141frames same-index source versus native",
+    "quality": "review action ordering, local timing and shape/identity artifacts separately; pose error is a candidate indicator",
+    "legs": "optional supplementary only; retain uncertainty"
+  }
+}

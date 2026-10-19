@@ -1,0 +1,29 @@
+本轮只核对 5 个主源。阅读日期 2026-10-17；方法比较为我们的解释。没有把检索不到当成不存在。
+
+1. Beyond Consistency: Preserving Temporal Structure in Zero-Shot Video Editing (TSPVE)
+https://arxiv.org/html/2606.08780v1
+定位：§4.1–4.4、Algorithm 1、§5.3。
+源 DIFT 相似度变化用于可变长分段；每段选组内相似度行和最大的锚点；围绕自注意力合并/还原 token，后期交替组合相邻段。已有自动分段与锚点概念。我们的候选改用参考与当前预测的部位相位差，分段后暂只产生观察证据。不能把“自动分段后指导编辑”概括成独有思想。
+
+2. AdaFlow: Efficient Long Video Editing via Adaptive Attention Slimming And Keyframe Selection
+https://arxiv.org/html/2502.05433v1
+定位：§4.1/Algorithm 1、§4.2–4.3、§5.2。
+DIFT 对应相似度的全局均值和局部窗口阈值决定分段；变化快处关键帧更密，按相似度缩减扩展自注意力 KV，再传播关键帧信息。窗口数量随内容变化已有先例。候选关注同部位在编辑前后的时间相位偏差，并以复杂度代价选择多个区间。该差别是否有价值要靠共同支持与正常轨迹检验。
+
+3. Killick, Fearnhead, Eckley: Optimal Detection of Changepoints With a Linear Computational Cost (PELT)
+https://arxiv.org/pdf/1101.1438
+定位：§2.2 的最优分段递推、§3 定理 3.1 和 3.2。
+目标是分段代价之和加变化点惩罚；动态规划精确求解，满足条件时可剪枝。平均线性成本依赖假设，最坏仍可平方。候选的区间 DP 属于这一类既有优化工具；本轮不使用尚未验证的剪枝条件，也不把 DP 当创新。
+
+4. Davis, Lee, Rodriguez-Yam: Structural Break Estimation for Nonstationary Time Series Models (Auto-PARM)
+作者托管原文：https://www-stat.ucdavis.edu/~tcmlee/PDFfiles/2006jasa.pdf
+DOI：https://doi.org/10.1198/016214505000000745
+定位：§2，尤其式 (5)；§3；§2.2 的一致性范围。
+分段 AR 模型用模型码长和残差码长选择边界、段数、AR 阶数，再用遗传算法搜索。其残差概率模型处理时间依赖。本文已证明部分一致性结论，原文明确未知段数的一般一致性并未证明。候选的有界对比没有相应似然，宜称 MDL 启发的结构惩罚，不能直接沿用该文统计保证。
+
+5. Dwibedi et al.: Temporal Cycle-Consistency Learning (TCC), CVPR 2019
+https://arxiv.org/pdf/1904.07846
+定位：§3.1–3.4、§4。
+训练逐帧嵌入，在跨视频软最近邻匹配后循环返回原时刻；分类损失或带方差正则的时间回归损失学习动作相位对应。已有细粒度时间对应和相位表达。候选使用固定 pose，诊断当前生成预测的相位区间；时间对齐和相位一致性自身不构成区别。
+
+审查范围：这 5 篇覆盖本候选直接借用的编辑分段、分段优化、相关序列与动作相位工具。DIAL、MotionEcho、FlowMotion 等已有干预器比较沿用主任务资料；本轮没有添加执行器，因此不扩展其新颖性论断。若 CPU 检验有明确收益，下一步应围绕“带缺失和容忍区间的局部时延分段/序列配准”继续核对直接算法近邻。

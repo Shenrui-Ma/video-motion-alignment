@@ -1,0 +1,237 @@
+H3 同一次推理中的局部 pose → reference-phase 在线反馈可行性
+2026-10-16；只读设计。没有修改任何冻结扩展/active runtime/图/队列，没有模型加载、GPU调用、远端写入或新依赖。
+
+结论与实施前置门
+
+若已排队的 s05_full_seed1_phase_minus12_late11_x0 证明 calls11–19 中的 delta=-12 仍有可用控制效果，
+可以做一个有界的、同一次采样中的单次观测反馈原型：在 callback010 同步暂停，解码本次 x0 估计，
+使用冻结局部 pose 观察器检测可靠正延后，然后只对 calls11–19 启用既有 reference-only PhaseRoPE。
+第一版只用 {OFF, ON(delta=-12, alpha=1)} 两档，不把估计的 +13 帧直接换成 delta=-13，也不同时调幅度/层/窗口。
+
+这是可行性设计，不是已经实现的 controller，也不是新 backbone 架构。单次观察后锁存至结束是一次有因果依赖的在线决策，
+但还不是反复“看见偏差→开→看见恢复→停”的闭环。第二次观察/提前停止需要单独的后续实验，不能把它偷加进第一版。
+
+先按 configs/phase_minus12_late11_protocol.json 验收静态 late11：
+  因果门：actual conditioning/noise 相同，x0_step005/010 的视频和音频与 native 逐位一致。
+  完整效果门：0.3/0.5两阈值可靠lag均在±2帧，形状/support与编辑质量过门。
+  部分效果门：两阈值相对native+13均至少减少4帧，并降低同帧误差，形状/support与编辑质量过门。
+  无效果/观察未知：不实装此在线phase分支；unknown和真实无改善分开记录。
+仅“全步delta=-12得到+3/+3、全步+12仍+13/+13”不能证明step010后仍可纠正；因此必须等待late11。
+当前选择-12来自discovery结果，不是盲选先验。即便late11过门，也需明确这组是执行器校准，不算独立泛化。
+
+1. 同步时序：观察到底发生在何时
+
+冻结Euler20（无churn、BasicGuider单次正条件预测）在zero-based i执行：
+  x0_i = model(x_i, sigma_i)                 完成50个H3 blocks
+  d_i = (x_i - x0_i) / sigma_i
+  callback(i, x0_i, x_i, total_steps=20)
+  x_(i+1) = x_i + d_i * (sigma_(i+1)-sigma_i)
+因此callback010已经做完第11次模型调用，但尚未完成该次Euler更新。刚决定的校正不能改变x0_10/d_10，
+最早只能影响call11；还有9次模型调用11…19，不能写成“影响step10”或“剩10步”。
+暂停期间Euler状态保留在主进程；worker只读副本，不重算本步、不回写x/x0、不改变dt、不增加DiT NFE。
+观察+VAE/pose成本单独计；NFE仍20并不等于总成本与原生相同。
+
+真实sigma而非调用次数想象：
+  call10: sigma_video=0.9230769277，video clean-time t=0.0769230723；sigma_audio约0.75。
+  call11: sigma_video=0.9075630307，video clean-time t=0.0924369693；sigma_audio约0.7105263。
+manual sigmas已经是shift12视频网格；MiniMaxH3SigmaShift(12,3)没有再次shift视频。
+9次后续调用覆盖约90.756%的数值video-sigma跨度，不能把它说成低噪声末期、信息只剩微调。
+x0是此噪声状态下的clean-latent预测；其能被看懂不表示x_i已经干净，也不保证动作结构还可改。
+物理视频帧50–65、latent位置bin、RoPE位置、上述去噪sigma是四种不同索引，不混用。
+
+2. 最小源码接入点与复用边界
+
+A. 新建独立staged节点（建议名 H3OnlinePhaseFeedback），接未打attention补丁的shifted模型、positive、
+   固定源pose/protocol、明确用户保留窗口50–65、run_id及observer worker endpoint。
+   在节点apply里只clone一次模型，创建一个独享FeedbackState，供wrapper和50个block patch共同引用。
+   若已有H3TemporalRouter/H3PhaseRoPE或其他dit block替换/optimized_attention_override，直接拒绝叠加。
+   不在线修改既有 PhaseState 或 recorder core；它们是已验证基线，必须保持字节冻结。
+
+B. 复用 extensions_staged/H3X0Readout/core.py:72 的split_streams、tensor_signature、atomic_write及严格状态校验；
+   在新的 SAMPLER_SAMPLE wrapper中复用 core.py:97 的executor签名：
+     (executor, model_wrap, sigmas, extra_args, callback, noise,
+      latent_image=None, denoise_mask=None, disable_pbar=False)
+   原样调用executor(model_wrap, sigmas, extra_args, new_callback, noise, latent_image, denoise_mask, disable_pbar)。
+   不调用executor.execute递归，不重写callback输入。原callback每个step恰好调用一次，参数对象/顺序保持。
+   model_wrap.inner_model 是实际latent_shapes/process_latent_out来源；不能错误使用外层guider对象。
+   只在step==10做观察；0…9及11…19仅保留原callback/审计语义。
+
+C. 复用 extensions_staged/H3PhaseRoPE/core.py:62 phase_attention，以及 audited Flash、layout验证和PhaseBlockPatch的顺序守卫。
+   当前PhaseState.selected只按构造时的step范围；新控制器需要“本次forward锁存的决策”，不是改一个外部dict期待采样读取。
+   ModelPatcher及sampling会克隆model_options容器，但原自定义可调用对象共享引用；已有只读源码支持这种共享设计，
+   仍必须用actual-core WrapperExecutor/clone integration test验证，不凭Python直觉默认成立。
+
+D. 共享状态的最小字段：run_id、next_block、forward_index、pending_decision、latched_decision、request_id、source/window/model hashes。
+   callback10完成观察后提交不可变decision，effective_from=11，expires_before=20。
+   block0开始forward11时锁存，50层都读取同一个版本；线程不得在forward中途改值。
+   断言callback_i==forward_index、completed_forward_calls==i+1、next_block==0；不满足即终止实验。
+   默认OFF；缺失/迟到/拒判的观察不继承上一个ON决定。首版只有一次决定，没有“旧ON续命”情况。
+
+E. TemporalRotation在构造时计算delta_rope并缓存cos/sin。禁止只赋值rotation.delta_frames=-12，缓存会不一致。
+   首版可预创建两份不可变rotation（0和-12），使用同一checkpoint实际rope.inv_freq16项，
+   或固定-12 rotation而以alpha0/1开关。OFF必须走已验证的exact-native fast path，不做数值等价但不同运算路径。
+   不把旋转累积到持久Q张量；每层从本次原生已RoPE的Q克隆参考子分支，施加一次绝对额外旋转。
+
+3. 真正干预的数学范围
+
+仍使用冻结算子：
+  O' = O + a*m_ref*(O_ref(Q_rot(-12), K_ref, V_ref) - O_ref(Q, K_ref, V_ref))，a∈{0,1}。
+额外旋转=-12物理帧×5/3=-20 RoPE单位，实际time pairs为0:16与48:64；空间/未旋转维度不变。
+只改变目标物理窗50–65所映射query的“到全部参考视频K/V”子交互，不改身份图、text/audio或其他key分支。
+ref mass保持的是同层同输入状态的原生总质量，不承诺控制组/干预组后续轨迹相同。
+原生相同物理帧Q−K坐标差235仍存在，-12围绕它微扰成215，不是先把两个原点对齐。
+窗口覆盖latent[14,20)，对应位置bins47–67；全943空间位置和56头都改，不能宣称只改手腕局部。
+pose是局部身体信号，当前执行器只有时间窗局部性；全局attention/后续层会把影响传播至窗外。
+
+4. 观察数据：视频/音频状态和完整解码
+
+目标packed/nested shapes严格为 video[1,24,42,46,82]、audio[1,32,2,235]，当前x0 dtype float32。
+取detach+CPU copy的两条流；用当前model.process_latent_out处理副本：video不变，audio除audio_scale=4。
+图像VAE通道mean/std仍交VAE.decode，不再手工额外归一化。decode只消费video；保留audio形状/归一化校验。
+不能把外层packed flow velocity当图像latent；也不能将x_i误当x0解码后把不清晰归咎动作丢失。
+所有源reference输入已完整可用；观察x0中物理视频后面的帧并不是偷看“未来采样结果”，它们同属当前一次估计。
+
+第一版解码完整42bins到141×736×1312；不只截14:20bins，不缩latent、不换VAE、不插帧/裁剪/时间对齐。
+时序VAE的边界/receptive field使局部bin解码不保证等于完整解码的对应帧。
+冻结pose阶段读取已有CRF16、24fps、yuv420p视频，所以最保守首版沿用decode_x0.write_video的native clamp/truncate、
+CRF16编码，再交原pose_probe。直接拿未编码RGB可以更快，但它是观察分布变化，需先验证gate parity才可替换。
+不用MP4文件byte equality比较不同encoder库；用VAE-ready tensor、preencode RGB及同encoder decoded RGB分别核验。
+
+现有 scripts/decode_x0.py:49 load_snapshot 要求整个run manifest.status==complete，因此不可原样在callback10调用。
+不能改掉冻结offline decoder的完成门，改成接受任意running manifest。新的worker应使用专用online请求schema：
+  run_id / unpredictable或唯一request_id / step010 / sigma_current,next / x0视频音频SHA / input-noise-conditionSHA /
+  VAE/core/pose/observer/protocolSHA / source_poseSHA / window / geometry / created_time / deadline。
+原子保存普通CPU tensor dict，worker weights_only=True读取，逐项校验；完成后原子写response，引用相同request及snapshotSHA。
+主采样必须等它完成或超时后，才继续call11；不用“异步算完时碰巧到了哪一步就启用”的不确定策略。
+
+5. 冻结pose观察与fail-closed规则
+
+可复用 scripts/pose_probe.py，不装新模型：.9现有YOLOX ONNX CPUExecutionProvider + DWPose TorchScript CPU float32，
+RGB、batch5、最多4线程；原17关节、全141帧stride1、按最大bbox/后续IoU独立跟踪人物。
+现有CLI内detect/flush_batch是main的嵌套函数，不是可直接import调用的稳定API。
+第一版独立CPU subprocess调用原CLI最少改动；若提取frames API，应任务内复制并验证同图输入逐项pose一致，不改冻结脚本。
+先缓存source完整pose，key必须包含源视频SHA、detector/pose/script SHA、frame范围/stride和几何，不从结果挑source轨迹。
+
+严格复用 scripts/timing_metrics.py 的当前哈希与 analysis/pose/evaluate_x0.py:14 gate：
+  搜索±24帧；>=0.8支持率、>=8帧；同帧与无约束最佳点覆盖都够；边界最优拒绝；
+  不同盆地相对差<.05拒绝；非零lag相对同帧误差改善<.05拒绝；方向最佳残差>.5拒绝。
+  两个raw confidence阈值0.3/0.5的方向lag都可靠、相差<=2帧；同样可靠的wrist phase必须存在，且各自与方向差<=3帧。
+  如果任一方向lag在±2帧，则near_zero_no_intervention；缺腕部不是“默认没有幅度混淆”，而是unknown。
+  多人选择歧义/身份跟踪失败、姿态形状不同、遮挡、重复动作多盆地、动作幅度变化导致方向/手腕不一致均不触发。
+  score是raw SimCC峰值，可>1，不是校准概率；这些是冻结实用阈值，不是证明准确的统计置信度。
+
+最小决策表：
+  可靠正延后（两方向lag都>2）且上述全部门通过、窗口确属保留范围 → ON固定delta=-12/alpha1，calls[11,20)。
+  near_zero → OFF；negative lag → OFF/unvalidated_direction；unknown/timeout/worker失败 → OFF并记录。
+  snapshot/代码/shape/sigma/状态完整性失败 → 终止该实验，不把坏配对伪装为一个正常OFF结果。
+  用户要求编辑这段动作、或关节/时间窗与排除列表相交 → OFF/user_edit_excluded；不从prompt自动猜mask，首版要显式输入。
+这不是动作语义分类器，不能凭它区分所有“动作遗漏/幅度不足/暂时看不清”。
+
+6. 设备与开销：推荐两设备诊断，单卡尚未证明安全
+
+在callback中直接让现有Comfy VAE.decode抢主DiT GPU有实质风险：comfy/sd.py会load_models_gpu(VAE)，
+model_management.free_memory可能把当前非dynamic-VRAM的DiT卸载；sampler未承诺每次callback后重新装回全部采样模型/patch。
+不能因VAE权重小或offline解码成功，就认定同48GB卡中途解码安全。不要在主进程改CUDA_VISIBLE_DEVICES或全局CPU线程。
+第一版建议单独准入的一张空闲GPU加载FP16 VAE，CPU worker跑pose，主DiT进程保持暂停与GPU驻留。
+用spawn/单独exec而不是fork活CUDA上下文；所有worker PID/UUID纳入同任务精确admission、deadline、cleanup。
+如果没有第二张已获准空闲GPU，就停止在设计或做另行验证的单卡方案，不擅自占用其他用户的卡。
+
+单卡后续可选：证明足够峰值余量且不会卸载主模型的隔离decoder，或完整审计显式DiT offload/reload。
+这都需要独立zero replay（raw最终tensor/同encoder帧一致），不能通过调整推理精度/后端来凑显存而仍称相同实验。
+CPU VAE可能要FP32且很慢，当前没有可用时延/算子兼容证据，不作为免费fallback。
+
+实际已有记录（非在线计时、不可承诺在线完全同速）：
+  step010被动CPU拷贝/记录：3.164秒。
+  step010完整离线decode子进程从启动到退出：43.041秒；其中decode脚本内部计时31.642秒。
+  同快照全141帧CPU pose统计elapsed：64.791秒，其中detector53.772、pose9.893。
+  因而一次同步屏障已知各段相加约111秒，另加pose进程import/model初始化、IPC、硬盘和竞争，合理预期分钟级而非实时。
+  全5个native快照decode子进程约41.44–43.04秒，pose约63.44–67.82秒。
+  持久worker预热可以省加载，但尚未benchmark，不把预估缩短写成实测；等待期间主GPU空闲驻留仍算资源成本。
+
+x0视频FP32副本15,208,704bytes=14.504MiB，音频60,160bytes≈0.057MiB；
+完整解码RGB FP32=1,633,849,344bytes≈1.522GiB host，uint8≈389.54MiB；还需VAE激活、CPU模型和IPC峰值。
+现有decode记录只有cleanup后reserved20MiB，不是GPU峰值；峰值不足以从checkpoint大小推算。
+应逐帧写/消费、及时释放图像数组，避免队列里同时复制几份float/RGB影片；首版完整pose仍需全片torso中位数归一化与人物跟踪。
+只对26–89帧做pose虽覆盖主窗±24，但会改变全片归一化/追踪初值；先别这样优化。
+
+7. Zero-control：必须做同等观察工作，不只给相同睡眠时间
+
+最重要的新验证不是“wrapper能跑”，而是forced-OFF观察组：也在step010实际保存本run x0、完整decode、CPU pose、
+等待相同流程、返回完整response，然后强制OFF，不用缓存已有native的观测代替实际计算。
+同样preload/worker启动、dtype、线程、encoder、时间点、日志/哈希、检查次数；允许源pose/只读模型缓存，不允许编辑x0输出缓存。
+若需要缓存防重复请求，其key必须含本run/request/step/x0SHA/模型/observer/protocol，不能仅按seed/window/filename命中旧结果。
+主进程RNG不能被observer消费：worker独立process；记录主CPU/CUDA RNG摘要前后不变。
+
+forced-OFF必须保持actual conditioning/noise、steps005/010及之后raw采样/最终tensor、同encoder最终RGB与native匹配。
+整个callback链顺序/count不变，20modelcalls×50blocks，没有被暂停改变的缓存/卸载/重新量化路径。
+若不匹配，先排运行时副作用，不能归因phase控制成功/失败。
+另设forced-ON模式也做同等观察但不读决策，calls11–19固定-12；应重现现有静态late11的raw轨迹/最终结果。
+这两门能证明“动态选择OFF/ON”本身只改变已定义的执行器状态，而不是换了推理程序。
+
+8. 防止最终结果泄漏与必要实验对照
+
+每次触发只能使用：冻结source/reference、用户允许窗口、当前run在callback010生成的x0与规定观察器。
+禁止读取baseline/该run的最终视频、sampler_final、callback15/19、最终lag表；禁止看到最终结果后改本次decision JSON。
+相同seed的旧native x0可以用于设计/校准，但在线验收必须重新获得本次x0并匹配request，不直接复用旧观察结论。
+建议worker只暴露当前request目录和只读source/weights，response先原子落盘并哈希，主进程记录接收时间及call11开始时间。
+使用整段当前x0做pose并不构成未来采样泄漏；这里是离线整段视频生成，真正被禁止的是后续去噪/最终输出证据。
+
+第一轮最小对照：
+  (i) 已有native/phase-zero（历史正确性背景）；
+  (ii) 新forced-OFF + 同等实际observer计算；
+  (iii) 新forced-ON + 同等计算，重现static late11；
+  (iv) 当前run观测驱动的ON/OFF。
+若本discovery样例(iv)触发ON且与(iii)相同，只证明因果闭环工程可用，不证明比固定late11更好。
+需要预先选定的正常例展示OFF且不损伤，以及独立seed/片段验证；已有1024正常例可作健康控制，但几何不同不能充当匹配失败对照。
+第二seed若本身发生故障/动作不可靠，不能据此称控制器泛化成功，也不能静默丢弃。
+wrong-sign/random同等开关可作后续特异性检验，但不应在首个有效样例后随意挑最好的符号/次数。
+
+若以后在callback15再次观察：必须看被自身干预后的当前x0，决定calls16–19是否停止；未知则使旧ON到16过期。
+回调19只做endpoint检查，已经没有后续模型调用可改。
+若动态在15停止，需要预登记静态11–15同预算对照，排除只是碰巧选到一个好固定区间。
+若始终ON，则没有“收手策略”证据；若+/-都改善，则未证明可校准的signed phase actuator。
+
+9. 反例与不能扩大表述的情况
+
+- step010能测到lag，但late11无效：可观测性≠可控性，不能靠包装成controller补上执行器缺陷。
+- x0姿态正确但最终又延后：一次观察不足；不是证明“没有问题”，需更多checkpoint且保持因果预算。
+- 参考动作重复、旋转遮挡、人物体型变化使手腕距离变了：低残差或相似峰也可能错配；必须保留unknown/多盆地与独立视觉复核。
+- -12改善但幅度/动作形状改变或身份丢失：不能把lag变小等同运动一致性更好。
+- 小窗指标好而其他窗/镜头/身份变坏：当前全空间时间窗执行器存在副作用，必须报告。
+- 用户要求重定时或改动作：默认保留phase的反馈反而违背编辑意图，所以显式excluded mask是功能前提。
+- 新语义P/T实验若改变当前条件，不能混入这个first online控制对照；先固定原native conditioning，避免双变量归因。
+- 这是training-free且不需要额外教师生成器，但依赖训练好的VAE、detector/pose外部模型；不能写“无需任何外部模型”。
+- 与既有RoPE/attention引导方法有明显继承关系；反馈时刻来自pose并不自动构成架构创新。
+
+10. 下一步若获准实现的最小清单（本任务没有执行）
+
+只新建staged反馈扩展 + online worker协议适配，复用冻结算子/normalization/observer；不改已运行冻结包。
+先CPU actual-core测试shared state经过model clone与WrapperExecutor、callback10只影响forward11、50层决策一致、
+20次原callback、OFF/timeout/异常关闭、strict shape/sigma/RNG输入不变、请求旧/错序/别run拒绝。
+再tiny attention OFF逐位原生、ON逐位/容差等于冻结phase_attention；两种固定rotation cache不串用。
+再真实模型forced-OFF与forced-ON门；门过后才把第(iv)组叫在线反馈实验。
+每组保存全片和主窗/窗外同帧误差、可靠lag、shape/identity检查、实际decision、时间预算、GPU驻留/worker峰值、NFE及cleanup。
+没有late11效果门时保持此文件为设计备选，不实现、不部署、不向当前队列追加实验。
+
+本地证据/源码索引（相对本项目root）
+  configs/phase_minus12_late11_protocol.json
+  analysis/sigma_time_semantics.txt；analysis/native_reference_time_coordinates.txt
+  analysis/feedback_implementation_feasibility.txt（早期可行性，里面mass晚期和phase-zero pending表述已过时；本设计以当前protocol为准）
+  extensions_staged/H3X0Readout/core.py:72,97,150；__init__.py:22,33
+  extensions_staged/H3PhaseRoPE/core.py:17,62,104,164,191,224；__init__.py:28
+  scripts/decode_x0.py:30,49,92,140；scripts/pose_probe.py:50,66,121,158
+  scripts/timing_metrics.py:30,45,81,111；analysis/pose/evaluate_x0.py:14
+  outputs/x0_decoded/s05_full_seed1_native_x0/batch.json 与 x0_step010.json
+  audit/x0/s05_full_seed1_native_x0/manifest.json
+  analysis/pose/x0/s05_full_seed1_native_x0/x0_step010.pose.json / .observability.json
+冻结核心包：/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz。
+其Euler callback/ModelPatcher/模型管理精确源码路径与SHA见本项目analysis/sigma_time_semantics.txt和早期feedback设计。
+
+本次读取源码SHA256
+  X0 core aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c
+  Phase core 83f0fffeac265d0c77d540c8ed730a8b9c639ca73660877aaba72425be88b395
+  decode_x0 07a80e969a4549f721bf196b8b7ea6d2daa3ec2194cc1fab60e9069070946a96
+  pose_probe 04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f
+  timing_metrics eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e
+  evaluate_x0 3ec61c9c2e1fc0eb250b3428a3414cba5a897ad74450b0b70c633d388473dadf
+  late11 protocol 031dab80613b596a4038bb17b0496eebad07d526990ce07408554b8000c97e6d

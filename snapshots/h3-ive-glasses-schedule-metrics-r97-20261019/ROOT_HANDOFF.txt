@@ -1,0 +1,17 @@
+R97 单次 CPU 四栏消费者
+
+目录：/Users/researcher/DevProjects/h3-ive-glasses-schedule-metrics-r97-20261019
+唯一生产对象：R97 short_0358 extended，producer 70-file seal 269b239abd7922a958e11732f8153663739a644db23a189d2c0ddc0fe0ee2c0e。
+实际 root STARTED 后绑定真实 service generation；CONTROL_RUNTIME_GATE passed 后才取新输出。只下载成片及六个小 JSON，PT 留在远端。无 watcher、无 GPU、无 producer verifier。
+
+root 完成后调用（以实际 attempt 名替换）：
+cd /Users/researcher/DevProjects/h3-ive-glasses-schedule-metrics-r97-20261019
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py --attempt ACTUAL_ROOT_ATTEMPT
+
+结果：showcase/source_native_fixed_extended_full_valid.mp4、6_times.jpg、12_times.jpg、PRESENTATION.json；Downloads/H3_R97_眼镜编辑_引导区间对照_20261019.html（内嵌视频与组图）。完整105有效帧，24fps，四栏均裁剪16,8,1280,720；参考/普通编辑/原固定引导复用已核R89字节。
+
+核验：16项实际门全部true，parent原gate只有顶层created_unix可变，15份父x0 SHA与实际AV预测0–14逐位相等记录，700routes/20NFE/20Euler，真实job/history/graph/service身份与输出路径一致。下载前后小证据SHA与gate不变。既有collection可幂等复用，冲突拒绝覆盖。
+
+34个CPU单测，另四颜色真实ffmpeg合成验证四栏顺序、6/8帧截取、24fps原时刻、5120×808画面与底部中文caption，单文件嵌入字节一致。
+
+本项把6–14引导延至6–19，同时增加引导总量；实际视觉结论待完整有效帧审阅。该消费者不会给新方法收益下结论。

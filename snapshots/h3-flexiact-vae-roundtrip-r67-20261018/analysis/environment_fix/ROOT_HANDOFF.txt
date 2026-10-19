@@ -1,0 +1,7 @@
+R67 attempt2 administrative startup repair. Original11producerfiles unchanged. WrapperSHA 5864451e484cc71884b8ace6c2b9fbab96f8a5adf1c4bb4400c6b1e43df6991d
+The wrapper binds the already-used R50/R63 compatibility bootstrap by full SHA and loads it as compatibility_bootstrap before runpy invokes the original decoder. It calls no server/DiT launcher. Actual .9 CPU startup imports all three Comfy decoder modules and H3 VAE class, appliesbothcompat functions, installs fallback guard, confirms CPUdevice and CUDAuninitialized: PASS.
+
+Attempt2 CLI:
+CUDA_VISIBLE_DEVICES=GPU-REDACTED /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/analysis/environment_fix/launch_with_verified_compat.py --inputs /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/inputs/fitness --output /data5/researcher/h3_runs/flexiact_vae_roundtrip_r67_20261018/outputs/fitness_attempt2 --gpu-uuid GPU-REDACTED --execute
+
+Root freshresource and actual GPU launch required. CPU evaluation original command uses fitness_attempt2 for --decoded and analysis/fitness_attempt2 for --output. Prior attempt1 error/output absence remains archived; no newGPUexecuted by this agent.

@@ -1,0 +1,87 @@
+{
+  "schema": "r94-frozen-single-pair-v1",
+  "selection_sha256": "3f8664b61f710d4b12360019700232113c906e5c3c572b613d33a0c41e8e575a",
+  "selection_manifest": "design/SELECTED_PAIRS.json",
+  "official_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+  "prompt_policy": "Exact actual R72 P1; R84 graph preparation records ancestry. Fresh host9 Native/forced only.",
+  "pairs": [
+    {
+      "pair_key": "fitness__game_man_5",
+      "motion_source_id": "fitness",
+      "identity": "benchmark/target_images/human/game_man_5.jpeg",
+      "official_csv_row_zero_based": 6,
+      "official_target_caption": "A humanoid cartoon monster raised his arms above his head, then slowly brought his hands together and lowered them to his chest.",
+      "source_caption": "A woman raised her arms above her head, then slowly brought her hands together and lowered them to her chest.",
+      "target_semantic_description": "the red-and-gold armored humanoid character",
+      "target_action": "The character raises both arms above the head, then slowly brings the hands together and lowers them to the chest.",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          1920,
+          1080
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          1248,
+          704
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          44,
+          78
+        ],
+        "expected_DiT_visual_patch_tokens": 858,
+        "formula": "frozen native ref_image_size=match, proportional scale down then each axis rounded32"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_5.jpeg",
+        "sha256": "fb2f5f3f0bfb2d1023b47711be93e424f4d954933c901268e12e8a110d47c0e2",
+        "bytes": 104978,
+        "dataset_path": "benchmark/target_images/human/game_man_5.jpeg",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "34dfe4e082beaf1054784f898371972b9aad93e3",
+        "lfs_sha256": "fb2f5f3f0bfb2d1023b47711be93e424f4d954933c901268e12e8a110d47c0e2",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_5.jpeg"
+      },
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/fitness.mp4",
+        "sha256": "58ede2322b33cdb488ad924e94fb55972aa7856aa93dab96fda02edd076526d8",
+        "bytes": 196724,
+        "dataset_path": "benchmark/reference_videos/human/fitness.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "9e696eb0d03361fae53033967620334cdde02d09",
+        "lfs_sha256": "58ede2322b33cdb488ad924e94fb55972aa7856aa93dab96fda02edd076526d8",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/fitness.mp4"
+      },
+      "p1_fields": {
+        "target_identity": "the red-and-gold armored humanoid character",
+        "source_caption": "A woman raised her arms above her head, then slowly brought her hands together and lowered them to her chest.",
+        "target_action": "The character raises both arms above the head, then slowly brings the hands together and lowers them to the chest."
+      },
+      "prompt_files": {
+        "p0": "configs/prompts/p0.txt",
+        "p1": "configs/prompts/fitness__game_man_5_p1.txt"
+      },
+      "prompt_sha256": "483333ae6c3ac5d5afa7956579c241b524c3e8d12268f386f8262cffd927a150",
+      "candidate_id": "fitness__game_man_5",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "fitness__game_man_5",
+      "target_pair_previously_generated_at_selection": true,
+      "portrait": "target_game_man_5.jpeg",
+      "portrait_sha256": "fb2f5f3f0bfb2d1023b47711be93e424f4d954933c901268e12e8a110d47c0e2",
+      "source": {
+        "video": "source_fitness_video.mp4",
+        "video_sha256": "168eca8e9b2ebcfcb4b61ece44730a99889726ee0106078bbd063330eb72a686",
+        "original": "source_fitness_original.mp4",
+        "original_sha256": "58ede2322b33cdb488ad924e94fb55972aa7856aa93dab96fda02edd076526d8",
+        "provenance": "source_fitness_provenance.json",
+        "provenance_sha256": "5393952b68d6d2a9b502c8291b6a282173ed576a3194507fcfc0b291bd3fb447"
+      },
+      "prompt_file": "configs/prompts/fitness__game_man_5.txt",
+      "prompt": "subject_definitions:\n<Subject 1> is the red-and-gold armored humanoid character in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A woman raised her arms above her head, then slowly brought her hands together and lowered them to her chest.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the red-and-gold armored humanoid character from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The character raises both arms above the head, then slowly brings the hands together and lowers them to the chest.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "prompt_version": "P1"
+    }
+  ]
+}

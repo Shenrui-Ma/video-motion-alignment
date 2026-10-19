@@ -1,0 +1,84 @@
+{
+  "status": "PASS_CPU_ONLY_NOT_GPU_AUTHORIZED",
+  "created_unix": 1792164599.7747562,
+  "unit_tests": 21,
+  "actual_cpu_smoke": {
+    "passed": true,
+    "CUDA_initialized": false,
+    "actual_H3_meta_model": true,
+    "actual_ModelPatcher_clone": true,
+    "actual_attention_wrapper": true,
+    "heads": 56,
+    "block_calls": 1000,
+    "routed_calls": 300,
+    "scope": "actual module/node path guard/clone/wrap + tiny dense CPU operator; not real sampler, DiT weights or GPU",
+    "h3_source_sha256": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe"
+  },
+  "tested_extensions_equal_final": true,
+  "extension_binding": {
+    "extensions/H3EventAudit/__init__.py": {
+      "current": "0a958d73c3bddb89fff570c2907f2c0920ae9f7899db8b0bea457f3c6900cc78",
+      "tested": "0a958d73c3bddb89fff570c2907f2c0920ae9f7899db8b0bea457f3c6900cc78",
+      "equal": true
+    },
+    "extensions/H3PairAudit/__init__.py": {
+      "current": "928d18a015482e039716e7798fb5b5b92e60c481ba2a2aab19a9bc2744905ab7",
+      "tested": "928d18a015482e039716e7798fb5b5b92e60c481ba2a2aab19a9bc2744905ab7",
+      "equal": true
+    },
+    "extensions/H3TemporalRouter/__init__.py": {
+      "current": "c742d877465394048618bc013766743f94478272c5905a4deccfdde228b5071e",
+      "tested": "c742d877465394048618bc013766743f94478272c5905a4deccfdde228b5071e",
+      "equal": true
+    },
+    "extensions/H3TemporalRouter/component_probe.py": {
+      "current": "48029b53aed3b3d10497925877f4705e68012411d3afefa9da2c1cb0f9a4d297",
+      "tested": "48029b53aed3b3d10497925877f4705e68012411d3afefa9da2c1cb0f9a4d297",
+      "equal": true
+    },
+    "extensions/H3TemporalRouter/core.py": {
+      "current": "5cd842280a5cd47c5a1a741c4a02c3b8ca09fca4f3a36a2721acfb38c88aec69",
+      "tested": "5cd842280a5cd47c5a1a741c4a02c3b8ca09fca4f3a36a2721acfb38c88aec69",
+      "equal": true
+    },
+    "extensions/H3TemporalRouter/layout.py": {
+      "current": "bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe",
+      "tested": "bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe",
+      "equal": true
+    },
+    "extensions/H3TemporalRouter/native_features.py": {
+      "current": "b607634a71cf146241cf08b6ddb8db2a5fbce27d1c89d7d3ce247f1615ab7025",
+      "tested": "b607634a71cf146241cf08b6ddb8db2a5fbce27d1c89d7d3ce247f1615ab7025",
+      "equal": true
+    },
+    "extensions/H3X0Readout/__init__.py": {
+      "current": "374fa63ee91c0bad6cc7b13489fb63a7827f207e32ce32b937abc55f6e76e61a",
+      "tested": "374fa63ee91c0bad6cc7b13489fb63a7827f207e32ce32b937abc55f6e76e61a",
+      "equal": true
+    },
+    "extensions/H3X0Readout/core.py": {
+      "current": "878ea6fc9cf104a16541d75bbd9e22d33f206a84963ef4eb9cff2df4ace20d47",
+      "tested": "878ea6fc9cf104a16541d75bbd9e22d33f206a84963ef4eb9cff2df4ace20d47",
+      "equal": true
+    }
+  },
+  "post_smoke_changes": [
+    "Read-only preflight now additionally binds actual R14 success history to already-pinned parent graph; passed local21tests afterwards.",
+    "build_manifest schema label r18\u2192r22 administrative."
+  ],
+  "stage": "/data5/researcher/h3_runs/timing_normal_fixed_r22_cpu_stage_attempt1",
+  "gpu_run_started": false,
+  "formal_remote_deployed": false,
+  "limitations": [
+    "Smoke is real Comfy H3 meta-model/ModelPatcher/56-head wrapping and1000 tiny CPU blocks, not actual DiT numerical inference or Euler sampler execution.",
+    "Actual final/noise/prefix005/R14 comparison remains mandatory after future approved run."
+  ],
+  "evidence_log_sha256": {
+    "local_cpu_tests_final.log": "17abe0ba596391a26ee5d17dcb8d275e6377740fe441063080b6ed06976918ec",
+    "actual_cpu_attempt1.log": "64d50213a6be74fa8fc965250a373ca0315f3392b47d6d89e398db43053e3464"
+  },
+  "independent_review": {
+    "json_sha256": "cf5ea36f7a6e11c4652d81d98744bd91cf466ad9e7a6b9ed7563a547ce1c352c",
+    "text_sha256": "2266ef3a1e208cab68aeb9ec3c3e2f11f01f4c2e12551dda2da54e0d2c969cb3"
+  }
+}

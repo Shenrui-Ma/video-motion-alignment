@@ -1,0 +1,88 @@
+{
+  "created_unix": 1792327341.15318,
+  "status": "SOURCE_AND_PROMPT_DESIGN_ONLY; no producer, runtime, deployment or GPU",
+  "items": [
+    {
+      "source_id": "short_0114",
+      "source_path": "/Users/researcher/DevProjects/h3-timing-ivebench-heldout-r64-20261018/inputs/short_0114_original.mp4",
+      "source_sha256": "d3c055ed1ecc3611d2f4ceb77500a5c89b60c48a937d68d847c5aa6f8e269e46",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 2560,
+            "height": 1440,
+            "avg_frame_rate": "25/1",
+            "time_base": "1/12800",
+            "duration": "4.360000",
+            "nb_frames": "109"
+          }
+        ]
+      },
+      "official_task": {
+        "id": 114,
+        "src_video_name": "short_0114.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A basketball player is dribbling the ball on an outdoor court, showcasing his skills and agility.",
+        "edit_prompt": "Replace the basketball with a neon-lit ball",
+        "target_prompt": "A basketball player is dribbling a neon-lit ball on an outdoor court, showcasing his skills and agility.",
+        "target_span": "neon-lit ball",
+        "target_phrase": "A basketball player is dribbling a neon-lit ball"
+      },
+      "clip_original_frame_interval_half_open": null,
+      "prompt_file": "/Users/researcher/DevProjects/h3-timing-ive-object-control-r91-20261018/design/short_0114_P1_candidate.txt",
+      "prompt_sha256": "e90c32a37b91b34f19ca59e297977978b3bfaa25feb69a244a84ffbe6a607259",
+      "selection_reason": "动作由手部与物体接触、移动组成，编辑要求兼容动作保持",
+      "scope": "full official clip"
+    },
+    {
+      "source_id": "long_0039",
+      "source_path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/long_0039.mp4",
+      "source_sha256": "eab696d1555be316d9efad4e306c1209feff2967ef1f93cf3ee1a7c7c88d868e",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 3840,
+            "height": 2160,
+            "avg_frame_rate": "25/1",
+            "time_base": "1/25",
+            "duration": "14.240000",
+            "nb_frames": "356"
+          }
+        ]
+      },
+      "official_task": {
+        "id": 39,
+        "src_video_name": "long_0039.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "The video depicts a modern office environment where a woman is sitting at a desk, working on a computer and reading a orange book. In the background, two colleagues are engaged in a conversation, and another person joins them, creating a collaborative and productive atmosphere.",
+        "edit_prompt": "Adjust the color of book to blue",
+        "target_prompt": "The video depicts a modern office environment where a woman is sitting at a desk, working on a computer and reading a blue book. In the background, two colleagues are engaged in a conversation, and another person joins them, creating a collaborative and productive atmosphere.",
+        "target_span": "blue",
+        "target_phrase": "blue book"
+      },
+      "clip_original_frame_interval_half_open": [
+        0,
+        150
+      ],
+      "prompt_file": "/Users/researcher/DevProjects/h3-timing-ive-object-control-r91-20261018/design/long_0039_P1_candidate.txt",
+      "prompt_sha256": "703cf6574e5777bb50fdf3b2fca561b4688edd18733402c0cadd7331986f9dd0",
+      "selection_reason": "动作由手部与物体接触、移动组成，编辑要求兼容动作保持",
+      "scope": "source-selected 6-second clip; not official full-length score"
+    }
+  ],
+  "method": "inherit fixed routing alpha1 steps6..14 all50; same prompt in paired runs",
+  "recipe": "20Euler CFG1 sigma12/3 noTurbo",
+  "comparison_note": "short0114 earlier P0 task failed; new P1 would rerun both arms. long0039 not generated yet. Candidate priorities chosen from sources, no future generated result read.",
+  "next": "Reuse verified R88 input/runtime implementation only after root scheduling decision; actual timeline, input and first6prediction checks before result claim.",
+  "root_source_review": {
+    "unix": 1792327371.332148,
+    "basketball": "Visible dribble transfers, steps and bounces; initial head cropped but arms/ball visible. Preserve player identity, court, source motion.",
+    "book": "Visible reach, hand contact, lift and book handling. Avoid prescribing a page-opening event from sparse views. Background colleagues excluded from action score."
+  }
+}

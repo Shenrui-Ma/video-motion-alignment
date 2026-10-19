@@ -1,0 +1,95 @@
+{
+  "schema": "h3-spatial-r3-experiment-v1",
+  "created_at": "2026-10-16T10:25:29.398656+08:00",
+  "host": ".9",
+  "gpu_uuid": "GPU-REDACTED",
+  "port": 8464,
+  "runs": [
+    {
+      "run": "r3_s05_dynamic_6to14",
+      "graph_sha256": "00114262013c9e3a043700f40dd660d65425e5d70d46e117fc081f23be919877",
+      "node": "H3TemporalRouter",
+      "mode": "dynamic_residual",
+      "benchmark": false,
+      "has_x0": true,
+      "step_interval_half_open": [
+        6,
+        15
+      ]
+    },
+    {
+      "run": "r3_s05_full_6to14",
+      "graph_sha256": "83dec6024bdad01a02dd762dbce94fce93b21611d36cceb67df579a6757e57fe",
+      "node": "H3TemporalRouter",
+      "mode": "mass_preserve",
+      "benchmark": false,
+      "has_x0": true,
+      "step_interval_half_open": [
+        6,
+        15
+      ]
+    },
+    {
+      "run": "r3_s05_native",
+      "graph_sha256": "b9e0f01de81069bbe8760e64b5ba5fda6dea8a48fd474d3661967d252262c758",
+      "node": "H3TemporalRouter",
+      "mode": "native",
+      "benchmark": false,
+      "has_x0": true,
+      "step_interval_half_open": [
+        6,
+        15
+      ]
+    },
+    {
+      "run": "r3_s05_spatial_6to14",
+      "graph_sha256": "7f12b3607594850a899c2c9c186d8031347c60b00c183c8fc13615f4f1f9107d",
+      "node": "H3SpatialMarginalRouter",
+      "mode": "spatial_marginal",
+      "benchmark": false,
+      "has_x0": true,
+      "step_interval_half_open": [
+        6,
+        15
+      ]
+    },
+    {
+      "run": "r3_s05_spatial_bench2",
+      "graph_sha256": "ca847813956332f5596a65d1d5538388c793c5ba7d2f6551f7e968e161630512",
+      "node": "H3SpatialMarginalRouter",
+      "mode": "spatial_marginal",
+      "benchmark": true,
+      "has_x0": false,
+      "step_interval_half_open": [
+        0,
+        2
+      ]
+    }
+  ],
+  "formal_nfe": 20,
+  "formal_pixel_window_inclusive": [
+    50,
+    65
+  ],
+  "seed": 2026101311,
+  "capture_steps_zero_based": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    15,
+    19
+  ],
+  "passive_probe": {
+    "block": 25,
+    "steps_zero_based": [
+      6,
+      10,
+      14
+    ],
+    "component_probe_sha256": "48029b53aed3b3d10497925877f4705e68012411d3afefa9da2c1cb0f9a4d297"
+  },
+  "interpretation": "Exploratory selected-example structure diagnostic; no novelty/quality inference from tests"
+}

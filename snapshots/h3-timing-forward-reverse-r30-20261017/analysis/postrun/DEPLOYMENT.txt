@@ -1,0 +1,37 @@
+R30 bounded postrun CPU phases. No resident consumer or producer mutation.
+
+Root fills BINDING.json from actual processes/service.json plus external exact
+UID/startticks/cmdSHA, sets approved_for_consumer_start=true after review. Its
+protocol/producer hashes must match. Prepared default is not an authorization.
+Run existing Mac Python analysis/postrun/one_phase.py --execute repeatedly
+only when wanted. Each invocation performs at most ONE bounded phase and exits;
+first success must remain stable60seconds. No launch/no GPU/no model weights.
+The caller acquires the existing Mac CPU lock; remote code nonblocking acquires
+the shared server consumer.lock and yields if R27/R28 online pose is pending.
+It coexists with existing R27 coordinator; do not create another R30 daemon.
+
+Phases: snapshot/stability -> archive -> final case evaluation -> finalize ->
+non-PT download. Archive runs frozen producer verify_completed.py on all21
+actual AV PTs/condition/noise blobs/history/prefix/owner. All PT files remain
+remote; local delivery verifies exact non-PT inventory and all output hashes.
+RUN_GATE.json is the resource-release gate, independent of quality. Root may
+use its exact path/SHA plus owner identity in audit/root_release_request.json
+before changing only queue.finalize false->true. Other scientific producer
+changes reject; bool1 is rejected. Live service retention is not called cleanup.
+
+Final comparison: source + N/F/B/FB, predeclared four windows at .3/.5, full186
+rows and allUNKNOWN, N/F/B/FB and F/FB shared valid support, specified regions,
+descriptive interaction only when adequate common support. No point selected
+from new output. Fixed55/86/105 PNGs,42..82clip,andfull141 assembled videos.
+Blinded F/FB media is separate; two reviewers should inspect that directory
+before opening QUALITY_REVIEW_KEY.json. Quality stays PENDING/UNKNOWN until
+reviews; pose or integrity PASS alone cannot establish identity/shape success.
+
+External parents video paths were read-only verified on .9 in
+PARENT_REMOTE_VIDEO_PREFLIGHT.json. Source pose is full141@24 with recorded
+legacy-reader exception. physical_tolerance/pairwise_gain/scan/metrics are
+original frozen numeric code; no new dependency or motion inference model.
+
+Legacy physical_index in WHOLE_SCAN=19 is only required existing schema for
+final output. It is a denoising index, not source-frame index. Actual windows
+and media times remain physical video frames at24fps.

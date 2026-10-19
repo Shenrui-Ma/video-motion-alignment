@@ -1,0 +1,268 @@
+{
+  "schema": "h3-mass-equal-call-budget-exploratory-v1",
+  "registered_at_client": "2026-10-15T21:29:20.429428+00:00",
+  "status": "staged_only_not_submitted_not_executed",
+  "registration_scope": "Explicit new exploratory ablation selected AFTER seeing late6 success and late11 failure; not part of initial preregistration and not blind validation.",
+  "run_id": "s05_full_seed1_mass_6to14_x0",
+  "graph_file": "configs/s05_full_seed1_mass_6to14_x0.json",
+  "graph_sha256": "a892edbf3be67d10614c39743738a0b5804fa74e6883ad3e7a5da83d5aa7f7d4",
+  "parent_graph": "configs/s05_full_seed1_mass_late6_x0.json",
+  "parent_graph_sha256": "977f6ce38092617009c664bba7b8f73c95e67bfb3353087575a847d10ee8532b",
+  "only_scientific_change_vs_late6": {
+    "node": "50",
+    "field": "step_end",
+    "before": 20,
+    "after": 15
+  },
+  "administrative_changes_only": [
+    "6.inputs.run_id",
+    "14.inputs.filename_prefix",
+    "50.inputs.run_id",
+    "51.inputs.run_id",
+    "52.inputs.run_id"
+  ],
+  "hypothesis": "Does the earlier nine-call interval 6..14 retain timing benefit when compared with the later nine-call interval 11..19, rather than merely having more intervened calls?",
+  "confound_in_existing_comparison": "late6 6..19 has14 routed calls; late11 11..19 has9. Onset, count, raw-sigma span and trajectory history all differ.",
+  "schedules": {
+    "earlier9_new": {
+      "run_id": "s05_full_seed1_mass_6to14_x0",
+      "zero_based_model_calls_inclusive": [
+        6,
+        14
+      ],
+      "step_interval_half_open": [
+        6,
+        15
+      ],
+      "one_based_model_calls_inclusive": [
+        7,
+        15
+      ],
+      "intervened_calls": 9,
+      "total_model_evaluations": 20,
+      "blocks_per_intervened_call": 50,
+      "routed_block_calls": 450,
+      "input_sigmas_video": [
+        0.965517241379,
+        0.957055214724,
+        0.947368421053,
+        0.936170212766,
+        0.923076923077,
+        0.90756302521,
+        0.888888888889,
+        0.865979381443,
+        0.837209302326
+      ],
+      "last_affected_euler_update_ends_at_sigma": 0.8,
+      "raw_video_sigma_span_of_affected_updates": 0.16551724137899992
+    },
+    "later9_existing": {
+      "run_id": "s05_full_seed1_mass_late11_x0",
+      "zero_based_model_calls_inclusive": [
+        11,
+        19
+      ],
+      "step_interval_half_open": [
+        11,
+        20
+      ],
+      "one_based_model_calls_inclusive": [
+        12,
+        20
+      ],
+      "intervened_calls": 9,
+      "total_model_evaluations": 20,
+      "blocks_per_intervened_call": 50,
+      "routed_block_calls": 450,
+      "input_sigmas_video": [
+        0.90756302521,
+        0.888888888889,
+        0.865979381443,
+        0.837209302326,
+        0.8,
+        0.75,
+        0.679245283019,
+        0.571428571429,
+        0.387096774194
+      ],
+      "last_affected_euler_update_ends_at_sigma": 0.0,
+      "raw_video_sigma_span_of_affected_updates": 0.90756302521
+    },
+    "earlier14_existing": {
+      "run_id": "s05_full_seed1_mass_late6_x0",
+      "zero_based_model_calls_inclusive": [
+        6,
+        19
+      ],
+      "step_interval_half_open": [
+        6,
+        20
+      ],
+      "one_based_model_calls_inclusive": [
+        7,
+        20
+      ],
+      "intervened_calls": 14,
+      "total_model_evaluations": 20,
+      "blocks_per_intervened_call": 50,
+      "routed_block_calls": 700,
+      "input_sigmas_video": [
+        0.965517241379,
+        0.957055214724,
+        0.947368421053,
+        0.936170212766,
+        0.923076923077,
+        0.90756302521,
+        0.888888888889,
+        0.865979381443,
+        0.837209302326,
+        0.8,
+        0.75,
+        0.679245283019,
+        0.571428571429,
+        0.387096774194
+      ],
+      "last_affected_euler_update_ends_at_sigma": 0.0,
+      "raw_video_sigma_span_of_affected_updates": 0.965517241379
+    }
+  },
+  "matched_variables": {
+    "source": "05_real_megumi_v.mp4",
+    "identity_image": "sam_altman_village_global_20221117_original.jpg",
+    "seed": 2026101311,
+    "shared_conditioning_run_id": "05_sam_1312x736_shared_v3",
+    "noise_pair_id": "05_sam_1312x736_2026101311_v3",
+    "geometry": [
+      1312,
+      736
+    ],
+    "frames": 141,
+    "fps": 24.0,
+    "sampler": "euler",
+    "total_NFE": 20,
+    "sigma_shift_video_audio": [
+      12.0,
+      3.0
+    ],
+    "manual_sigmas_node_identical": true,
+    "mode": "mass_preserve",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "target_video_frame_window_inclusive": [
+      50,
+      65
+    ],
+    "block_interval_half_open": [
+      0,
+      50
+    ],
+    "backend": "frozen explicit aten Flash",
+    "Qwen_prompt_and_reference_preparation": "byte-for-byte same graph values as late6",
+    "models_and_weight_precision": "all loader nodes unchanged",
+    "x0_capture_steps_zero_based": [
+      5,
+      10,
+      15,
+      19
+    ]
+  },
+  "pre_analysis_integrity_gates": [
+    "Require successful history, complete20forward calls and 450 routed block calls only at calls6..14; all50blocks each selected call, no route at15..19.",
+    "Actual prepared reference, conditioning embedding/tags/layout, target latent shape and noise tensor hashes must match native/late6/late11; graph equality alone is insufficient.",
+    "x0 step005 VIDEO AND AUDIO must be exactly equal to native and late6 tensor contents because no intervention has occurred.",
+    "Additional identical-prefix sanity: x0 step010 video/audio must be exactly equal to late6, since both schedules have identical inputs and intervention through call10.",
+    "If any integrity gate fails, classify as invalid/confounded run; do not interpret timing as the planned ablation."
+  ],
+  "evaluation": {
+    "frozen_metrics_file": "scripts/timing_metrics.py",
+    "frozen_metrics_sha256": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+    "original_endpoint": "final RGB pose alignment; x0 is diagnostic, not a replacement for the final endpoint",
+    "windows_video_frames_inclusive": [
+      [
+        50,
+        65
+      ],
+      [
+        69,
+        81
+      ],
+      [
+        80,
+        92
+      ],
+      [
+        99,
+        111
+      ]
+    ],
+    "confidence_thresholds": [
+      0.3,
+      0.5
+    ],
+    "primary_feature": "arm_direction",
+    "ancillary_features": [
+      "wrist_relative",
+      "body_xy",
+      "left_arm_direction",
+      "right_arm_direction"
+    ],
+    "search_max_lag_frames": 24,
+    "positive_lag_definition": "edited motion occurs later; physical video frames, not denoising calls",
+    "existing_coverage_shape_multipeak_gates": "Use frozen local_diagnostic unchanged; all unknowns and warnings retained. Do not replace a missing primary result with a favorable auxiliary feature.",
+    "complete_target_alignment": "Both threshold primary main-window reliable lags within +/-2 frames, frozen shape/error gates passed, same-frame error reported and no gross appearance/background/edit failure.",
+    "partial_timing_benefit": "Reliable main-window delay reduced by at least4 frames versus native at both thresholds, lower same-frame error, no gross edit failure; not complete rescue.",
+    "no_demonstrated_benefit": "Otherwise; unknown/confounded is not proof of impossibility.",
+    "quality_gate": [
+      "Sam identity/outfit retained rather than source identity copied",
+      "No gross room/background/camera or body deformation failure",
+      "Review fixed frames55 and86 consistently with prior screen; if relying only on this screen state that it is not full quality validation",
+      "Report all frozen windows and full-clip/common-support ancillary diagnostics; correlated events are not independent replications"
+    ],
+    "same_support_ranges_for_existing_ancillary": [
+      [
+        0,
+        140
+      ],
+      [
+        0,
+        46
+      ],
+      [
+        47,
+        67
+      ],
+      [
+        68,
+        140
+      ],
+      [
+        112,
+        140
+      ]
+    ],
+    "report_all_comparators": [
+      "native",
+      "all_steps_mass",
+      "mass_late6_6to19",
+      "mass_late11_11to19",
+      "mass_6to14"
+    ]
+  },
+  "interpretation": {
+    "earlier9_better_than_later9": "Supports schedule location/history dependence at equal intervened-call count for this selected case. It does not prove an early critical interval, a complete response curve, a live feedback controller or new architecture.",
+    "earlier9_similar_to_earlier14": "Suggests the late tail15..19 was not necessary for this endpoint under this trajectory; does not establish universal dispensability.",
+    "earlier9_worse_than_earlier14": "Consistent with duration/tail/path dependence, not a clean attribution to any one factor.",
+    "equal_call_count_is_not_equal_dose": "Earlier9 and later9 have different raw sigma spans, model noise coordinates, attention states and propagated effects. Even with450 routed block calls each, correction magnitudes and runtime may differ.",
+    "limited_coverage": "One discovered source/identity/seed; earlier9 and later9 overlap in calls11..14. No start-time sweep, no monotonicity or exact controllability boundary claim.",
+    "observer_separation": "Static schedule only; original step005 primary observer remains unknown. A successful fixed early schedule does not demonstrate online observation/control overlap."
+  },
+  "runtime_scope": "No remote queue or live runtime changed by this staging task. Root independently reviews and decides whether to append; preserve exact process admission, auto cleanup and VRAM release.",
+  "sources": {
+    "extensions/H3TemporalRouter/core.py": "7f21d35d58ff8e36f9c0e0d0e819917e680ebd7095c69a28bda40b34a56836e1",
+    "configs/late11_mass_protocol.json": "46d738d2329d8702b18a612b522643667f8e50ab3f54a05a90f2a87b59f01fc7",
+    "configs/conditional_followup_protocol.json": "ce75d7fefb4ce089d344d608ea61e2b0029fd1288101da92ff58918812874d17",
+    "configs/intermediate_observer_protocol.txt": "92c093d6896a1eab563d69a33a707c23d7ade491c614fbf84ae123e89f10f3e2",
+    "analysis/pose/pilot/LATE6_PRIMARY_DECISION.json": "1329e763fb656406d06be4052d7d607fb152bfbe18fd1a0c386b4e58f7027f63"
+  }
+}

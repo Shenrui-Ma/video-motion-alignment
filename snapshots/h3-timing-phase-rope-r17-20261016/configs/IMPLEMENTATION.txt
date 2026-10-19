@@ -1,0 +1,116 @@
+R17 bounded reference-only temporal RoPE diagnostic
+2026-10-16. This artifact describes staged code, not successful GPU/video results.
+
+Scientific binding
+Two generated arms: r17_s05_plus4_a05_6to14 and r17_s05_minus4_a05_6to14.
+Physical deltas +4/-4 frames at24fps; extra RoPE delta = +/-20/3.
+alpha=.5; zero-based forward indices[6,15); all50blocks; sourcewindow50..65 ->
+querybins[14,20), nominalRGB47..67; every spatial query in those bins.
+O_new=O+alpha*m_ref*(O_rot-O_ref), all reference-video keys retained.
+No pose observer, spatialmask, automatic feedback, training, LoRA or noise change.
+Geometry/source/Sam identity/prompt/Euler20/video12/audio3/CFG1/seed2026101311
+retain parent graph values. Only node50 operator and task-local audit IDs/paths
+change. source/reference/Qwen actual pair and noise evidence must match parent.
+Zero graph is provided but not queued; root must complete actual native-backend
+GPU equivalence and pre-activation x0 pairing before reusing the parent native.
+
+Architecture correction and exact interface
+R3 actual router audit first_attention=[1,56,87592,128], output[1,87592,7168].
+Attention out_proj maps inner7168 to hidden5376. R13 final head[96,5376] does not
+imply42 attentionheads. The earlier review's42 inference is explicitly withdrawn.
+parent_native_attention.json preserves actual audit fields and its sourceSHA.
+architecture_contract derives heads/head_dim/QKV and out-projection sizes from
+all50 actual model blocks, requires agreement, and revalidates each forward.
+General contract CPU toys cover42/56, but this node pins the actual loaded model
+to the parent56/7168 evidence. No model attribute/weight is changed.
+Actual rope.inv_freq is copied from the model and recorded as values/dtype/SHA;
+the H3 source path/SHA, actual attention classes, dimensions and referenceSHA
+are captured. Loader refuses another block/attention patch and changed science.
+
+Native path and nonzero arithmetic
+Inactive/zero wrapper forwards the original native attention function and kwargs
+without extra kernel calls. Actual wrap_attn passes an undecorated function;
+the inside-wrapper flag is retained, preventing re-entry. CPU tests verify exact
+object return, no phase helper call, input/options/RNG preservation.
+Active formula is the copied reference conditional mixture; its full output/LSE
+still uses explicit aten Flash. Native vs explicitFlash equality is a required
+actual-backend GPU gate, not assumed from CPU dense arithmetic. FP32 correction
+of BF16 branch outputs is approximate, not bitwise probability conservation.
+Other groups are invariant only at the current layer input in exact arithmetic.
+
+Isolation and inherited helpers
+H3EventAudit copied from R3, only output guard/default root renamed toR17.
+H3PairAudit and H3X0Readout retain their scientific computations with new output
+boundary guards; graph tests execute actual node6 get_noise and node5 audit_root.
+Parent source/noise/configuration files are immutable copies, not reinterpreted.
+New output root: /data5/researcher/h3_runs/timing_phase_rope_r17_20261016.
+Root owns runtime/admission/deployment/cleanup. GPU3 UUID and port8477 are intended
+resources only; no admission is implied by these staged files.
+
+Verification completed locally
+tests/local_cpu_attempt1.log:19 unittest cases pass. tests/local_verification.json
+records source hashes and AST parsing of27 Python files at that verification.
+CPU independent full-coordinate rotation checks include large packed origins;
+FP64 maxerror about2.4e-12 for +/-4 and a smallfractional delta. CUDA not initialized.
+Tests cover independent explicit2x2 rotation, dense conditional probability
+mixture, group mass/other interactions, exact inactive forwarding, 42/56 shape
+contracts, wrong-head/projection/changed-model rejection, QKV/frequency/RNG
+immutability, malformed arguments, real graph paths and parent evidence pins.
+
+Root-executed remaining gates
+1. tests/real_comfy_cpu_smoke.py --core CORE --checkpoint MODEL --parent-audit R3/audit
+   Sets CUDA_VISIBLE_DEVICES empty. Uses actual H3 meta module structure, actual
+   ModelPatcher.clone and native wrap_attn/AttentionTensorContainer; actual archived
+   source reference and checkpointfreq. Tiny CPU QKV and an explicitly dense
+   auxiliary kernel are used. Each delta0/+4/-4 simulates20 ordered50-block
+   wrapper calls, expectedphase0/450/450. This is an interface test, not a real
+   DiT or sampler numerical forward. Root records its output as separate evidence.
+2. scripts/gpu_phase_rope_smoke.py --gpu-uuid GPU-REDACTED
+     --checkpoint MODEL --output RUN/audit/gpu_phase_rope_smoke.json
+   Must run only after root admission and before service. Script checks idleGPU
+   before torch/CUDA import; loads only checkpointfrequency, no DiT weights.
+   ActualComfy native vs Flash bitwise;56head BF16 normal/highrefmass oracle cases;
+   +/-4 and alpha.5 plus zero/alpha0; QKV/RNG/nonselectedrow checks; actual installed
+   kitchen split-half comparison. Full87592token56head checks avoid denseN².
+   Dense error tolerances are predeclared max<.025/RMS<.003, inherited from the
+   existing strengthened smoke; no post-result relaxation. Coordinate tolerances
+   and all case values are in the script. This does not prove video quality.
+3. Runtime actualfrequency SHA must agree with the numerical smoke's checkpoint
+   frequency; actual source/kernel/model/condition/noise/geometry match parent.
+   New arm x0 at index5 is pre-intervention: compare video/audio tensors against
+   parentFull index5 (which was previously identical to native) before attribution.
+   Count20NFE/20Euler/20callbacks,450active and550 directnative attentioncalls.
+4. Final pairedvideo evidence retains both signs, all originalfour timingwindows,
+   confidence/unknown, same-frame shape and fixed55/86 rawRGB quality. Positive
+   RoPEdelta is not promised to advance/retard action by any precise amount.
+
+Prior boundary
+DiTFlow https://arxiv.org/html/2412.07776v2 already optimizes positional embeddings
+for motion transfer. RoPECraft https://arxiv.org/html/2505.13344v1 optimizes
+trajectory/flow-related RoPE; changing time can itself produce artifacts.
+Here the finite diagnostic isolates a low-dimensional reference-only time
+rotation without gradients and holds current referencegroup mass. This is a
+specific operating difference, not proof of architectural novelty or feedback.
+
+No remote/GPU work was performed by this implementer. No new dependency added.
+
+Root-executed preflight evidence received, 2026-10-16
+audit/cpu_loader_attempt1.log retains the rejected staging-root attempt. The
+production output-root guard correctly rejected its temporary path before any
+forward. Running the unchanged source in the formal R17 root succeeded in
+audit/cpu_loader_attempt2.log: actual56heads,50layers, real ModelPatcher/native
+wrap_attn and manual20x50 wrapper calls; phase0/450/450, native1000/550/550.
+CUDA remained uninitialized. This is not nodes.load_custom_node or real sampler
+integration; object_info readiness and actual20Euler/20callbacks remain required.
+audit/gpu_kernel_attempt1.json records success with the frozen script SHA
+8b8edcf838893bce94074251db5630491ac6b184ae5fb1e9b156baf36d432bd9.
+Actual56x87592x128 random tensors: zero equals actual native bitwise; both
+signed branches are finite, preserve outside-window outputs, QKV and RNG.
+Four dense-oracle nonzero cases have maxabs<=.002972 and RMS<=.000292, within
+predeclared tolerances. Actual installed eager partial split-half coordinates
+also pass. This confirms the numerical operator, not a weighted model forward,
+motion controllability, video quality or new architecture.
+audit/gpu_kernel_cleanup1.json confirms child39953 exited and GPU3 returned to
+4MiB/0% with no compute PID; concurrent R16 GPU2 service17134 was untouched.
+scripts/build_manifest.py includes both immutable files in inputs/. Root owns
+final admission, manifest sealing, launch, pre-activation matching and outputs.

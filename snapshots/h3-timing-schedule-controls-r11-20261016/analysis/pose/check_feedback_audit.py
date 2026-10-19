@@ -1,0 +1,100 @@
+"""Independent hold2 execution audit; does not import runtime or call observer."""
+from pathlib import Path
+import argparse
+import json
+import consumer_r11 as consumer
+
+HERE=Path(__file__).resolve().parent
+RUN=None
+MASKS={'r11_s05_continuous6to19':list(range(6,20)),'r11_s05_skip7_6to14':[6,*range(8,15)]}
+
+
+def expected_decision(observation, previous, streak):
+    if type(streak) is not int or streak not in (0,1):
+        raise ValueError('Invalid held-alignment state')
+    if not observation['accepted']:
+        return False,'OFF_UNKNOWN',0
+    lag=observation['best']['lag_frames']
+    if type(lag) is not int or not -24<=lag<=24:
+        raise ValueError('Out-of-protocol accepted lag')
+    if lag>=4:return True,'ON_DELAYED',0
+    if -2<=lag<=2:
+        if previous and streak==0:return True,'HOLD_FIRST_ALIGNED',1
+        return False,'OFF_ALIGNED',0
+    if lag==3:return previous,'HOLD_LAG3',0
+    return False,'OFF_ADVANCED',0
+
+
+def audit(trace, expected_mask):
+    f=trace['feedback'];obs=f['observations'];active=f['active_indices'];latched=f['latched_forwards']
+    checks={'completed':trace['status']=='complete',
+            'hold2_schema':f['schema']=='h3-feedback-hold2-controller-v1',
+            'fixed_policy_and_mask':f['policy']=='fixed' and f['fixed_indices']==expected_mask,
+            'actual_mask_matches_registered':active==expected_mask,
+            'full_actuator':trace['mode']=='mass_preserve' and trace['alpha']==1 and trace['radius']==0 and trace['time_offset']==0,
+            'fixed_window':trace['pixel_interval_inclusive']==[50,65],
+            'all_blocks':trace['block_interval_half_open']==[0,50],
+            '20_forwards':trace['completed_forward_calls']==20 and trace['calls_by_forward']==[50]*20,
+            '1000_attention_calls':trace['completed_calls']==1000,
+            '20_callbacks':f['callback_count']==20,
+            'unique_active_indices':active==sorted(set(active)) and all(6<=i<=19 for i in active),
+            'reported_active_count':f['active_forward_count']==len(active),
+            'all50_or_none_routes':trace['routed_by_forward']==[50 if i in active else 0 for i in range(20)],
+            'total_routes':trace['routed_calls']==50*len(active),
+            'routes_per_block':trace['routed_by_block']==[len(active)]*50,
+            'callbacks5_through19_only':[o['callback_index'] for o in obs]==list(range(5,20)),
+            'latched20_forward_indices':[r['forward_index'] for r in latched]==list(range(20)),
+            'active_matches_latched':[r['forward_index'] for r in latched if r['active']]==active,
+            'native_prefix':all(not r['active'] for r in latched[:6])}
+    rows=[];previous=False;streak=0
+    for row in obs:
+        index=row['callback_index'];terminal=index==19
+        decision,reason,proposed_streak=expected_decision(row['observation'],previous,streak)
+        ok=(row['observer_proposed_active']==decision and row['reason']==reason and
+            row['terminal_audit_only']==terminal and row['current_forward_active']==(index in active) and
+            row['aligned_streak_before']==streak and row['aligned_streak_proposed']==proposed_streak)
+        if terminal:
+            ok=ok and row['next_forward_index'] is None and row['next_active'] is None
+            ok=ok and row['aligned_streak_after']==streak and row['applied_reason']=='TERMINAL_AUDIT_ONLY'
+        else:
+            ok=ok and row['next_forward_index']==index+1 and row['next_active']==((index+1) in expected_mask)
+            ok=ok and latched[index+1]['decision_callback_index']==index and latched[index+1]['active']==((index+1) in expected_mask)
+            ok=ok and row['aligned_streak_after']==proposed_streak and row['applied_reason']=='FIXED_MASK'
+            previous=((index+1) in expected_mask);streak=proposed_streak
+        rows.append({'callback_index':index,'checks_passed':bool(ok),'accepted':row['observation']['accepted'],
+                     'best_lag':None if row['observation'].get('best') is None else row['observation']['best']['lag_frames'],
+                     'reason':reason,'next_active':row['next_active'],'streak_before':row['aligned_streak_before'],
+                     'streak_after':row['aligned_streak_after'],'readout_seconds':row['readout_seconds']})
+    checks['fixed_mask_ignores_proposal_and_terminal_no_mutation']=all(r['checks_passed'] for r in rows)
+    checks['final_streak_matches']=f['aligned_streak']==streak
+    return {'checks':checks,'passed':all(checks.values()),'active_forward_indices_zero_based':active,
+            'active_forward_count':len(active),'observations':rows,
+            'observer_seconds_total':f['observer_seconds_total'],
+            'active_sigma_intervals':f['active_sigma_intervals'],'sigma_dose':f['sigma_dose'],
+            'scope':'Fixed-mask execution and passive observer audit. Observer proposals cannot alter actual mask. Only efficiency recording; no speed diagnosis. Known development-case factorial, no generalization claim.'}
+
+
+def self_test():
+    cases=[(4,False,0,(True,'ON_DELAYED',0)),(0,True,0,(True,'HOLD_FIRST_ALIGNED',1)),
+           (0,True,1,(False,'OFF_ALIGNED',0)),(0,False,0,(False,'OFF_ALIGNED',0)),
+           (3,True,1,(True,'HOLD_LAG3',0)),(3,False,0,(False,'HOLD_LAG3',0)),
+           (-3,True,1,(False,'OFF_ADVANCED',0)),(4,True,1,(True,'ON_DELAYED',0))]
+    for lag,active,streak,wanted in cases:
+        assert expected_decision({'accepted':True,'best':{'lag_frames':lag}},active,streak)==wanted
+    assert expected_decision({'accepted':False},True,1)==(False,'OFF_UNKNOWN',0)
+    print(json.dumps({'passed':True,'independent_transition_cases':9,'no_network_or_gpu':True}))
+
+
+def main():
+    global RUN
+    p=argparse.ArgumentParser();p.add_argument('--self-test',action='store_true');p.add_argument('--run-id');args=p.parse_args()
+    if args.self_test:return self_test()
+    RUN=consumer.formal_run(args.run_id)
+    path=HERE/'pilot'/(RUN+'_provenance')/'router_audit.json'
+    result=audit(json.loads(path.read_text()),MASKS[RUN]);result['audit_sha256']=consumer.digest(path)
+    consumer.save(HERE/'replication'/RUN/'operator_execution_gate.json',result)
+    print(json.dumps({'passed':result['passed'],'active_indices':result['active_forward_indices_zero_based']}))
+    if not result['passed']:raise ValueError('Hold2 execution gate failed; preserve scientific output')
+
+
+if __name__=='__main__':main()

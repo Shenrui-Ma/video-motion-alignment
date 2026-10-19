@@ -1,0 +1,128 @@
+"""Read-only arithmetic aggregation of committed JSON; no pose rescore or tuning."""
+import collections
+import hashlib
+import json
+import statistics
+import time
+from pathlib import Path
+
+B = Path('/Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/analysis/phase_consistent_segmentation_execution')
+D = B.parent / 'phase_consistent_segmentation_design'
+def read(p):
+    return json.loads(Path(p).read_text())
+def record(p):
+    p = Path(p)
+    data = p.read_bytes()
+    return {'path': str(p), 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+def check(r):
+    actual = record(r['path'])
+    assert actual == {k: r[k] for k in actual}, (r, actual)
+def write(p, value):
+    with Path(p).open('x') as f:
+        json.dump(value, f, indent=2, ensure_ascii=False, allow_nan=False)
+        f.write('\n')
+start = time.monotonic()
+sealed = read(B/'FREEZE.json')
+for r in sealed['files']:
+    check(r)
+inputs = read(D/'INPUTS.json')
+summary = read(B/'results/SUMMARY.json')
+assert len(summary['rows']) == len(inputs['targets']) == 63
+assert [r['id'] for r in summary['rows']] == [r['id'] for r in inputs['targets']]
+assert record(B/'ROOT_TARGET_AUTHORIZATION.json')['sha256'] == '012b90840934e5ec46beea05cea542875190e37ca453174d72cfecb8befac051'
+cal_sha = '5e2af9eb71e2b5a5cf9218faa9de26a780d674590e893fd64e2b02eb40b45966'
+results = {}
+records = []
+for row in summary['rows']:
+    complete_path = B/'results/targets'/row['id'].replace(':', '__')/'COMPLETE.json'
+    complete = read(complete_path)
+    assert complete['target_id'] == row['id']
+    check(row['result'])
+    for r in complete['files']:
+        check(r)
+    result = read(row['result']['path'])
+    assert result['lambda'] == 0 and result['calibration_sha256'] == cal_sha
+    assert result['target']['id'] == row['id']
+    results[row['id']] = result
+    records.extend([record(complete_path), *complete['files']])
+
+groups = []
+for run in dict.fromkeys(r['run_id'] for r in summary['rows']):
+    rows = [r for r in summary['rows'] if r['run_id'] == run]
+    trajectory = next((t for t in summary['trajectories'] if t['run_id'] == run), None)
+    output = {'run_id': run, 'source_id': rows[0]['source_id'], 'count': len(rows),
+              'stage': rows[0]['stage'], 'independent_ground_truth': 'UNKNOWN', 'methods': {}}
+    for method in rows[0]['methods']:
+        ms = [r['methods'][method] for r in rows]
+        full = [results[r['id']]['methods'][method] for r in rows]
+        totals = {k: sum(m[k] for m in ms) for k in ('K', 'qualified_K', 'delay', 'advance', 'rejected_K')}
+        totals.update(endpoints_with_qualified=sum(m['qualified_K'] > 0 for m in ms),
+                      endpoints_with_delay=sum(m['delay'] > 0 for m in ms),
+                      endpoints_with_advance=sum(m['advance'] > 0 for m in ms),
+                      K_histogram=dict(sorted(collections.Counter(m['K'] for m in ms).items())),
+                      qualified_K_histogram=dict(sorted(collections.Counter(m['qualified_K'] for m in ms).items())),
+                      rejection_reason_marginals=dict(collections.Counter(v for m in ms for rs in m['reasons'] for v in rs)),
+                      rejection_reason_combinations=dict(collections.Counter('|'.join(sorted(rs)) for m in ms for rs in m['reasons'])))
+        totals['coverage_sum'] = {k: sum(m['coverage'][k] for m in ms) for k in ms[0]['coverage'] if k != 'note'}
+        c = totals['coverage_sum']
+        totals['null_unknown_fraction_of_nominal_slots'] = c['null_unknown_slots']/c['nominal_slots_denominator']
+        totals['selected_unknown_fraction_of_selected_nominal_slots'] = c['selected_but_unknown_nominal_slots']/c['selected_nominal_slots'] if c['selected_nominal_slots'] else None
+        totals['qualified_observed_fraction_of_nominal_slots'] = c['qualified_known_slots_both_thresholds']/c['nominal_slots_denominator']
+        totals['qualified_observed_fraction_of_null_known_slots'] = c['qualified_known_slots_both_thresholds']/c['null_known_slots'] if c['null_known_slots'] else None
+        totals['positive_best_phase_intervals_by_part'] = {p: sum(m['positive_best_phase_intervals_by_part'][p] for m in ms) for p in ms[0]['positive_best_phase_intervals_by_part']}
+        totals['frame_selection_labels_by_part'] = {p: dict(collections.Counter(label for m in full for label in m['frame_selection_labels'][p])) for p in full[0]['frame_selection_labels']}
+        totals['selected_windows'] = [{'id': r['id'], 'endpoint_index': r['endpoint_index'], **{k: w[k] for k in ('part','start','end','lag','reward','code_cost','value','status','reasons')}} for r,m in zip(rows,full) for w in m['selected']]
+        totals['persistence'] = trajectory['methods'][method]['persistence'] if trajectory else {'status': 'NOT_APPLICABLE_FINAL_ONLY'}
+        totals['timing_seconds_sum'] = {k: sum(m['timing_seconds'][k] for m in ms) for k in ms[0]['timing_seconds']}
+        output['methods'][method] = totals
+    groups.append(output)
+
+receipts = [read(p) for p in sorted((B/'audit').glob('targets_*_attempt*.json'))]
+passed = [r for r in receipts if r['status'] == 'pass']
+assert len(passed) == 63
+assert len({r['target_id'] for r in passed}) == 63
+assert not [r for r in receipts if r['status'] not in ('pass','busy')]
+timings = [r['elapsed_seconds'] for r in passed]
+selected_by_method = {}
+for m in summary['rows'][0]['methods']:
+    selected_by_method[m] = {k:sum(g['methods'][m][k] for g in groups) for k in ('K','qualified_K','delay','advance','rejected_K','endpoints_with_qualified','endpoints_with_delay','endpoints_with_advance')}
+report = {
+    'schema': 'phase-segmentation-actual-target-summary-v1', 'status': 'complete',
+    'inputs': record(D/'INPUTS.json'), 'execution_freeze': record(B/'FREEZE.json'),
+    'authorization': record(B/'ROOT_TARGET_AUTHORIZATION.json'), 'summary': record(B/'results/SUMMARY.json'),
+    'calibration_sha256': cal_sha, 'lambda': 0.0, 'positive_complexity_penalty': False,
+    'registered_targets': 63, 'full_trajectories': 3, 'endpoints_per_trajectory': 20, 'final_only_stress': 3,
+    'groups': groups, 'all_groups_descriptive_totals': selected_by_method,
+    'execution': {'successful_targets': len(passed), 'busy_attempts': sum(r['status']=='busy' for r in receipts),
+                  'failed_targets': 0, 'phase_elapsed_sum_seconds': sum(timings),
+                  'phase_elapsed_min_seconds': min(timings), 'phase_elapsed_max_seconds': max(timings),
+                  'phase_elapsed_median_seconds': statistics.median(timings),
+                  'feature_load_sum_seconds': sum(r['timing_seconds']['feature_load'] for r in results.values()),
+                  'full_scan_sum_seconds': sum(r['timing_seconds']['full_scan'] for r in results.values()),
+                  'finalize_seconds': read(B/'audit/finalize_attempt001.json')['elapsed_seconds']},
+    'feature_failures': {i:r['feature_failures'] for i,r in results.items() if any(r['feature_failures'].values())},
+    'semantic_accuracy': None, 'false_positive_rate': None,
+    'notes': [
+        'Counts refer to correlated windows/endpoints on three historical controlled trajectories and three final-only poses.',
+        'Historical normal/bad names are context, not independent per-window/endpoint ground truth.',
+        'Selected unknown has an explicit denominator; unselected visible frames are NOT_SELECTED_BY_OBJECTIVE, not verified aligned.',
+        'Marginal rejection reasons can overlap. Competitors/support remain in all original RESULT.json files.',
+        'lambda=0 eliminates the positive complexity cost; larger K can reflect segmentation of small shape differences.',
+        'Source-view scale has no guarantee for generated pose errors. Transfer to source40372/source07 remains descriptive.',
+        'This observer has not been connected to an actuator or used for new GPU generation.',
+        'The zero-warp synthetic stress family and normal-case persistent candidates remain retained limitations.'
+    ]
+}
+path = B/'audit/TARGET_RESULT_SUMMARY.json'
+write(path, report)
+records += [record(path), record(B/'audit/TARGET_SUMMARY_RECIPE.txt'), record(B/'results/SUMMARY.json'),
+            record(B/'ROOT_TARGET_AUTHORIZATION.json'), record(B/'FREEZE.json'),
+            record(B/'results/CALIBRATION_COMPLETE.json'), record(B/'audit/finalize_attempt001.json')]
+records += [record(p) for p in sorted((B/'audit').glob('targets_*_attempt*.json'))]
+freeze = {'schema':'phase-segmentation-target-results-freeze-v1', 'registered':63,
+          'verified_sealed_files':len(sealed['files']), 'verified_target_output_files':len(results)*3,
+          'elapsed_seconds':time.monotonic()-start, 'files':records}
+write(B/'audit/TARGET_RESULT_FREEZE.json',freeze)
+print(json.dumps({'summary':record(path),'freeze':record(B/'audit/TARGET_RESULT_FREEZE.json'),
+                  'groups':[{k:v for k,v in g.items() if k!='methods'}|{'counts':{m:{k:g['methods'][m][k] for k in ('K','qualified_K','delay','advance','rejected_K')} for m in g['methods']}} for g in groups],
+                  'execution':report['execution']},ensure_ascii=False))

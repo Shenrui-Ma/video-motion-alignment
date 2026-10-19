@@ -1,0 +1,24 @@
+R98 单次 CPU 成片归档与展示
+
+目录 /Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019
+绑定 producer 74文件seal 35f4d47556b6bb87ff377dba717aedb271a816ef2e592b912d63e574b6caa9bf。
+本消费者未运行实际采集、未启动watcher/GPU、未调用producer verifier。
+
+root确认实际成片gate通过后执行一次：
+cd /Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py --attempt root_character_repair_attempt1
+
+若STARTED、ROOT_EXIT_RECEIPT或NATIVE_RUNTIME_GATE尚未出现，返回PENDING与exit3；不等待、不提交任务、不释放任何进程。成功门必须含全部15项实际checks为true，以及20NFE/20Euler/0route/147valid。配置/图/运行身份与history输出全部严格绑定。新输出与小JSON完成传输后重新读取原收据，跨代次或SHA变化拒绝。旧R66参考动作/Native/目标图复用本机已核SHA，旧Native门与history保留在configs/historical。
+
+结果：
+Downloads/H3_R98_俯卧支撑角色替换修复_20261019.html
+Downloads/H3_R98_参考_旧普通_新普通_147帧_20261019.mp4
+showcase/source_old_new_full_valid.mp4
+showcase/original_times_page_01.jpg 至 _07.jpg
+showcase/PRESENTATION.json 与 Downloads同名JSON提供输入/输出SHA及原路径。
+
+三栏为参考动作 / 旧普通编辑 / 新版普通编辑，尺寸各1152×768，拼接3456×856（底部88像素黑色中文caption）。三栏相同147有效帧、24fps；完整158帧新成片保留incoming/native.mp4。49个原动作时刻按0,3,...144取帧，7页每页7行。HTML内嵌一个完整视频、真实首帧poster、目标图和全部7页组图，controls/preload=none，宽屏全幅可全屏，无网络依赖。
+
+两版均0引导，旧.41与新.9运行环境不同；页面明记这是角色替换修复前后展示。任务效果由root完整成片审核，消费者不自动判断成功或改进。
+
+验证：17 CPU单测；真实三色ffmpeg fixture验证147@24帧数/PTS、三栏顺序、黑caption和49时刻7页；HTML内嵌视频字节与7页组图/JS syntax通过。使用已有ComfyUI-dev Python（系统python缺Pillow，初次失败已保留）；没有安装依赖。UI浏览器受Work设置阻断，visual-verdict记not_assessed，未绕过浏览器设置。

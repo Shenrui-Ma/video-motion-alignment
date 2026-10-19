@@ -1,0 +1,23 @@
+from pathlib import Path
+import json,hashlib,time,copy
+R=Path(__file__).resolve().parents[1]
+C=R.parent/'h3-flexiact-remaining-repair-metrics-r104-20261019'
+read=lambda p:json.loads(Path(p).read_text())
+sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+source='fitness__game_man_4';a=C/'incoming_pairs'/source;s=C/'showcase_pairs'/source
+contract=C/'configs/contract.json';c=read(contract);c=next(x for x in c['sources'] if x['source_id']==source)
+pres=s/'PRESENTATION.json';pr=read(pres);gate=a/'PAIR_RUNTIME_GATE.json';g=read(gate)
+review=C/'audit/full_frame_review'/source/'paired/REVIEW.json';v=read(review)
+assert g['passed'] and all(g['checks'].values()) and g['runs']['native']['routed_blocks']==0 and g['runs']['forced']['routed_blocks']==450
+assert v['reviewed_all_valid_frames']==list(range(147)) and v['classification']=='NEUTRAL_TASK_PRESERVED_NATIVE_ALREADY_CLOSE'
+evidence=[contract,gate,a/'COLLECTION.json',pres,review,review.parent/'MEDIA_BINDINGS.json',C/'audit/PRE_OUTPUT_EVENT_PLAN.json',C/'prepared/OFFICIAL_REFERENCE_BINDINGS.json',C/'prepared'/source/'paired/MF_INPUTS.json']
+media={'reference_image_path':str(C/c['portrait']['file']),'reference_video_path':str(C/c['source']['file']),'ordinary_video_path':str(a/'native.mp4'),'guided_video_path':str(a/'forced.mp4'),'comparison_video_path':str(s/'source_native_guided_full_valid.mp4')}
+assert sha(media['ordinary_video_path'])==g['runs']['native']['video']['sha256']
+assert sha(media['guided_video_path'])==g['runs']['forced']['video']['sha256']
+assert sha(media['comparison_video_path'])==pr['videos'][0]['sha256']
+summary='全部147有效帧审阅：两版均完成短黑发动漫男子、绿披肩与白背景的替换，并保留双臂侧举、过头合手、合手下落的动作。普通编辑时序已接近参考，固定引导后的动作阶段与其相近，本例没有清楚的额外时序收益。过头阶段手部出框，首次合手时刻无法精确测量。'
+row={'id':'flex_r104_fitness__game_man_4_fixed','benchmark':'FlexiAct','source_id':'fitness','reference_image_id':'game_man_4','variant':'R104 · 提示词修复后普通编辑与固定时序引导','title':'双臂侧举与合手下落 · game_man_4','task':c['display_task'],'display_task':c['display_task'],'reference_image_used':True,**media,'alternative_video_path':None,'preview_html':str(Path('/Users/researcher/Downloads')/f'H3_R104_{source}_固定时序引导对照_20261019.html'),'review_status':'角色和动作已完成，两版时序相近','review_status_code':'neutral_task_pass_native_already_close','review_summary':summary,'display_summary':summary,'count_as_complete_task_success':True,'clear_temporal_support':False,'support_for_clear_whole_event_repair':False,'identity_success':{'native':True,'guided':True},'motion_transfer':'visible_sequence_retained','evidence_paths':[str(p) for p in evidence],'evidence_sha256':{str(p):sha(p) for p in evidence},'media_sha256':{k:sha(p) for k,p in media.items()},'valid_frames':147,'fps':24,'generated_frames':158,'method_label':'固定时序引导；去噪步骤索引6–14，α=1，50个DiT block','comparison_kind':'guided_pair','comparison_subtype':'same_host_fresh_native_fixed_guidance','column_labels':['1.参考视频','2.普通编辑','3.时序引导'],'guidance_activation':'active','routed_block_calls':450,'pair_group':'官方原始配对','source_time_precision':'原素材49帧/8fps，每帧重复3次得到24fps；动作时间精度0.125秒，展示147有效帧。','input_contract_path':str(contract),'prompt':c['prompt'],'prompt_version':c['prompt_version'],'input_reference_image_sha256':c['portrait']['sha256'],'input_reference_video_sha256':c['source']['sha256'],'scene_requirement':'目标参考图白色背景','scene_requirement_prompt_quote':'The target image determines the character and environment.','source_processing':'原片8 fps；每帧重复3次至24 fps；展示147有效帧','judgment_source':'完整审阅25页三栏图，覆盖147有效帧；与预登记动作阶段逐一对应。','event_review':{'file':str(review),'sha256':sha(review)},'parent_inventory_id':'flex_r66_fitness__game_man_4','runtime':{f'{k}_job_wall_seconds':g['runs'][k]['job_wall_seconds'] for k in ['native','forced']},'quantitative_metrics':{'motion_fidelity':{'native':None,'guided':None,'delta':None,'higher_is_better':True,'status':'pending','protocol':'FlexiAct official MF (commit de9fe1d536732c4d1a384577b5ae54f8fc1730d7)','valid_frames':147,'evaluation_frames':49,'evaluation_fps':8,'source_files':[],'source_sha256':{},'scope':'官方原始49帧8fps参考，输出取0,3,…144；指标待实际评分。完整成片的任务和动作验收已记录。'}}}
+p=R/'inventory/flexiact.json';before=sha(p);d=read(p);old=copy.deepcopy(d['items']);assert not any(x['id']==row['id'] for x in old)
+d['items'].append(row);assert d['items'][:-1]==old;d['previous_inventory_sha256']=before;d['updated_unix']=time.time();assert sha(p)==before
+audit=R/'audit/r104_fitness_pair_20261019';audit.mkdir(exist_ok=False);(audit/'PREVIOUS_INVENTORY.json').write_bytes(p.read_bytes());p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+receipt={'before_sha256':before,'after_sha256':sha(p),'id':row['id'],'review_sha256':sha(review),'conclusion':v['classification']};(audit/'RECEIPT.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt))

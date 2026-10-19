@@ -1,0 +1,1181 @@
+{
+  "schema": "r33-comparability-v1",
+  "status": "existing evidence verified; prospective runtime pairingpending",
+  "new_model_or_pose_runs": 0,
+  "source_pose": {
+    "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/configs/source.pose.json",
+    "sha256": "e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852",
+    "bytes": 197618
+  },
+  "source_video_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+  "model_manifest": {
+    "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/configs/model_hashes_host9.json",
+    "sha256": "8fed70a700a0a5bc80e17188fa97b98df4d1de2770c6dfa97fb4afaf863e5194",
+    "bytes": 584
+  },
+  "model_identifiers": {
+    "1": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "2": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    },
+    "3": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    },
+    "4": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  },
+  "R3_to_R27_actual_input_checks": {
+    "r3_s05_native": {
+      "conditioning_diff_exact": [
+        {
+          "path": "/conditioning_embedding/tensor_file",
+          "a": "__absent__",
+          "b": "tensor_blobs/e75942ff5de6f8978671163245e6a4c9298c027077c239a1316e52cd9a511873.pt"
+        },
+        {
+          "path": "/pair_snapshot/source_manifest",
+          "a": "05_sam_1312x736_shared_v3_conditioning.json",
+          "b": "r27_s05_shared_conditioning_conditioning.json"
+        },
+        {
+          "path": "/pair_snapshot/source_manifest_sha256",
+          "a": "ce14565bc7279b3a75ef9f5239f8e264049e8dc02cdc4e1e4e59d3dbe51528a3",
+          "b": "c87c1c25908adf4f3b089a2fdfc40a47b655f70cd9825dc8df706e000428f324"
+        },
+        {
+          "path": "/pair_snapshot/source_run_id",
+          "a": "05_sam_1312x736_shared_v3",
+          "b": "r27_s05_shared_conditioning"
+        },
+        {
+          "path": "/run_id",
+          "a": "r3_s05_native",
+          "b": "r27_s05_bad1311_auto"
+        }
+      ],
+      "noise_diff_exact": [
+        {
+          "path": "/cache_file",
+          "a": "/data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/05_sam_1312x736_2026101311_v3_noise.pt",
+          "b": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/r27_s05_bad1311_auto_noise_noise.pt"
+        },
+        {
+          "path": "/pair_id",
+          "a": "05_sam_1312x736_2026101311_v3",
+          "b": "r27_s05_bad1311_auto_noise"
+        },
+        {
+          "path": "/run_id",
+          "a": "r3_s05_native",
+          "b": "r27_s05_bad1311_auto"
+        }
+      ],
+      "all_other_conditioning_and_noise_fields_equal": true,
+      "actual_video_sigma_grid_equal": true,
+      "evidence": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/conditioning.json",
+          "sha256": "8e959e1392d1aa6035b708715701209a7e6f7345ca49582568a228f60d5b23ed",
+          "bytes": 31910
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/noise.json",
+          "sha256": "48147d0fe46f886618f962c51d0f854a41eff74fef787133c0046a2eba08da34",
+          "bytes": 990
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/router_audit.json",
+          "sha256": "81e8d4b57b40fca8120ba04c8b795d99575e7b604567c4ed94e1b9c4d9563899",
+          "bytes": 81109
+        }
+      ]
+    },
+    "r3_s05_full_6to14": {
+      "conditioning_diff_exact": [
+        {
+          "path": "/conditioning_embedding/tensor_file",
+          "a": "__absent__",
+          "b": "tensor_blobs/e75942ff5de6f8978671163245e6a4c9298c027077c239a1316e52cd9a511873.pt"
+        },
+        {
+          "path": "/pair_snapshot/source_manifest",
+          "a": "05_sam_1312x736_shared_v3_conditioning.json",
+          "b": "r27_s05_shared_conditioning_conditioning.json"
+        },
+        {
+          "path": "/pair_snapshot/source_manifest_sha256",
+          "a": "ce14565bc7279b3a75ef9f5239f8e264049e8dc02cdc4e1e4e59d3dbe51528a3",
+          "b": "c87c1c25908adf4f3b089a2fdfc40a47b655f70cd9825dc8df706e000428f324"
+        },
+        {
+          "path": "/pair_snapshot/source_run_id",
+          "a": "05_sam_1312x736_shared_v3",
+          "b": "r27_s05_shared_conditioning"
+        },
+        {
+          "path": "/run_id",
+          "a": "r3_s05_full_6to14",
+          "b": "r27_s05_bad1311_auto"
+        }
+      ],
+      "noise_diff_exact": [
+        {
+          "path": "/cache_file",
+          "a": "/data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/05_sam_1312x736_2026101311_v3_noise.pt",
+          "b": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/r27_s05_bad1311_auto_noise_noise.pt"
+        },
+        {
+          "path": "/pair_id",
+          "a": "05_sam_1312x736_2026101311_v3",
+          "b": "r27_s05_bad1311_auto_noise"
+        },
+        {
+          "path": "/run_id",
+          "a": "r3_s05_full_6to14",
+          "b": "r27_s05_bad1311_auto"
+        }
+      ],
+      "all_other_conditioning_and_noise_fields_equal": true,
+      "actual_video_sigma_grid_equal": true,
+      "evidence": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/conditioning.json",
+          "sha256": "12b7164bbde50fb58744239fe818d1f64b1155aa5ef2dbe75760894ada7c0d99",
+          "bytes": 31914
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/noise.json",
+          "sha256": "61d4aff41cc7028008b7b379b79d93c7937b60b92bb6920c82dc566ba5da9ba0",
+          "bytes": 994
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/router_audit.json",
+          "sha256": "a3ca1c2c8f983e8ea5fa2d933bbf4d072f0d43f2dc53bfa6aa027b2a2fbbb333",
+          "bytes": 190836
+        }
+      ]
+    }
+  },
+  "mapping": {
+    "evidence": {
+      "path": "/Users/researcher/DevProjects/h3-timing-window-location-r33-20261017/design/evidence/ACTUAL_LAYOUT_CHECK.json",
+      "sha256": "1eafce61a5cbc00ea100daec708d0d822cccf46a99dbc0fac70150aa32ed24ce",
+      "bytes": 19100
+    },
+    "auto_rows": [
+      {
+        "bin": 13,
+        "period_phase": 3,
+        "nominal_frames_inclusive": [
+          43,
+          46
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          20169,
+          21112
+        ],
+        "target_rows_half_open": [
+          60245,
+          61188
+        ],
+        "reference_time_position": 7032.666666666667,
+        "target_time_position": 7267.666666666667,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 14,
+        "period_phase": 4,
+        "nominal_frames_inclusive": [
+          47,
+          50
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          21112,
+          22055
+        ],
+        "target_rows_half_open": [
+          61188,
+          62131
+        ],
+        "reference_time_position": 7039.333333333333,
+        "target_time_position": 7274.333333333333,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 15,
+        "period_phase": 0,
+        "nominal_frames_inclusive": [
+          51,
+          51
+        ],
+        "span": 1,
+        "reference_rows_half_open": [
+          22055,
+          22998
+        ],
+        "target_rows_half_open": [
+          62131,
+          63074
+        ],
+        "reference_time_position": 7046.0,
+        "target_time_position": 7281.0,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 16,
+        "period_phase": 1,
+        "nominal_frames_inclusive": [
+          52,
+          55
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          22998,
+          23941
+        ],
+        "target_rows_half_open": [
+          63074,
+          64017
+        ],
+        "reference_time_position": 7047.666666666667,
+        "target_time_position": 7282.666666666667,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 17,
+        "period_phase": 2,
+        "nominal_frames_inclusive": [
+          56,
+          59
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          23941,
+          24884
+        ],
+        "target_rows_half_open": [
+          64017,
+          64960
+        ],
+        "reference_time_position": 7054.333333333333,
+        "target_time_position": 7289.333333333333,
+        "target_minus_ref_time": 235.0
+      }
+    ],
+    "displaced_rows": [
+      {
+        "bin": 23,
+        "period_phase": 3,
+        "nominal_frames_inclusive": [
+          77,
+          80
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          29599,
+          30542
+        ],
+        "target_rows_half_open": [
+          69675,
+          70618
+        ],
+        "reference_time_position": 7089.333333333333,
+        "target_time_position": 7324.333333333333,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 24,
+        "period_phase": 4,
+        "nominal_frames_inclusive": [
+          81,
+          84
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          30542,
+          31485
+        ],
+        "target_rows_half_open": [
+          70618,
+          71561
+        ],
+        "reference_time_position": 7096.0,
+        "target_time_position": 7331.0,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 25,
+        "period_phase": 0,
+        "nominal_frames_inclusive": [
+          85,
+          85
+        ],
+        "span": 1,
+        "reference_rows_half_open": [
+          31485,
+          32428
+        ],
+        "target_rows_half_open": [
+          71561,
+          72504
+        ],
+        "reference_time_position": 7102.666666666667,
+        "target_time_position": 7337.666666666667,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 26,
+        "period_phase": 1,
+        "nominal_frames_inclusive": [
+          86,
+          89
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          32428,
+          33371
+        ],
+        "target_rows_half_open": [
+          72504,
+          73447
+        ],
+        "reference_time_position": 7104.333333333333,
+        "target_time_position": 7339.333333333333,
+        "target_minus_ref_time": 235.0
+      },
+      {
+        "bin": 27,
+        "period_phase": 2,
+        "nominal_frames_inclusive": [
+          90,
+          93
+        ],
+        "span": 4,
+        "reference_rows_half_open": [
+          33371,
+          34314
+        ],
+        "target_rows_half_open": [
+          73447,
+          74390
+        ],
+        "reference_time_position": 7111.0,
+        "target_time_position": 7346.0,
+        "target_minus_ref_time": 235.0
+      }
+    ],
+    "actual_tensors": [
+      {
+        "path": "/Users/researcher/DevProjects/h3-timing-window-location-r33-20261017/design/evidence/actual_position_ids.pt",
+        "sha256": "784ae17f565929ea2adc3ae753849c2cb91f8adf106a0d9ffdd457fd55b25eca",
+        "bytes": 2103944
+      },
+      {
+        "path": "/Users/researcher/DevProjects/h3-timing-window-location-r33-20261017/design/evidence/actual_token_tags.pt",
+        "sha256": "8f3463c7cb431a156e1aa5dda51cdfa5a1d4601dcb682329122b45991dc71b5d",
+        "bytes": 57416
+      }
+    ],
+    "tags_limit": "6960text/presentationtags do not identify allpackedrows;referencekinds+shapes+segments distinguishportrait/video."
+  },
+  "prefix": {
+    "path": "/Users/researcher/DevProjects/h3-timing-window-location-r33-20261017/design/evidence/ACTUAL_PREFIX_0_TO_4.json",
+    "sha256": "eee8e693f14f48cbbaa238b12c10d913613f52ff37d7440450ba340da87ef7a9",
+    "bytes": 7751
+  },
+  "existing_arms": {
+    "Native": {
+      "run_id": "r3_s05_native",
+      "video": {
+        "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_native_00001_.mp4",
+        "sha256": "11527cd3412e19b436e0e5deca1673d22a99f5f748cb650817c643e9a8fff1f2",
+        "bytes": 2059818
+      },
+      "pose": {
+        "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_00001_.pose.json",
+        "sha256": "45e130c98e8e39e29efaab7f8d0158695170357182525b5e3ef1742867765759",
+        "bytes": 197639
+      },
+      "NFE": 20,
+      "Euler_updates": 20,
+      "active_indices": [],
+      "route_calls": 0,
+      "role": "same-input historical reference, not equal-schedule causalarm"
+    },
+    "FixedFull6to14": {
+      "run_id": "r3_s05_full_6to14",
+      "video": {
+        "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_full_6to14_00001_.mp4",
+        "sha256": "1c76ee0edc663652e93596cc38463d6b1bebdb7a01c6c10ab88a84a66a9ac1ab",
+        "bytes": 2058104
+      },
+      "pose": {
+        "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_00001_.pose.json",
+        "sha256": "9ad37e2485618dda8edc6eef75f7ac1e8b5687742ba6e88fad3a317ed4132739",
+        "bytes": 197588
+      },
+      "NFE": 20,
+      "Euler_updates": 20,
+      "active_indices": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "route_calls": 450,
+      "role": "same-input historical reference, not equal-schedule causalarm"
+    },
+    "Auto4": {
+      "run_id": "r27_s05_bad1311_auto",
+      "video": {
+        "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/output/r27_s05_bad1311_auto_00001_.mp4",
+        "sha256": "376c1925454a82971fb2101d567f2fd677625381f0859a5891b62c10d970488a",
+        "bytes": 2059160
+      },
+      "pose": {
+        "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/pose/r27_s05_bad1311_auto_00001_.pose.json",
+        "sha256": "b3a397fbf81612d44f58cc71510b9a73cfcbb68be63969e689809109889afede",
+        "bytes": 197573
+      },
+      "NFE": 21,
+      "Euler_updates": 20,
+      "active_indices": [
+        4
+      ],
+      "route_calls": 50,
+      "bins": [
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "role": "main matched branchbudget comparator; online measurements separatefromproposedstaticcontrol",
+      "final_status": "Independentpriorityfinalcomplete;formalobserverreplayseparatelyrequired"
+    }
+  },
+  "existing_outcomes": {
+    "source": {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/SUMMARY.json",
+      "sha256": "1ee1a4ae20839b20661c3d90caeb4bfcd4d2a9c5892842d094a2cc16f40aef2d",
+      "bytes": 1640052
+    },
+    "fixed_windows": {
+      "bad_native": {
+        "0.3": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 13,
+            "flags": []
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 13,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 10,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 10,
+            "flags": []
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 8,
+            "flags": []
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 8,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 4,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 4,
+            "flags": []
+          }
+        ],
+        "0.5": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 13,
+            "flags": []
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 12,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "arm_direction",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "wrist_relative",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "arm_direction",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "wrist_relative",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 4,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 4,
+            "flags": []
+          }
+        ]
+      },
+      "bad_fixed_full": {
+        "0.3": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          }
+        ],
+        "0.5": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "arm_direction",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "wrist_relative",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          }
+        ]
+      },
+      "auto": {
+        "0.3": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 2,
+            "flags": []
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 2,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          }
+        ],
+        "0.5": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 2,
+            "flags": []
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "arm_direction",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "feature": "wrist_relative",
+            "status": "unreliable_detection_coverage",
+            "lag": null,
+            "flags": null
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 1,
+            "flags": []
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "lag": 0,
+            "flags": [
+              "little_gain_over_same_frame"
+            ]
+          }
+        ]
+      }
+    },
+    "whole_scan": {
+      "bad_native": {
+        "scientific_status": "measured",
+        "rows": 186,
+        "baseline_counts": {
+          "delayed_candidate": 102,
+          "advanced_candidate": 0,
+          "aligned": 59,
+          "unknown": 25
+        },
+        "known_denominator": 161,
+        "all_denominator": 186,
+        "reasons": [],
+        "overlap_warning": "rows are overlapping descriptors, not independent trials"
+      },
+      "bad_fixed_full": {
+        "scientific_status": "measured",
+        "rows": 186,
+        "baseline_counts": {
+          "delayed_candidate": 0,
+          "advanced_candidate": 0,
+          "aligned": 157,
+          "unknown": 29
+        },
+        "known_denominator": 157,
+        "all_denominator": 186,
+        "reasons": [],
+        "overlap_warning": "rows are overlapping descriptors, not independent trials"
+      },
+      "auto": {
+        "scientific_status": "measured",
+        "rows": 186,
+        "baseline_counts": {
+          "delayed_candidate": 1,
+          "advanced_candidate": 0,
+          "aligned": 161,
+          "unknown": 24
+        },
+        "known_denominator": 162,
+        "all_denominator": 186,
+        "reasons": [],
+        "overlap_warning": "rows are overlapping descriptors, not independent trials"
+      }
+    },
+    "quality": "Limitedfixedframe layout/editpresence checked;fullidentity/ghost/flickerunassessed;formalagreementpending."
+  },
+  "condition_tree_boundary": {
+    "R27_actual_container": {
+      "local_path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/audit/counterfactual/r27_s05_bad1311_auto.json",
+      "sha256": "7aa4ea13e07e15c90a24549b078ad73f6d968c12819d02f8a6b9e522e404228a",
+      "bytes": 776172352
+    },
+    "checked_here": "Smallconditioning/noise/actualprefixsignatures checked. Largefullconditioncontainer boundfrompassedSHAinventory,notparsedinthisboundeddesignpass. Builderextractsandactualruntimecompares;onlytwomatchingvalidUUIDexceptions.",
+    "R3_limit": "Oldfullpostaugmentationtreenotsaved;cleaninputs/code/seedandprefixevidencedonotcreateoldtree."
+  },
+  "numerical_sources": [
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/extensions/H3TemporalRouter/core.py",
+      "sha256": "ac9a5437f0fa22fda037506d13f09e5f14c63e0c0e5946a5fa6483d6db7de7e0",
+      "bytes": 29287
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/extensions/H3TemporalRouter/layout.py",
+      "sha256": "bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe",
+      "bytes": 8173
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/extensions/H3TemporalRouter/mask.py",
+      "sha256": "023db9977130841d274ac8bce80de7953f447d78350fb4a2cf2f552728f26cf4",
+      "bytes": 1313
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/extensions/H3AutomaticWindowRouter/core.py",
+      "sha256": "ce8862921c815e11add7ee11e2f556cb9a58ce11d360356d4e973ab57c171e2b",
+      "bytes": 26357
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/extensions/H3AutomaticWindowRouter/dynamic_support.py",
+      "sha256": "e682a84587c68db279dbc0eb563ff0cf67cb5567594ed0f97402040c0ac689af",
+      "bytes": 1165
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/extensions/H3AutomaticWindowRouter/pair_gate.py",
+      "sha256": "108c6cc88724cb000e4884a7d7283ad263a3913a188b8b1ad972915cce21fb07",
+      "bytes": 5544
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/scripts/timing_metrics.py",
+      "sha256": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+      "bytes": 19043
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/scripts/scan_current_pose.py",
+      "sha256": "db6cb40c30d88ae7b4ce4892a90be16483d903a1aeee2a634f1dedc9cd63c814",
+      "bytes": 3981
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/evaluate.py",
+      "sha256": "e7b84a0e414ea91c53b998ea5ed0a6367cef473633fd7b222da96796a460eead",
+      "bytes": 12837
+    }
+  ],
+  "frozen_metrics_external": {
+    "/data5/researcher/h3_runs/timing_autoresearch_20261016/scripts/pose_probe.py": "04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f",
+    "/data5/researcher/h3_runs/timing_autoresearch_20261016/scripts/timing_metrics.py": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+    "/data5/researcher/h3_runs/timing_autoresearch_20261016/analysis/pose/old_sam/05_real_megumi_v.pose.json": "e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/yzd-v/DWPose/yolox_l.onnx": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt": "d86a0b2b59fddc0901a7076e9f59c9f8602602133ed72511c693fd11eea23d91",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/src/custom_controlnet_aux/dwpose/dw_onnx/cv_ox_det.py": "920a09469d3d719ff032861e78c8a94b85a87521c0efd88bb4aaf9bd281b690f",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/src/custom_controlnet_aux/dwpose/dw_torchscript/jit_pose.py": "7622487bf9c47ab48d108d3252c448d8df3686af8099296edb10b921201facd8",
+    "/data5/researcher/h3_runs/timing_autoresearch_20261016/analysis/pose/compare_runs.py": "1e725cd5063ae9e9e770f94c54c91dfa5d0473e951e92dfcebaa56619c844b33"
+  },
+  "evidence_files": [
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/RUN_GATE.json",
+      "sha256": "225ab4843104c95228012701e4c40a47525a67b83963599a64d655cbc9e8065d",
+      "bytes": 7975
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/RUNTIME_GATE.json",
+      "sha256": "96f84aaea5f5059b4f987f03f00ad919286a552fe416fa28fdc3b0d9b572eb6e",
+      "bytes": 629
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/FILE_INVENTORY.json",
+      "sha256": "858b70620dab85e31b0c5928318f74dc4077db4c27001dada3fa67371247a31a",
+      "bytes": 72711
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/DECISION_LEDGER.json",
+      "sha256": "7b1b69b2c601930d922eea57e9940800e03bd84e2246ab7c66010df66b8ca31c",
+      "bytes": 26028987
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/configs/r27_s05_bad1311_auto.json",
+      "sha256": "c08297caf9452943564ea4151c5c2cf7c13dc4f8a3c40b443b8fd0e23e63f4fc",
+      "bytes": 6236
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/audit/r27_s05_bad1311_auto_conditioning.json",
+      "sha256": "15ea723119cb4892ba8b1066d755c735b9a2408ebf22548436b9d9e7f9d49ad9",
+      "bytes": 32024
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/audit/r27_s05_bad1311_auto_noise.json",
+      "sha256": "cd8cabc45a5d771c54818c92820717c0c3c3ad4f4203268faf79519119ee2114",
+      "bytes": 1000
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun/captured/r27_s05_bad1311_auto/audit/x0/r27_s05_bad1311_auto/manifest.json",
+      "sha256": "77d84ef18fe5799c011ca428fd8a7702a273d2d624e453eb062d246e2d98f8d8",
+      "bytes": 28019
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/PROTOCOL.json",
+      "sha256": "b68aa4d074c5e9278df0616ce085e9767d1a635d0192ee64e25d8358691959da",
+      "bytes": 1798
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/SUMMARY.json",
+      "sha256": "1ee1a4ae20839b20661c3d90caeb4bfcd4d2a9c5892842d094a2cc16f40aef2d",
+      "bytes": 1640052
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/EXECUTION_COMPLETE.json",
+      "sha256": "e6c1f651f34da62fe4650539e090d037cb97f1c10e602fd1bbfc6deea84cfd0f",
+      "bytes": 77
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/PRIORITY_REVIEW.txt",
+      "sha256": "bd8558164f9c2a603378ed31c814e06d9dcf1afdbbdea3f66cca2577c022cd29",
+      "bytes": 3284
+    }
+  ],
+  "required_new_gates": [
+    "actualcleancondition/embedding/tags/positions/AVnoise",
+    "actualAVgrids/augmentationrecipe",
+    "actual0..4NativeAVprefix/chosen0..3",
+    "same-stateNative4Full4/RNG",
+    "21NFE20Euler1050blocks50routes/displacedmask",
+    "PT/video/schema/timebase/inventory"
+  ],
+  "limits": [
+    "Posthoccontrolfixedbeforeitsoutcome.",
+    "Observerremovedexplicitly;actualprefixrequired;notanefficiencycomparison.",
+    "Equalrowcountandphasearenotequalreferenceprobabilitymassorcontent.",
+    "Displacedactioncanrepairglobally;equalresultweakenslocationnecessity.",
+    "FixedFull6..14isdifferentschedule/supportbenchmark."
+  ]
+}

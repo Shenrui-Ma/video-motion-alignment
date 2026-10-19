@@ -1,0 +1,199 @@
+{
+  "schema": "legacy-source51310-prompt-control-design-v1",
+  "state": "CPU_DESIGN_ONLY",
+  "source_id": "51310",
+  "character": "Sam Altman",
+  "runs": [
+    "fresh_native_P0",
+    "fresh_native_P1"
+  ],
+  "seed": 2026101701,
+  "assets": {
+    "source_51310_video.mp4": {
+      "file": "/Users/researcher/DevProjects/h3-timing-new-actions-native-r38-20261017/inputs/source_51310_video.mp4",
+      "sha256": "e4e387f56fa7e0bfde67ee54817576b1a9df0d468cad68d0469f4ce8c8190a27",
+      "bytes": 1935708
+    },
+    "source_51310_portrait.jpg": {
+      "file": "/Users/researcher/DevProjects/h3-timing-new-actions-native-r38-20261017/inputs/source_51310_portrait.jpg",
+      "sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42",
+      "bytes": 11301954
+    },
+    "source_51310_provenance.json": {
+      "file": "/Users/researcher/DevProjects/h3-timing-new-actions-native-r38-20261017/inputs/source_51310_provenance.json",
+      "sha256": "6a5eec4174d1a4904c07ae92aa3ec3b9eeefe7d2ae79b9cd9a80918cde57af67",
+      "bytes": 13128
+    }
+  },
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24
+  },
+  "source_frames": "all141, source physical times0..140/24",
+  "semantic_fps": 2,
+  "phase_frames": 0,
+  "sampler": "Euler20",
+  "CFG": 1,
+  "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+  "sigma_shifts": {
+    "model": [
+      "1",
+      0
+    ],
+    "shift_video": 12.0,
+    "shift_audio": 3.0
+  },
+  "models": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+      }
+    }
+  },
+  "intervention": "Native for both; zero routed attention blocks; no feedback or time warp",
+  "actual_noise_streams": [
+    {
+      "shape": [
+        1,
+        24,
+        42,
+        46,
+        82
+      ],
+      "dtype": "torch.float32",
+      "sha256": "c72af37e817f070b9f7a10953988f7b24b397350823befd3354269c2db2747ba"
+    },
+    {
+      "shape": [
+        1,
+        32,
+        2,
+        235
+      ],
+      "dtype": "torch.float32",
+      "sha256": "8d58eaf630239c5a14314b4b847ba019e682d619fc00d21bc7ab2ca4fedef0a2"
+    }
+  ],
+  "original_noise_cache_remote": "/data5/researcher/h3_runs/timing_new_actions_native_r38_20261017/audit/r38_source_51310_seed2026101701_noise.pt",
+  "noise_signature": {
+    "seed": 2026101701,
+    "nested": true,
+    "shapes": [
+      [
+        1,
+        24,
+        42,
+        46,
+        82
+      ],
+      [
+        1,
+        32,
+        2,
+        235
+      ]
+    ],
+    "dtypes": [
+      "torch.float32",
+      "torch.float32"
+    ],
+    "batch_index": null
+  },
+  "P0": {
+    "file": "/Users/researcher/DevProjects/h3-timing-ivebench-prompt-pair-r71-20261018/analysis/legacy_prompt_audit/P0_EXACT.txt",
+    "sha256": "78c6ef1e350a1e74458fa12c8327787f624a8c02ecfba4225461fbc3f1e62456",
+    "bytes": 288
+  },
+  "P1": {
+    "file": "/Users/researcher/DevProjects/h3-timing-ivebench-prompt-pair-r71-20261018/analysis/legacy_prompt_audit/P1_PROPOSED.txt",
+    "sha256": "c208d9857df0ef466e4b82e9d554cf80cc55537d2067616e3d2126ce77c1cb0e",
+    "bytes": 927
+  },
+  "P1_provenance": "Researcher-authored format adaptation; not an official dataset prompt or a new method.",
+  "paired_runtime": "same host, GPU, service, precision, backend, model/checkpoint hashes and numerical configuration",
+  "required_equal": [
+    "source media bytes and RGB+PTS",
+    "reference portrait bytes",
+    "raw decoded input video tensor",
+    "reference VAE prepared frames and encoded latents",
+    "Qwen reference frames before joint text/image encoding",
+    "initial AV noise actual tensor hashes",
+    "20 Euler predictions/updates and zero actual routing"
+  ],
+  "expected_different": [
+    "prompt text",
+    "text cache key",
+    "joint text/vision embedding",
+    "token tags/sequence length and packed positional metadata",
+    "x0/trajectory after first model prediction"
+  ],
+  "text_cache": "separate P0/P1; never reuse historical clean embedding across different prompts",
+  "primary_window_inclusive": [
+    64,
+    95
+  ],
+  "secondary_window_inclusive": [
+    96,
+    127
+  ],
+  "additional_frozen_windows": [
+    [
+      0,
+      31
+    ],
+    [
+      32,
+      63
+    ],
+    [
+      125,
+      140
+    ]
+  ],
+  "primary_readouts": [
+    "arm_direction",
+    "left_arm_direction",
+    "right_arm_direction"
+  ],
+  "all_reported_features": [
+    "arm_direction",
+    "wrist_relative",
+    "body_xy",
+    "left_arm_direction",
+    "right_arm_direction"
+  ],
+  "confidence_thresholds": [
+    0.3,
+    0.5
+  ],
+  "UNKNOWN_policy": "preserve and report; no alternate-window substitution",
+  "evaluation": "same frozen R41 full-frame pose/lag protocol; additionally whole-clip overlap scan and visibility coverage; visual identity/edit check before timing claims",
+  "independent_source_tasks": 1,
+  "development_selection": true,
+  "benchmark_generalization_claim": false,
+  "production_status": "not constructed, not deployed, no GPU launched"
+}

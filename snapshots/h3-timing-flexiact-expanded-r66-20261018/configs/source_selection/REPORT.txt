@@ -1,0 +1,51 @@
+FlexiAct 新素材选择与输入交接
+
+已冻结8对：6对“官方素材的新交叉配对扩展测试”，覆盖3条新增人体动作源；2对官方CSV中未测试过的人物外观配对，使用已有development动作源。当前生成结果数为0。
+
+官方完整HF树已重新获取并归档，revision仍为69d7747f93e1b913a3dca306bf8e91ee74fea7d4。human目录有8条原始MP4：chest、crouch、fitness、one_leg、rotate，以及human2animal_1/2/3。编号crop文件是官方训练裁剪，不计为独立动作源。新增3条均为720×480、8fps、49帧，PTS0..6秒、容器6.125秒。
+
+新增3条的完整49帧与旧5源固定组图进行了内容对照：
+- human2animal_1：跪撑俯身下降、胸部前移并伸肘抬起、回到跪撑弓背。多个姿态阶段，上肢和上身可辨；小腿脚越过左边缘，最低位有头发和肘部遮挡。
+- human2animal_3：蹲撑前倾、脚离地收腿、髋膝伸展抬腿倒立。主要评估髋膝踝和腿部阶段变化。手与头靠近下边缘，上肢观测可能UNKNOWN。
+- human2animal_2：盘腿坐姿、手向前滑、躯干前屈、俯身保持。动作慢、后段接近静态，作为低运动量泛化例；不用于宣称高密度短动作控制。
+三条演员服饰、场景和动作内容均与原五片不同，未发现同片换编码、重新裁剪或相同时间片段；这是独立视频序列的判断，未声称人物身份或拍摄来源彼此独立。
+
+已冻结排队顺序：
+1. extension/human2animal_1/movie_man_11：新动作源，真实完整人体目标。
+2. extension/human2animal_1/game_man_4：同一新动作源，动漫完整人体目标。
+3. extension/human2animal_3/movie_man_11：新动作源，真实完整人体目标。
+4. extension/human2animal_3/game_man_4：同一新动作源，动漫完整人体目标。
+5. extension/human2animal_2/movie_man_11：新动作源，真实完整人体目标。
+6. extension/human2animal_2/game_man_4：同一新动作源，动漫完整人体目标。
+7. human/fitness/004：官方val_image.csv第4行（零基），game_man_4.jpg；旧动作源、新外观。
+8. human/one_leg/004：官方val_image.csv第4行（零基），movie_man_11.jpg；旧动作源、新外观。
+
+目标审查：game_man_4为单个完整动漫人体，头、双臂、双腿和脚可见；斗篷与腰部装备影响躯干局部观察。movie_man_11为单个完整西装人体，头到双脚可见；深色服装可能影响自动pose。两张图的画风、人体比例和背景差异供外观泛化测试，后续仍需分别评价编辑成功与动作保持。
+
+前三种源的官方验证目标是动物，已逐字保留原animal验证CSV和crop.csv。上述六个新人体配对并非原官方CSV配对。统计时单列6pairs/3new motions；两条官方CSV配对单列2pairs/2development motions。不能把8pairs当成8个独立动作，也不能把六条交叉配对汇入官方CSV主分数。8fps原片的时间分辨率是125ms。
+
+推理输入入口：PREPARED_8_PAIRS.json。
+- 5份唯一source视频采用R49相同1152×768 canvas、24fps、158帧，原帧各重复3次得到147有效帧，尾部重复11帧达到H3合法长度。
+- 新3源重新编码，旧fitness/one_leg复制R49已验证prepared视频；均独立检查了实际PTS/尺寸、49原帧和158prepared帧的解码MD5映射。
+- 目标图保留原文件字节，不抠图、不缩放、不填充；由既有H3图完成相同输入处理。
+- H3_PROMPT.txt沿用原R49全部样例统一提示词。原官方caption仅留作元数据，没有按已见生成错误重写指令。
+- 每pair在manifest中绑定source、target、prompt、provenance的SHA。全部必要素材位于inputs/，无需访问旧目录才能读取实际推理输入。
+- 比较原8fps视图时取输出帧0,3,...,144；有效24fps展示为前147帧。若沿R65当前固定引导，147有效物理帧对应44/47个position bins，末bin覆盖到148帧，纯pad bins44..46保持native。此处仅记录输入几何，未生成新的推理策略或代码。
+
+下载：新增原始MP4共1,172,039字节；目标图片和原5源来自已缓存官方资产并重新核官方LFS SHA。全部输入/审查资料总计约96MiB，未下载模型、未调用GPU、未查看新H3生成结果。
+
+文件：
+SELECTED_8_MANIFEST.json / SELECTION_FREEZE.json：冻结顺序、类型、原metadata、source/target SHA与选择理由。
+PREPARED_8_PAIRS.json：builder直接使用的输入路径、映射和prompt。
+SOURCE_REVIEW.json / TARGET_REVIEW.json：动作密度和可评价部位限制。
+review/human2animal_{1,2,3}_all49.jpg：新3源全部原帧。
+review/development5_sources.jpg：与旧5源的内容对照。
+review/all_human_targets.jpg：20张官方人体目标图完整清单。
+audit/VERIFICATION.json：独立清单、SHA、物理映射和原CSV行对应校验。
+
+官方出处：
+https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human
+https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/captions/human
+https://github.com/shiyi-zh0408/FlexiAct/blob/main/README.md （Data Preparation：crop为同一动作参考片随机裁剪；val_image为目标图验证）
+
+ROOT补充交接：QUEUE_RECOMMENDATION.json按新source1真人/动漫→官方fitness新target→官方one_leg新target→source3两target→source2两target排序。SELECTED_8_MANIFEST原SHA不变。EXPECTED_SHAPES.json写明目标/参考video latent=[1,24,47,48,72]、audio=[1,32,2,263]；参考图match后的预期大小game_man_4=960×608、movie_man_11=1088×800。实际Qwen长度/packed seq_len待推理记录，不能继承旧目标的值。

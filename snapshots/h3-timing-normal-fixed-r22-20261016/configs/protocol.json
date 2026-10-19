@@ -1,0 +1,188 @@
+{
+  "schema": "r22-normal-fixed-control-design-v1",
+  "status": "local_CPU_implementation_not_GPU_authorized",
+  "implementation_authorized": true,
+  "gpu_run_authorized": false,
+  "run_id": "r22_s05_seed1313_full6to11",
+  "remote_root": "/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016",
+  "graph_sha256": "8a930a03e2f886a88339428d555febee3aaffdfa41b4f334d8a27a676d82af7f",
+  "question": "Does fixed Full6..11 preserve timing and edit quality on the known normal source05/Sam seed1313, compared with R14 native and the proposed R21 hybrid?",
+  "why_needed": "R21 all-OFF preservation alone cannot demonstrate adaptive benefit if fixed guidance also retains normal behavior. Preserve this possibility; R22 need not fail for the research to remain useful.",
+  "case": {
+    "source": "05_real_megumi_v.mp4",
+    "identity": "Sam Altman",
+    "seed": 2026101313,
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "selection": "Previously inspected normal development case; not an independent test sample."
+  },
+  "actuator": {
+    "parent": "R18 exact Full6..11 H3TemporalRouter",
+    "mode": "mass_preserve",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "query_source_frames_inclusive": [
+      50,
+      65
+    ],
+    "query_bins_half_open": [
+      14,
+      20
+    ],
+    "blocks_half_open": [
+      0,
+      50
+    ],
+    "physical_step_indices_zero_based": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "same_original_Euler": true,
+    "reference_semantic_fps": 2,
+    "CFG": 1,
+    "video_shift": 12,
+    "audio_shift": 3,
+    "LoRA": null
+  },
+  "counts": {
+    "DiT_NFE": 20,
+    "Euler_updates": 20,
+    "chosen_callbacks": 20,
+    "total_blocks": 1000,
+    "routed_blocks": 300,
+    "external_pose_during_inference": 0,
+    "additional_teacher": false
+  },
+  "source_and_seed_binding": {
+    "noise_seed": 2026101313,
+    "reference_augmentation": "Preserve original pinned H3 seed-driven reference augmentation. Seed enters both noise and augmentation; not a noise-only experiment.",
+    "evidence_limit": "R14 archives actual clean references, Qwen/positions/layout and noise streams, but not post-augmentation tensors or a complete processed-condition tree. Do not invent a processed-condition SHA. Bind original seed+core/helper and actual prefix005 AV replay.",
+    "normal_graph_comparison": "After explicit administrative path/ID normalization, only node50 changes from R14 off router to R18 fixed Full. All other graph nodes equal."
+  },
+  "required_integrity": [
+    "Root approved sealed implementation and exact GPU/process admission before any launch.",
+    "Actual executed graph equals registered graph; complete success history and true SaveVideo output path.",
+    "Actual model/core/backend hashes and full sigma grid match parents; record GPU3 hardware identity.",
+    "Actual noise streams and raw clean conditions match R14 seed1313; source/Qwen/position/layout unchanged.",
+    "Actual x0_step005 normalized and raw video/audio equal corresponding R14 tensors, before first intervention. If mismatch, retain and investigate execution pairing, do not auto-change sampler.",
+    "Exactly20NFE/updates/callbacks,1000blocks and300 corrections confined zero-based6..11.",
+    "10 intermediate captures [5,6,7,8,9,10,11,12,15,19] plus sampler_final; each finite metadata/signature verified.",
+    "After index6 fixed intervention, later R14 native endpoints are not expected equal; do not misuse a future native replay gate.",
+    "Index19 endpoint differs conceptually from sampler_final; preserve original Euler rounding, no algebraic rewrite.",
+    "Exact owned service/process cleanup and GPU release; never terminate others."
+  ],
+  "evaluation": {
+    "frozen_windows_inclusive": [
+      [
+        50,
+        65
+      ],
+      [
+        69,
+        81
+      ],
+      [
+        80,
+        92
+      ],
+      [
+        99,
+        111
+      ]
+    ],
+    "confidence": [
+      0.3,
+      0.5
+    ],
+    "lag_search": [
+      -24,
+      24
+    ],
+    "strict_primary": "Direction AND wrist at both thresholds known and abs(lag)<=2. Unknown remains unknown.",
+    "comparators": [
+      "R14 native seed1313",
+      "R21 hybrid seed1313 when completed",
+      "R22 fixed Full6..11 seed1313"
+    ],
+    "common_support": "Recompute exact three-arm support and shared minimum-confidence weights; retain same-frame error, best-lag residual, missing/ambiguous detection, secondary and tail/fullclip errors.",
+    "visual": "Fixed frames55/86/105 and source frames42..82 short segment; identity/edit presence, background/layout, hand/trailing/ghosting. Lowerbody/torso auxiliary stays separately labeled; no tuning masks after outcome.",
+    "outcome_interpretation": [
+      "R21 good and R22 harmed supports normal-case benefit on this selected case, subject to matched evidence and observed quality.",
+      "R21 and R22 both good: no demonstrated adaptive quality advantage here. Preserve null result.",
+      "Unknown or quality failure in either arm cannot count as preserved success.",
+      "No architecture novelty, generalization or calibrated confidence follows from two development seeds."
+    ]
+  },
+  "efficiency": "Record modelNFE, walltime, audit/archive overhead and memory only. Do not optimize or diagnose speed; R21 extra observers mean lowerFull count need not lower total cost.",
+  "resources": {
+    "candidate_host": "H3_SERVER_A (.9)",
+    "candidate_gpu": 3,
+    "condition": "Only after R20 fully completes and exact GPU3 cleanup verified by root. Never automatically queue.",
+    "maximum_owned_GPUs": 2,
+    "port": 8482
+  },
+  "write_boundary": "New R22 design/config only. No changes to sealed R19/R20/R21 or R18 operator.",
+  "evidence": {
+    "R18_fixed_full_graph": {
+      "path": "/Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/configs/r18_s05_full_6to11.json",
+      "sha256": "8f512836c8d4df0de738a2c2fbf4f4ecaf21d8f6b918d9dfa7fc67fb108e966a"
+    },
+    "R14_actual_normal_graph": {
+      "path": "/Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016/configs/r14_s05_seed1313_native_host9.json",
+      "sha256": "1bda0c7effff01c6e8e7452f149da9394c797dc30beea0b24052f17f744a6b96"
+    },
+    "R14_actual_clean_condition_seed_gate": {
+      "path": "/Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016/analysis/pose/actual_condition_seed_gate.json",
+      "sha256": "a3635f4e2f0b7c14817863d85130ab05186149535b5972bd09d2ed497f766bf6"
+    },
+    "R14_noise": {
+      "path": "/Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016/analysis/pose/key_evidence/audit/r14_s05_seed1313_native_host9_noise.json",
+      "sha256": "d894bc6117b8f647d3caf3ef2c6e5749c0e878f7f985ee0bcd50ca03ee18d5e4"
+    },
+    "R14_conditioning": {
+      "path": "/Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016/analysis/pose/key_evidence/audit/r14_s05_seed1313_native_host9_conditioning.json",
+      "sha256": "569d3de825ed0648d9de521f7bb309e971385bd13586f45e2f49a5cd6996f12f"
+    },
+    "R14_capture": {
+      "path": "/Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016/analysis/pose/key_evidence/audit/x0/r14_s05_seed1313_native_host9/manifest.json",
+      "sha256": "0dde820f00f83b41f723348187d6c5911db28a0d7fb58c721be8e2e55bbbc83a"
+    }
+  },
+  "captures": {
+    "x0_indices_zero_based": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      15,
+      19
+    ]
+  },
+  "input_sha256": {
+    "05_real_megumi_v.mp4": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+    "sam_altman_village_global_20221117_original.jpg": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42"
+  },
+  "parent_evidence_sha256": {
+    "parent_full_x0_manifest.json": "0dde820f00f83b41f723348187d6c5911db28a0d7fb58c721be8e2e55bbbc83a",
+    "parent_full_graph.json": "8f512836c8d4df0de738a2c2fbf4f4ecaf21d8f6b918d9dfa7fc67fb108e966a",
+    "parent_normal_condition_seed_gate.json": "a3635f4e2f0b7c14817863d85130ab05186149535b5972bd09d2ed497f766bf6",
+    "parent_full_conditioning.json": "569d3de825ed0648d9de521f7bb309e971385bd13586f45e2f49a5cd6996f12f",
+    "parent_full_noise.json": "d894bc6117b8f647d3caf3ef2c6e5749c0e878f7f985ee0bcd50ca03ee18d5e4",
+    "parent_normal_graph.json": "1bda0c7effff01c6e8e7452f149da9394c797dc30beea0b24052f17f744a6b96",
+    "parent_core_hashes.json": "b3202d86102b445dcc4bf48029be43ecff6df8a75ddca1e17ec8ac7801cfc754",
+    "parent_native_attention.json": "3b6d59c968b96ac76ae0b1723f4f3d7b6b06ba0d3254b01c472c239535304aed",
+    "parent_runtime_provenance.json": "91db3eaf976bf19c2eaace9d842165804431377a1609b99ff81b56a8f79b2811",
+    "parent_normal_history.json": "9803f8676b243620abab7227943bee2ab591b1a9d00caa3584e15d502ceceddd"
+  }
+}

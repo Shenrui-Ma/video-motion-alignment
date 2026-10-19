@@ -1,0 +1,30 @@
+CPU development result, 2026-10-17
+
+The frozen rule completed nine archived endpoint cases, without model calls.
+All original baseline classifications and every subsequent rescore are saved.
+
+Source05 bad seed at native005:9 correlated windows survive; they cover left-arm
+intervals24..59 and later intervals88..111. The old hand-selected primary event
+was not an input to this detector. Source05 normal seed005:both early baseline
+lag proposals fall below the reference-derived geometric tolerance. Its final
+single advanced proposal also falls below it. These observations support a
+bounded automatic-window feasibility test. They do not establish causal benefit
+or show that all early proposals would have caused harmful intervention.
+
+The second bad source07 exposes a material limitation:zero delayed proposals
+survive;27 of its52 timing proposals become common-support UNKNOWN,4 fall below
+tolerance,21 advanced proposals remain. Example right-arm64..79 at confidence
+0.3 has residual0.50135 (above the0.5 frozen gate), while at0.5 it passes with
+residual0.43694. At40..55 the source two-frame cost is0.78105 and high-confidence
+common support is0.5. Fast motion and visibility limitations can defeat this
+particular tolerance construction. Preserve these cases; do not describe the
+rule as general motion-error detection or silently relax the gates.
+
+The four R24 final Native outputs had no reliable outside-tolerance candidates
+in the original scan, so this extra gate has no opportunity to improve their
+classification. Their many UNKNOWN windows remain UNKNOWN.
+
+Window counts are correlated proposals, not independent videos or precision
+samples. The9 retained early05 windows need clustering/selection and an online
+causal run; their downstream trajectory cannot be inferred by replaying Native
+finals. Current evidence is insufficient for a publication-level innovation.

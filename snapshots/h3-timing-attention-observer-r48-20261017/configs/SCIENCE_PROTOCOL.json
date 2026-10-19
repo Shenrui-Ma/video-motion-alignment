@@ -1,0 +1,104 @@
+{
+  "schema": "h3-attention-two-state-v1",
+  "purpose": "read-only internal-observer prerequisite; no threshold fitting or novelty claim",
+  "source_states": [
+    "bad",
+    "normal"
+  ],
+  "source_binding_sha256": "f3b48bd2abe3dab0aacd0b365565dc3f140c53b08e7d8cf4c2188cf158660978",
+  "index": 4,
+  "total_DiT_NFE": 2,
+  "per_state_DiT_NFE": 1,
+  "Euler_updates": 0,
+  "ordinary_callbacks": 0,
+  "VAE_calls": 0,
+  "Qwen_calls": 0,
+  "extra_conds_per_state": 1,
+  "additional_cost": "condition_proj/token_refiner once per state plus43 small attention calls at block25; counted separately",
+  "block": 25,
+  "heads": [
+    0,
+    14,
+    28,
+    42
+  ],
+  "spatial_rows": [
+    2,
+    6,
+    11,
+    16,
+    20
+  ],
+  "spatial_cols": [
+    4,
+    12,
+    20,
+    28,
+    36
+  ],
+  "time_bins": 42,
+  "patch_grid": [
+    23,
+    41
+  ],
+  "seq_len": 87592,
+  "head_dim": 128,
+  "heads_total": 56,
+  "input_dtype": "torch.float32",
+  "qkv_dtype": "torch.bfloat16",
+  "reference_index": 1,
+  "fixed_geometry": [
+    141,
+    736,
+    1312
+  ],
+  "reference_segment": [
+    7910,
+    47516
+  ],
+  "target_segment": [
+    47986,
+    87592
+  ],
+  "time_spans": [
+    1,
+    4,
+    4,
+    4,
+    4
+  ],
+  "native_backend": "aten._scaled_dot_product_flash_attention.default",
+  "kernel_tolerances": {
+    "dense_fp64_atol": 2e-12,
+    "fp32_probability_sum_atol": 2e-05,
+    "bf16_flash_group_lse_atol": 0.005,
+    "bf16_flash_subset_lse_excess_atol": 0.005,
+    "bf16_small_oracle_lse_atol": 0.005,
+    "postrun_fp32_atol": 2e-05,
+    "postrun_fp32_rtol": 2e-05
+  },
+  "numerical_failure": "save raw statistics and flags as UNKNOWN_NUMERICAL; abort subsequent state; no clamping, tolerance adaptation or alternate backend",
+  "endpoint_gate": "exact raw video/audio signatures and torch.equal against archived tensors; failure aborts without extra NFE",
+  "mutation_gate": "Probe receives only independent selected Q, four-head reference K/V and sampled full-LSE copies; no access to original Native output. Actual selected original QKV and sampled Native output compared bitwise before/after; small CPU inference-mode oracle checks all original QKV/output. Full production AV endpoint remains exact. No full QKV copy or streaming hash.",
+  "copy_budget": "selected Q1050x4heads, reference K/V4heads and selected O_ref/O_same only; never full QKV, full42bin output bank or attention matrix",
+  "save": "rawQ subset, referenceK4heads,42bin/full/referenceLSE,p,mref,complete mappings/physical spans and descriptive summaries; selected O_ref/O_same and row L2/RMS of m_ref*(O_same-O_ref), all rows and no new attention calls",
+  "continuous": {
+    "idle_hold_seconds": 600,
+    "max_service_seconds": 7200,
+    "job_timeout_seconds": 1800
+  },
+  "no_replay_fallback": true,
+  "prior_art": "Motion4Motion/STR-Match and existing query-time review apply",
+  "historical_rng_state_entity_saved": false,
+  "processed_context_entity_saved": false,
+  "resource": "root-only exact GPU3 admission, max2 our GPUs; preCUDA samePID handshake before peer registration/go; no observer CUDA child",
+  "limitations": [
+    "two source05 seeds are correlated development cases",
+    "attention reference time is not calibrated motion lag",
+    "rawstate/RNG/condition reconstruction claim requires actual exact endpoint validation"
+  ],
+  "descriptive_output_difference": "necessary-counterexample descriptor only; not intervention, calibrated delay or threshold fit",
+  "failure_cost_semantics": "DiT_NFE counts attempted forward; completed_forwards separately; any failure retains attempted cost and blocks; never retry",
+  "head_sigma_guard": "record actual entry sigma/timestep/head sigma/grid/index/shifts and raw FP32 bits before each guard; actual timestep exactly equals official ModelSamplingAV.timestep(entry_sigma).float(); head sigma exactly equals actual same-device (timestep.flatten()[0]/1000.0).float().clamp(min=1e-6); entry grid/index/shifts exact and final AV torch.equal remain mandatory; no isclose or input writeback",
+  "repair_scope": "Independent R48 after R46 output-head combined guard failure. 1ULP is a hypothesis, not a measured cause. No failed R46 readout is reused as successful evidence."
+}

@@ -1,0 +1,22 @@
+R101 单次 CPU 配对消费者
+
+目录 /Users/researcher/DevProjects/h3-flexiact-character-guidance-metrics-r101-20261019
+Producer final 66-file seal c72172b4139a955b37ba0a55e56675a05322a81d66a5c83fe11e9f961e5eca5e
+Consumer 25-file freeze 186f9bbf52a4f2a1045c1ec6cf1a38d8c9823f25d6227744b7ec51b88b74a464
+
+实际 root STARTED、PAIR_RUNTIME_GATE、ROOT_EXIT_RECEIPT 出现后执行一次：
+cd /Users/researcher/DevProjects/h3-flexiact-character-guidance-metrics-r101-20261019
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py --attempt root_character_guidance_attempt1
+
+若实际 root 采用其他 attempt，应先明确重绑定消费者并留旧freeze。入口没有等待循环。actual STARTED 位于 audit/<attempt>/STARTED.json（已按冻结 root_run_control.py 核实）。未起 watcher、服务、GPU或 producer verifier。
+
+只下载新 guided MP4 及七份小JSON；本地复用 R98 最新普通编辑 21d65db6…b02b5e9、原参考视频和原目标图。旧 R66 普通编辑不作为本对照。父 Native实际history/gate/SHA封存，门内8条件、AV原始噪声、预测0–5逐位一致、20NFE/20Euler/450次路由均必须通过。下载前后门、运行代次和静态SHA一致。
+
+完整三栏：参考视频 / 普通编辑 / 时序引导。147有效帧（158总帧），24fps，各1152×768；下方88像素黑色中文caption，完整拼接3456×856。0,3,…144共49个原动作时刻分为7页图，原素材8fps时间精度125ms。目标图独立置于三栏上方。单文件HTML内嵌全部媒体，Downloads另存完整三栏MP4。
+
+Downloads/H3_R101_俯卧支撑_普通编辑与时序引导_20261019.html
+Downloads/H3_R101_参考_普通_引导_147帧_20261019.mp4
+showcase/PRESENTATION.json
+prepared/MF_INPUTS.json：官方Flex MF待评分输入，精确媒体SHA，49时刻，完整1152×768 crop；不写假分数。
+
+验证：30 CPU tests PASS；实际.9 3静态文件SHA通过；真实小尺寸三色ffmpeg测试147帧24fps、三栏顺序、底caption、49时刻7页、HTML内嵌视频、JS syntax通过。实际视频与效果待生成和审阅。

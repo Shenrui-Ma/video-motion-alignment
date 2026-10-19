@@ -1,0 +1,121 @@
+R10之后的单步分支诊断设计（只读设计；未实施、未运行）
+日期：2026-10-16。唯一写入文件：R10/analysis/one_step_fork_design.txt。
+定位：在同一已实现Full轨迹上检验一次干预如何影响下一状态的原生预测。diagnostic_only=true；new_method_claim=false；不提出或实现自动择优控制器。
+依据：已冻结R10协议/实现与实际Comfy源码。R10仍运行时，只设计，不读取尚未完成结果调整方案。SVDD/CoDe等已有候选评估/选择近邻；这里做有界因果诊断，不以双分支形式主张新意。
+
+1. 需要回答的窄问题与计算预算
+预先固定源physical indices n=[6,10,14]，下一预测indices m=[7,11,15]，不得按结果挑点。
+x_n 是R10保存的实际有噪声raw packed采样状态；y_N、y_F分别是同一x_n和sigma_n得到的native/Full完整packed去噪端点，属于采样器的denoised/x0坐标。y不是x_n，也不是可直接输入下一sigma的状态。
+按原Euler函数精确重建：
+  sigma_hat = full_grid[n]
+  d_N = to_d(x_n, sigma_hat, y_N)
+  d_F = to_d(x_n, sigma_hat, y_F)
+  dt = full_grid[n+1] - sigma_hat
+  U_N = x_n + d_N * dt
+  U_F = x_n + d_F * dt
+数学上它们也可写为x+(x-y)/sigma*(sigma_next-sigma)，但实施只采用上述逐句运算顺序。
+R10主轨迹在6..14返回Full，所以其实际下一输入就是U_F。R10每一步都有native端点，因此已有z_F_archived = native(U_F,sigma_m)；m=7、11的native之后还做Full，m=15只有native，三者都能直接取native分支存档。
+每点先重新计算 z_F_replay = native(U_F,sigma_m)，逐位匹配旧z_F_archived；通过后才计算缺少的 z_N = native(U_N,sigma_m)。每点2个新NFE，三点共6NFE、300个block调用、0个路由block。不会为重算y_N/y_F多跑前两个NFE。
+没有新完整生成轨迹；没有调用下一步Euler更新；不从sigma_m积分到终点。
+
+2. 现有文件是否足够
+R10每点输入：audit/counterfactual/r10_s05_fixed_full_probe_snapshots/step{n:03d}_input_raw.pt，键packed是完整CPU fp32副本；metadata包括full_grid、seed、reference/condition SHA及原raw packed签名。
+每点现有端点：step{n:03d}_native.pt、step{n:03d}_full.pt；校验n、sigma、nextsigma、seed、condition、ref、file SHA。
+下一已知端点：step{m:03d}_native.pt；校验它的source physical、sigma和raw/normalized签名。
+R10 JSON中counterfactual.branches每一项的same_input含真实预测输入的packed签名。因此即使没有m的完整x存档，也可先把GPU重建U_F的字节签名与m-native.same_input核对。原callback已检查与该真实input一致。此门比只看重预测端点更直接。
+R10归档端点存的是normalized video/audio：video identity，audio除4；按原顺序video+audio*4调用comfy.utils.pack_latents恢复完整raw y。必须逐流核对metadata.raw_stream_signatures和完整packed形状；乘4无法还原原raw SHA时立即失败，不用近似张量继续。没有再次VAE encode/decode。
+x_n本身直接读packed，绝不process_latent_in/out；audio的sigma_v/sigma_a携带坐标已经在其中，不能再自行调audio sigma或除4。
+只有R10完整归档校验、R10和R3已有端点配对门通过后，才能称为“R3已知Full轨迹的单步分支诊断”；未通过时保留失败证据，停止该解释。
+
+3. 最小接入位置：终止式SAMPLER_SAMPLE wrapper
+推荐新增独立实验目录中的一个报告输出节点，内部驱动一次官方BasicGuider.sample，并安装独立单次SAMPLER_SAMPLE wrapper。不改任何Comfy核心文件，不加载已完成R10的有状态wrapper。
+调用正常guider.sample的原noise、原empty latent、原完整21点sigmas、原seed与原positive。源码路径：
+  CFGGuider.sample 1276..1340：pack latent、复制原始条件、prepare_model_patcher、outer_sample。
+  CFGGuider.outer_sample 1240..1274：载入模型、fp32/device准备、pre_run/finally cleanup。
+  CFGGuider.inner_sample 1220..1238：设置latent_shapes，process_conds，clone options设置sample_sigmas，然后执行SAMPLER_SAMPLE wrapper。
+wrapper入口已经完成extra_conds，但还没有进入KSAMPLER.sample 993行noise_scaling。此处校验所有冻结绑定，依次执行三对native预测，最后返回一个明示为内部占位的零packed张量，让正常生命周期完成cleanup；输出节点丢弃这个张量，只返回审计报告路径。占位张量不得接VAE、SaveVideo或公开为新视频结果。
+wrapper不调用executor。CPU测试让executor、noise_scaling、inverse_noise_scaling或sample_euler一旦被调用就抛错，证明raw states没有再次加噪/缩放，原Euler循环没有暗中运行。CFGGuider.inner_sample随后对内部返回值的process_latent_out只影响被丢弃占位，不接触已归档端点。
+保持其sampler参数为普通KSAMPLER(sample_euler)可沿用现有对象接口；该采样器只作为生命周期入口的参数，SAMPLER_SAMPLE明确截停执行。必须将诊断模式写入接口名/协议，不能伪装为普通20步采样节点。
+另一可行方案是新增Sampler.sample子类在同一位置直接执行诊断；它同样绕开KSAMPLER.sample。改KSAMPLER.sampler_function本身较差：标准sample已先noise_scaling，再调用自定义function，容易让原raw状态被错误当噪声处理。即便在function内忽略传入noise，也增加无关缩放，验收更复杂。
+不复用R10 SamplerAudit/PredictionProbe或H3X0Readout的20步callback门，它们应拒绝6NFE任务。新state只覆盖本次6NFE审计，独立run_id及目录。
+
+4. 条件只物化一次，原UUID需恢复
+新报告节点使用与R10相同的上游图/缓存条件，核对原embedding、token_tags、image/video latent、顺序、PackedLayout、目标latent、seed、模型hash/backend和sigma配置。原noise仍由同一已验证Noise实现产生并对R10.initial_noise做SHA核对；它只服务条件准备，不作为重建x输入。
+官方BasicGuider构造会调用sampler_helpers.convert_cond 59..69；67行新建uuid4。R10 condition_signature连original与processed树都包含该UUID。新运行自然UUID变化会使完整hash不等，不能因此放宽所有条件检查。
+在guider.sample前，先核对原条件树除唯一uuid字段外的全部签名；验证只有一个positive，旧UUID是合法UUID，当前也只有对应一处。将新guider.original_conds['positive'][0]['uuid']显式恢复为R10已归档UUID，并记录old/new metadata映射。这是恢复原条件身份元数据，不改变tensor或seed。随后正常process_conds的复制会携带它。
+SAMPLER_SAMPLE入口按R10同一signature_tree方法对original+processed树做完整SHA匹配，不再删字段或忽略任何tensor。失败即停止；不得用旧hash字符串冒充实际processed tensor内容。
+真实extra_conds（model_base.py2168..2217）在process_conds(1038..1048)/encode_model_conds(937..959)中对单positive执行一次，含text refiner、payload/PackedLayout构建。以无修改计数包装在CPU测试断言一次；两分支/三对都使用同一guider.conds和extra_args.model_options，不再次调用sample或process_conds。
+H3条件噪声augmentation本来每个forward在_cond_video_rows/_cond_audio_rows执行；它们每个condition用相同seed创建局部CPU Generator。重复这段是原模型行为，不代表extra_conds重复。保留visual/audio aug alpha、seed与seed+1、所有reference顺序，禁止为分支更换seed或重置全局RNG。
+若同机同模型重物化后的processed c_crossattn等tensor无法逐位匹配，暂不做fork；这属于环境/条件重放失败，不能只换成误差容忍阈值宣称因果门通过。
+
+5. 原生预测路径、PDD与dtype
+在wrapper中用已准备好的model_wrap(U, sigma_m * U.new_ones([U.shape[0]]), model_options=extra_args['model_options'], seed=seed)。这经过CFGGuider.__call__/outer_predict_noise/predict_noise与实际sampling_function/BaseModel._apply_model，继续由原模型处理raw音频携带坐标、bf16计算岛和fp32端点。
+不直接调用diffusion_model，不把float32raw x预先强制成bf16，也不直接将model的velocity当denoised。BaseModel._apply_model 215..257负责calculate_input、dtype、timestep*1000、拆包、模型计算以及calculate_denoised。原denoise_mask必须None，此时KSamplerX0Inpaint 634..643在数值上只转发到同一个guider，所以可直接调用guider。
+沿用R10 native branch的冻结50层EventBlockPatch/TemporalAttentionOverride→mode native数值路径，以独立state.selected恒False记录每个forward50层、原生kernel与route0；state.mode可保留mass_preserve/alpha1配置而从不授权Full。不能复用已结束state，也不把采样physical index当新NFE index。
+所有6个预测的transformer_options.sample_sigmas始终是原完整21点grid。不要截成[sigma_m,sigma_m+1]，不要为每点重新制定scheduler。PDD FinalLayer.forward 329..335依实际sigma在完整grid上定位i，再读i+1，计算video/audio bank区间；本轮预测应定位m=7、11、15，相应末端为8、12、16。
+使用只读forward pre-hook记录真实FinalLayer收到的sigma、完整grid SHA、shifts、n_head及按同公式算出的i/start/stop；记录实际input与endpoint dtype、模型推理dtype。hook只读，不改权重/参数/返回值；记录工作不会调用额外NFE。
+R10没有单独存PDD head trace，不宣称直接逐位比对旧head日志；使用冻结真实源码和完整grid推导预期，并以已有端点逐位重现作为总行为门。
+
+6. 在GPU复原Euler，CPU只作序列化/校验
+R10 raw x/denoised是fp32；保持shape[1,1,N]、contiguous顺序，与同一.9 GPU UUID、相同torch/CUDA/驱动/attention/int8路径、math flags配对。
+原grid的值在R10审计里是实际device tensor转double后的值；将正常ManualSigmas生成的float32完整grid先与归档逐值相等，再搬到GPU。不能重新用十进制近似日程、默认float64计算dt、Python float混算或重新拟合步长。
+先恢复raw y并在CPU核SHA，再无损转到GPU；x也无损拷贝到GPU。之后所有算术都在GPU按原to_d与sample_euler顺序执行：先x-y，再除append_dims(sigma_hat)，另算float32 dt，再d*dt，最后x+乘积；使用原to_d，普通PyTorch eager表达式，不torch.compile、不addcmul、不FMA重写、不代数化简成插值，不in-place。
+CPU重建可用于单元测试符号/索引逻辑，但不能替代实际GPU重建门，也不预设CPU/GPU浮点结果逐位相同。GPU结果拷贝CPU只做SHA。
+每点先要求U_F的packed signature==R10.branches[(m,native)].same_input；再跑z_F_replay要求raw视频+音频SHA==R10 m-native归档，normalized video/audio也相等。两道均通过才允许z_N。数值差异记录max abs/相异元素数仅解释失败，不能把近似match升级为通过。
+也核对U_F与U_N的源x、同一sigma_m、同一完整grid；U_N不能误沿用U_F或y_N。zero-correction fixture应有U_N==U_F及z_N==z_F。
+
+7. NFE、callback、状态隔离与RNG
+执行顺序固定：(n6,m7,replay_F),(6,7,fork_N),(10,11,replay_F),(10,11,fork_N),(14,15,replay_F),(14,15,fork_N)。新probe_nfe=0..5，source_euler_index与eval_euler_index分字段；没有新Euler时间步计数。
+本轮普通Euler callback调用数为0、Euler采样更新数为0。每个probe完成触发独立audit事件一次，共6次；不要假造原Sampler callback i=0..5,total20，也不要驱动预览callback。源R10 callback绑定来自旧记录；如果需要对照，在报告引用其physical index、chosen/raw input签名。
+每forward前后检验input/sigma/grid/condition/reference内容未变、CPU及当前CUDA RNG未变，输出完整有限fp32pack、恰好50层一次。sigma证据用detach().to('cpu',copy=True).clone，CPU测例也不能使用与原tensor别名共享的快照。
+模型加载过程可有全局随机初始化；RNG“不变”范围明确为条件物化和诊断运算区间，分别在真实extra_conds入口/退出及probe入口/退出抓取。不得保存再恢复RNG来掩盖随机操作。Noise生成使用既有局部Generator并单独校验；无全局manual_seed。
+禁止模型cache/KV复用、额外CFG/控制hook、mask、random inpaint、多GPU、编译新路径和第二个并发任务。现有cache配置、matmul flags和kernel入口与R10相同；若冻结实际后端存在状态缓存，必须查清并将重放门视为必需。
+所有状态均newrun专有，退出时删除只读hook、finally cleanup、按root现有PID/显存归还流程收尾。
+
+8. 独立输出与可解释范围
+独立新run目录，输入R10文件只读，路径只允许白名单与manifest hash，不写回R10/R11。每点存源文件SHA、raw x引用、raw y_N/y_F签名、U_N/U_F完整raw packed CPU副本、两个新raw/normalized endpoint、所有条件和runtime绑定、输入哈希门及端点重放门、PDD实参、6NFE映射与耗时。
+每NFE记录同步模型秒、条件签名秒、重建秒、存档/readout秒，整任务墙钟与峰值显存通过现有资源记录；当前只记录，不额外做速度诊断或优化。不可拿6NFE与重新从头完整生成的耗时比值当加速论文结论。
+冻结同一gap5 full-frame/window50..65/49lag observer，分别报告L(y_N),L(y_F)以及L(z_N),L(z_F_replay)，包括全曲线与unknown；所有读出来自对应normalized video的CPU副本。若lag有正负，沿用既有语义，不能把未知拒判当改善。
+线性Euler式只能说明状态差U_F-U_N与端点差有解析关系。lag是非线性估计量，不满足相同比例关系；禁止把(1-sigma_next/sigma)*lag或相似代数当实际收益。必须真的计算下一状态的原生预测后重读。
+即使z_F优于z_N，也只支持“这个历史Full轨迹上的这一步修改影响了下一sigma的native端点读数”；不推出之后不会反弹、完整输出动作改进、跨seed普适性或自动控制成功。三个点是预固定机制样本；不伪装成三个独立视频样本。
+如需要可视化，后续单独授权decode端点，明确“下一状态端点预测预览”；本轮不要求额外VAE，不声称新生成完整视频。
+
+9. 最小CPU验证（真实Comfy，禁止GPU）
+A. 接口门：真实BasicGuider loader alias/ModelPatcher clone/WrapperExecutor/Guider lifecycle，小CPU模型；真实H3 extra_conds/PackedLayout/COND*；计数extra_conds=1，6NFE、300blocks、0routed、0普通callback；executor/sample_euler/noise_scaling/inverse_noise_scaling如被执行立即失败。报告输出不能连到LATENT/VIDEO。
+B. 原Euler基准：用真实sample_euler跑一个小确定性20步参考，预保存n6/10/14、y_N/y_F、m7/11/15-native；按原to_d在CPU重建，逐位等于原下一input；真实wrapper六次重预测与reference端点逐位一致。两个wrapper安装/clone顺序共享本run state且不同run不共享。
+C. raw坐标：nonzero audio fixture检测错误audio÷4、normalize x、将x0当x或错pack顺序，所有错误在input SHA门前失败；正确保存/恢复的fp32音频×4必须还原raw SHA。四则运算各中间dtype为float32。
+D. 条件：新uuid未恢复完整hash应失败；只恢复合法同条UUID后完整processed树匹配；embedding/ref/seed/alpha/layout任一变化仍失败。extra_conds第二次调用失败；完整noise SHA绑定。
+E. 调度/PDD：完整21点grid、eval m7/11/15的实际FinalLayer lookup与真实旧函数一致；截grid、sigma取n、跳index、dtype改float64、错下一sigma均失败。检查同endpoint更换rawx不能骗过第一道门。
+F. 无修正与异常：y_F==y_N时U及预测全等；不同y fixture确认U分支不同。RNG消费、input/sigma/condition就地修改、第二forward、重复audit事件、重放不等、旧文件缺失/损坏、异常退出及同run_id复用均fail closed。计时/归档前后输入、RNG与返回值不变。
+CPU真实测试证明接线和坐标；同设备GPU输入SHA+端点SHA门独立必需，不能用CPU通过替代。
+
+10. 后续若获准实现的最小文件范围
+全部置于新实验root，保持当前R10/R11封存代码不变。
+- extensions/H3OneStepForkAudit/{__init__.py,core.py}：报告输出节点、单次生命周期终止wrapper、原生50层只读计数、archive loading/UUID bind、六预测与存档；复用冻结router/readout/observer工具，避免引入通用控制器。
+- configs/protocol.json、graph.json、input_manifest.json：先冻结三个n/六次顺序、完整schedule、源文件SHA和模型/机器/条件绑定、验收与失败停止门。source R10尚未完整时先写预注册结构，填实际SHA属于绑定证据，不改选择。
+- tests/test_one_step_fork.py、tests/one_step_fork_wrapper_smoke.py：上述CPU检查；尽量复用已验证R10真实Comfy smoke夹具。
+- scripts现有admission/service/launch/cleanup沿用已验证窄适配，只改独立root/port/任务ID；parent负责部署与资源安排。
+- analysis/report.txt/JSON只接收审计结果，不预填成功结论。
+需要实际运行许可后另起任务实施。当前只有设计文件，没有新增节点、改图或发起预测。
+
+源码位置与冻结证据
+以下行号来自comfy_core_snapshot.tar.gz，部署前必须与实际目标host源码SHA一致：
+- comfy/k_diffusion/sampling.py:63..65 to_d；190..212 Euler（callback在更新前）。
+- comfy/samplers.py:630..643无maskinpaintwrapper；977..1007 KSAMPLERnoise/inverse scaling；937..959 encode_model_conds；1038..1073 process_conds；1188..1340 Guider生命周期。
+- comfy_extras/nodes_custom_sampler.py:797..821官方BasicGuider；1020..1072 SamplerCustomAdvanced的preview/latent输出，诊断节点不用其视频输出链。
+- comfy/sampler_helpers.py:59..69 convert_cond UUID。
+- comfy/model_base.py:215..257 raw→model→denoised；2140..2217 H3 process_latent和extra_conds。
+- comfy/model_sampling.py:86..101 CONST denoised/noisescaling；338..357 AV scale。
+- comfy/ldm/minimax/model.py:300..347 FinalLayer/PDD；517..521 text refiner；532..558 local Generator；560..601音频采样坐标变换。
+- comfy/utils.py:1410..1429 pack/unpack。
+- R10 extensions/H3CounterfactualRouter/core.py:signature_tree/condition_signature；State.save_input/save_endpoint；PredictionProbe的same_input；SamplerAudit的callback绑定；core SHA01b94e4fcda7ab387fc10a952c9c4276df30ebbbba7f02aeae2de755057678b9。
+
+冻结Comfy源SHA256：
+comfy/samplers.py f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f
+comfy/k_diffusion/sampling.py cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce
+comfy/model_base.py 6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68
+comfy/model_sampling.py 8afdc665272589a567792bb652389df7d4a83f69574c2b7e5b3d533d55592990
+comfy/ldm/minimax/model.py 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+comfy/sampler_helpers.py 53c82235bfea0c4edf3cd5219f080c44c45ac1c9a6c3171f2aae151e18b56b91
+comfy_extras/nodes_custom_sampler.py b0ba1521c72475e06fed15db004274ed7c8bb2bf73f1d58849faf6f9f9d264fe
+comfy/utils.py f3ee59baf72f6910b7662224854e372c713ba3ad01c89739ba092e5ee22460e6

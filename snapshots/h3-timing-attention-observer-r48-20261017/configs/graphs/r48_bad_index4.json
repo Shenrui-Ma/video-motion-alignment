@@ -1,0 +1,30 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "41": {
+    "class_type": "MiniMaxH3SigmaShift",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift_video": 12.0,
+      "shift_audio": 3.0
+    }
+  },
+  "60": {
+    "class_type": "H3AttentionStateProbe",
+    "inputs": {
+      "model": [
+        "41",
+        0
+      ],
+      "state_id": "bad"
+    }
+  }
+}

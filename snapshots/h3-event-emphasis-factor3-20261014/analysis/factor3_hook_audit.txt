@@ -1,0 +1,125 @@
+H3 factor-3 hook audit and implementation handoff — 2026-10-14
+
+Scope: read archived pilot, implement only the new task's extension and tests.
+No server access, services, GPU tests, or GPU inference performed in this lane.
+The sealed source archive was not edited.
+
+Source archive:
+  /Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013
+New task:
+  /Users/researcher/DevProjects/h3-event-emphasis-factor3-20261014
+
+Archived support and necessary changes
+--------------------------------------
+Archived factor 3 was unsupported: node INPUT_TYPES max=2; duplicate_event_attention
+and EventState admitted only integer 1 or 2. Attention always appended exactly
+one selected K/V slice. Merely widening validation would incorrectly retain
+factor-2 mathematics. Archived audit values also hardcoded log(2) and N+M.
+
+Changed files, only in the new task:
+  extensions/H3EventEmphasis/core.py
+  extensions/H3EventEmphasis/__init__.py
+  extensions/H3EventEmphasis/README.txt
+  tests/test_event_emphasis.py
+
+Both core validations now admit precisely Python integer 1, 2, 3 (not bool,
+floats, strings, zero, negatives or larger integers). The node schema max and
+default are 3, with a factor3 default run ID. Factor f appends f-1 view references
+to torch.cat, avoiding separate repeated-slice tensor allocation. Factor 1
+still returns the native attention result directly and keeps the original
+block/transformer_options object path. Factor 2 still calls native full attention,
+then native local-query attention on the same one-copy K/V concatenations.
+
+First-attention diagnostics now record factor-1 copies, added rows, actual
+weighted K/V length, log(factor), K/V concatenation storage, added-row storage
+and local output storage. Storage arithmetic is explicitly labeled as excluding
+original tensors, attention workspace and allocator overhead, not a GPU peak.
+
+Math and exact historical geometry
+----------------------------------
+The original attention.forward still computes QKV, Q/K RMSNorm and RoPE; the
+intervention receives those tensors, recomputes only the selected target query
+rows, and merges them before the original output projection. No dense mask.
+Three identical copies of a selected key/value in the softmax sum are equivalent
+in real arithmetic to adding ln(3)=1.0986122886681098 to that key's logit.
+The odds against unselected keys are multiplied by 3. If selected-set probability
+mass was p, the new mass is 3p/(1+2p), not generally 3p.
+
+Historical audited QKV: [1,56,87583,128], bfloat16.
+Source event requested [39,44] inclusive; H3 temporal bins [12,14) cover [39,46].
+This is a positional-bin mapping, not a strict VAE receptive-field guarantee.
+Each latent frame has 943 spatial rows; selected K and Q each contain 1886 rows.
+Historical absolute K=[19217,21103), Q=[59293,61179).
+Factor 2 weighted K/V length=89469; factor 3=91355.
+The isolated metadata fixture uses different text length and absolute offsets;
+production layout must be reconstructed and verified at runtime, never hardcoded.
+
+Memory/runtime risk
+-------------------
+The two K/V concatenation allocations total:
+  factor 2: 2,565,255,168 bytes = 2446.41796875 MiB
+  factor 3: 2,619,330,560 bytes = 2497.98828125 MiB
+  increment: 54,075,392 bytes = 51.5703125 MiB
+Factor 3's duplicated rows alone are 103.140625 MiB across K and V; this is
+already included in the concatenation total, not additional to that total.
+The selected-query output is 25.78515625 MiB. Original QKV/full output remain
+live; actual peak may be much higher and depends on Core/runtime/kernels.
+
+The local recomputation score count is M*(N+(f-1)*M); it is ~2.2461% of the
+full N*N attention score count at factor 3, versus ~2.1998% at factor 2.
+This is arithmetic accounting, not a runtime prediction: torch.cat copies
+the entire K/V sequence and backend dispatch/workspace/allocator effects matter.
+The baseline full attention still executes, so factor3 is not 1.5x or 3x the
+whole model work. Reuse the existing native SDPA experiment backend; do not
+silently add Sage or another attention.forward override.
+
+Archived admission_benchmark.json recorded a factor2 live-sampling GPU snapshot
+of 62,554 MiB on host 172.18.33.9. It was not an instrumented peak and provides
+no capacity proof for a different server's 48 GiB GPU. Factor3's modest extra
+slice storage is not the dominant cross-runtime capacity issue. Preserve all
+141 frames and the scientific recipe; investigate runtime memory independently
+and record any changed configuration. The archived INT8 row-overflow guard
+also needs compatibility review in the selected runtime, not blind omission.
+
+Test evidence and handoff
+-------------------------
+Ran locally with no dependencies installed:
+  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_event_emphasis.py -v
+Result: 17 tests; 11 passed; 6 tensor tests explicitly skipped (torch absent).
+All three Python source files parsed successfully with ast.parse.
+
+Added/extended coverage:
+  - scalar softmax equivalence to ln(f) for factors 1, 2, 3;
+  - unsupported factor rejection before native call or audit creation;
+  - factor3 EventState acceptance and recorded factor;
+  - factor2/factor3 tensor equivalence to logit bias, native preservation of
+    all unselected query rows and exact attention call shapes;
+  - factor2 bitwise compatibility with the original one-copy implementation;
+  - factor3 audit duplication counts, ln(3), byte arithmetic and finite sample;
+  - retained factor1 exact no-op, mapping/layout/metadata and bounded-stat tests;
+  - mask rejection for both factors2 and3.
+
+Required CPU-only command before submission, from the new task root using an
+existing interpreter with torch (replace <existing-torch-python>):
+  PYTHONDONTWRITEBYTECODE=1 H3_EVENT_TEST_DEVICE=cpu <existing-torch-python> -m unittest discover -s tests -p test_event_emphasis.py -v
+All 17 tests must pass without skips to claim CPU tensor validation. CPU tests
+use float64, 1e-12 tolerance. Optional authorized CUDA small-tensor run uses
+bfloat16 and 2e-2 tolerance; it is not an actual-shape memory admission test.
+
+Before full inference: verify fresh native backend and node schema/source hashes,
+model/input/noise hashes, layout and target shape, then one authorized same-shape
+short technical sampling run with logged dispatch and measured peak memory/time.
+The .41 task limit is one owned video inference process; selected GPU must be
+free and shared host health checked. No other user's process should be changed.
+
+Twenty Euler steps across 50 blocks expect completed_calls=1000,
+completed_forward_calls=20, calls_by_block=[20]*50, calls_by_forward=[50]*20,
+native_override_calls=1000 for factor3. Two steps expect 100/2/100.
+Hook status remains 'sampling' after its last block; ComfyUI history/output
+validation must establish whole-job success. The inherited verify_pair.py is
+hardcoded to factors1/2 and must be adapted by its owner for a factor3 run.
+
+Remaining scientific risks: the boost weights all spatial content in the time
+slice, including character/background; deeper-layer effects can propagate beyond
+the local query window. Higher weighting is not guaranteed to repair the event.
+Comparisons across hosts/runtimes must retain that confound in the conclusions.

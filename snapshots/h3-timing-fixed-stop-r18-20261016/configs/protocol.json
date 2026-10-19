@@ -1,0 +1,163 @@
+{
+  "schema": "h3-fixed-stop-r18-v1",
+  "claim": "one fixed-schedule causal control; no online observer, new method or architecture claim",
+  "run_ids": [
+    "r18_s05_full_6to11"
+  ],
+  "parent": "R3 original Full 6..14; only step_end15->12 changes scientific schedule",
+  "operator": {
+    "formula": "O + m_ref*(O_same - O_ref)",
+    "mode": "mass_preserve",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "source_window": [
+      50,
+      65
+    ],
+    "query_bins_half_open": [
+      14,
+      20
+    ],
+    "blocks_half_open": [
+      0,
+      50
+    ],
+    "steps_half_open": [
+      6,
+      12
+    ],
+    "active_indices_zero_based": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "spatial_queries": "all943 per selectedbin",
+    "heads": 56,
+    "head_dim": 128
+  },
+  "fixed": {
+    "seed": 2026101311,
+    "geometry": [
+      141,
+      736,
+      1312
+    ],
+    "fps": 24,
+    "sampler": "euler",
+    "steps": 20,
+    "CFG": 1,
+    "NFE": 20,
+    "Euler_updates": 20,
+    "callbacks": 20,
+    "block_calls": 1000,
+    "routed_block_calls": 300,
+    "sigma_string": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+  },
+  "captures": {
+    "x0_indices_zero_based": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      15,
+      19
+    ],
+    "extra_vs_R3": [
+      11,
+      12
+    ],
+    "sampler_final": true,
+    "passive_only": true
+  },
+  "prefix_gate": {
+    "R3_actual_saved_indices": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "R10_actual_chosen_full_indices": [
+      11
+    ],
+    "R10_actual_counterfactual_native_indices": [
+      12
+    ],
+    "R3_missing_indices": [
+      11,
+      12
+    ],
+    "not_claimed": "all20 R3 endpoints bitwise; no file exists for original R3index11/12",
+    "actual_tensor_validation_required": true
+  },
+  "evaluation": {
+    "main_window": [
+      50,
+      65
+    ],
+    "other_windows": [
+      [
+        69,
+        81
+      ],
+      [
+        80,
+        92
+      ],
+      [
+        99,
+        111
+      ]
+    ],
+    "confidence": [
+      0.3,
+      0.5
+    ],
+    "aligned_tolerance_frames": 2,
+    "keep_unknown": true,
+    "visual_frames": [
+      55,
+      86,
+      105
+    ],
+    "no_lag_retiming": true,
+    "fixed_schedule_based_on_seen_development_R10": true,
+    "causal_question": "Does stopping at12 on actual Full6..11 history retain alignment through the final video?",
+    "not_online_pose_control": true
+  },
+  "resources": {
+    "remote_root": "/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016",
+    "host": ".9",
+    "gpu_index": 2,
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8478,
+    "admission_owner": "root; reverify current identities before seal/start",
+    "warmup": "no extra quality sample or warmup queued; same parent runtime/operator, inherited cost evidence only",
+    "efficiency": "record wall/model/sample/archive/encode costs; no speed-based result selection"
+  },
+  "parent_evidence_sha256": {
+    "parent_full_x0_manifest.json": "141eecee4884e8352682621a7706907a38bc3de95f52326230ddd5e308746501",
+    "parent_full_graph.json": "83dec6024bdad01a02dd762dbce94fce93b21611d36cceb67df579a6757e57fe",
+    "parent_full_conditioning.json": "12b7164bbde50fb58744239fe818d1f64b1155aa5ef2dbe75760894ada7c0d99",
+    "parent_full_noise.json": "61d4aff41cc7028008b7b379b79d93c7937b60b92bb6920c82dc566ba5da9ba0",
+    "parent_r10_replay_check.json": "ac7c32434d4d27dc0419756aa78ccb69bb3ce20630195c18d7134c9ab33ec4f6",
+    "parent_core_hashes.json": "b3202d86102b445dcc4bf48029be43ecff6df8a75ddca1e17ec8ac7801cfc754",
+    "parent_r10_endpoint_binding.json": "ca9fcd1faeecd32f2182a154e6017f842416c13d202eeaa8da0ca533d54abc3e",
+    "parent_native_attention.json": "3b6d59c968b96ac76ae0b1723f4f3d7b6b06ba0d3254b01c472c239535304aed",
+    "parent_r10_router_audit.json": "d1f1a8b90860a2a84f91e81c8b2592bcee38dec8134b71cc19548f6155d53d43",
+    "parent_runtime_provenance.json": "91db3eaf976bf19c2eaace9d842165804431377a1609b99ff81b56a8f79b2811"
+  },
+  "input_sha256": {
+    "05_real_megumi_v.mp4": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+    "sam_altman_village_global_20221117_original.jpg": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42"
+  }
+}

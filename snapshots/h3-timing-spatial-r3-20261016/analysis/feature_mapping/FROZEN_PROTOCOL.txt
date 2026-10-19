@@ -1,0 +1,117 @@
+Native feature capture 与候选 M 的冻结离线检验协议
+2026-10-16；在 R3 native 保存前登记。仅设计/文档，无 GPU、无运行代码修改。
+
+1. 保存规格：接受 root 提出的完整空间/时间、固定四头方案
+
+arm：仅 R3 native；模型和 sampler 仍执行原生路径，不产生新预测分支。
+位置：zero-based block 25，native SDPA 的 per-head 输出，W_O 之前。
+采样调用：zero-based calls [6,10,14]；不得用 diffusion sigma 数值或第 6/10/14 个“已完成步”替代调用编号。
+头：[0,14,28,42]，顺序固定，不根据激活/动作表现换头。
+两个 stream：reference-video 和 target-video；不含身份图、语义条件或音频。
+每 stream 形状：[4,42,23,41,128]，轴为 [head,time,y,x,channel]；必须由实际 frame_rows/布局生成，不能只因总长度相等就 reshape。
+dtype：原生 BF16 的逐元素保存；不先升精度作处理再降精度。实际 dtype 不符时明确报错/记录差异，不伪装成原生 BF16。
+范围：全部 42 bins、全部 943 空间 token。全图保存是为了保留平流/匹配的邻域，离线筛选仍服从下面冻结规则。
+
+数据量：每 stream 40,556,544 bytes；两份 81,113,088 bytes = 77.35546875 MiB。三个 checkpoint 共 243,339,264 bytes = 232.06640625 MiB（十进制约 243.34 MB）。容器和 JSON sidecar 另有少量开销，仍低于每点 100 MB。若把两份转成 FP32 保存将翻倍，不符合本规格。
+
+必须随文件记录：run_id/arm、实际 sampler call、video/audio timestep、block/head 索引、实际输出 dtype、原始 layout/shape、两组 absolute row span 与 frame_rows、VAE/patch 网格、24fps/141帧、physical position-bin 表、实际 RoPE 时间坐标与原点（若现成可读）、condition/noise/model/core/extension hash、attention backend、文件和 tensor 内容 SHA。不得以硬编码旧数字冒充本次 actual 值。
+
+保存是 detach/只读复制；不得修改返回给 W_O 的原对象、不得消耗采样 RNG、不得补跑一次 attention 来“提取”。CPU 写盘完成前不长期保留整份 GPU graph/完整 native 输出。额外 copy/同步耗时单列，不算新增 DiT NFE，也不能说零成本。
+
+输出不变门：对同输入、同硬件、同 backend 的可比 native 锚点，核对实际条件/噪声及最终 latent/已有 x0 和 decoded RGB。已有 .41 原生结果如满足可比性可复用，不必为了这个文档重复推理；若只与旧 .9 比较而不相等，不能直接归因于被动保存。capture-off 的轻量张量不变测试仍须覆盖 hook 自身。差异未解释前，不能把本次特征当作原生失败轨迹的证据。
+
+2. 时间坐标与冻结分割
+
+使用已核实的 position-bin frames inclusive 表（R2 analysis/pose/encoded_reference_locator.json），本次实际配置一致后才复用。定义 τ_t=(start_frame_t+end_frame_t)/(2×24) 秒；这是该 position bin 的代表时刻，不是 VAE 精确感受野中心。禁止统一乘 4。
+
+关键范围：
+  bins 0..9：position frames 0..33；
+  bins 10..13：frames 34..46；
+  bins 14..19：frames 47..67，覆盖已登记事件；
+  bins 20..41：frames 68..140。
+
+校准状态：C=[0,2,4,6,8]。只使用下述局部 tile 的八个外围位置，永远不使用 tile 中心。
+验证边：E_val=[10,11,12]，边 i 表示 bin i→i+1。
+事件 held-out 边：E_event=[14,15,16,17,18]。
+后段 held-out 边：E_post=[20,21,...,40]。
+边 9、13、19 不进入主误差汇总，避免跨分割边界混淆；可单独作边界诊断，不能据它们挑参数。
+
+校准是对状态的映射拟合，不是对完整 0..9 的所有时间边作训练。使用 C 的五个状态×八个外围位置，共 k=40 对样本；拟合不读取任何 held-out 目标状态。这样同时留出空间中心和时间段。它不能制造真正独立视频样本：同一全局 attention 已发生跨时间混合，统计上仍然是一条视频内的条件检验。
+
+三个去噪 checkpoint 分别拟合/评价，不跨 checkpoint 拼训练集，不用 step14 的 M 指导或证明 step6 可用。call6 是主可用性点；10/14 是冻结的诊断复核，不事后挑一个最好的点。
+
+3. 空间和分组：不看目标选人物/头
+
+使用全图固定、互不重叠的 3×3 tiles：中心 y∈{1,4,7,10,13,16,19}，x∈{1,4,7,...,37}，共 7×13=91 个 tile。每 tile 中心是 held-out 空间位置，8 邻域是校准位置。覆盖 y=0..20、x=0..38；底部 2 行与右侧 2 列不参加主模型拟合/计分，但仍完整保存以便审计。四头独立拟合，不将某头挑为“运动头”。
+
+第一汇总：全部 91 tiles，每头分别报告，再等权报告四头；不要把背景正确性掩盖人物区域的失败。
+预先规定一个 source-only 活动分组，辅助避免该问题：在实际送 VAE 的几何下，取 source RGB 在 E_event 两端代表帧，整数代表帧固定为 floor((start_frame+end_frame)/2+0.5)，计算每 tile 的平均绝对相邻帧差，按 tile 总分排序。最高 23 个 tile 为“source 高变化组”，最低 23 个为“source 低变化组”，并列按 (y,x) 字典序。它只表示输入变化，不能称真实人体运动分割；不读取任何 target 图像、X_target 或模型效果来划组。
+若无法严格复现输入 RGB 的 resize/crop/pad 几何，活动分组标记 unavailable，保留全图结果，不能换成看目标后画的手部 ROI。推荐先生成 tile 列表/分数并保存 hash，再读入目标 features。
+
+4. 实际拟合：固定一套模型，不扫参数
+
+对每个 checkpoint/head/tile，R_c、Y_c 为以上 40 个源/目标配对状态，形状 [40,128]。配对使用同一 bin、同一局部空间偏移；这只是冻结的 identity correspondence 假设，不是已经确认语义姿态一致。分别减去样本均值得 R_0、Y_0。
+
+完整 map：
+  λ=10^-3 × tr(R_0 R_0^T)/40；
+  M=Y_0^T(R_0R_0^T+λI)^-1R_0。
+trace 为零/非有限时该 tile 不可拟合，标 NA，不能另换 λ。低精度存储读入后离线用 FP64 拟合、FP32/64 计分；不得把这种计算恢复精度说成曾保存 FP32 特征。
+
+Π_Y 由 Y_0 的 SVD 定义，保留 singular value >10^-3×最大 singular value 的方向；秩零则 NA。固定阈值仅作数值/可辨识性约束，不根据最终视频调。记录 rank、最小/最大 singular value、解条件数、拟合状态误差。
+
+对 held-out tile 中心和边 i：
+  dR_i=(R_{i+1}−R_i)/Δτ_i；dY_i=(Y_{i+1}−Y_i)/Δτ_i；
+  p_M=M dR_i；评价对象为 Π_Y dY_i。
+这与候选“仅纠正可辨识子空间”一致。额外报告该子空间覆盖的真实变化能量，避免只在近零子空间取得漂亮误差。
+
+不得通过 reference/target 的 cross-correlation 寻找最佳 temporal shift，不在这些 features 上重估一个使 M 最好看的 lag，不混入事后正确的视频作为训练目标。
+
+5. 冻结基线
+
+I 恒等：p_I=dR。仅用于检验“同一特征空间直接差分”是否已足够。
+
+D 对角：每通道 d_j=Σ_n R_0[n,j]Y_0[n,j]/(Σ_n R_0[n,j]^2+λ)，p_D=diag(d)dR；采用同一校准样本与 λ，不额外做最佳 gain。它排除简单通道缩放被包装成跨通道结构。
+
+A 局部空间平流：用源起点 R_i 的中心差分得到 J_R=[∂xR_i,∂yR_i]∈R^{128×2}，目标起点同理 J_Y。解
+  η=10^-3×tr(J_R^T J_R)/2；
+  u=−(J_R^TJ_R+ηI)^-1J_R^T dR；p_A=−J_Y u。
+源的未来参考 bin 已知，可以用于 dR；目标仅用边起点 Y_i 的空间梯度，不读 Y_{i+1} 构造预测。p_A 允许使用 held-out 起点，是一个更强的、部署时可得的比较，不是目标未来泄漏。
+J_R 精确零且 dR 非零时 A 不可识别；两者精确零时令 p_A=0。预测位移 ||u Δτ||_2>1 token 时标“局部线性平流超范围”，不将其差结果当作 M 超越空间传播的证据。非有限同样 NA；不能临时扩大搜索半径或裁剪后报最佳结果。
+
+所有四种预测先投影到同一个 Π_Y 再计主误差。另报告全通道误差，但不能混淆为本候选实际要替换的全部目标变化。
+这个 A 只是局部一阶平流基线，不是完整 FRESCO/FLATTEN/TokenFlow 的公平复现。击败它只排除最简单的平流退化；不能据此声称超过这些方法。
+
+6. 指标、共同支持及预先失败条件
+
+每 checkpoint/head/分割/空间组报告：共同支持样本数、原始总数、Π_Y 能量占比、总平方误差/目标投影总能量（NMSE）、预测/目标范数比、余弦中位数及分位数。主要 NMSE 用先加总后相除，不能对近零分母逐样本比值求平均。余弦对零向量记 NA。
+
+共同支持必须四种方法都有效，不能每种用不同支持；NA 不是零误差。预先门：每个被用于正面结论的分割至少保留 80% 名义 high-change 样本，且可辨识目标能量占全通道目标变化能量至少 25%。否则为 insufficient support，不能宣布 M 成功。
+
+call6 的预事件 E_val 与 E_post 必须分别达到：M 的共同支持 NMSE 至少比 I、D、A 中最好的一个降低 10%，且四个固定头中至少三个方向一致。这个数是决定是否值得继续的工程门，不是显著性检验或泛化证明；不允许为了过门改阈值/头/时间/ROI。call10/14 原样报告，不可替代 call6 失败。
+
+E_event 只作严格 held-out 描述，不参与拟合、参数选择或该可用性门。特别不能把 native 在该处的错误动作当正确目标来驱动优化。它可揭示 M 在事件段失效，也可能显示 M 只是学会复制原有延后。
+
+明确失败/降级：
+— M 不胜过 D：没有跨通道映射必要性；继续保留简单校准为基线。
+— M 不胜过 A，或全部收益由空间平流可解释：不能提出超出既有特征传播的结构叙事。
+— 只在拟合状态/背景/某个事后选头上有效：过拟合/选择偏差，不可进入完整生成验证。
+— call14 有效但 call6 无效：尚不满足已知早期可控窗口的可用性；不能靠晚期结果给早期映射背书。
+— 支持、rank 或活动分组不够：报告 unknown，不等同“这种方法根本不可能”。
+— 全部门通过：只准说“当前 native 特征之间存在超越这些简化基线的可预测变化关系，值得设计下一机制实验”，不能说已证明动作纠正/架构创新。
+
+7. 未知源/目标对应时，这批保存绝对不能回答什么
+
+本次原生目标本来有时序失真，因此 Y_i 通常不是 source 同时刻动作的正确编辑特征。按同一时间/空间配对拟合 M，可能把时间偏差、人体比例差、光照、背景以及噪声一起学进去。预测这种 Y 的 held-out 变化成功，仍可能是更准确地预测错误动作。
+
+不能凭该结果声称：M 将 source 正确运动翻译为正确目标运动；某个源特征是纯 motion；错误来自 channel coordinate mismatch；参考/目标有不同 RoPE 时钟；原生已缺失的信息被恢复；在线自动识别/纠正已实现。
+
+要把后续干预方向称为正确，另需独立确认的源/目标姿态对应，或事先定义的合成已知变换测试、或具有正确目标动作的对照。在这之前不允许从 event 的最佳 lag 反向挑校准样本。保存全 42 bins 是为了之后可按新的明确协议检验这些问题，不能用作当前协议任意重划分的许可。
+
+仅四头/单块/三个 sampler calls 的 snapshot，也不能证明全 56 头的结构必要性、实际干预后模型的反应、因果早晚窗口、模型其他层的可用性或最终画质。这不是 online controller 数据；无 RGB decode、无 teacher、无新的采样。
+
+8. 对 capture 实现的最小附加验收
+
+actual block/call/head 选择恰好命中三次，重复 hook/额外模型调用不得覆盖文件；文件用运行唯一标识且封闭枚举。每次应有两份同一 native forward 的 tensor，不混前次采样缓存。
+sidecar 应区分 post-SDPA/pre-W_O X 与 Q/K/V、x0、clean reference latent；把 X 命名成 motion feature 或 V 都会误导后续分析。
+实际 reference 与 target 的 layout、42-bin 表逐项一致才允许按上面协议比较。参考 origin 和 target origin 若不同，原值记录即可，不在 capture 阶段纠正。
+只保存被选 head 的 CPU 副本，确认写出大小和 hash，baseline 返回对象保持原 dtype、shape、stride及值；采样结束按现有 runtime 的精确 cleanup 释放显存。不得为了分析而驻留 service。

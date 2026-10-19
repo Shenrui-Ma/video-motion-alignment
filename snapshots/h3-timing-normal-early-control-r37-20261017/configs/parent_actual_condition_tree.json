@@ -1,0 +1,331 @@
+{
+  "sha256": "46ab270374e0ff3f3ba5e6f44db3d7d2daadb76cc86d2b5b9157e25a5d168d26",
+  "tree": {
+    "original": {
+      "positive": [
+        {
+          "cross_attn": {
+            "shape": [
+              1,
+              6960,
+              5120
+            ],
+            "dtype": "torch.float32",
+            "bytes": 142540800,
+            "sha256": "06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3"
+          },
+          "minimax_refs": [
+            {
+              "kind": "image",
+              "latent": {
+                "shape": [
+                  1,
+                  24,
+                  1,
+                  76,
+                  50
+                ],
+                "dtype": "torch.float32",
+                "bytes": 364800,
+                "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+              },
+              "latent_h": 76,
+              "latent_w": 50
+            },
+            {
+              "audio_latent": null,
+              "kind": "video",
+              "latent": {
+                "shape": [
+                  1,
+                  24,
+                  42,
+                  46,
+                  82
+                ],
+                "dtype": "torch.float32",
+                "bytes": 15208704,
+                "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+              },
+              "latent_h": 46,
+              "latent_t": 42,
+              "latent_w": 82,
+              "ref_audio_t": 0
+            }
+          ],
+          "minimax_token_tags": {
+            "shape": [
+              6960
+            ],
+            "dtype": "torch.int64",
+            "bytes": 55680,
+            "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+          },
+          "model_conds": {},
+          "pooled_output": null,
+          "uuid": "bfc232d4-30fa-4634-838a-080912c94eb5"
+        }
+      ]
+    },
+    "processed": {
+      "positive": [
+        {
+          "cross_attn": {
+            "shape": [
+              1,
+              6960,
+              5120
+            ],
+            "dtype": "torch.float32",
+            "bytes": 142540800,
+            "sha256": "06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3"
+          },
+          "minimax_refs": [
+            {
+              "kind": "image",
+              "latent": {
+                "shape": [
+                  1,
+                  24,
+                  1,
+                  76,
+                  50
+                ],
+                "dtype": "torch.float32",
+                "bytes": 364800,
+                "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+              },
+              "latent_h": 76,
+              "latent_w": 50
+            },
+            {
+              "audio_latent": null,
+              "kind": "video",
+              "latent": {
+                "shape": [
+                  1,
+                  24,
+                  42,
+                  46,
+                  82
+                ],
+                "dtype": "torch.float32",
+                "bytes": 15208704,
+                "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+              },
+              "latent_h": 46,
+              "latent_t": 42,
+              "latent_w": 82,
+              "ref_audio_t": 0
+            }
+          ],
+          "minimax_token_tags": {
+            "shape": [
+              6960
+            ],
+            "dtype": "torch.int64",
+            "bytes": 55680,
+            "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+          },
+          "model_conds": {
+            "c_crossattn": {
+              "type": "CONDRegular",
+              "cond": {
+                "shape": [
+                  1,
+                  6960,
+                  5376
+                ],
+                "dtype": "torch.bfloat16",
+                "bytes": 74833920,
+                "sha256": "cb786704e4c1ffeb66cf47acd78156c1e237ee171cae6f797ebdca26d2620c9d"
+              }
+            },
+            "latent_shapes": {
+              "type": "CONDConstant",
+              "cond": [
+                [
+                  1,
+                  24,
+                  42,
+                  46,
+                  82
+                ],
+                [
+                  1,
+                  32,
+                  2,
+                  235
+                ]
+              ]
+            },
+            "minimax_payload": {
+              "type": "CONDConstant",
+              "cond": {
+                "audio_scale": 4.0,
+                "cond_audio_latents": [],
+                "cond_video_latents": [
+                  {
+                    "shape": [
+                      1,
+                      24,
+                      1,
+                      76,
+                      50
+                    ],
+                    "dtype": "torch.float32",
+                    "bytes": 364800,
+                    "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+                  },
+                  {
+                    "shape": [
+                      1,
+                      24,
+                      42,
+                      46,
+                      82
+                    ],
+                    "dtype": "torch.float32",
+                    "bytes": 15208704,
+                    "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+                  }
+                ],
+                "layout": {
+                  "type": "PackedLayout",
+                  "fields": {
+                    "audio_pos": {
+                      "shape": [
+                        470
+                      ],
+                      "dtype": "torch.int64",
+                      "bytes": 3760,
+                      "sha256": "0ba1603c6a551e82dbde7dc626154e7345a5e8f4aceaa15bd56362dfa9a1d819"
+                    },
+                    "audio_update": {
+                      "shape": [
+                        470
+                      ],
+                      "dtype": "torch.bool",
+                      "bytes": 470,
+                      "sha256": "8f0558bca4e77127a5cd3ad141661430066b4fdc2a20207131986e7525d3cb23"
+                    },
+                    "img_pos": {
+                      "shape": [
+                        80162
+                      ],
+                      "dtype": "torch.int64",
+                      "bytes": 641296,
+                      "sha256": "029444e31b1cf503bc7f46f932793245c2c7f1ec3056354ca71efa717cdfea4f"
+                    },
+                    "img_update": {
+                      "shape": [
+                        80162
+                      ],
+                      "dtype": "torch.bool",
+                      "bytes": 80162,
+                      "sha256": "c661431859be9c294c8e872ee5a2b82561ce4eb09a1fa44a4cadb3fafb94390a"
+                    },
+                    "position_ids": {
+                      "shape": [
+                        87592,
+                        3
+                      ],
+                      "dtype": "torch.float64",
+                      "bytes": 2102208,
+                      "sha256": "06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee"
+                    },
+                    "segments": [
+                      [
+                        0,
+                        6960,
+                        "text"
+                      ],
+                      [
+                        6960,
+                        7910,
+                        "ref_img"
+                      ],
+                      [
+                        7910,
+                        47516,
+                        "ref_img"
+                      ],
+                      [
+                        47516,
+                        47986,
+                        "audio"
+                      ],
+                      [
+                        47986,
+                        87592,
+                        "video"
+                      ]
+                    ],
+                    "seq_len": 87592,
+                    "signature": [
+                      6960,
+                      42,
+                      46,
+                      82,
+                      235
+                    ]
+                  }
+                },
+                "refs": [
+                  {
+                    "kind": "image",
+                    "latent": {
+                      "shape": [
+                        1,
+                        24,
+                        1,
+                        76,
+                        50
+                      ],
+                      "dtype": "torch.float32",
+                      "bytes": 364800,
+                      "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+                    },
+                    "latent_h": 76,
+                    "latent_w": 50
+                  },
+                  {
+                    "audio_latent": null,
+                    "kind": "video",
+                    "latent": {
+                      "shape": [
+                        1,
+                        24,
+                        42,
+                        46,
+                        82
+                      ],
+                      "dtype": "torch.float32",
+                      "bytes": 15208704,
+                      "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+                    },
+                    "latent_h": 46,
+                    "latent_t": 42,
+                    "latent_w": 82,
+                    "ref_audio_t": 0
+                  }
+                ],
+                "seed": 2026101313,
+                "text_token_tags": {
+                  "shape": [
+                    6960
+                  ],
+                  "dtype": "torch.int64",
+                  "bytes": 55680,
+                  "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+                }
+              }
+            }
+          },
+          "pooled_output": null,
+          "uuid": "bfc232d4-30fa-4634-838a-080912c94eb5"
+        }
+      ]
+    }
+  }
+}

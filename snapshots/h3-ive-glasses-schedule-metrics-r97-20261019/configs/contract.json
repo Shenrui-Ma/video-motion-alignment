@@ -1,0 +1,48 @@
+{
+  "schema": "r97-four-column-control-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-glasses-schedule-r97-20261018",
+  "producer_remote": "/data5/researcher/h3_runs/timing_ive_glasses_schedule_r97_20261018",
+  "host": "H3_SERVER_A",
+  "producer_seal_sha256": "269b239abd7922a958e11732f8153663739a644db23a189d2c0ddc0fe0ee2c0e",
+  "producer_contract_sha256": "8ea187046b1b87a3f445e7dcd292cec99e3f9b8a393a126a2723362c3f36d95c",
+  "producer_runtime_sha256": "27e9021276b850e6bf27f5ee885a13e498f20bf82e4813d43fb28ff18138f053",
+  "run_id": "r97_short_0358_seed2026101701_extended",
+  "graph_sha256": "cef4d1d7e13fe13b9dff0823df1243ac0472aa84d0249f2b390284fd4ca8bd7a",
+  "source_id": "short_0358",
+  "valid_frames": 105,
+  "total_frames": 107,
+  "crop_xywh": [
+    16,
+    8,
+    1280,
+    720
+  ],
+  "original_task": {
+    "id": 358,
+    "src_video_name": "short_0358.mp4",
+    "category": "subject_editing",
+    "subcategory": "add new subject",
+    "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+    "edit_prompt": "Add a pair of glasses to the man.",
+    "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+    "target_span": "glasses",
+    "target_phrase": "the man is wearing a pair of glasses"
+  },
+  "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the man seated on the left side of the table in <Video 1>, wearing a light short-sleeved shirt and holding a beer bottle. He is the target for the added glasses; his original identity and complete drinking performance are retained.\n<Subject 2> is the man seated on the right, the background people, original beer bottle, table, papers and bar interior in <Video 1>.\nSource context: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Add a pair of glasses to the left-side man holding the bottle, preserving his original drinking motion and the other people and bar setting.\nRequested edit: Add a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Add eyeglasses to the left-side man’s face, following his face position and head motion. Preserve his identity, clothing, arm gestures and complete bottle-raising, drinking and lowering sequence with the same timing.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the right-side man, background people, bottle, tabletop objects and original bar, including their movements, lighting and placement.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] The original left-side man now wears eyeglasses while holding his beer bottle at the table. He raises the bottle, drinks and lowers it following <Video 1> in the original sequence and timing. The right-side man and bar background remain as in the source.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+  "prompt_version": "P1-local-v1",
+  "old_media": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/inputs/short_0358_video.mp4",
+      "sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/incoming/short_0358/native.mp4",
+      "sha256": "bd49f4ee21c7dbd4ac4c73282f7035992dfbe2504043f533e25d297cfcee80b4"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/incoming/short_0358/forced.mp4",
+      "sha256": "b2e659a56583de6b5a74e9c4d941bc2fb8bb986d5a5d8802084224a9ec862221"
+    }
+  ],
+  "scope": "Single extended output, reused original R89 reference/Native/fixed bytes, actual control gate before download; no watcher/GPU/verifier."
+}

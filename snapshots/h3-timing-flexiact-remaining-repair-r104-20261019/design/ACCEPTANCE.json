@@ -1,0 +1,80 @@
+{
+  "schema": "r104-basic-task-acceptance-v1",
+  "items": [
+    {
+      "case_id": "fitness__game_man_4",
+      "identity": [
+        "短黑发和动漫男性面部保持，源演员长发/脸不能成为输出主体。",
+        "绿披肩、棕夹克、浅色衬衣/领饰、深色裤和浅色交叉绑带保持；可见时检查腰侧装备及长靴。"
+      ],
+      "scene": [
+        "整段保持目标图的白背景，若转为山地、湖面或原片房间，场景要求未完成。"
+      ],
+      "motion": [
+        "侧举、过头、双手靠拢、合掌下降顺序保持。",
+        "片尾到脸前，不能把“胸前”文字扩展成额外动作。",
+        "肩肘与手臂幅度连贯，头顶出画部分单独记可见性限制。"
+      ],
+      "limitations": [
+        "斗篷和腰侧装备遮挡部分躯干；姿态测量与衣物运动应分开。",
+        "图像画风是动漫，自动人体检测失败时需人工审核。",
+        "头顶双手部分贴近/超出画面上缘；只能评可见轨迹。",
+        "官方文字写到胸前，实际片尾仍在脸前；新描述按片段终点。",
+        "下半身未入画，原图的靴子/腰装备只有生成画面可见时才验收。"
+      ],
+      "future_review": "Review all147 valid output frames plus the49 original action times. Decide identity/scene/action-order separately before timing. Keep failures in results. Guidance may be considered only after root accepts the basic task.",
+      "timing_precision": "Original8fps gives125ms temporal sampling; repeated24fps frames do not create finer ground-truth time.",
+      "proposed_launch_rank": 1
+    },
+    {
+      "case_id": "human2animal_1__movie_man_11",
+      "identity": [
+        "短浅金发、目标男性面部、深蓝西装与白衬衣保持；源女人长辫及运动服残留应单独记失败。",
+        "能看清时检查斜条纹领带、深色裤/黑鞋，低位遮挡不作为身份错误证据。"
+      ],
+      "scene": [
+        "目标图的室外铺装路面、草地和深色植被成立；固定视野允许保留右侧树干/灯柱。",
+        "源室内板墙/粉垫或源湖面紫垫整体迁入，则目标场景未完成。"
+      ],
+      "motion": [
+        "屈肘胸近地先于伸肘抬胸，片尾为拱背低头。",
+        "转折相对时间和胸/肩/头的路径可辨；不能变成片头高撑、片尾俯卧的反序列。",
+        "低位支撑的人体结构和可见手/地接触连续。"
+      ],
+      "limitations": [
+        "深色西装与关节遮挡可能降低自动姿态可见性。",
+        "目标图站立正面、源片低位侧面，姿态和视角变化较大；不可要求逐像素外观一致。",
+        "原片小腿/脚部分超出左边缘，不补造完整足部接触标注。",
+        "最低位头发遮挡脸与部分手臂，肘部精细角度不作逐帧真值。"
+      ],
+      "future_review": "Review all147 valid output frames plus the49 original action times. Decide identity/scene/action-order separately before timing. Keep failures in results. Guidance may be considered only after root accepts the basic task.",
+      "timing_precision": "Original8fps gives125ms temporal sampling; repeated24fps frames do not create finer ground-truth time.",
+      "proposed_launch_rank": 2
+    },
+    {
+      "case_id": "crouch__movie_man_5",
+      "identity": [
+        "目标短侧分棕发、干净下颌/脸型、炭灰西装、浅蓝衬衣、窄领带保持。",
+        "灰运动夹克、扎发或源运动者面部残留记为身份混合。"
+      ],
+      "scene": [
+        "白色摄影背景贯穿整片，湖面和木栈桥持续出现记场景失败。"
+      ],
+      "motion": [
+        "两轮下降—低位—上升，中间有直立间隔。",
+        "第一轮起立后手仍在胸前，第二轮不能误变成新手势或第三次动作。",
+        "膝/髋/上身协调、脚位置和侧向姿态合理。"
+      ],
+      "limitations": [
+        "目标图双手插袋，动作源双手胸前；图像站姿/插袋姿态应交给动作视频替换。",
+        "原图含 Adobe Stock 水印和边缘文字，文件原样保留；水印不计作人物身份，是否带入另记。",
+        "此前已使用六段 P1；本次变化是明确外观、白背景及动作角色，不是首次加入格式。",
+        "源为固定侧面机位，远侧肢体部分重叠。",
+        "两次完整下降/起立清楚，适合次序与阶段判断；手指细节较小。"
+      ],
+      "future_review": "Review all147 valid output frames plus the49 original action times. Decide identity/scene/action-order separately before timing. Keep failures in results. Guidance may be considered only after root accepts the basic task.",
+      "timing_precision": "Original8fps gives125ms temporal sampling; repeated24fps frames do not create finer ground-truth time.",
+      "proposed_launch_rank": 3
+    }
+  ]
+}

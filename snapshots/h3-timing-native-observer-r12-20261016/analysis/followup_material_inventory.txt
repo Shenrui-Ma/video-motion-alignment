@@ -1,0 +1,145 @@
+R12 后续交叉样例材料清单
+日期：2026-10-16；本文件只盘点既有材料，未启动推理、未修改实验配置、未查询远程实时状态。
+
+结论
+1. 首选已有延后重复例：source05 / seed2026101312 / Sam Altman角色替换。1312×736×141，模型、sigma、Euler20和reference编码参数与R12匹配。主窗50–65，native方向/腕部lag为+15/+16帧，两检测阈值均支持；all-step Full为−1/−1。已有完整输出、实际条件/噪声哈希与pose曲线。它已被审查，属于已知病例上的跨seed重复。
+2. 另一已知source：source07 / seed2026101311 / Sam Altman角色替换。同几何同采样，但主窗为54–69。native低阈值+15/+15，高阈值因检测覆盖拒判；all-step Full为−1/−1。它可用于相关录像的补充检查，证据弱于source05第二种子。
+3. 确有同1312几何的自然保真“候选”：07_real_ary_v_a_s2，seed2026101312，真人换蓝衣，无角色参考图。旧非盲逐帧审查显示完整事件54–69与源相同、核心59–61对源60–62，差约−1帧且边界不确定性±2。尚无当前冻结双阈值pose/early-x0准入证据，也无Full输出。因此不能把它写成已经认证的R12同任务正常负控。
+4. 当前检索范围内，没有找到“1312×736×141、当前Sam角色替换配置、未经干预、通过当前冻结双阈值pose正常门”的现成病例。R7/R8的正常例为1024×576×141，不符合本清单同几何要求。
+5. 建议的新native筛查顺序（只登记建议，未执行）：source05、Sam当前提示词/角色图、1312×736×141、seed2026101313，然后2026101314。此次本地范围扫描未发现这两个seed的既有记录。正常筛查应先冻结顺序与门槛，保留所有失败/unknown结果；首个通过者是有意选出的负控，不估计总体正常率。
+
+读取的范围约束
+/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/native_observer_followup_scope.txt
+SHA256 96d4f0eeb55b69ea39e6ff9b458177be99a2311b97dfff1401b68377560949b4
+依此应先冻结开发例产生的mask S_dev与同K连续pulse P_dev，再用于其他病例；如果两mask相同只保留一条。此库存不评判正在运行的R12，也不改阈值或提前选择新控制mask。
+
+配置匹配的证据边界
+R12基准图：/Users/researcher/DevProjects/h3-timing-native-observer-r12-20261016/configs/r12_s05_native_observer.json
+对两组transfer实际归档config.json逐字段比较：节点1/2/3/4/41/8/9/21均与R12相同。source05第二种子的节点22也相同，节点5仅audit_dir不同；source07节点22改源片，节点5另有source_run_id管理值不同。seed、router、readout/admin节点按各实验定义不同。
+共同模型：minimax_h3_ref2va_pruned_int8_convrot.safetensors；qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors；video VAE fp16；audio VAE fp32；BasicGuider CFG1；Euler20；完整21值ManualSigmas与R12逐字相同；video/audio shift12/3；semantic_fps2、phase_frames0；无TurboLoRA。
+模型历史哈希索引：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/transfer_runtime_staged/configs/parent_runtime_provenance.json
+对照：/Users/researcher/DevProjects/h3-timing-native-observer-r12-20261016/configs/model_hashes_host9.json
+四权重历史SHA相同；transfer记录为size/mtime匹配旧full SHA，full_hash_recomputed=false。本清单未重新读取远程大权重，不能冒称此次重新验全文件。
+四份实际router audit记录backend=aten._scaled_dot_product_flash_attention.default，20完整forward、1000block；native routed_calls=0；mass routed_calls=1000。Full在本清单指mass_preserve alpha1/radius0/offset0、全50层、indices0..19全20步，而不是R3固定6..14的九步脉冲。
+每组native/Full的pair_snapshot.actual和actual_noise_streams已做本地对象逐值核对相同；目录中的runtime历史与重新部署后的数值路径仍须靠实际配对门确认，不能仅凭同文件名宣布GPU逐位复现。
+
+病例 source05 / seed2026101312
+曝光状态：已看过。旧ROUND_FINAL_REVIEW、round_metrics_index及配对报告均已公开于本次研究上下文；不是blind。
+输入视频：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4
+身份参考图：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/sam_altman_village_global_20221117_original.jpg
+实际condition embedding SHA：06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3
+实际clean reference video SHA（沿原审计哈希算法）：75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734
+实际AV噪声SHA：1e7c621f6a38997298a6be4d2dbc33fbde6461a1d8591d92df40d235b24c5621, b0494969c750d000ff789a3a42e1691881f5b0c3213aa75d2bd24535908aae5b
+packed sequence=87592；text=6960；含image+video参考；video latent [1,24,42,46,82]；audio [1,32,2,235]。
+  native: s05_full_seed2_native_x0
+  输出：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed2_native_x0_00001_.mp4
+  输出SHA：fa421266379670e5127854944265c41962fbea6a199d88924afd626a7c624e48
+  配置：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_provenance/config.json
+  实际conditions：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_provenance/conditioning.json
+  实际noise：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_provenance/noise.json
+  router执行记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_provenance/router_audit.json
+  history成功记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_provenance/history.json
+  pose：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_00001_.pose.json
+  lag及拒判全曲线（两阈值）：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_00001_.threshold0.3.timing.json
+                           /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_00001_.threshold0.5.timing.json
+  17项归档清单：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_native_x0_provenance/archive_manifest.json
+  mass: s05_full_seed2_mass_x0
+  输出：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed2_mass_x0_00001_.mp4
+  输出SHA：852f37e4c99720c71606c3b976a86cc6353ffc2a42dd5bd9076adff831f56e17
+  配置：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_provenance/config.json
+  实际conditions：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_provenance/conditioning.json
+  实际noise：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_provenance/noise.json
+  router执行记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_provenance/router_audit.json
+  history成功记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_provenance/history.json
+  pose：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_00001_.pose.json
+  lag及拒判全曲线（两阈值）：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_00001_.threshold0.3.timing.json
+                           /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_00001_.threshold0.5.timing.json
+  17项归档清单：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed2_mass_x0_provenance/archive_manifest.json
+共同支持比较：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pairs/source05_seed2_complete_pair/summary.json
+窗口：[50,65]、[69,81]、[80,92]、[99,111]。主窗native方向/腕部+15/+16，Full−1/−1（0.3和0.5相同）。主窗共同方向支持1.0/.984375，native误差1.1393/1.1513，Full .1591/.1564。这些是描述性误差，不是统计显著性。
+其余窗口不能删unknown：native高阈值69–81方向/腕部均拒判；80–92腕部拒判；99–111为+17/+17。Full高阈值69–81亦拒判。
+质量限制：native与Full都把大片白窗帘/墙面改成黑色；不能把背景失败归于Full，也不能把时序修复称完整编辑成功。
+后续优先级：最小改动的已知延后重复例，沿用50–65窗口和原观测几何；仍须先固定开发mask，并在同runtime核验native重放/输入配对。
+远程历史归档根（此次未联网核实存活）：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0
+noise tensor路径（本机本A目录未找到）：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/05_sam_1312x736_2026101312_v3_noise.pt
+reference tensor路径依据manifest：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/tensor_blobs/136e1302edb9e4f245d085b21584e8bfa54942c77a30758e7c3f227078cde97a.pt
+x0图配置的远程目录：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/x0/s05_full_seed2_native_x0 及 /data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/x0/s05_full_seed2_mass_x0
+本机A/audit/x0下未找到这两run的manifest/tensor；没有声称已拥有全部早期x0，更没有从旧视频恢复sampler原状态。下载/实际存在性核验由后续部署单独处理。
+
+病例 source07 / seed2026101311
+曝光状态：已看过。旧ROUND_FINAL_REVIEW、round_metrics_index及配对报告均已公开于本次研究上下文；不是blind。
+输入视频：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/07_real_ary_v.mp4
+身份参考图：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/sam_altman_village_global_20221117_original.jpg
+实际condition embedding SHA：31e1b8a5444c94fc0b1bc2a646f9f4bdd8f9ca0e735b5de303d0b97fbff164d3
+实际clean reference video SHA（沿原审计哈希算法）：82d1e8f70a38ee0c5d7e447c3c9919ed5288e49f82677d3d3835bd7b7a1c4db3
+实际AV噪声SHA：94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96, ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3
+packed sequence=87592；text=6960；含image+video参考；video latent [1,24,42,46,82]；audio [1,32,2,235]。
+  native: s07_full_seed1_native_x0
+  输出：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s07_full_seed1_native_x0_00001_.mp4
+  输出SHA：a4b0f8bdefa545638904ae027e50e9a00c494fce6586a1077851da944f56a32c
+  配置：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/config.json
+  实际conditions：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/conditioning.json
+  实际noise：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/noise.json
+  router执行记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/router_audit.json
+  history成功记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/history.json
+  pose：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_00001_.pose.json
+  lag及拒判全曲线（两阈值）：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_00001_.threshold0.3.timing.json
+                           /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_00001_.threshold0.5.timing.json
+  17项归档清单：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/archive_manifest.json
+  mass: s07_full_seed1_mass_x0
+  输出：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s07_full_seed1_mass_x0_00001_.mp4
+  输出SHA：b7e3753d0ad74d25e509d92dfd601b6eda7062d318d1411f429142239cfc6fc7
+  配置：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_provenance/config.json
+  实际conditions：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_provenance/conditioning.json
+  实际noise：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_provenance/noise.json
+  router执行记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_provenance/router_audit.json
+  history成功记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_provenance/history.json
+  pose：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_00001_.pose.json
+  lag及拒判全曲线（两阈值）：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_00001_.threshold0.3.timing.json
+                           /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_00001_.threshold0.5.timing.json
+  17项归档清单：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_mass_x0_provenance/archive_manifest.json
+共同支持比较：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pairs/source07_complete_pair/summary.json
+窗口：[54,69]、[75,88]、[98,111]。主窗native低阈值方向/腕部+15/+15，高阈值两者拒判；Full主窗两阈值−1/−1。主窗共同方向支持.875/.78125，后者不达共同支持门，不能抹掉。
+其他窗：75–88 native方向拒判但腕部+15；98–111低阈值约−5，高阈值拒判；显示局部顺序/相位复杂，不能简化全片恒定慢放。
+质量限制：Full在作用窗之前0–51的方向误差略增；同一编舞家族另一录像，不代表跨领域泛化。
+后续适配限制：原动作窗54–69，不能直接宣称当前R12冻结50–65观测器已验证此例。窗口变更应先按既有标注冻结，并说明与source05协议不同。
+远程历史归档根（此次未联网核实存活）：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0
+noise tensor路径（本机本A目录未找到）：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/07_sam_1312x736_2026101311_v3_noise.pt
+reference tensor路径依据manifest：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/tensor_blobs/c7e7fceee07ae7554907dbdb917ff80a06d13cd52f427e0ff116e8ccd9211d4c.pt
+x0图配置的远程目录：/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/x0/s07_full_seed1_native_x0 及 /data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0/audit/x0/s07_full_seed1_mass_x0
+本机A/audit/x0下未找到这两run的manifest/tensor；没有声称已拥有全部早期x0，更没有从旧视频恢复sampler原状态。下载/实际存在性核验由后续部署单独处理。
+
+同几何自然正常候选：旧source07换蓝衣，07_real_ary_v_a_s2
+任务：保持原人，仅把白上衣改蓝；seed2026101312；1312×736×141、24fps。未加任何内部路由/参考权重干预，A提示词为普通保动作编辑。
+模型节点1/2/3/4、shift节点41、Euler节点8及21值sigmas节点9与R12逐值相同。正式旧配方SDPA+Triton线性、Kitchen CUDA关闭、INT8 chunk保护、无TurboLoRA；已有旧运行记录，未重新验证当前环境。
+区别：不含角色参考图，packed seq85593、text5911，仅一个video reference；当前Sam角色替换是seq87592/image+video。蓝衣编辑提示词不同，故只能作为同几何不同任务的候选。
+输出：/Users/researcher/DevProjects/h3-short-event-switching-20261013/outputs/07_real_ary_v_a_s2_00001_.mp4
+输出SHA256：35d7760b5c68be0316361763011e67fc69a9cd75ebbbb55d8228400e5385c61a
+配置：/Users/researcher/DevProjects/h3-short-event-switching-20261013/configs/07_real_ary_v_a_s2.json
+实际condition：/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/07_real_ary_v_a_s2_conditioning.json
+实际noise：/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/07_real_ary_v_a_s2_noise.json
+本机noise tensor：/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/07_real_ary_v_s2_noise.pt
+本机reference video tensor：/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/tensor_blobs/c7e7fceee07ae7554907dbdb917ff80a06d13cd52f427e0ff116e8ccd9211d4c.pt
+成功history：/Users/researcher/DevProjects/h3-short-event-switching-20261013/logs/07_real_ary_v_a_s2_history.json
+非盲AI逐帧证据：/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/generated/07_real_ary_v_review.json，runs.A_S2；human_review=false，blind=false。
+对应图组：/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/generated/07_real_ary_v/A_S2
+旧报告：/Users/researcher/DevProjects/h3-short-event-switching-20261013/REPORT.txt，第三节与第八节已明确此正例。
+已观察：完整事件源54–69/输出54–69；核心源60–62/输出59–61；名义lag−1，边界±2；前后大动作粗顺序/节奏保留。新增左右黑栏影响构图，应另列质量失败。
+缺失：此次未找到此run的DWPose/two-threshold时间差或early-x0归档、没有all-step Full/frozen pulse/R12输出。旧B_s2是“提示词强调”且已退化，不是Full，不能拿来代替。故现有证据只支持候选，当前严格正常门待测。
+曝光：已看过且旧报告专门推荐为保真正例，绝非新发现盲例。
+
+排除与其他已知材料
+R7/R8正常例：/Users/researcher/DevProjects/h3-timing-normal-replay-r7-20261016/configs/protocol.json；1024×576×141，已通过独立pose，但不算本清单同1312几何正常例。
+当前source05 seed2026101311的R2/R3/R4/R6/R9/R10/R11/R12均为同开发例的变体/重放，不增加独立case；修复后的Full/动态输出不算naturally normal。
+旧Musk05/Musk07/Sam05/Sam07均已有对比展示和审查，几何/基本采样相同；其增强臂为×3 logit权重，不是Full。Musk07和Sam07既有局部约15–16帧延后证据，不能作为正常。旧Sam05与当前开发例同source/seed，也不作新重复。
+历史四组审查：/Users/researcher/DevProjects/h3-four-pair-evidence-review-20261015；Musk07/motion_review.txt、sam07/REPORT.txt、sam05/review.txt（实际目录名为musk07小写）。
+旧switching的动画06 A_s1/A_s2属于手—眼关系失真，目标与当前动作相位问题不同；尚无Full对照和冻结pose正常门，不能用“部分节奏接近”当正常例。
+
+未测seed的本地检索边界
+检查 /Users/researcher/DevProjects 下名称含h3的项目，configs、remote_configs、logs、audit递归共1078个≤2,000,000字节JSON；字符串2026101313与2026101314均0命中。没有查服务器上未下载的新档案，也没有声称全球不存在这些种子运行。
+候选顺序固定建议：source05/Sam/current native 1312×736×141 seed2026101313 → 2026101314。先按冻结原窗口/双阈值/质量帧判定native。两者都不通过时保留结果再讨论扩展，不能无限抽种子后只报告正常者。当前未实施/未创建图。
+
+本清单核验
+四个transfer archive_manifest各17项本机文件存在且SHA逐项一致，共68项无缺失/不一致；输出/graph/conditions/noise/router/pose/双阈值曲线/固定截图均在其中。
+两对actual条件与实际AVnoise对象逐值相同；两对实际router都是20forward×50block，native0次route、Full1000次route。
+只用既有观测表和报告，未重算pose、未调参、未运行GPU、未改R12协议或任何运行文件。新工作尚未获得同任务正常控制，也未新增方法成功证据。

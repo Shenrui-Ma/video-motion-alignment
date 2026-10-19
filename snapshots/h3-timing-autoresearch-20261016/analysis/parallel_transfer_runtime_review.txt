@@ -1,0 +1,243 @@
+Independent read-only review: transfer runtime
+Reviewer: /root/h3_timing_prior_art_20261016
+Reviewed local snapshot: 2026-10-16 03:20 +08:00; final frozen bundle verified subsequently.
+Root: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+Scope: transfer_runtime_staged/scripts, CPU tests, four queued inference graphs.
+No source changes, no remote commands, no GPU queries/allocation, no service starts/stops.
+
+Verdict
+-------
+SUPERSEDED DEPLOYMENT VERDICT: first real graph execution failed in H3EventAudit's
+hard-coded audit_root guard. Root reports transfer service PID31126 stopped and
+cleanup completed, with failure before sampling. This reviewer independently found
+the exact integration defect in the copied source: audit_root required the literal
+path component timing_autoresearch_20261016, rejecting timing_autoresearch_20261016_transfer0.
+The initial review verified graph rebase and lifecycle scripts but did not trace each
+graph path through every copied extension's validation function. That was a review
+coverage gap. CPU tests/AST checks and matching payload hashes did not cover it and
+must not be cited as end-to-end inference validation. Root-guard fix review is recorded
+in the v2 addendum below; an actual successful retry remains a separate runtime gate.
+
+Historical startup/lifecycle-only finding before actual integration: no remaining
+blocking defect had been identified in the reviewed startup/lifecycle path after
+the author corrected the three races described below. This is a code-review verdict,
+not evidence that a real concurrent CUDA launch or all shutdown interleavings passed.
+Final frozen bundle verification: independently recomputed all 47 payload SHA256
+entries and the closed scripts/extensions Python-file set; no mismatch or extra code.
+Queue, all four graphs, model provenance and core hashes are included. Manifest SHA256:
+edd3dfcc93f9e65e0e934ca8a2245191e61e0b8458f422f85b0f4df6b82dcf15.
+Read audit/cpu_test_output.txt and audit/verification.json: 19 tests passed, 26 Python
+files AST-compiled, local Mac CPU only. Reviewed source hashes below match the bundle.
+The review is bounded to the pinned primary instance plus one transfer instance;
+it does not authorize a new primary PID, another decode job, or another GPU process.
+
+The post-release natural-completion contract is coherent: the original primary may
+finish normally while transfer continues, provided its original registry is unchanged,
+its controller has written all_queued_jobs_complete, and cleanup is bound to that
+exact service record with process_absent and own_compute_absent both true. A different
+registry/PID/identity or an abnormal exit remains a rejection.
+
+Three findings reported and corrected during review
+--------------------------------------------------
+1. Normal transfer shutdown could be mislabeled as watchdog failure.
+   The controller writes completion and stops its service in finally. Watchdog and
+   supervisor can therefore exit before the controller itself returns. The earlier
+   coordinator checked watchdog exit before its supervisor grace path and could
+   report an ordinary completed run as failed. The current coordinate_launch.py
+   running loop treats either exit alike, waits up to 45 seconds for controller,
+   then checks its return code and all_queued_jobs_complete on the next loop.
+   Final service.stop() checks exact process and GPU absence before successful cleanup.
+
+2. SIGTERM immediately after admission replacement could skip restoring admission.
+   The previous code set admission_written=True after os.replace. A signal between
+   these operations could enter finally with a false flag despite an installed peer.
+   Current code records candidate installed_admission before replacement and finally
+   compares actual file bytes against installed and old bytes. It restores only its
+   own exact installed content, only after transfer process and compute absence;
+   third-party changes are preserved and reported rather than overwritten.
+
+3. Main service HTTP shutdown could falsely invalidate otherwise normal completion.
+   The first lifecycle fix still called exact_primary(), including GET /queue, from
+   every guard. During normal shutdown HTTP may close while the exact PID remains
+   alive. The current guard uses observe_primary() without HTTP; initial authorization
+   still checks the live main service and archives its queue snapshot. This separates
+   admission-time evidence from subsequent normal shutdown ordering.
+
+Additional normal-completion race explicitly checked
+----------------------------------------------------
+primary_lifecycle.py re-reads the entire original registry every iteration. If the
+original PID has become absent/zombie and all_queued_jobs_complete is already durable,
+but cleanup.json still describes an older instance (for example 20176 rather than the
+current original instance 49019), CleanupPending is raised, not an immediate abnormal
+exit. observe_primary waits at most 45 seconds for the exact cleanup record. Reaping,
+missing cleanup, and incomplete cleanup share that bounded grace. A new registry or
+reused PID fails immediately even during grace. Timeout fails closed.
+
+Verified mechanisms and isolation
+---------------------------------
+A. Pre-CUDA barrier:
+   compatibility_bootstrap.py production main invokes wait_for_release before install()
+   (the first torch import), install_video_compat (PyAV), backend adapters, or Comfy.
+   Its top-level imports and startup_barrier.py are stdlib-only. Normal service.command()
+   cannot select --check; --check is a separate explicit CPU diagnostic route.
+   Gate lifetime <=180 seconds, nonce-bound ready/release files, exact CUDA UUID,
+   pinned deployment roots, and matching service registry/ready identities are checked.
+   The coordinator records the transfer PID and installs primary admission while the
+   service is still blocked, starts watchdog, and only then releases the barrier.
+
+B. Exact peer admission:
+   External identity is UID + /proc start_ticks + SHA256 of raw cmdline bytes; local
+   service ownership additionally uses the original full command and GPU/port.
+   Release validates exact peer identities and SHA256 of both admission files, with
+   exactly one matching peer row each. Existing primary peers are retained. Other
+   users' compute is not classified or signaled. Selected transfer GPU must be empty.
+   Target GPU0 UUID and port8461 differ from main GPU2 UUID and port8460.
+
+C. Failure cleanup ownership:
+   Coordinator signals only recorded local children with unchanged identity and RUN
+   in their command; transfer service.stop additionally verifies its GPU, port, command
+   and identity before SIGTERM/SIGKILL. There is no primary signal or primary restart.
+   Controller is stopped before transfer service cleanup, preventing new submissions.
+   Exact process/compute absence is required before removing the transfer peer entry.
+   Watchdog verifies coordinator identity and the shared primary lifecycle contract;
+   on failure it stops only the task-owned transfer service.
+
+D. Shared files:
+   launch_remote.prepare writes transfer input/output/user/temp/process/log/config
+   paths, symlinks to task-local extensions and shared KJ nodes, and reads model/core
+   provenance. It does not install dependencies or write model/core source files.
+   PYTHONDONTWRITEBYTECODE=1 is passed to service and helper children. Model reuse is
+   verified by original recorded hash agreement plus current size/mtime; weights are
+   deliberately not fully rehashed. Core files are actually SHA256-checked.
+   This is read-only by code convention, not an OS-enforced read-only mount/sandbox.
+
+E. Experiment-variable isolation (independently JSON-diffed):
+   Queue is sealed with exactly these four jobs:
+     s05_full_seed2_native_x0, s05_full_seed2_mass_x0,
+     s07_full_seed1_native_x0, s07_full_seed1_mass_x0.
+   Within each native/mass pair the only scientific JSON difference is node50.mode
+   native versus mass_preserve. Remaining pair differences are output prefix/run_id.
+   Both use 141 frames, 1312x736, 24 FPS, identical 20-step Euler sigmas, same H3
+   weights, conditioning, portrait, input source, noise seed, and x0 capture.
+   Source05 seed=2026101312; source07 seed=2026101311. Route windows are respectively
+   [50,65] and [54,69], alpha1, radius0, time_offset0, blocks[0,50], steps[0,20].
+   All audit/x0/output paths rebase to the independent transfer root. No data from
+   this run should overwrite the primary run. These are preselected related dance
+   cases; this runtime review does not upgrade them to blind generalization evidence.
+
+CPU test coverage inspected; no duplicate suite run by this reviewer
+------------------------------------------------------------------
+The final saved author output records all 19 CPU tests passing in 0.970 seconds,
+including the nineteenth HTTP-shutdown regression test; 26 Python files AST-compiled.
+Current test source covers exact/stale/expired barriers, altered admission hash,
+duplicate or missing peer rows, compare-before-restore, unrelated-PID signal refusal,
+normal/abnormal/restarted primary lifecycle, bounded delayed cleanup, no direct start
+without gate, real CPU subprocess rendezvous/timeout before a post-barrier sentinel,
+AST ordering before torch imports, and four scientific graphs against fixture copies.
+It uses injected process readers for macOS; it does not reproduce real Linux CUDA
+creation. Full coordinator orchestration, signal delivery at every instruction, and
+all concurrent cleanup interleavings are not exhaustively exercised by these tests.
+The subprocess test's sentinel plus AST ordering support the intended barrier, but
+are not a trace of the actual production bootstrap importing CUDA on the remote host.
+
+Non-blocking operational limits / conditions
+-------------------------------------------
+* compare_replace is compare-before-write plus atomic rename, not a kernel CAS.
+  Correctness against other writers depends on honoring admission.parallel_transfer.lock.
+  Root must not bypass that lock to rewrite main admission during transfer.
+* A SIGKILLed coordinator cannot restore admission. The watchdog can release its
+  exact service; the stale exact peer permission then requires root audit/removal.
+* The pre-CUDA gate/release still requires the original primary to be live. If the
+  primary completes during that short handshake, launch aborts safely before CUDA;
+  the natural-completion continuation branch applies to the released runtime.
+* The initial primary must be live for exact_primary() and its queue snapshot.
+  This bundle is not a standalone launcher for a primary already completed before start.
+* If startup fails before both service registry and token-ready evidence are available,
+  cleanup intentionally avoids assuming an old registry belongs to this launch. An
+  untracked pre-CUDA child can remain until the <=180-second barrier timeout; no release
+  means it cannot reach the production torch import. This is bounded cleanup latency,
+  not proof of immediate process removal in every pre-ready failure case.
+* No automatic new-primary authorization exists. Root's stated policy is not to restart
+  main service or launch a new main-GPU decoder before transfer finishes.
+* Startup headroom checks do not reserve the host/GPU from unrelated users; subsequent
+  host jobs or memory pressure may still cause operational failure. No other user's
+  process may be stopped to recover capacity.
+
+Reviewed file SHA256 (match final payload before deployment)
+----------------------------------------------------------
+scripts/startup_barrier.py bbb8e493d0bc65cf23485d46a4508e7d887e4a28a3bf628e9e66cbe2d58035e5
+scripts/coordinate_launch.py 5c992bdad781862078119a9ccb7f1a371cc582ba40be7cfc1baad82519833a5f
+scripts/primary_lifecycle.py 8c3b4a5dd2734649be59f910be4403a6a840df6dac6696d36b1f50c54ce10bb2
+scripts/launch_remote.py f7df04d768dcaeda8db269985fd059719924d43fd1f6cb10e477c95b8124f961
+scripts/service.py e99867f4989d52fb5ee7bbbbae584bceb1eded029b8e0106f99671a746c0a552
+scripts/compatibility_bootstrap.py 23039c6bbec55f02b4fa16a5ae1dfb65e33e1f39365fb90a5b4a9eb43a290c60
+scripts/lease_watchdog.py 1664f9771a8beac6a025153e62206be086aeddecbf16d4a94978cb9625a25354
+scripts/supervise_service.py b02d855fecb38071c7189f9a87fe27790222246c95106df8c413e6ef1ebe7541
+scripts/run_queue.py 2244d31adec4e8e650b9a3a5a423b51a25fbc250453873fe92cd3877765c5695
+scripts/job.py 425766930148d3de61f03c4724b770aa4c2a372a7753f90893af431d3bef5ad5
+tests/test_transfer_startup.py 92dcd9e0e3676b928e7294d9fef804ebfaeaf047591f1276bdb6e33b408ea9cb
+
+V2 integration repair addendum
+------------------------------
+Independently read the actual failed attempt's archived history and cleanup:
+  audit/transfer_attempt1/logs/s05_full_seed2_native_x0_history.json
+  audit/transfer_attempt1/processes/cleanup.json
+  audit/transfer_attempt1/processes/coordinator.json
+The history identifies node5 encode -> audit_root and the old literal-directory
+ValueError. PID31126 cleanup records process_absent=true, own_compute_absent=true;
+the coordinator records primary_admission_restored=true and cleanup_errors=[].
+The experiment failed, despite cleanup having succeeded. Do not call it a completed
+scientific run or silently drop it from the execution log.
+
+V2 source review: only extensions/H3EventAudit/__init__.py changed among all v1
+scripts/extensions/configs/inputs. This was independently checked against the
+archived v1 bundle, not inferred from the author's stated intention. Changes are
+audit_root's exact resolved transfer-root descendant check and two INPUT_TYPES
+audit_dir defaults. VAE preprocessing, semantic sampling, tokenizer, conditioning,
+noise generation, seeds, attention, solver, graphs and inputs are unchanged.
+Resolved descendant validation rejects the primary root, prefix siblings, relative
+paths, parent traversal, unrelated same-named directories and child symlink escape.
+
+Read every audit path contract again:
+  H3EventAudit: repaired exact transfer-root contract.
+  H3PairAudit: unchanged absolute source_audit_dir, graph points to transfer/audit.
+  H3TemporalRouter: unchanged absolute audit_dir and unique audit file.
+  H3X0Readout: unchanged config absolute path, resolve and exclusive run directory.
+  H3EventEmphasis / H3PhaseRoPE: unchanged absolute path guards; not queued here.
+Remaining primary-root strings in coordinator/barrier are intentional peer references;
+old paths in extension README examples are documentation, not executed destinations.
+
+Read new tests/test_audit_paths.py: imports the actual audit node with installed CPU
+torch and calls all four graph audit_root and real Noise.get_noise entrypoints; tests
+invalid paths and a real temporary symlink; verifies guard precedes native reference
+execute; compares ASTs after removing only the guard and two defaults. It does not
+invoke full reference encode, load model weights, or run sampling.
+Saved v2 verification: 26 tests passed in0.996s, none reported skipped, 27 Python
+files AST-compiled, CUDA_VISIBLE_DEVICES empty. I inspected outputs, not reran tests.
+50 payload hashes independently matched. V2 manifest SHA:
+  6b76f660da0edad165a50af6ca016a5c6acc702b8666507c89dd21888dd5f472
+Patched EventAudit SHA:
+  40326da6980f11361edde6773a379abdd4af9c40414117097334f0ebbdbb0e41
+Archived v1 tar SHA independently matched its manifest:
+  10f0ad5a7add8b5c680f2dd454292392a7746a8e955478382d8217034f7a8bac
+
+Retry review: RETRY_AFTER_EXPLICIT_ERROR.md preserves complete old logs/processes,
+prior runtime provenance, admission and expected-primary evidence, old deployment
+manifests/tests, and any unexpected science artifacts. It permits the same scientific
+run IDs only after this explicit pre-sampling error is retired into a separate attempt
+archive; new launch nonce and PID are mandatory. It forbids overwriting live admission
+with the template and bypassing the live-primary initial handshake. This is consistent
+with preserving the fixed seed/protocol rather than selecting another sample.
+Author/root additionally report remote archival of38 items with hashes and no MP4/PT
+science output; this reviewer has not performed a remote verification of that step.
+
+Final documentation-only revision clarified the README: first installation uses a
+fresh directory; this v2 error repair follows the same-root RETRY document. Rechecked
+all final payload hashes: no mismatch. Final v2 manifest superseding 6b76f660...:
+  9a7110963612953bb3c1e205c0857224ba2f8f4eefeaee926ca99835296e5e73
+Patched EventAudit and numerical/runtime code did not change in that revision.
+
+V2 code-review verdict: the specific integration defect is repaired without scientific
+operator changes; no remaining blocker identified in this bounded repair. A real
+retry still must pass node execution and sampling. The README/retry ambiguity was
+resolved in the final documentation-only revision noted above.

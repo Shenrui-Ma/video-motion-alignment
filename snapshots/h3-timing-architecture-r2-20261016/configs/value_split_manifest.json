@@ -1,0 +1,69 @@
+{
+  "created_unix": 1792114511.059673,
+  "runs": [
+    {
+      "run": "r2_s05_dynamic_bench2",
+      "mode": "dynamic_residual",
+      "benchmark": true,
+      "graph_sha256": "394c877f14cf9e4ae3381e0c5124bdd6f8f78a9281c17ba16545f4bbf69e831d"
+    },
+    {
+      "run": "r2_s05_native",
+      "mode": "native",
+      "benchmark": false,
+      "graph_sha256": "598f18082866dae87799fd906bdbf5fd672e1b05f0a994a5b71fbe93d050583e"
+    },
+    {
+      "run": "r2_s05_full_6to14",
+      "mode": "mass_preserve",
+      "benchmark": false,
+      "graph_sha256": "911177c6b768ce415d348aee9e059a34e42ed50cd39ce8165e19958d64342c06"
+    },
+    {
+      "run": "r2_s05_dynamic_6to14",
+      "mode": "dynamic_residual",
+      "benchmark": false,
+      "graph_sha256": "f72baa5f55bbffc81524bb5a9bdcbf9e2da894375088484f20e9409994a75850"
+    },
+    {
+      "run": "r2_s05_static_6to14",
+      "mode": "static_component",
+      "benchmark": false,
+      "graph_sha256": "b80c66b9f9c2b2cf64352bbb6a6edb5000d7dae301d2ddea950af379a0beb817"
+    }
+  ],
+  "old_full_parent_graph": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/configs/s05_full_seed1_mass_6to14_x0.json",
+  "steps_are_zero_based_half_open": [
+    6,
+    15
+  ],
+  "selected_pixel_frames_inclusive": [
+    50,
+    65
+  ],
+  "dynamic": "V(t,s)-mean_t V(t,s)",
+  "static": "mean_t V(t,s), repeated over t",
+  "interpretation": "DC split is a testable structural primitive, not an established novel method. Both mean and residual can contain camera, illumination, occlusion and contextual changes.",
+  "frozen_axes": "Same source/identity/prompt/seed/geometry/sigma/weights/backend; warmup excluded from quality analysis.",
+  "host_change": {
+    "requested_unix": 1792114749.754833,
+    "host": ".41",
+    "gpu_uuid": "GPU-REDACTED",
+    "own_video_process_limit": 1,
+    "same_host_anchors": [
+      "r2_s05_native",
+      "r2_s05_full_6to14"
+    ],
+    "reason": "User prioritizes RTX; compare all component arms on same RTX runtime, do not substitute old A100 outputs."
+  },
+  "benchmark_retry": {
+    "created_unix": 1792116099.577239,
+    "failed_run": "r2_s05_dynamic_bench2",
+    "stage": "sampler wrapper preflight before first DiT forward",
+    "cause": "Two-step timing graph incorrectly retained H3X0Readout, which intentionally only permits 21 sigmas / Euler20.",
+    "retry_run": "r2_s05_dynamic_retry_bench2",
+    "retry_graph_sha256": "fa906e9c9d576137b36efbe50b261826a13062d2be311c7803b409416f6ef826",
+    "change": "Only the benchmark bypasses H3X0Readout; formal graph IDs, sigma grids and recorder are unchanged.",
+    "quality_sample": false
+  }
+}

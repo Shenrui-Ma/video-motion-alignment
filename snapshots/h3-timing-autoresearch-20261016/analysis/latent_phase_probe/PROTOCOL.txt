@@ -1,0 +1,65 @@
+Frozen feasibility protocol — latent temporal self-similarity, version 1
+Written before synthetic calibration and before reading real target x0 values.
+Purpose: falsify one CPU-only observer; NOT architecture, training, or control.
+
+Inputs and normalization
+Actual reference VAE stored tensor must have shape [1,24,42,46,82], float32,
+content SHA256 75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734.
+Recorded target x0 is after process_latent_out (video scale 1); audio unused.
+Reject other shape/resolution or nonfinite values. No actual target read until synthetic gate passes.
+Reference path existence/shape/hash may be checked first; no new encoding.
+
+One descriptor
+For each of 42 video latent bins, adaptive average pool its 24 channels to a
+fixed 4x4 grid, flatten to F of dimension 384. Full frame, no person-dependent ROI,
+no learned projection, no channel/head/layer choice. This can be dominated by
+background/camera and has no guaranteed motion/identity disentanglement.
+Time spans are exactly repeating [1,4,4,4,4], truncated to 42 bins (141 frames).
+Use bin-center coordinate (prefix + (width-1)/2). Linearly interpolate features
+at integer physical video frame indices 0..140, never treat one bin as four frames.
+This is a readout convention, NOT a claim about VAE receptive fields or recoverable
+sub-bin information. Reject outside center support; never extrapolate.
+For physical time t form six self-distances ||F(t)-F(t+u)||^2/dim,
+u=[-12,-8,-4,4,8,12]. Normalize each six-vector by its Euclidean norm.
+This is invariant to constant feature translation, global isotropic scale and
+orthogonal feature transformations in the ideal feature space; these assumptions
+are not assured for real identity/background/camera edits.
+
+Search and reject rules (fixed; no tuning)
+Source anchors physical frames 50..65 inclusive. Candidate lag integer -24..24;
+positive means target event occurs later. Compare source descriptor at t with
+target at t+lag, mean squared component error. Require >=80% valid anchors.
+Reject source or target if temporal feature variance <=1e-12, or mean per-component
+standard deviation of anchor self-similarity <=0.01 (temporally uninformative).
+Reject a best candidate on +/-24 boundary, cost >0.10, or distinct competitor
+at least 4 frames away with relative cost improvement <10% (denominator floor1e-8).
+Additionally estimate independently with inner offsets [-4,+4] and outer offsets
+[-12,-8,+8,+12], renormalizing each subset; require best lags within 2 frames
+and each within 2 frames of the combined best. Unknown stays unknown, never zero.
+No final RGB/pose lag used to choose features, hyperparameters, or signs.
+
+Calibration before actual x0
+Deterministic analytic nonperiodic 8-dimensional motions, embedded isometrically
+in 384 feature dimensions. Evaluate at true nonuniform centers; shifts 0,+8,-8,+16,-16
+physical frames, with either identical appearance or fixed orthogonal permutation,
+constant offset and global amplitude factor1.8. All 10 must be available and
+within2 frames of prescribed delay; pure appearance/amplitude at zero must return zero±2.
+Reject exact static motion; reject strictly periodic period12 sequence, even if
+multiple candidate shifts fit. Add linear constant-velocity motion: self-similarity
+cannot identify its phase, so must reject. All negatives must be unknown.
+Any failure stops this method immediately. No parameter changes, no real target
+snapshots read, no layer/head search. Report failure, not just average accuracy.
+Synthetic positivity verifies only this constructed class, never real validity.
+
+If and only if all calibration passes
+Read native/mass step005, step010, sampler_final and seed2 same snapshots, if
+already archived. Run once. One simple baseline: normalized cross-correlation of
+pooled per-frame latent change magnitude using identical time mapping/search/window.
+Baseline is descriptive and is not substituted when the primary observer rejects.
+Reference-vs-reference provides a zero sanity check. Report unknown unchanged;
+compare against existing frozen RGB endpoint only AFTER readouts are frozen.
+Original RGB primary endpoint and existing pose gate remain unchanged.
+
+Scope
+CPU only, one thread; no GPU, no dependencies, no encoding, no DWPose, no active
+runtime edits. Local writes only analysis/latent_phase_probe and scripts/latent_phase_probe.py.

@@ -1,0 +1,185 @@
+Teacher-free conditional sampler rollback: bounded implementation feasibility
+Date: 2026-10-16 (Asia/Shanghai)
+Status: DESIGN ONLY. No code, graphs, deployment, remote operation, GPU allocation, or queue change.
+Owner of future go/no-go: root. This document does not authorize a new experiment.
+
+1. Current evidence and conditional recommendation
+
+Root reports the late11 arm retains about 11/12 frames of lag, versus native 13 and all-steps mass routing 0. Local evidence paths include analysis/pose/pilot/s05_full_seed1_mass_late11_x0_00001_.threshold0.{3,5}.timing.json and analysis/pose/full_support/native_mass_x3_zero_hard_late11/summary.json. The preregistered late6 arm is pending at this design time. These are discovery results on the current fixed source/seed, not a general proof of an irrecoverable phase transition.
+
+A feasible contingency is: run the native trajectory; store an EARLIER raw sampler state; at the first reliable x0 pose readout (currently callback 10), decide whether to continue native or replay from the stored state with a previously validated intervention. This avoids trying to correct only from call 11 when that schedule has failed empirically. A normal or uncertain case continues unchanged, with no rollback. A triggered case costs extra inference and may globally alter the output. It is teacher-free in the sense of no teacher generator, but it still uses a trained external pose observer and the existing VAE; do not call it model-free.
+
+Do not implement before the static actuator/start-time and observer are shown useful. If late6 succeeds, j=6 is an economical checkpoint candidate. If it fails, rollback to6 merely replays an ineffective static policy; the known all-steps result only supports j=0 as a conservative fallback. Choosing j from a retrospectively favorable result is discovery, not evidence of a learned or automatic rollback policy. The previous sigma audit also applies: call 11 is not a demonstrated low-noise tail (sigma_v=.90756).
+
+2. Exact current sampling boundary
+
+Frozen archive:
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+All core line references below refer to members of this archive. Local extension references are under the current study root.
+
+comfy/samplers.py:1220-1238 prepares conditions, stores the FULL21-entry sample_sigmas in transformer_options, and invokes wrappers at WrappersMP.SAMPLER_SAMPLE around KSAMPLER.sample. The wrapper signature verified in our recorder is:
+  wrapper(executor, model_wrap, sigmas, extra_args, callback, noise,
+          latent_image=None, denoise_mask=None, disable_pbar=False)
+model_wrap is CFGGuider and model_wrap.inner_model is MiniMaxH3 BaseModel during this call. WrapperExecutor (comfy/patcher_extension.py:92-130) invokes the next wrapper/original using executor(...), not executor.execute(...). It does not expose a coroutine control for the inner Euler loop.
+
+KSAMPLER.sample (comfy/samplers.py:983-1007):
+- builds KSamplerX0Inpaint(model_wrap,sigmas), attaches latent_image and noise;
+- initializes x via model_sampling.noise_scaling(sigmas[0],noise,latent_image,...);
+- invokes sample_euler(model_k, initialized_x, sigmas,...);
+- calls inverse_noise_scaling at the final sigma.
+KSamplerX0Inpaint (630-643) delegates to CFGGuider; with the current denoise_mask=None it introduces no inpainting blend. This condition must remain asserted in a first prototype.
+
+The exact Euler loop (comfy/k_diffusion/sampling.py:190-212), churn0:
+  x0_i=model(x_i,sigma_i)
+  d_i=(x_i-x0_i)/sigma_i
+  callback(i,x0_i,x_i)                 # BEFORE the Euler update
+  x_(i+1)=x_i+d_i*(sigma_(i+1)-sigma_i)
+Indices are0..19, with sigma20=0 terminal and no model evaluation at zero. H3 uses one packed outer video-sigma coordinate; audio is carried on that coordinate and internally rescaled (analysis/sigma_time_semantics.txt).
+
+Important: a stock callback cannot return a replacement x or change the for-loop index; its return value is ignored. Assigning a Python local in the callback will not roll the sampler back. In-place mutation of callback x would corrupt the pending derivative/update and is not a valid shortcut. Throwing an ad-hoc exception and attempting to reuse a partly cleaned-up model is not a safe control interface.
+
+3. What a replay checkpoint must contain
+
+Canonical checkpoint: the complete raw packed x_j at ENTRY to model evaluation j, before H3 dtype conversion and before process_latent_out. Save a detached, contiguous CPU float32 copy after ensuring that the producing GPU work is complete. Restore with the same dtype/shape/device; a lossless CPU round trip preserves float values, unlike FP16 compression.
+
+For this full geometry run, packed shape=[1,1,3817216], comprising:
+  video=[1,24,42,46,82], 3,802,176 float32 values;
+  audio=[1,32,2,235], 15,040 float32 values.
+Total 15,268,864 bytes, about 14.56 MiB per checkpoint. Two states are about 29.12 MiB, all 20 are about 291.23 MiB, before metadata. Checkpoint storage is small relative to model weights; VAE observer work is the major potential memory/latency issue. Preserve BOTH streams even if the desired edit is video-only: H3's joint attention couples them.
+
+Required manifest/content:
+- raw x_j tensor(s), dtype, shape/pack order, content SHA; explicit normalization_stage=raw_outer_sampler_state;
+- absolute next model-call index j; exact full 21-entry sigmas tensor+hash; sigma_j; callback timing tag pre_model_j;
+- original initial noise hash (and bytes or reconstructible verified source), original seed, empty latent/mask configuration;
+- model/LoRA/config/runtime/backend hashes, dtype, shifts12/3, noise_scale, audio_scale4, geometry/layout/RoPE signature;
+- all conditioning identities: actual processed text tensors/tags and VAE reference tensors, prompt, preprocessing, source/reference hashes, payload seed/augmentation, learned RoPE frequencies identity;
+- patch/controller state BEFORE call j, branch-independent policy parameters, and branch identity; no mid-block checkpoint;
+- RNG states at that same pre-call boundary: torch CPU RNG, CUDA RNG for the admitted GPU, explicit generators used by wrappers, and Python/NumPy states if any active component uses them;
+- full original schedule versus resumed suffix, and physical-NFE counters kept separately from logical sampler index.
+No need to serialize50 layers' activations or duplicate20 GB weights: vanilla Euler is one-step Markov in raw x plus current sigma, fixed model/conditioning, and external state. The checkpoint is invalid if a future sampler uses multistep history, ancestral noise/churn, trajectory caches, CFG-interleaving, changing conditioning, or an untracked stateful wrapper. Restrict the prototype to the audited deterministic Euler20, BasicGuider, no-mask, no-other-controller path.
+
+Pre-call versus callback snapshots:
+A callback receives x_j AFTER the model has evaluated at j but BEFORE Euler has updated it. Under immutable inputs this tensor is the desired numerical x_j; our current code can therefore capture its raw bytes. However an RNG snapshot taken there is POST-model, not pre-model. For a robust replay contract capture RNG/model-state before the model call, or prove the forward never advances relevant RNG. Preferred future sampler checkpoint hook is at loop entry; an audited PREDICT_NOISE/APPLY_MODEL pre-hook could supply corresponding RNG metadata if keeping the original Euler loop for the first recording-only gate.
+
+Alternative checkpoint x_(j+1): use the actual tensor at the next loop entry, with sigma_(j+1) and that boundary's state. Calculating x_(j+1) independently inside the callback by the same-looking formula is not sufficient for a bitwise contract until tested; fusion/order/dtype differences can change rounding. A callback x_j mislabeled as post-update x_(j+1) is a material bug.
+
+4. Why the existing x0 files cannot recover an exact earlier state
+
+extensions_staged/H3X0Readout/core.py:150-190 saves only the denoised estimate x0 at steps5/10/15/19. It explicitly converts CPU copies through process_latent_out, leaving video unchanged but dividing audio by4. The files do NOT contain current noisy x_i, pre-call RNG, or the active controller state. In general x0=x_i-sigma_i*v_theta(x_i,sigma_i) cannot be inverted to x_i from x0 alone: the learned nonlinear prediction and actual noisy state are missing. Multiplying saved audio by4 only reverses a normalization, not the missing noisy-state evolution. Adding fresh noise to x0 also does not reproduce the realized state or cross-stream correlations.
+
+The saved final sampler result is at sigma0; it is also insufficient. Backward Euler/model integration would be a NEW approximate inversion procedure, with added NFE/error, not checkpoint rollback. Reusing the original seed to regenerate initial noise and replay calls 0..j-1 is feasible in principle, but costs prefix NFE and requires the same reproducibility checks; it is not zero-cost state restoration.
+
+5. Minimal future integration plan, with explicit isolation from frozen modules
+
+Preparation/gate A (lowest-risk): a NEW passive state recorder can capture raw x_j alongside the existing x0 readouts during an ordinary native20-call run. Prove recording alone leaves every subsequent state/final output unchanged. No replay logic yet. The current recorder stays frozen; do not change its file format under its existing schema.
+
+Replay/gate B: a NEW isolated resume sampler boundary must bypass initialization noise_scaling for a supplied raw x_j. Passing raw x_j as the ordinary noise argument to executor(...,sigmas[j:],...) would re-scale it and is WRONG. Passing it as clean latent_image would also apply the wrong mixture/normalization. A narrowly scoped KSAMPLER subclass or explicit resume adapter can build the same KSamplerX0Inpaint wrapper and call the ORIGINAL sample_euler directly with x_j and sigmas[j:], leaving full original sample_sigmas in transformer_options. Map local suffix callback k to absolute sampler index j+k. Do not present a suffix as a new20-step schedule; do not regenerate the grid or let PDD/output-head lookup accidentally see a renormalized grid. Preserve target/ref layout and the original model state. A separately staged metadata/callback layer is needed because the frozen recorder insists on callbacks0..19 exactly.
+
+Online/gate C, only after A/B pass: use a NEW explicitly named checkpointable Euler sampler (or bounded sampler subclass), preserving the same arithmetic order as original sample_euler. It receives the initialized x and model_k through the normal sampler boundary once, stores raw checkpoints at selected loop entries, and at decision callback d either continues with the original update or restores x_j and begins one replay branch. It must not send raw x_j back through outer noise initialization. The replay decision occurs only after the complete model forward has returned, with no active DiT block/prefetch scope. No exception-based half-forward rollback. Bound to at most one rollback for the first study; a second observer trigger is logged but does not create an unbounded loop.
+
+All new behavior belongs in a separately staged extension/sampler and new graphs. Keep current H3TemporalRouter, H3X0Readout, live service, queues, and historical schemas frozen. Existing model weights can remain shared/read-only within a run; branch mutable state cannot.
+
+Current incompatible mutable state that must be handled explicitly:
+- H3TemporalRouter/core.py:216-254 starts forward_index=-1 and arrays counting every forward; EventBlockPatch:351-405 increments it and uses it for [step_start,step_end) selection. Simply setting forward_index=5 after11 observations while retaining counters/lists would corrupt audit and can route wrong steps. A branch-aware clone/state or a separately tested absolute-sigma-index dispatcher is required; it must not mutate original branch history.
+- Temporal readout/audit paths and partial summaries must be branch-qualified. Restore at block boundary, next_block=0, with no pending_stats. Every physical call gets branch_id, absolute_sampler_index, physical_nfe_index. Original history is append-only, not overwritten to look like20 calls.
+- H3X0Readout/core.py:114-119 requires21 sigmas and150-153 rejects duplicate/skipped/out-of-order callbacks. Its manifest expects precisely20. It cannot wrap a25-call rollback trace unchanged. New branch-aware recorder semantics must preserve original20 callback behavior on a no-trigger path; replay branch gets its own suffix schema/count, never falsify the original callback count.
+- Comfy preview/UI callbacks are not state-restoration APIs. Preserve call arguments/normal behavior in the no-trigger path; in replay explicitly present absolute step and branch progress, or use a dedicated adapter rather than duplicate callback0..19 silently. Do not let abandoned-branch x0 override accepted final x0 in a shared preview dictionary.
+- WrapperExecutor has ordered wrapper lists (patcher_extension.py:92-130). Do not call both executor and an alternate raw sampler without defining which wrappers/callbacks apply to each branch. Core CFGGuider cleanup lives in outer_sample:1252-1273; ensure the owning outer call still reaches its finally once and branches do not detach the live model mid-replay.
+
+6. Conditions, RNG, caches, and observer isolation
+
+The H3 core preprocesses text once and builds PackedLayout in extra_conds (model_base.py:2172-2216). Freeze and hash these resulting conditions; reference/text VAE encoders should not be rerun as part of a same-run rollback. Model weights/learned frequencies, prompt and geometry must be identical. The model's per-forward visual reference augmentation creates a fresh CPU generator with the payload seed (model.py:532-545), so its draws intentionally repeat each forward rather than consume global RNG. This is useful but not a blanket guarantee about other wrappers/kernels. The audited Euler uses no random draws when churn=0; attention uses dropout 0. Explicit RNG snapshot/restore and a replay gate remain appropriate.
+
+Take state snapshots only after a full forward and at a defined loop boundary; CPU copies must not race asynchronous GPU updates. Synchronize or use correctly ordered events and blocking copy. Do not save live tensor views later overwritten in place. Observer VAE/CPU pose work must operate on copies and use dedicated RNG scopes/process state. Restoring generation RNG after observer activity must not erase audit history or mutate the observer's own test statistics. CPU DWPose and VAE processes should not share mutable sampler objects.
+
+Branch identity must include parent_run, parent_checkpoint_hash, decision_step, replay_start, branch_id, policy_hash, observer_version, and trigger evidence. Use exclusively reserved directories; original native outputs/checkpoints remain immutable. Plain tensor checkpoint+JSON, atomic writes, validated shapes/hash, and explicit checkpoint completeness are sufficient; loading a partial file must fail closed.
+
+Separate numerical caches from execution caches. Immutable conditioning/layout caches are safe when their identities match. Trajectory-dependent attention/TeaCache/history must be disabled or restored consistently; don't assume a fresh Python object means no shared cache. Current reviewed graphs do not install an extra motion-cache mechanism, but future code must assert the permitted patch list. Comfy graph output caching can skip a sampler on repeated submissions: use unique branch inputs/IDs and inspect actual execution/NFE, not a claimed run_id alone. Compilation/autotuning/prefetch caches can change kernel paths/rounding without changing graph math; keep backend/device/flags fixed and validate replay in the actual service environment. Never reset shared global caches while another job is using them.
+
+Observer latency: decoding a full x0 with FP16 VAE while DiT weights stay resident may exceed the single-card budget. The existing offline GPU3 decode/CPU pose path does not establish that an inline observer is affordable or admitted by the service GPU guard. Any future synchronous observer needs a bounded timeout and admitted resource plan, or explicit CPU decode cost. Do not start a second GPU process implicitly. At a decision boundary, block the next sampler call until evidence arrives; if missing/ambiguous/timed out, fail closed to continuing the untouched native trajectory. Do not silently use a stale readout from another branch.
+
+The existing observer reliability checks should remain fixed: two pose confidence thresholds agree on signed lag within 2 frames, wrist evidence is available/agrees within 3 frames, and failure/occlusion is unknown. A reliable zero-lag/good case does not roll back. A positive trigger threshold and acceptable event window must be fixed before held-out evaluation; do not tune it against final outputs for each sample. The user-authorized edit window should exclude intended motion changes, but that mask is a task constraint, not a pose confidence guarantee.
+
+7. Zero-perturbation replay is a mandatory gate
+
+Stage0 CPU exactness tests against original frozen Euler using a deterministic toy model:
+- no-rollback/record-only path exactly matches20-step original state sequence;
+- restart from raw x_j using same sigmas produces exactly the original suffix;
+- original versus replay preserve both streams and callback absolute indices;
+- test j=0,6,11,19, alpha0/native, rejected shape/dtype/sigma/normalization, stale branch state;
+- seeded toy stochastic wrapper verifies pre-call RNG restoration and observer RNG isolation, even though current Euler itself is deterministic;
+- test no-trigger 20 NFE, trigger-at10/restart6=25 NFE, one-rollback cap, observer timeout;
+- confirm skip of noise_scaling on resume; mistakenly rescaled state must be caught by an intentional failing test.
+
+Stage1 actual H3 gate, only if root separately authorizes GPU:
+Record a native trajectory once, save raw checkpoints, and verify capture alone leaves raw states and final latent bitwise equal to the original native control. Replay from j with NO intervention using the exact same backend/device/weights/conditions/RNG. At each overlapping suffix boundary compare raw packed state SHA (or full tensor equality) and final video+audio latent bitwise. A matching final RGB/MP4 is weaker than raw tensor equality. Decoder/encoder comparisons are secondary and MP4 bytes can differ between encoders.
+
+If any replay diverges, stop causal interpretation, quantify first differing boundary and max/RMS error, and investigate initialization, normalization, schedule/index, stateful patches, RNG, backend, and copied data. Do not lower the gate to a visually similar result without explicitly reclassifying the experiment as approximate regeneration. A forced replay with alpha0 must still pass. Numerical nondeterminism would require a separate error-bound design; it is not evidence for a controller effect.
+
+Stage2 intervention equivalence gate:
+For the SAME fixed replay startj and fixed intervention thereafter, compare the rollback branch against a fresh run that used native calls 0..j-1 then the identical intervention calls j..19. With matched checkpoint/state, they should be identical. This verifies the mechanism and also exposes the scientific limitation: global rollback does not generate a novel trajectory merely because the decision was made later.
+
+8. NFE and fair controls
+
+Count every actual diffusion_model call, including discarded discovery-prefix calls, replay, warmups, any teacher/control passes, and retries. Also report observer VAE calls/time, pose frames/time, total wall time, peakGPU/CPU memory, and I/O; NFE alone does not capture the observer cost. With BasicGuider this audited path has one DiT evaluation per Euler call; changed CFG/branches must count actual evaluations rather than nominalsteps.
+
+If decision is made at callback d (already d+1evaluations consumed), replay starts at j<=d, and original branch is abandoned immediately:
+  NFE = (d+1)+(20-j) =20+(d+1-j).
+Examples:
+  d10,j6 ->11+14=25 (25%more DiT calls than20);
+  d10,j0 ->11+20=31;
+  no trigger ->20, plus recording/observer overhead.
+If the original native run is completed for validation before replay:
+  j6 ->20+14=34; j0 ->40.
+Those validation costs cannot be reported as deployed25/31calls. For a fixed d10,j6 one-rollback policy with trigger rate p, expected DiT calls=20+5p; observer overhead remains on all observed samples.
+
+Minimum scientific controls after gates:
+- native20 with the same observer/recording but no rollback, to measure passive perturbation and good-case overhead;
+- always-on static intervention from the same j,20 calls, which may already solve the task more cheaply;
+- triggered rollback with alpha0/no intervention (should reproduce native; diagnoses replay bugs);
+- budget-matched alternative, e.g. extra native schedule evaluations or a fixed regeneration/retry policy, with actual NFE and seed accounting. Changing the schedule is a different scientific control, not the same paired path.
+Use all preregistered examples including successful native cases and report trigger false positives/negatives and identity/edit-quality changes, not only corrected failures. Improvements must not be purchased by copying source identity or degrading user-requested edits.
+
+9. Global rollback versus local-window rollback
+
+Global checkpoint replay restores the ENTIRE video+audio state x_j and regenerates the full suffix. The attention intervention may select a physical event window, but through global attention all output regions and audio can change. This is technically feasible and is the recommended scope for any first exactness test. Its final branch is mathematically the same trajectory as an early fixed intervention beginning atj (section7). The potentially useful contribution would be validated conditional selection/calibrated failure detection and a quality-compute tradeoff, not "rollback" as a new architectural mechanism. This document makes no novelty claim and performs no new literature search.
+
+Local-window rollback is a different, harder method and not a drop-in optimization:
+- Replacing only event frames with their earlier x_j while the rest remains x_d mixes DIFFERENT noise coordinates in a model receiving one global sigma. It is not a valid state of the original sampler distribution.
+- Forward-noising/reconstructing just a region to a common sigma would need the correct coupled noise trajectory and latent correlation; fresh independent noise or x0+snoise is not exact recovery. Existing x0 alone does not supply it.
+- H3's causal temporal VAE uses nonuniform temporal spans (1,4,4,4,4 pattern), so a physical frame boundary is not an independent latent frame boundary; VAE receptive fields and learned motion cross the mask edge. Feathering can reduce a visible seam but is not proof of stochastic or semantic consistency.
+- Global DiT self-attention couples all video/reference/audio tokens. Freezing an outside region's old trajectory while recomputing inside changes the mutual context; there is no guaranteed locality or outside invariance. A blended local update would need a separately specified solver/conditioning model and masks, plus same-noise control.
+- Existing denoise-mask support can assign token-specific noise labels, but using it would introduce a new conditioning path and influence the model/payload/update rules. That functionality alone does not establish valid local rollback, identity preservation, or zero-perturbation replay.
+- Local replay boundaries can drift, create temporal/pose discontinuities, alter reference binding, and break audio synchronization. Any eventual local method needs full video and boundary metrics, not only a selected frame success.
+Thus keep local-window rollback out of the first feasibility experiment; it would require a separate protocol and novelty review.
+
+10. Go/no-go summary
+
+Engineering feasibility: raw full-state checkpoint/replay is plausible and cheap to STORE, but requires a new explicitly branch-aware sampler/recorder; current saved x0/frozen wrapper cannot implement exact rollback as-is. Observer resource use is unresolved for online execution. No GPU trial is authorized by this document.
+Scientific feasibility: late11 failure motivates testing an earlier intervention schedule, which root is already doing. If late6 works and reliable late observer discriminates bad from good held-out cases, then conditional globalrollback may be a useful error-recovery policy. If static early intervention helps all cases without cost/qualitypenalty, rollback is an expensive unnecessary detour. If the observer cannot reliably tell failure or the intervention still fails, do not add rollback complexity.
+
+Evidence hashes at design time (SHA256)
+extensions_staged/H3X0Readout/core.py
+  aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c
+extensions/H3TemporalRouter/core.py
+  7f21d35d58ff8e36f9c0e0d0e819917e680ebd7095c69a28bda40b34a56836e1
+extensions/H3TemporalRouter/__init__.py
+  a904555ca6ecf32680e4c3b26fdf6af860ec3a0eaf7cbaa8c0b605184a638204
+analysis/sigma_time_semantics.txt
+  506f8df775d26fdabf52f7d227e7f10024ff8125f67f3fe1b9f915c5da8c1941
+configs/s05_full_seed1_native_x0.json
+  d90de6e1cc1fd5638ca67065fa2a51c4b3e3f35db48d00836dc3e4f5fab695af
+configs/s05_full_seed1_mass_late11_x0.json
+  ce76bfe5cc1cd2d4685a83026abc7cdc0c0d85afffea3f85e5ff898e161e0861
+audit/x0/s05_full_seed1_native_x0/manifest.json
+  a16697a0494ce4ba4e0a7c7b36a252af2be0e83ab4c7a06bc89831efc208b93e
+archive:comfy/k_diffusion/sampling.py
+  cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce
+archive:comfy/samplers.py
+  f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f
+archive:comfy/model_base.py
+  6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68
+archive:comfy/ldm/minimax/model.py
+  0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+archive:comfy/patcher_extension.py
+  1c7b3b855278d0b95d1c1a705fa0b3c91a265f320e2f97bdeb9d15469d6d4ac7

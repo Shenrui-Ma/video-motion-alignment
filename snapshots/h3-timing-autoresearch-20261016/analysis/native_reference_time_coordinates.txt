@@ -1,0 +1,245 @@
+Native H3 reference/output time-coordinate audit
+2026-10-16; read-only source/artifact analysis, CPU tensor inspection only.
+
+CONCLUSION
+
+For the actual source05/full1312x736/141-frame run, corresponding output-video and
+reference-video latent tokens do NOT share the same native temporal RoPE origin.
+For every one of42 temporal bins and943 spatial tokens per bin:
+
+  native_time(output Q) - native_time(reference K) = +235.0 RoPE coordinate units.
+
+At the implemented scale5/3 units per physical video frame, that is a coordinate
+interval equivalent to141 frames, or5.875 seconds at24fps. This is NOT a measured
+141-frame motion delay. The absolute origins also include text-token indexing,
+so these coordinates are not literal playback timestamps.
+
+The current PhaseRoPE actuator does NOT first remove this origin offset. Its
+delta=±12 physical frames is a post-native-RoPE extra rotation of the selected
+output-Q reference branch by±20 units, around the existing+235-unit separation.
+The corresponding-coordinate gap becomes+255 or+215, not+20 or−20.
+
+SOURCE PROVENANCE
+
+Local archived core:
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+Member ./comfy/ldm/minimax/model.py
+SHA256: 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+
+This equals configs/parent_core_hashes.json['comfy/ldm/minimax/model.py'] in the
+current task. configs/phase2_completed/configs__runtime_provenance.json records
+core_matches['comfy/ldm/minimax/model.py']=true. This audit reads that matched
+source snapshot and actual recorded tensors; it does not infer an upstream
+paper's design motivation or independently inspect a currently running process.
+
+Current task root:
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+
+SOURCE RULES, WITH EXACT MEMBER LINE NUMBERS
+
+model.py:30–31:
+  FRAME_PER_TOKEN = (1,4,4,4,4)
+  FRAME_RESCALE = 5.0/3.0
+
+model.py:95–102:
+  _video_t_spans(n) returns [FRAME_RESCALE*FRAME_PER_TOKEN[k%5] ...].
+  _video_t_grid(n, origin) uses origin + exclusive cumulative sum of these spans.
+Thus temporal bin j has coordinate origin+(5/3)*sum_{k<j}FRAME_PER_TOKEN[k%5].
+Several physical video frames share one latent temporal bin; a request for the
+same physical frame is mapped to the corresponding bin. The positional-bin
+mapping is not a claim that the VAE has a disjoint receptive field for each bin.
+
+model.py:105–114:
+  _ref_t_span(image)=1.0;
+  _ref_t_span(audio)=ref_audio_t;
+  _ref_t_span(video/video_audio)=max(ref_audio_t, sum(_video_t_spans(latent_t))).
+
+model.py:350–370 (PackedLayout):
+  text positions are0..text_len−1; cursor begins at float(text_len).
+  The code computes target origin after the reference spans.
+
+model.py:395–410:
+  Reference packing resets cursor=float(text_len). Image-reference rows all
+  receive time=cursor; after that image reference, cursor+=1.0, independent of
+  its number of spatial rows.
+
+model.py:420–438:
+  A reference video's audio/video rows share its current cursor origin.
+  Video reference positions come from _video_grid(vt, r_frame, cursor).
+  After that block, cursor+=max(ref_audio_t,sum(_video_t_spans(vt))).
+
+model.py:440–449:
+  Target audio rows and target video rows are both constructed at the SAME final
+  cursor. Packing audio rows before video rows does not advance the target-video
+  RoPE origin by audio length. Sequence-row ordering and time coordinates differ.
+
+model.py:523–530:
+  position_ids (float64) are cast to float32, multiplied by actual rope.inv_freq,
+  and assembled as duplicated [time16,height16,width16] halves (96rotated dims).
+model.py:745–746 computes the native rotation table once per model forward.
+model.py:173–199 applies RMSNorm and partial split-half RoPE before calling
+optimized_attention, the point intercepted by our attention override.
+These time positions are video/content positions, not the denoising sigma/step.
+
+ACTUAL SAVED LAYOUT AND TENSOR EVIDENCE
+
+Layout audit:
+analysis/pose/pilot/s05_full_seed1_native_x0_provenance/router_audit.json
+Confirmed independently against:
+analysis/pose/pilot/fullnative_provenance/s05_full_seed1_native.router_audit.json
+
+Relevant fields:
+  metadata.text_len =6960
+  metadata.context_shape =[1,6960,5120]
+  metadata.refs[0] =kind image,latent_t1,latent_h76,latent_w50,frame_rows950,
+                   ref_audio_t0
+  metadata.refs[1] =kind video,latent_t42,latent_h46,latent_w82,frame_rows943,
+                   ref_audio_t0
+  validated_layout.signature =[6960,42,46,82,235]
+  validated_layout.seq_len =87592
+  validated_layout.reference_index =1
+  validated_layout.reference_video_segment =[7910,47516)
+  validated_layout.target_video_segment =[47986,87592)
+  validated_layout.latent_interval_half_open =[14,20)
+  validated_layout.pixel_interval_inclusive =[50,65]
+  validated_layout.position_bin_coverage_inclusive =[47,67]
+  validated_layout.key_interval_half_open =[21112,26770)
+  validated_layout.query_interval_half_open =[61188,66846)
+  validated_layout.key_first_time_coordinate =7039.333333333333
+  validated_layout.query_first_time_coordinate =7274.333333333333
+  Difference of those recorded event-start coordinates =235.0.
+
+The recorded segment table:
+  [0,6960)       text
+  [6960,7910)    ref_img: identity image (950rows)
+  [7910,47516)   ref_img: VIDEO reference (39606rows=42*943)
+  [47516,47986)  target audio (470rows=2*235)
+  [47986,87592)  target video (39606rows)
+The label ref_img is also used for video-reference visual rows; it does not mean
+the second reference was a static image. Do not subtract sequence-row indices
+47986−7910 to estimate temporal distance: the row-index difference40076 is not
+a time coordinate. The actual temporal-coordinate gap is235.
+
+Packed position tensor metadata in
+analysis/pose/pilot/s05_full_seed1_native_x0_provenance/conditioning.json:
+  packed_layout.position_ids.shape =[87592,3]
+  packed_layout.position_ids.dtype =torch.float64
+  packed_layout.position_ids.sha256 =
+    06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee
+  tensor_file =tensor_blobs/9e67538fbe6cbd4d34083d65cc5d7165ad9ca89153b11b6166b87a59abcb87c3.pt
+
+An existing retained copy of that tensor is at:
+/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/audit/tensor_blobs/9e67538fbe6cbd4d34083d65cc5d7165ad9ca89153b11b6166b87a59abcb87c3.pt
+CPU weights_only=True loading verified its shape,dtype,and raw tensor-byte SHA256
+EXACTLY match the current manifest above; the historical directory location does
+not substitute for hash verification. No GPU was initialized.
+
+Direct tensor checks, not only source reconstruction:
+  ref =positions[7910:47516].reshape(42,943,3)
+  out =positions[47986:87592].reshape(42,943,3)
+  (out[:,:,0]-ref[:,:,0]).unique() ==tensor([235.0],float64)
+  min=max=235.0 across all39606 corresponding video tokens.
+  torch.equal(out[:,:,1:],ref[:,:,1:]) ==True (matching spatial geometry).
+
+Some actual coordinates, one spatial row per latent bin:
+  bin   physical-bin start   reference time       output time         Qtime−Ktime
+   0          0               6961.0               7196.0               235.0
+  14         47               7039.333333333333    7274.333333333333    235.0
+  16         52               7047.666666666667    7282.666666666667    235.0
+  19         64               7067.666666666667    7302.666666666667    235.0
+  41        137               7189.333333333333    7424.333333333333    235.0
+
+ORIGIN CALCULATION
+
+Text origin contribution:6960.
+Identity image occupies1.0 time unit, although it has950 tokens.
+Therefore reference video origin=6960+1=6961.
+
+The42 video bins cover8 complete (1,4,4,4,4) cycles plus(1,4):
+  8*(1+4+4+4+4)+(1+4)=8*17+5=141 physical-frame units.
+  reference span=141*(5/3)=235 RoPE units (reference audio_t=0).
+Therefore target audio AND target video origin=6961+235=7196.
+
+Writing S(j)=sum_{k<j}FRAME_PER_TOKEN[k%5],
+  p_ref(j)=6961+(5/3)*S(j)
+  p_out(j)=7196+(5/3)*S(j)
+  p_out(j)-p_ref(j)=235 for corresponding j.
+More generally, with current packing, the separation to a particular reference
+includes that reference's span and any later reference blocks' spans. It is not
+a universal H3 constant. Here text and the earlier identity-reference contribution
+cancel from the reference-to-output difference. Their absolute coordinates still
+appear in the saved tensor. Different reference content/order/durations can change
+the packing; this audit does not extrapolate235 to every H3 task.
+
+WHAT THE CURRENT PHASE ACTUATOR DOES
+
+Source: extensions_staged/H3PhaseRoPE/core.py
+SHA256:83f0fffeac265d0c77d540c8ed730a8b9c639ca73660877aaba72425be88b395
+Relevant locations:TemporalRotation.__init__:19–33;
+TemporalRotation.__call__:35–49;phase_attention:62–101.
+
+The override receives Q,K after native RMSNorm/RoPE. It takes the selected output
+queries, clones them, and applies an extra rotation delta_rope=delta_frames*5/3
+only on temporal pairs0:16 with48:64. It computes that changed branch against all
+video-reference K/V, then preserves the ORIGINAL reference-group attention mass:
+  O_new=O_native+alpha*m_ref*(O_ref_rotated−O_ref_native).
+It neither subtracts ref/target origins nor changes the native PackedLayout.
+Only the selected query-to-reference-video branch changes; global Q, spatial
+coordinates, identity-image/text/audio branches, and K/V remain untouched at that
+attention operation. Later network states can nevertheless change.
+
+Ignoring finite precision, compositions of time rotations give:
+  Q_branch=R(p_out(j)+delta_frames*5/3) q_unrotated
+  K_ref   =R(p_ref(k)) k_unrotated
+  coordinate gap for j=k =235+delta_frames*5/3.
+The conventional Q^T K relative rotation is R(p_ref−p_out−delta), so its angle
+sign is the negative of this chosen Q-minus-K gap convention. Neither convention
+is a measured action-delay sign.
+
+  delta physical frames    added RoPE units    same-bin Q−K gap    frame-equivalent gap
+          0                       0                 235                    141
+        +12                     +20                 255                    153
+        −12                     −20                 215                    129
+
+The implementation is an extra post-native rotation, so with float32 angles and
+BF16 native Q it is not bitwise equivalent to recomputing all native positions
+at the shifted coordinate. Tiny-tensor tests measured that rounding difference;
+the coordinate equation is the ideal algebraic description, not a promise of
+exact equality for nonzero delta. Delta0/alpha0 uses the exact native path.
+
+For completeness, exact origin coincidence in that branch's ideal coordinates
+would require delta=−235/(5/3)=−141 physical frames for this layout. That has NOT
+been tested and is far outside±12. This is a calculation, not a recommendation
+that origin cancellation is desirable or a predicted cure. The learned model
+already operates with the native packed coordinate separation.
+
+The existing same-frame mass router is also not an origin-reset implementation.
+It selects matching reference temporal bins for its aligned branch, but uses
+the already native-RoPE Q/K, retaining their235-unit offset. Selecting keys by
+corresponding bin and making their RoPE origins equal are different operations.
+
+WHAT CAN AND CANNOT BE INFERRED
+
+Established by source and tensors:
+  - This Comfy H3 implementation serializes reference-block time spans ahead of
+    a shared target audio/video origin.
+  - Our actual source05 case has an exact235-unit native offset.
+  - Current±12 intervention perturbs that native arrangement; it does not start
+    from a zero-origin aligned-reference state.
+
+Not established:
+  - Why training used these coordinates or whether their purpose was modality /
+    reference separation. The code exposes a rule, not training intent.
+  - That the235-unit offset causes the observed13-frame action lag.
+  - That decreasing the raw coordinate distance must improve temporal alignment.
+    RoPE is a bank of periodic rotations; the complete attention score also
+    depends on learned Q/K content, spatial dimensions, normalization and layers.
+    Scalar coordinate proximity is not a monotonic attention-strength guarantee.
+  - That positive delta necessarily advances or delays visible motion. The actual
+    ±12 outcome is empirical and may be content/layer/step dependent.
+  - That a hypothetical origin-removal variant is novel, safe, or generally valid.
+
+Interpret pending phase results as native-coordinate perturbation experiments.
+Do not rename them origin-alignment experiments or attribute their results to
+fixing a demonstrated coordinate bug. No code, model, configuration or GPU state
+was modified for this audit.

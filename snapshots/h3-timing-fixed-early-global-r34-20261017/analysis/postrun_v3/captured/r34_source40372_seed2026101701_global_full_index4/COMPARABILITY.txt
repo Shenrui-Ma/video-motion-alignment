@@ -1,0 +1,23 @@
+R34 COMPARABILITY / independent design self-audit
+
+PASS as a fixed simple-baseline design, conditional on actual execution pairing.
+
+Observed local evidence
+R32 configs/parent_graph, parent_conditioning, parent_noise, parent_captures, parent_file_inventory andparent_run_gate are byte-identical toR29 configs/parents/40372 equivalents. AllpointtoactualR26 r26_source_40372_seed2026101701_native. The sourcevideoSHA is ac122ce85c8d8d1feb27dbe3fa0f80a0c9a83e01b004b2db06dab7f013f1f052; portraitSHA4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42. SourceposeSHA8d731e0c55072c216d191729be21d6b42077f79b35dfdc5810c902fac8e6f8e4. Prompt and seed2026101701 match. Actualconditioning records87361tokens, video latent1×24×42×46×82, audio1×32×2×235. Full42bins×943rows=39606queries; span sum141. Actualcapturedprefix0..4 paths, metadata, fileSHA andAVtensor signatures are embedded inPROTOCOL. The largePT bytes were not reloaded for this design; future verifier must read them.
+
+Intended contrasts
+Native vsR34: effect of one earlyglobalFull pulse with fixed backend and one extra discardedNativeprediction.
+R29 vsR34: sameglobalquerysupport, differenttiming and9versus1Fullpredictions; differentNFE20versus21. This is not a single-dose effect.
+R32 vsR34: automaticspace-time querysupport/schedule versusfixedglobalearly support;21vs20+K predictions andonlineobserver overhead differ. This answers whetherthewholeautomatic system has useful addedvalue on thiscase, not whetherone scheduling component is thecause.
+R32's firstON may occurbefore4. In that caseitsNative4 no longerlies onR26Native history andmustnot be usedasR34 prefixanchor. UseR26; checkR32's own firstON-bound prefix separately.
+
+Required runtime boundary
+Reuse frozen R33/R27 numerical Fullpath and native-then-Full wrapper, adaptingonlysource/seed/layout/plan. Fullatindex4 isNFEindex5; nativeindex4 isNFEindex4. 21NFE+20Euler+20callback+1050blocks+50routes, exactactiveindices[4], all42bins, all50blocks. No poseobserver or synthesizedobserverrecords. Current4native/full input mustmatch, QKV unchanged, othermodalityoutput rows unchangedatthis attentioncall. Laterpropagation isallowed. Native0..4 normalizedAV mustequal oldR26 actualPT; actualcurrentinput4 isarchived, but oldR26 rawinput4 lacks a savedfile. Full4 andlaterendpointreplay againstNative areineligible.
+
+Sourcecleanmetadata, actualembedding/tags/positions andAVnoise plusmodel/backend andbothsigma schedules mustmatch. Matchallavailable historical entities and recordhistoricalprocessed/postaugmentationtreeabsence; do notinvent acomplete oldtree comparison. Graph equality alone is insufficient. Ifactualconditions orprefix fail, retaintechnicalfailure andpauseeffectinterpretation.
+
+Outcome and falsification
+The event40..55 is aninherited development descriptor selectedfromR26, not anindependent test. Full186scan, sharedsupport and originalvisualframes prevent selectingonlyR32-controlledwindows. The186rows overlap andbelongtoone trajectory. Keepaccepted/UNKNOWN distinctions, boundaries andresidualgates. IfR34 performscomparably toAuto, keepthis counterevidence toselectionnecessity. IfAuto wins, retainjointchanges andcase-selection limits; donotclaimgeneralnovelty orprobabilitycalibration. Ifghost/quality isnotvisibly distinguishable, markUNKNOWN.
+
+Freeze chronology
+Index4 was specified byroot beforeR32 finaloutcome; thisreview didnotreadR32 actualpostrunresult ordecisiontrace. Source andexistinghistoricalinputs were inspected solelyforcomparability. Any future amendment requires separateversion andreason, not overwritingthisdesign. NoGPU/runtime/consumer action was performed.

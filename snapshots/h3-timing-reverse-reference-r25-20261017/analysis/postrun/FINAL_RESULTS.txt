@@ -1,0 +1,63 @@
+R25 reverse-reference pilot: fixed-window development evaluation
+
+All comparisons use original physical times. The two new arms passed actual runtime/input/noise/prefix and final playback gates. Scientific interpretation remains separate from integrity.
+
+Primary50–65: direction(.3/.5), wrist(.3/.5); UNKNOWN is not zero.
+native: [13, 13, 13, 12]
+full: [1, 1, 1, 1]
+reverse_block: [8, 8, 7, 7]
+reverse_same: [7, 7, 7, 7]
+
+Four predeclared windows, both confidence thresholds:
+native
+  0.3 arm_direction: [([50, 65], 13, 'exploratory', []), ([69, 81], 10, 'exploratory', []), ([80, 92], 8, 'exploratory', []), ([99, 111], 4, 'exploratory', [])]
+  0.3 wrist_relative: [([50, 65], 13, 'exploratory', []), ([69, 81], 10, 'exploratory', []), ([80, 92], 8, 'exploratory', []), ([99, 111], 4, 'exploratory', [])]
+  0.5 arm_direction: [([50, 65], 13, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], None, 'unreliable_detection_coverage', None), ([99, 111], 4, 'exploratory', [])]
+  0.5 wrist_relative: [([50, 65], 12, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], None, 'unreliable_detection_coverage', None), ([99, 111], 4, 'exploratory', [])]
+full
+  0.3 arm_direction: [([50, 65], 1, 'exploratory', []), ([69, 81], 0, 'exploratory', ['little_gain_over_same_frame']), ([80, 92], 1, 'exploratory', []), ([99, 111], 1, 'exploratory', [])]
+  0.3 wrist_relative: [([50, 65], 1, 'exploratory', []), ([69, 81], 0, 'exploratory', ['little_gain_over_same_frame']), ([80, 92], 1, 'exploratory', []), ([99, 111], 1, 'exploratory', [])]
+  0.5 arm_direction: [([50, 65], 1, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], 1, 'exploratory', []), ([99, 111], 1, 'exploratory', [])]
+  0.5 wrist_relative: [([50, 65], 1, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], 1, 'exploratory', []), ([99, 111], 1, 'exploratory', [])]
+reverse_block
+  0.3 arm_direction: [([50, 65], 8, 'exploratory', []), ([69, 81], 9, 'exploratory', []), ([80, 92], 8, 'exploratory', []), ([99, 111], 4, 'exploratory', [])]
+  0.3 wrist_relative: [([50, 65], 7, 'exploratory', []), ([69, 81], 9, 'exploratory', []), ([80, 92], 8, 'exploratory', []), ([99, 111], 4, 'exploratory', [])]
+  0.5 arm_direction: [([50, 65], 8, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], 7, 'exploratory', []), ([99, 111], 4, 'exploratory', [])]
+  0.5 wrist_relative: [([50, 65], 7, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], None, 'unreliable_detection_coverage', None), ([99, 111], 4, 'exploratory', [])]
+reverse_same
+  0.3 arm_direction: [([50, 65], 7, 'exploratory', []), ([69, 81], 5, 'exploratory', []), ([80, 92], 4, 'exploratory', []), ([99, 111], 2, 'exploratory', [])]
+  0.3 wrist_relative: [([50, 65], 7, 'exploratory', []), ([69, 81], 5, 'exploratory', []), ([80, 92], 5, 'exploratory', []), ([99, 111], 2, 'exploratory', [])]
+  0.5 arm_direction: [([50, 65], 7, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], 4, 'exploratory', []), ([99, 111], 2, 'exploratory', [])]
+  0.5 wrist_relative: [([50, 65], 7, 'exploratory', []), ([69, 81], None, 'unreliable_detection_coverage', None), ([80, 92], None, 'unreliable_detection_coverage', None), ([99, 111], 2, 'exploratory', [])]
+
+All-four common support for arm direction (source intersection with Native, forwardFull, BLOCK and SAME):
+0.3 {'window': [50, 65], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 1.1297714936251892, 'full': 0.13764516586438127, 'reverse_block': 0.7495940067377773, 'reverse_same': 0.7498414762513116}}
+0.3 {'window': [69, 81], 'feature': 'arm_direction', 'common_valid_fraction': 0.9230769230769231, 'status': 'usable_exploratory', 'errors': {'native': 1.3035317671978477, 'full': 0.3865740273840538, 'reverse_block': 1.3817825024747146, 'reverse_same': 1.2448781911730324}}
+0.3 {'window': [80, 92], 'feature': 'arm_direction', 'common_valid_fraction': 0.9230769230769231, 'status': 'usable_exploratory', 'errors': {'native': 1.0862937548978926, 'full': 0.12230215388659038, 'reverse_block': 1.0621115248147128, 'reverse_same': 0.4793016363084126}}
+0.3 {'window': [99, 111], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 0.41123555295176684, 'full': 0.09778783251479756, 'reverse_block': 0.4094061443407481, 'reverse_same': 0.23301516964791724}}
+0.3 {'window': [0, 140], 'feature': 'arm_direction', 'common_valid_fraction': 0.9875886524822695, 'status': 'usable_exploratory', 'errors': {'native': 0.42692838762310026, 'full': 0.1283893163313331, 'reverse_block': 0.3856607041037051, 'reverse_same': 0.3113820823601307}}
+0.3 {'window': [0, 46], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 0.13655735573120537, 'full': 0.12362417321849556, 'reverse_block': 0.14760483153512155, 'reverse_same': 0.13556807727982373}}
+0.3 {'window': [47, 67], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 1.0351503584355783, 'full': 0.16515687572942322, 'reverse_block': 0.6962566508851203, 'reverse_same': 0.7085403115382893}}
+0.3 {'window': [68, 140], 'feature': 'arm_direction', 'common_valid_fraction': 0.976027397260274, 'status': 'usable_exploratory', 'errors': {'native': 0.4670975104652662, 'full': 0.12168496523195385, 'reverse_block': 0.470286124731365, 'reverse_same': 0.3277613942827403}}
+0.3 {'window': [112, 140], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 0.09698690164136703, 'full': 0.06681914426016758, 'reverse_block': 0.093571116432413, 'reverse_same': 0.08532206146654335}}
+0.5 {'window': [50, 65], 'feature': 'arm_direction', 'common_valid_fraction': 0.96875, 'status': 'usable_exploratory', 'errors': {'native': 1.1404015956721134, 'full': 0.13978256998269536, 'reverse_block': 0.7656129607042284, 'reverse_same': 0.7652619281912606}}
+0.5 {'window': [69, 81], 'feature': 'arm_direction', 'common_valid_fraction': 0.6730769230769231, 'status': 'insufficient_common_support', 'errors': {'native': 1.313308589305043, 'full': 0.24591947758461982, 'reverse_block': 1.401328667122664, 'reverse_same': 1.2165416788091463}}
+0.5 {'window': [80, 92], 'feature': 'arm_direction', 'common_valid_fraction': 0.6730769230769231, 'status': 'insufficient_common_support', 'errors': {'native': 1.023573854905246, 'full': 0.11483464768910939, 'reverse_block': 1.0168690968930287, 'reverse_same': 0.4532799548307817}}
+0.5 {'window': [99, 111], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 0.41123555295176684, 'full': 0.09778783251479756, 'reverse_block': 0.4094061443407481, 'reverse_same': 0.23301516964791724}}
+0.5 {'window': [0, 140], 'feature': 'arm_direction', 'common_valid_fraction': 0.9379432624113475, 'status': 'usable_exploratory', 'errors': {'native': 0.4039454562465015, 'full': 0.11638053211377543, 'reverse_block': 0.363915374589986, 'reverse_same': 0.2938347772889392}}
+0.5 {'window': [0, 46], 'feature': 'arm_direction', 'common_valid_fraction': 0.9946808510638298, 'status': 'usable_exploratory', 'errors': {'native': 0.13647718540094034, 'full': 0.12283294952383318, 'reverse_block': 0.1474260446343909, 'reverse_same': 0.13513264820188517}}
+0.5 {'window': [47, 67], 'feature': 'arm_direction', 'common_valid_fraction': 0.9642857142857143, 'status': 'usable_exploratory', 'errors': {'native': 1.034285595090998, 'full': 0.16761989447533876, 'reverse_block': 0.6988810497758436, 'reverse_same': 0.7111776264359415}}
+0.5 {'window': [68, 140], 'feature': 'arm_direction', 'common_valid_fraction': 0.8938356164383562, 'status': 'usable_exploratory', 'errors': {'native': 0.4265080827078352, 'full': 0.09709857717632578, 'reverse_block': 0.43159316404625436, 'reverse_same': 0.2950030017195917}}
+0.5 {'window': [112, 140], 'feature': 'arm_direction', 'common_valid_fraction': 1.0, 'status': 'usable_exploratory', 'errors': {'native': 0.09698690164136703, 'full': 0.06681914426016758, 'reverse_block': 0.093571116432413, 'reverse_same': 0.08532206146654335}}
+
+Quality: limited fixed55/86/105 review is recorded in QUALITY_REVIEW.json. Room layout and appearance edit remain present; fine identity/hand/full temporal quality remains unverified. See FINAL_INTERPRETATION.txt.
+
+Two arms on one selected development failure; not generalization.
+Window and sampling schedule manually fixed, not automatic.
+BLOCK removes target-video only; audio pathway remains.
+SAME ideal algebra preserves target-video mass with audited numerical reconstruction tolerance.
+Same-call unchanged target rows does not establish later hidden-state cause.
+No wrong-time sparse control or claim of novelty.
+UNKNOWN and low common support remain; bone metrics do not establish identity/edit/hand quality.
+
+Efficiency recorded per arm in machine report; no speed diagnosis. Large original PT remain remote, local FILE_INVENTORY contains their exact path/SHA/size. Services are retained for root handoff; this report makes no cleanup claim.

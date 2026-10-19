@@ -1,0 +1,17 @@
+R33: frozen posthoc displaced5bin/oneFull control, not a new automatic policy.
+Runtime remains21 model NFE/20Euler, index4 native+Full on identical actual x/sigma/condition. All other steps native; zero online observers. Internal physical_index means denoising index, not video frame number.
+
+Root deployment (no launch performed by builder):
+1. Extract audit/runtime_bundle_v1.tar.gz to /data5/researcher/h3_runs/timing_window_location_r33_20261017 and verify deploy_manifest.json allSHA.
+2. Copy three input files listed in configs/input_hashes.json from timing_forward_reverse_r30_20261017/inputs. Compare SHA; do not overwrite differing bytes.
+3. Fill audit/resource_admission.json from configs/resource_admission_template.json with actual root evidence. Inherited R27 kernel gates cover same87592/56/128/full42plan; new shiftedmask has CPU oracle, actual model/prefix/memory remain run gates.
+4. Set configs/admission.json exact allowed live peer PID/UID/startticks/cmdSHA and ready_for_launch=true. No wildcard for R32 decoder. Submit waits at most600sec until original strict peer gate passes, then sends one prompt.
+5. python3 scripts/preflight.py --live
+6. python3 scripts/launch_remote.py --service-only
+7. Read processes/cuda_gate_ready.json and processes/service.json, verify same PID identity. Root registers exact future service PID in live R32/R27 peer admission BEFORE atomically writing exact ready JSON to cuda_gate_go.json. Entry is runpy samePID, no extra CUDA main child.
+8. After HTTP ready, python3 scripts/start_controller.py --pid <pid> --start-ticks <ticks> (inspect --help for exact parser). One frozenjob only.
+9. Existing-parent files required at actual R27 audit/counterfactual/r27_s05_bad1311_auto_snapshots/step000_native.pt through004; hashes are immutable in design/evidence/ACTUAL_PREFIX_0_TO_4.json. No new Native replay needed.
+10. Existing Python: /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_completed.py --allow-resident --output <new-audit-json>. CPU only and shared-lock policy applies. Final postrun one_phase must be separately root-bound; no resident consumer created.
+
+Current old R27 rawinput4 PT was not saved. Its actual signature is frozen; current rawinput4 is saved. Do not call this an old/rawinput tensor pair comparison.
+Producer queue.finalize is administrativeboolean mutable; strict scientific onejob stays frozen. Root release only after actual archivegate. Errors clean only exact current child owner, ≤2OURGPU, other users untouched.

@@ -1,0 +1,75 @@
+Latent 时间自相似读出：有界否证结果
+
+结论：本次冻结方法未通过合成校准，已停止。没有读取任何真实 target x0 数值，没有评估 step005/010/final，没有改阈值、描述子或另选层/头，也没有新增推理。因此不能据此声称能在原 pose gate 为 unknown 的 step005 读出可信相位；同样不能据此否定全部 latent 或自相似读出方法。
+
+一、执行顺序与存储核验
+
+先读 literature/observability_control_gap_candidates.txt 的候选2，检查真实 reference 存储，再写 PROTOCOL.txt 和 scripts/latent_phase_probe.py；freeze_manifest.json 固定两者 SHA 后，才运行第一次且唯一一次合成校准。失败后仅做同一公式的数值解释和输入形状校验，不换方法、不重跑筛选。
+
+原参考 VAE latent 本地未同步，但服务器既有 blob 存在：
+/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/tensor_blobs/136e1302edb9e4f245d085b21584e8bfa54942c77a30758e7c3f227078cde97a.pt
+实际 Tensor shape=[1,24,42,46,82]，float32；tensor 原始连续字节 SHA256：
+75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734
+与原 conditioning manifest native_vae_calls[1].latent 完全一致。序列化 .pt 文件 SHA：
+a2936536516cdad698bd553ea8b2654b49bca168fb5b59ab111f41a72be5fbb0
+文件名、文件内容哈希、Tensor 原始字节哈希是不同口径，未将其混淆。
+已仅列目录确认 primary native/mass 及 transfer seed2 x0 文件存在；未加载这些输出。无存储阻塞，无新编码。
+
+二、冻结方法是什么
+
+每个 latent 时间格的24通道按固定4×4空间池化，得到384维 F(t)。使用 H3 的实际位置跨度 [1,4,4,4,4] 周期，而非一格恒等于4视频帧；42格共141帧。在各格中心对 F 做线性插值，不外推。最后中心138.5，因此末端139/140不虚构有观测。
+
+在每个物理帧 t，计算 F(t) 与 t±4/8/12 的六个自身距离，按六维向量长度归一化。比较原视频与输出自身的距离结构，而非跨身份直接比较外观特征。窗口固定物理帧50–65，搜索 lag∈[-24,24]，正值=输出事件更晚。
+
+门槛预先固定：有效覆盖至少80%；静止/低结构拒判；最优落在搜索边界或残差>0.10拒判；相距≥4帧的第二峰相对间隔<10%拒判；内圈±4与外圈±8/12估计需彼此及主估计差≤2帧。未知保留，不记为0。
+
+理想的恒定特征平移、等距特征变换和全局幅度变化可被这种自距离及归一化消去。真实人物替换不保证属于这种变换，全帧池化还会受背景、相机、姿态和空间错配影响；此次未先假设它们被解决。
+
+三、校准结果（不是实际 H3 结果）
+
+10个非周期正例全部通过：预置时移0、+8、−8、+16、−16帧，各做原特征与固定正交置换/符号翻转+常量平移+1.8倍幅度变换。全部输出正确整数延后；不需要2帧容差。静止序列及匀速线性序列均按要求返回 unknown。
+
+但严格12帧周期序列失败：理论上 phase 可以相差完整周期而不能仅靠这些内容确定唯一绝对时移；此例要求拒判。冻结读出却返回 phase_available、lag=0，两个邻域都为0，distinct-peak gap=1.0，没有任何拒判理由。这是虚假的唯一性/置信判断；不能因输出0恰好对应合成数据的生成参数而把该负例算通过。
+
+因此13项必过门中1项失败。按预登记立即停止，不以12/13这种总体通过率抵消周期反例。
+
+四、失败机制的直接数值证据
+
+冻结 synthetic_motion 的连续周期特征 F(t+12) 与 F(t) 最大绝对差约7.99e−15；周期性质成立，并非负例写错。相同函数先在真实 H3 非等宽中心采样、再线性插值，12帧后的最大差变为0.264985。
+
+周期负例的对齐 cost：
+lag −24：0.03324946
+lag −12：0.06163210
+lag   0：约7.31e−33
+lag +12：0.05696629
+lag +24：0.05897890
+
+非等宽采样格的模式每17物理帧重复，与12帧内容周期不一致；中心插值重建加入了采样格相关的时间纹理。比较两个相同采样格上的序列，会把“采样重建纹理吻合”当作“动作事件绝对相位唯一”。内外邻域共享同一重建，二者一致不能独立排除这种伪证据。
+
+这只是该合成读出链的明确反例，不能推断真实 VAE 必然以同样方式产生伪相位，也不能说真实 H3 的动作滞后来自插值。我们的真实模型/视频完全未改；被否证的是把这个重建后的相似度峰直接解释成可信动作相位的当前候选。
+
+五、为何没有继续实际 x0 或普通互相关 baseline
+
+任务明确要求校准失败立即停止、不调参。即便真实 step005 恰好得到+13，也无法挽救已经失效的拒判门，反而容易形成事后挑证据。普通帧差互相关原先只计划在校准通过后的真实读出阶段报告，故未运行；没有以 baseline 替换主方法。
+
+原 RGB/pose 主终点、unknown 状态和既有控制实验结论保持原样。本次不修改主报告、不宣称早期可观测，也不实施控制器。是否另行设计能识别采样纹理与周期歧义的独立方案，应由后续重新登记任务决定，不能在这一轮继续调到通过。
+
+六、可复现与验证
+
+CPU命令（输出路径须不存在，防止覆盖冻结记录）：
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+ /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python \
+ scripts/latent_phase_probe.py --calibrate --output /tmp/new_latent_calibration.json \
+ --protocol analysis/latent_phase_probe/PROTOCOL.txt
+
+脚本只提供合成校准入口；失败后没有添加真实 target 读取路径。CPU单线程；首次校准约0.9秒命令时长。无依赖安装、无GPU、无DWPose、无远程写入、无 live runtime 改动。
+纯代码检查：AST通过；固定池化常量张量 shape/value 正确；错 shape 拒绝；非等宽跨度和141帧一致；冻结后 script/protocol SHA 未变。
+
+主要证据文件：
+- PROTOCOL.txt：先验固定定义与停止规则。
+- freeze_manifest.json：校准前代码/协议 SHA。
+- source_storage_check.json：真实 reference 存储和哈希。
+- synthetic_calibration.json：13项逐项结果、全部49候选cost与拒判理由。
+- diagnosis_and_verification.json：周期性与插值反例、输入契约及冻结一致性。
+
+范围结论：当前这一套无训练、自相似 latent 读出没有达到可靠 phase observer 的最低校准门；它不是一个已验证的创新点。负结果有效且已完整保留。

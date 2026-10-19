@@ -1,0 +1,55 @@
+R74: Six remaining official FlexiAct target pairs, identical P1 Native/forced
+
+LOCAL /Users/researcher/DevProjects/h3-timing-flexiact-official-six-r74-20261018
+REMOTE /data3/researcher/h3_runs/timing_flexiact_official_six_r74_20261018
+HOST H3_SERVER_B (.41), GPU7 UUID GPU-REDACTED, HTTP8542
+Python /data3/researcher/ComfyUI/.venv/bin/python
+Runtime/core exactly R72/R66, normal memory mode reserve8. Root must verify exact R69 GPU7 release and admit actual peers/free memory before launch. No GPU or service was launched by this preparer.
+
+QUESTION
+After applying R72's structured P1 role protocol, does the existing fixed time-aligned attention route improve motion preservation over the same P1 ordinary edit? This is an input/protocol generalization of the existing fixed operator, with no new algorithm claim.
+
+FIXED ORDER (Native then forced, every candidate retained)
+1 chest__game_man_5: target native-match1248x704; clean latent[1,24,1,44,78];858visual tokens
+2 chest__movie_man_7:1184x736;[1,24,1,46,74];851tokens
+3 crouch__movie_man_5:992x672;[1,24,1,42,62];651tokens
+4 crouch__movie_man_9:1152x768;[1,24,1,48,72];864tokens
+5 rotate__game_man_1:736x544;[1,24,1,34,46];391tokens
+6 rotate__game_man_4:960x608;[1,24,1,38,60];570tokens
+These expected reference shapes come directly from actual nodes_minimax_h3.py301-311 (included in design); each real pair gate verifies actual VAE call tensors and packed token positions.
+The source set contains3 distinct previously studied motions, with6 fixed official target pairs, not6 independent motions. R72 fitness/game_man_5 and one_leg/movie_man_9 are excluded.
+
+INPUTS / PROMPTS
+Official dataset revision69d7747f93e1b913a3dca306bf8e91ee74fea7d4. Immutable original source/portrait bytes preserved. Three source videos each49frames720x480@8fps; resize1152x768 Lanczos, exactrepeat3 to147frames,11terminal repeats to158@24. Every prepared decoded YUV420 frame matches the declared scaled original frame MD5. No source audio, crop or generated interpolation. Score original49times using indices0,3,...144. Evaluation crop[0,0,1152,768].
+Reference portraits are original official bytes. Native H3 match resizing is deferred to its real pipeline.
+P1 template is byte-exact R72 six-section reference-generation template. Picture1 supplies identity/appearance/scene; Video1 supplies complete movement/timing. Each pair's Native and forced use identical full P1. Full prompts configs/prompts/<pair>.txt; official captions, source/target provenance and corrections design/PAIR_DEFINITIONS.json. Full original8candidate manifest retained.
+Caption review before any R74 generation: chest/game_man_5 'cartoon monster' changed to visible red/gold armored humanoid; crouch/movie_man_5 target caption wrongly describes resistance machine, so P1 uses actual squat and official source caption. crouch/movie_man_9 original metadata_flag is erroneous while its caption correctly says squats. game_man_4 P1 uses visible green-caped anime character. All original official text remains in design, including original CSV rows.
+Source review: all49frames of each of3sources plus6targetimages seen. Chest source loses some hands/forearms outside frame at early high-arm positions; rotate source has low contrast. These are assessment constraints; all candidates retained.
+
+FROZEN SCIENCE
+seed2026101701,20Euler/20NFE,CFG1,manualvideo12/audio3sigmas,noLoRA,same quant/kernels/modelweights. Output1152x768x158@24; video latent[1,24,47,48,72],audio[1,32,2,263]. Six numerical modules byte-identical R66 (runtime_kernel_hashes.json).
+forced: mass_preserve alpha1,50layers,denoise indices6..14,physical0..146 inclusive ->44of47bins. Final partially overlapping bin covers147/148padding; purely padded bins44..46 remain native. Native has same spatial/time-mask parameters with mode=native and steps0..19.20actualforwards1000attentioncalls; forced450routes,Native0. No observer/teacher/decode feedback.
+Each pair shares actual clean conditions and AV initial noise. Gate checks eight actual condition tensor blobs, actual noise, all21AV endpoints and bitwise Native/forced index0..5 x0 prefix. IDs r74_<pair>_seed2026101701_<native|forced>; shared reference r74_<pair>_shared.
+
+RESOURCE ESTIMATE
+12runs=1896generatedframes,240DiT evaluations,2700routedattentioncalls,252AVsnapshots. Approximate16.4GiB output/cache storage from R71 frame/area scaling; actual text/cache volume may vary. Startup requires40GiB filesystem free and40GiB selectedGPU free. Real first Native then forced trajectories provide capacity evidence; no separate full warmup. LargePTs stay remote. Existing shared installations/model files unchanged.
+Service lifetime12h, jobtimeout4h; firstpair reviewhold1800s. Optional GPU telemetry failure records a missing sample; it does not abort a valid job. Runtime admission checks process identity, selected UUID, health/free memory and own<=2cards. Root owns all lifecycle controls.
+
+ROOT EXECUTION
+1 Verify R69 exact release, fresh selected GPU capacity/health and all own peers. Edit configs/admission.json ready_for_launch=true, keep scope=own_user_video_jobs, permitted_compute_processes exact current identities. Nothing is admitted by the prepared package.
+2 From remote root:
+   /data3/researcher/ComfyUI/.venv/bin/python scripts/execution_gate.py approve-first-pair --root-admitted --free-mib 40960
+   /data3/researcher/ComfyUI/.venv/bin/python scripts/launch_remote.py --service-only
+3 Root validates processes/cuda_gate_ready.json identity, registers this exact service as a permitted peer where needed, and writes byte-equivalent cuda_gate_go.json. Wait HTTP8542 ready.
+4 /data3/researcher/ComfyUI/.venv/bin/python scripts/start_controller.py --pid ACTUAL_SERVICE_PID --start-ticks ACTUAL_START_TICKS
+5 First pair completed:
+   /data3/researcher/ComfyUI/.venv/bin/python analysis/postrun/verify_pair.py --pair chest__game_man_5
+   produces analysis/postrun/chest__game_man_5/PAIR_RUNTIME_GATE.json
+   schema r74-paired-runtime-gate-v1; prompt_version P1; runs.native/forced; NFE20,routed_blocks0/450,valid_frames147 and output path/SHA.
+6 Root reviews first result/capacity and continuation:
+   /data3/researcher/ComfyUI/.venv/bin/python scripts/execution_gate.py approve-rest --root-admitted
+   Fixed remaining10jobs proceed. Controller finalize=true performs exact owned-process release at end; root verifies actual release.
+
+CPU EVIDENCE
+46 meaningful CPU tests cover numeric dense attention oracle, padding mask, all6reference layouts, exactsource mapping records, samepair prompt/noise/condition graph identities, officialCSV integrity, wrongprompt/target rejection, realtensor verifier mutations, complete firstpair gates, command-identity spawn races, controller-registration guard, own-peer caps and disk failure. Actual remote tests and current coreSHA proof in audit/PASSIVE_DEPLOYMENT_VERIFIED.json when passive verification completes.
+No R74 output quality claim yet. Review screenshots in review/ are source/target input only.

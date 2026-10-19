@@ -1,0 +1,40 @@
+R24 Native index005 gap5 独立只读审查
+2026-10-17。结论：PASS（绑定、冻结规则与已保存数值的一致性）；不是early pose准确率或在线控制效果PASS。未重跑pose、未load大tensor、未启GPU/第二消费者；只读既有代码、SHA、manifest、audit和curve数值，未改原指标。
+
+一、可支持的窄结论
+两条全新source的首个固定seed Native，主窗最终.3方向/腕lag均−1/−1；冻结gap5在它们各自index005端点的三窗均读−1/0/−1，六窗均通过原拒判门。两主窗按既有“accepted且positive lag>=4”启动判断都不会触发。这是“两个最终近同步新素材的早期粗读数未触发”的离线观察。
+不能改写为：六个独立正常视频、005真实动作已在±2、观察器假阳性率0、整条在线政策全程OFF、避免了不必要干预的因果收益、或一般正常样本可靠。三个窗共享同一视频/seed，且这项诊断在已知最终近同步后安排，结果挑选属性已在PROTOCOL/FREEZE声明。最终pose不是005同端点真值；如果未来早期读数与最终不同，也可能是原生轨迹自行恢复，不能只凭final判观察器错误。
+
+二、源码与冻结复核
+FREEZE SHA 2009b2b97c464653f25091d3ead0c39304ce10c8ebc0430a3ab2d0055c6aeb03，四个绑定文件实际SHA全部相符。
+PROTOCOL a007b7ba3b9659db2dab586d5667326ae774d63a29ea075a4d2efa1ffb7503ef；evaluate eaafad1a4711e1ea589d3414e258cd78927931a206da2bb3e6f5af9872b70384。
+observer_frozen.py c84cca34903c9476adc36fa2af0c9e3507b736031efac5bf361187a2c63de075、observer_protocol.json e84af137304d6b950e3bba078a96d1631c665a7fdcce84ef6c93d7e9551f4a16均与R20/analysis/early_gap5同名文件逐字节相同。wrapper_from_R20.diff与两个实际evaluate.py的unified diff完全相符。外层变化是两case/run/audit/输入/预先定窗绑定和结果循环，无新信号、阈值或ROI。
+AST只提取geometry/phase_mean/signal/interp/scan五函数执行，不调用observer_frozen.py中旧main，故旧文件里保留的原source路径不会参与本次计算。
+五函数独立源码片段SHA：
+geometry dece8ea8b4899b9bbf59360a27e9d3b85466d96a4eca005329658ed6a3fd797f
+phase_mean 5ce4b520183acabc4ef78b67db23ba9df7385a07fa8a672087984587b12af792
+signal 9feb27712b36fd1ff2a58c2cae1cb3b3ff01591109ca6146ba4f39667aae3089
+interp 5fd90621a6a1ca09f93e6fc88f5442f95ed4cb1f5096da7cfe63cd6614aa2b48
+scan 2236ea29a2501391972a16c85334deb733a307fff6f96d13adde22474b50110f
+
+三、实际输入链
+两个run分别r24_fresh_a_seed2026101610_native和r24_fresh_b_seed2026101610_native。逐个核PROTOCOL对RUN_GATE/CPU_COMPLETE/FILE_INVENTORY/conditioning的SHA；这些已保存gate均passed，PLAYBACK_GATE也passed141帧。
+A x0file646e0685b296f96c6617bc8126f9b016fd5d1a87419257c3cfce66a7d0cadb36，clean fileffdfb0c6f420ecef6680a8af25cd549e66078bc50dd6c1b7d19a00038dd4c3bc。
+B x0file3ffffe813889618d344bfccdbce51970fe1c5146e3bdcf0594e4401b141a03bb，clean file238df3828c41793ad6fab9f57afd178467ac2ec0b47ddf700495432a5f76c15e。
+这些file SHA在protocol、实际执行RESULTS及既有远端验收inventory一致。RESULTS的x0 metadata与manifest第5项精确一致（zero-based5、model call6、x0_estimate、本run），clean tensor签名与本次native_vae_calls[1]/pair_snapshot实际reference[1]一致。没有用旧source05/07或sampler_final替换当前005。
+执行代码确实在CPU load后再检查实际FP32 shape[1,24,42,46,82]、finite、tensorSHA及read前后fileSHA；本审查遵守不重复load大tensor，因此对这些实际tensor内容核验依赖已归档验收和本轮执行证据，没有冒充第二次独立tensor重算。
+
+四、坐标、裁剪、信号与拒判
+输入after_process_latent_out，video_scale1，对比nativeVAE clean；全24channels×46×82空间网格展开为每bin向量，分析升FP64，无重标定、空间ROI或目标输出导出的mask。
+42bin物理跨度(1,4,4,4,4)重复总141帧；中心0/2.5/6.5/.../138.5是覆盖帧区间名义中点，不是已识别神经感受野中心。gap5中心间隔恰17帧，导数时间为两个bin中心的中点，支持范围8.5..130帧。每窗在整数源帧t比较reference(t)与target(t+lag)，正lag表示target较晚。没有把bin数当RGB帧数或反转符号。
+interp保留旧端点clamp；scan仍计算全部−24..24的49点，不按结果裁剪候选。winner有任何clamp则拒绝。低信号逐帧RMS门1e−6、有效覆盖1.0、相距>=4帧竞争峰margin>1e−6、边界±24拒绝均未变。注意accepted只满足这些粗信号门，没有额外“余弦误差低于某语义质量阈值”的门；不能把accepted当真人姿态正确保证。17帧差分平滑和全画面背景/相机变化可能掩盖短局部动作，这一结构性限制仍在。
+
+五、六窗×49lag复核（仅重核保存数值的排序/门，不重算latent）
+A44..61：−1，margin0.152863651；A17..34：0，margin0.143811641；A82..99：−1，margin0.118238872。
+B64..81：−1，margin0.141700284；B23..40：0，margin0.133121634；B103..120：−1，margin0.176851601。
+六窗每个curve恰49个按顺序−24..24候选、数值finite；保存best等于按(error,lag)排序第一名、separated runner-up及margin吻合。每个winner支持18帧、coverage1、clamp0，reject=[]且accepted=True，would_trigger=False。没有删unknown或候选；此批恰好没有拒判，不是方法取消了UNKNOWN。
+最终pose复核主窗.3方向/腕均−1/−1；.5方向也−1，但两条.5腕均因检测覆盖不足UNKNOWN。故可称“现有主窗证据近同步”，不可称双阈值四读数全部确认正常，更不可把缺失.5腕补成−1。
+
+六、CPU/耗时与结论边界
+实际日志elapsed7.1922266483306885秒，RESULTS CUDA_initialized=false；代码仅torch CPU张量/NumPy计算，显式CUDA空，未导入Comfy/模型/VAE。run_cpu.py先Mac共享锁，evaluate再remote共享锁，均非阻塞；同步调用结束释放。未新增GPU编码、解码、推理，也没有在线observer接进sampler。结果SHA da25a713e4186baed3e0579337c236edb41e31b4eb62ca086f627aae1a0b3f82，protocol/freeze/script引用都实核一致。
+run_cpu.py与diff不在四文件FREEZE内，但不是评分函数；此次已独立读过其只传文件/CPU命令/取回结果的路径。对正常样本适应性收益仍需实际在线policy或有严格等价证明的完整trace，单个005离线未触发不足。当前两条是有价值的新增条件观察，但不提供总体统计置信或普适保证。

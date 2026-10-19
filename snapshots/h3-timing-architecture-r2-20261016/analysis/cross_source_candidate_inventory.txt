@@ -1,0 +1,136 @@
+预先固定的第二开发案例：source07 / Sam 床边舞
+2026-10-16；只读本地档案核验，无GPU、无远程访问、无新素材/姿态推理。
+本次没有读取R16/R17正式结果；仅查其输入绑定接口以说明适配要求。
+
+选择结论
+
+选 source07（Ary Vilchis 床边舞录像）→Sam Altman，seed2026101311。
+优先以 timing-autoresearch 的 s07_full_seed1_native_x0 为当前原生证据，保留20261015原版作为历史复核。
+理由依次是：不同源录像与背景；已有raw与实际成功graph/条件/噪声审计；主事件有冻结双阈值右臂时延证据；沿用.9同模型/core链，可减少新的环境混淆。并非根据R16/R17哪个方法在本片更有利而挑选。
+
+这是此前已看过、已做旧加权/路由的第二开发案例，不是未见held-out，不是新随机重复，也不是全新动作类别。两录像仍是相关舞蹈。后续真正泛化需要另取未参与开发的源片/种子；本文件不预支该结论。
+
+固定事件与评价口径
+
+主窗沿旧记录固定source零起始54–69（24fps），保留原副窗75–88、98–111；不得套用source05的50–65或看新结果再移动窗口。
+原timing_metrics.py SHA eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e。
+沿用lag搜索[-24,24]物理帧、置信阈值0.3/0.5、80%覆盖、至少8可靠帧、形状/多峰/边界/小收益拒判，不改任何旧阈值。
+
+现存原生测量（当前rerun；括号是0.3/0.5）：
+54–69：双臂方向+15/unknown，腕位置+15/unknown，右臂方向+15/+15。
+  双臂same-frame coverage=.875/.78125；高阈值低于.8，必须保留unknown。
+  右臂same-frame coverage=.9375/.9375；最佳移时残差.0825948/.0825948。
+  左臂受亮背景/遮挡影响，不能以右臂成功替换原双臂primary的失败。
+75–88：双臂/右臂方向均拒判（形状差异；部分有多峰）；腕位置仍给+15但不能用它覆盖方向失败，也不能将本窗概括为可信+15。
+98–111：双臂−5/unknown、右臂−5/−5，右臂最佳残差.0414899，显示后段局部提前。整片不是恒定慢15帧。
+
+20261015旧Sam07与当前rerun的上述lag/unknown模式一致；旧右臂首窗残差.0803854。旧非盲视觉记录指出源嘴边手势/后勾腿约60–61、原生75–77，接着手离开嘴边上举源62–63、原生78–79；仅支持局部序列延后，非动作永久删除。此处复用该记录，未声称本轮重新逐帧/实时播放检查。
+
+可以预注册右臂作为这个第二开发案例明确命名的分侧终点，但必须同时保留旧双臂主终点及其unknown，不能称同一原primary在两阈值都成功。若后续试验要求R15式双臂+腕四值全部可判，这个案例的原生端点已不满足：应作为拒判/覆盖压力检查，不可悄悄改门让它通过。
+
+原片、身份和原生输出（本次重新计算本地文件SHA）
+
+源视频：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/07_real_ary_v.mp4
+bytes2650826；SHA46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11。
+身份图：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/sam_altman_village_global_20221117_original.jpg
+bytes11301954；SHA4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42。
+当前原生raw：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s07_full_seed1_native_x0_00001_.mp4
+bytes2598530；SHAa4b0f8bdefa545638904ae027e50e9a00c494fce6586a1077851da944f56a32c。
+历史Sam07 raw：
+/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/07_sam_s1_baseline_00001_.mp4
+bytes2597087；SHA27e440b95326059b23b95b05516ec7fe9c2d000523bfccf0f3cafb7fd53be2ae。
+
+本次ffprobe独立确认源/当前原生均1312×736、141frames、r/avg fps24/1、5.875s、time_base1/12288。没有裁剪、重采样或按lag对齐后才测。
+已有source07_native_vs_archived_rgb.json确认历史/当前原生PTS/几何/长度一致，但0/141 RGB帧逐位相同，最大通道差48。不能称旧视频精确重放，也不能将同seed的新编码输出当独立随机样本。
+
+实际图、成功历史与条件
+
+实际提交graph，两份字节相同，SHA7f70147c6ff84cac0e45f4146003ade9c6a5fa9250a3e44175f7bbd2888c88fe：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_provenance/config.json
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/transfer_runtime_evidence/configs/s07_full_seed1_native_x0.json
+以这份实际transfer-root graph为准；configs/transfer_staged是早期准备版本，不能当实际提交图。
+成功history：同provenance目录/history.json，prompt97b7f386-0d1a-4994-9b2a-c43c107240c0，status.success/completed=true。
+router_audit.json SHA9bb2ee587e0763483b1e60fcff3aad9915be1375a40a974a0f391089bdf9df2c：completed_forward20、completed_calls1000、routed0、native_override1000。该旧router状态字符串仍sampling，完成判据取实际成功history及计数，不能只读该陈旧状态字段。
+
+完整提示词保存在实际graph node5；UTF8 SHA d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546。
+任务保持Sam识别特征、灰色毛衣/深裤，保留完整动作顺序、节奏、房间与构图，身份图只供外观；不新增事件提示。
+固定seed2026101311；Euler20，BasicGuider/CFG1；SigmaShift(video12,audio3)，21个ManualSigmas以graph node9原字符串为准；无Turbo LoRA。
+输入1312×736×141；24fps；semantic_fps2、phase_frames0，稀疏帧[0,12,...132]；保留原成对timestamp格式，不混入语义相位实验。
+
+conditioning.json SHAe56c1b5a19f83df3d628ed6eac60d72ae9799f683e0c571fd340d4896edb1043，实际内容：
+  inputRGB float32 SHA3d6a128eff3138e6f448460e10a60c2361850179bfc8e3feeb0c8afe481c17bf；
+  prepared video float32 SHA8ca1262bdc1972241623868d517380343a44f51e3b3b60c9a6b15188f828afc8；
+  clean dense reference[1,24,42,46,82] float32 SHA82d1e8f70a38ee0c5d7e447c3c9919ed5288e49f82677d3d3835bd7b7a1c4db3。
+noise.json SHA846b8827a356b10e922a76d3527b78106723764a6541c12534b2be17e0d06674：
+  video[1,24,42,46,82] float32 SHA94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96；
+  audio[1,32,2,235] float32 SHAddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3。
+图、条件、噪声都在上述provenance目录，可直接按完整对象比较，不只核种子整数。
+
+与R3环境的关系
+
+当前07 rerun运行于.9的GPU0 UUID GPU-REDACTED，service10445/port8461；R3是同.9的GPU2，不能把物理GPU编号等同。
+实际service记录：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/transfer_runtime_evidence/processes/service_10445.json
+SHA648a852ab0ba92292bbfdac11617634ab15a1c87db5bbf16f9238aad52246b78。
+其Python=/home/researcher/miniconda3/envs/comfyui/bin/python；CORE=/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI，与R3服务相同；flags含disable-dynamic-vram、disable-cuda-malloc、pytorch-cross-attention、enable-triton-backend。
+本次逐对象比较transfer_runtime_staged/configs/parent_core_hashes.json与R3同名文件完全一致；model_hashes_host9.json也完全一致。
+两者证据pins分别SHA7a30ef2461d58434130eee98134788b59458e1fce0b4ff0731f4660abdcbe88f、8fed70a700a0a5bc80e17188fa97b98df4d1de2770c6dfa97fb4afaf863e5194。
+模型为同pruned INT8 Ref2VA、Qwen32B NVFP4/AWQ、视频FP16 VAE、音频FP32 VAE；旧Sam服务actual backend审计记录Triton INT8成功调用而非CUDA INT8。
+
+这支持相同.9环境链，不是本轮重新加载验证所有软件/动态派发。R3扩展版本增加了component/native-feature probe，旧transfer native通过attention override显式Flash，新R17的native inactive走原生fastpath；这些图/接口差异不能由“同权重”抹去。下一轮应保留新图自己的native匹配/数值与实际条件门；若不能bitwise重放旧07，先记录差异并使用同runtime新native作为配对基线。
+历史旧07与rerun的实际条件/噪声相等已被核过：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/replication/source07_actual_input_reuse_audit.json
+SHA595430964a6f8b7bef81b92b1b1d3530bc80575e8ce22143b5493a8ed16f93a1。
+其已注明旧factor1 EventEmphasis与native router、被动x0包装差异，没有确定RGB差异的唯一原因。
+
+底层算子复用与必要适配
+
+实际QKV[1,56,87592,128]，attention输出宽7168→hidden5376；42是latent时间bin数，绝不是attention头数。
+context[1,6960,5120]；portrait950 tokens；reference video42×943=39606 tokens；target同数；audio470 tokens。
+reference video区间[7910,47516)，target video[47986,87592)。dense latent42×46×82、patch(1,2,2)→42×23×41。
+所以Full/同条件质量保持/RoPE计算原语和整序列尺寸均可复用，无须更改模型架构或空间分辨率。
+
+但事件时域必须从source07的54–69重新走原mapper：latent bins[16,22)，名义RGB覆盖52–72；不是source05的[14,20)/47–67。
+当前实际key/query区间分别[22998,28656)、[63074,68732)，frame_rows943；首时坐标7047.6667/7282.6667，原点差235。保留真实模型频率/位置接口，不手工把235当错误消除。
+
+R16与R17当前加载器都严格绑定source05 clean SHA75140...和窗50–65；它们应正确拒绝source07。若后续批准测试，另建case配置与只读输入证据，更新正确clean SHA/窗口/metadata pins和输出root测试；不得关闭验证或在旧冻结文件上改成通用绕过。R17±4物理帧的单位转换仍适用，但效果/符号不由source05结果保证。
+
+R16空间mask不能直接拿source05 mask搬过来。现代码要求每个采样帧左右肘腕confidence>=.3。只读source07已存pose显示52–72范围至少以下点违反：frame54左腕.239、55左腕.180、62左肘.247/左腕.188、63左腕.167、69左腕.186、70左腕.259、71左腕.202。原样移植会正确失败。不能降低阈值或静默补轨迹。若仍研究局部化，需要事前规定缺支持处理/仅可靠侧的单独实验，并明确它改变了mask覆盖；首个跨源验证可先用无需pose-mask的既有全空间执行器。此处只指出限制，不批准新规则。
+
+本案例没有足够证据保证早期中间native端点的双臂pose门控可用；最终右臂可测不意味着每个denoising index可测。不能把它直接当R15四读数闭环已准备通过的案例。
+
+证据文件的本地定位
+
+source姿态：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/old_sam/07_real_ary_v.pose.json
+SHA962d87b14a569515c01424e1b074dc8a827f02ee2b8cd8ca3fc7b23a534760bc。
+当前native姿态：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s07_full_seed1_native_x0_00001_.pose.json
+SHAf8d460cb6206c263f310748486417b8e562a6556fdd097aeacd6847d6d81b4a0。
+同目录threshold0.3.timing.json SHA0c7157038a768ca11657cf5bc8da99df3c17f27a186923fcc26c4b7408f33a61；
+threshold0.5.timing.json SHA2217cb8a3ecda115617b442335fa9e1f1124932df322e3caaecbf0cc222d076a。
+TRANSFER07_NATIVE_REVIEW.md SHA329a4d6dcbbb194b48ad70c86bbd369d6bf8e7832f86472be46443ddbe7c5a10。
+旧逐帧观察：/Users/researcher/DevProjects/h3-four-pair-evidence-review-20261015/sam07/REPORT.txt。
+
+四组档案筛选记录及备用
+
+Sam05：/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/05_sam_s1_baseline_00001_.mp4
+SHA9f685a46be46a4d63c805348880de979e3b9e1e6415731666e055c81d711713f；.9，已有双阈值13帧主窗，但仍是当前source05，不满足跨源要求。
+Musk05：/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/outputs/05_musk_s1_baseline_00001_.mp4
+SHAf05d0ae4a8c5e837698e0a8765020f418b0378658c5bea88be87f7eae1d422b0；历史.41，同source05且换runtime，不优先作为当前跨源检查。
+Sam07：选为第二开发案例，见上；其历史完整实际图：
+/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/remote_configs/07_sam_s1_baseline.json
+SHAa425af893c9c3fcb97ce76bf249f37fa41716a97989bb59ec846291ca6a7e88b。
+Musk07：备用不同身份；raw：
+/Users/researcher/DevProjects/h3-musk-bedside-pair-20261014/outputs/07_musk_s1_baseline_00001_.mp4
+SHA764d5a6092b92ba6f2cd01b22b5a1f6d9ef60e0b78f77b04fdf2eba6fe9c9081；.9 GPU2 service23421。
+完整图：/Users/researcher/DevProjects/h3-musk-bedside-pair-20261014/remote_configs/07_musk_s1_baseline.json
+SHAf9465279da45e78baa65df42776f380f3569bfa5fe69fbf1f6253fc662810650。
+旧非盲motion_review.txt记录源59–63、原生74–78的约15帧局部延后，并有额外过渡；本次所查timing-autoresearch归档没有同等完整的Musk07冻结pose表，因此不用它替代Sam07的量化证据，也不为本轮新增pose推理。
+
+前述四个baseline raw SHA均由本次本地文件重新计算，其他组的完整信息还见下载归档：
+/Users/researcher/Downloads/H3_四组完整原视频_Musk_Sam_20261015/manifest.json。
+选例不是随机抽样，不能估计故障率；固定54–69之外所有原窗/完整视频/形状和编辑质量必须保留。历史Full/x3已有改善不作为本次选例依据，也不等于将来的R16/R17或闭环在第二源上成功。

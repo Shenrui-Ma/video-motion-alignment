@@ -1,0 +1,108 @@
+R13 attempt2 output-root patch — independent read-only review
+2026-10-16; reviewer h3_timing_prior_art_20261016.
+Only this report written. No implementation edits, tests executed, remote access or GPU use.
+
+Conclusion
+The specific H3EventAudit root-copy defect is fixed in the inspected local source. No additional blocking path mismatch was found in the actual sealed R13 graph and the helper functions it invokes. This supports packaging/upload verification and the normal retry gates, not a claim that the GPU fork/replay has passed. The old runtime_bundle.tar.gz still contains the defective helper at this inspection cutoff; root must deploy the newly hashed retry payload, not reuse that old helper.
+
+Correction to previous review
+analysis/independent_review.txt missed the auxiliary H3EventAudit.audit_root literal. Its statement that graph/config paths use R13 was true for graph values but insufficient for their runtime validators. Actual attempt1 failed at node6.get_noise before model prediction. Core-only real Comfy CPU tests did not exercise this auxiliary graph entry point. This was a review coverage failure; the first review must not be treated as proof that the complete production graph was executable. Preserve that review and the failed attempt as historical evidence.
+
+Patch evidence
+Compared the current helper byte-for-byte against the retained runtime_bundle.tar.gz entry. The current file is exactly old.replace('timing_counterfactual_r10_20261016','timing_one_step_fork_r13_20261016'), with exactly four replacements:
+1. allowed root in audit_root;
+2. matching rejection message;
+3. reference-node audit_dir default;
+4. noise-node audit_dir default.
+No tokenization, VAE, noise generation, cache logic or scientific operator changed. Across existing bundle members, the only other local difference was configs/source_manifest.json, reflecting the separately authorized late-bound Source. The newly added test is not in the old tar.
+
+Hashes at inspection
+extensions/H3EventAudit/__init__.py:
+  95b9f9fd260226252d029b230ea0944517e0c06b69949803b7f9260e6908c56f
+tests/test_graph_audit_root.py:
+  8fc3749e73b14a603c79dd6b280f411b2569a96e756386d992ba779f6f400ab1
+Unchanged extensions/H3OneStepForkAudit/core.py:
+  f4434cec9e71839cbe346fea78f970829cf4c33ef6d91674edf010481f45eed7
+Unchanged configs/protocol.json:
+  48b89d1b0118e742ef057647b2aea41fde9ae1f78d4f2b5e4051822253750770
+Unchanged configs/r13_s05_one_step_fork.json:
+  a53299856b77a5a9c1765e873e67705a3d0e5b26dc2e34e1bb28ca60700693db
+
+Actual graph/helper path inventory
+All paths below use /data5/researcher/h3_runs/timing_one_step_fork_r13_20261016 unless stated otherwise.
+• node5 H3EventAuditReference: audit_dir=/audit, shared run_id=05_sam_1312x736_shared_v3. Calls the fixed audit_root, writes prepared tensors and shared conditioning in R13.
+• node6 H3EventAuditNoise: same /audit, run_id=r13_s05_one_step_fork, pair_id=05_sam_1312x736_2026101311_v3. Calls the fixed audit_root before constructing CachedNoise; later cache/noise manifest use that already resolved root. This is the exact previously failing entrance.
+• node51 H3PairConditionSnapshot: source_audit_dir=/audit means the freshly encoded R13 shared-condition manifest, not the historical R10 Source. It reads the shared run_id and writes the R13 per-run snapshot. It has no stale literal root. Its generic guard only requires an absolute path; the sealed graph/preflight fixes the actual R13 location, so this is not a general-purpose closed-root guarantee.
+• node60 H3OneStepForkAudit: source_manifest=/configs/source_manifest.json, audit_dir=/audit/fork. Config validates an absolute output directory; RouterState/snapshot files derive from this supplied R13 root, with exclusive snapshot-directory creation. Source reads the bound historical R10 directory and hashes; those R10 occurrences in Source manifest, bind_source and preflight are intentional and must remain.
+• nodes21/22 read relative input basenames. launch_remote copies owned inputs into R13/input; model loaders read pinned shared models. No output directory is supplied by these nodes. Other graph nodes are loaders, sigma/grid or video-component extraction, with no independently hard-coded R10 output.
+• H3OneStepForkAudit dependency imports and the observer resolve sibling files relative to __file__. H3CounterfactualRouter/TemporalRouter/X0Readout helpers on this path have no remaining R10 output literal.
+• service.RUN and launcher instance directory are R13; port/readiness code remains as previously reviewed. No changes to R10 files are introduced by this patch.
+
+New tests and evidence limitations
+Read tests/test_graph_audit_root.py and audit/local_cpu_retry2.log. The new positive test reads the actual production graph, validates node5/node6 audit_dir and calls the actual node6.get_noise. Only Path.mkdir is mocked; audit_root is not stubbed, so the original defect would fail this test. The negative test rejects relative output and the R10 parent output, requiring no mkdir. Both passed in the saved log.
+The full saved local retry log is NOT all-pass: 11/12 passed, test_pending_binding_and_graph failed because the real local source manifest is now bound while that test expects the original pending template. It gets 'source file mismatch: analysis/parent_pair_check.json' rather than 'incomplete' on the Mac, where the remote historical files are absent. This does not demonstrate a GPU-path regression, but it is an unresolved test-fixture assumption at this cutoff. Do not summarize it as 12 passing tests. Root has been notified; use a genuine temporary pending fixture or explicitly separate the two passing root-regression tests from the existing suite's failure.
+The new tests do not execute node5's actual encoder, node51's full tensor checks or remote filesystem permissions/symlink layout. Their coverage closes the known validator omission, not the whole production graph.
+
+Attempt1/retry boundary
+Read audit/root_attempt1_cleanup_check.log: service31704 absent; listed remaining compute processes use other UUIDs, not R13's pinned GPU-REDACTED. Root reports the failure happened in0.03s before any model call and failed logs/process records are archived. This reviewer did not access remote logs or independently verify all supervisor/controller/watchdog exits. Those exact identity/cleanup and archived-attempt checks remain the deployer's gate before retry; no changes to cleanup code were needed for this root patch.
+After packaging, independently compare deployed helper SHA to95b9f9... and fork core/protocol to the unchanged values above. Retain the old bundle/manifest and failed history. Attempt2 still requires the exact source binding, readiness, six-NFE replay and final cleanup evidence; no scientific result is inferred from this retry review.
+
+ADDENDUM — final retry package and fixed test fixture
+The preceding11/12 result remains an accurate historical record. Subsequently read audit/local_cpu_retry3.log: all12 tests passed in7.003s. Inspected test_pending_binding_and_graph: it copies protocol/parent graph/production graph/queue into a TemporaryDirectory, writes only that fixture's pending source_manifest, then invokes unchanged production check(pending). It no longer depends on or rewrites the real bound Source. No production preflight change was used to make the test pass. This closes the previously noted fixture issue.
+Independently recomputed runtime_bundle_v2.tar.gz SHA:
+  241b3bf0631574c939382dafdf1402f0bde5a46c3db5e5d521fc4445e8304e11.
+All82 immutable files in current configs/bundle_manifest.json match both local bytes and v2 tar entries. Read audit/root_retry2_deploy.log: root's remote check reports82 verified files, core f4434cec..., helper95b9f9fd..., and failed logs/process evidence preserved under audit/attempt1_failed_before_prediction. This reviewer verified the saved deployment log, not a separate remote session. The old tar is retained; the deploy target is v2. No remaining test or packaging blocker was found for this narrow retry patch.
+
+ADDENDUM — R13 n10 fork_native versus R12 actual native at index11
+Scope: read-only feasibility/signature audit, not a claim of already observed R13 equality. n/m are zero-based sampler indices. R13's source n10 means reconstruct one next state from historical R10 x10, then evaluate the native model at m11. The correct R13 branch is fork_native, not replay_full. R12 actually chooses native at index10 after Full was chosen at6,7,8,9.
+
+Evidence already available locally
+Read actual counterfactual audits:
+R10: /Users/researcher/DevProjects/h3-timing-counterfactual-r10-20261016/analysis/pose/pilot/r10_s05_fixed_full_probe_provenance/router_audit.json
+R12: /Users/researcher/DevProjects/h3-timing-native-observer-r12-20261016/analysis/pose/pilot/r12_s05_native_observer_provenance/router_audit.json
+Also read R12 analysis/pose/replication/complete_integrity_gate.json, live_prefix_gate.json and controller_decision_table.json.
+For actual Full branches at6..9, R10 and R12 have identical same_input, raw video/audio signatures, normalized video/audio signatures, seed, reference signature, sigma and sigma_next. Their native branch at10 has the same equalities. This directly supports equal x10 and equal native y10; the argument is stronger than just matching schedule names or lag values. Full R12 history is exactly[6,7,8,9]. Its index10 selection is native/OFF_ALIGNED.
+
+One necessary metadata distinction
+Condition SHA is not equal across R10 and R12:
+  R10=384ee146433704dcfbec45a1729007294ad95331f1b67aefa92ec82cdf60bac6
+  R12=3155b5ec1eb6e19c864c864c647a5a8522f0b1b17fe48e093eb075632e327061
+Recursive comparison of complete condition trees found exactly two differing leaves:
+  original.positive[0].uuid and processed.positive[0].uuid.
+R10 UUID=2b360ee5-2049-4bdb-8085-d04021c248ce;
+R12 UUID=493ab060-b996-4b08-9764-99b06309cff1.
+All other tree fields were equal. R13 restores R10's UUID. Cross-run comparison may explicitly report this run-identity difference; it must not erase other fields or claim full condition SHA identity. The actual equal predictions through10 provide empirical evidence that these UUIDs did not alter the prefix numerics; they do not license ignoring arbitrary conditioning differences.
+
+Exact comparison to perform when R13 artifacts arrive
+1. R10/R12 raw input10 packed signature must agree, and R13 pair.source_x must bind that same signature:
+   bf4925d9e0fc40e406cc1db703d7f9021096149639484e66b6413d986478ac43
+   shape[1,1,3817216], FP32,15268864bytes.
+2. R13 pair.source_native must equal R12 branch(10,native) raw video/audio signatures:
+   video d36b301a83a960cdc9dfb7f409dfc4e1cc3a2fe65890d5ce139b1833d0c2c19d
+   audio 97e9d4ba44020f6ab2ecbbdf4be81f45baec4d5bbe5525ced4c7e979f3f8c8d6
+3. R13 fork.pairs[source_euler_index=10].u_native.packed_signature and prediction(10,fork_native).input_signature must both equal R12 branch(11,native).same_input:
+   29c9f7c6271f5ae3dd3ab023a2c3e106a84486bec4cd1668c863908287daa3cf
+   shape[1,1,3817216], FP32. R12 did not separately archive raw input11 in its inputs list (only6/10/14), so this is comparison against the recorded actual model-input SHA, not two separately stored input11 tensors. The R13 n10_u_native_raw.pt supplies one reconstructible raw buffer.
+4. Compare R13 prediction(10,fork_native) actual raw and normalized endpoints against R12 branch(11,native):
+   raw video a171aed9b0bc4a8c51db2f4df229f97d0cb464c1f8b5323610bfab1edf7d3bc6
+   raw audio cfc9b57834c8df5f65fd564fe16228c877a3668db3730b2c4079703775c89984
+   normalized video same as raw video;
+   normalized audio 0b4c19d38cb753111a9d8edb2c93bf323fc88d141c3369b4c04b92197c986a7d.
+   Video shape[1,24,42,46,82], audio[1,32,2,235], FP32; normalized audio=raw/4.
+5. Verify actual artifact file hashes then tensor hashes, not merely JSON claims. Needed remote files:
+   R13 root/audit/fork/r13_s05_one_step_fork.json
+   R13 root/audit/fork/r13_s05_one_step_fork_snapshots/n10_u_native_raw.pt
+   R13 root/audit/fork/r13_s05_one_step_fork_snapshots/n10_fork_native_endpoint.pt
+   R12 root/audit/counterfactual/r12_s05_native_observer.json
+   R12 root/audit/counterfactual/r12_s05_native_observer_snapshots/step010_input_raw.pt
+   R12 root/audit/counterfactual/r12_s05_native_observer_snapshots/step010_native.pt
+   R12 root/audit/counterfactual/r12_s05_native_observer_snapshots/step011_native.pt.
+   R12 step011_native.pt recorded file SHA=22de239a27e17e766463491bb488016a3a873bdb66adbe6d6636c5259c505f08.
+   Different containers/run metadata mean whole .pt file SHA need not equal across R13/R12; tensor raw SHA is the cross-run criterion.
+6. sigma11=.9075630307197571, next=.8888888955116272; complete FP32 grid, video/audio PDD shifts12/3 and physical PDD index11 must agree. R13 probe NFE3 and R12 model NFE15 are bookkeeping counts, not the timestep to pass to PDD. R13 computes one native forward on this state with no update/callback; R12 integrates its result afterward. Require pinned runtime/core/model/backend and no input/condition/RNG mutation, plus R13's mandatory replay_full native11 exact gate before accepting the counterfactual comparison.
+
+Do not compare to the wrong trajectory
+R10 actual native11 reads a Full-updated x11 with signature58834082dea7fbd488e8038238b4a56c0e2fd05991b465250fb8e9f08d3f2090. It should match R13 replay_full, not R12 native11. R13 n14 fork is not expected to equal R12 native15 because their histories have already diverged at10..13. n10 is the special bridge where R12 realizes the single native step that R13 reconstructs.
+
+Interpretation if the gate passes
+It validates that the n10 native fork corresponds to R12's actual next state and endpoint, and that the later comparison with the Full fork is a local causal comparison with the same prior trajectory. It does not make R13 an independent video sample or establish which final policy is best; R12's remaining11..19 trajectory is additional evidence. Matching coarse lag alone is insufficient. If input SHA differs, diagnose Euler arithmetic/source history/coordinate errors before interpreting endpoint differences. If input matches but output does not, investigate runtime/conditioning/nondeterminism rather than attributing it to a scientific effect of choosing native.

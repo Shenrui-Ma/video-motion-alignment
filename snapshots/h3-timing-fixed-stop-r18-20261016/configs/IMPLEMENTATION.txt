@@ -1,0 +1,102 @@
+R18: fixed stopping after zero-based index11
+Prepared 2026-10-16, local-only implementation. Root owns admission, deployment and GPU start.
+
+Scientific change
+The single graph is copied from the actual R3 Full graph. The sole scientific
+field change is node50.step_end15 -> 12, with step_start6 unchanged. Full reads
+the matching reference time bin for query bins14..19 (source frames50..65), all
+943 spatial rows and all50 DiT blocks, alpha1/radius0/offset0:
+  O_new = O + m_ref*(O_same - O_ref).
+The H3TemporalRouter core.py, layout.py, component_probe.py and native_features.py
+are byte-identical to R3. Its __init__ adds only isolated output-root and frozen
+experiment-parameter validation before installation. No LoRA, timestep/sigma,
+seed, geometry, prompt, conditioning, reference preparation or noise changes.
+
+There are20 native model evaluations,20 Euler updates,20 callbacks,1000 block
+calls and300 routed block calls. Indices6..11 are the seventh through twelfth
+model evaluations. Index12 is the first unmodified prediction after Full stops.
+This is a fixed-mask causal control informed by a seen development trajectory;
+there is no online pose measurement, dynamic stop decision, new execution
+operator, new training or established architecture novelty in this experiment.
+
+Passive readout
+H3X0Readout/core.py changes only CAPTURE_STEPS from5,6,7,8,9,10,15,19 to
+5,6,7,8,9,10,11,12,15,19. It keeps the original executor/callback, returns the
+original sampler object, and normalizes CPU copies using actual audio scaling.
+An independent sampler_final.pt remains separate from x0_step019.pt; Euler
+rounding means their bitwise equality is not required.11/12 add archive overhead,
+not model evaluations or sampler updates. Do not describe this as zero overhead.
+
+Exact comparison boundaries
+The actual original R3 manifest contains5,6,7,8,9,10,15,19. Only5..10 can be
+compared as saved common-prefix endpoints from that run. R10's actual audit
+binds index11 to step011_full.pt as chosen_file and index12 to step012_native.pt
+as an unchosen counterfactual. The corresponding archive paths, complete file
+SHA and normalized stream signatures are pinned in parent_r10_endpoint_binding.
+R18index11 must match the actual R10 Full endpoint. R18index12 must match the
+actual R10 native endpoint at the shared state after Full6..11, not its chosen
+Full12 endpoint. UUID/run IDs differ; actual content/signatures must match.
+These checks do not establish equality of unarchived R3index11 or all20 steps.
+No prediction that R18final will retain alignment is made before its result.
+
+Verification completed locally
+audit/local_cpu_attempt1.log:16 tests passed. attempt2.log:18 passed after adding
+actual snapshot metadata/content rejection tests.27 Python files AST parse.
+Tests execute the actual EventAuditNoise root-validation entry, enforce graph
+delta/pinned inputs/one-arm queue, exercise1000 small dense-attention block
+wrappers with300 routed, verify outside-schedule native outputs and QKV/RNG
+invariance, and exercise packed/Nested x0 handling, callbacks, corruption,
+normalization, failure propagation, exact added snapshots and decoder admission.
+The synthetic wrappers are not a real Comfy sampler or GPU forward.
+
+tests/real_comfy_cpu_smoke.py is prepared for root to run under the existing
+remote Comfy environment. It uses actual MiniMaxH3Model meta attributes,
+ModelPatcher.clone, official attention_pytorch/wrap_attn, actual archived source
+references and actual node root guards. Only audit storage is redirected after
+the path gate; small CPU attention replaces the GPU kernel and passive QKV
+probes are stubbed. It checks20*50 calls/300 Full and no CUDA initialization.
+It does not prove actual20 Euler callbacks or numerical full-weight inference.
+The original Full operator has existing R3 GPU evidence; no extra GPU warmup
+or quality arm is queued. Runtime warmup/efficiency evidence is inherited and
+must be described as such; actual elapsed/logged inference costs are recorded.
+
+Root deployment sequence
+1. Review source_delta.patch, graph_diff.json, protocol, preflight and tests.
+2. Recheck GPU2 UUID GPU-REDACTED and port8478,
+   previous own process exact cleanup, available memory and no queued work.
+   admission.json currently allows no own external compute. Root may replace
+   this administrative file with exact current permitted PID/UID/start/cmdhash
+   for a simultaneously authorized R17 run after live verification; no stale
+   permissive PID is baked into this candidate.
+3. Copy to the formal remote root, run the actual CPU smoke and local unittest
+   suite there with CUDA_VISIBLE_DEVICES='', preserve every attempt log.
+4. Seal final immutable payload after administrative admission is final:
+   python3 scripts/build_manifest.py --manifest audit/final_bundle_manifest.json
+       --tar audit/final_bundle.tar.gz
+   --check verifies payload digests. Old seals must not be overwritten.
+5. Root starts scripts/launch_remote.py. It runs preflight before service setup;
+   readiness asks object_info/H3TemporalRouter with a string key. Controller
+   consumes exactly one sealed job and finally stops only its owned service.
+   Existing stable supervisor, exact process identity, lease, dispatch audit,
+   INT8 row-chunking and PyAV compatibility behavior are retained.
+6. After exact service cleanup, CPU-only post-run verification:
+   CUDA_VISIBLE_DEVICES='' python scripts/verify_completed.py
+       --output audit/completed_gate.json
+   It validates executed graph/history, actual conditioning/noise,20*50 calls,
+   routing schedule, exact11-file tensor inventory, normalized metadata,
+   actual R3prefix and R10index11/12 tensors and archived process cleanup.
+   Root separately inspects live resource release and playback/pose results.
+
+Evaluation
+Reuse frozen source window50..65, auxiliary69..81/80..92/99..111, confidence
+0.3/0.5 and2-frame tolerance, retaining unknown. View fixed frames55/86/105 and
+original-timing video; do not retime outputs. Compare R3Full6..14, R12 early
+stop and this shorter fixed mask. Success would establish a useful schedule
+control in this case, not adaptive selection or protection of ordinary cases.
+Single known problematic source05/Sam/seed2026101311 remains a development
+case. Ghosting and other limb/window costs must accompany timing readouts.
+
+Files changed are confined to this new R18 root; no prior frozen source or
+running task was modified. No remote operation or GPU was performed by this
+implementation agent. Post-run validator's full integration awaits actual
+R18 outputs; its snapshot checks are unit tested, not represented as completed.

@@ -1,0 +1,7 @@
+R85 CPU 媒体消费计划
+1. 从最终 producer seal 和 scientific_contract 绑定固定三对，复制原 source/target/provenance 和原 prompt 元数据。
+2. Root STARTED 以后绑定该次 service generation。消费者只读远端实际 gate、jobs、history、router、graph 和最终视频；不调用 producer verifier、服务或 GPU。
+3. 每对所有 gate checks 均通过，并确认同一 service generation、原条件/噪声/前六步检查，再收集实际完整 158 帧成片。
+4. 用原 24fps frame index 提取前147有效帧，三列同比例同步横拼。保留完整158归档、黑底中文底部caption、目标图和全部三对状态。
+5. HTML内嵌已完成的视频与目标图，缺失/失败为PENDING/FAILED_GATE；生成成功和任务成功分别记录。自动观察器不参与本轮，固定steps6..14。
+沿R74 collect/verify_gate、R73 Pillow caption与同帧render模式制作最小独立消费包；不继承它们启动verifier或tracker的代码。

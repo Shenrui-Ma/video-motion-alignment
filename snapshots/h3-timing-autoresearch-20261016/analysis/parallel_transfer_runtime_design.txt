@@ -1,0 +1,112 @@
+Independent transfer runtime: offline engineering preparation
+
+Owner scope: transfer_runtime_staged/** and this design file only.
+No remote write, GPU allocation, server launch, model/dependency installation, or
+primary runtime mutation was performed. All original scripts/extensions/configs
+remain untouched. The independent reviewer reads the staged safety code separately.
+
+Instance: .9 GPU0 UUID GPU-REDACTED, localhost8461,
+/data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0.
+Primary: current PID49019, GPU2 UUID GPU-REDACTED,
+localhost8460, original timing_autoresearch_20261016 directory.
+The PID is not enough: launch requires fresh UID/start ticks/raw cmdline SHA and
+full registry matching the reviewed primary command/core/GPU/port.
+
+Scientific admission remains root's decision after the original control results.
+Prepared queue: source05 seed2026101312 native/mass, source07 seed2026101311
+native/mass. The original four reviewed JSON graphs change only audit/output root.
+Prompts, seed, sampler/sigmas, models, backend, INT8 row guard, geometry, frame
+count/rate, alpha, half-open layer/step selection, windows, x0 capture, and source
+input bytes remain unchanged. Source07 is a known historical failure, not blind
+held-out evidence. No wall-time comparison is valid under concurrent GPU workloads.
+
+Why the startup barrier is necessary:
+Both the primary and transfer job submitters inspect all own GPU compute PIDs.
+The new PID is unknowable before spawn. If Comfy acquires CUDA first and primary
+checks admission before its permit is written, primary stops itself. The staged
+bootstrap therefore writes its real PID/start/hash before importing torch and
+waits. The coordinator installs reciprocal exact permissions while no new GPU
+process exists, then releases only the validated PID/nonce/GPU/port/identity.
+Both sides use the existing external_identity representation. No wildcard UID,
+command prefix, all-own-process exemption, or GPU-only authorization is added.
+
+Engineering deltas:
+- service.py: root/GPU/port isolation, mandatory gate, durable registry before
+  the short startup poll, bounded nvidia-smi query. Numerical command flags same.
+- job.py: separate client ID only. Existing submit-once and per-job admission same.
+- bootstrap: stdlib barrier before torch import; all compatibility/backend code same.
+- supervisor/controller/INT8/backend-audit: exact copies of original files.
+- watchdog: additionally monitors exact coordinator and primary lifecycle.
+- launch_remote.py: original setup/provenance/readiness split into functions so
+  coordinator can authorize before releasing CUDA; direct launch disabled.
+- startup_barrier.py, coordinate_launch.py, primary_lifecycle.py: new isolated
+  rendezvous, explicit activation, reciprocal admission, bounded lifecycle/cleanup.
+- frozen extensions: copied byte-for-byte, including currently frozen PhaseRoPE
+  solely to preserve required node readiness; queued graphs remain native/mass.
+- inputs: only the three verified media files copied; model files are never copied.
+
+Coordinator stages:
+1. Verify pinned path and frozen manifest. Require explicit execution and reviewed
+   decision note, live expected primary, validated HTTP queue snapshot, and idle
+   GPU0 (no processes, >=40000 MiB free, <=512 MiB used, zero utilization); require
+   >=40 GiB host MemAvailable. Lock own coordinator plus primary admission writer.
+2. Save original primary admission. Write exact primary permit into transfer's own
+   admission. Reuse original core/checkpoint hash/size+mtime verification.
+3. Start supervisor -> real Comfy child; it waits before importing torch. Match
+   ready identity with exact service registry. Repeat resource/host admission.
+4. Atomically append exact new service permit to primary admission, save snapshots,
+   start watchdog, then issue bounded release containing both admission hashes.
+5. Verify required nodes and start sealed sequential controller. Keep coordinator
+   alive to supervise; no new job is submitted by the bootstrap itself.
+6. Stop all and only exact transfer identities on failure/completion. Preserve
+   unrelated PIDs and user processes. Restore old primary admission only after
+   confirmed own process+GPU absence and only if installed bytes remain unchanged.
+
+Natural primary completion:
+After initial release, transfer can continue when the original primary finishes
+normally. Exact original registry remains; controller says all_queued_jobs_complete;
+cleanup.service_record equals the initial registry; process_absent and
+own_compute_absent are true; actual PID is absent. Stop/reap/journal races receive
+up to45 seconds to establish these facts. This is a bounded wait for evidence, not
+permission by timeout. The HTTP port may close normally and is not re-required by
+ongoing guard. Abnormal exit, new PID/registry, missing completion evidence or
+changed admission fails closed. Root agreed not to restart primary or introduce
+new own GPU processes/GPU3 decoding before transfer ends; CPU assessment may continue.
+
+The primary must be live during initial authorization and before CUDA release.
+Completion during that narrow initial window cancels safely; automatic admission
+of a previously absent/restarted primary is outside scope.
+
+Cleanup protections:
+Exact UID/start/full command identity checked again before each signal. No primary
+signals. Controller stops before service to prevent queued work from advancing.
+Supervisor can reap the service; watchdog and all spawned helper PIDs are reaped.
+Admission restoration is driven by saved original/candidate bytes, including a
+signal arriving between atomic replacement and bookkeeping. Changed external
+admission is flagged and not overwritten. SIGKILL cannot guarantee restoration:
+watchdog still releases transfer GPU, stale exact permit remains non-general and
+requires root recovery using saved records. A fresh invocation cannot auto-retry
+existing uncertain/completed job records. No old prepare_runtime.py is included.
+
+Tests and review:
+CPU-only unit/subprocess tests live in transfer_runtime_staged/tests. They cover
+successful no-torch barrier, timeout/no-sentinel, stale nonce/PID/identity/GPU,
+expired release, peer death/restart, admission tampering, compare-before-restore,
+unrelated PID refusal, direct-start refusal, graph-only path changes, verified
+natural completion, failed/new primary, cleanup pending/fail-closed, and no ongoing
+HTTP requirement. Mac tests inject process readers; true Linux /proc/HTTP/GPU runtime
+has not been deployed or tested. AST compilation checks every copied/new Python file.
+The frozen bundle manifest and delta patch make review concrete and reproducible.
+
+Remaining limits:
+- Shared GPU admission is observational, not a reservation against another user
+  starting immediately after the last check. No other user's process is killed.
+- Primary admission writer lock is cooperative; root must not bypass it. Atomic
+  replacement prevents partial JSON reads but cannot exclude an uncooperative writer.
+- Existing immutable checkpoint/core paths and native OS/driver/compiler caches are
+  shared; do not mutate them while either instance is active.
+- Resource thresholds are conservative preflight checks, not complete host OOM
+  prevention. Root should retain host monitoring during true parallel operation.
+- Actual child CUDA startup, GPU cleanup, HTTP readiness, and Linux signal/reaping
+  behavior require root's later approved deployment smoke; this file does not claim
+  those happened. No additional scientific result follows merely from this runtime.

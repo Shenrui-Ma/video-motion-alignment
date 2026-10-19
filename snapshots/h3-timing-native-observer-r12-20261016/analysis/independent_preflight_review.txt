@@ -1,0 +1,62 @@
+R12 independent read-only prelaunch review
+Reviewed 2026-10-16. Reviewer: h3_timing_prior_art_20261016.
+
+DECISION
+No new blocking implementation defect found in the frozen R12 payload. The implementation is consistent with the declared native-first/current-physical-step experiment. It is suitable to proceed through the root-owned actual Comfy CPU smoke and subsequent admission/readiness gates. This is not a certificate that those gates have already passed, or that the controller improves a generated video. I did not execute tests, import the experiment runtime, connect to a server, or start a GPU. I read source and existing test evidence and independently hashed local/archive payload bytes.
+
+FROZEN IDENTITIES
+Root: /Users/researcher/DevProjects/h3-timing-native-observer-r12-20261016
+bundle.tar.gz: 8c286750f0c6b12bb2fc234ff55d8bfea73364f273a4feec3bdf5da0d4e9ad50
+configs/bundle_manifest.json: fe29ac0b00ffa676afb67ff81ba090bea7ae9036d9eb1867bea79bc3afc4b5b0
+configs/protocol.json: 36ed6f433f4ee26ac06be136a275a171f11c6c16bf6c91fd3697d2e27b6f6807
+extensions/H3NativeObserverRouter/core.py: 8d1557c3fccd33d3aa843239f528a2342878fa504dfcf4bfe20e3d295fc4c10b
+scripts/compare_parent.py: 072e1279c0faa08bccdcc08d58442ef74065504e41f70b19e6c957d7b4c40e7b
+scripts/launch_remote.py: c96a3c388e733132dd4cd0dc8ea051edd773173dd77687edd76f511d5aaece83
+All 80 manifest payload entries matched the local files and the corresponding entries inside bundle.tar.gz. No implementation file was changed by this review. This report is an additional review artifact, outside that frozen payload.
+
+1. STARTUP AND ACTUAL GRAPH WIRING
+Read analysis/native_observer_handoff.txt; configs/protocol.json, admission.json, queue.json and r12_s05_native_observer.json; scripts/launch_remote.py and preflight.py; extension __init__.py and guards.py.
+- The earlier R10 tuple-key readiness bug is absent: launcher indexes spatial_info['H3SpatialMarginalRouter'], then separately loads H3NativeObserverRouter and verifies the native_observer/off/fixed policy enum.
+- Graph model path is node41 MiniMaxH3SigmaShift -> node50 H3NativeObserverRouter -> node52 H3X0Readout -> node7 BasicGuider -> node10 SamplerCustomAdvanced. Nodes50 and7 share node51's positive conditioning. Noise is node6 H3EventAuditNoise; sampler is Euler. The new wrapper is not an unconnected graph node.
+- Node apply clones the model, installs all 50 BlockPatch objects and both SAMPLER_SAMPLE/PREDICT_NOISE wrappers sharing one State. It rejects duplicate registration and pre-existing DiT/attention patches. It checks the frozen H3 geometry and PyTorch attention entry point.
+- Official BasicGuider class identity accepts Comfy's actual file-path module alias only when source path, direct bases and exact set_conds method code match. The separate real-Comfy CPU smoke loads BasicGuider via nodes.load_custom_node, not just its canonical import.
+- preflight pins parent evidence SHA, requires the exact native_observer node configuration, canonicalizes only administrative root/run identifiers and node50, then compares the complete graph with R3 Full. The sealed queue has exactly one formal job.
+- The frozen startup admission permits no other own-user compute PID and refuses any process on the selected GPU. It is more restrictive than the protocol's maximum of two owned GPU jobs. Other users on other GPUs are outside the own-user cap. Root must finish the authorized predecessor lifecycle before launching; R10 trajectory pairing and R12's actual CPU smoke are explicit external root gates, not automatically inferred by launch_remote.py.
+
+2. CONTROL SEMANTICS AND PHYSICAL INDEX
+Read extensions/H3NativeObserverRouter/core.py and observer.py in full.
+- Every physical index runs native first on the actual current sampler state. Native here means our Full operator is disabled; it is not a separate unperturbed trajectory.
+- Indices0..5 select native. Index5 is observed and archived but selection_decision returns PREFIX_PASSIVE and previous_choice remains False. There is no pending index5 decision.
+- At indices6..19, the current native endpoint controls the same index's optional Full evaluation. Accepted lag>=4 selects Full; accepted -2..2, lag<=-3 and unknown select native; lag3 holds the preceding actual chosen branch. previous_choice is updated only from the endpoint actually returned to Euler.
+- Full endpoint observations are saved but never enter selection_decision. This experiment is therefore not an endpoint-benefit/shape acceptance selector.
+- The underlying Full operator remains the existing mass-preserving, radius0, offset0, alpha1, all-50-block intervention on the fixed physical source window50..65/query bins14..19. The active physical range is now6..19, not the old fixed6..14 mask. This is explicit in protocol and NFE accounting.
+- The inherited RouterState forward_index counts complete model evaluations. State.phase and callback_count separately bind NFE to physical index. PDD receives the original complete 21-element sigma grid and actual same-step sigma for both evaluations. Existing passive component/temporal probe positions are NFE-indexed and labeled as such; they must not be presented as fixed physical steps.
+
+3. SAME-STATE PREDICTIONS, COORDINATES AND CALL COUNTS
+- PredictionProbe validates the official guider, seed and the same model_options object. It snapshots sigma with an explicit CPU copy, preventing aliasing on CPU. It records the complete packed x signature before either branch.
+- Before/after each evaluation it checks x, timestep, original+processed conditioning and full PDD grid; CPU/current-CUDA RNG is compared without rewinding it. A detected mutation fails the job. Both branches use the same executor and processed conditions; there is no latent optimization/update between them.
+- authorize/finish_forward require one complete 50-block evaluation per branch. Native routes0 blocks; Full routes50. A Full branch is impossible without a current native decision authorizing it.
+- Only the chosen output is returned to the original sampler. The original sample_euler performs its single update; record forwards the original callback exactly once. Callback x is verified against the pre-update transaction input, and callback x0 against the chosen endpoint.
+- Final totals require20 callbacks,20+K model evaluations and50K routed blocks, with K equal to actual Full selections. K is not hard-coded to9 or29 total NFE. The last physical index19 can trigger and is costed.
+- Endpoint archives use detached CPU copies; video normalization is identity, audio is divided by4. Returned model output is untouched. Input archives at indices6/10/14 are complete raw packed FP32 x with the complete grid, seed and condition/reference signatures; final raw sampler video/audio are also saved.
+- These raw input files reconstruct the sampler tensor state, not a standalone model/conditioning environment. Replaying them also requires the pinned model/core and regenerating conditions with matching signatures. The archive does not store every conditioning tensor as a portable independent checkpoint.
+
+4. VARIABLE INVENTORY AND HISTORICAL PAIRING
+Read scripts/compare_parent.py and tests/test_archive_inventory.py.
+- validate_inventory independently reconstructs current native decisions, including lag3's preceding actual choice and all three policies. It requires one ordered native row per physical index, one immediately following Full row only when selected, NFE indices0..20+K-1, unique archive paths, exact chosen branch/file/raw signatures/NFE list, actual active-index/count totals and raw input inventory[6,10,14]. Full observations cannot affect this reconstructed gate.
+- compare verifies archive file hashes, tensor hashes, normalized-to-raw coordinate reconstruction, metadata, physical sigma/nextsigma, per-NFE50-block/routing counts and the exact .pt file set. It checks actual conditioning/layout, initial noise, seed and sigma grid against the parent.
+- Historical endpoint comparison is intentionally only the available common native-prefix capture at index5. There is no claim that R12's changing control trajectory must equal R3 Full at later steps or final output. The eight current independent x0 captures plus final result validate the current chosen trajectory instead.
+- NON-BLOCKING CHECKER HARDENING: compare_parent checks the independent readout's declared capture_steps_zero_based list, then iterates actual captures, but does not itself require the actual captures index list to equal all eight declared indices. The unchanged producer H3X0Readout/core.py explicitly enforces this actual list before setting status complete (line198), so no ordinary production failure path was found. The final root-owned evidence check should still inspect that actual list rather than treating its declaration alone as inventory. This is a limitation of independent post-hoc completeness verification, not a reason to alter the frozen controller.
+
+5. FAILURE AND RESOURCE CLEANUP
+Read scripts/service.py, job.py, run_queue.py, supervise_service.py and lease_watchdog.py.
+- This instance is rooted at /data5/researcher/h3_runs/timing_native_observer_r12_20261016, port8473, GPU UUID GPU-REDACTED. Custom nodes, input/output/temp/user/database and audit paths are isolated; model/core paths are reused read-only.
+- service.start holds a per-instance lock inherited by the child, checks admission/port/RAM before starting, and records PID/UID/start-ticks/command identity. stop rechecks exact task ownership, root, GPU and port before TERM and again before KILL; it never enumerates/kills arbitrary GPU users.
+- The controller always calls service.stop in finally. Submission records are exclusive and ambiguous submissions are not automatically duplicated. Job status is tied to its original exact service identity and preserves completed/error histories. The watchdog also validates the recorded identity before stopping a live service. Readiness failure triggers cleanup when a service registry exists.
+- Cleanup must still be verified from the actual process and nvidia-smi records; static source inspection does not prove released VRAM. Existing bounded timeouts are safeguards, not observed completion times for R12.
+
+6. TEST EVIDENCE AND REMAINING GATES
+Read existing audit/local_cpu_tests_attempt3.log and test implementations. The log records13 passing local CPU tests, including variable27-NFE mask [7,8,12,13,15,18,19], off policy, fixed policy, initial lag3 handling, index19, same-state and mutation failures, archive corruption and runtime graph/guard checks. I did not rerun them.
+The prepared tests/counterfactual_wrapper_smoke.py exercises actual Comfy node loading, ModelPatcher cloning, both wrapper orders, actual Euler, processed H3 conditions, local seeded condition-noise helpers and PDD grid lookup. Its model computation and observations are deliberately synthetic. It compares all20 chosen CPU endpoints plus final result against a separately prescribed single-forward mask trajectory. That proves wrapper mechanics for the test, not real-weight GPU bitwise behavior or correctness of the lag observer on real videos.
+At this review's evidence cutoff no newly executed R12 real-Comfy smoke log was present in the frozen local payload. Root owns that test, actual object_info readiness, runtime admission, post-run variable inventory/conditioning/noise checks, output evaluation and exact cleanup. Successful R10 tests are ancestry evidence, not substitutes for these R12 gates.
+The observer is byte-identical to the already frozen gap5 reader. Its numerical rejection rules are not calibrated statistical confidence; accepted lag is not established as final motion error. This prelaunch review adds no scientific validity, success or architectural novelty claim.

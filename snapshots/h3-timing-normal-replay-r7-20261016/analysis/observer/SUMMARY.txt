@@ -1,0 +1,30 @@
+R7 正常回放：冻结 gap5 全画面观察器检查
+
+该按先前正常成片选择的阴性对照，没有在已保存时刻触发正延后纠偏。index5（第6次模型调用）的主窗为0帧，原规则会让下一次index6（第7次调用）保持关闭；主窗后续已保存读数仅为0或−1帧。
+
+这是同一源视频/身份/种子在1024×576几何的已知正常样例，不是独立未见场景。此处运行的是原生生成加被动保存，未运行反馈控制器。
+
+输入门：实际reference latent [1,24,42,36,64] raw SHA 1cab59a56a35676b48afc317baff0cc7903ab0f606831b415ee2fe8b194e979d，与本次conditioning中native VAE输出及pair_snapshot.actual.references唯一video值一致。9份快照18个视频/音频tensor均与capture manifest raw SHA一致，13项下载文件均经远程文件SHA验证。仅下载93,512,553字节已有小tensor及metadata，无preparedRGB。
+
+方法：冻结gap5 signed cosine，全24通道×36×64空间展开；42 bins的原不等宽名义时间，跨5bin等于17物理视频帧；四窗/±24帧搜索/拒判阈值全部不变，无缩放、无移植ROI。协议在本次实际latent读数前冻结。
+
+列顺序为源视频帧窗50–65、69–81、80–92、99–111。lag单位是物理视频帧；index为去噪模型调用的零起始序号。
+index5 / 第6次调用: +0 / +0 / -1 / +0；主窗 OFF_ALIGNED
+index6 / 第7次调用: +0 / +0 / -1 / -1；主窗 OFF_ALIGNED
+index7 / 第8次调用: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+index8 / 第9次调用: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+index9 / 第10次调用: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+index10 / 第11次调用: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+index15 / 第16次调用: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+index19 / 第20次调用: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+sampler_final: -1 / +0 / -1 / -1；主窗 OFF_ALIGNED
+
+36/36窗口通过原拒判门，未知拒判0、搜索边界0、端点clamp0。所有49点曲线在RESULTS.json。通过这类退化/歧义门不等于已校准的统计置信度。
+
+独立最终证据：critic核验本次相对旧R1正常视频的全部实际condition/noise、native20×50调用、141/141解码RGB与帧时基精确一致。由此可复用旧finalpose：threshold0.3为[-1,-1,0,-1]；threshold0.5为[-1,unknown,0,-1]。本观察器final为[-1,0,-1,-1]，7个已知阈值×窗口单元全部在±2帧内；unknown保留。
+
+早期独立姿态标签当前未知。不能因为最终正常，就把index5直接标成正确或错误；后续应以root单独解码和critic姿态评估为准。本报告只证明已存native早期读数未触发ON。index11–14、16–18未存，因此不补造完整20次反馈mask，不声称整条闭环始终关闭。
+
+CPU单线程评估 2.756 秒，CUDA未初始化。未做新生成、编码、姿态估计或任何远程写入。
+
+下一步标签若到齐，只新增早期独立pose绑定文件；原PROTOCOL和RESULTS保持不改。

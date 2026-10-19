@@ -1,0 +1,32 @@
+R90 P1 Native-only 已完成CPU准备和.9被动部署；未启动GPU。
+
+本地 /Users/researcher/DevProjects/h3-timing-flexiact-p1-control-r90-20261018
+远端 /data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018
+67文件seal SHA 56a8cc22313e1fd038c3faceb732fddb5a53e851e03257c496bc09745d6ba169
+本地/实际.9各75 tests PASS；4输入SHA、9 Comfy core SHA、6数值文件、49@8原片与158@24时基全部PASS。
+actualCPU凭据 audit/TARGET_CPU_VERIFIED.json；主结论 README.txt；逐字段变化 audit/PARENT_DIFF.json。
+
+单次root启动（R85完整结束且exactrelease后）：
+cd /data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018
+nohup python3 -u audit/root_run_native.py --execute --attempt root_p1_native_attempt1 --peer-root /data5/researcher/h3_runs/timing_ive_subject_capacity_r89_20261018 > audit/root_p1_native_attempt1_wrapper.log 2>&1 < /dev/null &
+
+启动前根复核GPU3 UUID ea95cb74…70a3 free>=40960MiB。命令里的peer-root按当前R89实际service记录核UID/start/cmd，已退出则跳过；新子进程preCUDA登记在live peer后才GO，仍最多2张己方卡。
+predecessor冻结为R85 PID16003/start2634847475、最后r85_rotate__game_girl_1_seed2026101701_forced成功以及cleanup中同PID/process_absent/own_compute_absent。R85尚活或末条不成功会提前拒绝启动；需要变更该计划时另留root审查收据，不能绕过。
+
+唯一任务 r90_one_leg__movie_man_9_seed2026101701_native。
+P1原文完整含尾换行SHA 11efbddcdd973499bea0f716f55429f789a5c0275462bc82d6c5fd925cd2207f。
+同原视频/人物图、158总帧147有效、seed2026101701、20Euler、0时序路由。原R85 rawAVnoise字节SHA22880b550e06ce06bb9f23bf203e47e1351863a35487fee66716b9f35c363b01在启动前复制到新audit缓存；不改R85文件。
+控制器单任务完成即释放GPU；根wrapper确认/proc与CUDA退出、写ROOT_EXIT_RECEIPT，再以CPU执行verify_native.py。输出gate analysis/postrun/NATIVE_RUNTIME_GATE.json。
+严格比较R85实际原RGB、两种preparedRGB/cleanVAE、Qwen视觉抽帧和AVnoise；文本联合embedding/packed文本长度和所有x0允许变化。
+
+R85批尾会重做first pair gate。design/R85_ACTUAL保留原gate原始SHA；消费时只从canonical JSON移去顶层created_unix，其他任何新增/变化均拒绝。实际R90gate记录frozen/current的raw+canonicalSHA与比较结果。原67seal前版已完整备份 audit/parent_gate_timestamp_revision/prior_sealed。
+
+运行时依赖：
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+Comfy /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+PYTHONPATH /data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps
+模型 /data5/researcher/ComfyUI/models
+单GPU normal/reserve8；没有新依赖、模型下载或额外decoder。
+
+预计新增约2GiB，启动文件系统需>=6GiB（实际生成成本/峰值待测）。保留大型RGB/latent/condition在远端；后续只下载视频/JSON。
+新P1效果待root实际成片审核。当前队列没有forced，也没有第二个case。

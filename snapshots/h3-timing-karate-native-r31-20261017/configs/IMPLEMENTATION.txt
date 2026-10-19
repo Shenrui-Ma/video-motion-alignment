@@ -1,0 +1,13 @@
+R31 two Native seeds of source49617; no GPU or consumer launched by builder.
+Remote /data5/researcher/h3_runs/timing_karate_native_r31_20261017, GPU2 exact UUID d2a33f98..., port8494.
+Inputs exact hash bound by manifest, tar excludes them. Source video/provenance are new; portrait same bytes as R29 source40372.
+Root admission: ready_for_launch and exact peer PID identities; strict bounded600s peer/target submission wait. No busy-loop model calls.
+1. Extract runtime_bundle_v1.tar.gz into a NEW formal remote root and copy inputs/ unchanged; verify every deploy_manifest SHA.
+2. CUDA_VISIBLE_DEVICES='' python scripts/preflight.py --root RUN (metadata-only, no GPU proof).
+3. Root writes exact admission, calls python scripts/launch_remote.py --service-only. This returns a future CUDA service owner paused before torch import.
+4. Register exact ready PID/UID/startticks/cmd SHA in R27 peer admission BEFORE copying processes/cuda_gate_ready.json atomically to cuda_gate_go.json. Same PID runs Comfy; no secondary CUDA child.
+5. Wait root HTTP ready; python scripts/start_controller.py --pid SERVICE_PID --start-ticks EXACT_START. Two jobs serial, model cache reused; hold1800s then cleanup; max service12h/job7200s.
+6. Postrun one_phase.py only; root owner/protocol BINDING required. It respects Mac->remote shared locks and pending R27/R28 online pose priority. No resident consumer.
+Evidence: official CPU loader/actual Euler2x20 and 27 Linux tests pass; no CUDA initiated. Numeric router/readout core identical to frozen R29; exact hashes in runtime_kernel_hashes.
+Current clean Qwen embedding, tags, native VAE latents, packed positions and actual AV noise are archived plus all20 chosen x0+sampler_final. The full processed/postaugmentation condition tree is not archived. Future automatic comparisons must use identical seed/source/code and actual eligible pre-intervention AV prefix bridges; no false historical full-tree certificate.
+21 PT files stay remote; metadata/raw videos/pose/media downloadable. Intermediate20 snapshot time recorded separately; final included job time. Source event annotations are evaluation only.

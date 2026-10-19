@@ -1,0 +1,53 @@
+{
+  "schema": "r50-root-two-GPU-resource-admission-v2",
+  "root_approved": true,
+  "observed_unix": 1792234865.0133214,
+  "main_gpu_uuid": "GPU-REDACTED",
+  "decoder_gpu_uuid": "GPU-REDACTED",
+  "protocol_sha256": "e8058874b94bce9673fe82773d3b75aecb3cdc92d12f9469975afc56466c6d73",
+  "engineering_revision_sha256": "f875f217123c78526c5edbf19f927f2eeae29ccdfbaa9fae8efcce174f93133e",
+  "kernel_gate_sha256": "60ee5965b8c79e45572a98561e5cfa0b135720be815ede3e6b321bbc0ad4b237",
+  "decoder_gate_sha256": "26f0700505f4a21f43477cf3ba4ee810222969faef92f515ae891b480ff2f784",
+  "main_native_peak_sampled_bytes": 68055728128,
+  "routing_increment_bound_bytes": 8839495680,
+  "main_margin_bytes": 1073741824,
+  "main_total_memory_bytes": 85899345920,
+  "main_estimated_peak_bytes": 77968965632,
+  "decoder_peak_reserved_bytes": 5981077504,
+  "decoder_total_memory_bytes": 85899345920,
+  "required_free_before_decoder_mib": 45000,
+  "scope": "GPU3 main model; GPU2 isolated full158 decoder; maximum2 owned GPUs",
+  "devices": {
+    "GPU-REDACTED": {
+      "csv": "GPU-REDACTED, 81920, 7, 81042, 0",
+      "total_bytes": 85899345920
+    },
+    "GPU-REDACTED": {
+      "csv": "GPU-REDACTED, 81920, 8, 81042, 0",
+      "total_bytes": 85899345920
+    }
+  },
+  "evidence": [
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/configs/engineering_v2/allocator_profile_158.json",
+      "sha256": "7f4d5fbcc72dd66cf776a645ff501c84df73614de06f7674d2348d0f69fca5c0"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_native_r49_20261017/logs/resources.jsonl",
+      "sha256": "6a6e432ac096a1af0f3ee40c3c8016eecc577f597b3ad7b97cf822e8317fc9b9"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/configs/engineering_v2/previous_kernel_gate.json",
+      "sha256": "60ee5965b8c79e45572a98561e5cfa0b135720be815ede3e6b321bbc0ad4b237"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/audit/known_endpoint_158_split_gate.json",
+      "sha256": "26f0700505f4a21f43477cf3ba4ee810222969faef92f515ae891b480ff2f784"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/audit/build_split_resource_admission_proposed.py",
+      "sha256": "c30970b05b0a4f91089cf228cc83ab58f192c75133f6245893d1304f4bc57a94"
+    }
+  ],
+  "interpretation": "Sampled Native occupancy plus actual largest-layout retained increment and explicit margins is an engineering capacity estimate; runtime dedicated decoder idle/ownership checks remain mandatory."
+}

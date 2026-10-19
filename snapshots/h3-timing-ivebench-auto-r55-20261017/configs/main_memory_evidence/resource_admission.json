@@ -1,0 +1,53 @@
+{
+  "schema": "r55-root-two-GPU-resource-admission-v1",
+  "root_approved": true,
+  "observed_unix": 1792241810.8241415,
+  "main_gpu_uuid": "GPU-REDACTED",
+  "decoder_gpu_uuid": "GPU-REDACTED",
+  "protocol_sha256": "b09311241ad27916430a1065537b06ea2ff0b6960c756aa4459f43e139285389",
+  "kernel_gate_sha256": "d5b1d64d5decb78f572a205ce83d77a35d5f42eca7095252af37f83bf6935ebb",
+  "decoder_gate_sha256": "043362fbf5d0edad88cee261608d8c6d8c7d9f58b4f0f2d916d845ba519ee981",
+  "main_native_peak_reserved_bytes": 37354471424,
+  "routing_increment_bound_bytes": 1264582656,
+  "main_margin_bytes": 2147483648,
+  "main_estimated_peak_bytes": 40766537728,
+  "main_total_memory_bytes": 51527024640,
+  "decoder_peak_reserved_bytes": 6037700608,
+  "decoder_total_memory_bytes": 51527024640,
+  "scope": "GPU1 main model; GPU2 isolated decoder; maximum2 owned GPUs",
+  "evidence": [
+    {
+      "file": "/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/run_reserve8_002/audit/capacity_complete.json",
+      "sha256": "ab26ea1fa33f5f1d34ceebe7944871d9ef1678edcdc770cbfc3247d9e739616c"
+    },
+    {
+      "file": "/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/run_reserve8_002/audit/resources.jsonl",
+      "sha256": "7fc0181651b194732b53960ab9ea73c36676747055cea1560195e4408719bc33"
+    },
+    {
+      "file": "/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/run_reserve8_002/audit/run_result.json",
+      "sha256": "8bedb4c2bc0cfb5c68cc8dbae892c7c15443e51b2ef1702d9a74ec85ed15b35a"
+    },
+    {
+      "file": "/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/gpu_dynamic_union_gate.json",
+      "sha256": "d5b1d64d5decb78f572a205ce83d77a35d5f42eca7095252af37f83bf6935ebb"
+    },
+    {
+      "file": "/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/known_endpoint_90_gate.json",
+      "sha256": "043362fbf5d0edad88cee261608d8c6d8c7d9f58b4f0f2d916d845ba519ee981"
+    }
+  ],
+  "measurement": {
+    "actual_largest_sequence": 55045,
+    "actual_forwards": 2,
+    "native_reserved_bytes": 37354471424,
+    "full27_reserved_bytes": 38086377472,
+    "preprocess_lifetime_reserved_bytes": 28798091264,
+    "own_NVML_peak_bytes": 38619054080,
+    "own_NVML_samples": 121,
+    "reserve_vram_GiB": 8,
+    "Native_parent_endpoint_exact": true
+  },
+  "bound_definition": "max(preprocessing lifetime reserved, actual Native reserved, actual Full27 reserved, sampled own-process NVML) + explicit2GiB margin. routing_increment_bound_bytes stores observed total peak above NativeReserved, including routing/context/cache difference; it is not an isolated routing allocation measurement.",
+  "scope_limit": "Largest actual sequence, first same-state Native and Full27 with retained Native output. This is measured startup/forward capacity evidence with safety margin; later trajectory is monitored. Other users may coexist while actual free VRAM meets bound."
+}

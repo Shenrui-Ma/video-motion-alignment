@@ -1,0 +1,35 @@
+R13 单头修复独立只读审查（待作者最终冻结与实际CPU证据）
+
+当前判定：发现一个实际接口阻断，尚不签最终通过。新 output_head_contract 的 isinstance(head, torch.nn.Linear) 与本次实际 mixed precision operations 不匹配。attempt2 实际日志 audit/attempt2_failed_pdd/files/logs/comfyui.log:83–85记录Using mixed precision operations、BF16；已读本地冻结Comfy snapshot comfy/ops.py:1300–1307，mixed_precision_ops(...).Linear继承torch.nn.Module与MixedPrecisionOp，非torch.nn.Linear；pick_operations的quant_config分支返回这一factory。普通 disable_weight_init/manual_cast Linear才是nn.Linear子类。已把具体证据通知root与builder，不能以普通FinalLayer合成CPU通过替代实际factory。
+
+修复边界：对照attempt2实际源码，core除新增output_head_contract外AST完全相同（本次检查=True）；ForkSampler的原始x/两端点、to_d、dt、u_full/u_native、六次native预测、UUID恢复、condition/noise/SHA/三组重放gate都没有改动。init仅把错误的PDD多头假设替换为严格单头契约并提前检查，保留每次forward完整sigma grid、实际physical index、shifts(12,3)、重复调用拒绝；实际FinalLayer参数和返回值均没有被hook重写。
+
+实际接口证据：audit/actual_head_source_header.json记录真实.9源FinalLayer第321–323行n==1走video_out/audio_out普通线性前向；checkpoint header为96×5376与32×5376，bias96/32且F32。这证明checkpoint存储形状，不证明已加载Parameter dtype。接受FP16/BF16/FP32并冻结入场与每forward实际dtype，在不改变Parameter的前提下合理；需要实际mixedprecision load_state_dict CPU路径证明dtype和类型。
+
+审查边界：本次没有运行GPU、没有修改实现、没有重复全套测试。旧16-test日志早于新增dtype测试，不冒称覆盖当前文件。当前官方verify_fork.py只检查pdd记录索引和NFE，未逐项检查single_linear/pdd_active=false/bank_size1/startstop=null；最终独立验收需额外核这几项，不能把六个记录再称为六次激活PDD。
+
+待最终冻结后追加准确SHA和实际CPU结论；不覆盖attempt2失败历史。
+
+最终冻结源码复核（前述类型阻断已修复）
+
+当前源码级结论：PASS，未发现新的阻断；真实.9 Comfy CPU结果和GPU端点重放仍是随后必需验收，不能把此代码审查当实际推理通过。
+
+已逐字核对最终core新增函数：仅接收torch.nn.Linear或精确官方comfy.ops/mixed_precision_ops.<locals>.MixedPrecisionOps.Linear；video/audio严格96×5376、32×5376及对应bias，合法浮点且weight/bias dtype一致，quant_format/layout_type必须为None，class与dtype入记录并在每个forward与入场值比较。不会因checkpoint header F32就强制实际Parameter为F32。最终core去除该新增函数后与attempt2 core AST完全相同，六次分叉及Euler重建公式没有变化。
+
+新真实CPU smoke代码确实实例化官方mixed_precision_ops(compute_dtype=BF16)，用FP32合成state_dict通过真实load_state_dict/_load_quantized_module加载，检查实际head不是nn.Linear、加载后为BF16；使用官方FinalLayer/RMSNorm/Adaln，检查head stream切片计算与hook输出逐位一致、参数/输入/RNG不变，未mock PDD。完整权重没有加载，其他DiT计算仍为小型合成，因此它证明接口兼容与只读hook，而不是完整模型数值复现。当前local_cpu_single_head_attempt2.log记录17项通过。
+
+实际服务--disable-dynamic-vram；已读静态ModelPatcher源码，对无patch权重patch_weight_to_device直接返回，load对module使用.to(device)迁移设备。支持入口/forward dtype稳定这一预期，但实际运行仍必须逐项记录并拒绝不一致。
+
+剩余精确验收：6条输出头记录应当index=[7,7,11,11,15,15]、probe_nfe=0..5、head_mode=single_linear、pdd_active=false、bank_size=1、start/stop=null、实际class/dtype固定。现verify_fork的pdd字段名为兼容保留，不等于PDD被激活。随后仍须3组Full输入与端点bitwise重放、12唯一pt完整性、R12n11桥接及cleanup。
+
+冻结文件SHA256：
+extensions/H3OneStepForkAudit/core.py fef48573b4148c3c121d203edd378a072613a96eded76c2f3ed450e97c467b2a
+extensions/H3OneStepForkAudit/__init__.py 49fda8b60329a103d117b84a6bbc93aadcb2d6f60483a125c96504a01a36fe8d
+tests/one_step_fork_wrapper_smoke.py b682c76530b7b42dd059dbc56d93bc8d9b3d5b4254a6f64acd6112d126b966c9
+tests/test_output_head_contract.py e64affa80cac863cacf6c78b9e7406442d83aeca6b06ba2d7b1e83fe8887ed1c
+audit/actual_head_source_header.json 7521b23a9e39e189a81143b6f4f915899587c83dc68180b8f435f3b2283c22c7
+audit/local_cpu_single_head_attempt2.log 1f11aba07c004272c0bab9fd122b836a4c59dde6a9fb35b21722df6c51aa8a9e
+
+实际.9 CPU证据追加：已读取 audit/real_comfy_single_head_cpu_attempt1.log 的 H3_ONE_STEP_FORK_CPU_SMOKE 结果，success=true、CUDA_initialized=false；其core/init/smoke三SHA与最终冻结文件逐一相同。real_direct和real_clone均6 NFE、0 callback、0 Euler；真实官方MixedPrecisionOps类别及BF16 Parameter被记录，outputhead indices=[7,7,11,11,15,15]，hook前后逐位相同、参数和输入未变。实际CPU接口门PASS。日志SHA256 3453742400aeeffeeb31f4626ae7b54a8f2693544e8826d731b0e9f3c5e01364。
+
+最终独立结论：此最小接口修复具备进入retry3的代码与实际CPU验证证据；尚未宣称GPU重放成功或任何科学结果。原PDD多头门被正确的固定checkpoint单头门替代并提前执行，没有删去接口约束来放行。后续由root执行资源admission和launch，审查者不启动GPU。

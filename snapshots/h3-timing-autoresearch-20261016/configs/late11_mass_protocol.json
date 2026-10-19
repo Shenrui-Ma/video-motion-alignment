@@ -1,0 +1,15 @@
+{
+  "registered_at_client": "2026-10-16T02:35:30.697283+08:00",
+  "run_id": "s05_full_seed1_mass_late11_x0",
+  "graph_sha256": "ce76bfe5cc1cd2d4685a83026abc7cdc0c0d85afffea3f85e5ff898e161e0861",
+  "parent": "s05_full_seed1_mass_x0",
+  "changed_scientific_variable": "route only zero-based model steps11..19; all other model/input/seed/solver/geometry identical",
+  "rationale": "native x0 checkpoint10 is earliest sampled primary-phase observation with +13f; intervene only on later calls to test remaining-step controllability",
+  "selection_scope": "discovery case, chosen after native observability; not blind validation or a live feedback controller",
+  "gates": [
+    "x0 snapshots005 and010 exactly equal native (intervention has not begun)",
+    "final primary phase improvement with appearance retained",
+    "compare all-steps mass/native/x3 and preserve unknown windows"
+  ],
+  "hypothesis_limit": "failure would reject this late controller/observer overlap, not all training-free motion methods"
+}

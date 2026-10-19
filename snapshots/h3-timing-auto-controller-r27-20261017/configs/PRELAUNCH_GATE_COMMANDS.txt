@@ -1,0 +1,91 @@
+R27 root-owned GPU gates (not executed by builder)
+
+Terminology: legacy `physical_index` is the zero-based denoising/Euler index 0..19.
+It is NOT a physical video frame. `physical_intervals` are inclusive RGB-frame
+intervals in the 141-frame, 24-fps video. `latent_bins` are their H3 nominal-bin
+union, 0..41. NFE index counts each Native/Full model prediction separately.
+
+Prerequisite: formal root deployed and source/input hashes verified; GPU3 fully
+released after R26 and exact root admission. No service/DiT needed for either
+gate. Run serially; parent `known_endpoint_bridge.py` remains CPU-only. The live
+pose child acquires the existing remote consumer lock. The remote launcher must
+also honor the usual Mac outer lock if coordinating with other CPU consumers.
+
+Remote root: /data5/researcher/h3_runs/timing_auto_controller_r27_20261017
+Python: /home/researcher/miniconda3/envs/comfyui/bin/python
+Runtime deps: /data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps
+GPU3 UUID: GPU-REDACTED
+
+1. Model-free full-size kernel gate, no checkpoint loaded:
+CUDA_VISIBLE_DEVICES=GPU-REDACTED OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/scripts/gpu_dynamic_union_smoke.py --root-admitted --output /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/gpu_dynamic_union_gate.json
+
+2. Existing Native endpoint -> exact live decoder request/normalization/VAE/RGB
+writer -> existing CPU DWPose -> frozen whole-video scan; zero model forwards:
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/scripts/known_endpoint_bridge.py --root-admitted --output /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/known_endpoint_bridge.json
+
+Actual existing AV endpoint (read-only):
+/data5/researcher/h3_runs/timing_native_screen_r14_host9_20261016/audit/x0/r14_s05_seed1313_native_host9/x0_step010.pt
+PT SHA b7f06365c62dfbf59fba6466b08e6c6eda61c3807f209e742733fc6260576751
+The adjacent historical manifest.json is required by the old capture loader.
+Original video record: configs/bridge_decode.json (copied from completed R21)
+Original pose: configs/bridge_pose.json (copied from completed R21)
+Original decoded MP4 path was /data5/researcher/h3_runs/timing_pose_observer_r15_20261016/analysis/x0_decoded/r14_native_step010.mp4
+It is not an additional input: expected exact pixels/MP4/pose are bound by the
+archived decode and pose JSON; the new video is produced by the gate.
+Expected scan: configs/bridge_expected_scan_values.json, computed on the frozen
+archived pose; all 186 rows and numeric curves equal on Mac and actual .9 CPU.
+Expected decoded float SHA 5387c5832016f638298fae107fcb9831185ce699b264b5c90e2ac0bcfe76bc17
+Expected preencode RGB SHA da23d5b5c54717c36e660ea4cca6e30749478a374f4d50037ee29dc23ab84ac0
+Expected MP4 SHA 084e09459dd6aa4a6d1928169370c185cb1228b14ded9c6c6513151e05d24f7c
+
+Bridge scope: same live decoder main and request loader, same lifetime guard,
+OOM fallback rejected, same VAE and RGB writer. ONLY co-resident GPU admission
+is substituted by strict idle-GPU admission in the bridge-only launcher. There
+is no resident DiT in this gate. It does not claim to validate parent residency;
+formal observations still require unchanged parent tensors/RNG/model residency
+and strict exact-parent co-resident admission. Historical post-augmentation
+conditions were not archived; the bridge condition label binds the historical
+clean producer manifest and does not fabricate a full condition certificate.
+
+3. Root writes audit/resource_admission.json from measured evidence, after 1/2.
+No builder-generated positive approval. Required schema/fields:
+{
+ "schema":"r27-root-resource-admission-v1", "root_approved":true,
+ "gpu_uuid":"GPU-REDACTED",
+ "kernel_gate_sha256":"actual file SHA", "known_endpoint_gate_sha256":"actual file SHA",
+ "model_resident_measured_bytes":<integer>,
+ "routing_increment_bound_bytes":<integer, positive measured/conservative bound>,
+ "decoder_peak_reserved_bytes":<integer>, "total_memory_bytes":<integer>,
+ "estimated_combined_bytes":<integer >= sum of the three components and <= total>,
+ "required_free_before_decoder_mib":12288,
+ "scope":"single GPU isolated exec; runtime exact-parent admission remains mandatory",
+ "evidence":[{"file":"absolute existing measurement path","sha256":"actual SHA"}, ...],
+ "rationale":"root's interpretation of measured bounds"
+}
+Use at least two evidence files (residency and actual available GPU memory).
+The standalone kernel peak includes QKV/original clones and audit outputs; do
+not equate the entire standalone peak with incremental route memory. Record how
+the incremental conservative bound is obtained. No efficiency optimization is
+part of this gate. If the bound/headroom fails, stop and report, not relax it.
+
+Kernel JSON schema: h3-r27-kernel-gate-v1, passed, NFE=0, protocol_sha256,
+source_sha256(relative path->SHA), three cases (small, high-mass, full56heads),
+each checks/shape/plan/comparisons/peak and passed. BF16 small dense tolerances
+are preregistered max_abs<=.03 and RMS<=.003. Full-size all-one compares exact
+sealed Full; all-zero exact Native; nonselected rows/QKV/RNG exact.
+
+Endpoint JSON schema: r27-known-endpoint-gate-v1, passed, NFE=0,
+model_forward_calls=0, protocol_sha256/source_sha256, archived_endpoint,
+request_sha256, checks, numeric decode hashes/pose_values_sha/scan_values_sha,
+artifacts, isolated child identities/exits and wall_seconds. Only explicit
+path/runtime fields are excluded from value comparisons: pose video.path and
+statistics detector_s/pose_s/elapsed_s; scan scan_seconds/edited_pose_sha256.
+The actual pose file is separately bound, and every numerical pose/frame/curve
+remains in exact comparisons. Technical errors produce failed evidence.
+
+4. After all gates and root exact PID admission (permitted other GPU optional):
+python3 /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/scripts/preflight.py
+python3 /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/scripts/launch_remote.py
+Final CPU verifier (after both jobs and exact cleanup; `--allow-resident` only
+when intentionally in hold and its exact service owner is still alive):
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/scripts/verify_completed.py --output /data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/verified_completed.json

@@ -1,0 +1,72 @@
+R20 source07/Sam paired transfer check — local preparation, 2026-10-16
+
+Purpose: test the existing Full operation on a preselected second development
+video, not a novel operator, unseen benchmark or failure-rate estimate.
+
+Scientific freeze
+Source07 actual successful graph supplies its verbatim prompt, seed2026101311,
+identity picture, preprocessing, 20 Euler sigmas, CFG1 and141x736x1312/24fps.
+Native then Full6..14, both zero-based step interval[6,15). Full alpha1,
+radius0/offset0/all50blocks, eventframes54..69 maps to latent[16,22).
+The two graphs differ scientifically only in node50 mode. All other differences
+are per-arm audit/run/output identities. Shared node5 and noise pair ID provide
+an actual paired condition/noise chain, rechecked from written tensors.
+
+Implementation delta
+R2 original H3TemporalRouter/core.py and layout.py are BYTE IDENTICAL. The
+R2 passive H3X0Readout/core.py also stays identical:5/10/15/19 plus final.
+No R3 component/native-feature probes, spatial masks, latent observer, RoPE,
+Turbo, alternate sampler, or changed numerical kernel is introduced.
+Only node entry boundaries bind exact R20 root/run IDs and frozen parameters.
+.9 uses R3/R18 actual CORE/Python/models and unchanged backend/compatibility
+helpers; parent model/Core pins and verified R3 same-shape warmup/Full history
+are carried. Existing unused EventEmphasis/PhaseRoPE package files are retained
+as source dependencies/provenance but NOT whitelisted/registered or in graph.
+
+Source07 is not source05: main54..69; secondary75..88 and98..111. Report original
+bilateral metrics and left/right arms separately at confidence.3/.5. Old high-
+confidence bilateral UNKNOWN is retained, not overwritten by a reliable right
+arm. Fixed visualframes60/63/81/105. Do not align playback by measured lag.
+
+Paths/resources
+Local h3-timing-cross-source-r20-host9-20261016; remote
+/data5/researcher/h3_runs/timing_cross_source_r20_20261016.
+GPU3 UUID GPU-REDACTED; port8480.
+Root owns launch. admission.ready_for_launch is initially false; record exact
+R19 service PID/UID/start_ticks/cmdline_sha256 bidirectionally before parallel
+GPU2/GPU3 jobs. Existing .41 draft stays unlaunched after actual CUDA init
+failures by both UUID and index. No driver/reset/UUID-fallback workaround.
+
+Checks/commands
+python3 scripts/preflight.py --root <formalroot>
+python3 scripts/warmup_reuse.py
+CUDA_VISIBLE_DEVICES='' <existing-python> -m unittest discover -s tests -p 'test_*.py' -v
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps \
+  /home/researcher/miniconda3/envs/comfyui/bin/python tests/real_comfy_cpu_smoke.py \
+  --core /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+Real CPU smoke uses actual H3 meta class/ModelPatcher/native attention wrapper,
+manual20x50 tiny dense calls; no neural weights or real sampler. It is not GPU
+readiness, forward equivalence or quality evidence. Actual auxiliary noise/root
+validation happens before temporary audit-state redirection.
+
+Root may seal after review and admission update:
+python3 scripts/build_manifest.py --manifest audit/deployment_manifest_v1.json \
+  --tar audit/deployment_bundle_v1.tar.gz
+python3 scripts/build_manifest.py --manifest audit/deployment_manifest_v1.json --check
+Manifest includes immutable backend evidence; never silently overwrites a seal.
+Launching is root's separate action, not performed by this preparation script.
+
+After both actual jobs and exact service cleanup:
+CUDA_VISIBLE_DEVICES='' <existing-python> scripts/verify_pair.py \
+  --output audit/completed_pair_gate.json
+Checks actual executed graphs, shared service identity/history,20NFE/20Euler/
+20callbacks,1000blocks,0 vs450 route calls and source07 mapped key/query slices;
+all10 unique actual .pt endpoint files with finite/shape/hash/metadata gates;
+shared actual conditions/noise, original host9 source07 conditions/noise reuse,
+paired video/audio005 prefix bitwise equality, queue completion and exact
+archived cleanup. Historical output is not used as a new paired baseline.
+
+Root must separately inspect live service/supervisor/controller/watchdog exit,
+GPU3 compute disappearance/VRAM, output141frames/24fps/timing, and frozen pose/
+visual quality. Timing success cannot establish absence of ghosting. Costs are
+recorded, not used as a new speed threshold. Current code emits no quality claim.

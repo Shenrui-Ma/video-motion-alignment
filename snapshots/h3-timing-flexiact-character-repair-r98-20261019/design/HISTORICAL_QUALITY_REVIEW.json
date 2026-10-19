@@ -1,0 +1,111 @@
+{
+  "schema": "bounded-visual-task-review-v1",
+  "item_id": "flex_r66_human2animal_1__game_man_4",
+  "reviewer": "paper_benchmark_review_current (AI visual review)",
+  "utc": "2026-10-18T16:00:09.092233+00:00",
+  "reason": "用户质疑角色替换未完成，重新以实际目标图核验任务完成度。",
+  "inputs": {
+    "reference_image_path": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+    "reference_video_path": "53c4f9e3a59a45db87c7f962bb7cea2422cbfbe065713394f630a3399cb9b000",
+    "ordinary_video_path": "b59dd28c6c629fc0ede49c6ea4750c24fc010b4fc6a563d9d0615860f20db8ea",
+    "guided_video_path": "e10af74ff6a7350b38d902088b4f842a084b43188e687254cd12b33e4ec82d7f",
+    "comparison_video_path": "d835066902ee6e771d03e1e27dca2f4647f1e2639bc91fc32717543f8aaf8061"
+  },
+  "frame_ledger": {
+    "file": "/Users/researcher/DevProjects/h3-benchmark-all-results-showcase-20261018/audit/flexiact_inventory/r66_human1_game4_task_recheck/FRAME_LEDGER.json",
+    "sha256": "814feb3c2d26ef87f322f31498f48a85f65ca60e185710df3caaeb429c398d48"
+  },
+  "viewed_output_frames": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    33,
+    36,
+    39,
+    42,
+    45,
+    48,
+    51,
+    54,
+    57,
+    60,
+    63,
+    66,
+    69,
+    72,
+    75,
+    78,
+    81,
+    84,
+    87,
+    90,
+    93,
+    96,
+    99,
+    102,
+    105,
+    108,
+    111,
+    114,
+    117,
+    120,
+    123,
+    126,
+    129,
+    132,
+    135,
+    138,
+    141,
+    144
+  ],
+  "view_scope": "完整6.125秒有效范围的49个原动作时刻，另读原固定六时刻图；没有声称逐一检查所有147个生成帧。",
+  "target_appearance": {
+    "face_hair": "二维动漫短黑发男性，短发、棱角面部。",
+    "clothes": "绿色披肩、棕色外套、白衬领、深裤及白色绑带。",
+    "scene": "纯白背景。"
+  },
+  "observations": {
+    "native": {
+      "face": "抬头可见区约f42–111仍接近原真人女性的面部，未形成目标动漫人物。",
+      "hair": "整个采样序列保留长辫/扎起长发，与目标短发明显不符。",
+      "clothes": "绿色披肩、棕袖和白色袖口可见，存在服装迁移。",
+      "body": "四肢与低伏、撑起、拱背的大姿态延续原视频；动作保持本身符合任务，不能单据身体姿态判断换人成功。",
+      "background": "原白色条纹墙和地板保留、整体明显变暗，目标图纯白场景未完成。"
+    },
+    "forced": {
+      "face": "约f63–111前脸和短刘海更接近动漫人物，属于局部外观变化。",
+      "hair": "同时保留从脑后与侧面垂落的长辫；f0–39及f120–144低头区源长发尤其明显。",
+      "clothes": "绿色披肩与棕袖迁移，整体仍为混合身份。",
+      "body": "主要动作大阶段跟随原片；未观察到足以支持明确时序修复的差异。",
+      "background": "原条纹墙、地板持续存在且变暗，与目标白背景不符。"
+    }
+  },
+  "verdict": {
+    "review_status": "任务失败",
+    "identity_native": "failed",
+    "identity_forced": "failed_mixed_identity",
+    "scene_native": "failed",
+    "scene_forced": "failed",
+    "timing": "未见清楚时序收益；基础身份任务失败，应从任务合格的时序配对子集排除，同时保留在全部任务分母。"
+  },
+  "review_summary": "角色替换失败：普通编辑保留源人物的脸和长辫；引导版中段出现较接近目标的动漫脸与短刘海，但后侧长辫持续残留，身份混合。两版主要借用了绿披肩和棕袖服装，仍保留原墙面与地板，目标图白背景未实现。动作大阶段接近，未见清楚时序修复。",
+  "correction": {
+    "previous_status": "无明显改善",
+    "previous_summary": "固定源动作时刻审阅：两版大体跟随低伏、撑起和拱背序列，但长发残留且整体变暗；部分帧脸部/上身更接近目标，未见清楚时序修复。",
+    "why": "原条目突出时序中性与局部面部变化，未明确记录基础身份替换和场景任务失败。",
+    "prior_record_preserved": "/Users/researcher/DevProjects/h3-benchmark-all-results-showcase-20261018/audit/flexiact_inventory/r66_human1_game4_task_recheck/inventory_before.json"
+  },
+  "limitations": [
+    "这是人工视觉分类，未运行身份模型。",
+    "画面本身很暗；未改亮度或对比度，发型和墙面证据仍可辨。",
+    "49个原动作时刻用于本次身份一致性复核；不从这些采样推断毫秒级事件边界。"
+  ]
+}

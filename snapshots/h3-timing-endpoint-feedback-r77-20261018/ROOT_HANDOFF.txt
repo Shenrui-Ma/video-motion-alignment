@@ -1,0 +1,40 @@
+R77 CPU 实现交接
+
+当前交付
+single-step post-CFG hook、实际 packed x6/x7 审计、A/B/C Euler 写入公式、原 R65 输入合同、current-x0 pose DP 接口及已知 codec residual 的 CPU 接口已完成。20 项 CPU 测试通过；其中使用实际形状并直接抽取受审 Comfy sample_euler/to_d 源码执行完整20步，C 的下一实际输入与预期 x7 逐位相同。
+GPU 运行和同进程 DiT/VAE 卸载回载尚未实测。当前提供 Python integration API，未注册可直接启动的 Comfy 节点或完整工作流，ARM 文件中的 provider/运行路径明确为 PENDING。
+
+文件
+scripts/endpoint.py：Config、Proposal、EndpointController、install(model,config,provider)。install 返回 cloned model 和 controller，注册唯一 post-CFG hook 与 SAMPLER_SAMPLE wrapper。已有其他 post-CFG hook 会拒绝，需单独审查组合。
+scripts/proposal_math.py：fit_current(source_pose,current_pose)、local_coordinates(mapping)、codec_proposal(z,e_id,e_phi,coordinates,mask,evidence)。原 DP/姿态/插值代码以逐 SHA 副本放在 vendor/。
+configs/SCIENCE.json、ARM_A/B/C.json：158帧/147有效帧、1152×768、20Euler、原 float32 sigma、CFG1、index6、R65 fitness→game_girl_1 原 prompt 和实际旧噪声来源。
+audit/source_code/：实际 .41 Comfy 模型管理、VAE、sampler helper 源码及来源 SHA；Euler 来自已受审同数值快照。
+
+CPU 命令
+/Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python scripts/validate.py
+/Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python tests/test_endpoint.py
+
+hook 行为
+只接收完整 float32 packed AV [1,1,3915200]；视频[1,24,47,48,72]，音频[1,32,2,263]。视频 process_latent_in/out 缩放1，音频原 sampler slice 保持原值。
+实际 sigma 序列必须精确相同，20次调用按顺序且仅 index6 可修改。x6、hook前后endpoint、Delta/mask、预期x7、实际x7、index12/19预期clean输出和sampler_final均可归档。A和非干预步返回原 tensor 对象；B/C只clone并修改视频slice，CPU provider只能获得当前预测的副本。
+每步保存 input/pre/post 的raw SHA用于三组配对，必要时可核原初始噪声与condition；本包尚未接管已有噪声节点，不自动重新采样代替R65真实噪声。
+λ_A=0，λ_B=1，λ_C=(1−sigma_next)/[(sigma−sigma_next)/sigma]。index6 λ_C=4.900008917。x7相等性容差固定rtol/atol2e−6，同时保存实际误差；CPU实际Euler结果误差0。
+UNKNOWN/不符合支持域的Proposal返回eligible=false，保持原轨迹并记录未干预。eligibility条件从本次完整current pose计算，不凭原P0成功例子预填。
+
+当前 provider 对接顺序
+1. wrapper启动时绑定本轮真实噪声、condition、实际sigma与模型身份。受审图不允许denoise_mask/churn。
+2. index6取得 z6 CPU副本及rawSHA；使用同H3 VAE decode，输出158帧floatRGB。只把量化视频副本送原CPU DWPose，floatRGB用于重排和encode。
+3. fit_current 读取原source pose及本次x0 pose；同一原49@8fps DP。原完整49图只用于拟合；首轮消费0..15及可见插值邻点，闭合失败/观察不足记INELIGIBLE。
+4. local_coordinates 在本次φ下构造158RGB映射、47latent非均匀坐标和支持mask。历史P0 bin0..10只作为已通过回归的实例。
+5. e_id=E(Dz6)、e_phi=E(W_phi(Dz6))。codec_proposal 沿R70 transport括号顺序生成Delta。身份φ给零Delta以保留signed-zero；输出mask之外Delta必须0。
+6. 首次有效proposal仍需实际D(z6+Delta)检查动作和接缝。该检查的结果决定进入B/C的资格，记录为诊断开销。
+7. 显式恢复当前DiT/附加模型、object patch与sampling状态，再返回hook；原Euler计算本步更新。下一hook读取实际x7并验证写入量。
+
+同一 GPU 生命周期核查与最小试验见 SINGLE_GPU_LIFECYCLE.txt。此项完成前，provider保留PENDING，避免把能运行的CPU算式当作已完成的在线GPU反馈。
+
+下一项最小GPU验证建议
+先做原R65任务的 A identity 观测：到index6暂停→同进程VAE decode/encode identity→恢复DiT→返回完全原z6→继续到index7，再核新state、下一forward、object patch、噪声/condition/前缀及效率。identity往返不向采样写入重编码值。根调度资源和exact进程身份。
+该检查通过后再接真实current-phi与codec proposal，最终进行完整A/B/C。模型管理有卸载时记录真实reload开销和数值差异；失败保留日志，不自动降精度、换sampler或改变codec fallback。
+
+范围
+R77是既有R65 P0任务的执行器因果实验，P1剩余偏移诊断独立继续。codec residual、DP和Euler写入关系均按已知机制报告。完整在线动作效果、单GPU生命周期、自动选择去噪时刻、其他样例泛化目前尚无R77实测结论。

@@ -1,0 +1,13 @@
+R46：两条已归档状态的只读 Attention 可观测性检查
+
+固定 source05 的 R33 困难 seed1311 与 R37 正常 seed1313，均为去噪 index4 的原始 packed noisy x。每条只运行一次 Native DiT，合计最多2次；0 Euler、0普通callback、0 VAE、0 Qwen。source 中完整embedding、token tags、portrait/video clean latent、noise、raw input、Native endpoint 共7份PT逐文件绑定，不能以x0逆推x。Guider重新物化condition projection/refiner一次，并恢复原UUID；实际全original+processed签名必须与该父记录完全一致。历史global RNG没有实体，未声称恢复它；当前前后RNG和真实AV端点必须精确，任一失败停止，不重跑20步。
+
+探针仅 block25 / heads0,14,28,42 / 每个时间bin固定5×5空间点。官方position_ids全张量及packed分段核验后，复制selected Q和四头reference K/V。原完整aten Flash注意力输出仍按R33/R37路径返回，统计函数不接收它。42个reference bin加whole reference共43次小Flash调用；p、m_ref、条件熵等为描述，不是动作lag。已算的bin输出仅保留每query本bin的O_same，whole-ref已有输出为O_ref；保存小数组与m_ref*(O_same-O_ref)行L2/RMS，不增加注意力调用，不保留42个输出bank。完整QKV从未复制或streaming hash。
+
+原selected Q/K/V及selected Native output前后逐位检查，全QKV/输出不变性在小型CPU fixture覆盖；实际GPU整体语义由完整AV端点精确门闭合。这一范围不夸称生产全QKV逐字节审计。首forward调用前即记录attempted_forwards/DiT_NFE；返回即记录completed_forwards，finally保存耗时/blocks。即使端点不等或统计UNKNOWN，已发生的计算仍计入成本。非finite摘要保存null及字段名，raw PT保留原值，然后ABORT，不能把拒判换成结果成功。
+
+原R37 preCUDA同PID握手、supervisor子代身份绑定、controller flock/同代submit、bounded strict peer等待与exact cleanup复用；身份start_ticks严格字符串。两个job固定顺序，无额外视频推理服务或CUDA子进程。服务只注册新report-only节点，图仅UNETLoader→SigmaShift→Probe。GPU门脚本也先等同PID root ready/go；不能直接CUDA运行使活跃R45误判未知peer。queue保持原封存false，600秒有界hold；root可依据exact owner显式停止，不改queue。
+
+CPU：actual Comfy small-model wrapper使用真实ModelPatcher.clone、Guider.inner_sample/process_conds、PackedLayout87592、MixedPrecisionOps官方FinalLayer。历史7PT×2实际CPU加载/原始condition UUID和噪声/端点转换另核。它不加载checkpoint，不证明GPU完整processed refiner/Native端点等价。模型外GPU43调用门与两条真实AV重放仍待root准入，资源模板不填造峰值或余量。
+
+已知先例包括既有query-time review、Motion4Motion/STR-Match，及Understanding Attention Mechanism in Video Diffusion Models对entropy选层。这里保持固定层/头；两个相关开发状态和4200行不是独立测试样本，不拟阈值，不依读数重选头/点，不声称创新或控制有效。

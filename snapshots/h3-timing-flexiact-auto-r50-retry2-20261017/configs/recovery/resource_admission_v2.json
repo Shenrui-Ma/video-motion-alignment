@@ -1,0 +1,88 @@
+{
+  "schema": "r50-root-two-GPU-resource-admission-v2",
+  "root_approved": true,
+  "observed_unix": 1792240241.476568,
+  "main_gpu_uuid": "GPU-REDACTED",
+  "decoder_gpu_uuid": "GPU-REDACTED",
+  "protocol_sha256": "16dbe3ff91ea84ade0201980ee97c739b3471f652976bcea593164ec0756c595",
+  "engineering_revision_sha256": "f875f217123c78526c5edbf19f927f2eeae29ccdfbaa9fae8efcce174f93133e",
+  "kernel_gate_sha256": "60ee5965b8c79e45572a98561e5cfa0b135720be815ede3e6b321bbc0ad4b237",
+  "decoder_gate_sha256": "2d7085547a90a773bded7837a62f84cd79883e3afcc370e065cf3513baad85a6",
+  "main_native_peak_sampled_bytes": 68055728128,
+  "routing_increment_bound_bytes": 8839495680,
+  "main_margin_bytes": 1073741824,
+  "main_total_memory_bytes": 85899345920,
+  "main_estimated_peak_bytes": 77968965632,
+  "decoder_peak_reserved_bytes": 5981077504,
+  "decoder_total_memory_bytes": 85899345920,
+  "required_free_before_decoder_mib": 7752,
+  "scope": "GPU3 main model; GPU2 isolated full158 decoder; maximum2 owned GPUs",
+  "devices": {
+    "GPU-REDACTED": {
+      "csv": "GPU-REDACTED, 81920, 4, 81045, 0",
+      "total_bytes": 85899345920,
+      "free_bytes": 84981841920,
+      "required_free_bytes": 77968965632
+    },
+    "GPU-REDACTED": {
+      "csv": "GPU-REDACTED, 81920, 19608, 61442, 80",
+      "total_bytes": 85899345920,
+      "free_bytes": 64426606592,
+      "required_free_bytes": 8128561152
+    }
+  },
+  "evidence": [
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/configs/engineering_v2/allocator_profile_158.json",
+      "sha256": "7f4d5fbcc72dd66cf776a645ff501c84df73614de06f7674d2348d0f69fca5c0"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_native_r49_20261017/logs/resources.jsonl",
+      "sha256": "6a6e432ac096a1af0f3ee40c3c8016eecc577f597b3ad7b97cf822e8317fc9b9"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/configs/engineering_v2/previous_kernel_gate.json",
+      "sha256": "60ee5965b8c79e45572a98561e5cfa0b135720be815ede3e6b321bbc0ad4b237"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/audit/known_endpoint_158_split_gate.json",
+      "sha256": "26f0700505f4a21f43477cf3ba4ee810222969faef92f515ae891b480ff2f784"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017/audit/build_split_resource_admission_proposed.py",
+      "sha256": "c30970b05b0a4f91089cf228cc83ab58f192c75133f6245893d1304f4bc57a94"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry_20261017/configs/main_memory_evidence/resource_admission_v2.json",
+      "sha256": "090e8dbafa26d22de440461df1855bdb4378ae8dfc3d3ade036e09d61d610783"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry_20261017/audit/known_endpoint_158_split_gate.json",
+      "sha256": "2d7085547a90a773bded7837a62f84cd79883e3afcc370e065cf3513baad85a6"
+    },
+    {
+      "file": "/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry_20261017/configs/decoder_memory_profile.json",
+      "sha256": "bd1aaefce19d7647b3693e1fc86578193262f02995bc3a761485e9b89290c967"
+    }
+  ],
+  "interpretation": "Inherited actual main capacity bound plus newly executed exact full158 decoder. Foreign compute is allowed subject to actual free memory; service and each observer recheck resource availability.",
+  "decoder_memory_profile_sha256": "bd1aaefce19d7647b3693e1fc86578193262f02995bc3a761485e9b89290c967",
+  "compute_process_snapshot": [
+    {
+      "gpu_uuid": "GPU-REDACTED",
+      "pid": 59418,
+      "uid": 1015
+    },
+    {
+      "gpu_uuid": "GPU-REDACTED",
+      "pid": 7969,
+      "uid": 1015
+    },
+    {
+      "gpu_uuid": "GPU-REDACTED",
+      "pid": 53945,
+      "uid": 1015
+    }
+  ],
+  "own_compute_count": 0
+}

@@ -1,0 +1,159 @@
+H3同状态原生观测、按需Full重算：只读可行性设计
+2026-10-16。写范围仅本文件。未实现、未改R6/R8、未运行GPU、未改远程环境。
+
+结论与建议顺序
+
+技术上可行。最小接入点是Comfy的PREDICT_NOISE wrapper：在Guider.predict_noise外先调用一次原生预测，读出其当前x0，再视结果用完全相同x/sigma/条件调用一次Full预测，返回其中一个完整端点。现成sample_euler继续负责一次更新与一次callback；无需另写Euler，无需重复进入采样生命周期，无需另载教师模型。
+
+先用便宜的“两次连续对齐才关闭”基线检查R6停一下再重开的现象。若这个20 NFE基线达到相同或更好的时序—形状结果，额外的同状态重算没有获得必要性证据。若仍需诊断native与Full的即时测量差，可做固定R6 mask的native探测重放，随后再考虑真正控制native-first。每一阶段以独立pose/视觉结果判断；观测器的lag变小不是独立成功证据。
+
+当前输入证据与限制
+
+Root报告R6实际20次模型调用完成，active physical indices为[6,8..19]，共13次；观测lag为11→1→12→6→9→10…，终点11。这里按最终上报修订了此前运行中记录。本设计没有自行读取或重解释R6最终视频。Root随后补充：R6最终独立pose为13/unknown，既有Full为2/2，判断本次R6未成功；4份early VAE解码仍待完成。这里保留其原指标口径，不将unknown转换成可判成功。
+这些相邻步记录支持调查“Full直接改变当前端点读数，但修正未足够进入下一状态”的可能性。它们来自不同x/sigma，不能证明这个机制，也不能证明多开index7会成功。固定mask重放能在相同实际状态得到两分支，可直接回答测量差异；控制试验才回答它是否有用。
+
+文献边界
+
+采用已核的R2/literature/query_time_posterior_gate_review.txt §6，文件SHA256：
+87a0fd8238932f7d317c0729baade32ef69290f74fa618e6dedbbb59d636fecd。
+本轮专注实际接口，没有扩大检索或宣称不存在同类工作。
+MotionEcho（https://arxiv.org/html/2506.19348v2，§3.4/Alg1）已在当前噪声状态读取运动能量，按其激活/截断教师引导；能量不是对加上本次梯度的端点再测。因此“观测与本次执行器分离”本身已有直接先例。
+AG（https://arxiv.org/html/2312.12487v1）已有同状态双预测和阈值决定切换/省略分支。
+PAG（https://arxiv.org/html/2403.17377v2）已有同一模型的attention扰动双预测与无需训练的引导。
+DiffTrack/CAG（https://arxiv.org/html/2506.17220v2，§5）已有关闭跨帧attention的运动受损预测及外推；本候选也不能凭“同模型、attention开关、无训练、用于运动”主张首创。
+当前可检验差别仅是冻结H3参考编辑中的物理时间误差读出、条件Full选择与停止，以及它能否改善实际质量/成本。技术上是推理控制器；本文件不把它称为已经成立的架构创新。Full算子原有的DIAL/同帧reference routing近邻仍然存在。
+
+1. 已核真实接口与来源
+
+源码来源为已归档实际Comfy快照：
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz。
+以下关键文件SHA与当前R6 parent_core_hashes相符：
+comfy/samplers.py f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f
+comfy/model_base.py 6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68
+comfy/ldm/minimax/model.py 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+另外读到的快照文件（新实验启动前应加入实际主机SHA核验）：
+comfy/k_diffusion/sampling.py cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce
+comfy/patcher_extension.py 1c7b3b855278d0b95d1c1a705fa0b3c91a265f320e2f97bdeb9d15469d6d4ac7
+comfy_extras/nodes_custom_sampler.py b0ba1521c72475e06fed15db004274ed7c8bb2bf73f1d58849faf6f9f9d264fe
+
+调用链：
+Guider.inner_sample -> SAMPLER_SAMPLE wrappers -> KSAMPLER.sample
+ -> KSamplerX0Inpaint -> Guider.outer_predict_noise -> PREDICT_NOISE wrappers
+ -> Guider.predict_noise -> sampling_function -> BaseModel.apply_model -> H3 DiT。
+
+samplers.py:1210–1218：PREDICT_NOISE executor收到(x,timestep,model_options,seed)。这里返回的是denoised端点，尽管函数名叫predict_noise。BaseModel._apply_model:253–257已把模型velocity换算为denoised；不可把H3原始输出当x0直接观察。
+samplers.py:1226–1237：条件预处理在采样前完成；模型选项clone并放入sample_sigmas，随后进入一次SAMPLER_SAMPLE。新探测不得重新调用inner_sample，否则会重复预处理、前后处理和生命周期。
+samplers.py:630–643：无denoise_mask时KSamplerX0Inpaint只转发x/sigma并返回模型输出。初版继续拒绝mask。
+samplers.py:983–1007：KSAMPLER负责初始noise_scaling、callback桥接和终点inverse_noise_scaling。保留它，避免自己复制这些容易出错的归一化逻辑。
+k_diffusion/sampling.py:205–211：一次model调用返回denoised后，计算d=(x-denoised)/sigma，callback，然后唯一一次x=x+d*dt。双预测放在model调用内部，Euler循环自然只更新一次。
+patcher_extension.py:103–122：收到的executor(*args)每次创建下一个executor；可先后调用两次。不能调用executor.execute（会重入当前wrapper），也不能在wrapper里调用Guider.__call__/outer_predict_noise（递归进入自己）。
+
+2. 最小结构：新MODEL节点，两类wrapper，一个共享单次state
+
+在新的独立实验目录中新建H3NativeFirstRouter，复用冻结Router kernel/layout及observer函数。一个节点安装50个block patch、一个SAMPLER_SAMPLE生命周期wrapper和一个PREDICT_NOISE wrapper；所有对象持有同一state。模型clone只做一次，不建立两份H3权重。
+
+SAMPLER_SAMPLE入口继续核验：官方BasicGuider（含已审过的同源loader alias）、CFG1、一条positive、无negative/CFG hooks/control/regions、单GPU、无额外forward wrapper、Euler20、21个严格递减sigma、无churn/随机inpaint、无mask、视频scale1和audio scale4。旧validate_guider的“只许sampler_sample wrapper”需窄改为仅允许本节点自己的一个predict_noise wrapper，以及已有独立X0 sampler wrapper；仍拒绝未知CALC_COND_BATCH/APPLY_MODEL/DIFFUSION_MODEL/model_function_wrapper等替代执行路径。
+
+PREDICT_NOISE wrapper负责一次Euler步的完整prediction transaction：
+  n = state.euler_step_index，入口应等于callback_count；
+  assert timestep等于冻结grid[n]，单batch；assert无进行中的branch；
+  begin_branch(n, NATIVE, active=False)；
+  y0 = executor(x, timestep, model_options, seed)；
+  end_branch：恰好50块、一次底层完整forward；
+  用y0的CPU副本规范化并调用冻结observer；
+  对可控制n按冻结规则决定u；
+  若u为ON：begin_branch(n,FULL,active=True)；
+            y1=executor(x,timestep,model_options,seed)；end_branch；
+            chosen=y1；
+  否则chosen=y0，直接复用该对象；
+  保存transaction摘要；return chosen。
+随后原Euler callback只收到chosen及原x，每步恰好一次。callback完成后才允许下一步预测。每个branch的finally都清除临时phase/active标记；失败即停止，不能在失败后静默退回native继续。
+
+初版不在native与Full之间修改x、noise、sigma、seed、cond、模型权重、layout、RoPE或sample_sigmas。两次使用同一完整输入；不得把native y0先当新x再跑Full。返回选中分支的完整packed视频+音频端点，不混拼native音频与Full视频；这会是另一种尚未定义的操作。CPU process_latent_out只作用于副本，送回Euler的预测仍使用原始采样坐标。
+
+SAMPLER_SAMPLE可以包住原callback核验transaction后，再转发独立H3X0Readout；H3X0Readout仍按20个物理采样callback保存chosen端点。原生/Full各自的诊断保存另用branch标记，不能占用或伪造独立recorder的step编号。
+
+3. 四组索引必须分开
+
+(a) euler_step_index n=0..19：实际积分区间[sigma_n,sigma_n+1]，也就是callback index。
+(b) model_nfe_index j=0..19+K：每次native或Full模型调用都增加；最后索引是19+K，共20+K次。
+(c) branch∈{NATIVE,FULL}：同一个n可有两个不同j，顺序必须先native后Full。
+(d) reference/video frame index0..140：手选窗50..65、latent bins[14,20)、名义query覆盖47..67，与采样n/j完全不同。
+
+旧RouterState.forward_index可以保留为连续j（NFE），但不能再拿它判断是否处于采样index6..19。selected(block)必须只使用当前锁存branch.active及全50层范围。每个branch入口显式授权唯一(n,j,branch)；block0核对授权后，旧EventBlockPatch仍顺序0..49增加j及50块计数；结束时消耗授权。缺少授权、重复Full、第三次forward、同一callback内跨n、早到callback都失败。
+
+新callback核验每n正好一个native，加0或1个Full；已完成NFE数量与transaction一致；无未完成block；callback只一次。最终callback_count=20，model_nfe_count=20+K，block_calls=50*(20+K)，routed_blocks=50*K。不要把旧R6“callback i之前正好i+1 forwards”的guard直接删除而不补这些条件。
+
+旧Router的自动temporal_readout在forward_index0/5/10/15/19触发。复用时这些只能解释为NFE位置，不再是采样步位置；通过完整j→(n,branch)映射给每条readout补标签。主observer另按n运行，不用这些辅助readout控制。无需为本次试验重做attention读出算法。
+
+4. 时序范围与决策延迟：需要单独冻结
+
+建议先保留前六个Euler步n0..5全native；n5可以被动记录，第一处有资格重算是n6，最后是n19，最多14次额外Full，因此总NFE20..34。n0..5不能因观测到错误提前重算。
+同状态当步控制：在n6..19先观察native，再决定同n用Full；terminal callback19仍只审计，但它发生在n19 native/可选Full及本步选择之后。这里与R6“callback19不产生下一步决策”不冲突。
+建议明确定义首次previous_effective_active=False；n5被动观测不改变它。随后lag3保持前一物理步实际选择；lag>=4开、-2..2关、<=-3关并记提前、unknown关并记暂停。这样不会靠隐含的pending标记引入一步冷启动差异。若选择以n5 proposal初始化首次lag3状态，必须在执行前单独写清；本方案不采用这一变体。
+
+R6观察的是当步实际已选择的预测，并在下一步执行决定。native-first当步版同时改变了观测分支和一拍延迟。因此它比R6好，不能全部归因于去除当前Full对观测的直接影响。
+最小分离对照：native-first延迟版在每n先取native读数，但实际u_n由前一n-1的native读数决定；n5原生读数为n6决策，n6..18为下一步决策，n19原生读数只审计。它也先native后按旧pending开Full，总20+K NFE；与当步版相比只差延迟定义。初期若仅跑当步版，结论只能标为两项联合改动的机制试验。
+
+5. 更便宜的停止基线与固定重放
+
+优先一个冻结20 NFE基线，沿用R6的chosen端点观测、下一步应用、相同阈值：
+  维护连续accepted aligned次数c，初始0；
+  lag>=4：c=0，下一步ON；
+  -2..2：c+=1；若当前已ON且c<2，下一步保持ON，否则OFF；
+  lag3：c=0，保持当前有效ON/OFF；
+  <=-3或unknown：c=0，立即OFF，分别记advance/unknown；
+  callback19只审计，不虚构下一步。
+此规则会在R6观察到index6 lag1时多开一次index7，但不能沿旧R6后续lag列表推断新轨迹结果。它没有同状态native探测，仍可能被Full端点直接影响；用途是检验简单停机迟滞是否已经够用。
+也可用最短“开后至少连续两次Full”基线，但不建议同轮同时扫两类hold长度；预先选上面一种即可。unknown/overshoot应始终优先关闭，不被强制hold覆盖。
+
+若要直验测量分离，固定R6实际mask[6,8..19]重放：每n先native，命中mask再Full并选Full。它与原R6选择相同分支，共33 NFE；若实际所有chosen端点/最终latent可逐位一致，就能在同一R6轨迹得到native/Full对照，排除probe改变轨迹。这个probe重放属于诊断与接口验收，不是新质量算法。
+与Full当步控制比较时至少报告总NFE、Full次数、具体sigma区间和sigma-dose、同步readout时间、总walltime、显存，以及独立质量。仅匹配Full次数不能匹配sigma积分剂量。额外native探测没有免费计算；将来不能声称与20 NFE Full等成本。
+
+6. 随机性、条件预处理和缓存的具体处理
+
+H3 _cond_video_rows（model.py:532–545）每个条件都新建torch.Generator('cpu').manual_seed(payload.seed)，_cond_audio_rows:547–557用seed+1。两分支相同payload/seed/shape会重建相同条件噪声，不应把第二分支seed加1。局部Generator不会推进global RNG；全局CPU/CUDA RNG在branch前后仍需验明不变。
+Euler s_churn=0没有随机采样；KSAMPLER random inpaint必须继续拒绝。不要每步torch.manual_seed，也不要盲目保存后恢复全局RNG来掩盖模型意外使用随机数；检测到变化先失败并查清。初始noise只生成一次，hash绑定实际noise，不重新调用noise节点。
+H3 extra_conds（model_base.py:2171–2175）已将condition projection/token refiner预计算，layout也在同一采样生命周期构建。两次predict_noise重用self.conds，不重新执行extra_conds，Comfy图级缓存保持原含义。
+H3 _forward:617–623读取layout；738之后等都在当前forward计算。未发现这份H3模型实现里跨forward复用条件K/V或hidden的缓存分支，不得据此承诺全运行环境没有别的缓存。拒绝未知forward wrapper/TeaCache等；仅保留已验证的INT8权重处理和runtime backend。模型设置eval，串行singleGPU执行。
+BaseModel._apply_model:248复制transformer_options，再H3写layout/block_index；不能以浅字典“完全不变”作错误要求，应核查输入tensor/参考内容和科学options不变，允许实现已有的临时options及audit计数。state.plan/layout只缓存静态几何，不缓存受Full影响的hidden。
+PDD final head（model.py:329–335）按传入sigma在完整sample_sigmas里找到对应区间；两分支必须保留同一完整21点grid。禁止为第二次forward构造局部两点sigma数组，禁止把NFE j当PDD采样步；否则同一x看似重算，实际head已经改变。
+对当前关闭dynamic-VRAM/cuda-malloc的后端保持原设置。是否有allocator/quantization/autotune状态影响数值，由同状态native重复与固定mask重放验证；不能把加载两份模型作为缓存隔离捷径。
+
+7. CPU回归与实际主机验收计划
+
+复用已通过实际Comfy loader的R6 smoke框架，新建隔离测试，不在运行中R6/R8修改。
+
+T1 实际接口：通过nodes.load_custom_node得到graph BasicGuider，真实ModelPatcher.clone、WrapperExecutor、KSAMPLER.sample、sample_euler。PREDICT_NOISE wrapper签名接收位置model_options/seed，先后调用同一个executor两次，验证没有递归/重复上层wrapper。真实MiniMaxH3.process_latent_out，tinyCPU DiT QKV，完整latent geometry。
+T2 off恒等：20native/0Full/20callback/20Euler更新/1000块；与未经新wrapper的native每个chosen端点、最终样本逐位相等，原始对象/条件/noise/RNG未变。
+T3 固定mask：预定mask下20+K NFE/50*(20+K)块/20callback，输出与同mask每步仅跑已选择分支的单forward旧实现逐位相等。可分别验证两个X0 wrapper顺序与Nested回调，禁止probe冒充callback或多写终点。
+T4 同状态branch：native和Full收到相同x值、storage/version、sigma、seed、scientific options/conditioning签名；x不变。Full收到的不能是y0或Euler(x,y0)。让toy native/full预测显式不同，用手算Euler轨迹检查只选择一次、只更新一次。
+T5 选择复用：冻结mock观测序列覆盖late/aligned/lag3/advance/unknown；aligned直接返回native预测对象，无Full；关闭再重新开启时state不串步；n0..5强制native；n19可在当前选择Full但之后无第21步。
+T6 计数破坏注入：双CFG forward、重复/跳过block、重复Full、跨步提前callback、未完成branch、额外第21model step、错误sigma/grid、第三方forward wrapper均拒绝。旧accepted官方loader alias保留，同名非官方/subclass仍拒绝。
+T7 条件噪声：对真实H3 _cond_video_rows/_cond_audio_rows构造小CPU payload，两次输出相等、输入latent及global RNG相等；不同branch不改变seed。PDD两次接收同grid/sigma，对应head区间相等。
+T8 污染检查：额外的native-native探测丢弃第二预测时，selected轨迹与无额外探测逐位相同；刻意注入RNG消费或条件就地修改时测试失败。固定mask探测重放检验Full之后下一次native无残留active状态。
+T9 错误与排他：observer/第二branch/原callback异常传播，清除临时branch状态，写失败审计，不吞错继续；run_id排他、clone单state共享与新run新state，服务finally只清理本任务进程。
+
+CPU证明接口和因果账本；实际GPU最少再验：
+(1) 选定native前缀x0/条件/noise与冻结对照相等；
+(2) 预定同状态native重复/固定mask重放无状态扰动；
+(3) 真实NFE/50层与callback计数、模型和corehash、GPU资源与最终释放；
+(4) 所有观测包括unknown与overshoot，独立pose/质量验证，未按新输出调阈值。
+有一个失败先停，不在正式输出后补改协议来保留成功说法。
+
+8. 后续实施涉及文件（当前均未创建/修改）
+
+NEWROOT/extensions/H3NativeFirstRouter/__init__.py：统一MODEL节点注册与两个wrapper，官方alias adapter复用已冻结实现。
+NEWROOT/extensions/H3NativeFirstRouter/core.py：新的Euler transaction/branch/NFE状态、生命周期和predict wrapper；复用Router attention核，不改其数学。
+NEWROOT/extensions/H3NativeFirstRouter/observer.py及冻结source/protocol：原样复制已验证reader，仅固定本轮geometry；不变阈值。
+NEWROOT/extensions/H3NativeFirstRouter/dependencies.py：隔离加载冻结H3TemporalRouter/H3X0Readout。
+NEWROOT/tests/test_native_first*.py、tests/native_first_wrapper_smoke.py：以上核心及真实loader回归。
+NEWROOT/configs/protocol.json、paired graphs/queue、scripts启动白名单/readiness/provenance核验：仅新run的配置；正式控制与诊断fixed replay应不同run_id。
+NEWROOT/analysis/implementation.txt、audit：source hashes、物理步与NFE映射、branch诊断、walltime和结果绑定。
+现有R6、R8和Comfy核心不需要修改。若先做便宜hold基线，另建隔离节点/配置，仅增加stop streak；不要把hold与native-first同时合成一项未分离改动。
+
+每条branch审计最少包含：run、Euler n、NFE j、NATIVE/FULL、x/sigma/cond/ref/noise签名、active、50层完整性、native观测full49曲线/拒判、Full观测（有时）、选择原因、选中端点签名、CPU copy/normalization/observer时间、额外模型耗时。GPU耗时需显式同步测量或用已同步事件，不能用异步调用的Python计时冒充kernel耗时；正式walltime单独记录。
+两个端点差与Euler作用量可报告：Δx_next=(1−sigma_next/sigma)*Δx0。它是packed latent恒等式，不是pose lag比例、不证明控制稳定，也不说明整体画质会改善。
+
+交接状态
+仅设计文档已完成。技术入口与冻结源码已核对，实施尚未授权给本agent，本文件没有宣称成功。先等待root对R6/R8独立结果的判断，再决定便宜hold、固定mask探测或native-first哪一项先执行。

@@ -1,0 +1,38 @@
+R13 retry2 输出头检查失败诊断与修复边界
+2026-10-16
+
+实际失败
+正式首个 n=6 的 replay_full 预测完成50个DiT block，随后在 FinalLayer 的 forward_pre_hook 失败：expected H3 PDD head bank。predictions=0，未存任何新端点。冻结Euler重建得到的U_F已先通过R10下一原生输入SHA门；没有证据要求改变重建或fork数学。
+完整失败日志：audit/attempt2_failed_pdd/files/logs/comfyui.log。原core/node/smoke三文件保存在audit/pdd_retry2_source_snapshot/，未覆盖失败证据。
+
+实际源与checkpoint证据
+只读读取 .9 /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/ldm/minimax/model.py 及冻结safetensors头部，未加载权重、未启动CUDA。
+读取结果保存audit/actual_head_source_header.json；官方model.py SHA 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe。
+checkpoint minimax_h3_ref2va_pruned_int8_convrot.safetensors：video_out.weight[96,5376]/bias[96]；audio_out.weight[32,5376]/bias[32]，存盘dtype均F32。
+官方FinalLayer构造器300–310行创建video_dim/audio_dim两路Linear；MiniMaxH3Model494、514行给video_dim=24×1×2×2=96、audio_dim=32。321–323行计算bank后，bank=1直接调用两个Linear。325–335行PDD多头及dt加权切片仅在bank>1时执行。
+官方构造器显式dtype=float32用于output heads，但实际attempt2日志83–85行显示MixedPrecisionOps/BF16。ops.py的mixed_precision_ops.Linear继承torch.nn.Module和MixedPrecisionOp，不继承torch.nn.Linear；factory_kwargs使用compute_dtype，忽略该构造参数。_load_quantized_module对无comfy_quant的head也把FP32存盘weight转换为compute_dtype；bias按factory dtype创建并复制。因此冻结运行预期是BF16 Parameter，不能用F32 header推断FP32运行时dtype。证据补存在audit/actual_head_ops_source.json。R10/R12使用相同冻结Core/模型/OPS的单头FinalLayer路径；它们没有R13错误的bank>1检查。
+
+根因与原CPU测试缺口
+R13 ModelAudit错误地把可选PDD多头分支设为本checkpoint的必要条件。旧CPU smoke设置SimpleNamespace(weight=zeros(6,2),out_features=2)，人为构造bank=3，再mock _pdd_head。它测试了官方FinalLayer的合成PDD分支和schedule定位，却没有覆盖真实checkpoint的bank=1输出头。
+旧日志中的actual_PDD=true仅能支持该合成分支被调用，不能支持R10/R12/R13正式模型实际执行PDD。完整21点sigma及index7/11/15的原记录仍是实际传入的参数；单头模式下FinalLayer不使用它们进行PDD头选择。本修复明确记录head_mode=single_linear、pdd_active=false、bank_size=1、start/stop=null。
+
+最小修复
+core.py新增output_head_contract：允许torch.nn.Linear子类或明确的官方comfy.ops.mixed_precision_ops.<locals>.MixedPrecisionOps.Linear，拒绝任意Module/伪造SimpleNamespace；video in/out_features5376/96与weight/bias形状严格匹配、audio5376/32严格匹配，head quant_format/layout_type必须为空。只接受FP16/BF16/FP32且同一头weight/bias dtype相同，entry记录实际class/dtype，每次forward逐项冻结。正式服务禁用dynamic-vram；静态ModelPatcher对无weight patch直接返回原weight，设备加载m.to(device)不改dtype。此源码路径支持entry到forward冻结，仍需真实GPU记录确认；没有以存盘F32替代运行时检查。
+__init__.py的ModelAudit在安装hook前核对该契约，并保留每次call的完整grid、物理index、shifts、授权phase和重复call拒绝。hook返回None，保留官方forward调用；没有改Linear权重、激活、sigma、切片、模型精度或返回结果。
+原audit键名pdd保留以兼容现有归档，新增记录已明确PDD未激活；最终门要求六次实际输出头调用。
+除新增契约函数外core AST与旧core完全相同；Source/ForkSampler/Euler重建/6NFE/0callback/0更新/所有输入和端点逐位门均未修改。协议和科学参数未修改。
+
+验证内容
+新增test_output_head_contract.py覆盖真实头形状、非法银行/尺寸/bias/dtype拒绝，合法运行时浮点类型的捕获和中途dtype变化拒绝，grid/index/shifts/phase/重复call守卫，hook前后输出/输入/参数/RNG不变。
+正式环境smoke已改用实际mixed_precision_ops(compute_dtype=BF16) factory的官方FinalLayer，完整hidden5376、video96、audio32。先构造FP32合成state_dict，再经实际_load_quantized_module/load_state_dict严格装载成BF16，断言真实Linear不属于nn.Linear、实际权重dtype为BF16。RMSNorm/Adaln也使用真实Comfy模块；不读取checkpoint权重，不mock _pdd_head。
+smoke先无hook执行两路真实target segment，核对显式相同切片+modulation+Linear的输出；再以真实clone/Guider/inner_sample链分别运行六次probe，要求各次有hook输出逐位等于无hook、两路Linear调用数与形状正确、参数和输入/RNG不变。此项证明的是单头模式两路target切片的等价性，当前checkpoint没有PDD银行切片可证明。
+旧完整CPU失败/成功日志均保留。第一次修复16项本地回归通过；加上运行时dtype用例和实际OPS支持后最终17项本地回归全部PASS，6.911秒，日志audit/local_cpu_single_head_attempt2.log。四份改动源码compile PASS；core AST除新增guard函数外与retry2完全相同。最后一次本地测试使用R13专用锁，线程1，未争用全局pose锁。实际.9新smoke仍待执行，旧smoke PASS不能覆盖这次修改。文件SHA见audit/single_head_patch_hashes.json。
+
+主线程部署与实际CPU门
+需部署四个文件：extensions/H3OneStepForkAudit/core.py、extensions/H3OneStepForkAudit/__init__.py、tests/one_step_fork_wrapper_smoke.py、tests/test_output_head_contract.py。root重封manifest；任何旧source binding只读保持，禁止改R10档案。
+在全局CPU锁 /data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock 内，运行：
+env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/timing_one_step_fork_r13_20261016/tests/one_step_fork_wrapper_smoke.py --comfy-root /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI --compat-bootstrap /data5/researcher/h3_runs/timing_one_step_fork_r13_20261016/scripts/compatibility_bootstrap.py
+完整日志请另存新attempt路径。成功记录须包含actual_PDD=false、actual_frozen_single_head=true、actual_mixed_precision_head_factory_and_state_dict_loader=true、head_checkpoint_dtype=float32/head_loaded_dtype=bfloat16，以及两案official_head_hook_bitwise_equal/official_stream_slices_bitwise_equal/head_input_parameters_unchanged=true，绑定core/node/smoke SHA。
+
+尚待验证
+新的真实.9 CPU smoke、GPU运行时实际dtype和六端点的同机重放逐位门尚待执行。本次仅诊断/实现接口修复，没有运行GPU或改变科学方法；不能以CPU成功预言GPU重放门成功。

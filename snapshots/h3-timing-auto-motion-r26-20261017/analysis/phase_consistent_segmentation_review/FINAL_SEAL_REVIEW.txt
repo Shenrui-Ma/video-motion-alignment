@@ -1,0 +1,39 @@
+同部位相位分段 CPU 原型：最终封存独立审查
+结论：PASS，限按既有冻结定义进行 source05 经验校准与获授权的 63 项逐端点评分。该结论确认实现、合成测试和证据绑定闭合；实际源校准、真实目标评分及方法有效性仍待结果。此次只读源码/JSON/SHA，没有运行评分、重跑测试、调用 GPU 或更改执行文件。
+
+封存绑定
+执行 FREEZE: 845309db0e88330878e8e97ae78b2895deb7febbcb26637d58f9fabbc27a13fa；15 项 SHA 与 bytes 全匹配。
+设计 FREEZE: 1cea183950477d773a6297169ef8b77fd3a0b65cddc73feafc3cc64e37943119。
+PROTOCOL: 633b1b4e863895256aa46fda74f4a0eafdb235af19577b29cecade2cfaf82d7b。
+INPUTS: 2386219d3264c320365dd8ce076310103d6085a37ff56b8a266cccb3b0e6f3fc。
+run_once.py: aaf8cde247f6abc8bc25c090ec6314e4bfe8f8d71cc14682e0d3ba640182ce1e。
+segmentation.py: 0e6cbfc27da35143c22aa085063498164e2c799e3c30520978cfa9f4932d743f。
+synthetic_attempt003: bf2a77568527bc31c900bfa6ea01a272fcc4c37f580916065ed25e037132891d；34 tests PASS，收据 2.23448 秒。
+metadata_attempt002: 336d2a1133a65ca62ba93743edbf1b35a17718fc4c60292b4f5ba22d8bfa966d；68 个 pose SHA/141 帧/24fps/i/24 门通过，0.10813 秒。
+两收据列出的 5 份 Python 源与当前封存逐项一致；本次另只读重核 68 个 pose 当前 SHA，无变化。
+
+数值与索引契约
+1. 物理帧轴为闭区间 [a,b] 的 0..140，不压缩缺测帧；去噪端点轴在各自 20 项历史中独立。source07 仅两个最终成片，不能补成完整轨迹；63 项是 60 个相关轨迹端点 + 3 个 final-only 压力例。
+2. 左右臂分别两根单位骨向量、两置信阈值；每候选 d 与全部五个 null 共用有效槽和 clipped min confidence。每份 confidence 先逐个 finite/阈值核验，避免 +Inf 被 min(1,score) 掩盖。方向距离除 2，已知槽的加权优势有界，未知槽固定 -1。
+3. 区间同时满足 .8 槽覆盖、8 有效帧、不能跨整帧缺测、归一化 residual <= .25。阈值数值对应旧未除 2 距离的 .5，但新的区间/竞争者支持规则不同于旧扫描。
+4. 单 source05 identity/flip/pad16 的六个有序不同视图对，遍历同一部位/候选/区间家族最大 G/C，lambda=max(0,maximum)。不存在合格校准区间时保持 UNKNOWN_CALIBRATION 并拒目标评分。lambda=0 原样记录；其复杂度惩罚确实为零。
+5. 闭区间 prefix sums、码长、44 个非 null lag 和 tie rule 与协议一致。每臂 weighted interval DP 不限预选窗口个数/长度；左右可重叠。固定长度消融和跨部位排斥消融都保留相同 gain/penalty 来源，不重估 lambda。
+6. 最终 phase_check 对每个相距 >=4 的竞争 lag 重新建立共同支持；任一缺支持、间隙 <.05 或搜索边界 ±24 均保留 UNKNOWN。拒判后不重新优化。输出的 DP 最优仅指拒判前目标，不是最终被接受片段集合的最优。
+7. adjacent_persistence 已同时支持同符号 delay/advance；要求相邻去噪索引、同部位、lag 差 <=2 和实际观察物理帧相交。正负符号各自统计，反号不合并；合成正负持续性负例已覆盖。
+
+错误与提交边界
+- 只将原有具名可靠躯干锚点不足 ValueError 转为科学 UNKNOWN。JSON/shape/其它 ValueError 继续技术失败。
+- 授权字段必须 literal true，绑定执行/设计/输入 SHA；目标授权还绑定校准结果 SHA 和允许的全部 target ID。每实际 phase 初始验证 68 个输入元数据/哈希，提交前复核本 phase 代码、授权、输入、校准及产物。
+- 同目录临时文件 fsync + exclusive hard link 原子发布 COMPLETE，已有完成结果不可覆盖；损坏 marker 明确拒绝。失败 attempt 保留，新 attempt 不伪装完成。
+- 单次共享 Mac CPU 锁，最多 4 线程、120 秒；没有常驻循环、pose 提取、torch/model/GPU 路径。忙时 75 退出。root 仍决定实际调度，尤其线上 CPU 优先。
+- finalize 要求 63 个已授权目标存在并核全部产物哈希，只聚合已有结果；持续性与覆盖仍是相关描述，不是独立样本数量。
+
+必须伴随真实结果保留的限制
+A. 经验 lambda 由单个 source05 的有限几何变换家族取得。它不能给生成端点错误概率、全 source false-positive rate 或 conformal 保证；向 source40372/source07 的迁移需按原值保留并明确域外。
+B. 已冻结压力测试 8/8 零时间 warp 的相关角度扰动在 lambda=0 下出现合格相位候选。它是形状变化可模拟相位的具体反例，不能被 34 tests PASS 覆盖；也不能当作尚未计算的真实经验 lambda 下误触率。
+C. 全竞争 lag 的支持门可造成结构性 UNKNOWN，尤其片头片尾；若真实结果大量拒判，按本规则报告而不事后放宽。缺测 -1 仅保证固定槽证据不会因已知变未知而增加，不是任意置信度/重新选窗后的全局单调保证。
+D. 点级 min-null 是更灵活的局部容差基准，可在不同槽选不同 null；它不同于整窗使用同一 null 的真实时间轨迹。保守优势和旧 gain 值不应直接当同一个量。
+E. NOT_SELECTED_BY_OBJECTIVE、selected-but-UNKNOWN、原兼容标签 NO_SUPPORTED_PHASE_DEVIATION 的意义已分开；未选中不能断言没有运动错误或所有候选无证据。
+F. 本原型只提出观察窗口 A，没有去噪起停、执行窗口 S、生成质量因果验证。最新用户成功标准是自动方法相对 Native 改善并在多个独立样例接近人工选窗；固定/global 对照只检验机制与成本，不因同效否定自动化价值。这里仍无新颖性或完整自动策略效果结论。
+
+建议后续顺序：root 冻结授权并先运行 source05 校准，读取 lambda/支持/最大化证据；按冻结门决定是否可进入全部预定 63 项，保持三种方法、UNKNOWN 和失败。无需在这一授权前穷尽其它观察器变体。

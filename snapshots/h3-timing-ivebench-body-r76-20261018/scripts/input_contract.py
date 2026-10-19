@@ -1,0 +1,33 @@
+"""CPU geometry and source bindings for the five selected full official clips."""
+import hashlib
+import json
+from fractions import Fraction
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parents[1]
+SOURCES=('short_0131','short_0178','short_0090','short_0055','short_0321')
+LENGTHS=((56, 44), (124, 121), (107, 105), (90, 85), (56, 49))
+
+def sha(p):
+    h=hashlib.sha256()
+    with Path(p).open('rb') as f:
+        for b in iter(lambda:f.read(1024*1024),b''):h.update(b)
+    return h.hexdigest()
+
+def read(p):return json.loads(Path(p).read_text())
+
+def nearest_map(pts,count):
+    pts=[Fraction(x) for x in pts]
+    return [min(range(len(pts)),key=lambda k:(abs(pts[k]-Fraction(i,24)),k)) for i in range(count)]
+
+def latent_shape(t):
+    return {'video':[1,24,((t-5)//17)*5+2,46,82],'audio':[1,32,2,round(t/24*40)]}
+
+def route_bins(t,valid):
+    count=latent_shape(t)['video'][2];spans=[(1,4,4,4,4)[i%5] for i in range(count)]
+    cursor=0;stop=0
+    for i,n in enumerate(spans):
+        if cursor<valid:stop=i+1
+        cursor+=n
+    return {'latent_interval_half_open':[0,stop],'position_bin_coverage_inclusive':[0,sum(spans[:stop])-1],
+            'total_latent_bins':count,'pure_pad_bins':list(range(stop,count))}

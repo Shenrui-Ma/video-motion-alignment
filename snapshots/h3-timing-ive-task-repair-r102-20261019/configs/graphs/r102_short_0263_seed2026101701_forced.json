@@ -1,0 +1,249 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  },
+  "41": {
+    "class_type": "MiniMaxH3SigmaShift",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift_video": 12.0,
+      "shift_audio": 3.0
+    }
+  },
+  "5": {
+    "class_type": "H3EventAuditReference",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "ref_video": [
+        "23",
+        0
+      ],
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original blue lounge chair, garden setting, camera framing, reading action and its timing.\n<Subject 1> is the woman reclining in the blue lounge chair in <Video 1>, holding an open book. Her identity and age are the parts to change to a young girl; her seated placement and reading action are retained.\n<Subject 2> is the blue fabric lounge chair, the open book, and the surrounding original outdoor plants, flowers and furnishings in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. A young girl occupies the original woman's place in the blue lounge chair and continues reading the same book in the same garden.\nRequested edit: Replace the woman with a young girl\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - replace the adult woman with a young girl. Preserve the original reclined sitting pose, body orientation, position in the chair, hand placement and contact with the open book, and the entire reading and page-handling action in its original order and timing. Adapt her body proportions to the young girl while keeping these interactions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - retain the blue lounge chair, open book, surrounding plants and flowers, furnishings, original layout and lighting.\n<Video 1> (cut and pacing structure): fully_preserved - retain the original camera framing and movement, shot continuity, visible action phases, timing and duration.\n\ndetailed_description:\nThe target video retains the photographic garden appearance, natural outdoor lighting and camera composition of <Video 1>.\n[Shot 1] A young girl reclines in the original blue fabric lounge chair in the same position and orientation as the woman in <Video 1>. She holds and reads the same open book. Her hands follow the original movements and maintain the same contact with its pages. The chair supports her throughout the shot, and the original plants, flowers and surrounding furnishings stay in place. The source reading action continues with its original timing and duration.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "width": 1312,
+      "height": 736,
+      "length": 90,
+      "audit_dir": "/data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019/audit",
+      "run_id": "r102_short_0263_shared",
+      "semantic_fps": 2,
+      "phase_frames": 0
+    }
+  },
+  "6": {
+    "class_type": "H3EventAuditNoise",
+    "inputs": {
+      "noise_seed": 2026101701,
+      "audit_dir": "/data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019/audit",
+      "run_id": "r102_short_0263_seed2026101701_forced",
+      "pair_id": "r102_short_0263_seed2026101701"
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": [
+        "52",
+        0
+      ],
+      "conditioning": [
+        "51",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "9": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+    }
+  },
+  "10": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "6",
+        0
+      ],
+      "guider": [
+        "7",
+        0
+      ],
+      "sampler": [
+        "8",
+        0
+      ],
+      "sigmas": [
+        "9",
+        0
+      ],
+      "latent_image": [
+        "51",
+        1
+      ]
+    }
+  },
+  "11": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "13": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "11",
+        0
+      ],
+      "audio": [
+        "12",
+        0
+      ],
+      "fps": 24.0,
+      "bit_depth": 8
+    }
+  },
+  "14": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "13",
+        0
+      ],
+      "filename_prefix": "r102_short_0263_seed2026101701_forced",
+      "format": "mp4",
+      "codec": "h264",
+      "codec.encoding": "re-encode",
+      "codec.encoding.crf": 16.0
+    }
+  },
+  "22": {
+    "class_type": "LoadVideo",
+    "inputs": {
+      "file": "short_0263_video.mp4"
+    }
+  },
+  "23": {
+    "class_type": "GetVideoComponents",
+    "inputs": {
+      "video": [
+        "22",
+        0
+      ]
+    }
+  },
+  "50": {
+    "class_type": "H3TemporalRouter",
+    "inputs": {
+      "model": [
+        "41",
+        0
+      ],
+      "positive": [
+        "51",
+        0
+      ],
+      "mode": "mass_preserve",
+      "alpha": 1.0,
+      "radius": 0,
+      "time_offset": 0,
+      "start_frame": 0,
+      "end_frame": 73,
+      "block_start": 0,
+      "block_end": 50,
+      "step_start": 6,
+      "step_end": 15,
+      "run_id": "r102_short_0263_seed2026101701_forced",
+      "audit_dir": "/data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019/audit/router"
+    }
+  },
+  "51": {
+    "class_type": "H3PairConditionSnapshot",
+    "inputs": {
+      "positive": [
+        "5",
+        0
+      ],
+      "target": [
+        "5",
+        1
+      ],
+      "source_audit_dir": "/data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019/audit",
+      "source_run_id": "r102_short_0263_shared",
+      "run_id": "r102_short_0263_seed2026101701_forced"
+    }
+  },
+  "52": {
+    "class_type": "H3X0Readout",
+    "inputs": {
+      "model": [
+        "50",
+        0
+      ],
+      "run_id": "r102_short_0263_seed2026101701_forced",
+      "output_dir": "/data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019/audit/x0",
+      "width": 1312,
+      "height": 736,
+      "length": 90
+    }
+  }
+}

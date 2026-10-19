@@ -1,0 +1,36 @@
+R52 independent bounded review — 2026-10-17
+
+Verdict: PASS for the frozen offline candidate-feasibility result and conditional progression to a separately reviewed R53 online experiment. This is not a R53 runtime approval or an online efficacy result.
+
+Scope and verification
+Read-only review of design/PROTOCOL.json, scripts/signed_policy.py, scripts/replay.py, the frozen original policy/scanner/gain/tolerance, tests and stored results. Rehashed all 27 DELIVERY files and all six original evidence bindings for each of four cases (pose pair, scan, summary, CPU_COMPLETE, DERIVED_FILES); all matched. PRE_REPLAY_FREEZE payload also matched. No replay, pose, model, GPU, or new numerical experiment was run. The author's eight-test passing log was inspected, not rerun.
+DELIVERY SHA256 df9bb2c871f01b7e3a027a23141eaf834418f9a38315b05ff4730a6e8ad1e576
+PROTOCOL SHA256 aa04b2f85bbec63febbc16254045bb8c12f8310b0067a9b9db5a947aa82c2c6b
+signed_policy SHA256 dcc5d638e0f07ade1015b0523fcc04ac5487d6744409a454352c95a59bfe4a05
+replay SHA256 952a6c7b32afec3a54dc3fd7e60a19cb82b601d7b69a3580f318491a2186e260
+
+Actual rule
+The original scanner already computes both delayed and advanced proposals. It requires reliable lags at confidence 0.3 and 0.5, agreement within two frames, then per-null common-support comparisons against all five lags -2..2. Every comparison retains coverage >=0.8, at least eight valid physical frames, positive weight, shifted residual <=0.5, and gain strictly greater than 0.5.
+The signed wrapper admits advanced_candidate in addition to delayed_candidate; both lags must be below -2 or above +2 consistently. It delegates grouping and representative ordering to the unchanged policy. A mixed-sign temporal-overlap component remains one component; the member with strongest absolute cost benefit is its representative. This ranking is absolute benefit, not normalized min_gain. A stronger opposite-sign member can suppress another candidate and can change representative sign between observations.
+Persistence requires same representative direction, shared arm, and overlap >=0.5 of the shorter interval, at consecutive denoising indices beginning at zero. Empty/UNKNOWN observations clear previous representatives. A sign flip is not persistence. This correctly implements the frozen scope; it is not a direction-separated grouping algorithm. The mixed-component and sign-flip tests cover these intended semantics.
+
+Evidence read directly from stored case results
+10264579: original 0, signed 0 candidates, 0 groups.
+6980766: original 0, signed 22 advanced candidates, 2 groups. Representatives are left arm [84,99] and [124,139], lag -4 at both confidence levels, min_gain 0.7386392936 / 0.6751335633.
+28289: original 0, signed 0 candidates, 0 groups.
+51310: original/signed 33 delayed candidates, 1 group; unchanged representative left arm [60,75], lag +15, min_gain 0.9149457729.
+All four reset-single-observation records are OFF, and actual online_active_indices and controlled effects remain null. These are four correlated development trajectories, not 744 independent trials. Zero qualified candidates in 10264579 is not a proof of normality: its prior raw scan includes delayed/advanced descriptors that fail later gates.
+
+Technical boundary
+The policy consumes scanner-certified measured rows; it does not independently reconstruct support, residual or normalized gain from raw poses. R52 is safe under exact archived scan/code binding. R53 must keep the actual online scanner and its error/UNKNOWN boundary, rather than feed partially trusted final summaries.
+The first replay's older-summary schema failure is retained. The narrow schema repair still binds actual run_id, seed, source/target pose SHA and optional source_id, with original scan listed in the immutable derived manifest; no scientific threshold was changed.
+
+Required R53 checks
+1. Use current-trajectory Native observations at actual indices 0..19, with signed selection only after two consecutive supported same-sign representatives. The final [84,99]/[124,139] intervals and final lag -4 must not be runtime configuration, graph inputs, fallback windows, or a forced start.
+2. Preserve the online source/target scan, confidence/null/support/gain thresholds, Full kernel/mass normalization, dynamic timebin mapping and 20+K NFE / 20 Euler transaction. Record physical-window direction separately from the denoising time index.
+3. Full same-time routing is the same actuator for both signs; a negative detected lag is not a reverse/negative shift command. Whether this actuator reduces an advance or causes overshoot is the proposed experiment's unresolved causal question.
+4. Preserve actual Native parent condition/noise/prefix gates only while unforked, all normal protection and UNKNOWN evidence, and technical failure costs. Final evaluation must retain prespecified full-clip/five-segment results and common support, not only online-selected windows.
+5. Signed versus the actual same-seed Native can test improvement for this selected known-development source. Without an actual old delay-only Auto arm, it cannot attribute superiority over the old Auto policy. R51's unlaunched template is not an executed comparator.
+
+Conclusion
+There is no blocking defect in the frozen R52 result within its offline scope. An online signed-trigger trial is a justified bounded feasibility check. R53 code, actual parent binding, CPU evidence and final immutable manifest still require their own review.

@@ -1,0 +1,72 @@
+{
+  "schema": "geometry-repair-g2",
+  "created_at": "2026-10-15T16:39:19.674791+00:00",
+  "cause": "H3 native reference canvas follows ref input size independently from target width/height; output resize alone leaves ref1312x736 versus target1024x576",
+  "remote_evidence": {
+    "audit": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/05_sam_1024x576_shared_conditioning.json",
+    "input": [
+      141,
+      736,
+      1312,
+      3
+    ],
+    "ref_latent": [
+      1,
+      24,
+      42,
+      46,
+      82
+    ],
+    "target_latent": [
+      1,
+      24,
+      42,
+      36,
+      64
+    ]
+  },
+  "fix": "CoreImageScale node24 spatialLanczos1024x576 cropdisabled; GetVideoComponents23 -> ImageScale24 -> AuditReference5. No frame trim/FPS changes; no input file edits; no assertion changes.",
+  "expected_native_ref_latent": [
+    1,
+    24,
+    42,
+    36,
+    64
+  ],
+  "expected_target_video_latent": [
+    1,
+    24,
+    42,
+    36,
+    64
+  ],
+  "shared_condition_run_id": "05_sam_1024x576_shared_g2",
+  "updated_graphs": [
+    "s05_seed1_native",
+    "s05_seed1_mass",
+    "s05_seed1_hard",
+    "s05_seed1_offset4",
+    "s05_seed1_weight3",
+    "s05_seed1_native_g2_bench2"
+  ],
+  "failed_graph_archive": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/configs/attempt1_geometry_mismatch",
+  "old_bench_preserved": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/configs/s05_seed1_native_bench2.json",
+  "new_bench": "s05_seed1_native_g2_bench2",
+  "checks": {
+    "native_adapt_geometry_1024x576": [
+      1024,
+      576
+    ],
+    "no_router_changes": true,
+    "newgraphs_sha256": {
+      "s05_seed1_native": "aa489c069aaa7cd5f49d9e86e9c698f9e2c4e5ef871e8452a00236b3d034dd4d",
+      "s05_seed1_mass": "6e0046c392b1a8884121d4ba3cff4ec60b94e36ed738bd6f95599b07bafbed3d",
+      "s05_seed1_hard": "ac5cde2ba2624ccffaba28e8107c62c14c9730ac61ba751dab237b3253e55b23",
+      "s05_seed1_offset4": "91864519012eb38e538385518d8274eeb53cefc92a7995456891c81d2fd2b865",
+      "s05_seed1_weight3": "ab7e5205bf4124a6bcc7cf467d7ea4932be37a2fc795f6021d7f84af9813a6ee",
+      "s05_seed1_native_g2_bench2": "926c1801a0136361c3eea66e423c4291d2edafdb607b4b0acdced0a5c44ed558"
+    },
+    "source_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857"
+  },
+  "remaining": "root sync configs, fresh service; verify actualruntime reference/target shape; oldfailedlogs/audit retained"
+}

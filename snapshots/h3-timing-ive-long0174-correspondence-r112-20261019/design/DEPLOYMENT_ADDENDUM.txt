@@ -1,0 +1,28 @@
+R112 部署准备补充（2026-10-19）
+
+旧的 49 文件 CPU seal 339f7675ade5200acc49ed7e1b886b13f6f95e9e6df9221d04c5e8f7f9d515cb 连同全部原文件保存在 source_snapshot/cpu_preparation/。此次增加独立 host41 启停、cgroup 准入、两组串行队列和实际产物 gate；另建 deploy_manifest.json，由 root 复核后才可执行。R103 具有优先级，只有其指定批次 COMPLETE 且精确释放后才允许 R112 启动。
+
+生命周期保持已有完整 H3 门槛：同 UID 不并行另一个 H3/MF；free VRAM 至少 40 GiB；CPU cgroup 对 clean/unmapped cache 扣除 6 GiB 保留后，adjusted high/max 余量至少 64/76 GiB，host MemAvailable 至少 64 GiB，PSI avg10 不超过 1。等待时不驻留模型。原 PID、start ticks、UID、cmdline 和 GPU allocation 均核验后清理；对其他用户进程不发送信号。
+
+两组共享同一服务，模型计算、种子、prompt、核与采样不变。科学配置的两个一步版本、step5 bank、steps6–14 和 alpha 未改。最大服务生命周期由单组 21600 秒扩为两组 32400 秒；单组 deadline 仍为 14400 秒。存储门增加到 16 GiB，估计产物 8 GiB。准备中修正了 copied parent binding 的新 noise 目标文件名为 r112 pair_id 对应文件；复制的仍为 R96 原 noise，实际 SHA 和各 AV tensor 必须匹配。
+
+step5 与 step6 的先后关系
+sampler 每次模型前向完成后，同步调用现有 PassiveRecorder callback。callback 先 fsync 并原子写入 x0_step005.pt，再原子更新含前 6 次 capture 的 manifest，然后返回 sampler。第 6 次 zero-based 前向第一次干预前读取该 manifest 和真实张量。50 个 bank 在前一次模型前向的各 block 保存完毕，BankStore.get 要求全部 50 个存在。因此只有 callback 完成与 bank 完整同时成立才能进入干预。CPU 集成测试使用原 PassiveRecorder 验证这一路径；缺少第 5 次 capture 或 bank 不完整时拒绝执行。
+
+bank 计算新增 CUDA events 并同步结束 event 后读取 elapsed_time；同时记录函数内特征取回、匹配和同步的 wall time；bank 文件写入由端到端推理耗时覆盖。当前没有执行 GPU matching，也没有实测 GPU 开销。原输出修正 / 原输出 RMS 已逐层采样记录，后续须与普通编辑及固定坐标版本共同检查。
+
+机制解释范围
+两个一步版本共同把参考 Value 的时间向 query 时间收缩；该算子并未测量当前输出实际早了还是晚了。matched 相对 fixed 的变化也可能来自沿对应轨迹的 V 差更小、因而扰动更弱。若取得收益，应先确认相对普通编辑的事件改善与编辑完成，再报告 ΔRMS；需要后续幅度匹配对照才能区分对应本身与更弱扰动。原 K 在 (t,s)、读取的 V 来自另一个 (u,j)，仍存在 K/V 语义错配风险。
+
+新增直接近邻
+DiffTrack：Q/K correspondence 在其测试中优于中间 feature，并解释 V 更偏外观；部分层、中后采样步骤更适合对应。其 CAG 将选定层 cross-frame post-softmax attention 置零，以预测差进行 guidance。当前全 50 层、step5 V matching 的选择缺少真实对应质量证据，不能预设它足够可靠。
+https://arxiv.org/html/2506.17220v2 （Sec. 3.4）
+
+EditVid：固定 correspondence time=0.25，cosine nearest-neighbor 加 cycle 检查，匹配 map 跨层复用，执行 matched token replacement。因此冻结匹配、互惠筛选和 Value/token 操作已有直接先例。本次独立检验的是 query 时间控制的有界时间推进与保留参考质量的读出；只有成片、消融和机制观察共同支持后才能讨论贡献。
+https://arxiv.org/html/2609.04190v1 （Sec. 4.3）
+
+可视化对应
+每个 bank 保存全部双向 int32 indices 和 mask、spatial_grid=[23,41]、来源 step/block。token s 在 H3 1312×736 参考图上的网格中心为 x=32*(s%41)+16，y=32*(s//41)+16。有效画面 crop=[16,8,1280,720]。时间格位置覆盖按 [1,4,4,4,4] 周期展开，前 43 格覆盖 145 个有效输出索引；对应覆盖只用于展示，不等同 VAE 感受野。可在 source 帧任意选中人物/物品 token 检查匹配，不限于固定背景采样点。
+
+成片 gate schema
+每组 analysis/postrun/<run_id>/RUNTIME_GATE.json 核验实际图、条件、noise、20NFE、450次干预、全部 x0、50 bank 来源与文件、真实前6步AV prefix和视频属性。两组齐全生成 analysis/postrun/long_0174/PAIR_RUNTIME_GATE.json，runs={native,fixed,fixed_one_bin,matched_one_bin}；native 为 R96，fixed 为 R107。另有每组 gate SHA、两个 bank collection 完全一致、前6步真实张量逐值比较与 producer seal SHA。成片视觉质量在独立 consumer 中审核。

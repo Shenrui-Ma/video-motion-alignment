@@ -1,0 +1,24 @@
+R81 氧气面罩样例：完整20步观察器可达性诊断（CPU prepared；GPU root only）
+
+固定对象：R73 short0252 Native，右侧前景成人。所有20步的完整107帧VAE解码，原时间索引0..97有效；末9帧仅保留原始输出，不进入observer。原16/32帧窗口、stride4、confidence .3/.5、coverage .8、至少8点、lag±24、gain>.5及signed两次相邻观察persistence全部沿用。两种表示：R55原torso与R59整臂。没有单骨段、AB、最终成片拟合窗口、在线干预或新的模型调用。
+
+已有可复用资料：原source及final Native/forced的107帧CPU pose；其视频SHA、模型/代码/runtime固定。中间20步原来没有decode/pose，全部新提取。成人规则沿原 source-based largest/IoU 后 box横中心[0.40,0.75]，越界设None，保留所有检测，禁止改选儿童。此规则不保证早期模糊图像的人物身份，遮挡/缺失/歧义都要在结果里保留。
+
+执行边界：x0在.9 Torch2.5.1生成；本次VAE在.41 Torch2.11.0，核心源和VAE权重绑定同SHA。全部pose在原.9 CPU环境执行，与源poseprovenance逐字段相等。step19 x0与sampler_final有最大2.384e-7视频roundoff，不能逐位视为同一张量；原final pose只作总体终点边界检查。跨host VAE/编码差别不冒充控制器差别。数据能说明原Native轨迹中何时出现候选；假设首次ON后的后续判断仍沿旧轨迹，不能推断自动纠正效果。
+
+显存：full90同分辨率.41实测peakreserved6037700608B；更大158帧R70含encode/decode最高8482979840B。当前107帧未测，16GiB为保守bootstrap门，不是容量证书。首条及全部20条分别记录实际allocated/reserved/free/decode秒。一个VAE进程顺序解码、无DiT，不加载视频生成模型；拒绝wrapper OOM tiled fallback，保留H3本身internal tiling。
+
+root执行：远端 /data3/researcher/h3_runs/timing_oxygen_observer_r81_20261018
+1. fresh资源/ownGPU并发检查；实际计划GPU7 UUID GPU-REDACTED。读取R78当前owner后登记本进程，保持own≤2GPU。以下命令自身在CUDA前等待GO：
+  mkdir -p audit outputs temp
+  timeout --signal=TERM --kill-after=30s 6000s /data3/researcher/ComfyUI/.venv/bin/python -u scripts/decode_all.py --execute --control audit/root_attempt1 --output outputs/attempt1 > audit/root_attempt1.log 2>&1
+2. root核audit/root_attempt1/ready.json当前PID/UID/start/cmdSHA和GPU/输出/freeze，向R78 peer admission登记；将ready内容原样原子写go.json（不新增字段），进程自行复核显存和≤2自有卡后开始。GO等待最多600s；主体解码预算5400s；外部timeout6000s。
+3. 结束确认outputs/attempt1/RESULT.json complete、20步各complete、zero fallback；进程退出后root精确核该PID已离开NVML，移除peer。部分失败保留原目录，不能称20步完成。
+
+CPU消费计划：把独立小型CPU包部署.9同名根，outputs/attempt1只传20条mp4+json，不需要把244MB的PT再复制.9（原件已有）。本包CPU freeze还绑定PT供完整package核验，可在.9 inputs用原R73逐字copy或硬链接，不改原件。
+  CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/pose_all.py --decoded outputs/attempt1 --output poses/attempt1
+  CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/scan_all.py --representation original --poses poses/attempt1 --output results/attempt1/original
+  CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/scan_all.py --representation visible --poses poses/attempt1 --output results/attempt1/visible
+每条pose独立申请原共享consumer.lock；只CPU/原依赖，无新下载。完整20条齐全才做顺序replay，technical failure独立失败，绝不填UNKNOWN。可复用已成功pose步骤，核SHA；失败半目录保留，须新attempt人工恢复，不覆盖。
+
+输出：每步完整observer+decision压缩JSON、摘要、first_qualified_candidate_index与first_persistent_ON_index、全部ONindices/窗口/lag/gain/coverage/UNKNOWN原因。20观察步来自同一视频，不能当20个独立案例。原终点pose文件与本轮step19对照仅作边界诊断。

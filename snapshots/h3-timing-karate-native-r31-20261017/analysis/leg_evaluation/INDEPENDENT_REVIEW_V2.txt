@@ -1,0 +1,11 @@
+R31 leg evaluation v2 — independent differential review
+
+Verdict: the requested numerical/coverage changes are correctly bounded. The frozen real-input evaluation is usable; one narrow non-finite timestamp intake guard needs correction before claiming general exact-time-grid rejection. This does not block the producer or GPU scheduling.
+
+Evidence: FREEZE SHA ad85491958cd5836b6f66a02005548fb7eb628bbae31dcff2dcf6708c2d7db08 and all four listed files match. Existing numeric functions other than the compare intake wrapper are AST-identical to v1. The recorded 14-test run passes in 3.043 seconds. I read its source/log; I did not rerun model or pose computation.
+
+The added tests cover mandatory SHA/video/fps/time bindings, 24-frame tail delay becoming UNKNOWN, static repeated-match ambiguity, and target-order invariant common support. COCO leg indices and prior lag/gate semantics remain as reviewed in v1. Shared min-confidence weights are common across outputs; they are not uniform across joints. End-of-video UNKNOWN remains censored evidence, not evidence of no delay.
+
+Narrow finding: validate_intake checks abs(time_s-i/24)>1e-9 without finiteness. json.loads accepts NaN and this comparison is False. An independent stdlib-only probe extracted this exact function from its AST and demonstrated acceptance of a 141-frame record with one NaN timestamp and a correct updated SHA. The probe did not load NumPy/torch or real pose. Add a finite numeric timestamp check and a NaN negative test. No corruption of the actual immutable pose inputs was observed or alleged.
+
+No experiment, producer, sealed metric, threshold, source, or runtime file was modified. v1 review and v2 evidence remain intact. The machine-readable companion records the file checks and exact limited finding.

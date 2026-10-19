@@ -1,0 +1,220 @@
+{
+  "schema": "r21-coarse-to-pose-design-v1",
+  "status": "design_only",
+  "implementation_authorized": false,
+  "gpu_run_authorized": false,
+  "new_method_claim": false,
+  "question": "Can the same frozen rule preserve source05/Sam seed1313 native behavior and repair seed1311 timing, using coarse latent decisions at indices6..9 and fine pose decisions at indices10..19?",
+  "inputs": {
+    "graph_path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/configs/r3_s05_full_6to14.json",
+    "graph_sha256": "83dec6024bdad01a02dd762dbce94fce93b21611d36cceb67df579a6757e57fe",
+    "source": "05_real_megumi_v.mp4",
+    "identity": "Sam Altman",
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "sigma_string": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+    "video_shift": 12,
+    "audio_shift": 3,
+    "sampler": "Euler",
+    "CFG": 1,
+    "original_steps": 20,
+    "lora": null,
+    "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+    "reference_semantic_fps": 2,
+    "reference_semantic_phase": 0,
+    "seeds": [
+      2026101311,
+      2026101313
+    ],
+    "seed_binding": "case-specific noise AND H3 reference-augmentation seed; preserve existing seed2 graph behavior",
+    "parent_graph_seed": 2026101311
+  },
+  "case_roles": {
+    "2026101311": "already-seen delayed development case; conditional R19 trace replay proof, not a newly executed R21 case",
+    "2026101313": "already-seen normal development case; actual complete hybrid run needed to close late-pose coverage"
+  },
+  "actuator": {
+    "formula": "O_new=O+m_ref*(O_same-O_ref)",
+    "mode": "mass_preserve",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "query_source_window_inclusive": [
+      50,
+      65
+    ],
+    "query_bins_half_open": [
+      14,
+      20
+    ],
+    "block_interval_half_open": [
+      0,
+      50
+    ],
+    "spatial_queries": "all943 per selected bin",
+    "heads": 56,
+    "head_dim": 128,
+    "reuse": "R3 original Full operator; no R16 mask or R17 RoPE change"
+  },
+  "pose_observer": {
+    "decode": "complete normalized native video latent; VAE full141frames; no temporal/spatial latent crop, interpolation, phase shift or tiled fallback",
+    "source_pose_path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/old_sam/05_real_megumi_v.pose.json",
+    "source_pose_sha256": "e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852",
+    "main_window_inclusive": [
+      50,
+      65
+    ],
+    "lag_search_inclusive": [
+      -24,
+      24
+    ],
+    "confidence_thresholds": [
+      0.3,
+      0.5
+    ],
+    "alignment_tolerance_frames": 2,
+    "secondary_windows_inclusive": [
+      [
+        69,
+        81
+      ],
+      [
+        80,
+        92
+      ],
+      [
+        99,
+        111
+      ]
+    ],
+    "stride": 1,
+    "source_selector": "frozen largest/IoU track independently per clip; no source-target pose matching for person choice",
+    "pose_device": "CPUExecutionProvider and CPU TorchScript",
+    "pose_threads": 4,
+    "decode_path": "existing R12 full VAE -> clamp/truncate RGB -> H264 CRF16 -> original pose MP4 decoder; no direct-float-RGB shortcut",
+    "vae_sha256": "7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522",
+    "detector_sha256": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+    "pose_sha256": "d86a0b2b59fddc0901a7076e9f59c9f8602602133ed72511c693fd11eea23d91",
+    "detector_code_sha256": "920a09469d3d719ff032861e78c8a94b85a87521c0efd88bb4aaf9bd281b690f",
+    "pose_code_sha256": "7622487bf9c47ab48d108d3252c448d8df3686af8099296edb10b921201facd8",
+    "frozen_offline_automatic_intervention_authorized_remains": false,
+    "explicit_new_selector": "R19 planned interpretation of unchanged measurement; old offline authorization flag must not be rewritten"
+  },
+  "early_observer": {
+    "reuse": "R12 FrozenGap5Observer + next_decision byte-frozen functions",
+    "mode": "same_phase_gap5",
+    "window": [
+      50,
+      65
+    ],
+    "lag_search": [
+      -24,
+      24
+    ],
+    "geometry": [
+      1,
+      24,
+      42,
+      46,
+      82
+    ],
+    "score": "existing signed-cosine full-frame gap5 curve and unchanged rejection rules",
+    "temporal_span_rgb_frames": 17,
+    "interpretation": "coarse physical-frame lag estimate, not validated 2-frame precision",
+    "source_code": {
+      "path": "/Users/researcher/DevProjects/h3-timing-native-observer-r12-20261016/extensions/H3NativeObserverRouter/observer.py",
+      "sha256": "a5de0b528cf25956d5d1ecfb598e24804573cd1acd6593422f9b22bd4d770c4a"
+    }
+  },
+  "control": {
+    "coordinates": "zero-based physical Euler index; separate monotone NFE index; no callback-delayed activation",
+    "previous_actual_full_initial": false,
+    "indices0_to5": "native; index5 passive gap5 observation never changes previous_actual_full",
+    "indices6_to9": [
+      "Observe current native endpoint before Euler update; do not use previous callback observation.",
+      "accepted lag >=4 -> ON_DELAYED, Full",
+      "accepted lag in[-2,2] -> OFF_ALIGNED, native",
+      "accepted lag ==3 -> HOLD_LAG3, reuse previous actual selected branch",
+      "accepted lag <=-3 -> OFF_ADVANCED, native",
+      "scientifically rejected measurement -> OFF_UNKNOWN, native",
+      "missing/malformed measurement or transport/runtime failure -> ABORT"
+    ],
+    "previous_state_update": "only after current optional Full finishes and branch is actually selected; set to chosen_branch==full for physical>=6; errors abort without a further step",
+    "index10_handoff": "discard early hysteresis for decisions; preserve previous field for audit only; complete current native VAE+pose required even if index9 was OFF or UNKNOWN",
+    "indices10_to19": [
+      "measurement integrity/runtime failures -> ABORT, not UNKNOWN",
+      "measurement valid but reliability rejected or mixed categories -> UNKNOWN -> native",
+      "all four >2 -> ON_LATE -> same-state Full",
+      "all four within[-2,2] -> OFF_ALIGNED -> native",
+      "all four <-2 -> OFF_ADVANCED -> native"
+    ],
+    "late_unknown": "native without hold; retains UNKNOWN; no alignment-success credit",
+    "late_advanced": "native; separate from aligned",
+    "late_reentry": true,
+    "index19_eligible": true,
+    "fixed_handoff_index": 10,
+    "current_state_protocol": "native(actual x,sigma,c) -> frozen stage observer -> optional Full(same actual x,sigma,c,RNG) -> select complete packed endpoint -> original Euler update once"
+  },
+  "counts": {
+    "native_NFE": 20,
+    "Full_NFE": "K=early_ON_or_HOLD_full + late_ON; 0<=K<=14",
+    "total_NFE": "20+K, range20..34",
+    "physical_Euler_updates": 20,
+    "chosen_callbacks": 20,
+    "DiT_block_calls": "50*(20+K)",
+    "routed_block_calls": "50*K",
+    "full_VAE_requests": 10,
+    "CPU_pose_requests": 10,
+    "early_active_observations": 4,
+    "passive_index5": true
+  },
+  "numerics": "Keep exact existing sample_euler x+d*dt arithmetic; never algebraically rewrite as weighted endpoint sum; terminal x0 and sampler_final can differ by rounding.",
+  "runtime_safety_reuse": "sealed R19 isolation, single-GPU own-parent/free-memory admission, exact child identity, parent death/timeout cleanup, OOM fallback prohibition, model/RNG/actual sigma-grid/conditions/residency guards, mutable admission only within sealed-template rules; root decides resources before launch",
+  "archives": {
+    "each_native_endpoint": true,
+    "each_chosen_Full_endpoint": true,
+    "raw_inputs": [
+      6,
+      10,
+      14
+    ],
+    "chosen_callback_indices": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      15,
+      19
+    ],
+    "sampler_final": true,
+    "pose_requests_and_responses": "all10; full141frames, all four windows and full score curves",
+    "early_gap5_curves": "all49points, accepted/reasons, previous actual selection, current decision and NFE mapping",
+    "no_old_endpoint_used_for_live_decision": true
+  },
+  "normal_primary_gate": {
+    "zero_Full": true,
+    "current_pose_observations": 10,
+    "available_R14_capture_and_final_equal": "finite tensors, exact video AND normalized/raw audio at corresponding stage; original normalization preserved",
+    "decoded_final": "all141 RGB/frame hashes equal existing R14 after frozen path; MP4 hash reported separately",
+    "UNKNOWN": "reported separately; zero Full with UNKNOWN demonstrates preservation but does not establish reliable aligned recognition"
+  },
+  "normal_first_ON": "mark normal-preservation primary failure; retain this and subsequent actual closed-loop data; later old native R14 endpoints cease to be valid exact trajectory gates; do not turn legitimate divergence into runtime integrity failure",
+  "bad_primary_gate": "R19 must complete current-state bridges and frozen final motion/quality review. If its early native observations select the same Full6..9 and all late decisions match, explicit policy-trace equivalence can be proven; label R19 reused evidence, not a R21 GPU result.",
+  "reporting": "all predefined cases/windows, unknown/advance/false_ON, chosen masks, physical lag curves, motion/appearance/identity/leg/torso side effects, NFE and full wall times. No post-output threshold/handoff/seed tuning or success-only sample selection.",
+  "prior_art_scope": {
+    "path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/coarse_to_pose_observer_scope_20261016.txt",
+    "sha256": "64a9dc1ff7d9cc0da2eb5b7b08ca68754c19f3b365a5b89ee3653ca700e552f2"
+  },
+  "required_before_implementation": [
+    "parent design acceptance",
+    "case-specific source/condition/noise/seed proof bindings",
+    "R19 actual runtime outcome and any corrective revisions reviewed"
+  ],
+  "tests_status": "specified only; no R21 implementation or CPU test executed"
+}

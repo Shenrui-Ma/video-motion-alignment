@@ -1,0 +1,35 @@
+R93 一次性 Native 审片入口：CPU 准备完成
+
+本地 /Users/researcher/DevProjects/h3-ive-event-candidates-metrics-r93-20261018
+生产目录 /Users/researcher/DevProjects/h3-timing-ive-event-candidates-r93-20261018
+远端 /data5/researcher/h3_runs/timing_ive_event_candidates_r93_20261018
+生产 seal fb44148bbe169b82cb226d936c85bb00bcbccf6f3a42c87980f74280cd14c6f9（112项）
+consumer freeze 9a2da34a99876963a67c8343f103a4997d5edbaaf2956d905f3ab77aae59f71f（22文件）
+
+五条固定顺序（有效帧/总帧，24fps）
+short_0370 89/90，完整原片，人物衣色；
+long_0163 144/158，原片52–201帧六秒片段，人物外观；
+long_0059 144/158，原片175–324帧六秒片段，手部物体添加；
+long_0081 120/124，完整原片，接触物体属性；
+short_0203 91/107，完整原片，独立风格编辑扩展。
+所有输入1312×736，展示统一crop16,8,1280,720，末尾padding排除。原始有理PTS、采样映射及官方原任务保存在各自provenance/contract；两个24000/1001来源按正式准备时基取89、91帧。
+
+实际STARTED及对应NATIVE_RUNTIME_GATE存在后，在Mac调用一次：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python /Users/researcher/DevProjects/h3-ive-event-candidates-metrics-r93-20261018/scripts/consume_native.py --attempt root_native_screen_attempt1 --source short_0370
+
+其余source替换上表ID。attempt须与实际root记录一致。本入口只执行一次bind→check→collect→render，缺gate返回PENDING_GATE和exit3。重复已收取结果会验证SHA再复用；执行代次、seal、runtime、任务范围或视频不符会拒绝。
+读取schema r93-native-runtime-gate-v1，必须仅native一臂，全部actual checks通过，20NFE/0routing，service代次/graph/history/job/输入与成片SHA匹配。读取小JSON和完整成片，不读取noise/condition/x0张量；张量验证沿实际producer门。服务已结束且原代次记录保留时可收取。
+
+输出
+incoming/<source>/：原始Native完整T帧与实际门、job/history/router/graph、小binding JSON。
+showcase/<source>/：source_native_full_valid.mp4（2560×808，两栏中文下caption）、6_times.jpg、12_times.jpg、PRESENTATION.json。
+默认Downloads/H3_R93_<source>_普通编辑预览_20261018.html，视频和截图内嵌单文件。明确普通编辑、原片/片段范围及风格扩展分组；不生成第三栏、不代替root guide/skip决定。原输出PTS必须i/24，异常将保留原片并拒绝展示，另行诊断。
+
+验证
+32项CPU测试全部通过：audit/CPU_TESTS.log；其中五条schema/shape/范围逐条覆盖，任务与整段/片段错配、代次、伪第三臂、失败/PENDING、history和文件篡改均有检查。
+五个真实prepared源的全部PTS/count/geometry/SHA通过：audit/INPUT_TIMEBASE_VALIDATED.json。
+合成媒体20→18帧、24fps、两栏顺序、裁切、黑底中文、6/12同帧图通过：audit/synthetic_media_fixture/FIXTURE_RESULT.json。合成图与已交付R92版逐字节相同；audit/VISUAL_VERDICT.json。
+改动清单 audit/ADAPTATION.patch，来源 audit/INHERITANCE.json。复用R92六个小脚本，无新增依赖。
+
+状态边界
+当前没有实际execution binding、没有incoming推理结果、没有运行CLI收取、没有新watcher/服务/GPU/producer verifier。R92/R93生产包和R85/R89原watcher保持原状。真实远端输出收取待实际任务完成；当前验证只证明CPU准备与合成媒体流程。

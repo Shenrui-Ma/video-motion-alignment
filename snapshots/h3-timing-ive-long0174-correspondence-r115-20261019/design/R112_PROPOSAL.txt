@@ -1,0 +1,64 @@
+R112：沿参考视频对应关系推进一个时间格的 Value 读出
+2026-10-19；当前状态：CPU 实现与验证，尚无 GPU 成片。
+
+1. 问题与假设
+R111 保留每个空间坐标的参考注意力总量，再读取目标时刻的同一坐标。移动物体会离开该坐标，因此可能读取另一人或背景。R111 成片出现新增帽子、书消失、人物绕行路线改变；已保存的时间边际无法判定这些错误的真实对应来源。
+本次检验：保持原参考 Q/K 和总权重，用参考视频内部的相邻时间对应关系，将每个参考 Value 的内容朝 canvas query 的时间推进一个 latent bin，能否改善动作时间并保住人物和路径。
+这里的 bin 是 H3 token 位置网格。该例共有 47 个时间格，前 43 个覆盖有效片段；它不等于一个独立视频帧，也不等于 VAE 的精确时间感受野。
+
+2. 运算位置与公式
+H3 Attention.forward 中 qkv_proj 后得到 Q/K/V，Q/K 经 fused RMSNorm 和 RoPE，V 不旋转。当前 hook 获得 RoPE 后 Q/K 与未旋转 V，干预位于 Attention 输出、out_proj 之前。
+对 canvas query q，令 tau 为其时间格；参考 key 的时间和空间坐标为 (t,s)。a_q(t,s) 为原 Q/K 在完整参考视频组内归一化的注意力，m_q 为该组在完整注意力中的权重，O_q 为原输出。
+  O_q = O_nonref,q + m_q sum_(t,s) a_q(t,s) V(t,s)
+  u(t,tau) = t + sign(tau-t)
+若 t=tau、t 属于 padding 或匹配不接受，定义 u=t 且 V_tilde=V。其余情况：
+  V_tilde_q(t,s) = V(u, j_(t,u)(s))
+  O'_q = O_q + m_q sum_(t,s) a_q(t,s) [V_tilde_q(t,s)-V(t,s)]
+每个 query 最多推动一格。原 Q/K、原参考总权重、本层非参考贡献保持；后续 blocks 和采样步骤会继续传播干预。V_tilde 随 query 时间变化，程序逐时间格读取临时 V，不改共享 V。
+
+3. 两个严格配对的版本
+fixed_one_bin：对接受的 token，j=s，即读取下一时间格的同一空间坐标。
+matched_one_bin：对同一批接受 token，j=pi_(t,u)(s)，即读取相邻格中互为唯一最近邻的空间位置。
+两个版本使用同一接受 mask、相同时间推进方向/幅度、相同有效时间与 padding 支持、相同 alpha=1。它们唯一的科学差异是目标空间索引。已有 R96 普通编辑、R107 同帧读出作为成片参照。R111 保留为历史失败结果。
+匹配 descriptor 对每个 head 的 V 单独 L2 归一化，按 head 的 cosine 平均匹配，不直接相加不同 head 的通道。只有双向最近邻一致且第一、第二名差值均超过 1e-6 才接受；零向量、并列或非互惠项保留原 V。1e-6 用于排除数值并列，不是经过验证的语义置信阈值。
+
+4. 共享 frozen bank
+两组 steps 0–5 都走原推理。在 zero-based step 5 的每个 block，从该 block 此次未干预的原参考 V 构建对应 bank；steps 6–14 复用，step 15 后停止。每组构建 50 个 bank，不在 450 次干预中重复匹配，不增加模型前向。
+第二组在 step 5 重新计算，并逐 block 校验几何、源 V 采样 SHA、indices SHA、mask SHA、全 bank SHA；所有 50 个 bank 一致后才能进入干预。两组真实前 6 次 video/audio x0 张量及科学 noise/sigma metadata 也必须逐值一致。失败即停止，不自动放松数值判据。
+已在服务器只读 CPU 核验 R111↔R107、R111↔R96 的实际 manifest schema 和真实张量，两对均通过，CUDA 未初始化。实际 noise 只有 shape/dtype/bytes/SHA，没有 run 路径。
+bank 来源属于相同 block 空间。step 5 特征仍可能受前面多模态注意力影响，不能视为独立原视频编码。冻结使两个版本的接受支持可控，但后续语义可能漂移；当前仅将它作为可证伪的固定策略。
+
+5. 不变性、反例与审计
+alpha=0 精确返回原路径；空 bank 的数值读出回到原方法。沿真实对应轨迹恒定的 Value 分量修正为零；identity 对应下两个版本一致。纯平移而沿轨迹 Value 不变时也可能零修正，因此并不保证修正所有时间延后。错误对应仍会混合身份。
+CPU 测试使用独立的概率 scatter 计算作对照，检查原参考总权重、非参考项、非负性、Q/K/V 不被原地修改、空间排列一致性、padding、模态边界、batch>1 拒绝、配对不一致拒绝、冻结复用及 RNG 状态。现有六种旧路由模式与 R111 实现逐位一致。
+每个 block 保存压缩的完整 indices/mask 和来源 SHA；每次匹配记录未匹配保留比例、每帧对接受率和 cosine/margin、最多 30 个对应样本。blocks 0/25/49 在每个干预步骤记录最多 8 heads ×12 queries 的原注意力在接受 token 上的权重，以及最多 30 个 frozen 对应的当前 cosine。全网格接受率无法说明是否改到人物，必须结合这些权重和对应位置检查。
+对应 cosine 只用于观察，不反向调整 bank；它不是物体身份的真值。审计记录 CPU/GPU 耗时、输出修正幅度及 bank 来源，避免保存大型特征矩阵。
+
+6. 计算量与当前实现边界
+实际几何：943 个空间 token，43 个有效/47 个总时间格，56 heads ×128 channels，原序列长 96281。
+每个 block 匹配约 2.677e11 multiply-add；50 个 bank 合计约 1.339e13 multiply-add。单个 FP32 spatial 相似矩阵 3.39 MiB，两帧 FP32 descriptor 51.57 MiB。50 个 bank 的两向 int32 索引未压缩约 15.11 MiB。
+干预按 43 个 query 时间格调用参考 Attention，每次临时 gather 一个全参考 V，BF16 约 605.95 MiB。每个干预 block 的 gather 写流量约 25.45 GiB，一组 450 次约 11.18 TiB，另有 attention 读写。此数值是顺序流量，不是同时驻留量。当前实现与 R111 的逐 query 时间结构一致，但仍可能显著增加运行时间；启动前需 root 审查，实跑记录完整 wall time 和额外耗时。
+本包只准备算子、节点、graphs、CPU 验证和配对 gate。实际启动/清理、fresh cgroup admission、consumer 绑定需要在 GPU 审查后补齐。当前没有远端 R112 部署或 GPU 进程。
+
+7. 成片判据
+沿用同一个 source-only 事件表：遮挡 47–53、另一侧重现 56–60、男子转身并开始抬起相连/持书手臂 81–87；末端伸臂 135–144 单独报告。评测全部 145 帧，保留失败与中性结果。
+先确认黑衣编辑完成、人物和书等物品、绕行路径与交互仍对应，再测这些事件的时间与动作幅度、官方 MF。动作延后本身不构成任务失败；动作改成另一件事或无法辨认则不计算有利时差。
+若 matched 与 fixed 同样改坏身份/路线、对应频繁跨物体、主要接受背景且人物修正近零、或没有相对普通编辑的可复核时序改善，该试验不支持所提机制。若两个新版本同样改善，只能支持缩短时间推进或共同 mask 的作用，不能单独归功于空间对应。
+
+8. 直接近邻与创新边界
+Story2Board/RAVM 使用双向 attention 的互惠分数、跨层/步聚合、Otsu 筛选与 matched Value mixing。官方实现用 RoPE 前 Q/K 建立匹配，改 V 后执行 attention。互惠筛选、training-free、只改 V、保留 Q/K 均已有直接先例。本候选的待验证区别是参考视频内部相邻时间对应、query 时间决定推进方向，以及保留原参考权重的 Value 一步传输。
+  https://arxiv.org/html/2508.09983v1
+  https://raw.githubusercontent.com/DavidDinkevich/Story2Board/main/story2board_attention_processor.py
+TokenFlow 从原视频 diffusion feature 建立跨帧最近邻，传播关键帧编辑特征；模型特征对应与传播本身不构成这里的贡献。
+  https://arxiv.org/html/2307.10373v3
+  https://github.com/omerbt/TokenFlow
+FLATTEN 用光流轨迹组织跨帧 K/V，FRESCO 结合帧内/帧间对应 attention 与 feature optimization。沿对应关系读取、缓解遮挡和空间不一致已有明确先例；本次比较集中于原注意力不变时的 query 时间依赖 Value 读出。
+  https://arxiv.org/html/2310.05922v2
+  https://arxiv.org/html/2403.12962v1
+DIAL 改参考 attention logits；FlowMotion 用预测 clean latent 的时间差构造 guidance 并做 velocity projection。算子位置的差异需要消融和结果支撑。
+  https://arxiv.org/html/2609.11507v1
+  https://arxiv.org/abs/2603.06289
+以上一手资料已在 2026-10-19 核对。当前尚无 R112 成片成功证据，也没有据此作全领域无同类工作的断言。
+
+历史说明
+design/proposal/PROPOSAL.txt 保留此前 R111 失败诊断与初始方案原文，其中按当前步骤重复匹配的描述已由本文第 4 节的共享 frozen bank 策略替代。

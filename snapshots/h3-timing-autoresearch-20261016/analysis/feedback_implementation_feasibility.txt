@@ -1,0 +1,384 @@
+H3 online pose-phase feedback: implementation feasibility, not implementation
+Read-only design audit, 2026-10-16. No GPU work, live mutations, or new dependencies.
+Root: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+
+DECISION
+
+A bounded online observer-controller is technically feasible with the current
+Euler20 / BasicGuider / frozen H3 interfaces. It is NOT already implemented, and
+the current evidence does not yet establish late-step controllability. Wait for
+the queued static step11–19 mass-preserve run AND the phase± outcomes before
+selecting an actuator or implementing/admitting a feedback run. Full-step mass
+routing producing lag0 while native produces lag13
+does not establish that nine remaining calls can repair a state already at step10.
+
+If late mass control works, the least ambiguous initial controller would observe
+at callback10 and callback15,
+and select ON/OFF same-frame mass-preserve routing for calls11–15 and16–19,
+respectively. Keep the user-specified source-video interval50–65 fixed. This is a
+two-observation feedback experiment, not continuous monitoring at every layer.
+
+For a first correctness prototype, an isolated auxiliary GPU VAE worker plus CPU
+DWPose is safer than recursively invoking Comfy VAE.decode inside the active DiT
+process. That prototype requires a second independently admitted GPU, which must
+be reported as an additional resource. A practical single-GPU implementation is
+not proven by this design and must not be claimed without a separate memory and
+reload validation. If no auxiliary device is available, retain offline monitoring
+rather than silently changing device placement or borrowing an occupied GPU.
+
+EVIDENCE AND CURRENT LIMITS
+
+1. Native source05/full1312x736/141f/24fps, seed2026101311, has final primary-window
+   arm-direction lag+13frames. In the frozen intermediate observer, callback5's
+   primary-window phase is unknown at confidence thresholds0.3 and0.5. Callback10
+   first provides [13,13] direction lag and [13,12] wrist-position lag, with no
+   primary-window confound flags. Callbacks15/19 and sampler_final give similar
+   accepted values. The other event windows are not all identifiable. Evidence:
+   analysis/pose/x0/s05_full_seed1_native_x0/*.observability.json.
+   These files explicitly do NOT authorize automatic control or prove efficacy.
+
+2. The passive recorder and frozen router are separate components. Recorder core
+   SHA256 aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c;
+   router core SHA256 7f21d35d58ff8e36f9c0e0d0e819917e680ebd7095c69a28bda40b34a56836e1.
+   These sources are references to reuse in a NEW staged extension, not files to
+   modify while existing inference or comparative experiments are running.
+
+3. Existing pose observer is a phase diagnostic, not an action-omission detector
+   or amplitude/occlusion classifier. In synthetic calibration, wrist-position
+   lag sometimes changes under pure amplitude perturbation. Confidence thresholds
+   are operational thresholds on raw SimCC scores, not probabilities. Missing
+   detection must remain unknown. See analysis/observer_calibration/CALIBRATION_REPORT.md.
+
+4. Current all-step mass result and pending late11 result are static discovery /
+   oracle experiments. The event window and intervention were chosen by us. They
+   are prerequisites for a controller experiment, not evidence of automatic event
+   localization, automatic selection of interventions, or architecture novelty.
+
+EXACT SAMPLING SYNCHRONIZATION
+
+The verified Comfy core snapshot is:
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+Relevant members: comfy/samplers.py:977–1007,1220–1238;
+comfy/k_diffusion/sampling.py:190–212; comfy/patcher_extension.py:92–144.
+
+For zero-based Euler step i:
+  denoised_i = model(x_i, sigma_i)     # completes all50 H3 blocks
+  d_i = to_d(x_i, sigma_i, denoised_i)
+  callback(i, denoised_i, x_i, 20)
+  x_(i+1) = x_i + d_i*(sigma_(i+1)-sigma_i)
+
+Thus callback10 is AFTER the11th model call and BEFORE its Euler update.
+Changing the attention control there cannot alter denoised10 or d10. Its earliest
+effect is model call with zero-based index11; exactly9 calls11..19 remain. At
+callback15 only4 future calls16..19 remain. Callback19 is endpoint observation
+only: no model call is left. A controller must never describe callback10's result
+as an intervention applied to step10, nor count20 steps as20 remaining actions.
+
+SAMPLER_SAMPLE wrapper signature must remain:
+  __call__(executor, model_wrap, sigmas, extra_args, callback, noise,
+           latent_image=None, denoise_mask=None, disable_pbar=False)
+Use model_wrap.inner_model for normalization and latent_shapes. Use
+executor(model_wrap, sigmas, extra_args, wrapped_callback, noise, latent_image,
+         denoise_mask, disable_pbar), NOT executor.execute(...), which would recurse.
+Forward each original callback once with its original objects and argument order.
+Do not mutate x0, x, noise, sigmas, extra_args, conditioning, RNG, or callback return
+semantics. Preserve no-churn Euler20,21 decreasing sigmas ending in0, BasicGuider,
+single positive prediction, fixed geometry, exactly50 blocks per forward, and
+noninterleaved sampling. Other samplers, CFG dual calls, concurrency, and cached
+model-call skipping are unsupported until independently audited.
+
+MODEL PATCHER AND SHARED STATE PLAN
+
+Build one new staged node/package, e.g. H3PosePhaseFeedback, after the late11 gate.
+The node receives the unpatched sigma-shifted model, positive conditioning, exact
+source-pose provenance, fixed event interval, unique run_id and worker endpoint.
+It creates ONE per-run FeedbackState object, installs50 EventBlockPatch-like
+objects referencing it, and registers ONE SAMPLER_SAMPLE wrapper referencing the
+same object. Do not stack on H3TemporalRouter/H3PhaseRoPE/another DiT replacement.
+Check existing patches_replace['dit'] and reject conflicting double_block entries.
+
+The current ModelPatcher.clone copies list/dict containers but preserves arbitrary
+callable objects; wrapper lists are copied while wrapper objects remain shared.
+create_model_options_clone uses copy_nested_dicts with the same object behavior.
+This supports a shared FeedbackState, but must be integration-tested against the
+actual core, including the later clone performed by an optional passive recorder.
+Do not rely on changing a stale model_options dictionary after sampling has begun.
+The sampling path clones that dictionary; mutate only the verified shared state.
+
+Keep two concepts separate:
+  pending_decision = immutable {request_id, observed_step, effective_from,
+                               expires_before, alpha, reason, phase, confidence}
+  active_decision = the decision latched at block0 for this entire forward.
+At callback10 publish effective_from11, expires_before16. At block0 of forward11
+latch it; all50 blocks see identical alpha. At callback15 publish a replacement
+for [16,20). An expired or absent decision means alpha0. This prevents a stale ON
+decision persisting after an observer failure and prevents mid-forward switching.
+No asynchronous thread may modify alpha while blocks are running.
+
+Before publishing, assert router.next_block==0, router.forward_index==callback_i,
+and completed_forward_calls==i+1. Log the callback sigma, active decision revision,
+and effective step. Keep block interval [0,50) and the event mapping unchanged.
+Retain the audited aten Flash backend and route_attention formula. Alpha0 must
+use the exact native fast path. Do not change logits, RoPE, radius, window, seed,
+or guidance scale simultaneously with the feedback gate in this first experiment.
+
+OBSERVER DATA PATH AND NORMALIZATION
+
+Use the recorder's audited split_streams(x0, model.latent_shapes, unpack_latents)
+for packed or NestedTensor values. Strict full-run shapes are video
+[1,24,42,46,82] and audio[1,32,2,235]. Copy detached CPU tensors; never move the
+sampler's tensors in place. Apply process_latent_out on those copies while the
+current H3 audio_scale is available: video is unchanged, audio divided by4 for
+the current12/3 schedule. VAE channel mean/std remain the VAE's responsibility.
+The observer consumes only video, although retaining audio shape/scale checks
+helps detect incorrectly unpacked streams. Do not decode audio for pose feedback.
+
+Decode the complete42-bin video latent with the same existing FP16 H3 video VAE,
+yielding141 frames at original geometry. The first prototype must NOT isolate
+latent bins14:20 or resize the latent: H3 temporal receptive fields and codec
+alignment mean that cropped latent decoding is not established as equivalent.
+Use same RGB quantization as native SaveVideo if obtaining byte images. The
+currently calibrated observer received H264-decoded MP4 frames; feeding preencode
+RGB removes a compression stage and needs a one-time frozen-observer parity audit.
+For the first reproducible version, using the existing CRF16 encode/decode path is
+slower but avoids changing the observation distribution. Do not claim byte-equal
+MP4s across different encoder libraries.
+
+Current scripts/decode_x0.py CANNOT be called unchanged during a live recorder:
+load_snapshot requires manifest.status=='complete'. A live recorder manifest is
+'running'. Do not relax that frozen offline guard. A new worker request protocol
+should accept its own atomic, hash-checked VAE-ready snapshot and explicitly mark
+it as an online request, with exact run_id, request_id, callback index, sigma,
+geometry, checkpoint SHA and source-pose SHA. It need not wait for a final video.
+Use plain tensor dictionaries loaded weights_only=True. Never accept a result
+from a different request, stale step, mismatched source, shape, model, or hash.
+
+The current pose_probe.py logic is usable without new packages: existing YOLOX
+ONNX with CPUExecutionProvider, existing DWPose TorchScript on CPU/float32,
+batchsize5, RGB input,4 CPU threads maximum, temporal person tracking and raw
+COCO17 scores preserved. Its current CLI nests detect/flush functions inside
+main and reads a video file; it is not yet an in-process observer API. Either use
+the CLI subprocess for the first bounded implementation, or factor a task-local
+copy with an explicit ordered-frame interface. Do not change the frozen script.
+Keep person selection independent of source-pose matching. Ambiguous identity,
+missing tracks or unexpected multiple performers are reasons to abstain.
+Use the existing .9 environment and model files, not an assumed local-Mac DWPose
+installation: /home/researcher/miniconda3/envs/comfyui/bin/python and
+/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux. The detector is
+ckpts/yzd-v/DWPose/yolox_l.onnx; pose model is
+ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt.
+Explicitly verify CPUExecutionProvider and CPU model parameters as pose_probe does.
+
+OBSERVATION AND FAIL-CLOSED CONTROL POLICY (PROPOSED, NOT CALIBRATED)
+
+Use only user-approved preservation window50–65. User-requested motion changes
+must be encoded as explicit excluded intervals/joints before sampling; do not
+infer permission from a noisy pose mismatch. Reject overlap rather than silently
+forcing preservation. Text-to-edit-mask inference is outside the first prototype.
+
+Freeze timing_metrics.py (SHA eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e)
+and its existing phase sign: positive means generated motion occurs later.
+Existing primary local_diagnostic searches lags−24..24. It requires coverage>=0.8,
+>=8 valid frames, sufficient coverage at zero lag and unconstrained best lag,
+rejects a best at the search boundary, rejects distinct-basin gap<0.05,
+rejects direction residual>0.5, and rejects nonzero lag with<0.05 gain over zero.
+Do not select a higher-confidence remote phase when the best basin lacks support.
+
+Reuse analysis/pose/evaluate_x0.py:gate, rather than reinterpreting its thresholds.
+Apply the intermediate protocol at both confidence thresholds0.3/0.5: direction
+lag must be available at both, signs consistent outside±2-frame deadzone, estimates
+within2frames, and reliable wrist-position phases available with disagreement
+<=3frames. Missing position is unknown, not agreement. Body/individual-arm signals
+remain diagnostics rather than substitutes selected after observing outcomes.
+Exactly as gate() implements it, if EITHER accepted direction estimate falls
+within±2frames, status is near_zero_no_intervention. Do not replace that conservative
+rule with an average that could trigger ON. Its manual-review status is an input
+to a separately preregistered controller policy, not an existing permission flag.
+
+Initial bounded decision table, provided late11 proves positive-lag repair:
+  - Reliable positive lag>2frames with all confound checks passed: alpha1 ON.
+  - Reliable |lag|<=2frames: alpha0 OFF.
+  - Missing/uncertain/ambiguous/repeated/flat/large residual pose: alpha0 UNKNOWN.
+  - Negative lag outside deadzone: alpha0 UNVALIDATED_DIRECTION initially. The
+    existing successful positive-delay case does not prove advancement repair.
+  - Deadline, worker crash, invalid snapshot/result, shape/provenance mismatch:
+    alpha0 OBSERVER_UNAVAILABLE, log it; do not keep an old ON decision.
+  - Sampler integrity/normalization violation: terminate this experiment, because
+    continuing would not be a valid paired run. Do not hide it as a mere pose miss.
+
+Binary alpha preserves the static late11 actuator coefficient for fair comparison.
+A proportional lag-to-alpha rule is not justified yet; mass-preserve same-frame
+attention is an attractor, not a calibrated signed lag-to-displacement actuator.
+Do not use predicted lag as a RoPE displacement without signed-response evidence.
+At callback15 reevaluate the intervention's OWN current x0, then stop or continue.
+The decision cannot be taken from the baseline trajectory or final output. If
+callback15 is unknown, the intervention expires at16. Log stopping and unknown
+states separately. Callback19 only audits the endpoint, never changes guidance.
+
+DYNAMIC PHASE ACTUATOR VERSUS ALPHA GATE
+
+The alpha gate above decides whether to apply an existing same-frame routing
+operator. It does not directly command a signed temporal displacement. A phase
+controller would instead vary delta_frames in H3PhaseRoPE's reference-only query
+branch, while keeping alpha fixed and preserving reference group mass at the same
+input state. These are distinct hypotheses; do not vary both in the first paired
+experiment or imply that a successful alpha gate validates phase steering.
+
+Existing PhaseRoPE uses physical-frame delta*5/3 with actual checkpoint inv_freq,
+rotates only Q temporal pairs0:16/48:64 for the reference-video branch, and leaves
+the main/native Q and other branches untouched. It is a suitable bounded actuator
+candidate ONLY if the pending±12 experiments show useful signed response and edit
+quality. Neither RoPE rotation algebra nor the native+13 lag establishes that
+delta=-13 will correct that lag. If +12 and-12 both help similarly, that is not
+evidence of a signed phase-control response; generic attention perturbation or
+regularization remains plausible. If they both damage the edit, do not automate it.
+
+All-step phase± outcomes would still not prove the actuator has authority in
+steps11–19. Before online phase feedback, one late phase intervention with the
+validated sign at the same event/geometry/seed is necessary. Conversely, late mass
+success does not substitute for a late phase test. The intervention and reliable
+observation must overlap in a causally usable part of the denoising trajectory.
+
+The safest first phase policy, if that evidence exists, is a discrete command
+delta in {0,+validated_d,-validated_d}, with deadzone/unknown gates identical to
+the frozen observer, alpha fixed, and effect latched for the next forward. The
+direction-to-delta mapping must come from predeclared actuator calibration, not a
+guessed sign or a result selected after seeing the final evaluation video. For
+one positive-lag discovery case, permit only the validated correction sign plus0;
+opposite-sign generality is a separate claim.
+
+A proportional controller such as delta_next=clip(delta_current-eta*lag/g) requires
+a nonzero, locally valid response gain g=d(output_lag)/d(delta), estimated under
+the SAME late intervention regime and state distribution. Gain inferred from
+all-step ±12 endpoints is not automatically valid at callback15 of an already
+intervened trajectory. No reliable gain model or stability guarantee exists here.
+Avoid adding this complexity before the discrete actuator is validated. Any
+offline gain fitting on the discovery clip must be disclosed and frozen before
+held-out tests; it is not label-free automatic discovery.
+
+Implementation trap in the existing staged TemporalRotation: delta_rope and its
+per-device cos/sin cache are computed from delta_frames at construction. Simply
+assigning rotation.delta_frames at callback time would leave stale delta_rope and
+cached trig values. A NEW dynamic implementation must construct an immutable
+TemporalRotation per accepted decision (or key/cache by delta and inv_freq hash),
+then atomically latch that object at block0. Reuse actual frequencies; do not
+accumulate rotations in a persistent Q tensor. Each forward starts from its own
+native already-RoPE Q, applies the current absolute extra rotation to a clone of
+the reference branch, and logs the applied physical-frame delta. Delta0 must
+remain exact-native. Do not edit the frozen PhaseRoPE core to add mutability.
+
+Preliminary parent report that phase-zero step005 video/audio tensors are exactly
+native is only an early passive-control check; final phase-zero equality remains
+pending. It cannot yet be replaced by the tiny-tensor zero-path result.
+
+SYNCHRONOUS WORKER AND DEVICE SAFETY
+
+The first version should block the sampler at the observation barrier until a
+validated response or a predeclared timeout (e.g.240s) arrives. The DiT does no
+forward work during this wait. Polling can be cancellation-aware; no busy spin.
+This is online closed-loop because later outputs depend on the current run's x0;
+it is not realtime. Asynchronous observation is a later optimization: applying
+a stale result at whichever step happens to be current changes the algorithm.
+
+Use a fresh spawned auxiliary process or an already controlled task-local worker,
+never fork a live CUDA context. Pin its VAE GPU by UUID after independent idle
+admission. Load FP16 VAE there; explicitly keep ONNX/TorchScript pose on CPU.
+Separate process state also prevents observer Torch initialization/RNG, thread
+settings, model-management lists and cleanup from changing the active DiT process.
+The DiT service must not change CUDA_VISIBLE_DEVICES or global torch thread counts.
+Run-scoped atomic request/response files or local IPC are sufficient; no new deps.
+Preload once to avoid repeated model startup, then release the worker and its GPU
+as soon as the bounded feedback run finishes or errors. Stop only owned PIDs.
+
+Why not call the existing VAE on the same live DiT GPU by default:
+comfy/sd.py:1230–1293 VAE.decode calls load_models_gpu([vae.patcher], memory_required).
+comfy/model_management.py:925–990 calls free_memory without protecting this DiT;
+free_memory:879–907 can unload non-dynamic models. The current service explicitly
+disables dynamic VRAM. CFGGuider prepared the sampling models before entering
+the sampler, not afresh after every callback. Reentrant unload/reload can remove
+weights while the sampler still owns references and hooks. Offline VAE success
+after releasing DiT is not evidence that co-resident online decoding is safe.
+
+A one-GPU alternative would require separately proving enough peak free VRAM for
+both models/activations with a dedicated decoder that does not unload DiT, OR a
+validated explicit offload/reload of all loaded sampling models/hooks before the
+next forward. Either changes runtime risk and requires passive replay equality.
+CPU VAE decode from existing FP16 weights may require casting toFP32 and unsupported
+or very slow operator paths; it has not been benchmarked. It is not a free fallback.
+
+LATENCY AND MEMORY: MEASURED VS ESTIMATED
+
+Actual existing native_x0 offline records, full1312x736x141:
+  decode scripts recorded30.24–31.64s per snapshot, including VAE initialization,
+  decoding and MP4 encoding inside their timed region, but not all process startup.
+  CPU DWPose records63.44–67.82s per141-frame clip (4threads); detector52.27–56.41s
+  dominates pose9.89–10.46s. See outputs/x0_decoded/s05_full_seed1_native_x0/*.json
+  and analysis/pose/x0/s05_full_seed1_native_x0/*.pose.json.
+These add to about94–99s/checkpoint in current separate jobs, not a measured online
+latency. Two checkpoints add roughly3.1–3.3minutes before startup/IPC/contention or
+router compute. Persistent models/directRGB may save time but are not benchmarked.
+Source-pose computation can be cached before the run, never repeatedly recomputed.
+
+Full video x0 float32 is15,208,704bytes=14.504MiB; audio is60,160bytes.
+Decoded RGB float32 is1,633,849,344bytes=1.522GiB host memory; RGB uint8 is389.54MiB.
+Avoid serializing both full float and byte clips through multiple queues. Decode
+once, feed/write frames sequentially, retain only compact pose records, and release
+image tensors before returning. VAE activation/weight GPU peak was not established
+by these artifacts; do not derive it from checkpoint size or cleanup memory alone.
+The waiting DiT retains weights, x_i, denoised_i and d_i; full attention temporaries
+should be gone after the forward but actual peak residency needs measurement.
+
+Potential later optimization: for one50–65 window and lag search±24, edited frames
+26–89 cover comparison support. But pose scale normalization/tracking currently
+uses the whole clip, and VAE decoding still needs full latent context. Restricting
+detector frames or changing tracking start can change the estimator; calibrate
+against frozen whole-clip results before claiming identical observations. No
+isolated temporal VAE crop or downsampled geometry should enter the first test.
+
+SCIENTIFIC SCOPE AND MINIMUM ADMISSION/COMPARISONS
+
+Gate0 (pending): static mass routing only calls11..19 must meaningfully reduce the
+predeclared same-frame error/lag versus native while preserving edit and outside
+events. If it fails, stop this late alpha-gate branch. A phase branch could proceed
+only after its own signed-response and late-authority gates above. Repeated
+observation cannot repair a system through an actuator lacking usable late control
+authority. Investigate earlier reliable observation or another actuator separately.
+
+After Gate0, required implementation verification before GPU model admission:
+  - CPU actual-core wrapper integration: shared state survives clones; callback i
+    changes only forward i+1; no input/RNG mutation; exact original callback count;
+    state reset per run;50 blocks use one latched decision; failure/expiry turns OFF.
+  - Packed/NestedTensor normalization and request/provenance rejection tests.
+  - Frozen observer synthetic gates: shifted, zero, low confidence, repeated phase,
+    position/direction conflict, negative unvalidated sign, timeout/stale response.
+  - Tiny attention alpha0 exact-native and positive mode equivalent frozen router.
+  - Observer-only real run with all decisions forcedOFF must preserve native final
+    decoded RGB under the same final encoder, despite barriers/worker work.
+
+Minimum efficacy comparison on the same failed sample:
+  native; existing all-step mass; static late11 ON; true feedback10+15.
+Record the actual per-step decisions, both observer outputs, sigma and sample
+hashes. Report compute, edit appearance/identity, outside-event pose/scene changes,
+and same-frame error alongside local best-lag diagnostics. No time warping or
+output resampling is part of a success claim.
+If feedback remains ON at10 and15, it is behaviorally identical to late11 static
+and does NOT demonstrate a stopping advantage. If it turnsOFF at15 and retains
+the repair with less damage, that supports this gate in one case. An equal-budget
+static11..15 run is then necessary to exclude a fortunate preset schedule. Add a
+preselected healthy control (e.g. existing1024 good-case) to verify no activation,
+while clearly reporting its different geometry; it is not a matched failure pair.
+A second identity/seed at unchanged geometry is needed before any generality claim.
+
+This method would be training-free for H3 (no new fitting) and without a generative
+teacher, but it explicitly depends on a pretrained external DWPose detector and
+the H3 decoder. Do not call it model-free, external-model-free or pure flow-field
+feedback. The current temporal router modifies ALL spatial queries in selected
+latent frames and their reference attention. It is time-local, not limb/spatially
+local. The source50–65 window maps to latent bins14:20 with positional coverage
+approximately47–67; VAE/global attention can propagate effects beyond this range.
+Per-arm observed phase does not turn an all-spatial actuator into a local arm edit.
+Joint/ROI-to-token masks and automatic event discovery are future independent
+changes with their own attribution tests. No new architecture contribution is
+established merely by connecting an observer to an existing training-free router.
+
+No implementation or live changes were made for this feasibility audit.

@@ -1,0 +1,334 @@
+H3 动作时间错位：本轮方法与复现说明
+2026-10-16；面向具备扩散模型、Transformer 和 PyTorch 基础的读者
+
+文档定位
+
+本轮是在冻结的 MiniMax H3 Ref2VA 上做 training-free 推理干预与机制诊断：不训练 H3 权重，不新增可学习参数，不训练教师模型。已经实现的是推理时的注意力算子 patch、被动中间状态记录、对照与审计。它不是已经完成并证明有效的新 backbone，也不是已经实现的自动闭环控制器。改动计算图的一部分不自动等于有独立的架构创新。
+
+这里解释三个算子族：原 H3 注意力；同帧 hard/mass 路由；仅参考视频子交互的 PhaseRoPE。历史三倍加权作为辅助基线说明。效果和泛化结论以最终报告为准；数值正确性、单例有效性、泛化与创新性是四个不同问题。
+
+本轮研究目录：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+下文相对路径均以此目录为根。分享版保留相同子目录，但不包含全部权重、环境和中间大张量；不能只复制一个 JSON 就视为可直接在另一台机器复现。
+
+一、我们实际接入了 H3 的哪里
+
+1. 输入不是一条 RGB 视频序列直接进入注意力。
+角色参考图、参考视频分别经过 H3 视频 VAE 得到视觉 latent。完整参考视频的 VAE 路径与 Qwen3-VL 的语义视频路径不同：本轮 Qwen 展示采样为2fps，带时间信息；VAE 路径保留当前141帧视频所对应的完整 latent。不能把 Qwen 2fps 直接说成模型只看了2fps运动。
+
+Qwen3-VL 输出的文本/多模态语义表示经过 condition projection 与 token refiner；目标视频与音频 latent 从固定随机噪声开始。视觉 latent 被 patchify、音频 latent 被展开，之后和语义/参考 token 一起组成 packed 序列。参考视觉 token 不作为生成目标采样；它们每次模型前向重新提供条件。原生代码也有固定种子的轻微视觉条件噪声增强，具体记录在条件与模型源码中。
+
+2. 当前 source05、1312×736、141帧样例的实际序列如下。
+输出视频 latent：[1,24,42,46,82]。
+视频 patch 大小：(time,height,width)=(1,2,2)。
+每个 latent 时间格有(46/2)×(82/2)=943个空间 token，42格合计39,606个。
+输出音频 latent：[1,32,2,235]，形成470个音频 token。
+实际 packed 段：
+  [0,6960)      语义/文本段
+  [6960,7910)   角色参考图，950个视觉 token
+  [7910,47516)  参考视频，39,606个视觉 token
+  [47516,47986) 输出音频，470个 token
+  [47986,87592) 输出视频，39,606个 token
+源码将角色图与参考视频视觉段都标为 ref_img；不能因此把第二段误认为静态图。
+
+实际单层 Q/K/V 形状为[1,56,87592,128]，即56个头、每头128维。H3 的50个 DiT block 都对这条 packed 序列做注意力。本轮 patch 位于 Q/K 的 RMSNorm 与原生 RoPE 之后、注意力 out projection 之前。因此它不改 VAE、token refiner、训练权重、采样器或解码器。
+
+3. “局部”目前只指选中的输出视频时间格。
+source05 手工指定物理帧50–65（从0编号、两端包含），通过已审计的位置格映射得到 latent 区间[14,20)，共6格、5,658个输出 query。每格仍包含整幅画面的943个空间位置，并作用于选定层的全部56个头。没有自动定位手腕/手臂空间区域，也没有证明其它时刻、人物外观或音频不受后续传播影响。
+
+实现入口：extensions/H3TemporalRouter/core.py 的 EventBlockPatch → TemporalAttentionOverride → route_attention；PhaseRoPE 使用 extensions_staged/H3PhaseRoPE/core.py 对应的 PhaseBlockPatch/phase_attention。布局约束在各自 layout.py，要求角色图+一个参考视频、单样本、相同输出/参考视频几何等已验证条件。
+
+二、统一数学记号：把“参考总量”和“参考组内读取”分开
+
+以下固定一个 DiT 层、一个 attention head、一个选中的输出 query q。q/k 已经过原生 RMSNorm 与 RoPE。令所有 key 集合为J，参考视频 key 集合为R，其余key为B=J\R。B包括角色图、文字、目标音视频等，绝不是单指背景。
+
+  z_j = q^T k_j / sqrt(128)
+  Z_S = sum_{j in S} exp(z_j)，L_S=log Z_S
+  p_j = exp(z_j)/Z_J
+  O = sum_{j in J} p_j v_j
+  m_R = Z_R/Z_J = exp(L_R-L_J)
+  O_R = sum_{j in R} [exp(z_j)/Z_R] v_j
+
+m_R 是这个 query/head 分给整段参考视频的概率总和；O_R 是“已经决定从参考视频取信息”之后，组内归一化的加权值。原输出可分解为：
+  O = sum_{j in B} p_j v_j + m_R O_R。
+
+这只是注意力代数分解。m_R高不等于动作保真好，参考时间分布的重心也不是动作发生时刻。本轮已有专门反例审查，见 analysis/native_attention_readout_caution.json。
+
+三、算子一：原 H3 / native 基线
+
+原 H3 在当前层使用全部 key 的 softmax，也就是上述O，不按同帧手工屏蔽参考视频。正常的多层特征更新仍可学习利用跨帧信息。
+
+本轮受控 native 接口使用显式 PyTorch Flash attention，同时取 output 和 logsumexp：
+  torch.ops.aten._scaled_dot_product_flash_attention.default(q,k,v,0.,False,False)
+不构造完整 N×N 注意力矩阵。记录器可以读出少量 query/head 的统计，但不改变其输出。
+
+“native”在这里是冻结实验后端下的同算子基线；不能声称任意 ComfyUI/Sage/SDPA 后端都逐位相同。已经做过相同头数、head_dim128、非连续QKV的内核比较，以及受控原生全视频复现，证据见第八节。
+
+四、算子二：同帧 hard 与 mass 路由
+
+令A(q)为参考视频中与q同一个 latent 时间格的所有空间 key。默认radius=0、time_offset=0；这是同时间格，不是同一像素，不是精确姿态对应，也不是把视频像素拷贝到输出。
+
+定义组内同帧输出：
+  O_A = sum_{j in A} [exp(z_j)/Z_A] v_j。
+
+4.1 hard_route：普通同帧硬掩码
+
+保留B以及A，屏蔽R\A，再对剩下所有key重新softmax：
+  O_hard = [sum_{j in B} exp(z_j)v_j + sum_{j in A}exp(z_j)v_j] / (Z_B+Z_A)。
+可选强度α实现输出插值：
+  O' = (1-α)O + α O_hard，0≤α≤1。
+本轮主要对照α=1。
+
+hard保持其它key的原logits，但由于分母变小，其归一化概率会改变。参考视频的总质量变成Z_A/(Z_B+Z_A)，通常小于原来的Z_R/(Z_B+Z_R)。因此“只删掉错误时间”并不等于“只改参考组内分布且总量不变”。
+
+实际实现没有用 BF16 的 O−m_R O_R 反推其它组，因为m_R接近1时会发生相消放大；代码直接计算其它组的Flash attention与LSE，再在FP32/log空间混合。见 route_attention 的 hard_route 分支。
+
+4.2 mass_preserve：保留参考总量，只重新分配组内时间
+
+  O' = O + α m_R (O_A−O_R)。
+等价概率写法：
+  j in B：p'_j=p_j；
+  j in R：p'_j=(1−α)p_j + α m_R ·1[j in A]exp(z_j)/Z_A。
+
+α=1时，原来分给整段参考视频的m_R全转给同帧子集A，B的贡献在这一层的同一输入状态下保持不变。α=0走原生快速路径。
+
+重要边界：这里“守恒”只在同一个q/k/v输入状态与这一层的代数表达中成立。干预改变隐藏状态后，下一层、下一次采样、另一个实验轨迹的q/k/v和m_R都可能不同。GPU上LSE与输出还有浮点误差，因此不宣称所有组概率在浮点实现中逐位精确守恒，更不宣称最终视频其它区域不变。
+
+4.3 与 logits bias 的代数关系，不能回避
+
+α=1的mass操作可以完全写成softmax前的偏置：
+  j in A：z'_j = z_j + L_R−L_A；
+  j in R\A：z'_j = −∞；
+  j in B：z'_j = z_j。
+因为A的新分区和为exp(L_R−L_A)Z_A=Z_R，全局分母不变。
+
+一般0≤α<1时，参考组内可写成：
+  b_j = log[(1−α)+α·1[j in A]·exp(L_R−L_A)]，j in R；
+  B内b_j=0，z'_j=z_j+b_j。
+所以“我们是在softmax后换输出，而别人是在softmax前加偏置”不是数学上的创新区分。这里的工程形式用于不显式存储巨大注意力矩阵，并把机制变量拆开比较；本身不是新理论。
+
+4.4 偏移和邻域
+
+time_offset以latent格计数。正值选择更靠后的参考格，负值选择更靠前的参考格；先夹住中心，再截取真实邻域，边界不复制格。radius可取0/1。由于H3时间格跨帧宽度不均匀，+1格不恒等于+4物理帧，不能与PhaseRoPE的物理帧δ混为一谈。默认同帧路由time_offset=0仍是强干预；它不是native。
+
+对照意义：hard和mass在当前发现样例都得到近零目标时移，支持“改变参考读取方式可以影响动作时间”，但不支持“保持参考总量是必要机制”或“mass明显优于简单mask”。具体度量和后续样例以最终报告为准。
+
+五、算子三：仅参考视频子交互的 PhaseRoPE
+
+目的：测试能否用一个有单位、有正负号的参数改变参考时间读取，而不直接删去其它参考帧。它是手工给定δ的执行器诊断，不是自动检测、闭环反馈，也不等于已经验证的时间纠正方法。
+
+5.1 旋转只发生在额外的参考分支
+
+在完成原生RoPE的q上克隆选中query，额外旋转其时间维：
+  q_delta = R_time(delta_rope) q，delta_rope = (5/3)·delta_frames。
+用这个q_delta只重算R内的参考视频attention：
+  O_R_delta = sum_{j in R} softmax_R(q_delta^T k_j/sqrt(128)) v_j。
+然后：
+  O' = O + α m_R (O_R_delta−O_R)。
+
+原始完整attention O、其它key组的交互和其它query的当前层输出仍用原q；K/V不修改。角色参考图不包含在R中。不能简单在整个Q张量上全局旋转后重算full attention，否则其它模态交互也变了，实验变量不再相同。
+
+5.2 H3真实通道布局
+
+每头128维中，原生RoPE旋转前96维，按split-half配对。时间对应的16对是[0:16]与[48:64]；空间对应部分及未旋转的尾部保持不变。对于一对(a,b)，额外角度θ的旋转为：
+  a'=a cosθ−b sinθ；b'=a sinθ+b cosθ。
+θ由真实checkpoint的16个rope.inv_freq值乘delta_rope得到；不是假设某个10000底数重新合成频率。实际频率及其SHA保存在算子审计中。
+
+主诊断δ=0、+12、−12物理帧；±12对应±20个RoPE坐标单位。δ=0或α=0直接返回相同Flash基线，避免不必要的“旋转再转回”误差。对非零δ，先前Q已经过BF16舍入，再做FP32旋转并转回，不能宣称与一次性在新绝对坐标重算RoPE逐位相同；数值测试给出误差范围。
+
+5.3 原生参考/输出时间原点并未预先对齐
+
+本样例同一时间格的参考坐标为：
+  p_ref(j)=6961+(5/3)S(j)，
+输出坐标为：
+  p_out(j)=7196+(5/3)S(j)，
+其中S(j)是前j个时间格所覆盖物理帧数的累加。
+对应格原生差值是235单位，即141物理帧的坐标跨度。这来自packed参考段的布局，不是测得动作延后141帧，也不是训练设计意图的证据。
+
+当前PhaseRoPE是在这个原生差值周围加δ：+12时差值255，−12时215；没有先把235减掉。改成直接对齐原点是另一项干预，需要另做对照，且已有时间对齐位置编码先例。
+
+正δ确实增加query的时间坐标，但不能直接推断生成动作提前或延后δ帧。RoPE周期、内容相似性、多层非线性以及跨模态原点共同影响响应；是否有稳定的有符号控制性必须从输出行为检验。算子数值正确不意味着它在视频上有效。
+
+5.4 PhaseRoPE也属于归一化logits改变
+
+令z_delta,j=q_delta^T k_j/sqrt(128)，L_R_delta=logsumexp_{j in R}(z_delta,j)。当α=1时，等价参考组logit为：
+  z'_j=z_delta,j+L_R−L_R_delta，j in R；B内仍为z_j。
+对应偏置：b_j=(z_delta,j−z_j)+(L_R−L_R_delta)。
+这再次说明它没有逃出广义logit-bias家族；差别是偏置由受限时间旋转参数结构化地产生，并且仅作用于参考子交互。本轮尚未证明这种限制比已有方法或同帧mask有不可替代的收益。
+
+六、历史三倍参考加权究竟是什么
+
+extensions/H3EventEmphasis/core.py 的 duplicate_event_attention 对选中输出时间窗的query重算attention，并把指定参考时间窗的K/V额外复制两份，使总共出现三份。其它query沿用原生输出。
+
+在完全相同K/V复制的精确算术下，选中key的softmax分子乘3，等价于对应logit加log3。它不等于直接把最终动作特征或最终概率乘3，因为softmax分母也变；也不保持参考视频组总量。
+
+这个比较的历史原视频现保存在：
+outputs/archived_20261015_05_sam_s1_weight3_00001_.mp4
+严格复用依据：analysis/replication/archived_pair_reuse_audit.json。
+它是旧实验的归档paired control，不是本轮新seed、不重复计成功样本、不作为当前硬件速度测量。它也不是完整DIAL实现：本轮没有复现DIAL的完整subject-aware机制或训练阶段。
+
+七、三种“时间”必须分清
+
+A. 视频物理时间：24fps；第n帧对应n/24秒。源/输出动作错位的+13帧是行为时间测量。
+B. latent/RoPE位置时间：H3时间格跨度重复(1,4,4,4,4)，每5格覆盖17物理帧；RoPE再乘5/3，并叠加packed段原点。选帧50–65映射到[14,20)，位置格实际覆盖47–67帧。这是位置映射，不是VAE独立感受野的精确边界。
+C. 扩散/flow采样时间：20次Euler模型调用、21个sigma端点。它和A/B完全不同，不存在“第10步就是第10帧”的关系。
+
+本轮ManualSigmas已经包含video shift=12后的网格。设b_i=1−i/20：
+  sigma_v(i)=12b_i/(1+11b_i)，i=0..20；
+  sigma_a(i)=3b_i/(1+2b_i)=sigma_v/(4−3sigma_v)。
+MiniMaxH3SigmaShift(12,3)不再把manual视频sigma重复shift。外层模型调用timestep=1000sigma_v；H3再除1000，并给目标video/audio token使用t_v=1−sigma_v、t_a=1−sigma_a的去噪标签。参考视觉标签默认保持接近干净端0.999。噪声坐标与RoPE位置坐标不是同一种编码。
+
+从0编号的call10：sigma_v≈0.92307693，t_v≈0.07692307，sigma_a≈0.75。
+call11：sigma_v≈0.90756303，t_v≈0.09243697，sigma_a≈0.7105263。
+因此call11–19是剩余9次调用，却覆盖约90.76%的视频sigma数值跨度，不能称为已经证实的“低噪声最后阶段”。数值跨度也不是剩余信息量的比例。
+
+Euler外层更新为：
+  x0_hat=x_i−sigma_i·u_theta(x_i,sigma_i)，
+  x_(i+1)=x_i+[(x_i−x0_hat)/sigma_i]·(sigma_(i+1)−sigma_i)。
+音频在外层以缩放变量携带，H3内部换到自己的sigma_a坐标并变换速度，输出process_latent_out再除audio_scale=4。保存的x0是模型对干净结果的预测；可看清动作不意味着当前noisy x_i已接近干净。
+
+被动callback在模型预测之后、Euler更新之前发生。call10的观察只能影响call11及以后，除非另行重算。当前late11是按观测设计的固定[11,20)日程，并不是已经完成的在线触发控制；更早的[6,20)等对照也须按最终登记状态解释。
+
+八、已经完成了哪些正确性验证
+
+1. Flash与路由数值验证。
+logs/router_gpu_tests_v2.log：16项测试通过；涵盖布局、半开区间、同帧邻域、Flash输出/LSE与dense参考、路由结果及未选query不变等。
+logs/router_head128_smoke.json：56头、head_dim128、strided QKV下，显式Flash与强制相同后端SDPA逐位相同。
+audit/sdpa_dispatch_shape_check.json：实际1024几何的53,822token native形状与x3局部重算形状，默认SDPA均分派到Flash，并与显式Flash逐位一致。这不是1312全长87,592形状的独立profiler重测；不能夸大测试覆盖。
+
+2. PhaseRoPE数值与通道验证。
+audit/phase_rope_gpu_smoke.json记录10个tiny-tensor场景，包括0、±12、0.25物理帧、α=0、接近1的参考总质量、非连续QKV与实际checkpoint频率。
+零偏移/α=0与冻结Flash基线逐位相同；输入Q/K/V不变、未选query当前输出逐位不变、空间维未改变。非零BF16算子与FP32dense oracle的最大绝对误差不超过约0.00349、RMS约0.000349以内，低于预登记容差。
+此外实际安装的kitchen eager partial split-half RoPE接口核验通过；该测试明确不是CUDA13/Triton完整融合RoPE的验证，也不是一次视频质量实验。
+
+3. 端到端无扰动检查。
+analysis/pose/pilot/native_x0_passive_rgb_equality.json：加入被动x0记录器后，141帧解码RGB及时间对应与无记录器native完全相同。
+analysis/pose/pilot/phase_zero_rgb_equality.json与audit/phase_zero_x0_tensor_equality.json：PhaseRoPE零偏移的141帧RGB，以及5份中间/终点video+audio张量，均与相应native完全相同。
+这些是复现和无扰动控制，不是额外独立样本或有效性成功。
+
+4. 配对验证。
+同seed、同提示词并不足够。audit/*pair_check.json比较实际prepare后的输入视频、VAE条件、文本embedding、token tags、布局、初始video/audio noise和固定graph节点，并要求成功history。
+当前native_x0对mass/hard/late11/phase_zero，以及1024 native/mass已有passed记录。新增seed/source必须在各自配对内部检查；seed之间噪声本来就应该不同。旧x3还有独立历史复用核验。最终报告应只解释已经完成这些门槛的比较。
+
+5. 中间读出。
+extensions_staged/H3X0Readout/core.py在call5/10/15/19保存x0，在返回时另外保存sampler_final；CPU副本原子写入，原输入/回调保持不变。文件已做process_latent_out：video不变、audio除4；VAE自身mean/std仍由decode处理。call19预测与最终Euler结果可能有浮点舍入差，已实际记录而非强求逐位相同。它们不是可以直接恢复采样轨迹的raw x_i检查点。
+
+九、冻结配置与可追溯路径
+
+主发现样例：source05真人舞蹈 → Sam Altman角色替换，1312×736、141帧、24fps、seed2026101311。source05 seed2026101312是额外预选噪声样本；source07是已知历史失败的相关舞蹈片段，不能包装成盲测新领域。用户编辑目标和提示词在成对graph内一致，不用文字额外强调动作来混淆算子效果。
+
+模型文件：
+  diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors
+  text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors
+  vae/minimax_h3_video_vae_fp16.safetensors
+  vae/minimax_h3_audio_vae_fp32.safetensors
+权重身份与已记录SHA见configs/phase2_completed/configs__runtime_provenance.json。本轮来源记录包含既有完整hash以及size/mtime匹配，不把这说成每次都重哈希20GBcheckpoint。
+
+采样与方法参数：
+  BasicGuider；Euler；固定21项ManualSigmas；video/audio shift=12/3。
+  本轮方法对比不加载Turbo LoRA，不切换8/4步配方，不安装H3 Sage override。
+  DiT block区间[0,50)，sample-call区间默认[0,20)，均为左闭右开；α默认1，radius=0，offset=0。
+  物理帧窗口为包含两端的[50,65]；source07为[54,69]。
+  输出原视频保留24fps，没有RIFE插帧/VSR/重定时混入原始质量测量。
+
+精确graph：
+  configs/s05_full_seed1_native_x0.json
+  configs/s05_full_seed1_mass_x0.json
+  configs/s05_full_seed1_hard_x0.json
+  configs/s05_full_seed1_phase_zero_x0.json
+  configs/s05_full_seed1_phase_plus12_x0.json
+  configs/s05_full_seed1_phase_minus12_x0.json
+  configs/s05_full_seed1_mass_late11_x0.json
+  configs/transfer_staged/ 与执行归档中的对应graph。
+存在graph不意味着已经运行成功；以logs成功history、run audit、实际输出及最终实验清单为准。队列中的其它变体不因出现在目录里就计入效果统计。
+
+实现位置：
+  extensions/H3TemporalRouter/{core.py,layout.py,__init__.py}
+  extensions_staged/H3PhaseRoPE/{core.py,layout.py,audited_flash.py,__init__.py}
+  extensions_staged/H3X0Readout/{core.py,__init__.py}
+  extensions/H3EventEmphasis/core.py（历史三倍基线）
+  scripts/decode_x0.py（离线VAE解码）
+  scripts/pose_probe.py、scripts/timing_metrics.py（姿态/时移度量）
+  tests/test_temporal_router.py、tests/test_phase_rope.py、相关X0测试。
+
+运行时不是随便替换系统ComfyUI：使用冻结core、兼容bootstrap与经过审计的扩展。主运行在.9指定GPU；独立transfer实例有自己的目录、GPU、端口、admission和精确进程清理，代码修复只针对该实例路径边界，见transfer_runtime_staged/与其bundle_manifest。用户的.41同时最多一个我方视频进程限制不能因有新graph而绕过。
+
+十、效率：本轮究竟用了什么加速，代价是什么
+
+本轮已使用低位宽模型、Triton量化线性算子和Flash attention。INT8线性层与注意力后端是不同轴；超大token量的INT8调用另有行分块适配，避免32位索引溢出。kitchen兼容处理与row chunking路径见scripts/compatibility_bootstrap.py、scripts/int8_row_chunking.py。不能把这些工程适配当成研究方法贡献。
+
+没有使用本来更激进的Turbo LoRA少步包或Sage覆盖，是为了冻结方法对比的噪声轨迹与可审计的attention/LSE接口。历史20/8/4步配方同时涉及不同LoRA，不是纯步数消融；速度也不能按帧数简单线性外推。
+
+额外attention成本是局部重算：
+  native：full Q对全部K一次；
+  mass：full一次 + 选中Q对整段R一次 + 分组同时间A一次；
+  hard：在上述基础上还计算选中Q对B的attention，避免不稳定相减；
+  PhaseRoPE：full一次 + 原选中Q对R一次 + 旋转选中Q对R一次。
+因此不需要存N×N矩阵，也没有额外20次整DiT教师前向，但仍有局部计算、拼接与审计开销。50层×20调用是1000次层attention，不是1000NFE；本轮BasicGuider的完整推理是20次DiT前向。
+
+来自成功Comfy history的端到端墙钟（不是纯采样核时间，单位秒）：
+  full native无x0记录：1528.019，约25.47分钟；
+  full native+x0记录：1548.930，约25.82分钟；
+  full mass+x0记录：1494.430，约24.91分钟；
+  full hard+x0记录：1545.236，约25.75分钟；
+  full late11 mass+x0记录：1474.760，约24.58分钟。
+这些任务包含各自实际加载/条件缓存/编码解码与I/O。mass这次比native短，不能据此宣称mass加速；缓存命中、暖机和共享资源不同。若需要论文效率表，应另做相同暖状态下的分项计时和重复测量。原GPU tensor smoke的121.97MB峰值是tiny测试，不是全H3运行显存峰值。
+
+GPU memory不应仅看模型文件大小：还包括QKV、局部K/V、VAE、缓存和量化临时buffer。当前1312全序列有87,592token。1024控制有53,822token，但模型表现也改变了，不能把低分辨率正常例当作原分辨率故障修复。
+
+本轮H3中间x0解码与CPU姿态评估是离线/独立受控工作；它们已经能提供观察证据，但不等于VAE+pose已经能在DiT常驻显存的同一卡上在线无开销运行。全部推理结束需关闭我方进程、验证精确PID消失与显存释放；不能仅看到网页任务完成就默认释放。
+
+十一、方法边界和最直接的相关工作
+
+以下链接来自本轮已经落盘的原文/实现审查，本说明不新增文献检索，也不宣称排除了所有已有工作：
+
+- DIAL：https://arxiv.org/html/2609.11507v1
+  对参考交互加偏置的核心计算家族与我们的加权/归一化改写重合。原文是最后80%的采样调用区间，不应误写成走完80%才开始。完整DIAL还包含其它机制；统一x3仅是gain baseline。
+- Vidu S2-Editing：https://arxiv.org/html/2609.11638v1
+  同时间参考读取已有直接先例。我们的H3推理移植/机制对照不能据此叫首次提出同帧路由。
+- Wan-Animate-2：https://arxiv.org/html/2608.06009v2
+  有对应帧参考attention与时间对齐位置编码。其具体布局偏移不能照搬成H3的时间索引。
+- DiTFlow：https://arxiv.org/html/2412.07776v2
+  位置/运动相关的推理优化是PhaseRoPE必须面对的近邻。
+- RoPECraft：https://arxiv.org/html/2505.13344v1
+  推理时改变RoPE以引导运动的先例，不能把“改位置编码”本身当作新颖性。
+
+本轮本地审查来源：literature/innovation_assessment.txt、literature/architecture_novelty_gate.txt、literature/phase_rope_code_review.txt。更详细的精确时间坐标与噪声语义分别在analysis/native_reference_time_coordinates.txt、analysis/sigma_time_semantics.txt。
+
+真正还需回答的科学问题是：是否存在可重复、可迁移、保持编辑身份质量的动作时间改善；是否能找到比强同帧mask更有解释力或更好的控制方法；如果做动态策略，是否比固定强基线更可靠且值得额外计算。我们不能以“算子通过测试”“一个失败例变好”或“training-free”代替这些证据。
+
+附：本说明引用的实现SHA256（写作时只读核对）
+extensions/H3TemporalRouter/core.py
+  7f21d35d58ff8e36f9c0e0d0e819917e680ebd7095c69a28bda40b34a56836e1
+extensions/H3TemporalRouter/layout.py
+  bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe
+extensions_staged/H3PhaseRoPE/core.py
+  83f0fffeac265d0c77d540c8ed730a8b9c639ca73660877aaba72425be88b395
+extensions_staged/H3X0Readout/core.py
+  aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c
+extensions/H3EventEmphasis/core.py
+  3352d993f7d3daaf96d1b8a7ab3ff1404880871f022afa65397654729b5d35a6
+audit/phase_rope_gpu_smoke.json
+  1b34f3ddfb2a65ad770384eb495ad4d2d675851b696f62619fd08ea48a63d70d
+analysis/sigma_time_semantics.txt
+  506f8df775d26fdabf52f7d227e7f10024ff8125f67f3fe1b9f915c5da8c1941
+analysis/native_reference_time_coordinates.txt
+  63ad93faa02fc973c19318efe850a4b39c8090adf138fcefcd075397d23a11c7
+
+
+十二、本轮后续的区间对照与语义四格诊断
+
+12.1 九次干预放在哪里。
+所有图仍有20次Euler前向。mass_late6在零编号调用[6,20)修改14次，mass_6to14在[6,15)修改9次，mass_late11在[11,20)修改9次。每次修改50层，9次对应450次局部层算子调用。等次数对照只消除了“调用数更多”这一解释；它不把不同sigma区间、状态轨迹或注入量变成相同。两个九次区间分别跨过约.165517与.907563的视频sigma量，且共同覆盖调用11–14。不得从这两个区间拟合出精确临界时刻或完整响应曲线。
+预登记文件：configs/mass_equal_call_budget_protocol.json。该对照是在较早开启结果改善后追加的探索性实验，而不是整个研究开始前的盲测。005快照应与native及late6一致，010快照应与late6一致；实际审计与最终效果以对应落盘结果为准。
+
+12.2 完整VAE参考不动，拆分稀疏语义画面P和时间文字T。
+H3的原参考图/完整141帧视频VAE路径、几何、seed、采样器与文字编辑指令不动。Qwen原来看到视频帧0,12,...132；P6改成6,18,...138，仍然12张画面、6个配对视觉块。P0/T0=A；P6/T6=B；P0/T6=C；P6/T0=D。
+T6在配对平均时间的浮点值上加.25秒，再经过原有一位小数格式化。实际标签从.2/1.2...变成.5/1.5...，即数值差.3秒，不能说与P的.25秒移动完全相等。A的配对均值.25被显示为.2，B的均值.5显示为.5；量化误差也发生变化，这是因果解释的限制。
+H3SemanticClockReference使用每次调用限定的代理，控制展示给Qwen的画面和时间文字，不全局替换原节点。实际编码验收检查选定像素、视觉块来源、token数量、tags、packed坐标和VAE/noise不变；embedding本来应随语义条件变化，不能用常规pair checker错误要求B/C/D embedding相同。
+A0只跑编码等价门，不生成视频。另一个GPU0原始native重放保留原H3EventAuditReference/Noise，并记录五份video+audio快照，用来核验与GPU2基线的执行路径一致性。完整验收还要求两边actual history/graph、输入、噪声、20×50 native调用，以及141帧decoded RGB与播放时基一致。重放不是额外独立效果样本。
+实现与证据：semantic_clock_staged/、semantic_runtime_staged/、configs/semantic_clock_diagnostic_protocol.json、configs/semantic_runtime_native_replay_protocol.json、analysis/semantic_runtime_evidence/、scripts/check_semantic_native_replay.py。缺少完整gate文件时，不能假定跨runtime轨迹一致。
+
+12.3 “局部来源位置”不等于“纯运动特征”。
+实际minimax_token_tags只区分视觉与文本调制类别，不能区分角色图与视频。可以从未展开token账本中的视频标记和视觉扩展索引重建来源位置，但Qwen已经有因果上下文混合；随后H3的两层TokenRefiner还对整段context做无mask双向注意力。因而不能简单用tag=0就声称抽出了视频运动分支，也不能说遮住某个来源位置就消除了所有相关信息。
+本轮没有实现这种来源位置消融，更没有实现自动空间定位、在线动作分类或闭环停止策略。分析见analysis/semantic_span_identifiability.txt；这些边界同样适用于未来架构设计。

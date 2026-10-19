@@ -1,0 +1,66 @@
+R24 single CPU consumer — fixed before generated results
+
+Scope: two previously unused prepared source videos, each two preregistered seeds
+2026101610/2026101611, Native then existing Full6..14. Total eight completed jobs,
+four within-source/seed pairs. Root owns GPU/services. Consumer never calls Comfy
+API or starts/stops GPU/services. Each lane may continue GPU inference while its
+previous completed job is copied and analyzed. No whole-service-cleanup barrier.
+
+Prerequisites to bind: root provides each lane remote root, exact service PID/UID/
+start_ticks/cmdSHA, actual deployment manifest path+SHA. No inferred identity.
+Wait read-only >=61seconds without CPU lock. A run is ready only if actual persisted
+Comfy history success+completed, matching prompt/graph/job/owner, complete run-specific
+router/conditioning/noise/x0 audit, and output file inventory is stable across two
+snapshots. Refuse replacement PID/changed scientific artifact; report errors, never
+resubmit. Stable completion does not imply service shutdown or released VRAM.
+
+On readiness acquire Mac R2 CPU evaluation lock, then remote R2 consumer.lock,
+nonblocking. If occupied release/wait; never bypass. One CPU consumer only. During
+locked processing verify actual bound frozen graph, per-run20NFE/20callbacks/
+1000blocks and0or450routes, true sigmas/geometry/window, actual condition/noise blobs,
+all5unique x0/final tensor files finite/shape/dtype/metadata/SHA. Snapshot exactly
+that run's immutable output/audits/graph/history, plus pinned shared inputs/condition
+blobs required for validation; no recursive copy of live sibling-run directories.
+Copy exact files under analysis/postrun/captured/run. Require copy SHA=source SHA
+and source unchanged after copy; retain original bytes. Subsequent pose reads only
+these copies, post-consumption hashes checked again. Failed copy/identity gate is
+not an inference failure and never authorizes GPU retry. Preserve all logs.
+
+CPU pose uses unchanged pose_probe.py04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f,
+timing_metrics.pyeebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e,
+compare_runs.py1e725cd5063ae9e9e770f94c54c91dfa5d0473e951e92dfcebaa56619c844b33,
+and the already-extracted actual prepared source poses in analysis/source_pose.
+No old source05 window defaults. CPU providers/model hashes unchanged, four threads,
+CUDA_VISIBLE_DEVICES empty, all detected people retained, original person selection.
+For B explicitly audit selected person against wall mural; never silently change
+tracking or drop inconvenient frames.
+
+A primary44..61, secondary17..34 and82..99.
+B primary64..81, secondary23..40 and103..120.
+These18frame windows were selected solely from source before generated outputs.
+Confidence .3/.5, maxlag24 gives all49 curve points per feature. Original >=.8
+coverage/8frame/shape/flat/boundary rules unchanged, UNKNOWN retained. Features:
+arm_direction,wrist_relative,left_arm_direction,right_arm_direction,body_xy.
+The source-only .5 wrist coverage already fails main A(.75) andB(.7222); do not
+promise four-reading high-threshold observability or move windows to avoid this.
+
+When both arms of each seed complete, pair actual processed condition/noise and
+index005 video+audio tensors must match. Check all10endpoint inventory. Cross-seed
+noise must differ. Common support is intersection of source+Native+Full at the same
+physical frame, original shared minimum-confidence weights. Report the three frozen
+windows and descriptive full0..140 and pre-primary0..(start-1)/post-primary(end+1)..140.
+No DTW, lag compensation, metric threshold changes or post-output window selection.
+Keep normal native examples, worsening, uncertain and source-limited cases.
+
+Geometry/playback141frames1312x73624fps5.875s, actual PTS checked on retrieved raw
+MP4s. Fixed source-semantic visual frames A18/45/57/86/105;B25/65/77/107/119,
+chosen before generated results to include all three predefined windows plus context.
+Produce equal fullfield source/native/full black-footer comparisons with no frame
+retiming. Identity/background/ghosting reviewed separately; timing gain alone is
+not quality success. All samples/seeds reported, not only favorable frames.
+
+Record actual job/sampler/capture/CPU costs and execution_cached history. NFE20 for
+these frozen arms. Cache events alone do not prove physical model residency; no
+speed superiority claim from job wall difference. Actual runtime/device/version
+provenance is linked. Service state is parent's ongoing resource concern; consumer
+must never infer cleanup from one completed job.

@@ -1,0 +1,7 @@
+PASS: bounded R26 consumer v2 finalize recovery review.
+
+All 20 frozen files match FREEZE SHA 36c670b449af63d78d11468a03fc556e7f801a1166b09db05c6ef05f81a5e19f. scan_native.py, bind_live.py and BINDING.json are byte-identical to v1. Actual local B gate/inventory and four existing pose/scan/log files match the pre-recovery binding. Eleven independent recovery tests pass.
+
+The exception requires the original successful exact-owner gate and root release record bound to its path/hash/time. Only boolean finalize false-to-true is accepted; all other queue content and all original scientific source/archive SHA remain checked. Original queue is preserved. Recovery reads the bound pose/scan, checks model/source/video/timebase/code bindings, and records recovered elapsed-cost semantics without recomputing.
+
+No remote execution, model, pose, scan or GPU was run by this reviewer. Actual remote recovery remains the owning consumer's execution gate.

@@ -1,0 +1,31 @@
+R85 CPU 消费与展示包 READY（尚未启动 watcher）
+根目录：/Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018
+生产端：/data5/researcher/h3_runs/timing_flexiact_expanded_r85_20261018 (.9)
+生产 seal：5c8be2ee6202a479dbeca4a541851b2364270e827f023d749824a43644111afd（87项）
+消费 seal：CONSUMER_FREEZE.json，所有 scripts/configs/inputs/tests 绑定。
+固定三对：one_leg__movie_man_9（P0）、crouch__movie_man_5（P1）、rotate__game_girl_1（P1）。六条均为 R85 新运行，不复用旧 .41 Native。
+
+已准备
+- 原参考视频、原8fps素材、目标图、provenance 本地复制并SHA核验。
+- 仅接受真实 r85-paired-runtime-gate-v1 passed 和全部true检查；核对原条件、噪声、前6步、20Euler、0/450路由、原source/target/frame mapping、root STARTED 服务 generation。
+- 只读取根已执行的 verifier 结果；不导入/调用 verifier、tracker、服务、队列或 CUDA。
+- 本机 watcher 经直接 H3_SERVER_A SSH/rsync 读 small JSON/video，不需部署远端 watcher；不会下载PT缓存。
+- 原158帧完整视频保留 incoming/；同物理帧前147有效帧做3456×856三栏视频，24fps。source 原49@8fps重复3次，时间精度125ms。
+- caption黑底：1.参考视频 / 2.普通编辑 / 3.时序引导。画布不裁切、不时间对齐。页面单列目标图，注明固定steps6..14（0-based）、online_observer=false。
+- 完整147帧+前48帧视频，6个固定时刻0/24/48/72/108/144；HTML嵌入视频/目标图，保留三组分母与PENDING/UNREVIEWED。
+
+启动依赖（root实际STARTED以后再执行；当前尚无绑定/进程）
+cd /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/bind_execution.py --attempt <root实际attempt名>
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python -u scripts/watch_pairs.py --ffmpeg /opt/homebrew/bin/ffmpeg --ffprobe /opt/homebrew/bin/ffprobe --max-hours 18 --interval 60 --output /Users/researcher/Downloads/H3_FlexiAct_R85三组固定时序引导_20261018.html
+
+每组 gate 出现并通过后立即收集/渲染/更新HTML，发布 audit/watcher/<pair>_MEDIA_READY.json。Downloads逐组生成 H3_FlexiAct_R85_<pair>_完整有效片段_三栏对照_20261018.mp4。
+如果原服务已退出，但service.json仍为同一generation，允许后验消费；如果恢复运行换generation，须保留旧绑定并另作明确恢复绑定，当前watcher会停下并写失败记录，不默默改归属。
+SSH瞬态有限重试（60秒轮询，18小时总预算）；gate/身份/科学字段错误保存证据并抛出。单本地文件锁避免重复watcher。
+
+验证
+20项CPU tests PASS：audit/CPU_TESTS.log；9个Python源AST语法PASS。
+一次真实ffmpeg CPU渲染smoke PASS（3列均为同一原参考视频，明确标为合成诊断，非实验结果）：audit/cpu_render_smoke/RESULT.json。147帧、3456×856、每帧PTS=i/24。
+caption布局已检查：audit/caption_preview.png。
+待完成页面预览仅在audit/PENDING_PAGE_PREVIEW.html，真实Downloads页面待actual pair完成再写。
+本轮不新增MF或pose评价；人工任务完成/时序效果保持UNREVIEWED，后续可写 results/<pair>/HUMAN_REVIEW.json，绑定collection_sha256。

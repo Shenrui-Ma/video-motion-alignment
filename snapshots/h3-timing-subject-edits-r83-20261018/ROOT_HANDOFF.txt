@@ -1,0 +1,107 @@
+R83 — seven source-reviewed official IVEBench subject edits — CPU prepared
+
+LOCAL /Users/researcher/DevProjects/h3-timing-subject-edits-r83-20261018
+REMOTE /data3/researcher/h3_runs/timing_subject_edits_r83_20261018
+HOST H3_SERVER_B (.41)
+GPU6 UUID GPU-REDACTED, port8549
+Wait for root's exact R78 release and fresh resource admission. No GPU was launched during preparation.
+Runtime Python /data3/researcher/ComfyUI/.venv/bin/python
+Core /data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI
+Dependencies /data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps
+KJNodes /data3/researcher/h3_runs/closure_tutorials_53592/01-anime/custom_nodes/ComfyUI-KJNodes
+Models /data3/researcher/ComfyUI-H3/models
+
+FIXED ORDER / total frames / valid frames
+short_0131 56 / 43 : two workers' dark padded outer garments to white
+short_0268 107 / 97 : right-side adult woman to young boy
+short_0343 73 / 61 : mirror-side woman to doctor
+short_0274 73 / 72 : astronaut to humanoid alien
+short_0085 73 / 66 : blonde hair to red, unedited colors retained
+short_0358 107 / 105 : glasses on LEFT-side drinking man
+short_0178 124 / 121 : open white shirt to blue, hands/abdomen retained
+Each Native then forced,14runs total. Full clips keep source physical time.
+All1312x736@24fps; content crop16,8,1280,720. Each explicit rationalPTS nearest
+mapping ends at original last frame; tie earlier; last-frame pad to17k+5.
+All encoded prepared frames were lossless-decoded and compared to the mapped
+original pixels. Padding is excluded from evaluation. Source0131/0178 were
+previously R76 registered development sources; all seven selected here solely
+from source video/official task, no generated outputs consulted in R82 selection.
+
+SCIENCE
+Same six numerical modules as R73, byte-identical. Same source/prompt/seed2026101701,
+20Euler20NFE,CFG1,video sigma12/audio3,INT8 kernels/Qwen/VAE. Fixed route mass_preserve,
+alpha1,all50layers,denoise indices6..14,physical frames0..valid-1. Pure-padding
+latent bins remain native; boundary bins may contain both valid and pad support.
+Native carries the same mask parameters with mode native. No online observer.
+Actual pair verifier checks initial AV noise,6condition blobs,first6 x0 predictions
+bitwise equality,20captured predictions+final and0/450 routed block calls.
+All seven cases and failures remain registered. Task attainment and original scene
+preservation are assessed first; motion timing is assessed on visible retained actions.
+
+PROMPT PROTOCOL P1-local-v1
+Official edit_prompt is verbatim; official source context is verbatim. Each source
+has visible Subject1/Subject2 definitions,partial/full retention and[Shot1].
+Official target_prompt is retained unchanged in metadata; actual Shot wording is
+source-grounded to avoid caption conflicts (0085 target caption adds unsolicited
+warm/saturated colors). 0268 targets right adult;0358 targets left drinking man.
+The same complete prompt is used in both arms. Source descriptions provide action
+order, with no manual event times or guidance windows. This protocol is our source-
+specific application of the pinned official prompt guide, not a claim of one unique
+mandatory official format. configs/prompts/ and design/PROMPT_FIELDS.json are frozen.
+
+RESOURCE TRIAL
+normal,reserve8GiB,disable_dynamic_vram; required startupfree>=30720MiB(30GiB),
+root-authorized controlled trial. R78 sameHost41 at30GiB has reached6steps, full
+success was still pending at registration. R63 Host9 earlier succeeded90frames at
+24054MiB startupfree with model offload. Neither proves capacity for these new
+prompts or107/124frames. First56frameNative is actual capacity evidence; firstpair
+must complete and root review before remaining6pairs. Actual OOM records failure
+and exact cleanup; no automatic profile/geometry/numerical fallback.
+Estimated14runs1226frames ~11.58GiB from priorR71 proportional storage; startup
+requires20GiB filesystem free. Large PT stay remote, no Mac downloads of tensors.
+
+ROOT EXECUTION (only after exact R78 release/fresh GPU6 availability)
+cd /data3/researcher/h3_runs/timing_subject_edits_r83_20261018
+PYTHONDONTWRITEBYTECODE=1 python3 -u audit/root_run_batch.py --execute --attempt root_attempt1
+If another task-owned Comfy service is live on .41, append --peer-root with its
+actual managed producer root. Live identity is re-read from its service record,
+UID/start/rawcmdSHA validated, both peer policies updated before exact preCUDA GO.
+A non-Comfy owned GPU task such as R81 VAE is not represented by --peer-root;
+wait for its exact release or have root explicitly arrange its own exact peer
+registration in a separate administrative launch. Do not guess a PID/identity.
+The launcher rejects unknown own CUDA processes and enforces ownGPUunion<=2.
+Foreign users may coexist when free memory/health permit. Process ownership races
+are retried with a complete fresh snapshot, remaining unknown identities fail closed.
+
+Root launcher approves ONLY the firstpair, starts service+controller, waits for
+firstpair actual success, runs CPU verify_pair, then writes
+ audit/<attempt>/FIRST_PAIR_REVIEW_HOLD.json
+Controller waits up to1800s. Root may inspect the actual videos and then run:
+ python3 scripts/execution_gate.py approve-rest --root-admitted
+This requires firstPAIR_RUNTIME_GATE hash/runtime and releases remaining12jobs.
+If root leaves firstpair unapproved, the bounded hold releases the exact service;
+root launcher records a successful partial review-hold with12remaining jobs.
+No automatic resubmission of existing jobs. Root controls later resume as a separate
+administrative recovery. Completion/failure releases exact owned process and waits
+up to30s for transient NVML PID residue. Receipt I/O failures preserve primary errors
+and do not bypass cleanup.
+
+CPU CONSUMPTION
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+ PYTHONPATH=/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps \
+ /data3/researcher/ComfyUI/.venv/bin/python analysis/postrun/verify_pair.py --source short_0131
+Actual gate: analysis/postrun/<source>/PAIR_RUNTIME_GATE.json
+schema r83-paired-runtime-gate-v1,prompt_version P1-local-v1,runs.native/forced,
+video{file,sha256},valid_frames,geometry,NFE,routed_blocks,checks and tensor evidence.
+No new metric consumer has been created by this preparation. Existing R73/R79
+consumer schema can be adapted independently, with fresh samehost source/target
+tracking and source-specific valid frame counts. Download only actual MP4/JSON.
+
+VERIFICATION
+Local61 CPU tests pass; remote CPU receipt is audit/PASSIVE_DEPLOYMENT_VERIFIED.json.
+Tests cover actual source RGB mapping,geometry from pinned H3 code,all14 paired
+prompts andgraph fields,numerical parentSHA,route-math equivalence,padding bounds,
+actual tensor verifier mutation rejection,30GiB threshold,controller registration,
+emptycmd/reusedPID races,foreignPID disappearance resampling,exact-owned release,
+failed receipt cleanup and forced job's Native-generation binding.
+No GPU inference or new experimental-quality conclusion is claimed in preparation.

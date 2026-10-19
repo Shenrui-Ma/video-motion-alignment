@@ -1,0 +1,28 @@
+{
+  "schema": "r50-source-pose-handoff-v1",
+  "status": "WAITING_SOURCE_AGENT_ARTIFACTS",
+  "extractor_owner": "/root/source_anchor_impl",
+  "local_parent_root": "/Users/researcher/DevProjects/h3-timing-flexiact-native-r49-20261017",
+  "remote_parent_root": "/data5/researcher/h3_runs/timing_flexiact_native_r49_20261017",
+  "manifest_relative_path": "analysis/source_pose158_sidecar/MANIFEST.json",
+  "sources_object_keys": ["chest", "crouch", "fitness", "one_leg", "rotate"],
+  "per_source_required_fields": [
+    "source_id", "status", "pose_path", "pose_sha256", "remote_pose_path",
+    "video_path", "remote_video_path", "video_sha256", "geometry", "extraction",
+    "provenance_path", "provenance_sha256", "valid_observation_frames",
+    "padding_frames", "original_sample_indices"
+  ],
+  "full_pose_records": 158,
+  "geometry": {"frames": 158, "fps": 24, "width": 1152, "height": 768},
+  "valid_observation_frames": [0, 146],
+  "padding_frames": [147, 157],
+  "original_sample_indices_rule": "range(0, 147, 3), 49 indices ending144",
+  "intake_requirements": [
+    "All five entries; never substitute one source pose for another",
+    "video_sha256 equals the original R49 prepared bytes in SOURCE_BINDING.json",
+    "Local pose and provenance bytes match manifest SHA; actual remote copies verified before deployment",
+    "Full158 geometry, frame order, times and joint schema validated before valid-domain feature view",
+    "Original script/model provenance retained; no repeated extraction by R50"
+  ],
+  "not_a_generation_certificate": "This source-only sidecar does not close actual R49 condition/noise/21capture/history bindings. PARENT_CLOSURE remains false until those independent artifacts are available."
+}

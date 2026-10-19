@@ -1,0 +1,249 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  },
+  "41": {
+    "class_type": "MiniMaxH3SigmaShift",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift_video": 12.0,
+      "shift_audio": 3.0
+    }
+  },
+  "5": {
+    "class_type": "H3EventAuditReference",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "ref_video": [
+        "23",
+        0
+      ],
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the woman wearing the white outfit beside the suited man in <Video 1>. The requested color change applies to her white outfit.\n<Subject 2> is the original man, both people's identities and visible body features, the building entrance, stone facade, ground and remaining surroundings.\nSource context: A man and a woman wearing a white outfit are walking outside a building. The woman is holding the man's arm and they are talking to each other.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Change the woman's white outfit to black while preserving the two people and their original interaction outside the building.\nRequested edit: Change the white outfit to black\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested clothing-color change. Preserve the woman, garment shape, folds and her original arm contacts, turns, steps and movements around the man.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the man's face and suit, both people's original actions and interaction, the stone building, entrance, ground, lighting and camera movement.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the original visual style, lighting and camera composition of <Video 1>.\n[Shot 1] The original woman now wears the same outfit in black beside the original suited man. Their visible arm-holding, turns, steps and changing positions follow <Video 1>, with the original building and surroundings retained.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "width": 1312,
+      "height": 736,
+      "length": 158,
+      "audit_dir": "/data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018/audit",
+      "run_id": "r96_long_0174_shared",
+      "semantic_fps": 2,
+      "phase_frames": 0
+    }
+  },
+  "6": {
+    "class_type": "H3EventAuditNoise",
+    "inputs": {
+      "noise_seed": 2026101701,
+      "audit_dir": "/data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018/audit",
+      "run_id": "r96_long_0174_seed2026101701_native",
+      "pair_id": "r96_long_0174_seed2026101701"
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": [
+        "52",
+        0
+      ],
+      "conditioning": [
+        "51",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "9": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+    }
+  },
+  "10": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "6",
+        0
+      ],
+      "guider": [
+        "7",
+        0
+      ],
+      "sampler": [
+        "8",
+        0
+      ],
+      "sigmas": [
+        "9",
+        0
+      ],
+      "latent_image": [
+        "51",
+        1
+      ]
+    }
+  },
+  "11": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "13": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "11",
+        0
+      ],
+      "audio": [
+        "12",
+        0
+      ],
+      "fps": 24.0,
+      "bit_depth": 8
+    }
+  },
+  "14": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "13",
+        0
+      ],
+      "filename_prefix": "r96_long_0174_seed2026101701_native",
+      "format": "mp4",
+      "codec": "h264",
+      "codec.encoding": "re-encode",
+      "codec.encoding.crf": 16.0
+    }
+  },
+  "22": {
+    "class_type": "LoadVideo",
+    "inputs": {
+      "file": "long_0174_video.mp4"
+    }
+  },
+  "23": {
+    "class_type": "GetVideoComponents",
+    "inputs": {
+      "video": [
+        "22",
+        0
+      ]
+    }
+  },
+  "50": {
+    "class_type": "H3TemporalRouter",
+    "inputs": {
+      "model": [
+        "41",
+        0
+      ],
+      "positive": [
+        "51",
+        0
+      ],
+      "mode": "native",
+      "alpha": 1.0,
+      "radius": 0,
+      "time_offset": 0,
+      "start_frame": 0,
+      "end_frame": 144,
+      "block_start": 0,
+      "block_end": 50,
+      "step_start": 6,
+      "step_end": 15,
+      "run_id": "r96_long_0174_seed2026101701_native",
+      "audit_dir": "/data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018/audit/router"
+    }
+  },
+  "51": {
+    "class_type": "H3PairConditionSnapshot",
+    "inputs": {
+      "positive": [
+        "5",
+        0
+      ],
+      "target": [
+        "5",
+        1
+      ],
+      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018/audit",
+      "source_run_id": "r96_long_0174_shared",
+      "run_id": "r96_long_0174_seed2026101701_native"
+    }
+  },
+  "52": {
+    "class_type": "H3X0Readout",
+    "inputs": {
+      "model": [
+        "50",
+        0
+      ],
+      "run_id": "r96_long_0174_seed2026101701_native",
+      "output_dir": "/data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018/audit/x0",
+      "width": 1312,
+      "height": 736,
+      "length": 158
+    }
+  }
+}

@@ -1,0 +1,49 @@
+R28 source40372 seed2026101701 automatic-controller transfer; root launch only.
+Root=/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017
+Python=/home/researcher/miniconda3/envs/comfyui/bin/python
+GPU2=GPU-REDACTED; port8491.
+
+Inputs already archived at R26 laneA:
+/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a/inputs/source_40372_video.mp4
+SHA ac122ce85c8d8d1feb27dbe3fa0f80a0c9a83e01b004b2db06dab7f013f1f052
+/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a/inputs/source_40372_portrait.jpg
+SHA 4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42
+Copy to new root/inputs under same basenames. No new download/model dependency.
+
+After root verifies GPU2 has no compute process and R26A is fully archived/closed:
+CUDA_VISIBLE_DEVICES=GPU-REDACTED OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/gpu_dynamic_union_smoke.py --root-admitted --output audit/gpu_dynamic_union_gate.json
+Expected schema h3-r27-kernel-gate-v1 (reused schema), passed=true,NFE=0;
+actual shape[1,56,87361,128], Rvideo[7679,47285), Tvideo[47755,87361), 943 spatial rows,42bins.
+Empty/local/full masks, all42 exact sealedFull, zero exactNative, nonselected rows/QKV/RNG unchanged, finite.
+No actual model weights loaded by this gate. This command is not authorization to run it.
+
+Inherited R27 formal directory must expose passed actual audit/gpu_dynamic_union_gate.json and audit/known_endpoint_bridge.json, v2 deploy_manifest.json SHA996b14cb6e68e33babf84367cab5c9d027aa5b0f112e956308daf904817332e5.
+configs/r27_inheritance.json binds the exact numerical file mapping and prior protocol.
+No R28 new-source VAE/pose accuracy or resident-parent equivalence is claimed from the old endpoint bridge.
+
+Root writes audit/resource_admission.json with schema r28-root-resource-admission-v1:
+root_approved:true, gpu_uuid:GPU2,
+kernel_gate_sha256:SHA of R28 new actual-layout kernel gate,
+known_endpoint_gate_sha256:SHA of R27 actual passed bridge,
+inheritance_sha256:SHA of configs/r27_inheritance.json,
+positive integer model_resident_measured_bytes/routing_increment_bound_bytes/decoder_peak_reserved_bytes/total_memory_bytes/estimated_combined_bytes,
+required_free_before_decoder_mib>=12288,
+scope:"single GPU isolated exec; runtime exact-parent admission remains mandatory",
+evidence:[{file:absolute existing evidence path,sha256:actualSHA}, ...at least2].
+Estimated combined>=sum components and<=total; total-model-routing>=required12GiB. Do not infer positive approval from interface tests or an unverified allocator assumption.
+
+Then root sets only permitted administrative admission fields: root_live_review_required=false, exact current peer GPU3 PID/UID/start_ticks/cmdlineSHA in permitted_compute_processes. Science unchanged.
+python3 scripts/preflight.py --metadata-only   # no GPU gate certificate
+python3 scripts/preflight.py                   # actual old files/inputs/core/gates/resource/seal
+python3 scripts/launch_remote.py --service-only
+This starts service+supervisor+12h watchdog, returns processes/service.json exact owner, NO model job submitted.
+Root registers this actual new GPU2 service PID in R27 mutable admission before starting controller. Register actual counterpart GPU3 identity in R28 admission. Do not carry old R26 PID.
+python3 scripts/start_controller.py --pid ACTUAL_SERVICE_PID --start-ticks ACTUAL_START_TICKS
+This locks controller creation across registry/preflight/launch/write, rejects stale owner/duplicate controller. The controller rechecks expected owner before any submission.
+Single graph r28_source40372_seed2026101701_auto, job4h limit, service12h, residenthold1800s; root can set queue.finalize=true when done.
+
+CPU postrun:
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_completed.py --allow-resident --output audit/verified_completed.json
+Use without --allow-resident after exact cleanup. Existing source/seed/controller response/raw endpoint/21chosen snapshots verified. Later independent scientific pose/media review remains separate.
+
+Terminology: legacy physical_index is ZERO-BASED DENOISING INDEX (0..19). physical_intervals/window are RGB VIDEO FRAME indices(0..140); neither are model NFE indices(0..20+K-1).

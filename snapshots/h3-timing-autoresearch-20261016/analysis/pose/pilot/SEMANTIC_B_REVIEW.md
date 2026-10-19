@@ -1,0 +1,11 @@
+# Semantic B changes phase but does not isolate its cause
+
+B (`s05_semantic_b_p6_t6`, prompt `709485f5-5b7b-4141-b08a-a8216626b337`) changes both semantic video sample pixels and their displayed timestamp labels, while retaining native attention. The actual per-arm acceptance and A0 provenance were checked by the semantic-specific observer adapter and copied into its provenance archive; generic equal-embedding validation is inappropriate for this intentional manipulation. The exact MP4 SHA256 is `6f243b4eabbe93048e755df82f474481bf92e85c091178ca558cdc008cee5359`.
+
+Frozen primary50–65 lag is **+5/+5 frames** for both combined-arm and right-arm directions, versus A/native+13/+13. Combined-arm shift residual is .13725 at both thresholds. This is a reliable−8frame total B−A change, but it remains outside the±2frame near-alignment region. The full factorial attribution to pixel sampling, timestamp text or their interaction cannot be computed until C and D are available; B alone does not prove a dual-clock mechanism or establish that native timestamps are erroneous.
+
+The original four combined-arm windows at0.3 are +5 / rejected / +3 / +2. Window69–81's best shifted combined-arm residual .5152 and right-arm residual .5552 fail the frozen shape gate; at0.5 coverage also fails. These are not counted as a credible+3 phase measurement. The remaining first/third/fourth lags agree across thresholds.
+
+On A/B joint common support at0.3, primary same-frame error improves1.13349→.64835; whole-clip error .43256→.26965, after-bin68–140 .47373→.26183 and tail .09711→.07369. The before-bin0–46 segment slightly worsens .13625→.14948. At0.5 the original second/third common-support windows fall below.8 coverage, although third-arm individual lag remains reliable; all numbers and support are kept in `../pairs/semantic_A_B/`.
+
+Fixed55/86 frames retain gray clothes, white curtain and room. Frame55 remains partly mistimed, with the arm reaching forward, consistent with the nonzero lag. This limited screen does not assess all-frame identity or video quality. The full video and actual semantic acceptance artifacts are archived. The manually scheduled CPU run was admitted in a verified empty-pose gap with the offset4 sampler at16/20 and4:53 remaining; it exited0. The later semantic consumer will reuse the video hash/extraction cache.

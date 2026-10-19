@@ -1,0 +1,204 @@
+H3 中间 x0 离线时间误差读出设计
+2026-10-16；只读探路，未修改 live 服务、模型、采样器或 GPU 状态。
+
+结论
+
+可以先用一个被动 sampler callback 记录器，在既有 Euler20 的第5/10/15个零基索引处保存 x0 估计，然后等采样结束、DiT释放后逐份 VAE 解码、用现有 pose+人工事件标注检验 signed lag。无需教师、额外网络前向、训练或在线控制器。
+
+这只能回答“中间状态是否已经包含可读出的动作时间误差，以及这种读出是否可靠”。不能因为中间帧模糊/找不到手就当作动作缺失，也不能从读出相关性直接推出反馈控制有效或有新颖性。
+
+1. 已核对的真实调用链
+
+下列代码从本地 comfy_core_snapshot.tar.gz 读取，并在本次只读 SSH 中将11个关键文件 SHA 与 .9 当前 Core逐一比较，全部相同。当前Core根路径：
+/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+
+SamplerCustomAdvanced.execute
+  comfy_extras/nodes_custom_sampler.py:1040
+  创建 latent_preview.prepare_callback(model_patcher,20,x0_output)，再调用 guider.sample(...callback=...)。
+  自带 x0_output 字典只保留最后一份x0，不保存中间三份；单独接原生 denoised_output 输出不够。
+
+CFGGuider.sample
+  comfy/samplers.py:1276，尤其1289–1295
+  nested video/audio latent 被 pack成普通tensor进入采样器。
+  外层 callback 被包装：用原 latent_shapes 解包 x0 与x，组成 comfy.nested_tensor.NestedTensor 后交给原 preview callback。
+
+CFGGuider.inner_sample
+  comfy/samplers.py:1220
+  inner_model.latent_shapes 先设置为真实每流shape。
+  在 WrappersMP.SAMPLER_SAMPLE 扩展点调用 sampler.sample，真实参数依次为：
+    model_wrap, sigmas, extra_args, callback, noise, latent_image, denoise_mask, disable_pbar。
+  sampler返回后才执行 inner_model.process_latent_out(samples.float())。
+
+KSAMPLER.sample
+  comfy/samplers.py:983，尤其997–1006
+  k_callback把 {'i','denoised','x'} 转成 callback(step,x0,x,total_steps)。
+
+sample_euler
+  comfy/k_diffusion/sampling.py:190
+  denoised = model(x,sigma_hat,...)
+  d = to_d(x,sigma_hat,denoised)
+  callback(...denoised...)       # 此时尚未更新x到下一sigma
+  x = x + d*(sigma_next-sigma_hat)
+  因而记录的是该sigma处模型对干净样本的估计，不是下一步噪声状态，也不是最终视频某个物理时刻。
+
+BaseModel._apply_model → model_sampling.calculate_denoised
+  comfy/model_sampling.py:90，CONST.calculate_denoised
+  x0 = model_input - sigma * model_output。
+  H3DiT输出先转float32再参与该公式。当前Euler流的x0预期float32，但记录器应读取实际dtype并断言/记录，而非只按模型bf16推断。
+
+2. 最小接入点：新增一个task-local被动MODEL patch节点
+
+推荐使用现有 ModelPatcher.clone() + add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, unique_key, wrapper)。
+这比复制整个 SamplerCustomAdvanced 或全局替换 latent_preview.prepare_callback 更小，也能保留原进度回调和原生采样输出。
+
+假设将来新节点叫 H3X0Readout：
+  输入model接现有H3TemporalRouter输出；克隆后注册sampler wrapper；输出model接BasicGuider。
+  不修改冻结router、不改变conditioning、noise、sigmas、NFE、attention或已有object patches。
+  clone会保留现有wrappers；unique_key避免重复注册。记录器每次sampler调用创建自己的局部状态，不能用全局步计数。
+
+重要：SAMPLER_SAMPLE层截获的callback参数上游虽然有nested包装，但在我们新插入的callback被调用时，收到的x0通常仍是packed普通tensor！不要因为最终preview看到nested，就直接假设此接入层也是nested。
+  - 读取 model_wrap.inner_model.latent_shapes。
+  - 如果x0已nested：使用x0.unbind()；
+  - 否则用 comfy.utils.unpack_latents(x0, latent_shapes)。
+  - 不手工用hidden token数或拼接序列中的reference/video/audio段来切分：这是采样latent布局，不是DiT的packed attention序列。
+
+伪代码（设计，不是已安装实现）：
+
+  def wrapper(executor, model_wrap, sigmas, extra_args, callback,
+              noise, latent_image=None, denoise_mask=None, disable_pbar=False):
+      model = model_wrap.inner_model
+      shapes = [tuple(s) for s in model.latent_shapes]
+      selected = {5,10,15}   # zero based; 与router readout索引一致
+      seen = set()
+      def record(step,x0,x,total_steps):
+          if step in selected:
+              assert step not in seen and total_steps == 20
+              leaves = x0.unbind() if x0.is_nested else unpack_latents(x0,shapes)
+              assert实际两流shape、dtype、顺序符合manifest
+              raw_cpu = [t.detach().to(device='cpu',copy=True).contiguous() for t in leaves]
+              ready = model.process_latent_out(NestedTensor(raw_cpu))
+              # 此调用时model.latent_shapes和当前audio_scale仍正确有效；仅处理CPU副本。
+              save_plain_tensor_dict_atomic(
+                  video=ready.unbind()[0], audio=ready.unbind()[1],
+                  metadata={step,total_steps,sigma=sigmas[step],shapes,
+                            audio_scale=model.audio_scale(),normalization_stage='after_process_latent_out',...})
+              seen.add(step)
+              del ready,raw_cpu
+          if callback is not None:
+              callback(step,x0,x,total_steps)  # 原对象原样传递，不能换成我们的CPU副本
+      result = executor(model_wrap,sigmas,extra_args,record,
+                        noise,latent_image,denoise_mask,disable_pbar)
+      assert seen == selected
+      return result
+
+wrapper必须调用收到的executor(...)，不要调用executor.execute(...)，否则会重复当前包装层。
+写盘用普通dict/list/tensor，而非直接pickle自定义NestedTensor对象，以便torch.load(weights_only=True)安全读取。
+任一异常要保留未完成状态并停当前新实验；不要默默把无效x0视为成功测量。不要因此接触其他进程。
+
+备选接口：set_model_sampler_post_cfg_function也能看到args['denoised']、sigma和input，且应原样return denoised；但这里不推荐作为首选。它处于模型调用层，未来换多评估solver/CFG时一次采样步可能有多个调用，需要重新对齐步索引；callback已有准确i，较少歧义。也不要为了读出启用disable_cfg1_optimization来增加无条件前向。
+
+3. x0的数值域：视频和音频必须分清
+
+callback拿到的x0还在sampler域，并未经过最终process_latent_out。
+
+视频：
+  comfy/latent_formats.py:622 MiniMaxH3Video.scale_factor = 1.0。
+  因此H3视频从sampler域到VAE输入域的额外scale恰好是identity。
+  但它仍然是VAE训练用的normalized latent，绝不是像素或未归一化的VAE posterior mean。
+
+音频：
+  comfy/model_sampling.py:338 ModelSamplingAV.audio_scale = shift/audio_shift。
+  当前12/3得到4。
+  comfy/model_base.py:2140–2166 MiniMaxH3在sampler域携带放大4倍的audio latent。
+  process_latent_out先把音频除4，视频不变，再执行通用latent_format.process_out（当前scale_factor1）。
+  不能把尚未还原的audio直接交给音频VAE，也不能按每步sigma_v/sigma_a来代替这里的常数audio_scale。
+
+VAE自身均值方差：
+  comfy/ldm/minimax/vae.py:672 encode输出(mean-latents_mean)/latents_std。
+  同文件:698 decode内部已经执行 z*latents_std+latents_mean。
+  保存x0时或喂vae.decode之前不要再手工逆这组mean/std，否则重复还原。
+  规范路径是 callback x0 → CPU副本 → 当前model.process_latent_out → 保存 → 原生video VAE.decode。
+
+如果只关心动作，保存video本身已足够；建议同时保存audio，因为每份仅额外60,160bytes且能审计双流。真正离线评分只解码video，不需要音频解码成本。
+
+4. 流的可靠区分和时间坐标
+
+comfy_extras/nodes_minimax_h3.py:84 _empty_av_latent明确构造NestedTensor((video,audio))。
+新full实验应是：
+  stream0 video: [1,24,42,46,82]
+  stream1 audio: [1,32,2,235]
+1024好例应是：
+  stream0 video: [1,24,42,36,64]
+  stream1 audio: [1,32,2,235]
+原生nodes.py:333 VAEDecode遇nested也是先取unbind()[0]。
+
+同时核对顺序+rank+channels+完整shape，并与run的target_latent_shapes、噪声signature一致。不要仅按“第一个就是video”而不校验，也不要看NestedTensor.shape，它只返回第一流shape。
+不要按时序42个latent等分141帧并直接切片解码小段；H3时间映射为17k+5帧↔5k+2 latent且decode含时间分块/上下文。先完整解码42→141再在原物理帧索引50–65等窗口评分。
+
+记录i=5/10/15是零基索引（第6/11/16次Euler模型预测），不叫“已经完成第5/10/15步后的x”。
+当前20步video-shift12网格对应：
+  i5: q=0.75, sigma_v=0.97297297, sigma_a=0.9
+  i10:q=0.50, sigma_v=0.92307692, sigma_a=0.75
+  i15:q=0.25, sigma_v=0.8,        sigma_a=0.5
+这些sigma仍较高；采样步数已经过半不代表图像已近似无噪声。x0有可能仍不能支持稳定手部定位。保存实际float32 sigma及index，不仅保存“25%/50%/75%”标签。
+
+5. 规模、性能与存档
+
+按实际float32保存，不为省空间转bf16：
+  full video: 24*42*46*82*4 = 15,208,704bytes =14.50415MiB。
+  audio:32*2*235*4 =60,160bytes =0.05737MiB。
+  每份合计14.56152MiB；三份43.68457MiB，torch容器头开销很小。
+  1024 video+audio每份8.91675MiB；三份26.75024MiB。
+若同时保存sampler原域与vae-ready两套，full三份约87.37MiB。首版可以只保存vae-ready和完整normalization元数据；无需重复存两套。
+
+GPU：每次只CPU拷出已有x0，不持有跨步GPU tensor、不额外调用模型。避免把x0原对象append到列表导致保留GPU存储。
+CPU：逐份立即保存并释放，通常只需约两份latent的临时空间，不需堆积三份。同步拷贝和小量磁盘写入会增加少量wall time，应单记开销，不能把该批当速度benchmark。
+
+VAE解码开销大于latent保存：full141*736*1312*3 float32输出约1.522GiB/份，三份同时保留约4.565GiB。要一份一份decode/评分/释放，不在DiT采样callback里加载VAE或调用pose。
+先采样结束并卸载本任务DiT，再开离线VAE解码；复用原有fp16 video VAE和原生时间分块。最终退出本任务进程并校验显存释放。
+
+建议每份文件：
+  run_id/x0_step005.pt, x0_step010.pt, x0_step015.pt
+  manifest记录run_id/config SHA/seed/实际noise哈希、condition signature、source hash、step_i/NFE/sigma/shapes/dtypes、audio_scale、normalization_stage、每流raw-byte SHA、capture wall time、被动capture是否完整。
+  derived/x0_step005_video.mp4等只是解码可视化；原始.pt保留作为科学数据。
+  解码用原24fps/原1312×736/141帧；无RIFE、无额外裁剪、无自动时间对齐。
+  可记录最终step19 x0作为一次性sanity check，但不要悄悄把三次读出改成四次；需要时单列校验用途。既有SamplerCustomAdvanced最终denoised_output可提供终点检查。
+
+6. 最小验证和判据
+
+A. 先验收“只读不扰动”
+  在下一条正式可复用run上开启捕获；NFE仍20、block调用仍1000，原callback仍每步被调用一次，选中步恰好各写1份。
+  当前只用Euler、无churn、无动态CFG、无额外多GPU。若换solver，先重新定义callback索引和NFE对应关系。
+  检查最终输出与无capture同配置输出的latent/decodedframes是否一致；不能仅说torch.save不改数值就跳过验收。
+  简单CPU toy检验：packed↔nested两流重构、audio4倍还原、输入tensor未改、保存加载hash相同、video/audio识别错误时明确拒绝。
+  后续有GPU许可时可小tensor验证callback不改变Euler输出；这些测试尚未实施，本文件只设计。
+
+B. 离线可识别性
+  对native失败例和1024好例，按同样预定源窗口50–65、69–81、80–92、99–111评估各x0解码。
+  尽量保持正常原速全片；每窗口同时报告零时移误差、最佳signed lag、最佳lag误差、pose置信度/可见率和实际逐帧截图。
+  延续现有sign convention：正lag表示输出对应动作较参考晚；在实现里用可控时间平移合成输入验证符号，不能凭相关函数索引猜。
+  只在置信度和可见性足够、时间曲线有辨识力时估计lag。跨多个相邻lag近似同优时标低置信，而非强行选一个整数。
+  模糊/遮挡/手不可见时输出unknown，不记动作缺失，更不能触发未来在线强引导。
+  不对不同采样步单独调整阈值去追最终答案。阈值先用原视频、VAE重构和人为时间平移正负例标定；这些人工时间平移只用于读出校验，不充当新模型效果结果。
+
+C. 如何解释
+  - i10/i15已稳定读到和终点同方向、相近量级的lag，而好例接近0：支持后续研究状态触发器的可行性；仍需多样例/多seed。
+  - i5错误、i10/i15变可靠：支持置信度门控/等待可辨识状态，不能把越早干预越好作为定论。
+  - 三步全unknown或lag与最终符号无关：先拒绝这套x0+pose观测器，不足以证明潜在动作信息不存在；不要马上写复杂controller。
+  - 中间曾延后但最终自行修复：未来控制器必须区别暂态与持续误差，或使用滞回/连续多次证据；单次超阈值容易误报。
+  - 中间准确但终点偏移：至少证明当前三次稀疏读出漏掉后段变化；下一轮再有针对性加后期点，不能用现有三点谎称“全程监控”。
+
+新颖性边界：这一步是可证伪的观测器诊断，不是新架构贡献；callback保存、x0解码、pose比较本身不作为论文创新点。先证明误差在推理途中可辨识且不会把低置信视觉误差当时间误差，再设计受控的局部反馈干预。
+
+关键当前源码SHA（本次与本地快照核对一致）
+nodes_custom_sampler.py b0ba1521c72475e06fed15db004274ed7c8bb2bf73f1d58849faf6f9f9d264fe
+latent_preview.py d65c5240e0b6fbf2ebe85e8ae69a1e3820e6b22c8a2e430fc0de62a81fa582be
+model_base.py 6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68
+model_sampling.py 8afdc665272589a567792bb652389df7d4a83f69574c2b7e5b3d533d55592990
+samplers.py f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f
+nested_tensor.py d4d1f56e90bbf1b758de069a0949d6c26c0329cd3894188124a65235aa704aeb
+latent_formats.py 44622396b0d737b62fed441eeb6cf88ced5f8a330a62219f9900a04da9ad8a2a
+minimax/vae.py 40c4bf2db63279e0d13eb8de2c8a4602207a90cf9350f94afbee7aeed8b757ea
+model_patcher.py 26da6710a7d84e8e98ea3e0f0bc07b88cfef3f99a7f7d59daa71e650512c6ed4
+patcher_extension.py 1c7b3b855278d0b95d1c1a705fa0b3c91a265f320e2f97bdeb9d15469d6d4ac7
+k_diffusion/sampling.py cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce

@@ -1,0 +1,3072 @@
+{
+  "schema": "r37-design-evidence-v1",
+  "parent_actual_graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+      }
+    },
+    "41": {
+      "class_type": "MiniMaxH3SigmaShift",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "shift_video": 12.0,
+        "shift_audio": 3.0
+      }
+    },
+    "5": {
+      "class_type": "H3EventAuditReference",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit",
+        "run_id": "r27_s05_shared_conditioning",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      }
+    },
+    "6": {
+      "class_type": "H3EventAuditNoise",
+      "inputs": {
+        "noise_seed": 2026101313,
+        "audit_dir": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit",
+        "run_id": "r27_s05_normal1313_auto",
+        "pair_id": "r27_s05_normal1313_auto_noise"
+      }
+    },
+    "7": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "52",
+          0
+        ],
+        "conditioning": [
+          "51",
+          0
+        ]
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "ManualSigmas",
+      "inputs": {
+        "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+      }
+    },
+    "10": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "6",
+          0
+        ],
+        "guider": [
+          "7",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "9",
+          0
+        ],
+        "latent_image": [
+          "51",
+          1
+        ]
+      }
+    },
+    "11": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "10",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "VAEDecodeAudio",
+      "inputs": {
+        "samples": [
+          "10",
+          0
+        ],
+        "vae": [
+          "4",
+          0
+        ]
+      }
+    },
+    "13": {
+      "class_type": "CreateVideo",
+      "inputs": {
+        "images": [
+          "11",
+          0
+        ],
+        "audio": [
+          "12",
+          0
+        ],
+        "fps": 24.0,
+        "bit_depth": 8
+      }
+    },
+    "14": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": [
+          "13",
+          0
+        ],
+        "filename_prefix": "r27_s05_normal1313_auto",
+        "format": "mp4",
+        "codec": "h264",
+        "codec.encoding": "re-encode",
+        "codec.encoding.crf": 16.0
+      }
+    },
+    "21": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "sam_altman_village_global_20221117_original.jpg"
+      }
+    },
+    "22": {
+      "class_type": "LoadVideo",
+      "inputs": {
+        "file": "05_real_megumi_v.mp4"
+      }
+    },
+    "23": {
+      "class_type": "GetVideoComponents",
+      "inputs": {
+        "video": [
+          "22",
+          0
+        ]
+      }
+    },
+    "50": {
+      "class_type": "H3AutomaticWindowRouter",
+      "inputs": {
+        "model": [
+          "41",
+          0
+        ],
+        "positive": [
+          "51",
+          0
+        ],
+        "run_id": "r27_s05_normal1313_auto",
+        "audit_dir": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/counterfactual"
+      }
+    },
+    "51": {
+      "class_type": "H3PairConditionSnapshot",
+      "inputs": {
+        "positive": [
+          "5",
+          0
+        ],
+        "target": [
+          "5",
+          1
+        ],
+        "source_audit_dir": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit",
+        "source_run_id": "r27_s05_shared_conditioning",
+        "run_id": "r27_s05_normal1313_auto"
+      }
+    },
+    "52": {
+      "class_type": "H3X0Readout",
+      "inputs": {
+        "model": [
+          "50",
+          0
+        ],
+        "run_id": "r27_s05_normal1313_auto",
+        "output_dir": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/x0",
+        "width": 1312,
+        "height": 736,
+        "length": 141
+      }
+    }
+  },
+  "parent_actual_conditioning_tree": {
+    "sha256": "46ab270374e0ff3f3ba5e6f44db3d7d2daadb76cc86d2b5b9157e25a5d168d26",
+    "tree": {
+      "original": {
+        "positive": [
+          {
+            "cross_attn": {
+              "shape": [
+                1,
+                6960,
+                5120
+              ],
+              "dtype": "torch.float32",
+              "bytes": 142540800,
+              "sha256": "06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3"
+            },
+            "minimax_refs": [
+              {
+                "kind": "image",
+                "latent": {
+                  "shape": [
+                    1,
+                    24,
+                    1,
+                    76,
+                    50
+                  ],
+                  "dtype": "torch.float32",
+                  "bytes": 364800,
+                  "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+                },
+                "latent_h": 76,
+                "latent_w": 50
+              },
+              {
+                "audio_latent": null,
+                "kind": "video",
+                "latent": {
+                  "shape": [
+                    1,
+                    24,
+                    42,
+                    46,
+                    82
+                  ],
+                  "dtype": "torch.float32",
+                  "bytes": 15208704,
+                  "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+                },
+                "latent_h": 46,
+                "latent_t": 42,
+                "latent_w": 82,
+                "ref_audio_t": 0
+              }
+            ],
+            "minimax_token_tags": {
+              "shape": [
+                6960
+              ],
+              "dtype": "torch.int64",
+              "bytes": 55680,
+              "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+            },
+            "model_conds": {},
+            "pooled_output": null,
+            "uuid": "bfc232d4-30fa-4634-838a-080912c94eb5"
+          }
+        ]
+      },
+      "processed": {
+        "positive": [
+          {
+            "cross_attn": {
+              "shape": [
+                1,
+                6960,
+                5120
+              ],
+              "dtype": "torch.float32",
+              "bytes": 142540800,
+              "sha256": "06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3"
+            },
+            "minimax_refs": [
+              {
+                "kind": "image",
+                "latent": {
+                  "shape": [
+                    1,
+                    24,
+                    1,
+                    76,
+                    50
+                  ],
+                  "dtype": "torch.float32",
+                  "bytes": 364800,
+                  "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+                },
+                "latent_h": 76,
+                "latent_w": 50
+              },
+              {
+                "audio_latent": null,
+                "kind": "video",
+                "latent": {
+                  "shape": [
+                    1,
+                    24,
+                    42,
+                    46,
+                    82
+                  ],
+                  "dtype": "torch.float32",
+                  "bytes": 15208704,
+                  "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+                },
+                "latent_h": 46,
+                "latent_t": 42,
+                "latent_w": 82,
+                "ref_audio_t": 0
+              }
+            ],
+            "minimax_token_tags": {
+              "shape": [
+                6960
+              ],
+              "dtype": "torch.int64",
+              "bytes": 55680,
+              "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+            },
+            "model_conds": {
+              "c_crossattn": {
+                "type": "CONDRegular",
+                "cond": {
+                  "shape": [
+                    1,
+                    6960,
+                    5376
+                  ],
+                  "dtype": "torch.bfloat16",
+                  "bytes": 74833920,
+                  "sha256": "cb786704e4c1ffeb66cf47acd78156c1e237ee171cae6f797ebdca26d2620c9d"
+                }
+              },
+              "latent_shapes": {
+                "type": "CONDConstant",
+                "cond": [
+                  [
+                    1,
+                    24,
+                    42,
+                    46,
+                    82
+                  ],
+                  [
+                    1,
+                    32,
+                    2,
+                    235
+                  ]
+                ]
+              },
+              "minimax_payload": {
+                "type": "CONDConstant",
+                "cond": {
+                  "audio_scale": 4.0,
+                  "cond_audio_latents": [],
+                  "cond_video_latents": [
+                    {
+                      "shape": [
+                        1,
+                        24,
+                        1,
+                        76,
+                        50
+                      ],
+                      "dtype": "torch.float32",
+                      "bytes": 364800,
+                      "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+                    },
+                    {
+                      "shape": [
+                        1,
+                        24,
+                        42,
+                        46,
+                        82
+                      ],
+                      "dtype": "torch.float32",
+                      "bytes": 15208704,
+                      "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+                    }
+                  ],
+                  "layout": {
+                    "type": "PackedLayout",
+                    "fields": {
+                      "audio_pos": {
+                        "shape": [
+                          470
+                        ],
+                        "dtype": "torch.int64",
+                        "bytes": 3760,
+                        "sha256": "0ba1603c6a551e82dbde7dc626154e7345a5e8f4aceaa15bd56362dfa9a1d819"
+                      },
+                      "audio_update": {
+                        "shape": [
+                          470
+                        ],
+                        "dtype": "torch.bool",
+                        "bytes": 470,
+                        "sha256": "8f0558bca4e77127a5cd3ad141661430066b4fdc2a20207131986e7525d3cb23"
+                      },
+                      "img_pos": {
+                        "shape": [
+                          80162
+                        ],
+                        "dtype": "torch.int64",
+                        "bytes": 641296,
+                        "sha256": "029444e31b1cf503bc7f46f932793245c2c7f1ec3056354ca71efa717cdfea4f"
+                      },
+                      "img_update": {
+                        "shape": [
+                          80162
+                        ],
+                        "dtype": "torch.bool",
+                        "bytes": 80162,
+                        "sha256": "c661431859be9c294c8e872ee5a2b82561ce4eb09a1fa44a4cadb3fafb94390a"
+                      },
+                      "position_ids": {
+                        "shape": [
+                          87592,
+                          3
+                        ],
+                        "dtype": "torch.float64",
+                        "bytes": 2102208,
+                        "sha256": "06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee"
+                      },
+                      "segments": [
+                        [
+                          0,
+                          6960,
+                          "text"
+                        ],
+                        [
+                          6960,
+                          7910,
+                          "ref_img"
+                        ],
+                        [
+                          7910,
+                          47516,
+                          "ref_img"
+                        ],
+                        [
+                          47516,
+                          47986,
+                          "audio"
+                        ],
+                        [
+                          47986,
+                          87592,
+                          "video"
+                        ]
+                      ],
+                      "seq_len": 87592,
+                      "signature": [
+                        6960,
+                        42,
+                        46,
+                        82,
+                        235
+                      ]
+                    }
+                  },
+                  "refs": [
+                    {
+                      "kind": "image",
+                      "latent": {
+                        "shape": [
+                          1,
+                          24,
+                          1,
+                          76,
+                          50
+                        ],
+                        "dtype": "torch.float32",
+                        "bytes": 364800,
+                        "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+                      },
+                      "latent_h": 76,
+                      "latent_w": 50
+                    },
+                    {
+                      "audio_latent": null,
+                      "kind": "video",
+                      "latent": {
+                        "shape": [
+                          1,
+                          24,
+                          42,
+                          46,
+                          82
+                        ],
+                        "dtype": "torch.float32",
+                        "bytes": 15208704,
+                        "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+                      },
+                      "latent_h": 46,
+                      "latent_t": 42,
+                      "latent_w": 82,
+                      "ref_audio_t": 0
+                    }
+                  ],
+                  "seed": 2026101313,
+                  "text_token_tags": {
+                    "shape": [
+                      6960
+                    ],
+                    "dtype": "torch.int64",
+                    "bytes": 55680,
+                    "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+                  }
+                }
+              }
+            },
+            "pooled_output": null,
+            "uuid": "bfc232d4-30fa-4634-838a-080912c94eb5"
+          }
+        ]
+      }
+    }
+  },
+  "parent_clean_conditioning": {
+    "schema": "h3-event-audit-v1",
+    "run_id": "r27_s05_normal1313_auto",
+    "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+    "input_video": {
+      "shape": [
+        141,
+        736,
+        1312,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "348c749921d1dd415293d3a80e61ab9dbe55fd1b092eb8ddaf716e89139dcf3e"
+    },
+    "native_vae_calls": [
+      {
+        "prepared_frames": {
+          "shape": [
+            1,
+            1216,
+            800,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087",
+          "tensor_file": "tensor_blobs/611c77971c693b7b82d2a5792a77b9e21ee7c9915f3bdb160c7db85a5e2d891a.pt"
+        },
+        "latent": {
+          "shape": [
+            1,
+            24,
+            1,
+            76,
+            50
+          ],
+          "dtype": "torch.float32",
+          "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5",
+          "tensor_file": "tensor_blobs/8340480c005b362d7a7ef8c3b6215d46985705fcba4f284ab8942fcc776d1d02.pt"
+        }
+      },
+      {
+        "prepared_frames": {
+          "shape": [
+            141,
+            736,
+            1312,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42",
+          "tensor_file": "tensor_blobs/532e627d9c11e45b43df9686a1bc980d4df7a5f973ac04912fcb26ec15fe1f37.pt"
+        },
+        "latent": {
+          "shape": [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          "dtype": "torch.float32",
+          "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734",
+          "tensor_file": "tensor_blobs/136e1302edb9e4f245d085b21584e8bfa54942c77a30758e7c3f227078cde97a.pt"
+        }
+      }
+    ],
+    "qwen_presentation": [
+      {
+        "type": "image",
+        "data": {
+          "tensor": {
+            "shape": [
+              1,
+              1216,
+              800,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087"
+          }
+        }
+      },
+      {
+        "type": "video",
+        "sampling": {
+          "source_fps": 24,
+          "semantic_fps": 2,
+          "phase_frames": 0,
+          "sample_indices": [
+            0,
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120,
+            132
+          ],
+          "sample_timestamps_seconds": [
+            0.0,
+            0.5,
+            1.0,
+            1.5,
+            2.0,
+            2.5,
+            3.0,
+            3.5,
+            4.0,
+            4.5,
+            5.0,
+            5.5
+          ],
+          "temporal_blocks": [
+            {
+              "source_frames": [
+                0,
+                12
+              ],
+              "timestamp_seconds": 0.25,
+              "rendered_timestamp": "<0.2 seconds>"
+            },
+            {
+              "source_frames": [
+                24,
+                36
+              ],
+              "timestamp_seconds": 1.25,
+              "rendered_timestamp": "<1.2 seconds>"
+            },
+            {
+              "source_frames": [
+                48,
+                60
+              ],
+              "timestamp_seconds": 2.25,
+              "rendered_timestamp": "<2.2 seconds>"
+            },
+            {
+              "source_frames": [
+                72,
+                84
+              ],
+              "timestamp_seconds": 3.25,
+              "rendered_timestamp": "<3.2 seconds>"
+            },
+            {
+              "source_frames": [
+                96,
+                108
+              ],
+              "timestamp_seconds": 4.25,
+              "rendered_timestamp": "<4.2 seconds>"
+            },
+            {
+              "source_frames": [
+                120,
+                132
+              ],
+              "timestamp_seconds": 5.25,
+              "rendered_timestamp": "<5.2 seconds>"
+            }
+          ]
+        },
+        "actual_sampled_frames": {
+          "shape": [
+            12,
+            736,
+            1312,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1917b522107422af25f59a26c1372a21a8c95f05ba70c2ef9597d94280314dab",
+          "tensor_file": "tensor_blobs/1bf61cef180dc48b9a89616a67ca2f2d01995c0b78579de0536c663a3440a956.pt"
+        }
+      }
+    ],
+    "tokenization_before_vision_expansion": {
+      "qwen3vl_32b": [
+        [
+          [
+            21604,
+            1.0
+          ],
+          [
+            3826,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            26818,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    1,
+                    1216,
+                    800,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087"
+                }
+              },
+              "original_type": "image"
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            10724,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            26818,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            15,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            6486,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    2,
+                    736,
+                    1312,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "13832f24a388b8b6dcf7e4105ba5d3cb8c318e462f38189e7547a4869d0f13c1"
+                }
+              },
+              "original_type": "image",
+              "minimax_video_block": true
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            6486,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    2,
+                    736,
+                    1312,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "edea788d698e9a23df49d48c7767c32936ec87026ccb1f716ec058fd6d8484d7"
+                }
+              },
+              "original_type": "image",
+              "minimax_video_block": true
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            6486,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    2,
+                    736,
+                    1312,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "66bfc0d5e55dc3d59a72d4e692c33d509fb5ac516ba867b1cc4ca966c6cd6100"
+                }
+              },
+              "original_type": "image",
+              "minimax_video_block": true
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            18,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            6486,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    2,
+                    736,
+                    1312,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "36579ffbafc965db52a06745902499b4947ed277bf5ae21498b20d772f394059"
+                }
+              },
+              "original_type": "image",
+              "minimax_video_block": true
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            19,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            6486,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    2,
+                    736,
+                    1312,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "43a039311cfee8784fb261d3d76a2a3af27a496dcb9e4e490b14091bbb3271f3"
+                }
+              },
+              "original_type": "image",
+              "minimax_video_block": true
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            20,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            17,
+            1.0
+          ],
+          [
+            6486,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            151652,
+            1.0
+          ],
+          [
+            {
+              "type": "image",
+              "data": {
+                "tensor": {
+                  "shape": [
+                    2,
+                    736,
+                    1312,
+                    3
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "5e8a9448c9daaadfdf1ed60d2f658b382daa10a14f168173dbabc2a054c91ea1"
+                }
+              },
+              "original_type": "image",
+              "minimax_video_block": true
+            },
+            1.0
+          ],
+          [
+            151653,
+            1.0
+          ],
+          [
+            11501,
+            1.0
+          ],
+          [
+            84881,
+            1.0
+          ],
+          [
+            510,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            13019,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            26818,
+            1.0
+          ],
+          [
+            8224,
+            1.0
+          ],
+          [
+            23682,
+            1.0
+          ],
+          [
+            1515,
+            1.0
+          ],
+          [
+            438,
+            1.0
+          ],
+          [
+            6839,
+            1.0
+          ],
+          [
+            304,
+            1.0
+          ],
+          [
+            366,
+            1.0
+          ],
+          [
+            24669,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            65795,
+            1.0
+          ],
+          [
+            990,
+            1.0
+          ],
+          [
+            419,
+            1.0
+          ],
+          [
+            33033,
+            1.0
+          ],
+          [
+            1172,
+            1.0
+          ],
+          [
+            369,
+            1.0
+          ],
+          [
+            9569,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            17438,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            448,
+            1.0
+          ],
+          [
+            17040,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            6168,
+            1.0
+          ],
+          [
+            504,
+            1.0
+          ],
+          [
+            366,
+            1.0
+          ],
+          [
+            10724,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            29816,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            10724,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            26818,
+            1.0
+          ],
+          [
+            576,
+            1.0
+          ],
+          [
+            4583,
+            1.0
+          ],
+          [
+            2530,
+            1.0
+          ],
+          [
+            2766,
+            1.0
+          ],
+          [
+            311,
+            1.0
+          ],
+          [
+            4499,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            5785,
+            1.0
+          ],
+          [
+            369,
+            1.0
+          ],
+          [
+            678,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            11379,
+            1.0
+          ],
+          [
+            624,
+            1.0
+          ],
+          [
+            1708,
+            1.0
+          ],
+          [
+            510,
+            1.0
+          ],
+          [
+            58,
+            1.0
+          ],
+          [
+            9986,
+            1.0
+          ],
+          [
+            15664,
+            1.0
+          ],
+          [
+            60,
+            1.0
+          ],
+          [
+            29558,
+            1.0
+          ],
+          [
+            1172,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            1887,
+            1.0
+          ],
+          [
+            48154,
+            1.0
+          ],
+          [
+            304,
+            1.0
+          ],
+          [
+            366,
+            1.0
+          ],
+          [
+            10724,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            29,
+            1.0
+          ],
+          [
+            448,
+            1.0
+          ],
+          [
+            8224,
+            1.0
+          ],
+          [
+            23682,
+            1.0
+          ],
+          [
+            1515,
+            1.0
+          ],
+          [
+            504,
+            1.0
+          ],
+          [
+            366,
+            1.0
+          ],
+          [
+            24669,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            14276,
+            1.0
+          ],
+          [
+            81306,
+            1.0
+          ],
+          [
+            806,
+            1.0
+          ],
+          [
+            65252,
+            1.0
+          ],
+          [
+            27800,
+            1.0
+          ],
+          [
+            4419,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            2805,
+            1.0
+          ],
+          [
+            12045,
+            1.0
+          ],
+          [
+            25642,
+            1.0
+          ],
+          [
+            832,
+            1.0
+          ],
+          [
+            13876,
+            1.0
+          ],
+          [
+            6869,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            4240,
+            1.0
+          ],
+          [
+            7514,
+            1.0
+          ],
+          [
+            5276,
+            1.0
+          ],
+          [
+            3579,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            3100,
+            1.0
+          ],
+          [
+            17545,
+            1.0
+          ],
+          [
+            1293,
+            1.0
+          ],
+          [
+            1331,
+            1.0
+          ],
+          [
+            8501,
+            1.0
+          ],
+          [
+            2066,
+            1.0
+          ],
+          [
+            13627,
+            1.0
+          ],
+          [
+            95433,
+            1.0
+          ],
+          [
+            52103,
+            1.0
+          ],
+          [
+            60121,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            18608,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            27303,
+            1.0
+          ],
+          [
+            448,
+            1.0
+          ],
+          [
+            6319,
+            1.0
+          ],
+          [
+            67676,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            6319,
+            1.0
+          ],
+          [
+            15294,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            5443,
+            1.0
+          ],
+          [
+            25489,
+            1.0
+          ],
+          [
+            6683,
+            1.0
+          ],
+          [
+            8593,
+            1.0
+          ],
+          [
+            2487,
+            1.0
+          ],
+          [
+            48792,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            29364,
+            1.0
+          ],
+          [
+            311,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            4583,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            5068,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            81306,
+            1.0
+          ],
+          [
+            1449,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            1917,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            1424,
+            1.0
+          ],
+          [
+            30157,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            7493,
+            1.0
+          ],
+          [
+            18405,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            1917,
+            1.0
+          ],
+          [
+            1973,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            4628,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            36290,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            81306,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            3054,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            14549,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            6171,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            4004,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            6249,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            18037,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            23806,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            5443,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            33033,
+            1.0
+          ],
+          [
+            1172,
+            1.0
+          ],
+          [
+            369,
+            1.0
+          ],
+          [
+            11094,
+            1.0
+          ],
+          [
+            26,
+            1.0
+          ],
+          [
+            653,
+            1.0
+          ],
+          [
+            537,
+            1.0
+          ],
+          [
+            2975,
+            1.0
+          ],
+          [
+            1181,
+            1.0
+          ],
+          [
+            1099,
+            1.0
+          ],
+          [
+            46313,
+            1.0
+          ],
+          [
+            17040,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            13753,
+            1.0
+          ],
+          [
+            10496,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            88471,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            10525,
+            1.0
+          ],
+          [
+            476,
+            1.0
+          ],
+          [
+            4004,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            13655,
+            1.0
+          ],
+          [
+            264,
+            1.0
+          ],
+          [
+            25489,
+            1.0
+          ],
+          [
+            3887,
+            1.0
+          ],
+          [
+            25059,
+            1.0
+          ],
+          [
+            11094,
+            1.0
+          ],
+          [
+            624,
+            1.0
+          ],
+          [
+            2122,
+            1.0
+          ],
+          [
+            2939,
+            1.0
+          ],
+          [
+            42682,
+            1.0
+          ],
+          [
+            510,
+            1.0
+          ],
+          [
+            27,
+            1.0
+          ],
+          [
+            10724,
+            1.0
+          ],
+          [
+            220,
+            1.0
+          ],
+          [
+            16,
+            1.0
+          ],
+          [
+            26818,
+            1.0
+          ],
+          [
+            81306,
+            1.0
+          ],
+          [
+            678,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            11379,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            1917,
+            1.0
+          ],
+          [
+            18405,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            6249,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            3054,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            6171,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            4004,
+            1.0
+          ],
+          [
+            26,
+            1.0
+          ],
+          [
+            8290,
+            1.0
+          ],
+          [
+            1172,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            1887,
+            1.0
+          ],
+          [
+            48154,
+            1.0
+          ],
+          [
+            594,
+            1.0
+          ],
+          [
+            9569,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            27303,
+            1.0
+          ],
+          [
+            438,
+            1.0
+          ],
+          [
+            11223,
+            1.0
+          ],
+          [
+            624,
+            1.0
+          ],
+          [
+            67,
+            1.0
+          ],
+          [
+            10111,
+            1.0
+          ],
+          [
+            11448,
+            1.0
+          ],
+          [
+            510,
+            1.0
+          ],
+          [
+            14367,
+            1.0
+          ],
+          [
+            5852,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            4024,
+            1.0
+          ],
+          [
+            2530,
+            1.0
+          ],
+          [
+            6168,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            862,
+            1.0
+          ],
+          [
+            1973,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            18405,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            36290,
+            1.0
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            13655,
+            1.0
+          ],
+          [
+            279,
+            1.0
+          ],
+          [
+            2530,
+            1.0
+          ],
+          [
+            31959,
+            1.0
+          ],
+          [
+            4628,
+            1.0
+          ],
+          [
+            11,
+            1.0
+          ],
+          [
+            6249,
+            1.0
+          ],
+          [
+            323,
+            1.0
+          ],
+          [
+            8090,
+            1.0
+          ],
+          [
+            624,
+            1.0
+          ],
+          [
+            74455,
+            1.0
+          ],
+          [
+            643,
+            1.0
+          ],
+          [
+            3095,
+            1.0
+          ],
+          [
+            5330,
+            1.0
+          ],
+          [
+            510,
+            1.0
+          ],
+          [
+            2753,
+            1.0
+          ],
+          [
+            8806,
+            1.0
+          ],
+          [
+            476,
+            1.0
+          ],
+          [
+            3694,
+            1.0
+          ],
+          [
+            5112,
+            1.0
+          ],
+          [
+            6239,
+            1.0
+          ],
+          [
+            525,
+            1.0
+          ],
+          [
+            11223,
+            1.0
+          ],
+          [
+            624,
+            1.0
+          ],
+          [
+            6280,
+            1.0
+          ],
+          [
+            61588,
+            1.0
+          ],
+          [
+            35224,
+            1.0
+          ],
+          [
+            61863,
+            1.0
+          ],
+          [
+            510,
+            1.0
+          ],
+          [
+            4064,
+            1.0
+          ],
+          [
+            624,
+            1.0
+          ]
+        ]
+      ]
+    },
+    "conditioning_embedding": {
+      "shape": [
+        1,
+        6960,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "sha256": "06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3",
+      "tensor_file": "tensor_blobs/e75942ff5de6f8978671163245e6a4c9298c027077c239a1316e52cd9a511873.pt"
+    },
+    "token_tags": {
+      "shape": [
+        6960
+      ],
+      "dtype": "torch.int64",
+      "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159",
+      "tensor_file": "tensor_blobs/1f8207166f152df114c1c11c65b5782b4220546a340469036aa9087965298b11.pt"
+    },
+    "target_latent_shapes": [
+      [
+        1,
+        24,
+        42,
+        46,
+        82
+      ],
+      [
+        1,
+        32,
+        2,
+        235
+      ]
+    ],
+    "packed_layout": {
+      "seq_len": 87592,
+      "segments": [
+        [
+          0,
+          6960,
+          "text"
+        ],
+        [
+          6960,
+          7910,
+          "ref_img"
+        ],
+        [
+          7910,
+          47516,
+          "ref_img"
+        ],
+        [
+          47516,
+          47986,
+          "audio"
+        ],
+        [
+          47986,
+          87592,
+          "video"
+        ]
+      ],
+      "position_ids": {
+        "shape": [
+          87592,
+          3
+        ],
+        "dtype": "torch.float64",
+        "sha256": "06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee",
+        "tensor_file": "tensor_blobs/9e67538fbe6cbd4d34083d65cc5d7165ad9ca89153b11b6166b87a59abcb87c3.pt"
+      }
+    },
+    "notes": [
+      "Default 2 FPS phase 0 delegates native arguments unchanged.",
+      "Dense VAE input is unchanged by semantic FPS/phase settings.",
+      "Phase/FPS may change token count and RoPE layout; compare manifests.",
+      "Native reference augmentation is deterministic: visual 0.999, per-reference CPU RNG restarted at sampler seed; audio uses seed+1.",
+      "Only silent video and optional image are supported by this pilot node."
+    ],
+    "pair_snapshot": {
+      "schema": "h3-pair-condition-snapshot-v1",
+      "verified": true,
+      "source_run_id": "r27_s05_shared_conditioning",
+      "source_manifest": "r27_s05_shared_conditioning_conditioning.json",
+      "source_manifest_sha256": "c87c1c25908adf4f3b089a2fdfc40a47b655f70cd9825dc8df706e000428f324",
+      "preprocessing_provenance": "Copied from the shared source computation; this node does not encode or tokenize.",
+      "tensor_file_base": ".",
+      "cache_usage": {
+        "assumption": "Identical shared node inputs permit Comfy cache reuse across benchmark and paired runs.",
+        "verified": false,
+        "required_evidence": "Check shared node 5 in each prompt history execution_cached event."
+      },
+      "actual": {
+        "conditioning_embedding": {
+          "shape": [
+            1,
+            6960,
+            5120
+          ],
+          "dtype": "torch.float32",
+          "sha256": "06ca52a8b96938ed88e52622b34c8229f192ce54a5ace9a288c1ea4ffe790ca3"
+        },
+        "token_tags": {
+          "shape": [
+            6960
+          ],
+          "dtype": "torch.int64",
+          "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+        },
+        "references": [
+          {
+            "reference_index": 0,
+            "kind": "image",
+            "source_vae_call_index": 0,
+            "clean_latent": {
+              "shape": [
+                1,
+                24,
+                1,
+                76,
+                50
+              ],
+              "dtype": "torch.float32",
+              "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+            }
+          },
+          {
+            "reference_index": 1,
+            "kind": "video",
+            "source_vae_call_index": 1,
+            "clean_latent": {
+              "shape": [
+                1,
+                24,
+                42,
+                46,
+                82
+              ],
+              "dtype": "torch.float32",
+              "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734"
+            }
+          }
+        ],
+        "target_latent_shapes": [
+          [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          [
+            1,
+            32,
+            2,
+            235
+          ]
+        ],
+        "target_latent_dtypes": [
+          "torch.float32",
+          "torch.float32"
+        ],
+        "packed_layout": {
+          "seq_len": 87592,
+          "segments": [
+            [
+              0,
+              6960,
+              "text"
+            ],
+            [
+              6960,
+              7910,
+              "ref_img"
+            ],
+            [
+              7910,
+              47516,
+              "ref_img"
+            ],
+            [
+              47516,
+              47986,
+              "audio"
+            ],
+            [
+              47986,
+              87592,
+              "video"
+            ]
+          ],
+          "position_ids": {
+            "shape": [
+              87592,
+              3
+            ],
+            "dtype": "torch.float64",
+            "sha256": "06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee"
+          }
+        }
+      }
+    }
+  },
+  "parent_noise": {
+    "schema": "h3-event-noise-v1",
+    "run_id": "r27_s05_normal1313_auto",
+    "pair_id": "r27_s05_normal1313_auto_noise",
+    "signature": {
+      "seed": 2026101313,
+      "nested": true,
+      "shapes": [
+        [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          235
+        ]
+      ],
+      "dtypes": [
+        "torch.float32",
+        "torch.float32"
+      ],
+      "batch_index": null
+    },
+    "actual_noise_streams": [
+      {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "ab351b58702c83e2110ab598bdd595f7b8fe18ad3ce75dfb37dbd26498499814"
+      },
+      {
+        "shape": [
+          1,
+          32,
+          2,
+          235
+        ],
+        "dtype": "torch.float32",
+        "sha256": "b38e23dee7bafd3b8bf8ed78582d21e01830d4a7ead57a1a110f2d543f596186"
+      }
+    ],
+    "cache_file": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/r27_s05_normal1313_auto_noise_noise.pt"
+  },
+  "parent_captures_summary": {
+    "seed": 2026101313,
+    "capture_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "callback_count": 20,
+    "noise": {
+      "shape": [
+        1,
+        1,
+        3817216
+      ],
+      "dtype": "torch.float32",
+      "bytes": 15268864,
+      "sha256": "aad5ee973ecc45cd23da76f9619b3e44568d991ef8021e5893281f08a8f4f6b3"
+    },
+    "final_sampler_result": {
+      "file": "sampler_final.pt",
+      "schema": "h3-x0-readout-v1",
+      "run_id": "r27_s05_normal1313_auto",
+      "snapshot_kind": "sampler_final",
+      "step_zero_based": 19,
+      "model_call_one_based": 20,
+      "total_steps": 20,
+      "endpoint_sanity": true,
+      "sigma_video": 0.0,
+      "sigma_audio": 0.0,
+      "sigma_next_video": 0.0,
+      "normalization_stage": "after_process_latent_out",
+      "audio_scale": 4.0,
+      "video_latent_scale_factor": 1.0,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 141,
+        "fps": 24
+      },
+      "seed": 2026101313,
+      "video": {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "bytes": 15208704,
+        "sha256": "a9e80c60a38af2c21f7650cd450794f5f37d7d680901a9060943acc26fa9768e"
+      },
+      "audio": {
+        "shape": [
+          1,
+          32,
+          2,
+          235
+        ],
+        "dtype": "torch.float32",
+        "bytes": 60160,
+        "sha256": "5de1e44ab69bc938951e688df3cb290da99c752961b0778fffe84308f0f9f5e2"
+      }
+    }
+  },
+  "parent_file_inventory_selected": {
+    "audit/counterfactual/r27_s05_normal1313_auto.json": {
+      "sha256": "284c85ebddce664d6ac9caaa895336c2419c64b874d13f25a6b18d691220a89d",
+      "bytes": 776191553
+    },
+    "audit/counterfactual/r27_s05_normal1313_auto_snapshots/step000_native.pt": {
+      "sha256": "0dc116e59e2d3ff879c10407f5ab2192c7132e033cc4e42af90140328ea2a759",
+      "bytes": 15270936
+    },
+    "audit/counterfactual/r27_s05_normal1313_auto_snapshots/step001_native.pt": {
+      "sha256": "8c9e06d8b41f00ad0e2a0e75d973e4c9807010f6e303eaf37559b32d9b5e10cf",
+      "bytes": 15270936
+    },
+    "audit/counterfactual/r27_s05_normal1313_auto_snapshots/step002_native.pt": {
+      "sha256": "b41d6491bce3578f11e6c591821325378d95e4f2ebb227b884689fb6c172833b",
+      "bytes": 15270936
+    },
+    "audit/counterfactual/r27_s05_normal1313_auto_snapshots/step003_native.pt": {
+      "sha256": "67bbec93ce8d8e00e9b423de18a75b28ac4efbf13aeeffddc0e0b80758af90ad",
+      "bytes": 15270936
+    },
+    "audit/counterfactual/r27_s05_normal1313_auto_snapshots/step004_native.pt": {
+      "sha256": "3289a68b819404b54fe015049796b966dbd20d555c843a8d761dd8238792635e",
+      "bytes": 15270936
+    },
+    "audit/x0/r27_s05_normal1313_auto/manifest.json": {
+      "sha256": "8a109004d62f18889e871929cf6966b74e31bd1777ec7c6f01596e2678a70bef",
+      "bytes": 28080
+    },
+    "audit/x0/r27_s05_normal1313_auto/x0_step000.pt": {
+      "sha256": "d270e7cb3b04ceb0360e741121bb2e0a544820b07ad9d6fef480433f9254e624",
+      "bytes": 15271128
+    },
+    "audit/x0/r27_s05_normal1313_auto/x0_step001.pt": {
+      "sha256": "feb59faebefeeb47fe906b248525c0452004a66168a6495f1777ae0eb52d6208",
+      "bytes": 15271128
+    },
+    "audit/x0/r27_s05_normal1313_auto/x0_step002.pt": {
+      "sha256": "462e16a0bde18366ad630c6caf2892fb3b578bf755844d764be9555dd181e0c2",
+      "bytes": 15271128
+    },
+    "audit/x0/r27_s05_normal1313_auto/x0_step003.pt": {
+      "sha256": "271e8034e0fa069f7052ef4b138dce2cfbb2d4e6d62c5fb3e7529cf7b4d8bfaa",
+      "bytes": 15271128
+    },
+    "audit/x0/r27_s05_normal1313_auto/x0_step004.pt": {
+      "sha256": "27b7ef16bebe79a5da0df7bca9baf40680f1a044b49d496953ef2dc8c7a9edc6",
+      "bytes": 15271128
+    }
+  },
+  "parent_RUNTIME_GATE": {
+    "cases": [
+      {
+        "NFE": 20,
+        "all_OFF_final_exact": true,
+        "first_on": null,
+        "mask": [],
+        "normal_false_trigger": false,
+        "observations": 20,
+        "prefix_scope": "available old checkpoints only; missing early archives explicit",
+        "run": "r27_s05_normal1313_auto",
+        "updates": 20
+      }
+    ],
+    "cleanup_verified": false,
+    "historical_scope": "runtime prefix gates requalified; exact historical recheck only all-OFF final. Independent known-endpoint decode bridge separately required.",
+    "new_method_claim": false,
+    "runtime_integrity_only": true,
+    "status": "pass"
+  },
+  "design_check_scope": "Actual local JSON/byte evidence; no PT tensor reloaded and no new GPU/pose in this design task. Future live verifier must reload historical AV tensors. No R33 output read.",
+  "pairing_gaps": [
+    "R27 rawinput4 has signature but no historical PT; full signature tree has tensor hashes rather than full tensor-object copy.",
+    "R27 normal completed runtime gate and final AV exact available; remaining observer replay/final pose+RGB consumer may still be in progress.",
+    "No verified same-seed historical Full6..14 baseline bound; omit if absent."
+  ],
+  "actual_prefix_evidence": [
+    {
+      "index": 0,
+      "path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/x0/r27_s05_normal1313_auto/x0_step000.pt",
+      "archive_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/analysis/postrun/captured/r27_s05_normal1313_auto/audit/x0/r27_s05_normal1313_auto/x0_step000.pt",
+      "file_sha256": "d270e7cb3b04ceb0360e741121bb2e0a544820b07ad9d6fef480433f9254e624",
+      "bytes": 15271128,
+      "metadata": {
+        "file": "x0_step000.pt",
+        "schema": "h3-x0-readout-v1",
+        "run_id": "r27_s05_normal1313_auto",
+        "snapshot_kind": "x0_estimate",
+        "step_zero_based": 0,
+        "model_call_one_based": 1,
+        "total_steps": 20,
+        "endpoint_sanity": false,
+        "sigma_video": 1.0,
+        "sigma_audio": 1.0,
+        "sigma_next_video": 0.9956331849098206,
+        "normalization_stage": "after_process_latent_out",
+        "audio_scale": 4.0,
+        "video_latent_scale_factor": 1.0,
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 141,
+          "fps": 24
+        },
+        "seed": 2026101313,
+        "video": {
+          "shape": [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          "dtype": "torch.float32",
+          "bytes": 15208704,
+          "sha256": "9d3b7ca1ee139fc561c60f0f796155e69d03f7f405b614b1a232c3bdc82027ea"
+        },
+        "audio": {
+          "shape": [
+            1,
+            32,
+            2,
+            235
+          ],
+          "dtype": "torch.float32",
+          "bytes": 60160,
+          "sha256": "43dd8c989a9f242c4d896b34012831d2e044833abff7e9af70fd692b0ad03189"
+        },
+        "capture_seconds": 0.2943909130990505
+      },
+      "raw_branch_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/counterfactual/r27_s05_normal1313_auto_snapshots/step000_native.pt",
+      "raw_branch_file_sha256": "0dc116e59e2d3ff879c10407f5ab2192c7132e033cc4e42af90140328ea2a759",
+      "native_input_signature": {
+        "shape": [
+          1,
+          1,
+          3817216
+        ],
+        "dtype": "torch.float32",
+        "bytes": 15268864,
+        "sha256": "aad5ee973ecc45cd23da76f9619b3e44568d991ef8021e5893281f08a8f4f6b3"
+      },
+      "chosen_comparable": true,
+      "current_native_comparable": true
+    },
+    {
+      "index": 1,
+      "path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/x0/r27_s05_normal1313_auto/x0_step001.pt",
+      "archive_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/analysis/postrun/captured/r27_s05_normal1313_auto/audit/x0/r27_s05_normal1313_auto/x0_step001.pt",
+      "file_sha256": "feb59faebefeeb47fe906b248525c0452004a66168a6495f1777ae0eb52d6208",
+      "bytes": 15271128,
+      "metadata": {
+        "file": "x0_step001.pt",
+        "schema": "h3-x0-readout-v1",
+        "run_id": "r27_s05_normal1313_auto",
+        "snapshot_kind": "x0_estimate",
+        "step_zero_based": 1,
+        "model_call_one_based": 2,
+        "total_steps": 20,
+        "endpoint_sanity": false,
+        "sigma_video": 0.9956331849098206,
+        "sigma_audio": 0.9827586095315027,
+        "sigma_next_video": 0.9908257126808167,
+        "normalization_stage": "after_process_latent_out",
+        "audio_scale": 4.0,
+        "video_latent_scale_factor": 1.0,
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 141,
+          "fps": 24
+        },
+        "seed": 2026101313,
+        "video": {
+          "shape": [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          "dtype": "torch.float32",
+          "bytes": 15208704,
+          "sha256": "f3d57b0b4a7ee661a183ad62b4b8d1d80131fc06059c43fdeda16cefaa555b60"
+        },
+        "audio": {
+          "shape": [
+            1,
+            32,
+            2,
+            235
+          ],
+          "dtype": "torch.float32",
+          "bytes": 60160,
+          "sha256": "f8aa3f8f45727c9e214159adf3111958f6a092c67fd58fd3cbb4bde7e053a632"
+        },
+        "capture_seconds": 0.21248004958033562
+      },
+      "raw_branch_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/counterfactual/r27_s05_normal1313_auto_snapshots/step001_native.pt",
+      "raw_branch_file_sha256": "8c9e06d8b41f00ad0e2a0e75d973e4c9807010f6e303eaf37559b32d9b5e10cf",
+      "native_input_signature": {
+        "shape": [
+          1,
+          1,
+          3817216
+        ],
+        "dtype": "torch.float32",
+        "bytes": 15268864,
+        "sha256": "fa7284a606850dbb5c87e10f02cd546566f0549f077d052a9f3d3d35bce1f15d"
+      },
+      "chosen_comparable": true,
+      "current_native_comparable": true
+    },
+    {
+      "index": 2,
+      "path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/x0/r27_s05_normal1313_auto/x0_step002.pt",
+      "archive_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/analysis/postrun/captured/r27_s05_normal1313_auto/audit/x0/r27_s05_normal1313_auto/x0_step002.pt",
+      "file_sha256": "462e16a0bde18366ad630c6caf2892fb3b578bf755844d764be9555dd181e0c2",
+      "bytes": 15271128,
+      "metadata": {
+        "file": "x0_step002.pt",
+        "schema": "h3-x0-readout-v1",
+        "run_id": "r27_s05_normal1313_auto",
+        "snapshot_kind": "x0_estimate",
+        "step_zero_based": 2,
+        "model_call_one_based": 3,
+        "total_steps": 20,
+        "endpoint_sanity": false,
+        "sigma_video": 0.9908257126808167,
+        "sigma_audio": 0.9642858075130114,
+        "sigma_next_video": 0.9855072498321533,
+        "normalization_stage": "after_process_latent_out",
+        "audio_scale": 4.0,
+        "video_latent_scale_factor": 1.0,
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 141,
+          "fps": 24
+        },
+        "seed": 2026101313,
+        "video": {
+          "shape": [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          "dtype": "torch.float32",
+          "bytes": 15208704,
+          "sha256": "0c157118fa3cdbb12d72ae9786e7180198686973116b75a15d6bf9fb2a2d1e36"
+        },
+        "audio": {
+          "shape": [
+            1,
+            32,
+            2,
+            235
+          ],
+          "dtype": "torch.float32",
+          "bytes": 60160,
+          "sha256": "b937bae7b56f0826d2167be042badb99b04cb79b667a2adee1e4446ee3808d63"
+        },
+        "capture_seconds": 0.46089349687099457
+      },
+      "raw_branch_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/counterfactual/r27_s05_normal1313_auto_snapshots/step002_native.pt",
+      "raw_branch_file_sha256": "b41d6491bce3578f11e6c591821325378d95e4f2ebb227b884689fb6c172833b",
+      "native_input_signature": {
+        "shape": [
+          1,
+          1,
+          3817216
+        ],
+        "dtype": "torch.float32",
+        "bytes": 15268864,
+        "sha256": "aacf2f83b87c4fa67ca9242f6c78835189827f2c39f6220f57dd434abfa5de95"
+      },
+      "chosen_comparable": true,
+      "current_native_comparable": true
+    },
+    {
+      "index": 3,
+      "path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/x0/r27_s05_normal1313_auto/x0_step003.pt",
+      "archive_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/analysis/postrun/captured/r27_s05_normal1313_auto/audit/x0/r27_s05_normal1313_auto/x0_step003.pt",
+      "file_sha256": "271e8034e0fa069f7052ef4b138dce2cfbb2d4e6d62c5fb3e7529cf7b4d8bfaa",
+      "bytes": 15271128,
+      "metadata": {
+        "file": "x0_step003.pt",
+        "schema": "h3-x0-readout-v1",
+        "run_id": "r27_s05_normal1313_auto",
+        "snapshot_kind": "x0_estimate",
+        "step_zero_based": 3,
+        "model_call_one_based": 4,
+        "total_steps": 20,
+        "endpoint_sanity": false,
+        "sigma_video": 0.9855072498321533,
+        "sigma_audio": 0.9444444571380264,
+        "sigma_next_video": 0.9795918464660645,
+        "normalization_stage": "after_process_latent_out",
+        "audio_scale": 4.0,
+        "video_latent_scale_factor": 1.0,
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 141,
+          "fps": 24
+        },
+        "seed": 2026101313,
+        "video": {
+          "shape": [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          "dtype": "torch.float32",
+          "bytes": 15208704,
+          "sha256": "325b15dee3a1978ab2c4f45bed5d2566eac4faaa73d3b578e0fa5199a101a06e"
+        },
+        "audio": {
+          "shape": [
+            1,
+            32,
+            2,
+            235
+          ],
+          "dtype": "torch.float32",
+          "bytes": 60160,
+          "sha256": "9310a3e3ba4e85fa135be3d99cdb9a2610a15f3fddd08f0139e83a2c461f0975"
+        },
+        "capture_seconds": 0.3945380747318268
+      },
+      "raw_branch_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/counterfactual/r27_s05_normal1313_auto_snapshots/step003_native.pt",
+      "raw_branch_file_sha256": "67bbec93ce8d8e00e9b423de18a75b28ac4efbf13aeeffddc0e0b80758af90ad",
+      "native_input_signature": {
+        "shape": [
+          1,
+          1,
+          3817216
+        ],
+        "dtype": "torch.float32",
+        "bytes": 15268864,
+        "sha256": "c5576c1ce117ddae4e5074aff2361219ea50c9c752a42345014ce59629282c3c"
+      },
+      "chosen_comparable": true,
+      "current_native_comparable": true
+    },
+    {
+      "index": 4,
+      "path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/x0/r27_s05_normal1313_auto/x0_step004.pt",
+      "archive_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/analysis/postrun/captured/r27_s05_normal1313_auto/audit/x0/r27_s05_normal1313_auto/x0_step004.pt",
+      "file_sha256": "27b7ef16bebe79a5da0df7bca9baf40680f1a044b49d496953ef2dc8c7a9edc6",
+      "bytes": 15271128,
+      "metadata": {
+        "file": "x0_step004.pt",
+        "schema": "h3-x0-readout-v1",
+        "run_id": "r27_s05_normal1313_auto",
+        "snapshot_kind": "x0_estimate",
+        "step_zero_based": 4,
+        "model_call_one_based": 5,
+        "total_steps": 20,
+        "endpoint_sanity": false,
+        "sigma_video": 0.9795918464660645,
+        "sigma_audio": 0.9230769576405642,
+        "sigma_next_video": 0.9729729890823364,
+        "normalization_stage": "after_process_latent_out",
+        "audio_scale": 4.0,
+        "video_latent_scale_factor": 1.0,
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 141,
+          "fps": 24
+        },
+        "seed": 2026101313,
+        "video": {
+          "shape": [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          "dtype": "torch.float32",
+          "bytes": 15208704,
+          "sha256": "5ff5799cde42acaeb15c45162d0cdd04edac4a380af21fefc8cb98a99ef85c7b"
+        },
+        "audio": {
+          "shape": [
+            1,
+            32,
+            2,
+            235
+          ],
+          "dtype": "torch.float32",
+          "bytes": 60160,
+          "sha256": "26fe915c3ae1dcb561b7128c00de258681b3f6abde95acef0b82ec1e93f201d7"
+        },
+        "capture_seconds": 0.41264279559254646
+      },
+      "raw_branch_path": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017/audit/counterfactual/r27_s05_normal1313_auto_snapshots/step004_native.pt",
+      "raw_branch_file_sha256": "3289a68b819404b54fe015049796b966dbd20d555c843a8d761dd8238792635e",
+      "native_input_signature": {
+        "shape": [
+          1,
+          1,
+          3817216
+        ],
+        "dtype": "torch.float32",
+        "bytes": 15268864,
+        "sha256": "169222f84d5dcdf5cf663b99033c153748e4cfab8779b780b027b6378e59d054"
+      },
+      "chosen_comparable": false,
+      "current_native_comparable": true
+    }
+  ]
+}

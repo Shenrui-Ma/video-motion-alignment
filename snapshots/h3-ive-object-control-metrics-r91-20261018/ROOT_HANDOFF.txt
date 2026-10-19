@@ -1,0 +1,59 @@
+R91 两组物体编辑：单次 CPU 结果消费工具
+
+本地 /Users/researcher/DevProjects/h3-ive-object-control-metrics-r91-20261018
+producer /data5/researcher/h3_runs/timing_ive_object_control_r91_20261018
+绑定 producer91文件seal e6a43151e1e61d09ad2a68d7c9a40d20d9dc8c72e2ed399b9c316a246f9745b8。
+该目录只收集媒体和运行证据；没有 watcher、队列提交、停止进程或 GPU 代码。
+
+两组范围
+short_0114：篮球改为霓虹球；官方完整109帧@25fps，经既有输入制备为107总帧/
+105有效帧@24fps。六时刻为帧0,21,42,62,83,104。
+long_0039：书改为蓝色；原片[0,150)帧即[0,6)秒，158总帧/144有效帧@24fps。
+六时刻为帧0,29,57,86,114,143。这组明标“IVEBench素材片段探索”。
+两组都没有参考图，均使用1条参考视频；P1-local-v1、同输入/噪声的Native/fixed。
+固定引导为indices6…14、alpha1、全部50Block；本消费者不计算MF或修改时序指标。
+
+单次调用（Mac执行）
+先等producer实际STARTED及对应PAIR_RUNTIME_GATE通过；--attempt须是root实际代次。
+以下root_pair_attempt1为producer当前交接示例，如root选择其他名称则以真实记录为准。
+
+cd /Users/researcher/DevProjects/h3-ive-object-control-metrics-r91-20261018
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_pair.py --attempt root_pair_attempt1 --pair short_0114 --ffmpeg /opt/homebrew/bin/ffmpeg --ffprobe /opt/homebrew/bin/ffprobe --output /Users/researcher/Downloads/H3_R91_篮球与取书_三栏对照_单文件_20261018.html
+
+第二对完成后，同一命令改 --pair long_0039；会保留首对并刷新同一个HTML。
+若需要只观察一次状态，可先 bind_execution.py --attempt <实际代次>，再执行
+collect_pair.py --pair short_0114 --status。没有自动轮询或自动重发推理请求。
+
+实际证据链
+bind_execution 绑定本包seal/science/runtime、root audit/<attempt>/STARTED.json、
+完整service owner及controller的服务身份。允许服务退出后的回溯消费。
+collect_pair要求本包 actual gate全部check通过；核Native/fixed完整20NFE、0/450
+实际route、同条件/噪声及前6步实际张量相等。读取成片/graph/job/history/router小证据，
+逐SHA核验，并独立核job身份、history success、prompt_id、实际完整图与P1文本、
+history输出路径。读取前后复核同gate/service代次。大型PT和condition不拉本机。
+已有intake只能复核复用，其他attempt需要另行归档恢复；没有覆盖旧数据的自动分支。
+
+输出
+incoming/<source>/：真实完整Native/fixed成片和运行证据，保留尾部padding。
+showcase/<source>/full_valid.mp4：三列参考视频/普通编辑/时序引导；统一裁掉输入附加
+边框crop(16,8,1280,720)，保留有效帧及原24fps，不调整各列相对时间。
+showcase/<source>/first2seconds.mp4、six_times.jpg、真实首帧poster.jpg、PRESENTATION.json。
+HTML嵌入全部展示视频/图像，无CDN/绝对本地媒体依赖；视频controls、preload=none。
+Downloads另保存每组完整有效三栏MP4。单文件旁JSON列原始路径、SHA与实际gate来源。
+每次build后verify_showcase自动核内嵌字节SHA、视频数量、poster与外部引用缺失。
+未完成与失败组保留状态，任务/时序结论默认为待人工检查；不从数值自动推断收益。
+
+验证证据
+audit/CPU_TESTS_final.txt：34 tests PASS；包含实际代次/graph/history/P1/输出路径、
+帧数/裁剪/时间戳、pending不构造假成片及内嵌媒体字节校验。
+audit/INPUTS_CPU_VERIFIED.json：真实两输入SHA、完整prepared PTS、clip有理时域通过。
+audit/media_smoke/RESULT.json：4帧CPU拼接实测3840×808@24，通过；此处三个列都复用
+同一源，仅是管线测试，文件名明确FIXTURE_ONLY，不进入任何实际实验展示或清单。
+UI浏览器截图因Work设置不可用，visual-verdict为NOT_ASSESSED；该项未虚报视觉通过。
+
+文字勘误
+audit/METADATA_ERRATUM.json保留producer scientific_contract.json中
+acceleration_axes.postprocessing旧R88五源描述的准确原文、原SHA及本次两源正确帧数。
+实际cases/graphs/provenance及消费者均按105/107、144/158。producer封存保持不变。
+
+所有写入仅此consumer新目录；未启动GPU/watcher、未远端部署、未装依赖、未动producer。

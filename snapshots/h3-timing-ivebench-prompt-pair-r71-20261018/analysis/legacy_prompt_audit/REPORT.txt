@@ -1,0 +1,34 @@
+source51310 Sam：旧提示词与同窗时差核查
+
+结论
+R38 Native、R40 Auto、R41 Manual 的成功 history 和实际 conditioning capture 记录了完全相同的短提示词。任务文本没有 H3 六段结构、[video editing] 标签或显式 <Video 1>/<Picture 1> 引用。因此，先做同输入的 fresh P0/P1 Native 配对，能够检验这个历史正例是否受提示词协议影响。
+
+原输入确实进入了模型。三次实际 raw video、图像/视频 VAE prepared frames 与 latent、原始 AV noise 相同；不能把短提示词理解为参考视频未送入。H3 tokenizer 会在媒体内容前加 <Picture 1>: 和 <Video 1>: 标签，但不会自动把用户文本改成六段任务描述。
+
+同一窗口的数值
+64–95 帧，confidence=0.3/0.5：左臂 Native +15/+15，Auto +3/+3，Manual −1/−1。每帧 41.67 ms，分别对应约 +625、+125、−41.67 ms。双臂 Native +15/+15，Auto UNKNOWN/UNKNOWN，Manual −1/−1。Auto 的双臂 UNKNOWN 原因是局部平移相对同帧的收益不足；不能用其最优偏移替代可靠测量。
+
+96–127 帧：左臂三者都是 −1/−1。双臂 Native 为 −2/UNKNOWN，Auto 和 Manual 都为 −1/−1。这个窗口本来就没有左臂 +15 帧的延后。
+
+完整 60 行见 SAME_WINDOWS_60_ROWS.csv / .json，含 2 个窗口 × 3 个输出 × 2 个置信度阈值 × 5 个特征。每行保留原 status、flags、同帧误差/coverage、qualified 或 unqualified 最优偏移及原 JSON pointer。这是同一源样例的重复诊断，不能当 60 个独立样本。R40 独立归档中对应 Native/Auto 的 40 行与 R41 汇总逐字段完全一致。
+
+旧文档的结论保持
+核对的两份 Downloads HTML 和一份方法文本已写明同窗左臂 15→3→−1，后来的论文式页面也注明 Auto 双臂 UNKNOWN。没有发现这三份文档将 96–127 的 Auto −1 代替 64–95 的 +3。需要修正的是状态交流里的“Native 15、Manual/Auto 约 −1”简写。PUBLISHED_CLAIMS_REVIEW.json 保存实际文件哈希和可读摘录，旧页面未改。
+
+实现证据
+H3EventAuditReference.encode 将 prompt 原样传给 MiniMaxH3ReferenceToVideo.execute，ClipProxy.tokenize 继续传给原 tokenizer。
+历史 nodes_minimax_h3.py 精确匹配 R40/R41 parent_core_hashes 的 62ec72d4...fffdb；该文件第 359 行调用 clip.tokenize(prompt, minimax_ref_items=ref_items)。历史源码快照 text_encoders/minimax.py 第 148–202 行先添加媒体标签和视觉内容，再 add_text(text)。后者用于说明快照逻辑，未单独宣称它属于旧 runtime 九个核心文件的逐项 pin。
+
+已固定的最小控制
+FRESH_P0_P1_CONTROL_DESIGN.json 固定同一 source51310、同一 Sam 图片、原始 141 帧 1312×736@24、原始 seed=2026101701 和实际 AV noise、相同 20 步 Euler/sigma/CFG=1、相同模型与量化。两次都为 Native，实际 routed blocks=0。同一新 host/GPU/service/backend 内跑 fresh P0 和 P1，排除新旧环境差异。
+P0_EXACT.txt 是历史实际 prompt 的逐字副本。P1_PROPOSED.txt 将同一任务写成六段并显式绑定人物来自 Picture 1、动作/时序/镜头/背景来自 Video 1；灰色长袖和深色长裤仍按 P0。P1 是本研究的格式适配，不称为官方原文，也不加入短动作窗口提示。
+P0/P1 使用独立 text cache。gate 要求 raw video、参考图、VAE 输入/latent、编码前 Qwen 参考帧/时间戳和初始 AV noise 相同；联合 embedding、token sequence/packed positions、x0 可以随文本改变。
+
+评测约定
+主窗口仍 64–95，次窗口 96–127，其余旧固定窗与全片扫描都保留。输出五种原特征与两个原置信阈值，主解读同时交代双臂、左右臂和 UNKNOWN。首先检查是否成功换成 Sam、动作内容及背景是否按任务保留，再解释时差。
+如果 P1 的编辑与动作时序均恢复，旧 P0 下的干预改善仍是已发生的结果，但后续方法必须以规范 P1 的 Native 为对照。如果 P1 仍有清楚的残余偏移，可继续在这个条件下验证干预。这个样例来自开发筛选，单例结果不承担 benchmark 泛化结论。
+
+最短生产复用建议
+新建独立包，复用 R71 的同机 P0/P1 行政运行、精确进程身份、共享噪声和独立文本缓存；用 R38 的实际 graph/输入/模型合同替换科学配置。参考 R72 的“一张图＋一个视频”实际 gate，而非照抄 R71 六个条件 blob 的视频单输入假设：本例应有图像和视频两次 VAE、八个条件 blob、42 个 latent temporal bins、每 bin 943 个 token；画布 141 帧，audio noise [1,32,2,235]。同机实际布局仍按 capture 校验。
+将 ORIGINAL_NOISE_READBACK.json 绑定的 15.27 MB 原始 noise.pt 复制到新 pair cache 路径并核 hash，禁止仅凭相同 seed 声称复用了原始 noise。141 帧的内存容量需用该新包的实际资源 gate 与首条完整运行确认，R71 的 90 帧容量不直接覆盖本例。
+需要适配的文件仅是新包 contract/graphs/prompts/runtime/verify_pair 和它们的 tests/seal；旧包保持原状。当前只封存 CPU 设计，未创建生产队列、未部署或启动 GPU。

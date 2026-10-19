@@ -1,0 +1,16 @@
+v4 实现 seal002 独立关键审查
+结论：PASS，限 root 已批准的原43+新增12合成反证。真实63和在线/GPU仍须另行准入。
+
+核对 CODE_FREEZE bdf9d2beb2fe9bea26dcf14ed4d74f1ec8a2f3954b011db431ceee52369b5873 与 PROTOCOL_FREEZE 877eb7e2ff69cfff7f2258b16a31abed389db43e336ff67e9fad799542a16a04：当前 code/proof 10项与 protocol/external 104项逐bytes/SHA匹配。原43 case/inputs/plateaus逐项等历史manifest，新增12固定mask齐备；profile_v4与协议对seal001逐字节未变。旧seal001保留。
+
+数值关键路径：显式正负lag索引无绕回；无效向量和confidence先置安全值，mask外权重0；每pair两侧共用权重/索引/分母；逐骨SO(2) profile及1e-12负loss门按设计。max-h边方向正确，全部49节点保留，uint64可达闭包检测任意环，零入度D及null/混向/断裂/边界门均在。witness独立求source+candidate+五null同支持，双阈值/每帧至少一骨；先固定最低RMS可用anchor，再检查rotation/residual/value，无失败回退。全D送入原v3选择器；mask/权重/全部witness数组与selected完整pair信息归档。
+
+审查发现并修复的两处验收问题：
+1. 原新顶层direction/safety缺少旧local-positive跨真null合并门；seal002直接传递原legacy no_cross_null_plateau_merge。新负例方向纯度95%仍跨null，主verdict与safety均拒绝，不改变profile。
+2. 原RESULT/COMPLETE缺执行code身份；seal002同时绑定CODE_FREEZE与PROTOCOL_FREEZE，并在finalize重新校验case/version和同目录恰两项RESULT.json/EVIDENCE.npz的完整SHA。错code、缺NPZ、错case/交换marker负例已覆盖。
+
+作者 correctness003 为11 tests PASS，日志与执行源码哈希已核；其中100mask测试仅固定[32,95]的lag0全49比较、无100次完整family。交叉h偏好、小图cycle/孤立node、prefix与旧完整loss、missing/Inf/witness空帧、宽D选择代价及新两验收门均有小测试。独立审查未重跑这些测试或55科学案例。
+
+Runner单phase共享Mac锁，忙退出；120s alarm、最多4线程、唯一attempt和原子COMPLETE、初末依赖SHA检查存在。case按冻结manifest重建并验数组，原43还独立重算v3并严格比较历史科学RESULT（仅seconds除外）。finalize枚举全部55，不能漏失败案例宣称完成。没有真实pose/GPU入口。
+
+限制：未实际证明完整family的运行时间/内存可在120s内完成；首例超时应保留而不缩搜索。既有correctness仅小oracle，不是55科学有效性结果。全pair跨支持、minimax非双h一致、anchor可见性选择偏差、孤立alias及singleton顺序约束真空成立的限制均继续适用。不要将新top方向任务替代被保留的旧point/old49诊断。真实63准入最低能力门和全部正常/异常/UNKNOWN分母须按协议报告，不能只看summary.online_safety_pass或K增加。

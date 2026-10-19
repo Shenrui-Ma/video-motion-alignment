@@ -1,0 +1,21 @@
+R46 首次 GPU 状态失败：独立窄审
+
+结论：支持新版本仅修审计 guard 的表示契约并增加失败前实值记录；当前仍没有合格的真实历史端点重放。1 ULP 是合理候选原因，现有失败证据不能确诊。
+
+证据与计量
+已独立逐文件核对 root_failed_execution 清单中 54 项 SHA/bytes；目录第 55 项是清单本身。bad 状态 attempted=1、completed=0、完成 50 blocks、50 Native attention、额外 43 个探针调用；0 Euler/0 callback/0 VAE/0 Qwen。同步 model+probe 成本 82.30816496163607 秒。normal 未执行。cleanup 报原 PID 12567 已消失且 own compute 已清空。output_head_calls=0 是 guard 通过后才加计数，因此不表示没有到达输出头 hook。不能把失败尝试写为 0 NFE，或把已有 attention 数组当已通过历史端点约束的正式读出。
+
+确认的代码路径
+ModelSamplingDiscreteFlow.timestep 返回 sigma * self.multiplier，实际该路径为 1000；ModelSamplingAV 继承它。冻结官方 model.py:628 为 (timestep.flatten()[0] / 1000.0).float().clamp(min=1e-6)。R46 __init__.py 的 hook 先验证整个 float32 grid 与历史 full_grid 精确相等，再用一个联合断言要求最近索引=4、float(actual_head_sigma)==CPU full_grid[4]、shifts==(12,3)。失败位于第二个联合断言。原 report 未保存这三个实值，也没有 actual incoming timestep。
+
+浮点相乘/相除不承诺逆变换逐位还原原 scalar；设备和运算实现可能影响末位。因此该 Python float 相等条件比“实际模型执行原生 sigma 映射”更强，CPU tiny 通过也不能认证 CUDA 上成立。不过当前资料不能排除 index 或 shifts 出错，不能将 root 的 reciprocal CPU 模拟当成已观测的实际 CUDA sigma。
+
+下一版本最小边界
+1. 在任何 guard 之前先保存 head entry observed=true、sigma/grid 的 shape/dtype/device、float32 原始 bits、有限性、nearest index、shifts；另保存入口请求 sigma、实际 diffusion timestep 及期望转换值。非有限值 JSON 使用 null+字段名单，原值另按既有原始格式保存。拆开每项错误原因，hook 拒绝仍把这一证据写入失败报告。
+2. 保留原 CPU full_grid、入口 sigma、原始输入和条件树的精确门。head sigma 的期望值应来自冻结官方 timestep 与 /1000、float、clamp 路径，在实际相同 device/dtype 上计算并按值/bit 精确核对；优先记录实际传入 timestep 并验证它等于入口 sigma 的官方 timestep 映射。该检查只读标量，不改变 sigma/timestep 或传给模型的任何张量。不要把 CPU grid scalar 强行写回模型。若实现改成 ULP 容差而非此路径精确等值，必须独立声明并论证界；此次建议不直接批准任意 isclose 放宽。
+3. 最近索引仍必须 4、shifts 仍必须 12/3、grid 仍必须原完整 grid、输出头权重/类型契约仍精确。最关键的实际 normalized AV endpoint torch.equal 历史端点门保持原样；即使 head guard 通过，endpoint 不等仍判失败，attention 统计不得用于效果结论。
+4. 不改 2 状态选择、block25/4 heads/1050 queries、43 small attention、QKV 和 Native output 透传、0 Euler/VAE/Qwen、无额外 DiT 请求的定义。新成功两状态额外需 2 次 forward；连同已失败尝试累计至少 3 次 attempted forward，分开列 completed 与失败成本。
+5. 保留 v1 manifest/bundle、54 项原始失败与清理证据，新增版本和独立 attempt；不覆盖旧失败目录。重跑前由 root 重新准入和登记同 PID，遵循 R45 archive/admission 协调。
+
+有界验收建议
+测试 official scalar path 的 exact/非 exact roundtrip；错误 index/shifts/grid、非有限与 dtype/shape 错误均拒绝，且失败前实值可查。保留 endpoint mismatch 负例、失败成本和 hook 清理负例。CPU 单测只认证逻辑，CUDA 路径及历史 AV endpoint 仍以新实际尝试证据为准。本审查没有修改实现或执行 GPU，也未对 attention 效果作解释。

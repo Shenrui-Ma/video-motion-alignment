@@ -1,0 +1,118 @@
+H3 参考视频语义 token 的来源位置可识别性审查
+
+范围与结论
+这是本轮冻结实现的只读源码/现有审计检查，没有新编码、采样或消融。来源位置可以追踪，但当前不能声称已经隔离出独立的参考视频运动信号；也不能把 P/T 实验的变化直接归因于某种独立 RoPE 时钟。
+
+1. minimax_token_tags 不是参考来源 ID
+comfy/text_encoders/minimax.py:75–82 token_tags_from_embeds_info 先将全部位置标为 1，再将每一个 type=image 的 expanded visual span 连同前后 vision start/end 标为 0。:142–146 的 _vision_entry 对身份图片与视频双帧块均使用 type=image/original_type=image；只有视频另携带 minimax_video_block=True。因此 tag 0 同时包括身份参考图和参考视频的视觉位置；tag 1 同时包括时间标签、Picture/Video 前缀与用户提示词。直接选择 tag 0 既不能分开两种参考，也遗漏了视频时间标签。
+
+comfy/text_encoders/minimax.py:164–167 插入视觉起止标记；:169–191 按参考输入顺序建立 Picture/Video 文本和逐双帧视觉块；:197 追加用户 prompt。这里能保留来源 ledger。comfy/sd1_clip.py:235–243 在视觉展开时记录 embeds_info 的 type/index/size/extra。该展开元数据自身没有独立 image-versus-video 来源字段，但可以通过视觉块顺序与原始 ledger 对应，得到 expanded 来源区间。不得用 raw token index 直接当 expanded sequence index。
+
+2. 实际本轮来源与 packed layout
+审计文件：audit/05_sam_1312x736_shared_v3_conditioning.json
+该文件包含 tokenization_before_vision_expansion、qwen_presentation、conditioning_embedding、token_tags、packed_layout。实际共有七个视觉块：一个身份图块与六个参考视频双帧块。视觉块条目如下（raw token index 尚未展开）：
+[
+  {
+    "raw_token_index": 7,
+    "minimax_video_block": false,
+    "shape": [
+      1,
+      1216,
+      800,
+      3
+    ]
+  },
+  {
+    "raw_token_index": 22,
+    "minimax_video_block": true,
+    "shape": [
+      2,
+      736,
+      1312,
+      3
+    ]
+  },
+  {
+    "raw_token_index": 31,
+    "minimax_video_block": true,
+    "shape": [
+      2,
+      736,
+      1312,
+      3
+    ]
+  },
+  {
+    "raw_token_index": 40,
+    "minimax_video_block": true,
+    "shape": [
+      2,
+      736,
+      1312,
+      3
+    ]
+  },
+  {
+    "raw_token_index": 49,
+    "minimax_video_block": true,
+    "shape": [
+      2,
+      736,
+      1312,
+      3
+    ]
+  },
+  {
+    "raw_token_index": 58,
+    "minimax_video_block": true,
+    "shape": [
+      2,
+      736,
+      1312,
+      3
+    ]
+  },
+  {
+    "raw_token_index": 67,
+    "minimax_video_block": true,
+    "shape": [
+      2,
+      736,
+      1312,
+      3
+    ]
+  }
+]
+
+conditioning_embedding shape = [1,6960,5120]；token_tags shape = [6960]。H3 的 packed_layout 把整个 Qwen 输出视为 [0,6960) 的 text 段，并未在该 layout 内另列 Picture/Video 语义子段。其后 [6960,7910) 是身份参考图 VAE， [7910,47516) 是密集参考视频 VAE， [47516,47986) 是输出音频， [47986,87592) 是输出视频。后面这些密集 VAE 段与前面 Qwen 来源位置是两种不同的条件表示，不能混称为同一参考 token 流。
+
+3. Qwen 是因果上下文混合，不是每个位置双向看全部输入
+comfy/text_encoders/qwen3vl.py:50–57 构造 Llama2_；:94–109 将 embeds 和 position_ids 送入该模型。comfy/text_encoders/llama.py:845–855 即使调用 attention_mask=None，也在 seq_len>1 时建立 causal mask。:892–898 将此 mask 传给每一层。因此：
+- 后面的参考视频位置可以混入先前身份图与先前视频块的信息。
+- 末尾 prompt 位置可以混入之前全部参考信息。
+- 不能声称每一个早期视觉位置都看见后面的 prompt；关闭 SDClip 的 padding attention mask 并不关闭内部 causal mask。
+这足以否定“取出视频来源位置就是纯视频/纯运动表示”的直接推断，同时避免过度声称 Qwen 已全位置双向混合。
+
+4. H3 TokenRefiner 进一步在整个 Qwen 序列内双向混合
+comfy/ldm/minimax/model.py:474 默认 token_refiner_num_layers=2，:506–508 构造它。:716–719 在输入最后维度不是 H3 hidden_size 时，对完整 context 执行 condition_proj→token_refiner。:249–275 的 RefinerBlock/TokenRefiner 对完整序列做两层 RMSNorm/attention/FFN；其 Attention 在 :196–200 调用 optimized_attention(mask=None)。这一步没有按 Picture/Video 来源施加隔离 mask，因此可以跨全部 Qwen 来源位置双向混合。
+注意 :519–521 存在预先 refiner 条件准备接口；若输入已经是 hidden_size 则主 forward 不重复 refiner。无论是在预处理还是主 forward 执行，不能据此说 refiner 从未混合过条件。
+
+comfy/ldm/minimax/model.py:667–687 将 text_token_tags 的连续 runs 转为 modality-specific modulation 行。这里的 tag 0/1 是调制分组，不是 attention 来源隔离或 motion/appearance 因子分解。进入后续 DiT 自注意力后还会继续与其他段混合。
+
+5. 能做与不能做的边界
+可做：在 tokenization/vision expansion 时记录有出处的 identity/video/timestamp/prompt 位置 ledger；审计扩展后的长度、区间、输入块 hash 与真实传入条件；对指定来源位置进行明确命名的选择或消融；分别说明干预位于 Qwen 之前、Qwen 之后还是 TokenRefiner 之后。
+不可直接声称：这些 span 对应独立运动信号；保留视频 span 就保住了全部运动条件；删除视频 span 就删干净了视频信息；删除身份 span 就没有身份信息；只从 minimax_token_tags 即可区分两类参考。
+尤其“删除视频语义位置但保持其它位置”仍可能保留 prompt/其它已混合位置中的视频信息；反之也可能同时破坏背景、外观与语义内容。因此后续干预应称为来源位置选择/消融，必须验证作用范围，不能把 segregation 当作已成立的结构事实。
+本次不依据尚未完成的 C/D 结果作效果或机制推断。
+
+源码出处与复核凭据
+冻结 archive：/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+以下行号均指 archive 内对应 member，不是推测的上游最新版：
+{
+  "comfy/text_encoders/minimax.py": "0e16e44100d6db2bdfd1292eafd1b2f8d71147c546f49afe292fe4d2cdcefe8a",
+  "comfy/text_encoders/qwen3vl.py": "1004f4184c8ca5da74e4147a706bc4f1c9bd1a19ae63db74f3cab88ded0f0255",
+  "comfy/text_encoders/llama.py": "e1c480b8613e2ebb179f8bd4ed9129720ee6f3830e43a053c1f1f7ccb3c2bc3f",
+  "comfy/sd1_clip.py": "cada45bf2cd1e2e20d24a46b959d86fc9f5529953456bb21471735f036e2dc70",
+  "comfy/ldm/minimax/model.py": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe"
+}
+审计 JSON 文件 SHA256：ce14565bc7279b3a75ef9f5239f8e264049e8dc02cdc4e1e4e59d3dbe51528a3

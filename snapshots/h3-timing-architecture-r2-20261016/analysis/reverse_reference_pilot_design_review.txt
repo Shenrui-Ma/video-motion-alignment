@@ -1,0 +1,27 @@
+R25 two-arm design — independent bounded review
+Checked UTC: 2026-10-16T17:40:38.117197+00:00
+Reviewed draft: /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/reverse_reference_pilot_design.txt
+Reviewed SHA256: 26b5f1a00ecd3bb084b0f3bf94f8764dfd0d5da6ffa27fc022d6725b5927cc63
+Verdict: CONDITIONAL PASS for a single-development-case causal ablation; no GPU authorization and no method-novelty claim.
+
+The row direction is correct. R is the dense reference video, T is the generated video. Both proposed arms directly edit eligible R-query outputs reading T-video KV; the forward Full and R17 do not directly edit these rows. Matching steps, event-query rows, all spatial keys, and all 50 blocks is a suitable first bounded comparison. Exact actual conditioning/noise/sigma/backend plus video/audio prefix005 is required before reusing R3 Native/Full as frozen references. Prefix equality alone is not a substitute for the actual conditioning tree.
+
+One validity statement requires correction before implementation acceptance:
+“selected reference rows change when target mass is nonzero” is not universally true. SAME can have nonzero m_T yet O_B=O_T, e.g. identical value vectors or a coincident mixture. BLOCK can also yield the same output with a nonzero removed mass. The gate must require correct formula, finite outputs, executed eligible-row count, unchanged inputs/nonselected rows, and logged correction magnitude; require a nonzero change only on an explicitly nondegenerate numerical test. A zero correction on a real input is a result, not automatically a broken implementation. 450 eligible calls likewise does not imply 450 nonzero or causally effective changes.
+
+Required interpretation boundaries (may be stated in an addendum; no extra GPU runs needed):
+1. BLOCK removes only T-video KV for the selected R-query rows. Target audio remains in the complement; text, portrait, other R rows can mediate coupling. It is not full generated-to-reference isolation, a reference-independent cache, or a reproduction of the trained papers.
+2. The exact untouched-output claim is local to the same input/attention call. Reference embeddings are rebuilt each model forward; there is no persistent reference-hidden state accumulated in place across Euler steps. Downstream changed reference states can influence target states, but no measured next-layer causal claim without a true paired native intermediate.
+3. Keep the proposed inexpensive first active-call row-preservation audit. Existing R3 block25_step006 four-head output, if compared after all input/runtime gates and matching hook placement pass, is only a downstream selected-head observation. It cannot reconstruct KV/mass, localize the first effect, represent all 56 heads, or independently identify why motion changed. No additional NFE is required for this first pilot.
+4. Native→SAME tests this fixed temporal-support intervention while preserving the native T-group mass at each same-input computation. BLOCK→SAME intentionally changes group mass and permitted support together. The pair cannot identify a mass-independent benefit. Without an equal-cardinality wrong-time control it also cannot prove correct physical-time specificity over generic sparsification; that is a later claim gate, not a demand for a third arm now.
+
+Why the two-arm comparison is scientifically useful despite prior art:
+The complete-block principle is explicitly old (OmniTransfer, Identity as Presence, FullDiT2). SAME asks whether retaining time-matched feedback is useful in this frozen H3 setting. BLOCK matching/dominating SAME would weaken that retained-feedback rationale. Both failing rejects these fixed candidates only. Both succeeding would establish a controlled effect on this selected development case, not defective contamination as the universal cause. Vidu S2's same-frame information-exchange language remains a strong collision risk because its exact reverse mask is undisclosed.
+
+Proceed/no-go interpretation:
+Keep all existing windows, .3/.5 rejection rules, direction and wrist, common-support shape, UNKNOWN, fixed quality views, and all outputs. ±2 remains complete correction; distinguish smaller partial gains. Demonstrate a useful quality/timing difference before proposing an architectural contribution. If useful, the planned unchanged-parameter source07 and normal1313 checks are appropriate next gates. Do not treat R24 forward-Full generalization as reverse-method evidence. No scope change, threshold sweep, extra GPU, or modification of sealed R24 is requested by this review.
+
+Efficiency: record 20 model NFEs/20 Euler updates and added attention work separately, plus actual wall time/memory. Additional attention kernels are not additional diffusion model evaluations.
+
+Reference audit: literature/reverse_reference_feedback_prior_art.txt and .json.
+This review only writes this independent file; reviewed design/runtime/configs remain untouched.

@@ -1,0 +1,81 @@
+R10 独立只读上线前审查 — 2026-10-16
+
+结论（包括 root 修复后的再次只读复核）
+发现的 launcher 确定性启动错误，以及后验脚本遗漏分支／输入清单检查的问题，均已由 root 修复；我已重新读取确认。未在 H3CounterfactualRouter 的主采样路径发现其他上线阻断错误。可以在部署哈希确认后执行原定实际 readiness／GPU 配对验收，但尚不能声称真实 GPU 主轨迹已经复现。
+
+第1、2节保留原缺陷及修正要求的审查历史，第6节记录最后复查。没有由本审查者改动任何实现、测试或协议文件。
+
+1. 已修复的确定性阻断
+
+scripts/launch_remote.py 原第68行：
+spatial_info['H3SpatialMarginalRouter','H3CounterfactualRouter']
+这是 tuple 字典键。HTTP JSON object_info 的键是字符串，因此标准响应必然 KeyError，被 readiness 的宽 except 捕获后重复等待，最终 timeout；正式 controller 不会启动。真实 Comfy CPU wrapper smoke 不执行 launcher，因此该 smoke PASS 不覆盖此问题。
+
+root 已改成 spatial_info['H3SpatialMarginalRouter']；Counterfactual 本来就在后面的独立请求检查。重新读取已确认该行正确。
+修后 launcher SHA256：c9a26e57f44af667b1f67679ee4abf0ea45f90a3c09a16f754bac8de8e5ce1c9
+core SHA256 仍为：01b94e4fcda7ab387fc10a952c9c4276df30ebbbba7f02aeae2de755057678b9
+修正没有改变科学算子。root 负责新版部署清单和实际 object_info readiness，我未执行服务或远程命令。
+
+2. 后验验收的原可复现漏检（已按第6节修复）
+
+scripts/compare_parent.py:30–41：只检查 branches 长度29，然后将 (physical_index, branch) 写入字典，重复键会覆盖；没有要求严格的 20 个 native + 9 个 Full、逐步分支顺序及唯一性。
+scripts/compare_parent.py:53–58：只遍历 c['inputs']，没有要求 physical_index 恰为 [6,10,14]。空列表不会报错。
+scripts/compare_parent.py:64 随后无条件写 saved_all20_chosen=True 和 saved_nine_native_full_pairs=True。
+
+具体反例：删除一个未被旧8点覆盖的 branch row，并复制另一个 row 使长度仍为29，现有字典构造和旧端点对齐可以继续通过；将 inputs 替换成 [] 也不会触发验收错误。这不是推测 GPU 可能算错，而是直接由当前控制流可知的归档验证漏洞。
+
+最低修正应明确要求：
+— 精确且无重复的分支序列：physical 0..19，6..14 为 native 后 Full，其余只有 native；NFE indices 对应0..28。
+— 20 个 steps 的 selected_branch/chosen_file/signature 与上述实际归档一一对应；6..14 必选 Full。
+— inputs 的精确索引序列 [6,10,14]，文件里的 metadata 与 manifest 一致，packed_signature 等于该步 native/Full 共有的 same_input。
+— 本地 parent 仍是冻结 parent_binding 指向的 manifest，而不是任意精简后的 captures 列表。
+这些是本轮既定验收要求，不增加实验臂或阈值。当前生产 State 在正常执行时会生成这些记录，但独立后验验收不应靠生成端自报完整。
+审查时 compare_parent SHA256：6b2797d11ae4f5121d986848951127424276e0a07d917061e3b871df94358fd0
+
+3. 核心路径已核实的具体契约
+
+实际读取：extensions/H3CounterfactualRouter/{core.py,__init__.py,guards.py,dependencies.py,observer.py}、tests/{test_counterfactual.py,counterfactual_support.py,counterfactual_wrapper_smoke.py,test_runtime_config.py}、configs/protocol.json、scripts/{preflight.py,compare_parent.py,launch_remote.py}，以及关联 H3TemporalRouter/H3X0Readout/H3EventAudit/H3PairAudit 代码。
+
+物理步骤不是 NFE 编号：PredictionProbe 使用 callback_count 作为 physical_index；FULL_STEPS=range(6,15)。这九步每步先 native、后 Full；其他十一步只 native。State.selected 按当前 branch 授权而不是继承 RouterState.forward_index 的旧步号选择。因此新增 native 探针不会把 Full 区间挤到错误的物理步。legacy component/temporal readout 的采样位置仍按 NFE 编号，代码明确标注，并在完成后补真实 physical_index 与 sigma；不要拿其旧 forward_index 直接当采样时间。
+
+同状态分支：同一 x、同一 timestep、同一 model_options 对象、同一 seed 原样传入 executor。每支前后检查 packed tensor signature、timestep、original+processed condition 内容签名、CPU/当前 CUDA 全局 RNG；要求每支正好一次50块 forward。Full 条件块数为50，native为0。返回的是 entries[-1] 对应实际 output，9个配对步固定选 Full，没有利用 observer 值决定选择。
+
+回调与更新：SamplerAudit 包装现有 sample_euler，没有自行积分。record 验证回调 x0 恰是所选 raw endpoint，x 恰是这一事务输入，物理步依次0..19；只将原 callback 转发一次。最终要求29 NFE、1450块、450路由块、20回调、无悬空 transaction。observer、归档或下游 callback 抛错均传播至外层 failed 状态；没有吞错后继续产出 complete 的路径。
+
+PDD：读取原实际 core snapshot 中 comfy/ldm/minimax/model.py（SHA 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe）FinalLayer 312–335。它根据完整 sample_sigmas 与当前 sigma 的最近匹配选 i、sigma_next，再选 PDD head 范围，不依赖 wrapper 的 NFE计数。R10 未截短／替换 full grid，每次分支核验其与 sampler grid 完全相等，故同一物理步的 native/Full 使用相同 PDD 区间。
+
+也读取同快照的 comfy/samplers.py（SHA f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f）和 comfy/k_diffusion/sampling.py（SHA cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce）。前者设置 full sample_sigmas 并调用 PREDICT_NOISE wrapper，后者在回调之后仅执行一次 x←x+(x−x0)/sigma·dt。R10 的接口和回调假设与之相符。
+
+条件噪声：实际 H3 _cond_video_rows/_cond_audio_rows 每次按相同 seed 创建局部 CPU Generator，视频 seed、音频 seed+1；同状态两次预测不会依次推进共享条件随机流。processed condition 的 PackedLayout／CONDConstant 等已被 signature_tree 明确处理；真实 CPU smoke 第一次曾暴露实际条件类型，attempt2 已覆盖该路径，而不是仅测试空 dict。
+
+继承算子没有悄悄更换：逐文件字节比较确认 R10 的 H3TemporalRouter、H3SpatialMarginalRouter、H3X0Readout 所有顶层 Python 源文件与本地 R3 对应文件相等。H3TemporalRouter core SHA 5cd842280a5cd47c5a1a741c4a02c3b8ca09fca4f3a36a2721acfb38c88aec69。因此 CPU 对照使用的“旧 router”确实与 R3 文件相同。
+
+4. raw state 与实际父实验范围
+
+save_input 在 physical 6/10/14、第一次 native 前保存完整 packed CPU FP32 x；split_streams 严格校验视频 [1,24,42,46,82]、音频 [1,32,2,235]，不会忽略多余尾部数据。保存的是原 sampler 坐标，不是去噪 x0，也没有 audio /4。metadata 带全21点 sigma 网格、当前／下一 sigma、seed、condition/reference hash。两流总数3817216，完整 packed 数据为15268864 bytes FP32。
+
+各 endpoint 的 video 保持原值、audio /4 仅在 CPU 副本上做；compare_parent 再乘4与 raw signature 对照。不存在把规范化 x0 当 raw sampler state 返回的问题。需要保留的边界：这些 raw 文件不是自包含的整个模型 checkpoint。condition_signature 保存 tensor 内容哈希而不是张量本体；H3EventAudit 的 conditioning_embedding 仍 save=False。后续独立状态分叉须从冻结图／输入重新物化条件并匹配内容哈希，或另有实际条件缓存；不能直接声称一个 raw 文件已经包含可独立恢复的一切条件数据。它不阻碍本轮被动诊断。
+
+实际父 manifest 的 captures 为8个：5,6,7,8,9,10,15,19；final_sampler_result 另外1个。准确表述为“8个归档中间 x0 + 最终 sampler 输出，共9项”。compare_parent 按这8个真实 captures 与新运行中被选择的 branch 比较，再比较 final。其 all20_parent_endpoints_claim=False 是正确边界；docstring 的 nine endpoints 必须按包含 final 理解。
+
+旧父 manifest SHA：141eecee4884e8352682621a7706907a38bc3de95f52326230ddd5e308746501，已列入 parent_binding。旧父的 actual condition/layout、initial noise、full sigmas、seed 都有比较路径。最终 RGB141/播放时基需要另行实际后处理验收；脚本也明确 pending，而不是假装已通过。
+
+5. 现有验证到底覆盖什么
+
+已读 audit/real_comfy_cpu_smoke_attempt2.log：success=true、CUDA_initialized=false、core SHA 与本次审查一致；两种 wrapper 顺序均 NFE29/callback20，CPU 全20个 chosen endpoint 与最终结果匹配单 forward 的 R3 固定 Full 轨迹。测试确实使用真实 Comfy node loader 的 BasicGuider alias、extra_conds、ModelPatcher/wrapper executor、Euler 和 H3 process_latent_out，还执行实际条件局部 Generator 和 PDD grid lookup。
+
+其 DiT QKV/geometry 是小型构造，预测函数也被替换为可核对的 toy 函数，observer 被替换成固定测试观测。因此它证明 wrapper／调度／签名／回调集成，不证明真实权重、真实 CUDA kernel、真实 observer 的最终结果或 GPU bitwise 主轨迹。不能将日志里的 all20_chosen_and_final_equal_singleforward_R3 写成旧真实 GPU 20点都已经验证。
+
+未重跑任何测试；没有启动 CUDA、远程进程或安装依赖。仅写本文件。真实 GPU 配对结论仍由完成后的实际张量和媒体验收决定。
+
+6. 修复后的最后只读复核
+
+重新读取 scripts/compare_parent.py 与新增 tests/test_archive_inventory.py。validate_inventory 现在要求精确有序29个 (physical_index, branch)、NFE索引0..28、29个唯一文件，逐项验证20个 chosen 的 branch/file/raw signature/NFE列表，并要求 raw input 索引严格为 [6,10,14] 且文件唯一。实际 torch.load 后的 branch/raw metadata 也逐字段与清单核对。原先“删除一个未配对旧端点的branch后重复其他row”和“inputs=[]”的具体反例已被拒绝。
+
+新增7个测试的源代码覆盖完整正例、重复顶替分支、缺失输入、Full步选native、chosen文件错绑、NFE错位、raw文件重复；本审查没有重复运行这些测试，也不将仅阅读测试写成执行通过。
+修后 compare_parent SHA256：cd7f49716735fbcb281b84bc068a5bc7d72ea32abfe2a1c1bf788a3efa3dd6f1
+新增 inventory 测试 SHA256：7083972babe9b99329670d7a0a4f6ea5573bd2ca3a1cf17b10958a7ab4608606
+
+docstring 已改为“eight archived R3 x0 endpoints and the final result”，与实际父 manifest 一致。核心采样 core SHA 仍为 01b94e4fcda7ab387fc10a952c9c4276df30ebbbba7f02aeae2de755057678b9；protocol SHA 仍为 a0fd7bfe97f50a0efcf7939799544fe7fbe15dc9b5144d5da695a13b21a61465。修正范围只影响启动检查与归档验收，不影响29次预测或20次原Euler积分。
+
+剩余边界：raw输入文件完整保存了采样张量，并未保存自包含模型环境及全部条件张量；未来分叉仍需复核条件重建。CPU的20端点等价不能替代真实GPU的实际8个中间端点+final与RGB验证。以上是明确的证据范围，不是当前新增blocker。

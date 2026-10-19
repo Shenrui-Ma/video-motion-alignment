@@ -1,0 +1,6 @@
+R34 fixed early global single pulse; root is sole GPU launcher.
+1. Extract sealed tar to /data5/researcher/h3_runs/timing_fixed_early_global_r34_20261017 and verify deploy_manifest. Copy two immutable input files with the same names from timing_global_full_r29_20261017/inputs; verify configs/input_hashes.json.
+2. Run existing Comfy Python scripts/preflight.py. Root fills audit/resource_admission.json and configs/admission.json using actual resource/owner evidence; GPU2/8498. scripts/preflight.py --live requires exact inherited R28 actual87361 kernel and current resource bindings.
+3. Use scripts/launch_remote.py --service-only with root preCUDA runpy gate if a peer automatic service is active. Register exact PID/UID/start/cmd with the peer before releasing CUDA. Once service is ready call scripts/start_controller.py; start controller once under its lock.
+4. One job,7200s bound,12h service bound and1800s idle hold. Submission bounded600s strict peer gate; no unknown PID allowed. Root can use queue.finalize boolean after archive with an explicit release record.
+5. Read-only scripts/verify_completed.py --allow-resident requires actual R26 normalized x0_step000..004 at PROTOCOL.actual_native_prefix_evidence paths; no new native replay. Postrun evidence does not substitute for these actual run gates.

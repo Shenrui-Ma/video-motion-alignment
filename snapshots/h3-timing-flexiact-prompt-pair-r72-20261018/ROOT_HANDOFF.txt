@@ -1,0 +1,59 @@
+R72 — 两组官方 FlexiAct 配对的 P0/P1 prompt 对照
+
+当前状态
+CPU 准备、部署、32 项测试（本地/远端）和 50 文件封存核验全部通过；GPU 推理由 root 调度。
+local: /Users/researcher/DevProjects/h3-timing-flexiact-prompt-pair-r72-20261018
+remote: /data3/researcher/h3_runs/timing_flexiact_prompt_pair_r72_20261018
+host: H3_SERVER_B
+GPU6: GPU-REDACTED
+port: 8539
+R64 当前使用 GPU6；等待 R64 所有推理、官方追踪评分和精确释放完成。
+
+固定顺序
+1. fitness__game_man_5 / p0
+2. fitness__game_man_5 / p1
+首组后最多等待 1800 秒 root 审核；两条均实际通过 PAIR_RUNTIME_GATE 后可 approve-rest。
+3. one_leg__movie_man_9 / p0
+4. one_leg__movie_man_9 / p1
+每组 run_id: r72_<pair>_seed2026101701_<p0|p1>
+queue.finalize=true；现有 controller 在四条完整结束后精确清理本次服务。
+
+对照含义
+P0 与既有 R66/Flex P0 逐字相同。
+P1 使用官方 reference generation 六段式模板，<Picture 1> 提供目标人物外观和环境，<Video 1> 提供完整动作及其时序。
+P1 同时增加任务角色明确引用与源动作语义描述，因此结果说明整体 prompt 协议的影响，不能独立归因给六段式排版。
+fitness 官方 target caption 写 humanoid cartoon monster，但实际 game_man_5 图片是红金色装甲人形；P1 依据原图描述身份，动作保持官方 source caption 的举双臂—合掌—降至胸前。
+one_leg 按官方右脚贴左膝、双手过头描述。此包没有采用 crouch 错误 caption。
+人物参考图保持官方原始文件，具体 SHA/来源/输入顺序见 design/PAIR_DEFINITIONS.json 与 configs/input_hashes.json。
+
+数值配置
+同 R66 .41 core/runtime：normal memory，reserve8，20 Euler，seed2026101701，1152×768×158@24。
+147 有效帧，官方 49 帧为 0,3,...144，评价 fps8。
+两个 arm 都是 Native；20 actual forwards / 1000 attention calls / 0 routed calls。
+六个数值文件逐字等同远端实际 R66，见 audit/REMOTE_CPU_DEPLOYMENT.json。
+40GiB 是 root 授权的首组真实容量试跑门槛；尚无 R72 完整 GPU 轨迹的容量实证。
+
+实际门禁
+每组共享同一 AV 初始噪声文件，P0/P1 各自独立文本/联合 conditioning 缓存。
+verify_pair 检查原图/原视频文件、预处理 RGB、原生 VAE image+video、Qwen 编码前 RGB/timestamps、AV 噪声严格同值。
+联合 embedding/文本长度/packed positions/所有 x0 预测可随 prompt 改变。
+图像 VAE 预期：game_man_5 为 1248×704 → [1,24,1,44,78] / 858 tokens；movie_man_9 为 1152×768 → [1,24,1,48,72] / 864 tokens。
+视频 158 RGB → [1,24,47,48,72]，audio [1,32,2,263]。
+每臂 8 个真实 condition tensor blobs，21 组 AV snapshots；CPU 验证读取实际 PT/hash，PT 留远端。
+
+root 启动顺序（沿 R71 的已验证行政流程）
+1. R64 精确释放后记录 GPU6 真实空闲/其他己方进程身份。填 configs/admission.json，peer 必须含仍在运行的其他己方服务/追踪进程的准确身份。
+2. python3 scripts/execution_gate.py approve-first-pair --root-admitted --free-mib <实际至少40960>
+3. python3 scripts/launch_remote.py --service-only
+4. 注册新服务到仍活跃的 peer admission；核 cuda_gate_ready.json 的 PID/start/cmdline/supervisor；root 将精确该 JSON 原子写入 cuda_gate_go.json。
+5. 等 HTTP 正常，再依既有 start_controller.py 接口启动 controller。禁止重复启动现有代际。
+6. 首组完成后用下面 CPU 命令产生真实 gate，随后 root 查看任务/动作/质量；通过后 python3 scripts/execution_gate.py approve-rest --root-admitted。
+
+CPU gate 示例（远端根目录）
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps /data3/researcher/ComfyUI/.venv/bin/python analysis/postrun/verify_pair.py --source fitness__game_man_5
+第二组同命令 --source one_leg__movie_man_9。
+结果 analysis/postrun/<pair>/PAIR_RUNTIME_GATE.json，schema r72-paired-runtime-gate-v1，runs.p0 / runs.p1 含 video{file,sha256,properties}, valid_frames147, evaluation_indices, evaluation_fps8, NFE20, routed_blocks0, job_wall_seconds。
+
+证据
+LOCAL_TESTS.log 在 audit/；REMOTE_TESTS.log 在根目录；audit/REMOTE_CPU_DEPLOYMENT.json 核验50文件seal、实际core、实际R66六数值文件及32项远端测试。
+测试涵盖 changed prompt/seed/portrait、共享噪声和独立cache、实际snapshot缺失/修改、实际noise形状、VAE/Qwen预编码变化、stale joint embedding、参考packed段错误、root续跑receipt与actual gate绑定、fork/exec登记race及原有任务优先。

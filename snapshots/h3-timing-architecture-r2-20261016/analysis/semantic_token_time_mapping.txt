@@ -1,0 +1,92 @@
+H3 的 Qwen 视频语义 token 与物理时间：代码事实盘点
+2026-10-16T16:58:00.224627+00:00
+只读源码、已存JSON和整数索引推导；没有新Qwen/VAE/DiT、pose或GPU执行，没有改R24或其它封存文件。
+
+直接结论
+进入 H3 packed DiT 后，全部 Qwen 输出（普通文字、身份图视觉位置、视频双帧视觉位置、时间文字）都进入同一个 text 段，其 H3 位置是每行 j→(j,0,0)。Qwen 内部的三轴位置矩阵没有作为该段的物理视频时间坐标继续传入。视频物理时间先以逐双帧的文字标签和内容/顺序进入 Qwen，可能被保存在已经上下文化的特征中；不能由坐标重置推出模型失去了全部时间信息。
+参考视频另有稠密 VAE token 流，其 H3 时间坐标按42个bin/17→5映射产生。这两种参考表示不是同一组token，也不能直接按序列行号作物理时间等同。
+
+1. 输入取样与两个帧如何组成一个视觉块
+comfy_extras/nodes_minimax_h3.py:336–340：完整参考在24fps下每12帧取1帧，Qwen原生2fps；timestamps为i/2秒。:343对稠密frames执行VAE encode，:359–362另行tokenize并将minimax_refs附上。
+comfy/text_encoders/minimax.py:179–191：按视频参考输入次序先写<Video k>:，每两个采样帧计算平均timestamp，以<%.1f seconds>写入普通文字token，紧接一个vision_start/vision block/vision_end。帧数奇数时重复末帧及其时间戳。
+同文件:39–72 process_video_block：两帧组成temporal_patch_size=2，grid_t=1，空间patch16、merge2。每个双帧块以type=image且minimax_video_block=True交给视觉编码器（:85–93、142–146）。因此块内两个原始采样时刻不是两个独立语言模型时间槽；时间关联首先来自“这两个帧属于同一个带文字标签的块”。
+
+2. Qwen 自己的位置不是物理秒数
+qwen3vl.py:70–99调用qwen2vl_mrope_position_ids生成内部三轴位置。
+qwen_vl.py:91–114按expanded span的index、size和grid构造：视觉块的T轴恒为start+offset，H/W轴使用该块空间网格；offset由视觉块长度和网格最大边更新。该函数不接收或解析timestamp秒数，也不依据文字<0.2 seconds>中的数值设置坐标。
+所以Qwen内部仍有多模态位置编码，但这份实现中双帧视频块的T轴是序列/网格排布坐标，不是该块物理时间戳。物理秒数是LM输入的普通文字内容；Qwen因果上下文会把它与后面的视觉块联合编码。
+minimax.py:15–19及106–119：输出截断至第50层的Qwen hidden states（无末层norm），带minimax_token_tags。没有返回Qwen position_ids作为H3的物理时间ledger。
+
+3. TokenRefiner 与 packed DiT
+model.py:517–521 preprocess_text_embeds或:716–719主forward对整个context执行condition_proj→token_refiner；已是hidden_size的输入不重复refine。
+:249–275中RefinerBlock调用Attention时没有rope_freqs；Attention :173–199在rope_freqs=None分支只做Q/K norm，并以mask=None执行attention。两层refiner对所有来源位置作双向特征混合，没有显式物理时间映射参数。序列长度/行顺序保留，行的内容不再是独立来源信号。
+PackedLayout :353–360用text_len建立text段，g=zeros(L,3)，g[:,0]=arange(L)。:724–727把全部refined text_states放入该段；:523–530与745–746以layout.position_ids生成H3 RoPE。
+minimax_token_tags中的0/1用于模态调制分组（model.py:667–687），不改这段的位置规则。tag0同时包括身份图和视频块视觉位置及边界；tag1包括时间文字、前缀和prompt。不能把tag0直接视为“参考视频运动token”。
+
+4. 既有审计可追踪到哪一步
+源记录：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/audit/05_sam_1312x736_shared_v3_conditioning.json
+SHA ce14565bc7279b3a75ef9f5239f8e264049e8dc02cdc4e1e4e59d3dbe51528a3
+该audit包含qwen_presentation（真实采样索引/时间/块/actual_sampled_frames raw SHA）、tokenization_before_vision_expansion（每个视觉条目的顺序及minimax_video_block）、conditioning_embedding、token_tags及packed_layout.position_ids的shape/dtype/raw SHA。
+SDClip实际展开点在sd1_clip.py:236–243，每个视觉条目生成embeds_info={type,index,size,extra(grid/deepstack)}。旧audit没有把完整embeds_info单独写成每个expanded span的物理时间表；可以按其原始ledger、空间grid和已知展开顺序重建来源区间，再用已存tags/总长度/packed位置证据核验。必须标为来源区间，不能称为每个refined向量具有唯一可逆物理时间。
+SemanticClock已有更完整timestamp_lexical_tokens ledger及真实六个timestamp span检查：semantic_runtime_staged/extensions/H3SemanticClock/__init__.py:112–125、151–170。相位实验audit中的semantic_clock.checks记录timestamp_spans=6、non_timestamp_text_ids_equal=true，并另核token topology/expanded长度。原始token index不能直接当expanded index。
+
+5. 可计算例子（从实际source05 ledger和冻结公式推导；本轮未重新编码）
+实际身份图[1,1216,800,3]产生38×25=950个视觉位置；视频双帧块[2,736,1312,3]产生23×41=943个位置。
+raw条目共359个，7个视觉占位（身份1+视频6）；展开长度=359+(950−1)+6×(943−1)=6960，等于actual conditioning_embedding [1,6960,5120]。
+第一视频块：raw index22，因前面身份图展开增加949，expanded区间[971,1914)。其物理采样帧[0,12]，时刻[0,.5]，平均.25秒，文字格式化为<0.2 seconds>。
+Qwen内部：前面身份图的offset=38−950=−912，所以该块T=971−912=59，全943个视觉位置共用此T，H/W保留块内网格。
+进入H3 DiT：同一来源区间的位置为(971,0,0),(972,0,0),…,(1913,0,0)。没有显式将其T设为.25秒或密集参考的视频bin坐标。
+其余5个视频expanded区间依次[1922,2865)、[2873,3816)、[3824,4767)、[4775,5718)、[5726,6669)；Qwen内部块T依次108/157/206/255/304。以上expanded起点与Qwen块T来自代码/ledger推导，不冒称是本轮另抓的中间tensor。
+同一audit的实际H3段：[0,6960) text；[6960,7910)身份VAE；[7910,47516)稠密视频VAE；[47516,47986)输出audio；[47986,87592)输出video。稠密参考video起点时间6961，目标video起点7196，差235坐标单位；这是原生包装规则，不是实测235帧延迟。
+
+6. 相位实验给出的现成坐标证据
+B=P6/T6、C=P0/T6、D=P6/T0的actual audit均与A保持整个packed_layout、token_tags raw、expanded长度完全相同；它们改变了采样内容和/或文字时间的条件特征。这与“物理timestamp没有直接改H3 text位置矩阵”的源码事实相符。它不证明时间文字无效：已存方向lag A/B/C/D=13/5/13/13说明在这个开发样例上存在条件性交互。
+[
+  {
+    "run": "s05_semantic_b_p6_t6",
+    "packed_layout_equal": true,
+    "token_tags_same_shape_raw": true,
+    "expanded_shape_equal": true,
+    "embedding_raw_equal": false,
+    "audit": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_b_p6_t6_conditioning.json",
+    "sha": "5f465e143f0289bda03d9b4d4870d1d5ab8d2b212cea02c62828ba9f25fe93f9"
+  },
+  {
+    "run": "s05_semantic_c_p0_t6",
+    "packed_layout_equal": true,
+    "token_tags_same_shape_raw": true,
+    "expanded_shape_equal": true,
+    "embedding_raw_equal": false,
+    "audit": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_c_p0_t6_conditioning.json",
+    "sha": "7b6700a85071a9a6aab4c4c7893eb2a998d2c40e664de9df3edeb41922c76e6e"
+  },
+  {
+    "run": "s05_semantic_d_p6_t0",
+    "packed_layout_equal": true,
+    "token_tags_same_shape_raw": true,
+    "expanded_shape_equal": true,
+    "embedding_raw_equal": false,
+    "audit": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_d_p6_t0_conditioning.json",
+    "sha": "85be230a11594599fa3bc86d35b399b15ee1d0711e3535e69b33d76f98d3d2e8"
+  }
+]
+
+7. 边界与尚缺的观测
+现有ledger足以定位哪个原始双帧块/时间标签贡献了哪个输入来源区间。Qwen因果混合、随后TokenRefiner无隔离mask双向混合，再加DiT全序列注意力，使“来源位置”与“纯运动信号”不同。若以后要操作这些区间，需绑定真正expanded index和干预阶段，不能只筛tag0，不能声称删掉该区间就删净对应视频信息。
+此次没有观察Qwen/refiner逐位置隐表示、注意力因果贡献或训练设计目标；没有依据把串行坐标判为实现bug、证明其造成动作延后、或宣称修改它具有新颖性。既有P/T成功运行与条件性交互应作为后续诊断先验档案，不能重复当全新发现。
+
+源码版本证据
+当前R24 service.py使用 .9 /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI。本轮仅SSH sha256sum读取七个源码文件，全部等于下面冻结archive member，未导入torch或操作服务。R24 parent_core_hashes亦包含并匹配model.py/qwen3vl.py/nodes_minimax_h3.py。
+archive：/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+comfy/text_encoders/minimax.py: 0e16e44100d6db2bdfd1292eafd1b2f8d71147c546f49afe292fe4d2cdcefe8a
+comfy/text_encoders/qwen3vl.py: 1004f4184c8ca5da74e4147a706bc4f1c9bd1a19ae63db74f3cab88ded0f0255
+comfy/text_encoders/qwen_vl.py: 3ac8d517b5adf33bd7c3c87c505cee79537dc5a3981a577f8d43bfe5eba80c16
+comfy/text_encoders/llama.py: e1c480b8613e2ebb179f8bd4ed9129720ee6f3830e43a053c1f1f7ccb3c2bc3f
+comfy/sd1_clip.py: cada45bf2cd1e2e20d24a46b959d86fc9f5529953456bb21471735f036e2dc70
+comfy/ldm/minimax/model.py: 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+comfy_extras/nodes_minimax_h3.py: 62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb
+
+已有相关事实审查（用于来源核对，不把未完成时的措辞当最新结果）：
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_span_identifiability.txt
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/native_reference_time_coordinates.txt
+最新已完成语义因子证据：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/semantic_factorial/full_factorial_complete/summary.json

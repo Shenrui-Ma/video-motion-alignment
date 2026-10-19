@@ -1,0 +1,84 @@
+H3 参考视频反向读取路径：历史与实现盘点
+2026-10-17；只读机制库存，零 GPU；本文件不授权新实验。
+
+结论
+在本机核查的成功实验档案与对应实现中，未发现专门对“参考视频 query → 生成视频 key/value”实施时间路由或屏蔽。R17 的“reference-branch-only”指生成 query 读取参考 K/V 的那一项；实际旋转的仍是生成视频 Q。它没有覆盖本次反向候选。原生 H3 的参考视频行在全部 50 层参与无因果遮罩的联合注意力，并通过残差、FFN 更新；因此存在参考读生成、再由后层生成读参考的计算路径。路径存在本身不能证明它造成延后、重影或身份损坏。
+
+路径简称
+R2=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016
+R3=/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016
+R17=/Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016
+旧主例 source05 / Sam / seed2026101311 / 1312×736×141、24 fps；T=生成视频，R=参考视频。以下箭头一律表示 Q→K/V 的读取方向，不用模糊的“参考分支”替代。
+
+1. 检索范围与完成证据
+本次 stdlib 只读扫描 /Users/researcher/DevProjects 下名称以 h3 开头的 56 个目录，222 份 *history*.json，取 status.status_str=success 且 completed=true，按实际 prompt[2] 图去重得 125 个成功图。包含两步 bench、条件编码、历史拷贝与不同保存节点，不能解释成 125 个独立完整科学实验。更广目录名包含 h3 的旧扫描有 61 个目录；这里使用可复现的较窄边界。未读取任意未归档服务器实验，不给“全服务器从未运行”的证明。
+成功图中的有关类计数：H3EventEmphasis 16、H3TemporalRouter 39、H3FeedbackRouter 6、H3CounterfactualRouter 1、H3SpatialMarginalRouter 2、H3LocalTemporalRouter 2、H3PhaseRoPE 6、H3PoseObserverRouter 1、H3NativeObserverRouter 1。计数只用于覆盖检查，方向以实现切片和实际 layout 为准。
+
+已核干预族及方向：
+- 20261013–14 H3EventEmphasis：对局部 T query 重算追加 R event K/V 的注意力。h3-musk-bedside-pair-20261014/extensions/H3EventEmphasis/core.py:147–165 定义 key=R、query=T；:197–210 仅覆写 out[:,qa:qb]。:265 审计文字也明确 local target queries。成功实例 logs/07_musk_s1_weight3_history.json。早期“参考三倍”没有直接覆盖 R-query 行。
+- R2 Full/static/dynamic/hard、后续 schedule/feedback/normal/source 变体：R2/extensions/H3TemporalRouter/core.py:225–229 取 T query、R K/V；:248–249 是 O'=O+alpha*m_R*(O_samebin−O_R)；:273 仅写 T query。R3 空间边际、R5 softband、R16 ROI/均值改变的仍是这一方向或其 query 系数。
+- R4 target path 改 T 输出时间对应；R10/R13 同状态与一步分支诊断、R12/R19 观察器、R11/R18 调度使用原 Full 执行器。它们会间接改变后层参考隐藏状态，但没有以反向边作为直接干预变量。
+- 旧 autoresearch 的 PhaseRoPE ±12 与 R17 ±4：旧实现副本在 R3/extensions/H3PhaseRoPE/core.py:80–100，与 R17 一样取 T query、R K/V。成功历史可见 h3-timing-autoresearch-20261016/logs/s05_full_seed1_phase_minus12_late11_x0_history.json；R17 两臂详见下一节。
+- H3SemanticClockReference/Noise/Gate 的四个已执行 P/T 条件时钟图改变输入语义采样/时间标签；没有 R-query→T-key 操作。只生成模板或未启动的 R21/R22 不作为完成证据。
+- R24 正在已封存队列运行，使用同一 Native/Full 方向。本盘点不改变它，不将尚未完成输出纳入成功列表。
+详细逐 run 的路由次数与历史路径见 R2/analysis/layer_selective_inventory.txt；本次没有重跑这些模型。
+
+2. R17 具体做了什么
+R17/extensions/H3PhaseRoPE/core.py SHA256=b5a9e12b6ca2a28cba46c83890eeb2f412b34fea3bde8d881343d3279cfb9c4f。
+:81–89 从 plan.query_interval_half_open 取 Q、reference_video_segment 取 K/V；:87–88 显式拒绝这两个区间重叠；:91 旋转 query；:97–101 只覆写该 query 输出。:47–50 旋转 128 维头中的 split-half 时间通道对 [0:16] 与 [48:64]，其余通道不变。物理 ±4 帧映射到额外 RoPE ±20/3 坐标单位。其式为：
+ O'_T=O_T+alpha*m_R*[Attn(Q_T_rot,K_R,V_R)−Attn(Q_T,K_R,V_R)]。
+它保持同一输入下参考组的原总质量 m_R，改变该组内读取。没有旋转 Q_R，也未改 K_T/V_T。
+
+实际 plus4 审计 layout：text=[0,6960)，identity image=[6960,7910)，Rvideo=[7910,47516)，target audio=[47516,47986)，Tvideo=[47986,87592)。W50…65 选 bins[14,20)，每 bin 943 行，位置 bin 覆盖47…67；R 对应行[21112,26770)，T 对应行[61188,66846)。旋转的是后一个区间。总 QKV=[1,56,87592,128]，head 输出宽7168，经 W_O 到隐藏宽5376。
+两 run 均实际20 forward、1000 blocks，450 phase、550 direct native：
+R17/analysis/pose/pilot/r17_s05_plus4_a05_6to14_provenance/{history.json,router_audit.json}
+ history SHA=a18ad109543de1ede6e228dfbf4606ad64c1f97ee2b12ce4cbdf7f237a3d65af
+ router SHA=793bca161dec0a0a971665bb839ce962b1f2da15978f0529932782f6cbcace5a
+R17/analysis/pose/pilot/r17_s05_minus4_a05_6to14_provenance/{history.json,router_audit.json}
+ history SHA=23f2192fc76781388d22bc8ff369fd96479e4813ad8e2968e649a43e0a0267cf
+ router SHA=9d322ce665c6dfa137721928379b66aae6f1bdfdf1e44646187d6e63556be057
+故将 R17 称作“reference-Q RoPE 实验”会误导，应纠正为“只在参考 K/V 子项内旋转生成 Q 的时间 RoPE”。
+
+3. 实际 H3 计算路径
+源码为 /Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz 内 ./comfy/ldm/minimax/model.py，SHA256=0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe。下列行号指此冻结成员。
+- Attention.forward:175 对全 packed x 产生 Q/K/V；:177–194 QK norm/RoPE；:199 optimized_attention(...mask=None,skip_reshape=True)；:200 W_O。./comfy/ldm/modules/attention.py:545–566 原 attention_pytorch 明确 dropout_p=0、is_causal=False。当前 dense 路径没有模态间单向 mask。
+- 当前主例的 R query 可读 text（含 Qwen 视频语义 tokens）、人物图、整个 R video、生成 audio、生成 video，且可读早/晚视频位置；其它合法输入若含 reference audio/cond audio 也同样进入 packed keys。本次不把未出现的模态当当前图实际输入。
+- :632–637 的 ref_img timestep≈.999 与 img_update=False 表示条件输入/时间标签，不是注意力读取隔离。:695–733 组装参考及生成 embeddings，:748–764 将全部 h 传过50个 DiT block。所有 reference hidden rows 都留在 h。
+- DiTBlock.forward:293–297 对全 h 做 attention gated residual，再做逐 token norm/SwiGLU gated residual。_mod_gate:242–246 遍历完整 mod_segments，无 reference 排除。MLP:203–210 不跨 token 直接混合，但会非线性处理前一注意力已吸收的生成内容。
+- 因而可有 T^l→R^(l+1)→T^(l+2) 的两层传播。当前层的 K/V 在更新前一起算出；改变当前层 R 的 attention output 不会追溯改变当前层 T 已算出的 attention output。
+- :695–733 每次 forward 从实际参考条件与当前 noisy target 重建 embeddings；:767–784 最后只取 target video/audio 输出。参考 hidden 不作为下一 Euler 步的持久 latent 返回。跨去噪步不能描述成“同一份参考 hidden 原地积累漂移”；作用可以经被改变的 target latent 间接延续到下次 forward，再次与重新嵌入参考交互。
+
+4. 已有 native_features 的证据能力
+R3/extensions/H3TemporalRouter/native_features.py SHA256=b607634a71cf146241cf08b6ddb8db2a5fbce27d1c89d7d3ce247f1615ab7025。
+:10–12 仅 forward indices6/10/14、block25、heads[0,14,28,42]；:90–108 保存 R/T 两段完整42×23×41空间时间网格，但每个 token 只有4个头×128通道。阶段是 post-SDPA、pre-W_O，不是 block 输入/输出 hidden，也不是 reference K/V。
+实际 capture 清单证据：R3/analysis/pose/pilot/r3_s05_native_provenance/router_audit.json，重复绑定在 R3/analysis/feature_mapping/frozen_inputs/router.json。远端文件：
+ /data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/native_features/r3_s05_native/block25_step006.pt SHA=6d964df16425559ee0a40375c133d4962c1a1c4243254875f678f934912ad27e
+ 同目录 block25_step010.pt SHA=c3f6b79dba8c0eb2e3f709980bd79a037dd0d798f61393ceb35a84336fe0180b
+ 同目录 block25_step014.pt SHA=f2dfe6e512ffab78a5a919adf8965bf46b7ae3341df74488ce86c0eea62b0061
+本次只核已存 metadata/源码，不重新下载/加载这些大张量。
+可做：固定阶段的特征相关性、相似时间位置或幅度描述；说明它们是已经上下文化的输出。不能做：从 O_R 唯一反解 T 组贡献、Q/K/V、m_T；将跨步变化归因为 T→R；证明后续 residual hidden 的时延漂移；把四个头代表所有56头；把参考输出当纯净动作真值。跨步 x、sigma 均变，缺少同状态控制。W_O、gate、residual、FFN 都会改变可见影响，旧 O_R 的变化不能替代实际 reference hidden 变化证据。
+
+5. 两个最小反向干预的工程定义（仅可行性，未实现）
+采用父任务预定的两臂：同 source05/Sam/seed1311、同 W50…65→bins[14,20)、同 step indices6…14、同全部50层；只选 R 的事件 query 集合[21112,26770)，全部空间，无 ROI、没有新增扫描或 forward/reverse 组合。
+从实际 validated layout 推导索引，不硬编码87592。R 与人物图都标为 ref_img，必须使用 conditioning.refs 唯一 video 的完整重建元数据，不能按 kind=ref_img 随意选第一个。
+令 J 为全部 T video keys，C 为其余全部 keys；Q_R 为上述参考事件行。对每个 query/head：
+ O=A_all(Q_R,K,V)，O_J=Attn(Q_R,K_J,V_J)，O_C=Attn(Q_R,K_C,V_C)，
+ m_J=exp(LSE_J−logaddexp(LSE_J,LSE_C))。
+A. BLOCK：将选中 R query 输出设为 O_C。它等价于在这组 query 对全部 T video logits 加 −∞，正确重归一化保留组。不能只减 m_J O_J 而不除剩余质量，也不能把 V_T 置零充当屏蔽。直接算 O_C 可避免1−m_J接近0的减法不稳定。
+B. SAMEBIN：对 R 的 bin b，用原生带 RoPE 的同一 Q_R 读取 T 的同 bin 全空间943个 K/V，记 O_J,b。设 O'=O+alpha*m_J*(O_J,b−O_J)，alpha=1。保留原 Tvideo 组总 mass，只重分组内时间支持；C 的每个原概率贡献保持。该式与已有 forward Full 对称，不能据“换了方向”单独声称新算法。
+两臂共同只覆盖参考事件 query；原生成 query、text、人物图、audio 及事件窗外参考 query 在该 attention 调用的输出不覆写。BLOCK 保留 target audio，生成仍可经 audio/text/其它 reference 行进入 R；故它不是完整生成→参考隔离，也不等同文献里可能阻断全部 generated tokens 的 mask。
+
+最小代码面：新独立节点复制已验证 RouterState/layout/lifecycle，以新执行器通过 DiT block patch 的 attention override 接口介入（model.py:755–762；R2 EventBlockPatch/LocalAttentionOverride）。在原 attention_pytorch 全输出上只替换 R 行，额外对选中 R query 计算组内 Flash+LSE。无须更改 checkpoint、全局 Comfy attention、sampler、RoPE、VAE/refiner。SAMEBIN 可从 LSE_J/LSE_C 得 m_J，无须持有 N×N attention matrix。直接保留原 native 全输出，能避免为了取 LSE 而切换整幅输出后端造成未选行数值差异。成本会增加局部 attention 调用，实际仍20 DiT NFE/20 Euler；须记录时间与显存，不把额外 attention 次数说成额外模型采样。
+
+6. 可验证不变量与最省新增 GPU 的证据
+CPU 先验测试：小 QKV 与显式 dense softmax mask 对照；BLOCK 正确归一化；SAMEBIN 每个 query/head 的组总 mass 保持；边界/身份图排除；alpha0 直接原生；输入 Q/K/V、RNG 不变；坏 mask/layout/重复 wrapper 拒绝。有限精度 dense/kernel 容差须在实际结果前冻结，不能因失败临时放宽。
+首次改动在 index6/block0，其输入沿 native prefix：保留原 native attention output，记录选中 R 行改动的 finite/差值，逐位核所有非选中行，重点 Tvideo+targetaudio；同时记录 W_O/residual/FFN 后 T hidden 与同输入原生 block 对照（若增加独立重算须计成本；更省的方案是输入与逐行依赖审计加被动 hash，而不伪称已有原生中间 hidden）。下一层应记录 R 的输入 hidden/K/V 已受影响的可检验签名及 T 输出差值；若没有实际同输入 native 中间量，差异只能通过额外局部重算或专用 paired replay证明，单臂相邻层不同 hash 不能当因果证明。
+这项区分应写进验收：当前 attention 中 T 行 bitwise未改可由同一次 full native 输出直接验证；“下一层传播”需要 paired native 对照，不可从一次运行自己前后不同直接推出。推荐在第一次 active forward 保存必要的 block0出口和block1 T行小型固定投影/签名并在配对 native replay时取完全相同位置；完整 reference hidden 若保存开销大，可先预登记固定通道投影，但它只能检测不能排除遗漏变化。
+作为结构负例，若只在最后 block49 改参考行，后面没有新的跨 token attention，数学上最终 Tvideo/audio 应不变。冻结 INT8 row-chunk实现 scripts/int8_row_chunking.py:23–30 记载激活逐行量化、SwiGLU/ConvRot逐行；但正式 mixedprecision/kernel 路径仍须实际核，不把理论直接称GPU逐位通过。仅当保持同 native全输出且其它算子行独立、无隐藏全局量化尺度/缓存变化时，最终逐位不变才成立。这个可以先在真实CPU小模型验证，暂不追加第三条完整GPU臂。
+最省正式新增视频是父任务的两臂各20步，沿既有 R3 Native 与 forward Full 作为比较；总新增40 NFE，不重跑已验证全部历史。必须绑定原R3 actual conditioning、noise、完整sigma/backend/seed、输入素材SHA；两新臂的 native prefix005 video/audio 与旧R3实际端点逐位相等，且20callback/1000blocks、每层9次反向操作均通过。旧prefix005并不能自动证明所有processedcondition树相同，仍按现有完整condition/noise审计重新绑定。
+若在进入两条完整视频前需要真正同输入下一层传播证据，最小独立诊断是用已存 R10 index6 raw x（仍与R3共同native前缀绑定）、sigma/conditions 做一次 native replay，再各做反向臂相同x的forward，总3NFE。必须匹配旧端点和actual input SHA；不能把端点改善当完整视频成功。可选择这项或在正式两臂内增加上述中间量对照，不要默认同时开展。当前文件不批准任何额外GPU。
+结果解释：BLOCK改善只支持切断该边有作用，仍混合了总mass变化与归一化变化；SAMEBIN改善可说明在固定总mass下时序分配有作用；若两者均无改善不能推导所有反向方案无效。质量/时序须连同手腕、方向、躯干/腿部、身份/重影评价；只能使用实际生成的两臂结果。
+
+7. 执行与创新边界
+父任务已收到文献审查：OmniTransfer/IdentityAsPresence/FullDiT2 有参考→生成读取屏蔽近邻，ViduS2 的描述可能覆盖双向。本文件未重新查论文，也不建立新颖性结论；本轮定位为区分屏蔽与组质量保持时间路由的机制对照。
+R24 两服务继续各4条封存队列；queue.finalize=false，结束后1800秒hold。continuation只接入既有科学协议的新case×两个固定seed×native/full，不能塞入反向新机制。若root随后授权，应建立独立R25，在R24完整结束、归档后进行记录明确的服务交接。不能中途修改R24节点、热加载执行器或覆盖已封存manifest。本次仅新建本文件，未改runtime、进程或模型，未启动GPU。

@@ -1,0 +1,42 @@
+R17 passive consumer and independent final evaluation, frozen before outputs
+
+Runs: r17_s05_plus4_a05_6to14 and r17_s05_minus4_a05_6to14, both retained.
+Authorized producer: .9 servicePID5985, GPU3 UUID
+GPU-REDACTED, port8477.
+No inference or GPU request is made by this consumer. Waiting holds only its
+single-coordinator mutex; shared heavy-CPU locks are acquired only for work.
+Remote pose/verification are serialized with R16 and other research consumers
+using /data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock.
+Mac shared heavy-CPU lock is the existing R2 cpu_evaluation_global.lock.
+CPU workers set CUDA_VISIBLE_DEVICES empty, threads<=4. No new dependencies.
+
+Before accepting metrics, verify all50 immutable producer files against pinned
+sealSHA c1495d4f68e2af821134db34793250fa44f10b482c1ef0d73b097f038d554cab;
+actual complete history equals frozen graph; physical20complete model forwards,
+1000blocks,450phase/550direct-native,20Euler callbacks, same21sigma grid and
+normalization; all8callback snapshots plus final tensors and metadata; actual
+source/preparedRGB/reference tensor hashes, text/prompt/layout and cached noise
+equalR3; actual x0index005 video/audio bitwise equal R3 pre-intervention prefix;
+installed core hashes, parent model fullhash provenance+current size/mtime and
+actual INT8 backend match. GPU3 differs from R3GPU2, so prefix match is measured
+instead of assumed. No manual CPUloop result substitutes for actual sampling.
+
+Use existing frozen DWPose CPU extraction for every raw generated frame, then
+existing timing_metrics/evaluate_x0 observers, confidence thresholds.3/.5,
+windows50..65,69..81,80..92,99..111. Preserve raw curves, direction, per-arm and
+wrist-relative diagnostics, coverage/ambiguity, rejected/unknown outcomes.
+Save fixed source-time overlays55,86,105; never retime outputs for comparison.
+After both results exist, compare native/Full/plus4/minus4 on the existing
+compare_runs common-valid-joint intersection at both thresholds and fourwindows.
+Original individual-support native13 and Full1 are contextual baselines; do
+not force common-support metrics to reproduce these labels or select by sign.
+The evaluator's actual common support, not similar aggregate coverage, controls
+comparability. Missing reliable phase is unknown and cannot count as success.
+
+Efficiency: record successful history start/end wall time, x0capture seconds,
+CPUverification/extraction/metric elapsed time and actual20NFE. This adds no
+model calls and is not a separate performance diagnosis.
+On transport interruption during remote work, abort automatic re-launch and
+inspect existing worker/locks first. Preserve actual histories/failed gates,
+both signs and every downloaded raw output. No method novelty or video-quality
+claim follows from integrity alone; fixed-frame human review remains required.

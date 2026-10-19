@@ -1,0 +1,17 @@
+R115: 两种相邻时间 Value 读取方式，.9 独立执行
+
+本次两条推理：fixed_one_bin、matched_one_bin。参考输入、R96 P1 原提示词、seed 2026101701、20步 Euler、原视频/音频 sigma、CFG1、α1、50层与步骤6–14均固定。158生成帧中145帧有效，1312×736@24，评估裁剪(16,8,1280,720)。
+
+算子沿用 R112：对输出query时间τ，从参考时间t向τ推进一个时间bin。fixed_one_bin读取原空间坐标，matched_one_bin读取互惠对应位置。两者使用完全相同的接受mask、时间方向和padding支持。原Q/K及参考组总注意力质量保持，修改参考组Value贡献。原代码在 configs/runtime_kernel_hashes.json 登记，并与 source_snapshot/r112 逐字校验。
+
+每层bank取step5当次原始reference V，50层分别计算，步骤6–14冻结复用；两次推理都计算bank。第二次在每层构建时校验第一条bank，源V抽样hash、indices、mask、metadata全部相同才进入干预。首条step6前验自身前六步实际tensor与manifest；此项仅为文件完整性。第二条step6前比较两条实际AV预测0–5逐值一致。最终CPU再核验两条前六步、噪声、条件、50层bank和完整执行次数。若失败保留失败证据并精确释放，不降低等值要求。
+
+现有R96普通编辑保留为历史视频参考。其 .41 RTX / torch2.11 / triton3.6 与本次 .9 A100 / torch2.5.1 / triton3.1 的运行参数写入来源记录；按用户要求不追加普通编辑或环境对照推理，也不要求历史跨机前六步一致。R115两新版本之间保持相同运行环境。
+
+运行位置 H3_SERVER_A GPU0，独立端口8577（只读connect检查未监听）。生命周期复用R113，开始前检查R105整批完成与精确释放。父任务安排短MF结束后再启动；最多两张自用GPU，其他自用服务须以PID+start_ticks登记，.41 R103/R112队列保持。当前仅CPU准备，GPU启动需root绑定当前producer seal的审核文件。
+
+两版全部收取并保留；分别评估黑衣编辑、两人身份、书/持臂接触、绕行路径和场景是否完成，再评估源预登记事件。时差本身不判任务失败。源事件复用PREREGISTERED_EVENTS.json，主事件47–53身后遮挡、56–60另一侧重现、81–87男子转身抬臂，135–144末段伸臂单列。
+
+诊断：保存两套50层的小bank index/mask、匹配耗时（CUDA同步）、修正ΔRMS、接受mask覆盖率、采样query在接受key上的原始注意力总量、后续Value相似度。bank坐标可映到原图。x0与condition大tensor保持服务器；本地只取小JSON/MP4和indices.npz。总体本地预留1GiB。
+
+机制边界和最近工作沿用 R112_PROPOSAL.txt / R112_DEPLOYMENT_ADDENDUM.txt。TokenFlow、FLATTEN、RAVM、EditVid等已用对应/feature传递；DiffTrack提示QK较Value更适合对应。早期step5的Value可能偏外观，全部50层匹配质量未知。若对应主要在背景，或沿轨迹Value近恒定，扰动很小不能视为动作修复。matched收益可能仅来自较小ΔRMS；须先比普通编辑的任务与事件，再由后续幅度对照解释机制。当前两条用于证伪固定结构选择，不宣称创新成立。

@@ -1,0 +1,29 @@
+R6 H3FeedbackRouter 初轮独立只读代码审查
+
+结论：针对当前固定几何、单 BasicGuider CFG1、Euler20 路径，未发现阻止真实 Core CPU 集成测试/受控被动验收的代码问题。本审查不替代实际服务环境的集成测试或 observer-only/off 与 native 精确重放门。没有部署/调用采样器/GPU，也没有修改 builder 代码。
+
+已核对的实际链：
+1. FeedbackState 只拥有一个 run-scoped 状态；节点 clone 后50个 FeedbackBlockPatch 与 FeedbackRecorder 指向同对象。validate_guider 同时核对 guider.model_options 和实际 extra_args.model_options 中50个 patch 的 state identity。真实 ModelPatcher.clone/WrapperExecutor 行为由新增 feedback_wrapper_smoke.py 覆盖；本审查只读该 smoke，不冒充已在 .41 执行。
+2. 每次 block0 前 latch_forward() 计算旧 forward_index+1；检查前一个完整 forward 和 callback 数。EventBlockPatch 才递增实际 forward_index。该顺序避免当前 callback 越过当前 forward 或迟一层生效。
+3. callback index5..18 才发布 pending_for=index+1，下一 forward50层固定同一布尔状态；index19仅审计。首6次调用完全native。重复forward、串行双CFG、错序/缺失callback和不完整50层均拒绝。route_attention 还拒绝batch!=1，避免双CFG打包悄悄通过。
+4. lag>=4开启；[-2,2]关闭；3保持此前实际活动状态；<=-3关闭并记录提前；unknown关闭下一forward且保留原因。fixed/off仍执行同一观察器，但实际应用状态分别由固定mask/关闭策略决定。active_indices记录真正调用，另计sigma跨度，不能把调用数等同噪声区间比例。
+5. x0原始视频/音频通过冻结 split_streams 拆开；归一化在CPU拷贝上调用 model.process_latent_out，要求video精确identity和audio精确/4；原callback得到同一组原对象且只调用一次。sampler原noise、sigmas、latent_image和executor返回值不重写。
+6. 参考按minimax_refs kind唯一选择video，不假设列表首个；其FP32形状与完整视频约束一致。wrapper入口再比较真实original_conds引用的raw SHA和observer副本，防止condition/observer错配。没有对视频latent再除VAE均值标准差。
+7. 冻结observer源文件与协议有SHA门；只编译指定纯函数AST，未import原脚本的环境设置。对本次九份真实R4快照，builder FrozenGap5Observer输出的整49点主窗曲线、argmin和拒判信息与冻结离线结果逐值相同，见builder_observer_equivalence.json。导入前后environment与CPU RNG相同，CUDA未初始化。
+8. run_id排他reservation和sampler单次使用门会拒绝缓存的旧state复跑，不会静默重用旧观测。异常进入failed并持久化；正常20步完整后complete。复制模型和回调链的实际Core行为仍按root运行的CPU smoke结果准入。
+
+科学边界：主窗手动50–65，路由query覆盖latent bins[14,20)，名义物理帧47–67、全空间；gap5特征跨17物理帧，并搜索±24帧。不能称动作自动定位或关节空间定位。九份R4快照是同一条native轨迹，其主窗正延后不代表九个独立样本。早期没有独立pose真值，final的+14/+14不向前复制为标签。full-frame观察器过门不等价于校准置信度；新背景/身份正常样本的误触发还需独立评估。
+
+测试记录：builder提供16项本地CPU测试通过；本审查阅读其测试源码，另实际执行九份R4缓存与builder观察器的逐曲线等价检查（通过），没有重复运行builder测试，也没有把fake tiny DiT当真实模型效果。
+
+本次审查源文件SHA：
+extensions/H3FeedbackRouter/core.py 55a5e27a53704ce4a4e9d2983bf4136d9e0f606403a6cdae8f7a3f3d48e36aa7
+extensions/H3FeedbackRouter/__init__.py 2360b822b197fa39b5f06cbee1e5be89d33e6fe616a999889d0ccebbc53ab4c2
+extensions/H3FeedbackRouter/observer.py a5de0b528cf25956d5d1ecfb598e24804573cd1acd6593422f9b22bd4d770c4a
+extensions/H3FeedbackRouter/observer_frozen.py c84cca34903c9476adc36fa2af0c9e3507b736031efac5bf361187a2c63de075
+extensions/H3FeedbackRouter/observer_protocol.json e84af137304d6b950e3bba078a96d1631c665a7fdcce84ef6c93d7e9551f4a16
+extensions/H3FeedbackRouter/dependencies.py 9d8ebd4c701178c5272b164faa0f4a8dbb804b1c8fd1d9ff5003028fafd1ceb9
+tests/test_feedback_core.py 56ecb89fafbed576b5c68fc1fa5637ed7d46e3cd6504fe3a20743b159a3cf5dd
+tests/test_feedback_observer.py 59afec4f8edd77c55cb552719be4719d333f7a95e52e37515b1526e016eb5c44
+tests/test_feedback_support.py ebc0bdedaeb5c28273de31a3101192d91d14c0085b323f7f2b8358ca79f2bd5d
+tests/feedback_wrapper_smoke.py 0f881491ae98bf0dacdf1a4b420f9595013760ab9e739aa79f2f6a0ac8355dca

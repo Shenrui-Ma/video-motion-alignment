@@ -1,0 +1,13 @@
+R26 completed-run receiver administrative recovery
+
+B source51317 generation, 21 intermediate/final endpoints, eight condition entities and 48 original files passed RUN_GATE. Pose extraction and all 186 scan rows then completed. Root changed only the producer queue.finalize flag false -> true to release the exact lane-B service for the next experiment. The v1 receiver's post-analysis source-byte check correctly rejected that administrative change; this was not a model failure.
+
+b_postconsume_change_diagnostic.json records the complete 48-item comparison: exactly configs/queue.json changed; all other producer and archived bytes matched. The original queue, inventory and RUN_GATE remain unchanged. Full v1 source, freeze, identity, state, failure and logs are preserved in versions/v1_before_finalize_recovery.
+
+Version2 accepts only that exact boolean transition with all other queue fields equal and a root release record binding the original service PID/identity, this successful run's RUN_GATE path/SHA, and a timestamp after the gate. Other scientific/queue/archive changes still fail. The existing B pose and scan hashes were fixed in RECOVERY_BINDING.json before explicit recovery. Source video, pose model/code/device, all 141 frame IDs, source pose and scan inputs/implementation hashes were verified; no pose, scan, model inference or GPU work was rerun.
+
+Independent reviewer /root/h3_guidance_critic_20261016 confirmed all20 freeze items, immutable scan/binding files, actual B derived hashes, and independently ran11 recovery tests. All34 local tests passed. v2 freeze SHA 36c670b449af63d78d11468a03fc556e7f801a1166b09db05c6ef05f81a5e19f.
+
+Actual remote recovery passed in11.2390 seconds (v2_recovery_actual.log). The original accounted computation is integrity28.1734+pose76.4248+scan3.5583=108.1566 seconds; this is a component sum, not a reconstructed wall time. The recovered CPU_COMPLETE explicitly records this boundary.
+
+The sole waiting consumer resumed as PID31226 / session39013, preserving live binding aba19e2caf2eea098008f68d8c4c7586a5958e6c4ff76d627df91069394aaf5a. It holds no compute lock while waiting and performs no producer mutations/service or GPU actions.

@@ -1,0 +1,48 @@
+R106：氧气面罩样例的采样器对照
+
+问题
+当前视频实验采用 Euler20；固定官方 Comfy 模板默认 res_multistep20。
+本次比较相同条件下 solver 对基础编辑和动作时刻的影响。
+
+实验定义
+使用 R73 short_0252 Native 的原始输入、P1 提示全文、seed2026101701。
+1312×736，共107帧，前98帧有效，24fps；9帧尾垫保留归档、从评价中排除。
+两次 fresh Native，KSamplerSelect 分别为 euler 和 res_multistep。
+两个图共享完全相同 ManualSigmas 文本及实际float32序列，均为CFG1、20次调用、20次更新。
+模型、clean reference、条件张量、噪声缓存、kernels、dtype、几何和源帧映射完全相同。
+路由模式均为 native；实际 routed_calls=0，1000个DiT block调用由原被动计数器记录。
+第一条Euler片段与第二条RES片段共用新生成的原始AV噪声缓存；历史R73输出只作任务模板来源。
+
+需要适配的接口
+1. 新包 H3X0Readout/core.py：只接受 sample_euler 与 sample_res_multistep，保留空extra_options要求。
+   继续记录20次原x0及最终sampler输出，manifest记录真实solver名与更新语义。
+   callback(step,x0,x,total_steps)在两种solver中都发生在当前状态更新之前。
+   增加第0、1次raw packed AV x的CPU拷贝/签名；x与预测D分别保存，raw x不做VAE解码归一化。
+   对原张量与callback参数保持只读，透传返回值；记录耗时计入统一capture_seconds。
+2. 新包 capture_checks：按各图实际solver核对manifest；支持新增两份raw状态文件。
+   文件清单、shape、fp32、finite、sigmas、callback序列、终点含义继续逐项验收。
+   更新计数统一称sampler_updates，另保留solver字段；Euler与RES都为20。
+3. 新包pair验收：两个角色为euler/res_multistep，二者均为Native。
+   核实际successful history、GPU/service generation、所有condition tensor与实际原始AV noise一致。
+   核第0、1次raw输入状态与预测逐位相等；第2次及以后输出差异只记录数值，不设相等门。
+   由solver真实函数、graph和20次callback共同约束更新路径；原前6次相等门不适用于此实验。
+4. graph与任务登记：只允许sampler名称以及新run/path行政字段变化。
+   原始条件共享ID、noise pair ID相同；route都native、observer关闭。
+5. consumer与展示：三列为参考视频、Euler普通编辑、RES普通编辑；完整98有效帧、同帧中文黑底caption。
+   评价先记录年长女性替换、面罩与座椅/男孩保持，再记录面罩接触/提起等动作时刻。
+   official IVE MF与任务成功、动作事件分别报告；记录推理墙钟和20 NFE。
+
+最小CPU验证
+A. 从已核对实际.9源码提取两个solver函数，运行固定非线性toy denoiser。
+   每个solver分别开/关新记录器，比较全部模型输入、预测、callback参数、最终输出和随机状态逐位一致。
+   各20次模型调用、20次callback、额外noise_sampler调用0；源文件SHA绑定现有审核副本。
+B. 比较两种solver第0、1次输入/预测相同；toy第2次起有自然差异，终点有限。
+C. 拒绝ancestral/CFG++/其他solver、非空extra_options、不匹配sigma、跳号/重复/缺失callback、错误shape或非有限张量。
+D. 两图移除允许的行政字段后，仅sampler_name允许差异；noise pair ID、提示、ManualSigmas等变化均拒绝。
+E. 验收负例覆盖：错误solver标签、伪造前两步状态、修改条件/噪声、增加route、错用普通/引导标签。
+F. 新包本地及实际.9 CPU环境验证通过后再封存，生产目录和现有封存保持原SHA。
+
+可支持的结论
+若两片基础任务都完成，再比较动作时间与官方MF；结果只支持这一任务上的solver差异。
+若基础任务完成度改变，先报告该变化；其动作评分不混写为时序引导收益。
+本记录当前是CPU设计，尚未适配生产包、启动模型或生成R106视频。

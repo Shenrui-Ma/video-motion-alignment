@@ -1,0 +1,136 @@
+{
+  "parent": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016",
+  "extensions": {
+    "extensions/H3EventAudit/__init__.py": {
+      "sha256": "a42d84c85e23bf2d33fbca754eefc1c0afa5797fd41ba1b0419b3ed95444a45e",
+      "parent_same": false
+    },
+    "extensions/H3LocalTemporalRouter/__init__.py": {
+      "sha256": "bd8b260074e9c800f23f2db7c3450cc28a7c1e44c130ef274b98ba2251bdba2f",
+      "parent_same": false
+    },
+    "extensions/H3LocalTemporalRouter/component_probe.py": {
+      "sha256": "48029b53aed3b3d10497925877f4705e68012411d3afefa9da2c1cb0f9a4d297",
+      "parent_same": false
+    },
+    "extensions/H3LocalTemporalRouter/core.py": {
+      "sha256": "793685925fe317088b7eedb253c6509df626fdb15319f4b5c1a3522c0a15da1a",
+      "parent_same": false
+    },
+    "extensions/H3LocalTemporalRouter/layout.py": {
+      "sha256": "bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe",
+      "parent_same": false
+    },
+    "extensions/H3LocalTemporalRouter/mask.py": {
+      "sha256": "cbdc47701306eef0bbe85dba81ca98912088f5cbf5c7459c4be4b765fb7ff76d",
+      "parent_same": false
+    },
+    "extensions/H3LocalTemporalRouter/native_features.py": {
+      "sha256": "b607634a71cf146241cf08b6ddb8db2a5fbce27d1c89d7d3ce247f1615ab7025",
+      "parent_same": false
+    },
+    "extensions/H3PairAudit/__init__.py": {
+      "sha256": "214094c624eced89eef4f4bd0e4a79ea0cc0de12b030dccb04ae618adf38dfde",
+      "parent_same": true
+    },
+    "extensions/H3TemporalRouter/__init__.py": {
+      "sha256": "a904555ca6ecf32680e4c3b26fdf6af860ec3a0eaf7cbaa8c0b605184a638204",
+      "parent_same": true
+    },
+    "extensions/H3TemporalRouter/component_probe.py": {
+      "sha256": "48029b53aed3b3d10497925877f4705e68012411d3afefa9da2c1cb0f9a4d297",
+      "parent_same": true
+    },
+    "extensions/H3TemporalRouter/core.py": {
+      "sha256": "5cd842280a5cd47c5a1a741c4a02c3b8ca09fca4f3a36a2721acfb38c88aec69",
+      "parent_same": true
+    },
+    "extensions/H3TemporalRouter/layout.py": {
+      "sha256": "bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe",
+      "parent_same": true
+    },
+    "extensions/H3TemporalRouter/native_features.py": {
+      "sha256": "b607634a71cf146241cf08b6ddb8db2a5fbce27d1c89d7d3ce247f1615ab7025",
+      "parent_same": true
+    },
+    "extensions/H3X0Readout/__init__.py": {
+      "sha256": "8d3b6a7994f9b4a4a660ad889f3e8b07fc17c5a2e5ba1403bfc580cb3cfc2461",
+      "parent_same": true
+    },
+    "extensions/H3X0Readout/core.py": {
+      "sha256": "e6f1442a208d6b00e9d1bf88f4a82b8dbb983b1d9cb87728ff683c883a8b617a",
+      "parent_same": true
+    }
+  },
+  "local_router_core_diff": [
+    "--- R3/core.py\n",
+    "+++ R16/local_core.py\n",
+    "@@ -204,7 +204,7 @@\n",
+    " ",
+    " def route_attention(q, k, v, heads, plan, *, mode=\"native\", alpha=1.0,",
+    "                     radius=0, time_offset=0, attention=flash_attention_lse,",
+    "-                    diagnostics=None):",
+    "+                    diagnostics=None, query_gain=None):",
+    "     \"\"\"Return native Comfy [B,N,H*D] format; optionally redistribute ref mass.",
+    " ",
+    "     mass_preserve: O + alpha*m_ref*(O_aligned-O_ref).",
+    "@@ -221,8 +221,17 @@\n",
+    "         raise ValueError(\"expected equal single-batch [B,H,N,D] self-attention tensors\")",
+    "     if q.shape[1] != heads or any(x.device != q.device or x.dtype != q.dtype for x in (k, v)):",
+    "         raise ValueError(\"head/device/dtype mismatch\")",
+    "+    if query_gain is not None:",
+    "+        from .mask import QueryGain",
+    "+        if not isinstance(query_gain, QueryGain) or mode not in (\"native\", \"mass_preserve\"):",
+    "+            raise ValueError(\"query gain requires validated mass-preserve/native mode\")",
+    "+        qa, qb = plan[\"query_interval_half_open\"]",
+    "+        gain, gain_indices = query_gain.on(q, qb - qa)",
+    "+        if query_gain.all_one:",
+    "+            query_gain = None  # Exact sealed Full path, including operation order.",
+    "     full, full_lse = attention(q, k, v)",
+    "-    if mode == \"native\" or (alpha == 0 and mode != \"diagnostic\"):",
+    "+    if (mode == \"native\" or (alpha == 0 and mode != \"diagnostic\")",
+    "+            or (query_gain is not None and query_gain.all_zero)):",
+    "         return full.transpose(1, 2).reshape(1, q.shape[-2], heads * q.shape[-1])",
+    "     qa, qb = plan[\"query_interval_half_open\"]",
+    "     ra, rb = plan[\"reference_video_segment\"]",
+    "@@ -248,7 +257,14 @@\n",
+    "             attention=attention)",
+    "         if mode == \"mass_preserve\" or mode in VALUE_SPLIT_MODES:",
+    "             correction = mass.unsqueeze(-1) * (aligned.float() - ref.float())",
+    "-            changed = (old.float() + alpha * correction).to(old.dtype)",
+    "+            if query_gain is None:",
+    "+                changed = (old.float() + alpha * correction).to(old.dtype)",
+    "+            else:",
+    "+                changed = old.clone()",
+    "+                active = (old.index_select(2, gain_indices).float()",
+    "+                          + alpha * gain.index_select(2, gain_indices)",
+    "+                          * correction.index_select(2, gain_indices)).to(old.dtype)",
+    "+                changed.index_copy_(2, gain_indices, active)",
+    "         else:",
+    "             # Do not recover O_other by subtracting bf16 attention outputs:",
+    "             # O-m_ref*O_ref is ill-conditioned when m_ref is near one. Obtain",
+    "@@ -272,7 +288,11 @@\n",
+    "                     original_values, values, component_mean,",
+    "                     alpha * correction, component_finite)))",
+    "             diagnostics.append(stats)",
+    "-        full[:, :, qa:qb].copy_(changed)",
+    "+        if query_gain is None:",
+    "+            full[:, :, qa:qb].copy_(changed)",
+    "+        else:",
+    "+            # No output write at zero-mask query rows; native bits stay in place.",
+    "+            full[:, :, qa:qb].index_copy_(2, gain_indices, changed.index_select(2, gain_indices))",
+    "     elif diagnostics is not None:",
+    "         diagnostics.append(_bounded_stats(old, old, mass, log_mass))",
+    "     return full.transpose(1, 2).reshape(1, q.shape[-2], heads * q.shape[-1])",
+    "@@ -424,7 +444,8 @@\n",
+    "         mode = state.mode if active else \"native\"",
+    "         stats = []",
+    "         out = route_attention(q, k, v, heads, self.plan, mode=mode, alpha=state.alpha,",
+    "-                              radius=state.radius, time_offset=state.time_offset, diagnostics=stats)",
+    "+                              radius=state.radius, time_offset=state.time_offset, diagnostics=stats,",
+    "+                              query_gain=getattr(state, \"query_gain\", None))",
+    "         if state.mode == \"native\" and self.block == 25 and state.forward_index in (6, 10, 14):",
+    "             schedule = state.audit.get(\"sample_sigmas\")",
+    "             if not isinstance(schedule, list) or len(schedule) <= state.forward_index:"
+  ]
+}

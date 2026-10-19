@@ -1,0 +1,30 @@
+R98 单条 Native CPU准备/被动部署；未启动GPU、服务或watcher。
+
+本地 /Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019
+远端 /data5/researcher/h3_runs/timing_flexiact_character_repair_r98_20261019
+74文件seal SHA35f4d47556b6bb87ff377dba717aedb271a816ef2e592b912d63e574b6caa9bf
+P1完整文本SHA99d113ec92b955cb9b4938dcbc0392b32808e907f156248ac7fe476475655cfd。
+审查入口 README.txt、audit/PARENT_DIFF.json、design/TASK_ACCEPTANCE.json。
+
+计划GPU3 UUID GPU-REDACTED / port8562。
+先要求 R85 最后 rotate forced 成功，原service16003/start2634847475精确/proc和CUDA释放，cleanup同PID确认；再fresh free>=40960MiB、normal reserve8、当前最多2张自有GPU。peer-root使用届时真正活着的另一路服务目录，精确核UID/start/cmd后登记；未授权进程拒绝，不碰其他人。
+
+root显式启动（仅root审查后）：
+cd /data5/researcher/h3_runs/timing_flexiact_character_repair_r98_20261019
+nohup python3 -u audit/root_run_native.py --execute --attempt root_character_repair_attempt1 --peer-root /data5/researcher/h3_runs/ACTUAL_LIVE_PEER_ROOT > audit/root_character_repair_attempt1_wrapper.log 2>&1 < /dev/null &
+无同机活peer时省略 --peer-root。实际R85释放前运行会拒绝，不自动takeover。
+
+只提交r98_human2animal_1__game_man_4_seed2026101701_native，20Euler/20NFE/0时序路由。readonly HTTP未知继续观察，原任务/服务期限14400/18000秒保持；POST不重试。完成自动exact释放，再CPU verify_native.py；收据 analysis/postrun/NATIVE_RUNTIME_GATE.json 和 audit/<attempt>/ROOT_EXIT_RECEIPT.json。
+
+旧R66 .41→新R98 .9运行环境不同；只声明任务修复复验，不声明prompt-only因果。唯一科学图差异是prompt；原文件、shape、seed、sigma和参考图尺寸不变。
+原AVnoise archive已在design/R66_ACTUAL，SHAaa10316e74d49ed5a92fa96eefd26e3c42d569bd61a202b9d5d48744a3307446，启动前复制到新audit缓存并严格核验。
+独立预冻结host9 CPU解码SHA067810ffcaeb8e42aad48ccf6f71b4885058261668d8bf92f43ff52dd1deb9a3。
+旧角色失败的实际审阅已放 design/HISTORICAL_QUALITY_REVIEW.json，只供验收参考，不进入控制。
+
+依赖沿用.9现成环境：
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+core /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+runtime_deps /data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps
+models /data5/researcher/ComfyUI/models
+实际目标CPU核验凭据 audit/TARGET_CPU_VERIFIED.json；81tests、9core文件、4inputs、历史AVnoise真实tensorhash及Comfy CPU imports，均不得以本地模拟代替。
+预计新增约2GiB，启动磁盘余量>=6GiB；大型condition/x0留远端。

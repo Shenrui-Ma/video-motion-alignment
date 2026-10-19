@@ -1,0 +1,66 @@
+R9: two-consecutive-aligned stopping baseline
+
+Purpose
+The R6 guided-x0 controller opened at zero-based index6, then stopped after one
+aligned endpoint and did not repair the final result. This R9 tests a cheap
+ordinary stop-confirmation rule before crediting a more expensive native-first
+controller. MotionEcho, Adaptive Guidance and PAG/CAG are reviewed in the frozen
+R2 query_time_posterior_gate_review.txt section6; this baseline makes no novelty
+claim. A result on this known failure case is not independent validation.
+
+Only scientific change
+The original next_decision function is byte-preserved. next_hold_decision calls
+it and adds a streak only when the prior active flag is true and the accepted
+lag is in[-2,2]. First such callback keeps guidance on; second stops and resets.
+Lag>=4 opens/reset; lag3 preserves active/reset; unknown or lag<=-3 closes/reset.
+If already inactive, near-zero stays inactive. Callback19 records a proposed
+decision but cannot mutate actual state or streak. First observation5 can only
+control forward6. All50 blocks in one forward share the latched decision.
+
+Observer, Full alpha1 radius0/mass-preserving operator, source50..65 event window,
+all49 lag hypotheses, all thresholds, geometry1312x736x141 at24fps, seed2026101311,
+reference/identity/prompt, 20Euler updates and model weights remain the R6 ones.
+The graph differs from R6 retry1 only in run ID and owned directories.
+
+Observational amendment, frozen before new outcome
+Independent H3X0Readout saves indices[5,6,7,8,9,10,15,19] and sampler_final.
+Its only code edit is the CAPTURE_STEPS tuple. It copies tensors after each
+forward, never changes them or feeds extra observations to the controller.
+Original and amended protocol files are retained with their relation recorded.
+No output videos, target tensor blobs, or pose analysis were copied into R9.
+
+Validation completed locally
+41 unittest tests pass. They cover all hold/reset boundaries, causal prefix,
+single-forward/50-block invariants, terminal no-mutation, fixed-mask replay,
+off/native equivalence, original observer AST/hash, graph and runtime isolation,
+occupied selected GPU rejection, own-job cap, other-user allowance, cleanup PID
+identity checks, historical warmup evidence, and expanded vs original recorder
+common video/audio x0 and final tensor exact equality. Sampler callbacks, noise
+and RNG are preserved. Python sources compile. No dependencies installed.
+
+Real Comfy CPU integration prepared, not yet executed for R9
+tests/feedback_wrapper_smoke.py uses actual ModelPatcher.clone, graph-node-loaded
+Guider_Basic alias, WrapperExecutor, Euler, H3 normalization and H3X0Readout.
+Tiny fake DiT attention avoids loading weights/GPU. Expected controlled mask is
+[6,7,8,9,11,19]. It tests both wrapper orders, nested callbacks, off/native exact
+equality, same-mask feedback/fixed exact equality, and original4/expanded8 capture
+common endpoint/final exact equality. Root must run after upload before inference.
+
+Runtime and warmup
+Owned remote /data3/researcher/h3_runs/timing_hold_control_r9_20261016,
+port8470, GPU1 UUID GPU-REDACTED.
+One sealed formal job r9_s05_hold2. No GPU process started by this builder.
+launch_remote.py validates immutable archived R6 warmup before starting service:
+successful executed graph/history,80.8s/it<100,log-derived timing,model hashes and
+unchanged backend code. Warmup came from the first R6 attempt whose later formal
+job failed the Guider alias check; the successful warmup had no feedback wrapper.
+This is historical backend readiness, not a promise of current speed. Existing
+service/supervisor/controller/watchdog preserve strict PID ownership cleanup.
+
+Root acceptance gates still outstanding
+Upload and verify bundle; real Comfy CPU smoke; current GPU/own-process admission;
+formal inference; actual conditions/noise pair equality; x0_step005 native prefix
+match; causal decision audit; independent final pose/shape/tail comparison with
+R6, R2 Full and native. Report actual active indices, sigma dose and all costs.
+If hold succeeds it supports a cheap stop-memory explanation on this instance.
+If it fails it only rejects this fixed two-observation rule here.

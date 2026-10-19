@@ -1,0 +1,47 @@
+R97 — short_0358 同bin固定引导延长至最后预测步
+
+范围
+只新增1条输出 r97_short_0358_seed2026101701_extended。
+原R89同host已有Native与fixed6..14，本包沿用完全相同P1-local-v1、原视频、seed2026101701、107total/105valid、1312x736@24、20Euler/CFG1、video12/audio3 sigma、noTurbo及6个数值源文件。
+唯一科学图字段：50.inputs.step_end从15改20。实际路由应为indices6..19×50层=700，NFE20，alpha1，全部有效物理时间bins/allspatial；不增参考mass、不新增观察器。
+这是已知固定schedule控制。延长尾部区间同时增加总干预剂量，不能独立归因为位置或剂量，更不作为架构创新。
+
+位置/资源
+local /Users/researcher/DevProjects/h3-timing-ive-glasses-schedule-r97-20261018
+remote /data5/researcher/h3_runs/timing_ive_glasses_schedule_r97_20261018
+host H3_SERVER_A，直接SSH；UID1016；GPU0 UUID GPU-REDACTED；port8561。
+python /home/researcher/miniconda3/envs/comfyui/bin/python
+core /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+normal / reserve8，启动实际free>=40960MiB，own GPU最多2张。当前尚无R97服务/推理。
+
+父证据
+冻结R89 short0358配对gate963d11b3e95861cf55801ad037140794fbaa58159f0b5522eebdfcdccccc924c；本地design/R89_ACTUAL保留原件及小记录。
+父gate批尾仅top-level created_unix可变；canonical其他字段逐项一致，实际父图、job/history、condition/noise/sharedmanifest、x0manifest、服务记录和seal均固定SHA。
+父噪声cache SHA789250cdd8405a4c69a756d9c8c239868387b6fa200403285d2b79eeb6cdfe5f。root wrapper在CUDA前从R89复制至本包独立cache并再次验SHA。
+6个数值模块的parent/current SHA：configs/runtime_kernel_hashes.json。原输入SHA：configs/input_hashes.json。
+
+前缀核验含义
+H3X0Readout/core.py:150–191在原Euler callback保存本步模型预测x0，step i对应第i+1次模型调用，位于该步Euler更新前；保存坐标为process_latent_out后（video恒等，audio/4）。
+新输出与R89 fixed所有条件（含文本embedding/packedlayout/原始RGB/cleanVAE/Qwen采样）、初始AV噪声必须相同。
+真实video/audio x0预测0…14必须torch.equal；index15才允许分叉。文件metadata含run_id所以不能拿跨run文件SHA替代张量比较。父15份文件SHA事先绑定；完整新20份+final都验形状/finite/metadata/sigma。新旧同GPU/core/profile保证核验有意义，实际执行仍须通过gate。
+
+root启动前置
+R89 final0178forced history success，原service36315/start2635074861的PID和CUDA均消失，原cleanup收据完成。wrapper只核验，绝不停止R89。
+另一条.9活服务需以当前真实root传入--peer-root；动态验证PID/UID/start/cmd并在preCUDA ready之后双向登记。本包不能自动接管旧服务。
+命令（root确认前置和当前peer后运行；peer参数按实际存活队列填写，若无另一路则省略）：
+cd /data5/researcher/h3_runs/timing_ive_glasses_schedule_r97_20261018
+python3 -u audit/root_run_control.py --execute --attempt root_extended_schedule_attempt1 --peer-root /data5/researcher/h3_runs/ACTUAL_LIVE_PEER_ROOT
+
+wrapper执行父证据/噪声绑定→fresh资源准入→service-only→root exact identity peer登记与GO→单输出→精确释放PID/CUDA→CPU verify_control。
+HTTP只读UNKNOWN保留原deadline，POST不重发；job14400秒、service18000秒；失败收据与exact-owned cleanup独立。重试必须保留旧attempt另行审核，没有自动重跑。
+直接停止仅限本包的service.stop精确owner流程；正常root wrapper自动收尾。
+
+结果与验收
+actual gate analysis/postrun/CONTROL_RUNTIME_GATE.json；任何前缀/条件/计数false都不能作为配对有效结果。
+三事件人工边界仅评估：源降瓶14–18/到嘴37–40/离嘴80–84；Native28–33/50–53/94–97；原fixed22–26/47–50/94–97。重点看最后离嘴能否提前，同时检查左侧男子眼镜、身份、场景及瓶子/手臂伪影。
+design/EVENT_REVIEW.json SHA d0f0823e1945729ad9f9fb242b62b5be7660385323722960c5a5e259ecef847b。任何边界都未进入图/控制器。
+本包无新增consumer/评测矩阵。actual output通过执行gate后由root做完整105帧及事件展示。
+
+实际准备核验
+70文件seal 269b239abd7922a958e11732f8153663739a644db23a189d2c0ddc0fe0ee2c0e；本机64项通过＋5项Torch用例待target；实际.9共69项全部通过，无skip。3原输入SHA、9核心SHA、实际PTS、CPU导入、15份父x0文件SHA全部通过。记录audit/TARGET_CPU_VERIFIED.json。
+实际GPU执行、条件/前缀逐位复验与动作效果均等待root启动后取得。

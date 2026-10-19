@@ -1,0 +1,19 @@
+R115 独立 consumer：两个新 operator，沿用 R96 普通编辑。
+
+producer seal: 4180fb11f8011b3f8fb5c0ef219d08b77aa3511d5a98848216d46c2559ad3b5f
+consumer freeze: 7f53fb9a8aaf4d5bb09a14fd5a16adf7687f5ffc0e4c7efe191be08cc38950f5
+52 CPU tests passed (37 contract/media/review/cache + 15 geometry).
+
+实际输出与release齐备后（本consumer无GPU启动入口）：
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py --attempt <actual_root_attempt>
+
+只读远程聚合gate、精确释放、2视频、job/history/router和两套50层bank indices/metadata；不拉x0或condition tensor。
+接收后生成4列source/R96 Native/fixed_one_bin/matched_one_bin，以及3列source/R96 Native/matched_one_bin；1312×736输入一致crop16,8,1280,720，145有效/158总@24fps，全29页逐帧审查。黑底中文下caption。Downloads仅在实际绑定通过后发布。
+
+configs/PREREGISTERED_EVENTS.json：源47–53女子绕到男子身后，56–60另一侧出现，81–87男子转身并抬臂（联合事件）；末135–144持书手臂向右展开。历史R96/R107标注单独归档。新审阅含基础编辑、动作内容/幅度、事件、画质；ALTERED/UNKNOWN/NOT_COMPARABLE不数字化；仅时间变晚不自动判基础任务失败。
+
+官方IVE MF：source/R96 Native同145像素帧和crop、同checkpoint/官方设置已核对，可复用已绑定原轨迹与Native0.9424339285679327。两个新operator只CPU准备lossless输入，实际跟踪等待root排GPU。所有runtime来源保留。
+
+match_geometry_review只作对应诊断：源CoTracker参照、全图和固定源帧可见点子集分报，含覆盖/UNKNOWN分母；非GT，不是生成动作保真分数。source代表帧按位置bin选取，不称VAE精确感受野。root的viewer另负责交互查看，无重复大tensor拷贝。
+
+当前状态：CPU就绪，两个新成片与实际gate待到达；无新结果、无GPU。

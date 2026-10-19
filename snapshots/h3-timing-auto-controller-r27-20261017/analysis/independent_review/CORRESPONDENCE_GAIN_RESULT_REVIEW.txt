@@ -1,0 +1,9 @@
+R27 correspondence-set worst-gain screen — PASS, bounded negative result
+
+The recorded script SHA002e85a9f29686bd25236671646f8ed9df1bfd60e4079c67ccb483d444528fd3, prerequisite RESULT, original pairwise_gain/timing_metrics imports and source pose hash all match. The additional align/CONF implementation is the frozen physical_tolerance module; its SHA is separately bound in this review.
+
+The separate version genuinely reuses each original candidate/null triple's common-support gate. The unified version intersects source, every candidate and all five nulls, then uses one minimum clipped-confidence weight field for all costs. Its minimum gain over every candidate/null pair is the intended worst-case quantity. Coverage>=.8,8 valid frames, residual<=.5 and strict gain>.5 are unchanged. Three boundary-containing sets remain ineligible/UNKNOWN rather than being rescued.
+
+Result: zero accepted sets under either version at both confidence thresholds. Unified support has24 measured threshold cells and2 support UNKNOWN; the largest measured worst gain is0.25897402385499996, below.5. In fact all13 confidence.3 unified cells are measured and below threshold, so the zero result is not caused solely by stricter.5 visibility or boundary exclusion. Keep those two UNKNOWN and three boundary flags in reporting.
+
+Five array tests cover known cost/weight, equal zero cost, insufficient support, residual rejection and candidate-order invariance. I reviewed source and saved outcomes without rerunning NumPy, pose or GPU work. This says the13 correlated descriptors in this one already-controlled development trajectory offer no new window that can be rescued by direction agreement while retaining the frozen gain rule. It neither rules out useful correspondence sets elsewhere nor motivates lowering the threshold on this trajectory. Closing this branch with its negative evidence is supported. Producer and controller stay unchanged.

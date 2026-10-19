@@ -1,0 +1,73 @@
+FlexiAct physical-time runner：独立只读验收审查
+日期：2026-10-17
+
+结论：数值调用及直接 pose/video 身份链可以保留；实际 generated intake 尚需完成 sidecar 验收闭包，当前只通过 metadata 单测不能作为实际样例验收 PASS。建议窄修下面两个接口问题后准入，不改评价器、阈值或样例集合。本次只读取文件/计算 SHA，未执行测试、pose、评分、模型、远端命令或 GPU。
+
+1. 已成立的绑定
+
+run_pair.py:73–76 强制 human/{chest,crouch,fitness,one_leg,rotate}/000 × [native,automatic] 的十条固定有序记录，缺漏、重复和重排不被接受。143–147 只选择指定 pair，并要求其两方法均 complete；其他 pair 仍可 pending。这是逐 case 执行与完整分母保留，不能把未完成项从最终五例分母删除。
+
+104–125 分别校验 R49 Native/R50 Auto 的预期 run_id、official_pair_id、full158 字节及路径、released49 字节与 mapping。复用的 official runtime v3 validate_generated_binding 校验 full158 父文件、0,3,…144 / j/8 映射、排除尾部 padding 和原49源 SHA。source_pose 校验 prepared158 原片及固定原片逐帧映射。validate_pose 进一步固定完整158、1152×768、24fps、提取范围、COCO17 顺序、人物索引和完整模型/脚本/运行 provenance；numeric v2 再拒绝非有限时间及选中人物的非有限/畸形坐标和置信度。因此，直接拿另一视频的 raw pose、改方法/run_id 或改源49，现有门会拒绝。
+
+本地数值 FREEZE 的5项与 official runtime FREEZE 的56项逐 SHA 均匹配；本次未重审数值公式。完整158 pose 经冻结评价器抽0,3,…144并按8fps重新形成特征，重复帧和147–157 padding不进入本项统计。它是补充姿态物理时间评价，不是官方 Motion Fidelity 分数。
+
+2. [P2，实际 intake 前修] COMPLETE/PROVENANCE 仅作为不透明文件被 hash
+
+run_pair.py:122–125 只调用 artifact，不读取 COMPLETE/PROVENANCE。142–147 也不核 generated MANIFEST 的 schema/protocol_sha256/code_freeze_sha256。于是正确的视频与 pose 可以配上另一 case/method 的 COMPLETE，或 status=failed 的凭据；只要该 record 同时填写对应文件的真实 SHA，这些凭据会被接受。SHA 一致只证明“这是所指文件”，未证明它完成了本次提取。这不是已经观察到数据污染，也不绕过 raw pose 的视频强门，但会错误建立 complete 来源与执行费用证据。
+
+已经存在更强接口：flexiact_generated_pose158_20261017/manifest.py::verified_record 检查 COMPLETE 身份、code freeze、同目录精确库存、PROVENANCE→INPUT_BINDING→pose 的 SHA、method root、真实 postrun CASE_FILES 和拷贝的 METRIC_INPUTS。contract.py::validate_metadata 还检查固定 target portrait SHA；当前 wrapper/official v3 仅直接约束原视频源，不直接约束目标身份 SHA。故不应仅凭 wrapper 的字符串 pair_id 宣称完整官方 source/target pair 已独立验收。
+
+最小修复：待生成 sidecar 封存后，在 CONTRACT 固定其 PROTOCOL/FREEZE；导入已冻结的验收函数或等价小接口，重建所选两条 verified_record，再与传入记录逐项匹配。至少核 COMPLETE 的 status/pair/source/method/code、精确输出库存与 pose/PROVENANCE/INPUT_BINDING，PROVENANCE 的 pose及input-binding摘要、协议，INPUT_BINDING 的真实 run/full158/metric/mapping；并保留固定目标图 SHA与方法根门。可复用已有逻辑，不需要另造 pose schema 或重跑 pose。
+
+source sidecar 同理：source_pose:79–101 当前核 aggregate.status/protocol 与所选 pose/video，却未消费 aggregate.code_freeze_sha256/producer_manifest_sha256、该项 complete_sha256/provenance_sha256。R49 source finalize.py 已负责完整五源及每源 COMPLETE/库存。runner 应固定该 finalize 对应 source FREEZE，并验证所选 COMPLETE/PROVENANCE 到 aggregate 的链；或使用预先验收并绑定 SHA 的不可变 aggregate 快照。不要只把自填 status=complete 当作 finalize 实际执行证明。源 pose 的完整 runtime provenance 和映射强门继续保留。
+
+针对性测试应增加一条真正成功的 generated_pose/完整 sidecar 合成链，然后分别交换 COMPLETE、改 failed status、改 code/protocol、交换 PROVENANCE/pose、改 target SHA、改 method root、缺少 INPUT_BINDING/库存成员。现有4项测试覆盖顺序、raw pose、文件损坏及早期方法拒绝，尚未走通上述成功链。仅把这些字段写进 schema 文档不足以替代执行校验。
+
+3. [P2，输入证明] 记录“实际读入的 manifest”摘要
+
+main 在142/144读取两个 manifest，到154才重新计算它们的文件 SHA。生成侧 manifest.py::assemble 允许随10条记录完成而原子更新 MANIFEST；若运行期间它更新，输出会包含旧 selected 内容与新 manifest 摘要。即便所选两条不变，这个摘要也不能重现当次完整输入。
+
+最小修复：一次读取 manifest 原始字节、计算该字节 SHA 后解析并使用；输出绑定这一快照。若需要引用路径上仍未变化的文件，可提交前再比较该 SHA，变化即退出；或保存输入快照并明确允许其他 pair 进度更新。无需把所有十条完成设为每例评分前置门。
+
+4. 不需要重复的工作与结论边界
+
+无需在 wrapper 再实现 lag 数学或扩展统计规则。原49时间视图、有限值和 shape 已有执行门；本次建议只补 receipt/source/target 身份闭包和 manifest 快照。producer成功/完整归档仍由上游原 postrun gate 负责；wrapper 通过 sidecar INPUT_BINDING/CASE_FILES 接住该证据，不能将自填 run_id 代替实际产物验收。
+
+status=complete 应解释为“这个固定 pair 的绑定及冻结评价计算完成”。它不表示 Auto 有效、pose 语义正确、人物选择无误，或任何时序指标 qualified。应逐窗/特征/置信阈值保留 UNKNOWN、低覆盖、提前与延后，不把可见窗口数当独立样本；完整五例结果未齐时报告 completed/5 和 pending/failed。CPU seconds 当前只计 evaluate 调用，不包含 sidecar提取、视频哈希、I/O与生成，不能直接作为端到端效率。实际 generated intake 尚未发生，当前没有新科学结论。
+
+审查版本（后续修改需差分复核）：
+run_pair.py ba77116e4d80b29ad361aef0ecb9812453308d8a83fce82768c07c74117b571a
+CONTRACT.json 80cbc86f2f1b8aacb242d42a8d8374825b917f9650a2c37eea553b85fa60e58d
+test_binding.py 36eba421a0a191049586fe3eb6eeffd218958cd48a91e67a1b42b213291cd638
+numeric FREEZE 59665ac91affbc67d932ae961bcf0571c05e67fb3eb36e066d02b3c1b0771a4c
+official runtime FREEZE fa573e2065d1c140ef232513d73b909d2aa2902046d4a9becf609a6e549ad580
+source sidecar FREEZE 7c3d453d91012a455ace9a910cd0e699bf68c4111a3fac79bd980bc6ee18c4d9
+source sidecar PROTOCOL 5799f74cd490ce867cb33e9ad7a335285f206d48dc63b7db4c5a0cdb9a83cfea
+generated sidecar 当前 manifest.py 177ba9f4d20d0429c068102f0f80303f987cb23e05023725f5c5686d8ca85dd5
+generated sidecar 当前 contract.py 399bafa1c1f26385927b9109420bdf990cfdcfcaad8783c66756212228da8a87
+generated sidecar 当前 PROTOCOL 0f23c54cc92cabd1eb21da4c95c7386e07638f7e328f02ca9445508de6b28dda
+后三项为本次读取的施工接口，不预支其最终封存或实际执行 PASS。
+
+
+窄修复核追加 — 2026-10-17
+
+结论：PASS，允许进入实际所选 pair 两方法均完成后的冻结评价。原两项 P2 已闭合；实际 generated intake/科学结论仍待真实产物，不预支成功。
+
+1) main 现在先核生成 sidecar 固定7文件 FREEZE 与协议，再逐条调用冻结 manifest.verify_supplied_record。该入口从实际 COMPLETE/精确库存/INPUT_BINDING/PROVENANCE/父 CASE_FILES/原始pose重建 record，除可变 local_paths 外全部字段逐项等于所供记录。合同包含源、目标图SHA、方法root、runID和full158/release49身份，覆盖此前单纯hash凭据的问题。当前7项实际SHA全部匹配；TEST_ATTEMPT003退出0并绑定当前manifest.py，23项验收测试由作者执行，本复核未重跑。
+
+2) source main核固定 FREEZE，source_pose核aggregate code/protocol、所选COMPLETE的complete/source/code、精确库存与每项SHA，PROVENANCE的pose/video/input mapping/code/protocol/完整pose provenance。原source映射和raw pose强门继续存在。无需为此更改数值评价或重复提取。
+
+3) snapshot一次读取manifest字节，立即保存该字节SHA与解析内容；评价与结果使用同一快照。后续其他pair的assemble更新不再错绑本次证据。固定10记录顺序、所选两方法complete要求不变。
+
+4) wrapper源码5项测试包含新的snapshot更新负例。SOURCE_INTAKE_REAL记录五源158实际intake PASS、无评分，runner SHA8259e4a9…、contract3911e769…为此前版本；不将该记录冒称当前runner所有路径的端到端实测。当前新链首次真实 generated pair仍需普通实际执行验收。status complete、UNKNOWN、五例分母、compute-only计时解释沿原审查保留。
+
+本次复核版本：
+run_pair.py 32940d7269adfa39f0cd6aa45148300289d43fed220471287417ad765b94414e
+CONTRACT.json 63fd2bc9299d7a9adebe03e3830dfeab0937d289cc00ab5441f91b47fb0e7c08
+test_binding.py fc90eba637c1ed1ecd7092d86bd2207b70f222c8d0e9133ffa7a55d4ebce41b8
+generated FREEZE fcbe505f896d97fd4119722a7966126760628536321d776689d644dcff45de55
+generated PROTOCOL 0f23c54cc92cabd1eb21da4c95c7386e07638f7e328f02ca9445508de6b28dda
+generated manifest.py 8e964913208ecba68532f0fbd5cd2472c0883203b16a8bb673aa6ec6d6b77d86
+TEST_ATTEMPT003.json 649dfb257c25e0fbf9d884209d3217e648767355a88d483a48d4bf0f2a45b99c
+SOURCE_INTAKE_REAL.json bdd505cf21d7a34014ea8dcbbfe10ce47cc78a936654e11eb138b5bcfeb05569
+数值/official runtime冻结SHA与第一轮相同。本次仅读取和hash；未启动测试/pose/评分/GPU。

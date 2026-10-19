@@ -1,0 +1,38 @@
+R27 query support prerequisite — completed CPU-only diagnostic
+
+Frozen before target pose coordinates: protocol 2ac2c8460ee2a7a11298732ef5b3d814d15713205dc22651d0b9ed977b8a26f4
+Freeze 912716328444b21c8cd44c3e37cf56217a2b6078874b481fa50de67c34919846
+17 synthetic tests passed. Actual attempt1 exited on busy shared CPU lock before reading targets; attempt2 completed in 1.145611s, one local NumPy thread, then released lock.
+No model/GPU/pose/VAE run, attention code, controller change, radius tuning or threshold tuning.
+
+Main finding: the additional swept interior has little independent support at the actual943-row grid. Of14 computable bins (13 complete geometry+1 partial), matched endpoint-union and sweep are exactly equal in10; their positive supports coincide in13. The only support mismatch is index4/bin17: IoU.945946 with36 positive rows; the continuous-sweep bound also permits one additional boundary row there. Maximum normalized coefficient L1 difference is.020987. These are descriptive comparisons, not a predefined statistical equivalence test.
+
+Geometry availability: index3 and4 each16/16 physical frames pass strict.5 source+target shoulder/hip/left-arm requirements. Index5 has11/16. Frames52/53 reject target left_elbow;54/55/56 reject target left_wrist. Bin16 has no valid geometric frame and isUNKNOWN. Bin17 uses57–59 only and remains partial; frame56 is not interpolated. Bins13–15 are complete. All controls use precisely the same valid frames.
+
+index bin  state                 K    sumalpha   unionIoU    unionL1/sumalpha  sourceIoU  currentIoU
+    3  13  geometry_supported   26    18.31933   1.00000          0.000000    0.92593     1.00000
+    3  14  geometry_supported   29    20.43452   1.00000          0.000000    0.75758     0.81250
+    3  15  geometry_supported   28    19.06502   1.00000          0.000000    0.36585     0.80645
+    3  16  geometry_supported   35    26.04081   1.00000          0.000000    0.32075     0.70732
+    3  17  geometry_supported   36    27.32635   1.00000          0.016876    0.24138     0.56522
+    4  13  geometry_supported   27    18.45745   1.00000          0.000000    0.86207     0.86207
+    4  14  geometry_supported   29    20.78309   1.00000          0.000000    0.75758     0.81250
+    4  15  geometry_supported   29    19.37660   1.00000          0.000000    0.38095     0.81250
+    4  16  geometry_supported   36    26.41242   1.00000          0.000000    0.33333     0.67442
+    4  17  geometry_supported   36    27.24737   0.94595          0.020987    0.22034     0.60000
+    5  13  geometry_supported   29    18.34156   1.00000          0.000000    0.81250     0.93333
+    5  14  geometry_supported   30    22.32104   1.00000          0.000000    0.87500     0.81818
+    5  15  geometry_supported   30    20.32608   1.00000          0.001328    0.53846     0.76471
+    5  16  UNKNOWN
+    5  17  partial_geometry     35    23.93843   1.00000          0.000127    0.89189     0.84211
+
+What is different: body-coordinate alignment/current geometry substantially changes support compared with raw source location. At index4/bin17, equal-budget raw-source dilation has IoU.220339 to the aligned sweep and zero mean alpha on the current two-bone proxy; endpoint union and sweep both give mean alpha1 on current/desired proxies. Current-target-only ROI has IoU.6 and desired-proxy mean alpha.8366 there. This is a geometric distinction under the chosen pose model, not proof of correct anatomical geometry or video improvement. Desired coverage is partly built into the construction.
+
+Actual scale fit spans .9368–1.1253; anchor RMS residual spans2.406–11.315px. The test did not retrospectively reject large residuals. A non-reflective similarity cannot remove 3D viewpoint/foreshortening or a wrong torso phase. It anchors the reference-relative arm at the current shoulder; this intentionally does not repair delayed torso/legs. Upper-arm+forearm support differs from R16 forearm-only scope, so no direct cross-run efficacy attribution is made.
+
+Numerical and coordinate audit: coordinates are pose xy+.5 and token centers32*(c+.5,r+.5), covering23×41 rows. Physical44..59 overlaps nominal bins13..17; bin13 nominal43..46 is restricted here to44..46. No claim is made that these nominal bins equal exact VAE receptive fields. All masks use integer-frame union, without the interpolated span-center point used by old R16. Float64 is diagnostic, not a model-side implementation.32/64px cosine falloff was taken from actual R16 code; earlier prose saying linear is corrected here.
+The257-sample sweep has a conservative distance-to-continuous-sweep error bound. Aligned max per-bin bound is.187641px and max alpha interval width.008446. Positive-support bounds differ by one row in index4/bin17 and index5/bin14, and nowhere else. The continuous bound cannot make a broad independent interior-support argument from the small endpoint-union differences. Exact alpha histogram matching is verified for every control, preserving K andsumalpha; m_ref-weighted dose/correction norm are unavailable and are not claimed equal.
+
+Interpretation: the precondition for a reliable current/desired support comparison exists at indices3/4; it breaks partially at5. The narrowly proposed extra swept interior is largely redundant with simpler endpoint union in this window. Do not launch a separate sweep arm solely on these data. A simpler current/body-aligned endpoint-union hypothesis remains geometrically testable, but it is close prior art and requires its own causal quality/timing comparison against equal-budget current ROI/source dilation and Full. Root decides after the ongoing final results.
+
+Limitations: this is one already-known failing trajectory and a fixed window selected from its actualON decision. Index3/4 native endpoints precede the actualindex4Full update; index5 native endpoint comes from the controlled state after that update. They are not three independent videos or three untreated baselines. Keypoint confidence>.5 is not a calibrated correctness probability. Latent query rows have contextual receptive fields, not guaranteed body-part ownership. Mean bone alpha cannot establish ghost removal, identity preservation, correct desired pose, whole-body coordination, or an automatic spatial controller effect. Partial/UNKNOWN are retained; no masked-attention operation was executed.

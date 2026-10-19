@@ -1,0 +1,45 @@
+当前状态：GPU0 CPU准备与被动部署完成；root最新决定暂缓GPU执行，admission=false。详见audit/gpu0_migration/FINAL_REPORT.txt。
+
+R75 — source51310 / Sam Altman 提示协议对照
+
+准备状态
+两条 fresh Native：r75_source_51310_seed2026101701_p0 → r75_source_51310_seed2026101701_p1。
+Local: /Users/researcher/DevProjects/h3-timing-source51310-prompt-pair-r75-20261018
+Remote: /data5/researcher/h3_runs/timing_source51310_prompt_pair_r75_20261018
+Host: H3_SERVER_A，SSH jump H3_SERVER_B。
+GPU0 UUID: GPU-REDACTED；port8542。
+当前为 CPU 准备及被动部署；准备者没有启动服务、controller 或 GPU。
+
+科学约定
+原始 source51310 141 帧 1312×736@24，Sam 图片原文件，20 Euler、CFG1、原 sigma/shift12和3、原四个模型、无 LoRA、Native attention、零 routed calls。
+P0 是 R38/R40/R41 的实际短提示词；P1 是此前 CPU 审计固定的六段提示词，加入任务标签与显式 Picture/Video 角色。人物身份来自图片，灰色长袖/深色长裤按任务，动作、时序、镜头、背景来自视频。
+这是 prompt protocol bundle 诊断，不能将差异独立归因于六段式排版。样例属于开发筛选，不是未见 benchmark。
+两次同一新服务/后端，文本 cache 独立；原 AV noise 精确复用。视频 latent[1,24,42,46,82]；audio[1,32,2,235]；一张参考图的 VAE[1,24,1,76,50]，950 visual tokens；视频每 temporal bin943 tokens。
+
+原始噪声
+已将 R38 原 noise.pt 在 .9 复制为 audit/r75_source_51310_seed2026101701_noise.pt。
+文件 SHA cc5ca30afdd8ae5a8a31d346fc133853d86efc7a0b1fa107102a3f24869f085b，15,271,070 bytes。
+CPU 实读 tensor hashes 等于旧实际记录；见 audit/REMOTE_CPU_DEPLOYMENT.json 和 design/ORIGINAL_NOISE_READBACK.json。
+preflight --live、loader 输入准备都会拒绝缺失/变动缓存；最终 pair gate 再验实际使用噪声，要求两次相同且等于历史噪声。
+
+验证
+producer 本地与 .9 远端各34项测试通过，45文件 seal全部一致，9个实际Comfy核心hash匹配。6个数值实现文件逐字等于R71。
+测试包括实际 endpoint PT/manifest、输入blob、不同文本cache、错误引用段、wrongshape noise、同一新噪声在两次中相同但不等于历史、raw input同改、portrait binding改变、执行计数，以及fork/exec进程登记race。
+consumer 14项CPU测试；只读实际history+PAIR_RUNTIME_GATE，成片等尺寸横拼，黑底中文caption，附6个固定原始时刻[0,28,56,84,112,140]和目标人物原图。
+结果预计写到 Downloads/H3_Source51310_Sam_P0_P1提示协议对照_20261018.html 和 H3_Sam_source_51310_P0_P1完整141帧_20261018.mp4。
+
+root启动
+1. 观察实时GPU0资源并记录身份；至少40GiB实际free。configs/admission.json ready_for_launch=true，scope保留own_user_video_jobs；permitted_compute_processes填仍存活的其他己方精确PID/start/cmdline身份，.9己方最多2卡。
+2. 远端根目录运行 python3 scripts/execution_gate.py approve-first-pair --root-admitted --free-mib <实际至少40960>。
+3. python3 scripts/launch_remote.py --service-only。核preCUDA的PID/代际与service/supervisor登记，向其他活跃peer登记后，将精确cuda_gate_ready.json原子写成cuda_gate_go.json。
+4. HTTP就绪后按已有接口 python3 scripts/start_controller.py --pid <真实PID> --start-ticks <真实start_ticks>。
+5. 两条Native顺序完成，queue.finalize=true，现有controller精确释放本服务。失败保留原证据并精确清理，不自动重复科学运行。
+6. CPU watcher会在两条history成功后验证/归档。手动同等命令：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps /home/researcher/miniconda3/envs/comfyui/bin/python analysis/postrun/verify_pair.py --source source_51310
+实际receipt: analysis/postrun/source_51310/PAIR_RUNTIME_GATE.json，schema r75-paired-runtime-gate-v1。
+
+分析
+先核换人成效、动作内容、背景与镜头保留，再评估时间差。保留R41同口径141帧及confidence0.3/0.5：主窗64–95、次窗96–127、其他旧固定窗和全片扫描；双臂、左右臂和UNKNOWN一起报告。
+旧已核左臂64–95：Native+15、Auto+3、Manual−1；Auto双臂UNKNOWN。此对照验证P1是否已消除旧P0中的偏移，结果将决定后续方法应面对的Native条件。
+
+GPU0行政修订：原GPU1包未启动，旧runtime、seal、consumer及交接绑定完整保存在audit/gpu0_migration/before_gpu1。新的服务、supervisor、controller均使用root/temp_os作为TMPDIR/TMP/TEMP；ComfyUI媒体临时目录仍为root/temp。root在启动任何Python前先mkdir -p root/temp_os，并在shell设置TMPDIR/TMP/TEMP至该绝对路径。数值图、输入、历史noise和所有模型参数保持原封存值。

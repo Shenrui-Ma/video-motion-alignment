@@ -1,0 +1,7 @@
+# R18 CPU-only intake and independent evaluation
+
+Prepared only; wait for root-confirmed actual service identity before starting the unique consumer. No GPU submission or model run by this consumer. Wait61seconds without global CPU lock; do heavy work only under shared local and remote locks.
+
+Accept only r18_s05_full_6to11 exact successful history and exact cleanup record, with archived graph and actual SaveVideo output. Verify50 sealed payload files against manifest SHA17021713d84f5d7a9388f60eaf328b4c4c874efe9fc1fb330718b41aa0008a53, then invoke the frozen official scripts/verify_completed.py. It must pass actual conditions/noise,20NFE/20updates/20callbacks,1000blocks/300route only indices6..11, exact10x0+final inventory, originalR3 capturedprefix5..10, R10chosenFull11 and unchosenNative12 normalized video/audio exact comparison, and exact-service cleanup. Live resources are a separate root gate. Same endpoint12 only establishes first-stop bridge, not final retention.
+
+Frozen independent pose: windows50–65,69–81,80–92,99–111; confidence0.3/0.5; direction/wrist and strict known±2 main criterion, allunknown retained. Fixedframes55/86/105 and unretimed42–82segment. Compare actual native/R12/Full/R18 using four-arm common valid support, plus pre/action/post/tail bins. This is a known development case and a fixed stopping control selected from seen evidence, not an online stop method or generalization proof. Record cost only; no efficiency diagnosis or threshold search. No original sealed file is changed.

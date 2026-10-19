@@ -1,0 +1,35 @@
+R69：R63 剩余四对继续实验 — CPU准备交接（2026-10-18）
+
+状态：本地/远程准备与冻结完成，20项CPU测试通过；未启动服务、controller或GPU推理。实际资源准入由root处理。
+本地：/Users/researcher/DevProjects/h3-timing-ivebench-remaining-r69-20261018
+远程：/data3/researcher/h3_runs/timing_ivebench_remaining_r69_20261018
+主机：H3_SERVER_B（.41）
+计划GPU：7，UUID GPU-REDACTED，端口8538。
+
+队列
+short_0230 → short_0263 → short_0352 → short_0370，每条Native→forced，共8次。输入1312×736×90@24fps，固定seed2026101701，原P0提示词。
+有效帧分别86/74/78/89；评测裁剪仍[16,8,1280,720]。引导沿R63完整90帧/27bin，alpha1、radius0、time_offset0、50blocks、采样索引6–14。这里保留R63全27bin协议。
+原固定5条汇总范围保存在configs/fixed_five_scope.json；short_0210保留先前.9成对结果及已报告的质量失败。本包补另外4条，后续按原5条汇报所有结果。
+
+继承验证
+8个graph仅变实验ID及输出/审计根目录，归一化这些行政字段后与原R63 graph完全相同。6个router/layout/readout/kernel相关文件逐字节相同；模型4项实际路径、大小、mtime匹配已有完整SHA证据；9项实际Comfy核心SHA通过。所有16个输入文件SHA通过，4条实际视频均90帧@24、1312×736、无参考音频。
+CPU测试20项覆盖数值attention小规模oracle、两路条件/噪声/前6步捕获核验与篡改拒绝、错误路由步数拒绝、首对/后续准入绑定、4条数值graph继承、原5条分母保留。证据见audit/CPU_TESTS_FINAL.txt、CPU_PREPARATION_CHECK.json和INHERITANCE.json。
+生成服务依赖路径优先runtime_deps；本次CPU实测Torch2.11.0+cu130、PyAV17.0.0，CUDA未初始化。裸venv的PyAV16与实际服务不同，精确媒体核查请使用同一PYTHONPATH。
+
+冻结
+本地与远程deploy_manifest.json相同，73个文件SHA全部通过。冻结包含CPU pair verifier和固定五条范围。configs/admission.json仍ready_for_launch=false；没有ROOT_FIRST_PAIR_APPROVAL.json、service.json、controller.json。
+首次0230 Native/ON完成后进入awaiting_first_pair_review；最多保留1800秒。其余6次需root approve-rest。最后完成时root通过queue.finalize=true或已有精确身份清理流程释放。失败时原controller保留主异常并释放自己的服务。
+
+root启动顺序（远程root内）
+1. 最新GPU7/端口8538/host RAM/自有GPU进程身份核对；将当前R64 GPU6服务的精确UID/PID/start/cmd身份登记入admission及需要的peer登记，ready_for_launch=true。
+2. python3 scripts/preflight.py
+3. python3 scripts/execution_gate.py approve-first-pair --root-admitted --free-mib <actual-policy-minimum>
+4. python3 scripts/launch_remote.py --service-only
+5. 核service与cuda_gate_ready的精确PID/start/cmd及supervisor；完成peer登记后原样原子复制ready到cuda_gate_go。
+6. 等HTTP准备好，再python3 scripts/start_controller.py --pid <actual> --start-ticks <actual>。
+7. 首对成片后CPU运行：CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps /data3/researcher/ComfyUI/.venv/bin/python analysis/postrun/verify_pair.py --source short_0230
+8. receipt passed并检查实际成片后，python3 scripts/execution_gate.py approve-rest --root-admitted。
+
+CPU消费接口
+成对receipt：analysis/postrun/<source>/PAIR_RUNTIME_GATE.json，schema r69-paired-runtime-gate-v1；字段与R63相同。Native/ON output按history outputs['14']['images']定位。run_id r69_<source>_seed2026101701_native / _forced。
+源图和目标图仍需实际tracker，或有真实byte/hash相同证据的源track复用。每个比较对取R69同host新生成的Native和ON。官方MF、编辑完成度及动作阶段/时刻分别记录。

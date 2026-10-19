@@ -1,0 +1,171 @@
+H3 20-Euler sampling time semantics: local frozen-source audit
+Date: 2026-10-16 (Asia/Shanghai)
+Scope: read-only inspection plus CPU scalar evaluation; no server access, GPU, new graph, or live-code change.
+
+DECISION-USEFUL CONCLUSION
+
+The active ManualSigmas values are already the shift=12 VIDEO sigma schedule. They enter Euler unchanged. MiniMaxH3SigmaShift(12,3) does not apply a second video shift to this manual vector. Its sampling object maps sigma to outer model timestep by multiplication by 1000; the H3 model divides by 1000, derives the AUDIO sigma on shift=3, and builds clean-time labels t_v=1-sigma_v and t_a=1-sigma_a.
+
+Zero-based call 10 (11th model evaluation) uses video sigma 0.9230769277, video clean-time label 0.0769230723, and audio sigma about 0.75. After its callback and Euler update, call 11 (12th evaluation) uses video sigma 0.9075630307, clean-time label 0.0924369693, and audio sigma about 0.7105263. A controller reading callback 10 can first change call 11. Calls 11..19 are nine remaining model evaluations, but they integrate over about 90.7563% of the numerical VIDEO sigma range [0,1]. They are not established as a low-noise tail, nor as the final information-removal phase.
+
+Recommended wording: "activate during the last nine evaluations of this fixed 20-call shifted schedule, starting at sigma_v=0.907563, after the first usable x0 readout at call 10." If abbreviated, say "call-count suffix" or "late-call intervention", explicitly defined. Do not equate this with late denoising in a model-independent noise/information sense.
+
+1. Evidence and provenance
+
+Root: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+Graphs inspected:
+  configs/s05_full_seed1_native_x0.json
+  configs/s05_full_seed1_mass_late11_x0.json
+Both use node 41 MiniMaxH3SigmaShift(video=12,audio=3), node 8 KSamplerSelect(euler), node 9 ManualSigmas, node 10 SamplerCustomAdvanced, and BasicGuider. The diffusion checkpoint is minimax_h3_ref2va_pruned_int8_convrot.safetensors. No schedule-generation node sits between ManualSigmas and the sampler.
+
+Runtime corroboration:
+  audit/x0/s05_full_seed1_native_x0/manifest.json
+  status=complete, sampler=sample_euler, callback_count=20, audio_scale=4,
+  capture steps [5,10,15,19], 21 sigmas including terminal zero.
+  Its sigmas_video list is exactly equal to torch.FloatTensor(parse(graph node9)).
+  Snapshot semantics recorded: current-sigma denoised estimate BEFORE Euler x update.
+  Runtime torch version in manifest: 2.5.1+cu121.
+
+Frozen source archive:
+  /Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+All source references below are line numbers WITHIN the named archive member, not lines in this report. Archive member hashes are listed at the end. The model.py/model_base.py/model_sampling.py/samplers.py/nodes_minimax_h3.py hashes match configs/parent_core_hashes.json; configs/phase2_completed/configs__runtime_provenance.json marks those installed files core_matches=true. The k_diffusion sampler, custom-sampler node, and model_detection files are read from the frozen archive but are not individually listed in that runtime core_matches inventory. This audit did not newly rehash the remote server or checkpoint.
+
+2. Manual grid, node behavior, and no duplicate shift
+
+Let b_i=1-i/20, i=0,...,20, and S_a(b)=a*b/(1+(a-1)*b).
+The graph's decimal grid equals S_12(b_i), subject to decimal serialization and float32 rounding. It is not the unshifted b_i grid.
+
+Relevant path:
+- comfy_extras/nodes_custom_sampler.py:1125-1144: ManualSigmas parses numbers and returns torch.FloatTensor(sigmas). No model_sampling.sigma() call.
+- Same file:1040-1055: SamplerCustomAdvanced passes this tensor to guider.sample, alongside noise, latent, and optional noise_mask.
+- comfy/samplers.py:1220-1238: inner_sample stores sample_sigmas unchanged in transformer_options and passes the same tensor through SAMPLER_SAMPLE to sampler.sample.
+- comfy/samplers.py:983-1006: KSampler.sample passes the vector directly to sample_euler. It initializes the latent using only sigma[0] and performs endpoint inverse_noise_scaling at sigma[-1].
+- comfy_extras/nodes_minimax_h3.py:390-407: MiniMaxH3SigmaShift clones model, installs ModelSamplingAV+CONST with shifts 12/3, preserves noise_scale, and writes those two shift settings into transformer_options. It has no sigmas input and cannot transform node9's tensor.
+- comfy/model_sampling.py:308-312 and 328-329: the model's INTERNAL default sigma buffer is constructed by a shift function. This matters to a scheduler that asks the model to generate a grid. That buffer is not substituted for our ManualSigmas tensor.
+- comfy/model_sampling.py:325-326: timestep(sigma)=sigma*multiplier, multiplier default 1000. This is not S_12(sigma).
+- comfy/model_sampling.py:331-336: percent_to_sigma does use shift, but is not the ManualSigmas-to-Euler path.
+
+Therefore "manual schedule was already shifted, then MiniMaxH3SigmaShift shifted it again" is false for these graphs. Conversely, editing only shift_video while leaving ManualSigmas untouched would NOT regenerate the video integration grid; it would change schedule metadata/audio conversion semantics. Any future schedule experiment must edit coherent settings and record the actual vector.
+
+3. Euler's independent variable and callback order
+
+comfy/k_diffusion/sampling.py:190-212 uses s_churn=0 by default, matching plain KSamplerSelect(euler):
+  sigma_hat = sigmas[i]
+  x0_hat_i = model(x_i, sigma_hat)
+  d_i = (x_i-x0_hat_i)/sigma_hat
+  callback(i, x0_hat_i, x_i)    # before x update
+  dt_i = sigmas[i+1]-sigma_hat
+  x_(i+1) = x_i+d_i*dt_i
+The derivative conversion is lines 63-65. All entries i=0..19 are positive; zero is the final destination, not a 21st model evaluation.
+
+comfy/model_sampling.py:86-101 CONST supplies:
+  calculate_input(sigma,x)=x
+  x0_hat=x-sigma*model_output
+  initial_x=sigma*noise_scale*noise+(1-sigma)*latent_image
+Thus, ignoring finite precision, d_i equals the model's returned velocity in the OUTER packed/video-sigma coordinate. This is a flow-matching linear-interpolation convention, not the EDM formula x=x0+sigma*epsilon. "sigma" must be interpreted using this implementation's convention.
+
+The sampler initially carries joint video/audio tensors on one video-sigma grid. Its audio portion is a reparameterized variable (section 5); the audio model's internal noise coordinate is different. Both outer portions take the same Euler dt_i in video sigma.
+
+At callback10, the current model prediction used sigma[10]. It is too late for a newly computed controller action to change that prediction or its already computed derivative without recomputation. Updating patch state in the callback first changes the next model evaluation, call11. Here [11,20) contains calls11..19 and nine Euler updates. "Last 9 calls" does not mean nine tiny-noise refinement steps.
+
+4. Actual model timestep and embedding labels
+
+comfy/model_base.py:215-257 takes input t as sigma, casts the model input to inference dtype, obtains t=model_sampling.timestep(t).float(), and calls diffusion_model(x,t,...). BaseModel.process_timestep at259-260 is identity; MiniMaxH3 at2140 onward does not override it.
+
+comfy/ldm/minimax/model.py:625-637 then computes:
+  sigma_v = float32(timestep/1000), clamped below at 1e-6
+  t_v = 1-sigma_v
+  b = sigma_v/(12-11*sigma_v)
+  sigma_a = 3*b/(1+2*b) = sigma_v/(4-3*sigma_v)
+  t_a = 1-sigma_a
+The implementation of time_shift_sigma is model.py:36-39. This inverse-video/forward-audio transform is NOT another shift of video sigma.
+
+The actual labels routed to modulation:
+  target video tokens -> t_v
+  target audio tokens -> t_a
+  text tokens -> t_v (modality tag is separate)
+  visual conditioning/reference tokens -> max(t_v, visual_cond_noise_aug)
+  audio conditioning/reference tokens -> max(t_a, audio_cond_noise_aug)
+Default visual_cond_noise_aug=0.999, audio_cond_noise_aug=1.0. There is no graph augmentation override in these configurations. Actual reference image/video conditioning is re-injected, not jointly denoised as an output stream. The sampled target has no noise_mask: nodes_minimax_h3.py:84-90 creates zero video/audio tensors with only a samples key, and reference-to-video:289-363 returns that target; hence model.py:645-661 per-token mask-time overrides are inactive in this graph. At all20evaluations t_v<=0.6129033, so visual reference rows keep 0.999.
+
+model.py:663-693 builds a table of distinct labels and row/modality mappings. At735-743 it either (a) interpolates a checkpoint-provided AdaLN time-embedding curve at clean-time labels or (b) evaluates TimeEmbedder(t_vals). TimeEmbedder at133-146 builds sinusoidal features and a learned MLP. Neither branch uses the Euler call index as its time label. The outer sigma*1000 is not fed unchanged into that MLP; H3 has already converted it to t_v/t_a.
+
+Checkpoint-dependent detail: model_detection.py:403-413 selects the curve branch when adaln_t_table is present. This audit has not independently read this 20.97GB checkpoint's tensor header or a saved instantiated flag, so it does not claim which embedding implementation is active from the filename alone. The scalar labels established above are identical for both supported branches.
+
+FinalLayer model.py:321-335 can also have a PDD head bank. If n>1, it uses the actual sample_sigmas and inverse-shifts to base coordinates to choose/average output heads. This is head selection, not a second video-sigma transform or a changed Euler integration variable. The graph has no Turbo-LoRA node; this audit has not independently inspected the checkpoint's output-head shape and does not infer it solely from that omission.
+
+RoPE physical video-time coordinates are separate from ALL of these noise/denoising-time labels. model.py:745 onward constructs RoPE from the packed video/reference timeline. A frame50-65 window is a physical video-content window, not sampler steps50-65 or t_v in [50,65].
+
+5. Audio carried-variable mapping (why outer sigma and audio sigma differ)
+
+ModelSamplingAV.audio_scale (model_sampling.py:338-357)=shift_video/shift_audio=4.
+MiniMaxH3.process_latent_in/out (model_base.py:2144-2166) scales the clean audio stream by4 on entry and divides by4 on exit, respectively. The initially empty target remains zero. The saved x0 snapshots are already after process_latent_out; this normalization is not additional denoising.
+
+Let s=sigma_v, a=sigma_a=s/(4-3s), c=a/s=1/(4-3s), and y_a be the outer audio variable. model.py:560-571 transforms audio into the model's own stream coordinate x_a=c*y_a. The actual operations first cast the packed model input to inference dtype (model_base.py:225), then cast c to the audio dtype and multiply. The scalar t_a remains float32-derived.
+
+After the network returns its audio velocity u_a, model.py:597-600 converts it to the outer derivative:
+  d(y_a)/d(s) = (1-4)*x_a + (1+(4-1)*a)*u_a.
+This is the exact chain-rule form used by the code, with finite-precision casts. Euler can therefore update the joint pack using its single video-sigma dt without mistakenly applying video's physical noise amount directly to the audio network. This coordinate conversion does not prove the discrete 20-step integration is equivalent to two independently integrated stream samplers; it describes the implemented coupled sampler.
+
+The noise_scale preserved by SigmaShift can change latent noise amplitude separately from these scalar coordinates. This audit has not independently re-read that instantiated checkpoint setting; it does not interpret a sigma number as a measured fraction of variance or information.
+
+6. Numbers: ideal coordinates and CPU reproduction of source float32 arithmetic
+
+Index i is ZERO-BASED. Column outer_t is the argument at diffusion_model entry; t_v/t_a are clean-time labels used by H3. Values below reproduce the source's float32 arithmetic on CPU with the exact actual ManualSigmas tensor; no GPU was used. Native runtime manifest corroborates sigma_v/callback indices; its sigma_audio metadata uses a float64 equivalent formula and is not a GPU capture of the internal scalar.
+
+ i | base b | sigma_v        | outer_t         | t_v            | sigma_a        | t_a            | Euler dt_v
+ 0 | 1.00   | 1.000000000000 | 1000.0000000000 | 0.000000000000 | 1.000000000000 | 0.000000000000 | -0.004366815090
+ 5 | 0.75   | 0.972972989082 |  972.9729614258 | 0.027027010918 | 0.899999916553 | 0.100000083447 | -0.007455766201
+10 | 0.50   | 0.923076927662 |  923.0769042969 | 0.076923072338 | 0.749999940395 | 0.250000059605 | -0.015513896942
+11 | 0.45   | 0.907563030720 |  907.5630493164 | 0.092436969280 | 0.710526287556 | 0.289473712444 | -0.018674135208
+15 | 0.25   | 0.800000011921 |  800.0000000000 | 0.199999988079 | 0.500000059605 | 0.499999940395 | -0.050000011921
+19 | 0.05   | 0.387096762657 |  387.0967712402 | 0.612903237343 | 0.136363625526 | 0.863636374474 | -0.387096762657
+20 | 0.00   | 0              | NO MODEL CALL  | not evaluated  | 0 endpoint     | not evaluated  | n/a
+
+Exact ideal rational values:
+  i10: sigma_v=12/13, t_v=1/13, sigma_a=3/4, t_a=1/4, carry=13/16.
+  i11: sigma_v=108/119, t_v=11/119, sigma_a=27/38, t_a=11/38, carry=119/152.
+
+CPU evaluation used AST extraction of the actual archive time_shift_sigma function, not a separately simplified float32 expression. This matters because equivalent algebra can round differently. All20positivevideo sigmas survived the source multiply1000/divide1000 roundtrip exactly in this test. The inverse-to-base grid differed from linspace(1,0,21) by at most 5.3644e-7 in float32. Runtime recorder at core.py:173-180 stores sigma_audio using the mathematically equivalent Python float64 expression, e.g. callback10 metadata 0.750000012107 versus CPU source-arithmetic 0.749999940395; this ~7.2e-8 difference is precision, not schedule disagreement. No GPU bitwise equality of this scalar arithmetic is claimed by a CPU-only audit.
+
+7. Correct interpretation for the pending late11 intervention
+
+At call11, 11/20=55% of model evaluations are finished and9/20=45% remain. In the unshifted base grid, b=.45 remains. In the VIDEO sigma coordinate, the remaining interval is .907563...to0, about90.76% of its numerical full range. In AUDIO sigma it is .710526...to0, about71.05% of that coordinate range. These percentages describe axes, NOT percentages of noise energy, recoverable information, semantic commitment, or compute time. The schedule is very nonuniform in video sigma; its final Euler update alone spans .3870968.
+
+A decoded x0 estimate at call10 may have recognizable appearance/pose even though sigma_v is still .923. It is a prediction of clean latent from a noisy state and strong references, not a VAE decode of the current noisy x_i. A usable pose detector reading this prediction establishes observational usability for that checkpoint, not that the generative process has reached an intrinsically late information phase. Attention interventions may still affect composition/identity/large motion. Only controlled outcomes measure that behavior.
+
+The current static late11 arm tests whether withholding the intervention for calls0..10 changes the result relative to all-calls intervention. It does not by itself establish adaptive feedback, universal temporal stage separation, or a causal information threshold. The prospective controller is constrained by first-observation latency, not by proof that "the model only refines details after step10."
+
+Endpoint nuance: callback19 is an x0 estimate at sigma_v=.3870968; final sampler result is after its Euler update to0. Their exact-real-arithmetic values coincide for Euler, but finite precision can differ. Actual manifest reports video max_abs2.384185791e-7 and audio max_abs2.980232239e-8 after normalization; this is already tracked and is not a shifted-noise inconsistency.
+
+8. Frozen source hashes (SHA256)
+comfy/model_sampling.py
+  8afdc665272589a567792bb652389df7d4a83f69574c2b7e5b3d533d55592990
+comfy_extras/nodes_minimax_h3.py
+  62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb
+comfy/k_diffusion/sampling.py
+  cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce
+comfy/model_base.py
+  6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68
+comfy/ldm/minimax/model.py
+  0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+comfy/samplers.py
+  f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f
+comfy_extras/nodes_custom_sampler.py
+  b0ba1521c72475e06fed15db004274ed7c8bb2bf73f1d58849faf6f9f9d264fe
+comfy/model_detection.py
+  bb3995fe6f977fbac4f0d424d6a773b9b81d35f5f0f92c841db9cf250d088a32
+
+Local evidence SHA256 at audit time:
+configs/s05_full_seed1_native_x0.json
+  d90de6e1cc1fd5638ca67065fa2a51c4b3e3f35db48d00836dc3e4f5fab695af
+configs/s05_full_seed1_mass_late11_x0.json
+  ce76bfe5cc1cd2d4685a83026abc7cdc0c0d85afffea3f85e5ff898e161e0861
+audit/x0/s05_full_seed1_native_x0/manifest.json
+  a16697a0494ce4ba4e0a7c7b36a252af2be0e83ab4c7a06bc89831efc208b93e
+configs/parent_core_hashes.json
+  7a30ef2461d58434130eee98134788b59458e1fce0b4ff0731f4660abdcbe88f
+configs/phase2_completed/configs__runtime_provenance.json
+  9acbe6e9f92d48fde706eb6f18322f919eeb7c75dd07b09d3b1f3bd5d30d0124
+extensions_staged/H3X0Readout/core.py
+  aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c

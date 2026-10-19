@@ -1,0 +1,43 @@
+R114 三源独立 CPU consumer
+
+Producer：/Users/researcher/DevProjects/h3-timing-ive-three-source-r114-20261019
+Producer seal：70eeb832c7437afb99627979986a9dedf39b31fdf69cc834b6ee3e1d759e794c，112 文件。
+Consumer：/Users/researcher/DevProjects/h3-ive-three-source-metrics-r114-20261019
+
+三源固定顺序
+long_0081：白色奶油酱改红酱；120 有效 / 124 总帧；官方完整原片149帧@30fps。
+long_0059：男人手中添加白手帕；144 有效 / 158 总帧；官方素材原帧[175,325)，7–13秒片段。
+long_0163：人物浅蓝上衣改黑；144 有效 / 158 总帧；官方素材原帧[52,202)，2.08–8.08秒片段。
+三条均无参考图。推理与展示24fps；原始帧、PTS有理数、采样映射与尾部padding逐源保留。统一从1312×736裁出16,8,1280,720，所有栏使用相同物理帧号。
+
+复用与新增
+复用 R93 的 source registry、Native actual gate、远端只读绑定/收取、黑底中文 caption 和单文件 HTML；复用 R104 的实际 paired gate、共享 Native、前六步 AV 数值一致验证和双输出收取。R114 consumer 独立改为三源/no image/120或144有效帧。新增全有效帧审阅分页、guide/skip建议与root决定只读归档、原始事件review cue映射和任务验收分离的事件比较。intervals.py继承已验证的共享source时刻区间算法。无新依赖，无GPU入口，无自动提交。
+
+使用（实际 STARTED 与 gate 存在后）
+PY=/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python
+在本consumer目录下调用：
+$PY scripts/consume_native.py --attempt ACTUAL_ATTEMPT --source long_0081
+$PY scripts/consume_pair.py --attempt ACTUAL_ATTEMPT --source long_0081
+其余替换source。每个命令一次绑定→检查→收取→展示→全帧审阅材料→评分输入绑定。缺实际gate返回PENDING_GATE/exit3。producer所有权和实际图/输出/时基/SHA变化会拒绝。
+
+Native输出：incoming/<source>、showcase/<source>、audit/full_frame_review/<source>/native。
+Pair输出：incoming_pairs/<source>、showcase_pairs/<source>、audit/full_frame_review/<source>/paired。
+两栏视频2560×808，三栏视频3840×808；caption第三栏“3.时序引导”。全帧图每页5个时刻，共24或29页，覆盖全部有效物理帧。FRAME_LEDGER仅表示已准备材料，视觉review保持PENDING。
+默认HTML写Downloads/H3_R114_<source>_普通编辑预览_20261019.html或固定时序引导对照同名页，媒体内嵌；当前CPU准备阶段不写实验展示页。
+
+审阅与决策
+实际材料创建REVIEW_TEMPLATE.json；审阅者另存REVIEW.json，填写全部有效帧、任务编辑/场景构图/动作顺序/幅度、画面质量与源事件/生成事件区间。原始coarse bracket仅是查阅线索；动作事件时间以实际逐帧观察填写。UNKNOWN等保留null和原因。两版本任务PASS且源及生成事件均OBSERVED时，才计算主要paired时序比较；其他观察与官方MF各自保留。
+$PY scripts/review.py --review ACTUAL_REVIEW --output NEW_RESULT_JSON
+Native审阅只产生guide/skip本地建议，producer root决定由owner执行。之后可只读收取：
+$PY scripts/collect_decision.py --source long_0081
+skip缺少forced输出时持续保持Native-only，不合成第三栏。
+
+官方评分
+prepared/<source>/{native,paired}/MF_INPUTS.json绑定完整有效120/144物理时刻、24fps、统一crop、原始素材及采样映射。官方实现/checkpoint/runtime由后续独立评分attempt绑定；本consumer不启动tracker或写分数。
+
+收取边界
+只拉完整MP4、actual gate、history/job/router/graph和小JSON。x0、noise、conditioning张量保持服务器，由producer实际gate验证。不会递归抓取audit/x0，保留全部source、失败/跳过/负结果。
+
+检查证据
+CONSUMER_FREEZE.json封存脚本、配置、测试；audit/CPU_READY.json汇总实际CPU检查与seal。
+audit/source_only_layout_fixture是同一参考视频重复三栏的布局测试，明确没有生成结果。

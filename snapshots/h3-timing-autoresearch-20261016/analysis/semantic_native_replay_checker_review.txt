@@ -1,0 +1,33 @@
+Semantic native replay checker 独立只读审查
+
+审查对象：scripts/check_semantic_native_replay.py
+审查时 SHA256：b4be7f2d679ac447e7c91034663ee8724e289f3f4887fab803386e53f09f510e
+状态：checker 主干与当前 primary 审计 schema 相容；有证据绑定/复核完整性待补强。新 replay 尚未完成，本次没有运行 main，没有生成任何 replay pass gate，没有 GPU/pose/远端修改。
+
+已核验项
+1. ADMIN 恰好12个已批准行政字段；normalized 要求这些键存在，深拷贝后归一，不会修改输入字典。保留 class_type、边、positive/model连接、prompt、seed、sampler、sigma、尺寸、router数值、X0采样参数等全部科学字段。
+2. 两份 actual history 均要求 completed=true/status_str=success；各自 prompt[2] 与对应保存图直接完全相等。primary logs/s05_full_seed1_native_x0_history.json 的真实格式与此读取一致。
+3. primary audit/s05_full_seed1_native_x0_conditioning.json 的 prompt/input_video/native_vae_calls/qwen_presentation/tokenization_before_vision_expansion/conditioning_embedding/token_tags/target_latent_shapes/packed_layout 都存在，且源码比较这些完整结构。tensor_file 是内容命名相对路径，在新root无需归一；如果 producer 写成不同无意义路径，保守拒绝比错误放宽合理。
+4. primary noise.json 的 signature、actual_noise_streams、pair_id 三项与读取匹配。signature含实际seed、video/audio shape与dtype，streams含真实hash；没有把 seed相同当noise相同。cache_file为实例绝对路径，明确不比较它是合理的。
+5. 已存 native router audit 的实际字段就是 mode/completed_calls/routed_calls/completed_forward_calls/calls_by_forward，1000/0/20/[50]*20条件正确。
+6. decoded_hashes 使用无帧率变换的 -vsync 0、rgb24逐帧hash，不把压缩MP4容器字节当像素等价。两边恰141行且逐行字节数/hash一致；对应同帧而非允许时间移动。
+7. 输出明确写仅runtime重放，不作为独立效果样本。缺任何文件会异常退出，不会因缺文件默认通过。
+
+待补强：优先级从高到低
+A. 五份tensor比较报告缺本次证据绑定（应在远端producer与consumer共同补齐）。当前仅消费 tensor['all_equal']、stem集合和video/audio equal，不能确认该JSON真的比较了 BASE 对 REPLAY，且stem set允许重复行。最小建议：报告含明确两端remote root/run_id，恰好5行且无重复stem，每行两端snapshot文件hash、实际tensor shape/dtype/rawtensorhash；checker校验这些身份与归档snapshot manifest匹配，并要求各video/audio equal为真。不能只把路径字符串写入报告而完全不检验它对应实际读取的文件。该问题不意味着当前tensor不同，而是现consumer不能防误用旧/别组的all-equal报告。
+B. 目前只核验 replay router 的20×50/零routed。建议同时同步并核验 audit/router/s05_full_seed1_native_x0.json。该精确文件目前本地不存在；现存 s05_full_seed1_native.json 是另一执行，不能拿它冒充被动读出native_x0的实际调用记录。
+C. 本地MP4路径由固定文件名拼接，尚未显式绑定到各history的SaveVideo输出与远端成功归档SHA。建议验证两份history.outputs中的实际文件名、各下载manifest的raw MP4 SHA及本地byteshash；再比较RGB。另应读取真实MP4 width/height/fps=1312/736/24fps。framehash当前只保留decoded_bytes/hash，主动丢弃PTS；相同像素序列但播放时间不同仍会被判RGB相同。当前graph FPS本身已严格相同，因此这属于输出制品完整性补强，并非已发现变速。
+D. snapshot元数据应包括actual sigmas、normalization、video/audio shape，并在五份report中绑定。冻结同一recorder并验证rawtensor相等是主要数值门；若只是脱离manifest的bool，无法独立核实它保存的是规定采样状态。
+E. 初次运行的 out=analysis/replication 已存在，无当前阻断；独立打包运行应 mkdir(exist_ok=True)。若未来重跑时main在缺证据处异常，旧 semantic_gpu0_native_replay_gate.json 会留在原处；建议开始时使旧gate无效或每次结果带本次证据hash并原子发布，防旧passed被误用。这是未来重复执行防护，当前新control还没有旧pass。
+
+未测试/限制
+没有执行完整main，因为新native还未完成；没有制造假的success evidence。以上基于源码与实际已完成primary审计字段检查。JSON被当可信内部产物，没有做对抗性文件安全设计；重点是避免跨run/stale证据误配。模型权重/runtime源文件本身的固定仍依赖前面的部署provenance审计，本脚本没有独立验证权重文件全量hash。
+
+补强版本复审（root完成证据绑定后）
+审查 check_semantic_native_replay.py SHA256：b271b3ef9b4a1441c392dba4d073d3f3c23538dd92ae9de13809f36f6f8e88e9
+审查 compare_x0_snapshots.py SHA256：6780875e66da0e4f8b7d5f4bebbf3b89f3d83273ed401e88ece82adae1eb9673
+原 A/B/C 已补齐：两端实际manifest hash/run ID/固定remote路径、五项唯一stem、tensor实际内容hash且与capture manifest核对、shape/dtype、两端精确router、history SaveVideo filename与raw remote/local SHA、视频geometry/fps/time_base。primary真实SaveVideo与manifest字段复读均与新consumer相容。未运行新replay main，实际结果仍pending。
+唯一剩余bitwise精确性建议：torch.equal([+0.0],[-0.0])为True，而rawtensor SHA不同；本机CPU实测确认。compare producer若以equal表述bitwise，应要求torch.equal且hashes[0]==hashes[1]，或consumer要求两个actual_sha256相同。没有据此声称真实样例发生signed-zero差异。
+另旧gate在前置异常后残留属未来重跑防护，首次control目前无旧pass，不阻断本次数据收集。
+
+最后修复复核：producer现要求 torch.equal 且两端实际tensor SHA相同；checker在开始时撤销旧gate。前述剩余两项已解决，静态审查无阻断，实际replay全门仍待结果。最终审查checker SHA afd58c3d5a375c3b27836eab139e70be1432d05dd1d4c3fcaedf1392e4f328d5；producer SHA f01e5714a53ceb8628cc8fc9fbf8fb3dbdc50bf014fd945112a922239098e87f。

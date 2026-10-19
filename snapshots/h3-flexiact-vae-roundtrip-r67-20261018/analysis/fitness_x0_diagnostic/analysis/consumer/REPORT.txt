@@ -1,0 +1,35 @@
+Fitness 已存 x0 诊断：结果记录
+
+结论
+在第一次引导前，Native index 5 的预测已出现前 0–1.875 秒双臂 +375 ms、左臂 +250 ms、右臂 +375 ms 的可测延迟。index 6 第一次同状态引导让双臂合并估计从 +375 变为 +250 ms，同帧方向误差下降约 4.5%；左右臂各自的最优延迟均保持原值。最终成片仍为双臂 +375 ms。首次引导产生了小幅姿态响应，当前成片未取得时序改善。
+
+各阶段（时差采用原始 8 fps、125 ms 格点）
+- Native index 2：confidence .3 下三种手臂特征均 +250 ms；.5 下返回 UNKNOWN。保留早期可见姿态偏离，双阈值规则下不能给稳定时差数值。
+- Native index 5：两阈值均为双臂 +375、左 +250、右 +375 ms，前段覆盖率均 1.0。
+- Native index 6：两阈值均为双臂 +375、左 +250、右 +375 ms，前段覆盖率均 1.0。
+- 首次引导 index 6：两阈值均为双臂 +250、左 +250、右 +375 ms，前段覆盖率均 1.0。
+- index 6 同一有效支持上的双臂误差：0.402425467 → 0.384202581；左臂 0.331194105 → 0.309284829；右臂 0.480997113 → 0.466840494。
+- 最终 Native / 引导输出：双臂 +375 → +375、左 +250 → +250、右 +375 → +375 ms。重绑定 R67 实际参考 RGB 后，双臂共同支持误差 0.416009707 → 0.420502001，共同覆盖 0.9375。旧报告使用原 prepared 文件的 source pose，数字略有不同；本报告的 x0 与最终输出使用同一个实际 RGB source pose。
+
+合并量的含义
+index 6 合并曲线在 250/375 ms 两个相邻档位的误差分别为 Native 0.193863/0.183562、引导 0.175667/0.188574。因此合并最优档位移动 125 ms；左右两只手各自的最优档位保持不变。这里不能解释为两只手都提前 125 ms。
+
+图像查看
+查看了 index 6 source / Native / 引导的全部 49 个原时刻，以及 Native index 2、5、6 的六时刻图。0.5–1.6 秒两种 index 6 预测的抬臂位置仍比源低。引导后手臂和装甲边缘有变化，前段略柔化；举手保持、合掌下降的可辨认阶段整体接近。目标人物及深色装甲、背景保留，未见明显原人物外观回流。源为侧向身体、生成结果更正面，二维方向差仍混有投影和姿态幅度差。
+
+证据范围
+x0 是当前模型预测的干净终点，不是实际 Euler state。Native / 引导 index 6 由相同初始 AV 噪声及 index 0…5 exact 前缀支持，属于首次引导的同状态响应。Native index 2、5 仅展示同一轨迹的预测演化。较晚 x0 未解码，当前结果可以说明这点微小优势没有出现在最终成片，无法确定随后在哪一步改变。
+全片及中后段不少测量因手臂超出画面或检测覆盖不足为 UNKNOWN，完整结果保存在 SUMMARY.json。前段数值不能外推为整条视频的恒定延迟。
+
+前置 VAE 诊断
+R67 实际参考 latent 原样 native VAE decode，前两个时间段的左右臂在两阈值下均估计 0 ms。这支持本例参考表示能回解出动作时序。当前 x0 结果把可见偏离定位到生成预测过程；尚未分离 attention 时间分配、外观/视角变化、其他去噪环节的具体贡献。
+
+执行
+4 个保存的 endpoint 各 native VAE decode 一次，新增 DiT forward 为 0；native fallback 为 0。GPU 执行与退出由 root 管理；每份 decode 约 39–40 s，峰值 reserved 均为 5,981,077,504 bytes。消费阶段仅 CPU DWPose，使用原冻结函数、原 49 个时刻、原 confidence .3/.5 与 UNKNOWN 规则。
+
+可查看素材
+visual/same_state_index6_comparison.mp4：49 帧、8 fps、1728×432，source / Native index 6 / 首次引导 index 6，画布下黑色 caption。
+visual/same_state_index6_six_times.png：六个原定时刻。
+visual/same_state_all49_*.png：全部 49 时刻。
+visual/native_evolution_six_times.png：source / Native index 2 / 5 / 6。
+SUMMARY.json：完整测量和输入 hash。

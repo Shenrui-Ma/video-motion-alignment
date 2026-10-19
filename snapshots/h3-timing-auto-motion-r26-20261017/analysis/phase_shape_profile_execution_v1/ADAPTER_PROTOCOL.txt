@@ -1,0 +1,20 @@
+v1离线63项重评分：输入适配与准入
+2026-10-17；准备阶段允许合成正确性及真实输入metadata/hash检查；真实评分须独立审查及root明确授权。
+
+科学内核保持 phase_shape_profile_candidate_v1/profile.py 原字节不动，协议及31个合成结果均按既有seal绑定。独立执行目录仅做输入转换、调用、完整留证和授权检查。
+
+输入清单复用原 phase_consistent_segmentation_design/INPUTS.json，SHA2386219d3264c320365dd8ce076310103d6085a37ff56b8a266cccb3b0e6f3fc。63个目标顺序不变；3条20端点历史控制轨迹+3项final-only。全部141帧、24fps、0-based i/24物理网格。
+
+转换器复用原vendor/timing_metrics.py，SHAeebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e。分别在.3/.5调用load_pose，读取arm_direction、arm_conf，保持left前两骨/right后两骨顺序。唯一已知科学缺测异常“Insufficient reliable torso anchors for scale normalization”转为该阈值的全UNKNOWN；JSON、索引、数组格式等技术错误退出并留收据。
+
+confidence固定保留v1语义：arm_conf为原始两个关节分数minimum，有限的>1值原样保留，不做clip、不把它解释成概率。两阈值只用于可见支持判断，所有相位的weight按v1取共同minimum。旧R27的clip(0,1)权重公式不进入本runner；此项是与旧诊断数值可比较性的明确边界。
+
+新输入边界处理：转换器的bone confidence是两个COCO关节分数的minimum，因此单端点+Inf可能被另一个有限分数盖住。适配器额外要求每根骨的两个原关节分数和坐标均有限；不满足则该骨direction=NaN、confidence=0。这是原始输入有限性保护，必须在审查中显式核对。正常有限输入数值不变。
+
+模型的每个阈值保留独立输入，而不是用.5替代.3。载入独立core模块对象，将该对象grid入口包装为按threshold取对应输入再调用原grid。原grid/contexts/损失/门/DP全部沿用冻结函数。该包装只在独立模块实例中生效，磁盘上v1文件不变。捕获原grid已返回的raw_zero、mask、weight补充归档，不新增科学评分公式。
+
+输出保留完整原v1profile_loss、失败位图、状态、J、最优lag/相位集范围、common mask、K、已选区间和每段profile曲线；另存两阈值raw_zero全区间、原mask与权重、转换失败信息、逐phase耗时。所有UNKNOWN与K0保留。无校准或阈值更新。
+
+运行时必须共享Mac锁，最多4线程，一次target一个phase、120秒上限；busy75退让。权限文件ROOT_TARGET_AUTHORIZATION.json必须literal true并绑定execution FREEZE、candidate CODE/PROTOCOL freeze、原INPUTS SHA以及允许的target列表。原子COMPLETE提交前复核输入、授权及代码SHA。finalize要求全部63项完成。
+
+准备阶段没有真实输入方向特征提取、profile/lag计算或结果扫描。metadata检查仅读取hash/schema/frame/time字段。已有63项已经被观察，因此后续输出属于开发诊断；source07仍为final-only压力例。可辨性门的保守性和旧4真实lag拒判必须随报告呈现。

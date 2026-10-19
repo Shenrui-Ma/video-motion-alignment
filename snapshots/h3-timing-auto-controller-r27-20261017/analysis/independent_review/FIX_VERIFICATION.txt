@@ -1,0 +1,11 @@
+R27 独立修复复核
+
+状态：已发现的实质缺陷均已修复，最终封存绑定待完成。
+
+已关闭：旧 controller 跨代提交、stale cleanup owner、chosen/Full metadata 验收、sampler_final sigma=0 的合法末端误拒、实际提交 prompt/status/graph 绑定，以及 unittest 入口位置问题。
+
+本地独立运行当前45项单测，全部通过；真实 .9 CPU stage5 的44项测试及186窗口 scan 数值与Mac一致证据已读取。六案官方 Comfy Euler 测试覆盖两种 wrapper 顺序、20 Euler updates 与 20/36/39 NFE；输入为合成模型/脚本观测，不能扩写为预训练 DiT / 实际 online pose 成功。
+
+known-endpoint 桥只在空 GPU 认证实际请求、归一化、VAE、writer、pose 和scan的值域一致性；父DiT共驻留与模型恢复需依赖正式运行的实际资源准入和 parent guard。未知测量保留；.5 gain、双confidence及相邻端点持续为固定开发超参数。全片扫描和自动化流程本身不构成已证明的新架构贡献。
+
+本报告没有启动GPU、消费者或改动封存/科学文件。最终SHA结论待builder封存后另发。

@@ -1,0 +1,100 @@
+{
+  "schema": "h3-native-current-step-observer-r12-v1",
+  "created_utc": "2026-10-16T09:44:53.540296+00:00",
+  "scope": "Known development-case causal feasibility of native-first current-step triggering; not independently established novelty or success",
+  "new_method_claim": false,
+  "prior_art": [
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/query_time_posterior_gate_review.txt",
+      "sha256": "87a0fd8238932f7d317c0729baade32ef69290f74fa618e6dedbbb59d636fecd",
+      "section": "6"
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/same_state_candidate_selection_review.txt",
+      "sha256": "1cf808597877c3c7c0cb41698bd6dd937029ea79a50b9fd57cb21c9215084a1a",
+      "section": "3.6 and6"
+    }
+  ],
+  "nearest": [
+    "MotionEcho",
+    "Adaptive Guidance",
+    "PAG",
+    "DiffTrack/CAG"
+  ],
+  "related_boundary": "Native error-triggered conditional calculation and same-state branches have prior art. No Full-candidate benefit/shape acceptance gate: that proxy is unvalidated.",
+  "joint_changes_vs_R6": [
+    "Observe native endpoint instead of executed/guided endpoint",
+    "Use current-step observation for current-step choice instead of one-index delayed actuation"
+  ],
+  "policy": "Every physical index first evaluates native. Indices0..5 select native only. Index5 observation is passive and does not initialize pending/priorchoice. At indices6..19 use current native accepted lag>=4 to append same-state Full and choose Full; accepted[-2,2],lag<=-3 orunknown choose native;lag3 retains prior physical actualchoice, initiallyFalse.",
+  "native_definition": "Original H3 conditioning retained; only our Full operator disabled. Native endpoint is on the actual history-dependent current state, not an unperturbed parallel trajectory.",
+  "formal_policy": "native_observer",
+  "test_policies": [
+    "off",
+    "fixed"
+  ],
+  "geometry": [
+    1312,
+    736,
+    141
+  ],
+  "fps": 24,
+  "seed": 2026101311,
+  "euler_updates": 20,
+  "callbacks": 20,
+  "expected_NFE": "20+K, K=actual Full evaluations=accepted Full choices, indices6..19 inclusive;0<=K<=14",
+  "actuator": "Unchanged R3/R10 Full mass_preserve alpha1/radius0/offset0/all50blocks/sourcewindow50..65/querybins14..19",
+  "observer": "Byte-identical frozen same_phase_gap5 fullframe49lag scan[-24,24]; numerical guards not calibrated confidence",
+  "thresholds": {
+    "lag>=4": "Full",
+    "-2<=lag<=2": "native",
+    "lag3": "previous physical actualchoice",
+    "lag<=-3": "native, advanced notaligned",
+    "unknown": "native, notalignment success"
+  },
+  "all_branch_archive": true,
+  "all20_chosen_archive": true,
+  "raw_input_indices": [
+    6,
+    10,
+    14
+  ],
+  "independent_x0_indices": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    15,
+    19
+  ],
+  "final_sampler_output": true,
+  "causality": "Native then decision then optional Full on exactly same x/sigma/condition/seed/fullPDDgrid; original singleEuler update and callback. Full observer remains passive and never controls acceptance.",
+  "pairing": "Historical R3/R10 pairing only actualnoise/conditions/seed/grid/nativeprefix; whole generated trajectory is expected to differ after choices diverge. Compare variable branch inventory20+K, never hardcode29.",
+  "minimal_tests": [
+    "bothwrapperorders withrealComfyEuler andprocessedH3conditions/PDD/localRNG helpers",
+    "all20chosen andfinal bitwiseequal to singleforward trajectorywith exactexpected variablemask",
+    "off bitwise native",
+    "lag3 initialfalse,noindex5pending,unknown/advanceclosed,index19eligible",
+    "duplicate/wrongstep/wrongbranch/input/condition/RNG/gridnegativecases",
+    "variable archiveinventory,hashes,20callbacks,50blocks perNFE"
+  ],
+  "evaluation": "Same frozen independent pose windows/confidencethresholds/qualityframes andactualpairing; retainunknown; efficiencyrecords only, no speeddiagnosis orbenchmark",
+  "resources": {
+    "host": ".9",
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8473,
+    "remote": "/data5/researcher/h3_runs/timing_native_observer_r12_20261016",
+    "max_owned9gpus": 2,
+    "queue": "singleformal,sealed,cleanupfinally"
+  },
+  "launch_gate": "Root decides only after R10 actualtrajectory pairing gate passes; builder onlylocalpreparation. R12 needs its own actualComfyCPU smoke beforelaunch.",
+  "warmup": "Reuse R3 samebackend/geometry warmup evidence; nonewbenchmark",
+  "limitations": [
+    "native-vs-guided observation anddecisionlatency change together; this pilot cannot isolate them",
+    "Fullgate may overtrigger or damageidentity/shape; extrasamebackbone prediction isnotteacher-free novelty",
+    "Currentendpointlag isnot proven finalactionerror oromission detector",
+    "Index19 Full allowed andcosted; no secretstop14 mask"
+  ]
+}

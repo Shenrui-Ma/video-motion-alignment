@@ -1,0 +1,21 @@
+R117 篮球外观编辑的构图修复
+
+任务：IVEBench short_0114，仅把篮球外观变为霓虹发光篮球；参考视频原有球员、场景、取景和运球保留。该输入没有角色参考图。
+
+提示词：
+Edit <Video 1>: change only the basketball's appearance to a neon-lit basketball. Preserve the original framing and camera angle, the player's on-screen position, scale and head visibility in each frame, and the ball's size, dribbling path and timing.
+
+比较
+R117 Native 相对 R110 只改提示词。源视频字节、预处理、H3权重、语义视频采样、seed、初始噪声、sigma、Euler20、CFG1、加速kernel、画布均沿用。两次新推理使用相同提示词和初始AV噪声；forced 在去噪 zero-based6..14、全部50层执行已验证的同时间参考attention重新分配，保留原reference总质量。采样前6步逐值相等。
+
+先生成 Native 并核查105个有效帧。验收球的霓虹外观、原人物/场景、逐帧人物位置与大小、头部可见程度、相机朝向和运球序列。源片起始本来裁掉头部，验收不要求增加画外内容。基础任务成立后补同配置forced；Native已经动作对齐也可保留配对作为中性结果。明显改坏构图或动作时记录失败，root决定skip，所有实际输出归档。
+
+评价使用全部105有效帧；统一只去除模型补边x16 y8 w1280 h720。原片首两次可见反弹区间12–14、34–36沿用先前source审阅。对应时刻要以动作事件及可见性独立判断；画外/遮挡时保存UNKNOWN。审阅与模型数值gate分别记录。
+
+执行：CPU准备；.9 GPU0/port8580。继承R104生命周期、root Native验收、精确PID释放及同卡剩余显存门。R115两条完成释放为同卡前置，同时保留R104全批完成释放依赖，root按总队列放行。GPU启动还需绑定本包seal的GPU_DEPLOYMENT_REVIEW.json。当前没有GPU执行。
+
+记录：普通/forced完整MP4、任务验收、事件区间、运行时长与显存、实际条件/噪声/前6预测一致性。大x0张量留服务器；consumer接收成片及小JSON。与R110的实际源输入/clean VAE/噪声签名做一致性核查，不要求新提示词的预测与旧提示词相等。
+
+生命周期复用来自 h3-timing-flexiact-remaining-repair-r104-20261019；IVE维度/配对验证基于R100；R110实际graph为唯一数值模板。数值kernel逐字节继承。新程序改动集中于注册合同、提示词/验收、实际输入签名检查和包运行绑定。
+
+运行绑定更新：新配对用GPU0；R110历史结果来自GPU3。记录GPU与环境元数据，本次不增加环境对照推理。

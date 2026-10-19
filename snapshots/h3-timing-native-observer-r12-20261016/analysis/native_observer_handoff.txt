@@ -1,0 +1,84 @@
+R12 local preparation: current native endpoint decides this step's Full branch
+
+Scientific scope
+Known development-case feasibility; no established novelty or success claim.
+The two reviewed prior-art files and their hashes are frozen in configs/protocol.
+MotionEcho/AG/PAG/CAG already cover relevant observation/conditional-computation/
+same-state-branch ideas. Relative to R6, this pilot changes BOTH the observation
+branch and the one-index decision delay. Their effects are not separated here.
+No Full-candidate score or shape acceptance gate is added: that proxy is unproven.
+
+Exact policy
+Every physical step first computes native on the actual current noisy state.
+Indices0..5 always return native. Index5 observer is archived passively; it cannot
+initialize a pending choice. Initial previous actual Full choice is False.
+At indices6..19 inclusive, accepted current-native lag>=4 appends Full on exactly
+the same x/sigma/seed/conditions/full PDD grid and returns Full. Accepted[-2,2],
+accepted<=-3,orunknown return native. Lag3 retains the preceding physical step's
+actual selected branch. Full's observer result is archived but never selects.
+Native means the original H3 reference-conditioned model with only our Full off.
+It is evaluated on history-dependent states, not on an untouched native trajectory.
+
+Cost and archives
+20 original Euler updates and20 callbacks;20+K complete model evaluations where
+K is actual Full count,0..14 inclusive. Index19 is eligible. No extra sampling RNG
+or intermediate Euler update is introduced. The unchanged all50block Full uses
+alpha1,radius0,mass preservation,source event50..65 and querybins14..19.
+All20 native endpoints, every computed Full endpoint and chosen mappings are saved;
+raw packed actual x at6/10/14; final raw sampler output; independent eight x0
+snapshots[5,6,7,8,9,10,15,19]+final. Branch/condition/noise/RNG/fullgrid/PDD audits remain.
+Actual NFE,Fullcount,sigma-dose,synchronized model time and CPU archive/readout
+costs are recorded. No speed investigation or new benchmark is included.
+
+Implementation and local validation
+Forked the CURRENT R10 sources, including root's corrected launcher/readiness and
+archive inventory code, rather than its old bundle. Unchanged sibling model/math
+extensions remain byte-identical apart from owned audit-root administration.
+The frozen observer file is byte-identical. New node:H3NativeObserverRouter, with
+native_observer/off/fixed policies. Formal graph has native_observer and no fixedmask.
+The CPU timestep snapshot now explicitly copies even if input already is on CPU;
+an in-place timestep-mutation negative test verifies this. Fullgrid was already cloned.
+
+13 CPU tests PASS, covering multiple subcases: dynamic mask[7,8,12,13,15,18,19]
+gives27NFE and matches all20 endpoints/final of an independent single-forward
+expected-mask trajectory; off equals native; fixed ignores unknown observer;
+native lag3 at first eligible index staysoff despite positive index5;unknown and
+advanceclose;lastindex19works;RNG,input,condition,timestep,grid,doubleforward,
+duplicateprediction/callback,exclusive-run andused-state failures are rejected.
+Inventory tests coverK0/2/7/14 and reject wrongcounts/order/files/inputs/selection.
+Model hashes, graph recipe, warmup binding, resources and path guards pass.
+
+Real Comfy CPU integration is PREPARED, NOT EXECUTED for R12
+tests/counterfactual_wrapper_smoke.py tests native_observer/off/fixed in BOTH wrapper
+orders, one with nested callbacks. It runs real graph-loaded BasicGuider alias,
+ModelPatcher.clone,WrapperExecutor,actual Euler,H3 extra_conds/PackedLayout,
+local condition RNG helpers,PDD fullgrid lookup,normalization and X0 recorder.
+Tiny toy DiT attention uses no checkpoint/GPU. All20 chosen/final tensors must
+equal independent one-forward expected-mask trajectories, and off equal native.
+Expected dynamic/fixedmask[7,8,12,13,15,18,19],NFE27;offNFE20. Full-observer values
+are deliberately advanced and passive. Expected marker:H3_NATIVE_OBSERVER_CPU_SMOKE.
+Root runs this after upload using existing .9 Python/PYTHONPATH and Comfy core.
+
+Variable archive checker
+scripts/compare_parent.py reconstructs expected decisions independently from each
+native observation and previous actual choice, with variable20+K inventory. It
+checks every actual branch file/hash/metadata/raw-normalized signatures, same-state
+inputs,all20 chosen bindings,three raw inputs,20callbacks andindependent X0/final.
+Historical R3 pairing is ONLY actualnoise/conditions/grid/seed and available native
+prefix index5. It explicitly does not demand or claim historical final/fulltrajectory
+equality; the new policy may alter them. No old fixed29 PASS count remains.
+
+Remote handoff, root-controlled
+/data5/researcher/h3_runs/timing_native_observer_r12_20261016
+.9 GPU2 UUID GPU-REDACTED,port8473.
+Single sealed formal r12_s05_native_observer. Existing ownership admission,
+supervisor,controller,watchdog andfinally cleanup retained. Max2 owned .9 GPUs.
+Root must wait for R10 real-trajectory pairing success, run R12 actual Comfy CPU
+smoke, check current resource admission, then decide whether to launch.
+Builder has not touched remote/GPU/dependencies/other projects.
+
+Local debugging evidence
+An early test exposed deferred fixed-index validation; Config now eagerly checks
+indices even under policy=fixed. Another test found a missing190KB parent-binding
+router audit; it was copied from R10 only after validating its original SHA.
+The failed attempt2 log is preserved; attempt3 is the current passing test log.

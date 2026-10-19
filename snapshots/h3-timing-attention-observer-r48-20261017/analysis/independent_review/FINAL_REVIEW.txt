@@ -1,0 +1,13 @@
+R48 独立最终审查
+
+PASS：封包可交 root 做当前资源准入及两个真实历史状态验收。当前不代表 GPU 端点已经通过，也不确认 R46 的失败确由 1 ULP 引起。
+
+封存闭包：92 项 SHA/bytes、93 个 tar 成员与当前文件逐字节一致。39 个实际 CPU 执行 Python 与 CPU_EVIDENCE 当前哈希一致；attempt3 原日志 SHA 为 8ffd6b5627d8a4149f3c34bd9937d69ff100d5daf469ee0c2c36cc32a9ecf3c3。31 项轻量测试及 bad/normal 两个正例、endpoint mismatch 负例已有作者执行证据，本审查未重复模型。两正例各 1 NFE/0 Euler/0 callback；负例保留其 1 次计算成本。
+
+窄修语义：新增 diffusion prehook 取得实际 timestep，与 sampling.timestep(entry_sigma).float() 在同 device/dtype/shape 下精确相等；head 与 actual timestep 按官方 /1000、float、clamp 路径精确相等。完整 grid、入口 index4、shifts12/3、原输入/条件/RNG、历史 normalized AV torch.equal 与独立后验实际 PT 重读门均保留，没有模型输入写回或宽松容差。每次拒绝前记录小 tensor 的原始 float32 bits、值/设备/shape；错误 device 不先做跨设备算术。verifier 再核 bits/value、自身 actual/expected 记录一致和实体历史端点。
+
+probe.py、source.py、历史 sources.json 与 R46 原字节相同；core 仅新增入口 sigma 小 clone 和新 run ID。43 次探针调用、block25/四头/1050 queries、Native output 不传入统计的边界不变。CPU fixture 现实际经过 BaseModel._apply_model、FLOW_AV timestep、模块 prehook 和真实 FinalLayer 接口，补上旧直接 sigma→head 的测试缺口；仍不能替代 CUDA 端点实测。
+
+生命周期：service_entry、supervisor、launcher 与已审 R46 原字节，当前 root/GPU3/port8510 由独立 contract 绑定。两状态按固定顺序、失败不自动重试；同 PID preCUDA ready/go、exact owner 清理与全机自用最多两卡仍保留。root 应在 R45 完整归档并释放 GPU3 后准入；本审查不启动任何服务或 GPU。
+
+原 R46 75 个封存文件逐 SHA 未变，54 项失败证据独立报告已保留。R46 的 1 attempted/0 completed、50 blocks 和82.308秒成本单列；R48 若两状态成功，是另增加2次 completed forward。任何新 endpoint mismatch 保留失败，不使用其 readout 作效果结论。两个状态只支持该预定诊断，attention 分布不作为动作真值或阈值校准数据。

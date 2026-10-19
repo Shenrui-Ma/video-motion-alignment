@@ -1,0 +1,16 @@
+import sys,copy,json
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+from common import *
+source='long_0167';p=info(source);i=ROOT/'incoming'/source;s=ROOT/'showcase'/source;decision=ROOT/'audit/actual_decisions'/f'{source}.json';review=ROOT/'audit/agent_native_first_review_long0167/REVIEW.json';ledger=ROOT/'audit/actual_decisions/SCREEN_LEDGER_after_long0167.json'
+g=verify_intake(source);d=read(decision);rv=read(review);require(d['choice']=='skip' and d['root_reviewed'] is True,'actual skip required');require(d['binding']['native_gate_sha256']==sha(i/'NATIVE_RUNTIME_GATE.json') and d['binding']['video_sha256']==g['runs']['native']['video']['sha256'],'decision mismatched');require(rv['viewed_frame_indices']==list(range(144)) and rv['native_runtime_gate']['sha256']==sha(i/'NATIVE_RUNTIME_GATE.json'),'full review mismatch')
+require(any(x['source_id']==source and x['status']=='native_only' and x['decision_sha256']==sha(decision) for x in read(ledger)['rows']),'ledger mismatch')
+path=Path('/Users/researcher/DevProjects/h3-benchmark-all-results-showcase-20261018/inventory/ivebench.json');data=read(path);require(not any(x['id']=='r96_long_0167' for x in data['items']),'already in inventory')
+a=ROOT/'audit/inventory_update_long0167';a.mkdir();(a/'PREVIOUS.json').write_bytes(path.read_bytes())
+r=copy.deepcopy(next(x for x in data['items'] if x['id']=='r96_long_0123'));r={k:(v.replace('long_0123','long_0167') if isinstance(v,str) else v) for k,v in r.items()}
+r.update(title='动画洞穴：三名角色服装改为白色',task=p['original_task']['edit_prompt'],display_task='将三名动画角色的土色衣服改为白色。',review_summary='全144有效帧审阅：三名角色可见的衣服和帽子改白完成，洞穴、人物与工具保留；入镜、穿行转身、木桶倾斜、扫帚转直及最后起身均与原片大致同相。未见明显持续延后或动作遗漏，已跳过干预。手形、服装剪裁和工具角度有局部差异。',valid_frames=144,generated_frames=158,original_task=p['original_task'],clip_note='IVEBench长视频派生片段；原片帧9–158（0.36–6.36秒，结束时刻不含）。',source_time_precision='原片25fps；prepared24fps按provenance对应原时刻，展示144有效帧，排除末尾14填充帧。',native_comparison_properties=read(s/'PRESENTATION.json')['videos'][0]['properties'])
+r['evidence_paths']=[str(Path(config()['producer_local'])/'configs/scientific_contract.json'),str(Path(config()['producer_local'])/'configs/graphs'/f'{p["run_id"]}.json'),str(ROOT/p['provenance']['file']),str(i/'NATIVE_RUNTIME_GATE.json'),str(i/'COLLECTION.json'),str(s/'PRESENTATION.json'),str(review),str(decision),str(ledger)]
+r['media_sha256']={k:sha(r[k]) for k in ['reference_video_path','ordinary_video_path','native_comparison_video_path']};r['evidence_sha256']={x:sha(x) for x in r['evidence_paths']}
+require(r['quantitative_metrics']['motion_fidelity']['status']=='pending' and r['quantitative_metrics']['motion_fidelity']['native'] is None,'pending metric inherited incorrectly');data['items'].append(r);tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n');tmp.replace(path)
+save(a/'UPDATE.json',{'added':1,'modified':0,'items':len(data['items']),'unique_sources':len(set(x['source_id'] for x in data['items'])),'previous_sha256':sha(a/'PREVIOUS.json'),'inventory':bound(path),'actual_decision':bound(decision),'full_review':bound(review)})
+print(json.dumps(read(a/'UPDATE.json'),ensure_ascii=False))

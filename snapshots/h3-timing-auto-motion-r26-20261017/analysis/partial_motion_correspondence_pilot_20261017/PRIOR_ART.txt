@@ -1,0 +1,7 @@
+Verified before implementation, 2026-10-17.
+Drop-DTW, NeurIPS2021: https://arxiv.org/html/2108.11996v1
+Section3.2 Eq2 jointly charges pair matches and unmatched rows/columns; AppendixB.1 Algorithm2 has four terminal states: matched/matched, matched/dropped, dropped/matched, dropped/dropped. It permits one-to-many and many-to-one matches. This is existing sequence alignment, not a novel algorithm.
+Author code: https://github.com/SamsungLabs/Drop-DTW/blob/32ce9c82c6a0d717a94f4139b1902ad146923444/dp/exact_dp.py
+Local prior_exact_dp.py SHA256 7178226eb49cfa7f886ad737cca476e91ac1bb3a6deedef268c8277d705b411f.
+Read double_drop_dtw in full. The contiguous argument is not used inside this function. Its min-cost recurrence is the oracle for small finite random tests. Our implementation uses infinity instead of99999999, returns zero-based explicit matched pairs and derives unmatched sets as complements; it does not depend on the author's dropped-index traceback convention. Pair costs and missing-observation admissibility are task adaptations, not unchanged author experiments. No code from the online controller is edited.
+Paper HTML v4 was unavailable; verified v1 from the abstract's sole revision instead. Official code's asymmetric dtype/comment details were not silently treated as a probability model.

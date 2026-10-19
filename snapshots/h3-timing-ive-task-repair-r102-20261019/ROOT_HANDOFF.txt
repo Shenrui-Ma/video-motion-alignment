@@ -1,0 +1,44 @@
+R102 — 三条基础任务修复，逐条 Native → root验收 → guide/skip
+
+本地 /Users/researcher/DevProjects/h3-timing-ive-task-repair-r102-20261019
+远端 /data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019
+主机 H3_SERVER_A (.9)，UID1016，GPU0 / GPU-REDACTED，port8566。
+CPU准备与被动部署。GPU由root在R100实际进程/CUDA精确释放后启动，当前另一存活任务作为peer-root；不得复用旧PID或凭服务端口为空认为已释放。
+normal/reserve8，初始free>=40960MiB，最多2张自有CUDA卡；其他用户可同卡，只要实际余量足够。科学代码/核心/权重与既有.9运行配置一致。
+
+固定顺序与验收
+1 short_0263：Replace the woman with a young girl。完整原片，24fps输入90帧/有效74。年轻女孩应在原蓝色斜躺椅中持书阅读，原庭院、坐姿、手与书的接触及动作保留。
+2 short_0092：Remove the plants in the room。输入73/有效58。室内所有可见植物去除，女人绿衣、原手势、前景摄像机与其余房间物件保留。
+3 short_0126：Add a cat on the bed next to the man。输入124/有效109。猫位于原床上男人旁；男人背向镜头坐床沿上伸，原卧室/镜头/动作保留。原target caption中“猫也伸手”的措辞原文保存在metadata，P1按原编辑指令和实际源处理；未增加人猫互动。
+三条均1视频、0参考图，1312×736，输出评估crop16,8,1280,720@24，padding不评分。完整输入和provenance从R69/R64逐字继承。原.41结果仅为历史失败记录；新.9运行与旧结果的差异同时包含提示协议和runtime，不作单因素prompt因果主张。
+
+科学配置
+seed2026101701，20Euler/20NFE，CFG1，无Turbo，video/audio sigma shift12/3，原九个core SHA、六个numerical文件保持。
+forced为same-time mass_preserve、alpha1、steps6..14、全部50层，全部有效物理时间的重叠bin；纯padding bin原生。Native同参数mode=native。
+0263 active23/27bins，实际覆盖RGB0..76含3pad；0092 active18/22覆盖0..59含2pad；0126 active33/37覆盖0..110含2pad。评测只取0..valid−1。
+同源两臂条件6blob、原始AV噪声、预测0..5需后验逐位一致；不导入旧.41浮点解码hash作为.9期望。
+
+正式启动（root实际核R100释放、资源和另一存活peer后）
+cd /data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019
+nohup python3 -u audit/root_run_batch.py --execute --attempt root_task_repair_attempt1 --peer-root /data5/researcher/h3_runs/timing_flexiact_character_guidance_r101_20261019 > audit/root_task_repair_attempt1_wrapper.log 2>&1 < /dev/null &
+上述peer只为预期队列示例，必须按当时真实存活producer根填写；没有另一己方CUDA任务时省略peer-root。
+wrapper精确登记本次service PID/UID/start/cmd，GO前登记双方peer；STOP仅清理该身份。STARTED在audit/<attempt>/STARTED.json，释放在audit/<attempt>/ROOT_EXIT_RECEIPT.json。
+
+每例Native完成后
+analysis/postrun/<source>/NATIVE_RUNTIME_GATE.json需passed；状态awaiting_native_review。
+root查看完整有效视频，基础任务成功才执行：
+python3 scripts/execution_gate.py decide --root-reviewed --source short_0263 --choice guide --reason '已核女孩坐原椅持书、场景和动作保留，补同条件固定引导'
+失败或决定不引导时：
+python3 scripts/execution_gate.py decide --root-reviewed --source short_0263 --choice skip --reason '具体任务失败或跳过原因'
+后两例替换source依序决定。root-reviewed的GUIDE明确表示基础任务已验收，原动作/场景失败必须skip。决定原子绑定实际Native gate/图/媒体/条件/noise/history SHA与本代service。
+首个实际guided成对通过PAIR_RUNTIME_GATE后再次root验收：
+python3 scripts/execution_gate.py review-first-guided --root-reviewed
+若前例skip，首guided审阅顺延；未引导只归档Native-only，不制造paired结果。
+单次待审1800秒，单job10800秒，服务总57600秒。HTTP超时只记UNKNOWN、原期限继续；POST只提交一次。期限结束或异常exact收尾，待续结果保留。
+
+文件与校验
+configs/prompts/<source>.txt：正式六段P1；原官方edit逐字保留。
+audit/SCIENTIFIC_DIFF.json：科学/输入/任务/routing差异；audit/INHERITED_BYTE_BINDINGS.json：六数值文件与原输入SHA。
+104项本地CPU测试通过，三条实际源/准备输入PTS一致。实际.9验证结果以audit/TARGET_CPU_VERIFIED.json为准，含封存文件、12输入、9core、preflight/PTS/tests。
+预计最多6新run共574总帧；按R71既有数据体积比例估约5.42GiB，为规划估计。启动前需20GiB磁盘余量。PT/conditions留远端，消费者只取必要媒体/小JSON。
+GPU未由准备代理启动，未增加watcher。R100/R69/R64及其他旧包未改。

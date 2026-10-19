@@ -1,0 +1,51 @@
+R50 automatic five-pair postrun preparation
+
+Write scope: analysis/postrun only. Producer/runtime remains builder-owned.
+Actual producer4f1b4fbf and five R49 parents are now bound. Consumer FREEZE
+covers the completed-case and full-batch lanes; actual service BINDING is
+written from the root-owned launch record after deployment.
+
+Reuse R49's batch archive, 60-second stable inventory, owner-specific root
+release gate, original49-sample export, exact CASE_FILES and metric handoff.
+All five cases are required, including ordinary edits with no measured error.
+All large PT files stay hash-verified remotely; non-PT deliverables download.
+TMPDIR/TMP/TEMP use R50/temp to avoid the full shared /tmp partition.
+
+Automatic-specific archive additions: every raw Native/Full endpoint/input,
+all100 online request/response/decoded/pose/scan records, five frozen source
+pose copies, five condition/noise/parent metadata bindings and chosen21 AV
+captures per case. Existing producer verify_completed.py checks actual branch
+counts, decision reproduction, condition/noise/prefix evidence and geometry.
+
+Each case phase repeats all20 numerical pose scans from the archived source
+and online pose JSON with the frozen 158-frame geometry and valid0..146 domain.
+It records a decision ledger using47 latent bins and192 overlapping scan rows.
+The same case phase exports generated indices0,3,...144 at8fps, verifies each
+selected decoded frame, and writes METRIC_INPUTS plus CASE_FILES. The eleven
+terminal fill frames147..157 remain outside the public score and scan domain.
+
+Metric paths retain the existing generated158 and official MF interface:
+analysis/postrun/captured/batch/final/{run}/METRIC_INPUTS.json
+analysis/postrun/captured/batch/final/{run}/edited49_8fps.mapping.json
+Root owns GPU process release after RUN_GATE. Consumer uses shared CPU locks,
+then five case phases and finalization. No GPU or score is launched here.
+
+Current verification:20 metadata/inventory/identity/count and incremental proof tests pass.
+Producer manifest, scientific_contract, source pose locations, runtime validator
+and exporter SHA are pinned. Real Auto outputs and independent numeric replay
+await the root-owned launch. Relative source pose paths resolve under producer root.
+
+Incremental completed-case lane (same final five-case denominator):
+ run_incremental_case.py --run RUN --execute
+Requires actual producer seal/BINDING and60-second stable case history.
+It archives completed_cases/{run}, invokes the sealed producer --run verifier
+into CASE_RUNTIME_GATE.json, then independently replays20 scans and exports
+score media. CASE_READY explicitly says partial_batch=true, denominator5 and
+root_release_allowed=false. This entry owns both CPU locks and yields to the
+online observer; it never controls GPU processes or modifies producer files.
+
+Full-batch archive still invokes the ordinary all-five verifier. Case export
+can reuse earlier exact scored bytes only after every original dependency SHA
+matches the full-batch inventory and every derived case file verifies. Final
+batch validation still includes all five outcomes. Incremental code is ready
+for actual producer binding; real partial cases have not executed yet.

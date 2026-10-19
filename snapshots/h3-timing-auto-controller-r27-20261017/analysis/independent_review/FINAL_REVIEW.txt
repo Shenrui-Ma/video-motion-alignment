@@ -1,0 +1,30 @@
+R27 独立封存审查：PASS（实现与CPU证据；实际GPU准入另行验收）
+
+审查对象
+本地 h3-timing-auto-controller-r27-20261017，94项不可变文件。
+Manifest SHA 1044b9688ea47acbe59e4e4197cd1550f8ee89f21b2646927ba61169afa066fb
+Bundle SHA f305d088460ae53a83edb0fcc1c67c585ebbe81667b68e782d115f9842ac92d2
+94项本地文件长度/SHA与tar成员逐字节一致；封包内manifest逐字节相同。额外成员仅初始administrative admission/queue与manifest；当前admission仍要求root批准，queue仅两个冻结case。28份实际CPU六案执行源码与stage3 manifest逐SHA相同，六份结果与原日志解析值精确相等。独立复核详情见SEAL_VERIFICATION.json。
+
+当前结论
+此前报告的generation跨代提交、cleanup归属、chosen/Full元数据、合法sampler_final sigma误拒、实际job/prompt/graph绑定、测试入口问题均已修复；当前没有剩余阻断。该PASS允许root进入已定义的模型无关GPU核、已存端点VAE/pose桥和资源验收，保持既定两case科学范围。GPU gates和正式自动控制效果尚未产生，本报告不替代它们。
+
+实际代码行为
+1. 对每个zero-based denoising/Euler index 0..19，先以当前x/sigma/条件/seed执行Native预测，观察该实际Native端点，按冻结policy选可选Full；Full读同一x和sigma，只有chosen端点返回原Euler。总20次Euler更新，20+K次50-block模型预测，K<=19。index0已有观察；首个Full最早index1来自相邻两观察持续规则。
+2. 全片16/32帧窗口、stride4与末个完整起点，左右/双臂，两置信阈值.3/.5，±24帧lag。gain>.5、共享肢体、相邻端点及交叠比例>=.5均为固定开发超参数。候选数可变，聚合后映射至H3 nominal latent bins的唯一并集，所选bin所有空间query使用原Full。未选行每个attention调用保留Native；后续层传播仍可影响其他位置。
+3. 物理视频帧区间与去噪索引严格分开。旧字段physical_index实际指去噪索引；physical_intervals才是24fps源视频帧。nominal bin边界不应写成VAE精确感受野。INPUT_STEPS6/10/14仅被动保存原始输入，不决定开关。
+4. 观测执行失败、hash/schema/decoder/fallback错误中止；科学UNKNOWN保留并清除持续证据。提前动作仍测量归档，当前执行器只处理延后候选。可见性UNKNOWN不应统计成可靠正常。
+5. 当前Native在首次ON时仍与已有历史检查点可比；Full及后续所有旧Native比较永久N/A，OFF不恢复历史资格。缺失早期历史checkpoint明确标记unavailable，不人为延后开启。旧完整post-augmentation树未保存；当前证据限于clean输入、实际noise、代码/seed以及真正共同端点。
+6. 同一cached base的两实际run构造独立state/controller/readout/querymask；两seed冷noise遵循官方prepare_noise的RNG行为，缓存命中不改RNG且返回非别名。每个实际Native/Full分支及observer前后核x/端点/条件/两份sigma grid/RNG/模型驻留等。
+7. decoder隔离子进程，同卡仅允许精确父PID/UID/start/cmd身份且实际free>=12GiB；CPU pose随后拿共享远程锁。等待阶段不持CPU计算锁。生命周期支持timeout/父进程失联/TERM/KILL，拒绝静默tiled VAE fallback。两卡上限、另一卡逐PID登记、服务代际与精确cleanup均保留。
+
+验证证据与限度
+独立本地45项单测通过。真实 .9 CPU stage5 44项通过，冻结186窗口扫描数值与Mac一致。六案官方Comfy loader/processed H3条件/Guider/WrapperExecutor/Euler在两种wrapper顺序下分别20/36/39 NFE、20 callbacks；20个chosen和最终张量均等独立fixed-mask单预测路径。六案使用合成模型预测/脚本观测，不表示预训练DiT、实际姿态识别或整套在线效果已成功。
+官方VAE CPU regular/fallback门及四种Linux子进程生命周期门通过；相关5份脚本/transport与stage4逐SHA相同。验收测试保留actual两个历史final合法记录以及损坏sigma/服务身份/prompt等负例。
+known-endpoint GPU桥将只认证空卡下生产请求/归一化/VAE/RGB writer/pose/scan值域，资源准入替换明确单列。root还需核实实际kernel、bridge输出、parent+route内存界及>=12GiB预测/实际余量；正式共驻留和恢复依赖实际parent guard。未知/质量/效率在正式两case后报告，不提前认定成功。
+
+科研解释
+两个case均为同一source05的预选开发seed1311/1313。全片窗口检索、双阈值、persistence与已知Full组合先构成自动控制因果基线；它们的系统自动化或阈值名称本身不足以构成已证明的架构创新。多窗口高度相关，不能将186窗口或20端点当独立泛化样本。判断效用需要实际延后改进、正常样例误触发、UNKNOWN、全片与身份/重影质量共同报告。完整解码/pose与额外K次预测均记录耗时，本次审查未追加效率实验。
+
+审查操作范围
+本次仅写analysis/independent_review，未改runtime、冻结指标或scientific配置，未启动GPU或消费者。SEAL_VERIFICATION_attempt1_log_parser_error.json保留独立审查脚本初次误解析带前缀JSON的失败；修复解析后六日志逐值相等，不属于producer失败。

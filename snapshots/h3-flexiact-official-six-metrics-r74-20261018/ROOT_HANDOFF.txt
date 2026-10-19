@@ -1,0 +1,82 @@
+R74 六组 P1 配对结果消费与评测
+
+目录
+  Mac: /Users/researcher/DevProjects/h3-flexiact-official-six-metrics-r74-20261018
+  .41: /data3/researcher/h3_runs/flexiact_official_six_metrics_r74_20261018
+  Python: /data3/researcher/ComfyUI/.venv/bin/python
+  Producer: /data3/researcher/h3_runs/timing_flexiact_official_six_r74_20261018
+
+固定六组，按顺序全部保留
+  chest__game_man_5, chest__movie_man_7,
+  crouch__movie_man_5, crouch__movie_man_9,
+  rotate__game_man_1, rotate__game_man_4.
+  三个源视频；每个源有两个官方目标身份。六对不等于六个独立运动源。
+
+当前接口
+  scripts/watch_pairs.py 是 Mac 上的 CPU 协调器：每 45 秒读状态。
+  actual job/history success → producer verify_pair → gate → collect → prepare → render。
+  首对和余下五对都只在真正完成后消费。producer 的首对 review hold 仍由 root 处理。
+  同帧全片三栏视频、固定前两秒视频及 6 个源预设时刻截图自动取回 Mac。
+  原 158 帧成片保存；官方评分取 0,3,…144 这 49 帧，8 fps；147 有效帧用于视频展示。
+  纯 padding 不参与评分。颜色/空间尺寸沿既有 R66 release49，不重新设计裁剪。
+  大 x0/condition PT 留在 producer；watcher 只取实际 mp4/必要 JSON/截图。
+
+每对正式门
+  analysis/postrun/<pair>/PAIR_RUNTIME_GATE.json，schema r74-paired-runtime-gate-v1。
+  P1；各 20 NFE/20 Euler；Native 0、forced 450 routed blocks。
+  同一实际 source/image/prompt、clean conditions、初始 AV noise、前六次 x0 逐位一致。
+  actual VAE reference geometry 与 token layout 必须通过。
+  本消费包核验 seal、job/history/graph、原始输出 hash 和 exact49 时间映射。
+  无 gate 时消费脚本拒绝生成评分输入。
+
+数值继承
+  configs/NUMERICAL_INHERITANCE.json 绑定 44 个现有数值/验证器源码。
+  官方 FlexiAct CoTracker checkpoint 原 SHA dbb9006c0dc89479c34993ac23d37ae0af13deac18be6028009d7483754b2fc3。
+  原 tracker、grid_size=55、mask=None、[3025,49,2] float32、MF 公式均按 R66。
+  source 和 target 本次统一在 .41 fresh tracking；需要 3 source + 12 target。
+  同一个 source 的 fresh track 在它的两个目标配对中共用，记录实际绑定。
+  各目标与源的 hostname/GPU 型号/Torch/CUDA/vendor/checkpoint/grid 必须一致。
+
+root GPU 调度接口（watcher 不调用）
+  先设置 R 为上面的 .41 consumer 目录，P 为上面的 Python，G 为 root 现场批准的 GPU UUID。
+  仅打印命令：
+    "$P" "$R/scripts/tracking_plan.py" --key chest --method reference --gpu-uuid "$G"
+    "$P" "$R/scripts/tracking_plan.py" --key chest__game_man_5 --method native --gpu-uuid "$G"
+    "$P" "$R/scripts/tracking_plan.py" --key chest__game_man_5 --method forced --gpu-uuid "$G"
+  目标命令须等 prepared/<pair>/READY.json。
+  执行打印的 argv 后，进程在 CUDA 前写 controls/<method>_<key>/ready.json。
+  ready 顶层 pid，identity={uid,start_ticks,cmdline_sha256}；原始 cmdline hash。
+  root 核验真实 PID/UID/start/cmd、当前显存、input manifest SHA、consumer freeze SHA，
+  并把准确身份登记到需要允许此 peer 的推理服务，再逐字复制 ready.json 为 go.json。
+  600 秒尚无准确 go 会退出。输入/冻结文件改变会拒绝执行。
+  wrapper 允许共享上下文，实际 free >=40 GiB、温度 <85°C、本用户占用并集 <=2 卡。
+  保持原 run_tracks.py 数值代码，只有 check_gpu 被独立 wrapper 替换为上述资源规则。
+  REPORT.json passed 与真实 tracks SHA/shape 绑定；R74_BINDING.json 留执行来源。
+  root 核真实 PID 和 CUDA allocation 退出，然后撤 peer，才进行下一项。
+  需要重试时保留旧 attempt，交由 root 指定新 control/output；不覆盖失败记录。
+
+MF CPU 评分（相应源/目标 tracker 真正完成并退出后）
+  env CUDA_VISIBLE_DEVICES= "$P" "$R/scripts/score_one.py" --pair chest__game_man_5 --method native
+  env CUDA_VISIBLE_DEVICES= "$P" "$R/scripts/score_one.py" --pair chest__game_man_5 --method forced
+  env CUDA_VISIBLE_DEVICES= "$P" "$R/scripts/summarize.py" --output "$R/audit/MF_SUMMARY_attempt1.json"
+  每组均保留缺失/失败/undefined；固定分母 6，另注明只有 3 个运动源。
+
+物理动作诊断（watcher 自动 CPU 执行）
+  .41 现有 DWPose CPU 依赖与两个模型逐 SHA 校验，显式 aux_root 指向 /data3。
+  三个 source 及 12 targets fresh CPU 提取158帧，同一 runtime/provenance。
+  configs/physical_protocol.json 固定原 evaluator/windows/thresholds；无输出选窗。
+  scores/physical/<pair>/PAIRED.json 保留原共同可见支撑统计。
+  INDEPENDENT.json 另列每个目标各自可测的原诊断，R71 已审核 adapter 字节相同。
+  某目标检测失败时，其 UNKNOWN 保留；另一个目标的可测内容单独报告。
+  独立目标误差不能当作共同支撑上的直接误差差值。
+  完成凭据是 scores/physical/<pair>/COMPLETE.json。
+
+CPU 检查与展示
+  本地：audit/CPU_TESTS.txt。服务器：audit/REMOTE_CPU_TESTS.txt。
+  实际导入/源时间轴/字体和 2 帧三栏渲染 smoke：audit/passive_check/RESULT.json。
+  smoke 三列均为同一源，只验证渲染环境，不属于模型结果。
+  全部消费脚本/配置/runtime/tests 在 CONSUMER_FREEZE.json。
+  watcher 入口和状态：audit/watcher/{STARTED,STATUS,COMPLETE}.json，逐对 receipts/。
+  队列、服务、GPU 生命周期与 producer approve-rest 全部由 root 管理。
+
+正式结果尚待对应视频完成及 root tracker 执行；准备测试不构成方法有效性证据。

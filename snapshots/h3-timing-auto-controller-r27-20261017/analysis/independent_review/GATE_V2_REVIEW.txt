@@ -1,0 +1,10 @@
+R27 gate-only v2 independent review: PASS
+
+Verified all 96 immutable local and tar file lengths/SHA256. Relative to v1, only scripts/known_endpoint_bridge.py changed (import and post-decoder gate call); scripts/gpu_release_gate.py and tests/test_gpu_release_gate.py were added. No production numerical/runtime/decoder/observer/scientific protocol file changed.
+
+The helper requires successful child exit and absence of the child PID. Live/reused identity and foreign compute processes are refused. Only the two original strict idle errors permit bounded polling; final success still comes from the original strict idle assertion. Four independently executed metadata tests passed.
+
+Boundary: 10 seconds is the retry budget, not a hard total wall-time deadline for underlying original idle subprocesses. Actual GPU known-endpoint and parent-residency gates remain required and root-owned. No GPU work was performed by this reviewer.
+
+Manifest SHA256: 996b14cb6e68e33babf84367cab5c9d027aa5b0f112e956308daf904817332e5
+Bundle SHA256: 82475ea38f6ea4f6e9a0a87c8d82e87cb21ca4c1d15fa60599254c3b777022c8

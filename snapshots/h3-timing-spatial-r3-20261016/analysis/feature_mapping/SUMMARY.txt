@@ -1,0 +1,22 @@
+冻结离线映射检验已完成。当前这套 M 不值得进入完整视频干预，未启动 M 推理。
+
+使用实际 R3 native 的 block25、zero-based calls6/10/14、固定4头。source-only 高/低变化组先由真实 prepared RGB 生成并锁定 hash，再加载 target features。没有修改 head、ROI、λ、阈值、校准段或时间对齐。12项合成测试本地及 .9 CPU 均通过。
+
+高变化组、四头等权共同支持 NMSE：
+调用  分割    I        D        A        M
+6     val   1.256    0.975    1.125    5.742
+6     post  1.451    1.002    1.116   10.557
+10    val   1.293    0.963    1.179    6.406
+10    post  1.346    0.989    1.081   10.598
+14    val   1.125    0.903    1.063    5.606
+14    post  1.195    0.963    1.055    8.596
+
+主点 call6 两个分割均为0/4头优于各头最强基线，未达到收益门。共同支持也未达到80%：val为40.6%–73.9%，post为42.0%–71.8%。被拒样本全部来自局部平流估计的位移超过预定1 token线性范围，没有扩大范围或删除A后重算。以上数值只能描述剩下的共同支持；不能宣称已在完整高变化区域做了有效比较。
+
+每点364个局部拟合全部得到有限解，call6可辨识rank22–39；剩下共同支持的可辨识能量占比约76.7%–93.6%，并非rank0或近零子空间导致。call6拟合状态NMSE中位数0.0647，但held-out预测明显恶化。这符合本次局部校准不能外推的表现，无法仅靠本检验区分过拟合、对应错误或特征混合等具体原因。calls10/14不能替代call6失败，结果也没有提供正向支持。
+
+结论仅限本次固定配对、校准和线性模型；不证明所有映射方法不可能。native target本来可能动作错误，成功预测它也不是纠正动作。实际保存的是post-attention/pre-W_O的上下文特征，不是纯运动、V或干净动作标签。同host被动native重放门由root单独核验，本工具没有假冒完成。
+
+核验：实际3个文件及6个tensor内容SHA、batch/head/grid/row spans、condition/noise及runtime/core provenance逐项验证；20个结果/审计文件本地与远端SHA相同。原preparedRGB仍留 .9，未下载。源分组CPU5.76秒，统一评分27.46秒/峰值约409MiB，GPU使用0。
+
+完整结果：results_native/RESULTS.json；逐边记录和各头/区域/分割统计均保留。固定程序：evaluate_mapping.py；冻结参数：FROZEN_PROTOCOL.txt；源分组：source_groups.json；输入快照：frozen_inputs/；运行资源：evaluate_execution.txt。

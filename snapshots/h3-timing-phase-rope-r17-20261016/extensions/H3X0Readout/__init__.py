@@ -1,0 +1,43 @@
+"""Staged passive x0 recorder. Not installed in the running Comfy service."""
+
+from .core import CaptureConfig, PassiveRecorder
+
+
+class H3X0Readout:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "model": ("MODEL",),
+            "run_id": ("STRING", {"default": "x0_readout_unique_run"}),
+            "output_dir": ("STRING", {"default": "/tmp/h3-x0-readout"}),
+            "width": ("INT", {"default": 1312, "min": 32, "step": 32}),
+            "height": ("INT", {"default": 736, "min": 32, "step": 32}),
+            "length": ("INT", {"default": 141, "min": 5, "step": 17}),
+        }}
+
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "apply"
+    CATEGORY = "research/H3X0Readout"
+
+    def apply(self, model, run_id, output_dir, width, height, length):
+        from comfy.patcher_extension import WrappersMP
+        import comfy.ldm.minimax.model as h3
+        from pathlib import Path
+
+        if not Path(output_dir).resolve().is_relative_to(
+                Path("/data5/researcher/h3_runs/timing_phase_rope_r17_20261016").resolve()):
+            raise ValueError("R17 x0 output must stay inside task root")
+
+        if not isinstance(model.get_model_object("diffusion_model"), h3.MiniMaxH3Model):
+            raise TypeError("H3X0Readout requires MiniMaxH3Model")
+        key = "H3X0Readout/passive-v1"
+        if model.get_wrappers(WrappersMP.SAMPLER_SAMPLE, key):
+            raise ValueError("H3X0Readout already registered on this model")
+        config = CaptureConfig(run_id, output_dir, width, height, length)
+        cloned = model.clone()
+        cloned.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, key, PassiveRecorder(config))
+        return (cloned,)
+
+
+NODE_CLASS_MAPPINGS = {"H3X0Readout": H3X0Readout}
+NODE_DISPLAY_NAME_MAPPINGS = {"H3X0Readout": "H3 passive x0 readout (Euler20)"}

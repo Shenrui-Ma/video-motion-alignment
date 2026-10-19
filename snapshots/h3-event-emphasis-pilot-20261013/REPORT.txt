@@ -1,0 +1,66 @@
+H3 人工指定短事件时间窗的注意力加权验证：本轮未修复目标动作
+完成日期：2026-10-13
+
+问题：在生成前手动指出短动作时间窗，提高该时间片参考信息被使用的权重，能否恢复被改掉的短暂手—眼关系？
+本轮只做一个预先固定的人工干预，不训练、不自动识别事件、不搜索多个强度。
+
+固定样例
+动画06，源片141帧、24FPS、1312×736。普通提示A要求按参考图换成流萤并保持原动作。seed2026101312。
+早期短眼旁动作完整39–44帧，核心41–42帧；54–68附近的较长眼旁V＋抬腿是另一个事件。旧A_s2保留后者，前者被胸肩附近手势替代，周围动作较接近源片。
+两条新结果为同GPU、同服务中的factor1 baseline和factor2 intervention。旧A_s2只是历史复现参照，不能代替新基线。
+
+具体改动位置
+当前ComfyUI实现：comfy/ldm/minimax/model.py 的Attention.forward在Q/K RMSNorm和RoPE之后调用optimized_attention，随后调用原out_proj。
+任务插件extensions/H3EventEmphasis通过克隆MODEL的patches_replace['dit'][('double_block',i)]扩展口，在每个DiT block的局部transformer_options中安装optimized_attention_override。
+共享Core、权重文件、原Attention类都不改；原QKV投影、归一化、RoPE、out_proj和FFN仍由原实现执行。
+factor1不安装attention override，直接执行original_block(args)。factor2先算原生全量attention，再只重算事件时间片的输出video queries，使用追加一份事件reference-video K/V的键值序列，将重算结果回填选中的query行。
+所有50个DiT block、所有20个采样步使用同一固定规则。TokenRefiner、Qwen语义抽帧、提示词和采样sigma不变。
+
+数学含义
+s_ij = q_i dot k_j / sqrt(d)
+s'_ij = s_ij + log(2) * I(i in event-output-queries and j in event-reference-keys)
+复制的是已经归一化、旋转后的K和对应V，不创建新的RoPE位置，也不延长实际packed token序列。
+它使所选参考组相对其他keys的attention odds乘2；并不使最终概率或特征值简单乘2。如果原该组概率为p，新概率为2p/(1+p)。复制等价log偏置是softmax基本性质，不是本轮发明的新公式。
+使用这种实现是为保持mask=None的原生SDPA路径，避免构造87583×87583注意力矩阵。
+
+时间和token范围
+当前H3位置分组按(1,4,4,4,4)循环，不能简单用源帧号除4。
+人工窗口39–44覆盖latent indices12、13，其位置分组覆盖39–42和43–46。位置分组不是VAE精确感受野，实际覆盖比人工窗口宽。
+参考video latent=[1,24,42,46,82]，patch为1×2×2，每时间片23×41=943个tokens，选中1886个key和1886个query。
+运行时验证packed sequence为：text[0,6940)，refimage[6940,7901)，refvideo[7901,47507)，audio[47507,47977)，outputvideo[47977,87583)。
+选中reference K/V=[19217,21103)，output queries=[59293,61179)。参考image和video虽然都使用ref_img标签，但插件按refs元数据重建整张layout表，明确排除参考图。
+这些token包含对应时间片的全空间外观、背景和姿态；深层状态也混合了上下文，因此不能称为已提取并单独放大纯动作向量。
+当前block只回填指定query行，后续层仍可能将影响传播到其他时刻，不能保证全片其他内容不变。
+
+控制和环境
+20步Euler、video/audio sigma shift12/3、无Turbo LoRA、原生PyTorch SDPA、Triton线性内核、INT8 ConvRot H3与NVFP4/AWQ Qwen。
+源视频、参考图、普通提示A、2FPS语义抽帧相位0、几何、实际初始视频/音频噪声均固定。历史AV噪声缓存按字节复制；新正式A/B审计还需在完成后比对。
+新目录：/data5/researcher/h3_runs/event_emphasis_pilot_20261013；.9 A10080GB物理index2、GPU-REDACTED，端口8446。旧封存实验只读，.41和暂停的备份盘点任务未操作。
+权重尺寸、mtime、inode和已有路径已核对；引用先前全文件SHA，未重新扫描几十GB权重。
+
+工程验证
+远端CPU13项与CUDA小张量13项测试全部通过：factor1原路径、log2偏置数学等价、选中query干预/未选query保持、参考图排除、时间映射、无mask与有界数值采样等。
+实际几何2步factor2 benchmark成功，100个block calls、2个完整forward、100次override，token区间符合预注册。
+实际原生函数attention_pytorch，QKV=[1,56,87583,128]，bf16；复制后KV长度89469。首层选中输出样本weighted-vs-native max_abs=0.0791015625，RMS=0.00272702635，均有限，证明补丁确实改变数值。
+benchmark完整执行365.4秒，采样约154.72秒；运行快照显存62554MiB（采样值，不是精确峰值）。benchmark是技术验收，不评价其画面，也不计作正式实验结果。
+
+正式结果与判断
+两条20步新结果全部完成并归档：06_seed2_baseline为1523.202秒（25.39分钟），06_seed2_emphasis2为1560.138秒（26.00分钟），均为ComfyUI history实际执行时长，包含该图执行开销，不把单次差值当稳定性能收益/损失。
+实际控制验证全部通过：相同输入、提示词、Qwen presentation/tokenization/embedding、clean reference、位置坐标、目标形状和实际AV初始噪声。8个存储tensor文件的原始ZIP storage独立SHA核验通过；未单独保存的embedding等按运行时记录SHA比对。增强后的reference张量仍是由相同clean latent、seed及原生实现推导一致，不声称直接哈希验证。
+两条各完成50层×20步=1000次block hook；baseline的override次数0，factor2为1000，实际生效范围符合预注册。
+新baseline的141帧解码RGB与历史A_s2全部相同，因此原来的失败得到复现。独立审查另外重新看了新baseline的30–77帧。
+factor2全部141帧及30–77密集区间已独立检查。36–41仍是较低胸肩手势，42–46向外指；源41–42帧的眼旁关系没有恢复。47–51上脸属于接续后置长V的过渡，52–67长V/抬腿仍在，不能拿它替代早期事件。
+没有发现额外的独立早期手眼事件；流萤身份仍可辨认，未见明显粉发原角色回退或新增整体/背景崩坏。具体手指拓扑/接触仍不认证。审查为非盲AI逐帧图像检查，未声称人工盲评或原速播放观察。
+baseline与factor2的141个RGB帧没有一帧完全相同：干预确实改变了输出，但这些变化没有修复目标动作的类别关系。不能把有数值/像素差异当成修复成功。
+结论：此固定样例、种子、全部层/步、2倍时窗参考加权没有奏效。不据此否定所有注意力加权方案，也不能据此宣称只剩自动化选窗就能成为有效方法。没有追加参数搜索或替换样例。
+
+归档和资源
+review/index.html包含PREVIOUS（源片）、PRESENT（新baseline）、PRESENT + EVENT WEIGHT x2（干预）的完整141帧、正常/四分之一速度、30–77密集区间和关键逐帧图；所有列同帧，没有独立时间配准。研究结果未应用真人展示用的黑边遮罩。
+analysis/visual_review.json和visual_review/是独立视觉结论；analysis/archive_tools_validation.json包含控制验证；analysis/final_media_qa.json通过7个视频全量解码、65张JPEG、135个HTML引用等检查。
+远端service49769、controller34913、watchdog54731、supervisor49756均已退出，8446无监听，自有计算进程为空，目标GPU8MiB；本地archive monitor93493和caffeinate86569已关闭，身份验证记录齐全。其他用户进程未操作。
+同期间用户要求的既有样例展示，最新版在h3-previous-present-showcase-20261013，与本次加权结果分开。服务器备份文档仍暂停。
+另行时间链审计报告：../h3-motion-timing-audit-20261013/REPORT.txt。它显示部分动作确实延后，但不支持所有视频统一慢放；未发现统一时钟/索引偏移错误。当前Ref2VA从全噪声重新生成，以原片为reference，不提供逐帧硬保持保证。
+
+解释边界
+若观察到改善，只能说本样例中人工指定参考时间窗的注意力加权缓解了问题。它不证明自动化模块可行、特征提取不足就是根因、所有短动作都适用，或已有论文空白已被验证。
+错误时间窗/匹配扰动、第二种子、其他编舞和自动事件定位是可能的后续验证，本轮未执行。

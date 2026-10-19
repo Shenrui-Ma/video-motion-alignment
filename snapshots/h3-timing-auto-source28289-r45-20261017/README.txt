@@ -1,0 +1,1 @@
+R45 is the R44 source28289/Elon Musk normal-protection experiment moved to GPU3, port8507. The algorithm, data, seed and evaluation are unchanged. R44 failed before prompt/DiT/observer during strict GPU admission. R45 is prepared only; root owns actual GPU gate, resource approval and launch.

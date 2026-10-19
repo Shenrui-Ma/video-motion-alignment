@@ -1,0 +1,27 @@
+R98 官方 FlexiAct MF：CPU 准备完成，GPU 未启动。
+
+本地包：/Users/researcher/DevProjects/h3-flexiact-character-repair-mf-r98-20261019
+建议 .41 新根：/data4/researcher/h3_runs/flexiact_character_repair_mf_r98_20261019
+解释器：/data3/researcher/ComfyUI/.venv/bin/python
+现有 runtime_deps 如运行环境需要，由 root 按 R66 .41 环境设置，禁止安装新依赖。
+
+数值代码、CoTracker vendor、checkpoint 和 release49 从 R66 原字节复制。官方 commit de9fe1d536732c4d1a384577b5ae54f8fc1730d7；grid55、无 mask、49帧8fps、edited-to-reference方向。source使用官方原49帧文件；新R98 Native实际gate PASS、0 routes、输出SHA21d65db6...5e9。旧R66分数与视频不进入本次score。新source与新Native在同一.41、相同GPU型号和软件版本fresh tracking。
+
+本地CPU已完成：9项输入/继承/拒绝错误成片/拒绝未完成guided/纯命令规划测试；实际158→49抽帧，验证indices0,3,...144逐帧decoded MD5一致、PTS=j/8。完整147有效域供视觉，评分49帧；末尾11padding排除。
+
+部署：将 consumer_bundle.tar.gz 解包到新根；其中不含本地prepared绝对路径记录。在目标新根执行下面CPU命令，重建该主机路径的准备收据：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python scripts/prepare_native.py
+
+然后只打印 launch 命令，GPU UUID由root当前核验：
+/data3/researcher/ComfyUI/.venv/bin/python scripts/tracking_plan.py --method reference --gpu-uuid <GPU1_CURRENT_UUID>
+/data3/researcher/ComfyUI/.venv/bin/python scripts/tracking_plan.py --method native --gpu-uuid <GPU1_CURRENT_UUID>
+
+两个tracker顺序执行，各一个进程。root核当前父cgroup和显存后执行打印命令；ready.json写出时尚未导入torch，核pid/uid/start/cmd哈希并登记R96等自有peer，再把ready精确复制为go.json。继承40GiB显存门、温度<85C、我方GPU并集<=2；允许他人同卡进程，但显存不足拒绝。ready/go最长600秒，tracker结束后root检查PID/CUDA清空。不要开启额外GPU worker。
+
+两份REPORT/track均PASS并退出后，CPU评分：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python scripts/score_one.py --method native
+输出 scores/native/SCORE.json + similarity.pt，记录实际新视频SHA、source/target报告和帧映射。官方非有限结果保留null；不把MF当身份或物理时差验收。
+
+R101 future guided：尚无实际成片或匹配gate，本包命令明确拒绝 --method guided。其数值tracker/scorer已支持同一49帧协议；待R101真实gate到齐后，只补其独立intake/49帧映射与MATCHED_GATE_BINDING，须核gate所指Native就是此R98输出、prompt/conditions/noise/前6步条件匹配，再开放guided入口。不得把R66旧forced替入。该追加准备不改变本次已冻数值模块或source/Native数据。
+
+部署/跟踪仍需root实际执行；此文件不代表MF分数已产生。

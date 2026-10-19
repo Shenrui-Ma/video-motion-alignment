@@ -1,0 +1,44 @@
+{
+  "schema": "h3-native-full-frame-review-v1",
+  "source_id": "long_0174",
+  "reviewer": "recover_41_r96_r103",
+  "reviewed_valid_frames": [0, 144],
+  "reviewed_frame_count": 145,
+  "method": "Visual inspection of all 145 valid frames at unchanged physical timestamps in 15 two-column sheets; both inputs use the same crop and equal scaling.",
+  "task": "Change the woman's white outfit to black while retaining the people, building and actions.",
+  "task_status": "basic_color_edit_pass",
+  "task_observations": [
+    "The woman wears black throughout the generated clip.",
+    "The same two characters, building facade, doorway, carried book and handbag remain recognizable.",
+    "Clothing shape and necklace details change slightly; local hand/object details are reconstructed. These do not explain away the observed temporal shift."
+  ],
+  "timing_status": "clear_visible_delay",
+  "events": [
+    {
+      "event": "Woman moves from the viewer's left behind the man; face is fully obscured",
+      "source_interval_frames": [49, 53],
+      "native_interval_frames": [61, 65],
+      "observed_lag_range_frames": [8, 16],
+      "observed_lag_range_seconds": [0.3333333333, 0.6666666667]
+    },
+    {
+      "event": "Woman emerges on the viewer's right of the man",
+      "source_interval_frames": [56, 60],
+      "native_interval_frames": [69, 73],
+      "observed_lag_range_frames": [9, 17],
+      "observed_lag_range_seconds": [0.375, 0.7083333333]
+    },
+    {
+      "event": "Man turns toward woman and begins lifting their joined hands/book arm",
+      "source_interval_frames": [81, 87],
+      "native_interval_frames": [95, 101],
+      "observed_lag_range_frames": [8, 20],
+      "observed_lag_range_seconds": [0.3333333333, 0.8333333333]
+    }
+  ],
+  "late_window": "At source frames 135–144 the man's arm is already extended high toward the viewer's right. Native remains in an earlier lower-arm phase. The matching terminal phase is outside the valid output and is right-censored; no exact final lag or omission is assigned.",
+  "other_motion_differences": "The woman's movement amplitude and hand contacts differ locally. Hair motion and occlusion make single-frame onset labels uncertain; intervals are used.",
+  "recommended_next_action": "Generate a matched fixed-temporal-guidance result in a separate explicitly registered follow-up, using the existing Native output as historical control and verifying conditions, fresh noise and pre-intervention predictions.",
+  "current_support_claim": "This Native result supports existence of action timing drift after a successful basic color edit. It provides no evidence yet that temporal guidance improves this source.",
+  "producer_state": "Native completed before the 1800-second review hold expired; exact service released. No forced output exists for this source."
+}

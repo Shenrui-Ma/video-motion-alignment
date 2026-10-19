@@ -1,0 +1,31 @@
+历史 physical 评估异常隔离审查
+
+最终结论
+R71 P1 是本次审查唯一确认受到连带 UNKNOWN 影响的实际结果。已用原缓存重算 R55 五组、R50retry chest 一组、R65 两组、R66 八组，共 16 组历史配对：逐视频的可测性和合格时差结论均未变化；480 项原来可测的诊断与归档数值完全相同，最大绝对差 0。
+官方 MF 结果和在线 source→单个 current-x0 观察器均不受本问题影响。
+
+影响原理与代码范围
+1. IVEBench evaluate90.evaluate：在同一个 try 内提取 reference、native、auto 特征；任一目标缺少躯干锚点，会将两条目标该 confidence 下的整组固定窗口标为 unknown_visibility。源文件位于 R26/analysis/ivebench_physical_time_eval_20261017/evaluate90.py，SHA e03ea8dd6504ab54b56d20b4f6cdc0991f1bd80de8d112870a2754469a42129e。实际使用者为 R55 五组最终 physical 配对及 R71 本次原版 physical 配对。
+2. FlexiAct evaluate.evaluate 具有同样结构。源文件位于 R26/analysis/flexiact_physical_time_eval_20261017/evaluate.py；R65/runtime/physical/evaluate.py、R67/runtime/physical/evaluate.py 为相同字节副本，SHA 6d41b7c258496d7bf7bee259601046ed3e788e7b1d3ac9267695ab0022159cc0。实际配对调用为 R50/R50retry、R65 与复用 R65 evaluator 的 R66。
+3. IVEBench shared_support.py 也包含这个 FlexiAct 函数副本，但 evaluate90 仅导入其中的 common_error，并没有调用其 evaluate。R67 实际的 roundtrip/current-x0 诊断只调用 original_time_view/diagnostic；每个输出独立处理，未进入有问题的双目标 evaluate。
+完整源代码位置、文件 SHA、AST try 范围见 TRY_INVENTORY.json。两种存在风险的 evaluate 在 7 个代码副本中出现；需要区分包含函数的副本与实际调用路径。
+
+已验证的历史结果
+IVE_RECOMPUTE_SUMMARY.json：R55 short_0210/0230/0263/0352/0370 共 5 组，0 组结论变化。
+FLEX_RECOMPUTE_SUMMARY.json：R50retry chest、R65 fitness/one_leg、R66 全部 8 组，共 11 组，0 组结论变化。
+所有既有 pose 文件均通过旧报告/实际完成收据内的 SHA 绑定；清单见 HISTORY_MANIFEST.json。全部重新计算只读取这些缓存，没有重新提取姿态。history_results/*.json.gz 保留每个目标的完整补充数值、旧报告绑定和逐项差异核对。
+R50 原始队列没有发现额外已完成的配对 physical 报告；R49 五条 Native 单视频报告原本独立提取特征，未受到双目标故障传播。R54 Native-only 同理。
+
+R71 实际修正
+旧 physical_original.json.gz 两目标均 UNKNOWN。逐目标补充后 P0 仍 UNKNOWN；P1 12 个预先固定的窗口×特征诊断中 11 个可测，可靠偏移为 0 或 −1 帧，全片双臂一项保持 UNKNOWN。没有更改旧文件，也没有把共同可见区域上的配对误差改为单视频误差。
+
+不受影响的流程
+在线 scan_current_pose.observe 每次只有 reference 与一个 current-x0 target，不存在另一个生成变体使它失败的通道。source 与 current-x0 任何一者确实不可测时继续 UNKNOWN，符合既有规则。
+R27–R53 的 fixed_metrics 原本在目标循环内独立 try；common_regions 的全方法交集要求全部输入可用，仅影响共同可见区域比较，不会抹掉那些独立诊断。
+官方 MF 路径读取 CoTracker 轨迹，调用 score_cached_tracks.score 或 metric_adapter.score_tracks；不读取 DWPose physical 的 UNKNOWN。已核 R63、R65、R66 的 scripts/score_one.py，故历史 MF 数值无需重算。
+
+修订与验证
+adapter.py 对每个目标分别调用冻结 evaluator；兼容性重复槽位仅保留第一份诊断，不作为额外样本。原共同可见区域结果保留在旧配对报告中。
+5 个隔离测试在本机和 .41 通过：A 不可见不污染 B、均可见时原数值完全一致、source 不可见时均 UNKNOWN、坏格式保持技术错误、输入无修改。
+随后本机增加 FlexiAct 实际冻结 evaluator 的隔离测试，共 6 项通过。测试原版与新增版分别留档，记录见 TEST_RECEIPT.json 与 TEST_RECEIPT_V2.json。
+数值函数、阈值、采样时基、旧报告与生产任务均保持原封存内容。这个补充修正评估中的失败隔离，不构成模型或引导算法改进。

@@ -1,0 +1,71 @@
+R73 · five source-selected official IVEBench tasks · paired P1 Native / fixed route
+
+Local /Users/researcher/DevProjects/h3-timing-ivebench-expanded-r73-20261018
+Remote /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018
+Host H3_SERVER_A (.9), GPU3 GPU-REDACTED, port8541.
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+Existing runtime/core/model/dependency paths exactly inherited R71, normal memory/reserve8.
+
+Fixed order: short_0252, short_0344, short_0065, short_0135, short_0035.
+Each source Native then forced, total10jobs. Frames/valid107/98,73/58,56/47,124/112,73/70.
+All1312x736@24fps, evaluation content crop[16,8,1280,720], padding excluded.
+Official complete clips, nearest original rationalPTS (tie earlier), last-frame padding17k+5.
+All prepared video frames lossless-readback equal the explicit original mapping. Inputs have one silent video stream.
+
+Final P1 template is root-approved after actual R71 P1 review. Inherit R71 sections,
+change appearance edit to requested edit, use official source/target context and
+verbatim official edit_prompt. Requested edit controls any omitted context attribute
+(e.g. elderly woman in0252). Full prompt files configs/prompts/<source>.txt.
+Draft files and INPUT_PLAN pending status preserve the earlier preparation stage;
+design/PROMPT_DECISION.json records the actual final decision.
+
+Both arms exactly same prompt/source/seed2026101701/noise shape/20Euler20NFE/CFG1/
+manual sigmas video12 audio3/INT8+Qwen+VAE/runtime kernels. Fixed route alpha1,
+all50blocks, indices6..14, valid physical-frame support; pure-padding bins native.
+Native uses same mask parameters, mode native. Six numerical files byte-identical
+R71. No observer. Each pair records six actual clean condition blobs, shared AV
+noise and all20x0+final snapshots; actual verifier checks steps0..5 bitwise equal.
+
+Root deployment/launch:
+1. Passive package copy is authorized; actual GPU launch remains root-only.
+   Check deploy_manifest file hashes and actual core/checkpoint expectations.
+   CPU check (CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1):
+     runtime-python scripts/preflight.py
+     runtime-python -m unittest discover -s tests -v
+     python3 scripts/check_storage.py
+2. Fresh GPU3 health/free>=40960MiB, own GPU union<=2, exact allowed peers;
+   configs/admission.json starts ready_for_launch=false. Root fills actual readiness.
+   The first Native107 is the real initial capacity run. Larger124 still needs
+   actual available margin; this package makes no full-shape capacity guarantee.
+3. python3 scripts/execution_gate.py approve-first-pair --root-admitted --free-mib 40960
+   python3 scripts/launch_remote.py --service-only
+   Wait exact service/cuda_gate_ready identity, register in peer policy, atomically
+   copy identical ready JSON to cuda_gate_go.json. Wait HTTP readiness.
+   python3 scripts/start_controller.py --pid ACTUAL --start-ticks ACTUAL
+4. First Native/forced pair ends in awaiting_first_pair_review (bounded1800s hold).
+   CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+   PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps \
+   /home/researcher/miniconda3/envs/comfyui/bin/python analysis/postrun/verify_pair.py --source short_0252
+   Gate analysis/postrun/short_0252/PAIR_RUNTIME_GATE.json, schema
+   r73-paired-runtime-gate-v1, prompt_version=P1, runs.native/forced.
+   After root review: python3 scripts/execution_gate.py approve-rest --root-admitted
+   This releases the remaining8 fixed jobs. finalize=true releases exact owned
+   service after all10. Failure retains job/error and releases exact owned state.
+
+Storage: prior root observation R71two90frames ~1.7GiB; proportional10runs866frames
+estimate~8.2GiB, with unknown text/cache/compression variation. Launch preflight
+requires20GiB filesystem headroom and writes audit/STORAGE_STARTUP.json. Big PT,
+condition/cache stay on.9. Download only needed video/JSON for new consumers.
+No old files were deleted; no alternate volume permissions were changed.
+
+CPU evidence:40 tests,34 Python AST parses,all5 source frame mappings,actual silent
+stream probes,6 numeric parentSHAs,paired graph only mode/run-path diffs,mutation
+rejections for geometry/prompt/mask/noise/conditions/prefix/padding,exact empty-proc
+spawn recovery/controller registration,first-pair continuation hold,storage floor.
+Actual motion/edit quality andGPUcapacity are still unmeasured for these5sources.
+Report all5including failed/unchanged/unobservable outputs. Body-pose UNKNOWN is
+expected possible for hand-only cases; consumer preserves official MF and visible
+object/contact events without requiring human/robot joint isomorphism.
+
+Consumer ownership: paper_benchmark_review_current independently owns
+h3-ivebench-expanded-metrics-r73-20261018; producer does not launch tracker.

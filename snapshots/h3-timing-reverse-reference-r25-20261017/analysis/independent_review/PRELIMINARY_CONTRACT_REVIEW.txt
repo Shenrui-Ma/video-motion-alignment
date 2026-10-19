@@ -1,0 +1,21 @@
+R25 preliminary independent review — baseline and numerical contract
+Status: PREPARED; final implementation/seal not yet reviewed. No GPU/model invocation.
+
+Archived R3 Native/Full pair: successful exact histories, config↔history identity, 20 forwards/1000 blocks, matching actual clean-reference/embedding/tags/layout/noise streams and source-preprocessing signatures have been checked. Exact paths and SHA are in BASELINE_CONTRACT.json. R3 completion keeps router.status=sampling; it must not be rejected merely for that string. Conversely a status string alone is insufficient.
+
+Required numerical cases for the final implementation:
+- BLOCK equals a dense-softmax oracle excluding the entire T-video group only on selected R-query rows; it must renormalize the complement, including target audio. Zeroing V_T or subtracting its original weighted sum is not equivalent.
+- SAME equals the ideal distribution with original outside-group probabilities, original m_T, and conditional softmax restricted to same-physical-time T keys. Test both output and row mass on small tensors. Test irregular actual frame-to-latent mapping, not RGB frame=latent index.
+- m_T from group/complement LSE must match the native attention scale/head normalization; all included/padded ranges must agree. Empty or mismatched groups fail before sampling. Near-zero and near-one mass must remain finite without denominator cancellation.
+- Finite zero correction with nonzero m_T is allowed (e.g. constant values); only deliberately nondegenerate toy cases demand a changed result.
+- Use the actual native full output for untouched rows; no backend switch merely to obtain LSE. All nonselected rows, especially all target-video/audio rows, must be bitwise preserved in the same call. Input Q/K/V and RNG remain unchanged. Tests should include unselected reference/portrait/text rows.
+- Correct 56 heads×128 head dimension in real graph, independent of 5376 hidden projection width; do not infer 42 heads from hidden width.
+- Off/prefix branch returns the original native call directly. 20 model NFEs, 20 Euler updates and callbacks, 1000 blocks, exactly 450 selected calls at indices6..14 and all50blocks. Additional attention kernels are not additional model NFEs.
+- Per-request state reset is required for the second arm in a resident service; metadata/cache reuse must be keyed to actual source/seed/layout, not prior R24 last-case state. Prepared R3 cached inputs must carry exact source hashes and actual tensor signatures. Historical clean hashes must not be called post-augmentation evidence.
+- Prefix005 dual-stream equality must use original actual R3 payload/manifest, not inferred filename or final video. Prefix equality is necessary and not sufficient for full conditioning equality.
+- Passive block25 four-head diagnostics cannot recover complete reference hidden/KV or prove the motion-failure cause; no extra model NFE is allowed in the proposed two-arm scope.
+
+Resource acceptance to review on final code:
+R24 must finish all sealed jobs and archive before exact owned-service handoff. No hot-patch of R24. A recorded owner includes UID/PID/start_ticks/command hash; stale/reused identities fail closed. Only root may approve live admission/launch. Max2 own GPUs, no foreign process termination, default root approval false. A failed/complete job must retain history and finally stop or bounded resident ownership according to the root-approved lifecycle. Completion and cleanup evidence must refer to the same service generation.
+
+This file does not approve unseen code. Final source/test/manifest version must be reviewed after builder completion.

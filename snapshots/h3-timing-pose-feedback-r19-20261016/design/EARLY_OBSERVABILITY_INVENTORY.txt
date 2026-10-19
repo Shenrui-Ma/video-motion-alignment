@@ -1,0 +1,61 @@
+Early pose observability inventory — read-only existing artifacts, 2026-10-16
+No new GPU, VAE decode, DWPose extraction, threshold changes or R19 protocol edits.
+
+Answer: an already decoded and measured endpoint exactly matching the current .9 source05/seed2026101311 preintervention index005 exists. Its four qualified main-window readings are all unknown. The same-geometry normal seed2026101313 index005 gives four readings of -1 frame. Thus existing frozen pose does not reliably authorize early start on this bad case at index005, even though it recognizes the normal example as near zero.
+
+Coordinates: index005 is zero-based physical denoising step5 / sixth model call, sigma_video0.9729729890823364. Main physical-video window is50..65 at24fps. This is the clean native x0 endpoint, not noisy x5 or x6.
+
+Frozen main-window table (direction.3, direction.5, wrist.3, wrist.5):
+Bad seed2026101311 qualified lags: [null,null,null,null]; old gate unknown_or_confounded.
+Bad seed unqualified argmin only: [12,12,12,14]; every item status unreliable_detection_coverage. These cannot be reported as four valid delay estimates.
+Bad seed same-frame feature coverage: [0.65625,0.453125,0.75,0.53125]. Candidate-minimum coverages are [.953125,.796875,.96875,.75], which do not rescue the frozen rule.
+Normal seed2026101313 qualified lags: [-1,-1,-1,-1]; old gate near_zero_no_intervention.
+Normal same-frame coverage: [1.0,.96875,1.0,.9375]; four diagnostic entries status exploratory.
+Both gates carry automatic_intervention_authorized=false. Near-zero and available phase are offline observability labels; any new control rule requires its own frozen protocol.
+
+Exact reuse and source binding:
+Old decode record snapshot videoSHA751aa84e3d16e6ae12a18ca63fd6a83b1e5724bfd92a48d44136f761ada30924; audioSHA2eb1915214f90be3d137a647190a80241033013ff42ce0c238b8b7a2bb35c1dc.
+Independently compared old decode metadata against actual R17 plus4 capture005: video/audio tensor signatures, geometry, video/audio sigma, normalization stage, audio scale4, video scale1 and seed all exactly equal. R17 completed integrity gate additionally loaded actual tensors and confirmed video/audio torch.equal with actual R3 Full005. R16 geometry-mask diagnostic records the same reusable endpoint binding.
+Geometry [1,24,42,46,82] latent ->141x736x1312 RGB,24fps; identical VAE checkpointSHA7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522.
+Old decoded MP4SHA7ae257850ad577c1b27f68fe192722f8fd9b0422d978d8ab6283b9bde3f97f6d; R14 decoded MP4SHA5c570194d85ccfdeadd86a9f6d297d74d0c8fd5e75dd8a8d626eb78e484a3948. Each existing pose file SHA matches its observer record. No new video decode was needed.
+Current R14 and R17 actual conditioning native_vae_calls and prompt equal. Their shared prepared-reference/video-latent signatures are bound by those condition records; different seed changes generated endpoint, not the source condition.
+Frozen metric codeSHAeebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e; protocolSHA92c093d6896a1eab563d69a33a707c23d7ade491c614fbf84ae123e89f10f3e2; source poseSHAe0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852.
+
+Other old bad005 window gate states (already stored, not recomputed):
+50:65: {"status": "unknown_or_confounded", "direction_lags_by_threshold": [null, null], "position_lags_by_threshold": [null, null], "reasons": ["direction_phase_unavailable_at_one_or_both_thresholds", "position_phase_unavailable_confound_check_unknown"], "automatic_intervention_authorized": false, "note": "An observable phase is a necessary observation only, not evidence of remaining-step controllability."}
+69:81: {"status": "unknown_or_confounded", "direction_lags_by_threshold": [9, null], "position_lags_by_threshold": [null, null], "reasons": ["direction_phase_unavailable_at_one_or_both_thresholds", "position_phase_unavailable_confound_check_unknown"], "automatic_intervention_authorized": false, "note": "An observable phase is a necessary observation only, not evidence of remaining-step controllability."}
+80:92: {"status": "unknown_or_confounded", "direction_lags_by_threshold": [8, null], "position_lags_by_threshold": [null, null], "reasons": ["direction_phase_unavailable_at_one_or_both_thresholds", "position_phase_unavailable_confound_check_unknown"], "automatic_intervention_authorized": false, "note": "An observable phase is a necessary observation only, not evidence of remaining-step controllability."}
+99:111: {"status": "phase_available_for_manual_review", "direction_lags_by_threshold": [4, 4], "position_lags_by_threshold": [4, 4], "reasons": [], "automatic_intervention_authorized": false, "note": "An observable phase is a necessary observation only, not evidence of remaining-step controllability."}
+
+Implication for a later start detector:
+Unknown bad005 versus near-zero normal005 is not a validated classifier of needed intervention. Low confidence may reflect occlusion, reconstruction ambiguity, identity geometry or detector failure. Relabeling unknown as delay would change the frozen rejection rule and needs separate evaluation. Do not turn the unqualified argmin12/14 into a reliable measurement. This inventory does not change the R19 fixed-start/stop design or authorize an online run.
+
+ROOT_PREIMPLEMENTATION_REVIEW.txt read and acknowledged:
+An isolated VAE decoder must reject Comfy OOM-triggered spatial-tiled fallback explicitly, including all applicable decode_tiled_3d and _decode_tiled_owned entry points (and any actual branch selected by the frozen VAE). Add a forced-fallback negative test while preserving regular decode images. Ordinary H3 internal chunked I/O is allowed and must not be misclassified as OOM fallback. Scope guards to the child process; do not patch installed Comfy or historical scripts. Use native x0 normalization and full141frames; compare decoded float/RGB hashes, not only MP4.
+After the external observer returns, recheck x, timestep, full grid, condition, RNG, output references and model/patcher identity/residency. The pre-observer guards alone do not cover the intervening call. Root still requires R18 evidence before R19 implementation.
+
+Evidence paths and SHA256:
+old_decode: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/x0_decoded/s05_full_seed1_native_x0/x0_step005.json
+  SHA256 0df9b801f97e7116981ea1d3386264f6d46e6524cd7877de37548863e04abcec
+old_pose: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/x0/s05_full_seed1_native_x0/x0_step005.pose.json
+  SHA256 0926fbd82302153f953fc2967c20dc5362d63c144ec3241232976431edc0c310
+old_observer: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/x0/s05_full_seed1_native_x0/x0_step005.observability.json
+  SHA256 8e142d9190f151a5e68b8458fb29ef2b6e3c4593f273d920c8d21ec0401c091b
+r14_decode: /Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/x0_decoded/r14_native_step005.json
+  SHA256 12290d68a2286f7a8d92e9c5959c44cee45a51d817b5786b662dfa88b507aba1
+r14_pose: /Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/pose/r14_native_step005.pose.json
+  SHA256 1a9af3e1b180c8c1092f5d78bb848148f2a49a1a55cd654d9ccbf489e8c47978
+r14_observer: /Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/pose/r14_native_step005.observer.json
+  SHA256 8562d6b373b276ca717e741e54dcd417fc3568da41900f40ec0d30c933996246
+r17_capture: /Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/pilot/r17_s05_plus4_a05_6to14_provenance/capture_manifest.json
+  SHA256 b9d4a83a5043136515acc4b931297618ede42b728b95fdb7a3a8e0aa5aae7606
+r17_integrity: /Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/replication/r17_s05_plus4_a05_6to14_integrity.json
+  SHA256 89e3d4bf24c81fdca73c8b4d48bc2585905cc3ed5cb6e3e75920458159cc8b44
+r16_binding: /Users/researcher/DevProjects/h3-timing-local-route-r16-20261016/analysis/pose/prefix005_geometry_mask_coverage.json
+  SHA256 fadddfdbf10b67681af4c18ccbcd88bfc1627b0d744f112d283bc9d8d06da0b4
+root_review: /Users/researcher/DevProjects/h3-timing-pose-feedback-r19-20261016/design/ROOT_PREIMPLEMENTATION_REVIEW.txt
+  SHA256 568588644a2d6563c6f11ac18dcabdf7346fb574e04a57d4389109e305b7f00b
+r14_actual_condition: /Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016/analysis/pose/key_evidence/audit/r14_s05_seed1313_native_host9_conditioning.json
+  SHA256 569d3de825ed0648d9de521f7bb309e971385bd13586f45e2f49a5cd6996f12f
+r17_actual_condition: /Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/pilot/r17_s05_plus4_a05_6to14_provenance/conditioning.json
+  SHA256 613a90bd3684c21493b469d89f912428aeaf458ef21a64225eaf3c33e53ad637

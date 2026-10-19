@@ -1,0 +1,9 @@
+v3: one fixed, conservative order test
+
+Rationale from the sealed v2 audit: all 6 local positive cases with wrong-direction selections had at least one consecutive same-arm source pair for which no D choices could preserve target order. The only passing local positive case had no such collision. This association justifies a selector test, not a causal conclusion.
+
+For candidate I=[a,b], target-time envelope is [a+min D_I,b+max D_I]. A chain must be disjoint in source and, for every possible phase pair, disjoint and ordered in target. The edge is b_I<a_J and b_I+max D_I<a_J+min D_J. Keep all D, all qualified candidates, all scores. Record the weaker existential edge b_I+min D_I<a_J+max D_J as a diagnostic; do not pick lag points. Both arms solve independently.
+
+Max-sum DAG chaining is established dynamic programming. This test only asks whether enforcing order on existing anomaly candidates removes the observed aliases while preserving true plateau coverage. A single false candidate or a mutually ordered false path may remain. A narrow true subset of a broad D is never silently selected. Rejected pair compatibility does not make either window known-aligned.
+
+Use original 43 inputs, original assessments and frozen thresholds. Preserve the old point-task assessment alongside direction-task assessment. The required scientific gate is all 38 direction cases; failure stops this candidate from online admission. Current online H3 experiments remain separate.

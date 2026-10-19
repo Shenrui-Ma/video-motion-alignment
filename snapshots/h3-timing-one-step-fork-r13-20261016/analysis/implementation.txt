@@ -1,0 +1,61 @@
+R13 固定单步分支诊断：本地实施与交接
+2026-10-16；diagnostic_only=true；new_method_claim=false。
+
+冻结目标
+protocol.json SHA256 48b89d1b0118e742ef057647b2aea41fde9ae1f78d4f2b5e4051822253750770。
+实现前已冻结n=[6,10,14]，m=[7,11,15]，每点先Full下一状态重放、再Native下一状态分支，共6NFE。
+0次新Euler采样更新，0次普通sampler callback，300个DiT block，0个路由block。完整21点sigma和原始noise/seed/条件/模型不变。
+此轮在已有Full历史轨迹上做三个预定位置的机制诊断，不产生新完整视频，不按observer选择分支。已有SVDD/CoDe等候选评估近邻仍适用，不由两分支形式主张新方法。
+
+主要文件
+extensions/H3OneStepForkAudit/core.py：Source绑定/归档验证、唯一UUID恢复、原生50层计数、终止式SAMPLER_SAMPLE、GPU同顺序Euler状态重建、两道逐位门、六次预测/读出/存档。
+extensions/H3OneStepForkAudit/__init__.py：报告输出节点、独立clone/state、一次真实extra_conds计数及实际FinalLayer PDD参数hook；finally移除hook/恢复原方法。
+scripts/preflight.py：协议hash、冻结图差分、单任务队列、完成态Source绑定检查。
+scripts/bind_source.py：只读完成R10，校验19个源文件与R10/R3旧端点配对门，验证12份所需tensor再原子写入R13 source_manifest。绑定前模板保留到audit；失败candidate保留。
+scripts/verify_fork.py：完成后校验6个NFE、全部输入/端点文件hash、三个已有端点逐位重放、PDD/条件/完整grid及分支映射。
+configs/r13_s05_one_step_fork.json：保留R10所有模型、原始条件、参考素材、noise和sigmas节点；移除视频输出链，终点改为H3OneStepForkAudit。
+
+接口
+H3OneStepForkAudit输入model、positive、noise、sigmas、latent_image、source_manifest、run_id、audit_dir。
+OUTPUT_NODE=true，返回STRING报告路径。没有LATENT/VIDEO输出。
+内部正常BasicGuider.sample一次；实际Guider.inner_sample已完成process_conds后，在KSAMPLER.noise_scaling之前接管。
+SAMPLER_SAMPLE wrapper明确不调用executor。最后返回零packed生命周期占位，正常process_latent_out/cleanup完成后输出节点丢弃该张量。它不接VAE或视频保存。
+不复用已结束R10的有状态wrapper。H3TemporalRouter/H3CounterfactualRouter/H3X0Readout的冻结纯工具与原生计算路径作为本地副本复用；R13全新state只允许原生分支。
+
+配对门与坐标
+x_n来自R10 stepNNN_input_raw.pt的原采样坐标packed；y_N/y_F从保存的video identity、audio*4还原，必须与源raw stream SHA相等。
+同GPU上用原to_d先减后除、float32 dt、乘再加；不代数化简，不CPU替代GPU重建，不给raw x做process_latent_in或noise_scaling。
+第一道门：U_F完整packed SHA==R10下一native记录的same_input。
+第二道门：native(U_F,sigma_m)的raw和normalized两流SHA==R10归档m-native端点。
+只有这两道门通过才计算native(U_N,sigma_m)。不匹配会保存已有失败证据并停止；不以误差容忍把近似改写成通过。
+R13归档U_N/U_F的packed是权威原始状态；同时保存的audio/4字段只是便于核查的缩放视图，不表示有噪声状态已成为可解码的干净audio latent。
+
+条件、PDD、RNG
+原始及processed条件完整hash都校验；仅先恢复Comfy convert_cond自动新建的唯一UUID，使同一源条件身份可精确比较。所有其他条件字段先逐项签名相等，embedding/ref/alpha/seed/layout无豁免。
+真实extra_conds执行一次并检查CPU/CUDA RNG不变；每个forward仍照原模型使用局部Generator作条件noise augmentation，保持alpha、seed与seed+1。
+PDD只读hook记录实际FinalLayer sigma、grid SHA、bank size、index/start/stop、shifts和模型compute dtype；完整grid定位m=7/11/15，不截schedule。
+六次预测分别校验输入、sigma副本、完整grid、条件、参考及CPU/当前CUDA RNG不变，不恢复RNG掩盖消费。
+
+验证证据
+本地10项unittest PASS，audit/local_cpu_attempt5.log；约7.17秒，仅CPU。新增全新Python进程中移除sibling搜索路径的目录模块加载检查，环境与CPU RNG不变。
+覆盖实际归档loader、全部源端点raw音频恢复、文件篡改/越界路径拒绝；原Euler顺序输入重放、6NFE/300block/0route、0callback/0Euler、no-op两分支全等；UUID唯一字段恢复、条件差异拒绝；错误input/sigma/grid/condition、全局RNG消费、额外forward及错误重放端点均fail closed；协议/图/资源/源绑定未完成拒绝。
+首次本地检查失败：父RouterState不接受空step区间，改成有效[0,1)元数据区间，实际selected始终False。失败原始日志audit/local_cpu_attempt1.log保留；后续attempt2/3/4依次通过。该legacy区间不控制R13分支。
+root真实 .9 Comfy CPU smoke一次通过，audit/real_comfy_cpu_smoke_attempt1.log及result.json，24.740947秒、CUDA_initialized=false。
+真实node loader alias、ModelPatcher.clone、Guider.inner_sample、process_conds/H3 extra_conds/COND*/PackedLayout、SAMPLER_SAMPLE WrapperExecutor、H3输出归一化和FinalLayer PDD执行；QKV/权重为小CPU夹具。
+两案real_direct/real_clone都6NFE、0callback、0Euler、extra_conds=1、PDD[7,7,11,11,15,15]，完整UUID恢复条件hash相等，输入/端点重放逐位相等，noise_scaling/inverse_noise_scaling/sampler executor均未调用，全局RNG不变，hook和extra_conds恢复。
+第一次真实CPU核验core SHA256 ff9d236aad712ef2a9cd23196cc9c2eda365b2d3aab8bf1001dee1f0d46410af。其覆盖数值与生命周期接口；当时smoke在sys.path加入extensions，没有覆盖生产自定义节点目录loader。
+封包检查发现顶部直接import sibling依赖该搜索路径；已改为与R10相同的私有路径包加载，__init__.py和core.py都改相对导入，新增dependencies.py。当前core SHA f4434cec9e71839cbe346fea78f970829cf4c33ef6d91674edf010481f45eed7；数值实现未改。真实smoke已追加actual load_custom_node目录入口、去除extensions路径并隐藏canonical sibling模块，采用该实际加载出的node module执行；最终这版真实CPU检查等待root执行，不能把第一次PASS说成最终loader已通过。
+
+部署清单（root执行；builder未启动GPU/服务）
+1. 上传bundle到新/data5/researcher/h3_runs/timing_one_step_fork_r13_20261016，核对不可变文件manifest。
+2. 等R10完整结束、父配对门通过；执行现有comfy环境python scripts/bind_source.py --source-root /data5/researcher/h3_runs/timing_counterfactual_r10_20261016，并保留命令日志。source_manifest是明确允许后补的独立SHA绑定文件；不能改变协议、三个n或选择顺序。
+3. 默认preflight.check(root)必须通过；pending模板会拒绝launch。仅check(require_source=False)是本地结构验证，不能作为运行许可。
+4. .9 GPU2 UUID GPU-REDACTED，port8474；所有模型size/mtime/prior SHA和冻结核心SHA仍需launch脚本核对。新增core依赖sampler_helpers/model_sampling/utils也已绑定。
+5. admission需GPU空闲、PID身份匹配；显式拒绝本账号已占两张卡时再启动；其他用户不计入本账号配额。队列只含r13_s05_one_step_fork。root启动现有launch_remote.py，沿用watchdog/controller/finally cleanup及释放显存证据。
+6. 完成后运行 scripts/verify_fork.py，检查audit/fork/r13_s05_one_step_fork.json与analysis/verified_fork.json。失败不自动改变gate或重试覆盖旧run；先保存证据。
+7. 只记录同步模型秒、重建秒、条件签名秒、存档/readout秒、总墙钟和原资源日志，不加速度分析/优化任务。
+
+剩余验证边界
+root已报告R10完整验证通过并释放GPU2；R13的实际源SHA绑定仍待部署后执行，source_manifest保持pending。GPU同硬件精确输入+端点门尚未执行；CPU通过不能替代该门。
+三点结果只能说明一次干预对下一sigma原生端点读数的作用，不证明后续不会反弹、完整成片改善、跨seed策略有效或新架构成功。lag是非线性估计，不能用Euler权重乘lag推导收益。
+唯一新增写入根为R13，没有改R10/R11/R12或Comfy核心，无依赖安装。

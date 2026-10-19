@@ -1,0 +1,111 @@
+R16 local same-bin routing: implementation and deployment boundary
+
+Scientific protocol and input binding
+-------------------------------------
+protocol.json froze the two arms before their outputs. Both use the R3 .9 Full
+graph, seed2026101311, source05/Sam, 1312x736x141, Euler20/CFG1, all50blocks at
+forward indices6..14. There is no predict-noise wrapper, second prediction,
+online observer decision, modified sample grid or extra Euler update.
+graph_diff.json and test_frozen_graph establish that node50 and administrative
+run/output roots are the only graph differences. The original four weights,
+prompt, source image/video and text/source preprocessing remain bound by the
+parent runtime/conditioning/noise evidence and the root's deployment checks.
+
+Same-bin operator and spatial localization
+------------------------------------------
+The R3 Flash/LSE arithmetic is retained. The only local arithmetic addition is
+the source-derived per-query coefficient a_q in
+    O_new = O_native + a_q * m_ref * (O_same_bin - O_all_ref).
+ROI uses the union of source forearm capsules: full strength through32px,
+cosine falloff to zero at64px. Source joints7/8 and9/10 are elbows/wrists.
+Nominal bins14..19 cover47..67 RGBframes, including full spans outside the
+requested50..65 interval. Each bin unions its integer frames and interpolated
+span center. Pose pixel-center indices are converted by +0.5; patch centers
+are32*(c+0.5,r+0.5). H3 patchification is time,row,column with23x41patches/bin.
+UNIFORM broadcasts the same ROI mask's spatial mean at each bin. It matches
+sum a_q within1e-5 after float32 rounding. It does NOT match sum a_q*m_ref, the
+norm of the correction, or actual motion guidance dose. Those depend on Q/K/V
+and may vary across positions and diverging trajectories.
+
+Zero-mask rows are not written back to the native output. An all-zero mask
+takes the native return path. An all-one mask takes the exact original Full
+operation sequence. Partial masks use only active row index_copy; no Q/K/V,
+reference, noisy latent, sigma, condition or RNG mutation is introduced.
+Auxiliary attention still computes the full selected bin; this implementation
+does not claim sparse computation savings. Later blocks/VAE can propagate a
+local alteration outside the mask, so no final-image outside-mask invariance is
+claimed. Same group mass means a per-query/head attention algebra property.
+
+Evidence for source coordinates
+--------------------------------
+source_pose.json SHA e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852
+comes from the source MP4, not generated Sam outputs. That MP4 is SHA
+c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857.
+geometry_source_evidence.json records the actual .9 native preprocessing source,
+141 PyAV frame timestamps i/24, dimensions1312x736 and no rotation. Native resize
+uses crop disabled at the same dimensions and no dense VAE temporal resampling.
+Old pose input OpenCV8bit and Comfy PyAVfloat RGB conversions are not asserted
+equal; frame/time/coordinate geometry is verified. Actual clean ref75140c3c...
+is checked by the new node before installing a patch. Actual prepared RGB
+1d27ac08... must also match R3 in formal conditioning records. Source positions
+can differ from an edited or delayed subject's actual positions. This is a
+frozen limitation of the experiment; radii will not be tuned after seeing it.
+
+Local implementation differences from R3
+-----------------------------------------
+H3TemporalRouter is copied unchanged. H3LocalTemporalRouter adds mask.py,
+query_gain handling in route_attention and the frozen node inputs/binding.
+Other copied extension code remains unchanged except H3EventAudit's R16 audit
+root/default path. Its old R3-only path would have rejected the actual graphs;
+the path fix is tested and has no preprocessing numeric effect.
+No core Comfy, checkpoint, third-party kernel or shared installation is edited.
+
+CPU evidence and its limit
+---------------------------
+tests/local_attempt1.log preserves a test-only JSON tuple/key representation
+failure. tests/local_attempt2.log records7/7PASS,0.194s: native/Full endpoints,
+dense convex probability redistribution and group mass, unchanged zero rows,
+QKV/RNG, bad masks, source mask rebuild, means, missing/confident pose and
+half-frame interpolation, canonical graphs, auxiliary audit roots.
+tests/local_route_wrapper_smoke.py is a real Comfy loader/ModelPatcher clone/
+BasicGuider/Euler/H3X0Readout integration check using synthetic small attention.
+It binds the actual R3 reference tensor and executes actual native reference
+preprocessing on small arrays with stand-in VAE/text outputs; checks all four
+reference outputs, PairSnapshot and cached noise. It verifies20NFE/20callbacks,
+1000blocks and the6..14 schedule for each native/Full/zero/one/ROI/UNIFORM test.
+No checkpoint is loaded by the CPU gate. Its result must be read from a new
+actual .9 attempt log; this document does not infer PASS from local unit tests.
+
+Required deployment actions owned by root
+------------------------------------------
+1. Run the real .9 CPU smoke under the shared CPU lock, CUDA_VISIBLE_DEVICES='',
+   OMP/MKL/OPENBLAS_NUM_THREADS=1, PYTHONDONTWRITEBYTECODE=1. Preserve all attempts.
+2. Copy the two R3 source inputs by SHA into R16 inputs/; no media tensors/old
+   outputs need to be bundled. Verify all frozen core/model/runtime bindings.
+3. Record reuse of R3 spatial_bench2 same-shape warmup and its actual runtime
+   evidence. This establishes previous backend feasibility, not new patch
+   correctness or current speed. Root may use a separate declared timing-only
+   warmup if needed; no unreported formal sample grid changes.
+4. Seal scripts/extensions/configs/tests and independent small evaluator code
+   with scripts/build_manifest.py after runtime scripts are final. The tool
+   rejects overwriting seals and can verify an existing seal. Inputs are
+   included if already present; extra remote input copies need separate hashes.
+5. Admit only free .9 GPU2 with the frozen UUID, respect max2 own GPUs and keep
+   the two jobs serial. Observe real20NFE/20updates/20callbacks and finite outputs,
+   actual masks/ref/noise/prepared conditioning/backend. CPU equivalence does
+   not establish real Flash numerical identity. All formal outputs and failures
+   must be retained. Root owns cleanup and memory-release verification.
+
+Evaluation / interpretation
+----------------------------
+Compare ROI and UNIFORM against R3 native/Full with independent fixed-window
+arm direction/wrist metrics plus visual hands/duplicate arms/identity. Check
+leg/knee/ankle and torso/hip/shoulder timing, amplitudes and coverage as frozen
+in protocol.json and critic-owned analysis/local_effects. Coverage similarity
+does not imply common valid-joint support across arms; use each evaluator's
+actual shared support and record rejection. Intermediate x0 readouts remain
+passive. Record efficiency and elapsed time; do not infer deployment overhead
+from a heavily instrumented diagnostic. This single known bad case is already
+viewed, has no heldout status and establishes no new method claim. DIAL already
+contains local/query-mask control ideas; success here only motivates a more
+specific mechanism investigation.

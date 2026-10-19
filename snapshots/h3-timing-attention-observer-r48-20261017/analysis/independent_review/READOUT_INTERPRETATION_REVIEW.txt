@@ -1,0 +1,17 @@
+R48 attention readout interpretation — independent bounded review
+
+Verdict: PASS for the current descriptive interpretation. No evidence here supports calibrating an online action-error gate from these two states. No production code or frozen output was changed.
+
+Evidence closure: PRE_SPEC_revision2 pins the same summary source as R46 revision2, fixed block25, heads0/14/28/42, all25 fixed spatial locations across42 time bins, and full/44–59/complement aggregation. Current source/test receipts match those pins. RESULT script and independent READOUT_GATE hashes match. Both report and 45.5MB attention-payload hashes were independently checked; the existing CPU verifier records historical Native endpoint bitwise equality for each single forward. Both quality gates PASS with43 small attention calls, finite values, group/subset LSE consistency and probability sums. This review did not reload/recompute endpoints or rerun the summary.
+
+Arithmetic/scope: spatial means use25 equally weighted fixed points per bin; regional means use nominal inclusive physical-frame overlap. Full-minus44–59 gives the complementary frame weight and does not silently realign trajectories. Paired JS is natural-log JS at the same fixed query coordinates, followed by the same aggregation. Source/seed/protocol/condition/raw-state binding is checked before load.
+
+The quoted44–59 values match RESULT: bad center offsets approximately[24.61,36.71,25.62,15.27], normal[22.16,37.34,26.86,17.77]frames; same-bin probabilities bad[.01374,.00922,.03072,.02368], normal[.01377,.00980,.02825,.02608]. Entropy values are likewise close, with no consistent headwise ordering. These observations reasonably withhold a simple threshold gate. They are not a powered separability test.
+
+Terminology to preserve: same_bin_mass is conditional on the reference-video group, normalized over42 reference bins. It is not the probability mass of the full joint-attention row. reference_mass is stored separately, e.g. heads differ greatly in that mass. Positive reference-center displacement describes reading later reference coordinates; a broad distribution and early query location can create it even without an action error. Nominal intervals are not the VAE receptive field.
+
+The additional mass-weighted output delta norms are descriptive per-head readout magnitudes. They have no native-output normalization or measured response of the next motion state and cannot identify useful guidance or ghosting. The fixed sparse grid includes background. Both states are from the same reference and different development seeds. Current results constrain these simple aggregates at one layer/state, not all internal-observer mechanisms. Cross-case validation would be needed before any gate; this review authorizes no extra head/layer sweep or threshold fitting.
+
+The successful R48 guard and endpoints validate this recovered attempt. The earlier R46 actual-head value was not preserved, so R48 success does not by itself prove that R46 failed for exactly one CUDA ULP.
+
+No GPU, CPU model, pose or numerical resummarization was run. Exact input hashes and numeric excerpts are in the companion JSON.

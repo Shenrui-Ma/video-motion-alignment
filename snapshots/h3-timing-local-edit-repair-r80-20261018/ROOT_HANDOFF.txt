@@ -1,0 +1,46 @@
+R80 IVEBench 局部编辑修复：两条已有 development 素材，先跑普通编辑
+
+本地：/Users/researcher/DevProjects/h3-timing-local-edit-repair-r80-20261018
+远端：/data5/researcher/h3_runs/timing_local_edit_repair_r80_20261018
+Host9：H3_SERVER_A（经 H3_SERVER_B）；GPU0 UUID GPU-REDACTED；port8547。
+准备阶段只有CPU检查与被动部署，所有GPU调用由root显式启动。
+
+两条原R69 source bytes/seed/geometry/sampler保留：
+1. short_0230，头巾和围裙改蓝，90总帧/86有效帧。
+2. short_0352，原场景内男人换现代服饰女人，90总帧/78有效帧。
+都1312×736@24fps，seed2026101701、20 Euler/20 NFE、CFG1、原video12/audio3 manual sigma；无时间路由。
+P1-local-v1使用官方六节、Video1结构、Subject1外观partial/Subject2场景full、[Shot1]，官方edit/source/target文案逐字保留。0230源围裙实际深色花纹带红边，已记录官方粗略颜色描述；0352明确替换男性身份，保留其表演，不要求保留男性面容。
+数值6文件与R73逐SHA一致。输入预处理和90帧形状直接沿原R69。
+R69旧P0在.41，本次P1在.9，前后展示只是任务修复；同host提示单因素证据由R71/R78承担。若未来评时序引导，新Native/forced必须同.9及相同prompt、实际AVnoise和条件。目前只登记两个Native，未登记任何forced提交。
+
+运行profile：normal/reserve8、disable-dynamic-vram、原INT8 Triton/SDPA；新包容量试跑门free≥30720MiB（30GiB）。
+容量证据 audit/capacity_evidence/REPORT.txt：R63同.9同90帧配置在24054MiB free完整完成Native+forced，实际层offload。新P1长度和本次true peak仍待实测；不提供未测peak上界。OOM仅记录并精确清理，不自动降低数值参数或切换profile重试。旧R78/R79/R73冻结门未改。
+
+root 首条启动（仅这一显式调用启动GPU）：
+cd /data5/researcher/h3_runs/timing_local_edit_repair_r80_20261018
+PYTHONDONTWRITEBYTECODE=1 python3 -u audit/root_run_pair.py --execute --attempt root_attempt1 --peer-root /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018
+
+peer由当前service.json核PID/UID/start/cmd，绑定实际root/GPU/port；R73已退出时自动跳过，换代不符时拒绝。root会双向登记本次exact PID，own live/planned≤2卡，其他用户允许共存且须满足实时余量/温度门。
+单次运行：批准0230→preCUDA/GO/HTTP→controller→0230完成→CPU实际Native核验→collect→FIRST_NATIVE_REVIEW_HOLD。
+第二条在未批准时暂停，服务最多等待1800s。root先检查第一条编辑完成、原场景、原动作是否保留。
+
+root 审查后允许0352（保持当前service进程）：
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/execution_gate.py approve-second-native --root-admitted --task-fidelity-reviewed
+之后controller才提交0352；两条结束自动精确释放，root wrapper核实际退出/CUDA无分配，再执行第二条CPUgate与collect。
+若首条不合任务，root可精确停止本次服务，当前attempt结果保持。没有自动重试。若review超时服务已退出，需root按新attempt明确恢复，不自动重复提交0230。
+
+首条立即可读：
+audit/root_attempt1/FIRST_NATIVE_REVIEW_HOLD.json
+analysis/postrun/short_0230/NATIVE_RUNTIME_GATE.json
+audit/consumer/incoming/short_0230/{native.mp4,history.json,job.json,COLLECTION.json,NATIVE_RUNTIME_GATE.json}
+最终：audit/root_attempt1/{ROOT_EXIT_RECEIPT,COMPLETE_REVIEW_HOLD,FAILURE,CLEANUP_FAILURE}.json。
+每条gate检查producer seal、actual submitted graph/history、service代次、六个实际条件tensor、90帧dense reference、原始输入像素hash、真实AVnoise缓存、20个x0+final、0次路由及最终视频shape；任务质量另经视觉审查。
+可仅拉上述MP4/JSON回本地；大PT留远程。对比只取各原有效前缀并crop16,8,1280,720。
+
+依赖：
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+Core /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+Deps /data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps
+KJNodes /data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes
+Models /data5/researcher/ComfyUI/models
+两条预留至少5GiB磁盘；不更改共享环境依赖。

@@ -1,0 +1,26 @@
+R101 官方Flex MF：CPU准备及被动部署完成
+
+本地 /Users/researcher/DevProjects/h3-flexiact-character-guidance-mf-r101-20261019
+远端 /data4/researcher/h3_runs/flexiact_character_guidance_mf_r101_20261019
+当前81文件freeze 6a1d581353371d741442cc696826fab7a7afedb8f32f977920f32b44362e8b8c；本机/实际.41各20 CPU tests PASS，未启动GPU。
+
+原官方数值继承R98/R66，FlexiAct commit de9fe1d536732c4d1a384577b5ae54f8fc1730d7；CoTracker grid55/no mask，3025点，49帧8fps，取生成0,3,...144（147有效/158总帧），原动作时间精度125ms。
+cache/reference与cache/native保留R98实际同.41 RTX4090/Torch2.11.0+cu130/CUDA13.0报告、tracks.pt、注册和释放收据原字节，原输入/provenance和native原视频SHA全部核验。Native原视频21d65db6ce1e6119afedfc142f58eb7e9c252d59832bdd8477885c132b02b5e9，原分数0.523982584476471。独立CPU重算差0，见audit/CACHE_SCORE_REPRODUCTION.json。这是缓存验证；R101新guided分数仍PENDING。
+
+实际R101消费者完成paired intake后，Mac一次命令：
+cd /Users/researcher/DevProjects/h3-flexiact-character-guidance-mf-r101-20261019
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/intake_guided.py
+入口先调用冻结R101原consumer完整verify_intake，并另核gate17必需checks、同历史R98新版Native/450routes/prefix0..5/158total147valid/媒体SHA。未成片返回PENDING，不创建假score。它不会调用producer verifier或GPU。
+
+之后仅上传本目录incoming实际文件到上述远端incoming（其他已封存文件保持）。在.41进行CPU release，以实际同host ffmpeg路径和解码绑定：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python scripts/prepare_guided.py
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python scripts/freeze_actual.py
+新freeze自动保存先前81文件freeze，再加入真实incoming/prepared，需记录并回收本地。不会覆盖R98或R99。
+
+只需新跑guided一次。取得root新GPU授权后，打印命令：
+python scripts/tracking_plan.py --gpu-uuid ROOT_ADMITTED_GPU_UUID
+输出显式track_shared.py命令；先preCUDA ready，root核PID/UID/start/cmd与input/freeze哈希、fresh GPU>=40GiB、cgroup>=8GiB、own总<=2卡，登记实际live peer后原样ready→go。沿R98测得peak39.54GB而保持40GiB门；不适用IVE grid10的24GiB门。GPU型号/主机/torch/cuda必须与缓存一致，不要求同物理卡编号。每项结束精确回收本次PID/CUDA，再撤销它的peer。此准备包未取得实际GPU授权。
+
+追踪通过并释放后CPU评分：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python scripts/score_guided.py
+生成scores/guided/SCORE.json，含原Native缓存分数、新guided值及差值、原媒体/gate/缓存证据；数值模块逐字保留。任务身份/背景和事件时间验收单列，MF本身不证明编辑任务成功。原R66失败Native不进入这一对。

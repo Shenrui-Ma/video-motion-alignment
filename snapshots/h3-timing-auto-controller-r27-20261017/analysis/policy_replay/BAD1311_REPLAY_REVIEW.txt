@@ -1,0 +1,30 @@
+R27 bad1311: frozen observed-trajectory policy replay
+2026-10-17. This is the completed first run only; normal1313 is not consumed here.
+
+Intake and execution
+The original postrun RUN_GATE passed, with 20 Euler updates/current Native observations. The replay verified64 raw JSON files and the20 current-native request/response/endpoint/pose hash links; tensor bytes remain under the original postrun consumer's integrity gate. All20 reconstructed local decisions matched actual decisions field by field. Original protocol, policy, layout and replay script were unchanged. Runtime5.18695s, Python standard library, one thread, CUDA hidden, nonblocking shared Mac CPU lock; process exited and released the lock. No remote calls, model, pose, VAE, GPU or alternative Euler rollout.
+Root explicitly confirmed complete339 non-PT+5 derived archive SHA checks before this replay. The parent consumer still owns final video outcome evaluation. Online observation values below are not substituted for final pose truth.
+
+Frozen policy comparison
+                            ON indices       total bin-steps
+local compatible W2          [4]                   5
+one-step representatives     [3,4]                16
+global mean gain W2           []                    0
+All indices are zero-based denoiser indices. Physical video frames below are separate coordinates.
+
+At index3, one-step selects left_arm_direction44..59. Local waits for a compatible preceding representative. At index4, one-step selects44..59 left and96..111 right; local selects only44..59, since the right-side component has no compatible previous representative. This demonstrates the actual persistence filter's selection difference. It does not show that delaying the first intervention or omitting the right-side candidate improves output.
+The global rule is the frozen self-built ablation, not a MotionEcho reproduction. It averages max(0,min_gain) over currently measured, non-null candidate rows, includes advanced contributors in that scalar, and excludes UNKNOWN/aligned rows from its mean. It routes only current delayed representatives after a two-step mean>.5. Its maximum two-step mean is .27721785 at index4, below .5. Index3/4 have12/19 measured rows and individual scores .26133473/.29310098. The same numerical threshold has a different meaning after averaging; this result is evidence of dilution/aggregation behavior on this trajectory, not evidence that every global controller misses local actions. Zero measured rows at0 and19 give UNKNOWN; index1 also has an unavailable previous mean. No missing values are imputed as zero.
+
+Lag compatibility audit
+One accepted representative edge exists: index3→4, same left_arm_direction window44..59.
+  confidence .3: lag13→15, delta+2 frames
+  confidence .5: lag14→13, delta−1 frame
+No accepted edge changes by more than2 frames in this run. The frozen persistent() still tests temporal overlap and shared anatomical part, not lag agreement; the synthetic counterexample remains a structural risk but did not occur in this actual trace. Do not report a measured cross-step lag-jump failure here.
+
+Overlap-component coverage audit
+Three component observations were recorded: one at index3, two at index4. The same28..63 left-arm component appears at indices3 and4, with4 overlapping members; its representative is44..59. It covers16/36 union RGB frames (.44444) and5/11 union latent bins (.45455). Excluded RGB frames are28..43 and60..63; excluded bins are8..12 and18. At index3 this component is not routed, so the coverage gap is hypothetical support; at index4 it is the actual selected component. Count two observations, not two independent missed events.
+The other index4 component96..111 has one member and complete representative coverage16/16 RGB,6/6 bins, but fails persistence. Therefore the reported2/3 components excluding union bins represent repeated compression of one region. The connected union does not establish a single action, and its unselected members need not be trustworthy independent events. This audit cannot establish that extending guidance to their union is beneficial. It identifies a precise decision design choice for a later causal comparison.
+
+Interpretation and next permissible use
+The original local policy is reproducible and behaviorally different from both frozen ablations. One-step would use an extra early correction and a second late physical region; global averaging would use none. Their later observations would generally change if these alternate decisions were actually integrated. The current replay deliberately reuses the observed controlled trajectory and cannot predict their final pose, ghosting, appearance or runtime. Bin-step counts describe selected support, not actual attention correction norm, reference mass dose or measured efficiency.
+The control window's index5 UNKNOWN/OFF is not treated as a harmful stop; the parent has observed later alignment, and final causal outcome is evaluated separately. No robust-coverage policy or new thresholds were introduced. Await the separately completed normal1313 archive before running the same frozen replay there. Preserve this bad-case result; do not silently merge partial normal observations.

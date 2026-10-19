@@ -1,0 +1,246 @@
+Frozen H3TemporalRouter.time_offset: read-only contingency audit
+2026-10-16. No new graph, extension, inference, GPU allocation, or remote write.
+This audit resumed after the independent transfer root-guard repair was handed
+back to root. The transfer runtime remains untouched by this analysis.
+
+Bottom-line facts
+
+time_offset is a signed INTEGER REFERENCE LATENT-BIN displacement. For output
+query bin j, radius0 selects all spatial K/V tokens in reference bin
+clamp(j+time_offset,0,T-1). Positive means later reference bins, negative earlier.
+It does not shift output frames, change the sampler timestep, or directly change
+RoPE coordinates. It uses already native-RoPE Q/K and the actual selected V.
+
+An offset of one bin is NOT a constant four physical frames. The positional-bin
+spans repeat 1,4,4,4,4. In the present window, +/-1 corresponds to a signed 1 or4
+frame start-coordinate displacement; +/-3 corresponds to signed 9 or12 frames.
+These are positional bins, not disjoint VAE receptive fields or guaranteed visual
+event displacements. Positive offset would advance motion in an ideal direct
+copy system, but the learned network's actual signed response remains untested.
+
+Critically, time_offset=0 is STILL an intervention in mass_preserve mode with
+alpha>0. It routes reference mass to the same bin. Only alpha0 or mode=native
+switches that actuator off. This differs from PhaseRoPE, whose delta0 is native.
+
+Source evidence / frozen hashes
+
+Task root: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+extensions/H3TemporalRouter/core.py:
+  SHA256 7f21d35d58ff8e36f9c0e0d0e819917e680ebd7095c69a28bda40b34a56836e1
+  lines22-32 temporal_neighborhood: center shift, clamp, then neighborhood clip.
+  lines50-81 _aligned_attention: select full per-bin spatial K/V, batch by length.
+  lines146-214 route_attention: mass-preserving versus hard-mask calculation.
+  lines279-280,326-330: half-open layer/step selection and active-mode dispatch.
+extensions/H3TemporalRouter/layout.py:
+  SHA256 bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe
+  lines10-37: span pattern and inclusive-frame -> half-open-bin mapping.
+  lines143-167: matching reference/output geometry; nominal layout/audit windows.
+extensions/H3TemporalRouter/__init__.py:
+  SHA256 a904555ca6ecf32680e4c3b26fdf6af860ec3a0eaf7cbaa8c0b605184a638204
+  UI accepts time_offset -1000..1000; core requires integer but itself does not
+  bound its magnitude. Large shifts clamp instead of raising an out-of-range error.
+
+The actual source05 layout evidence is already preserved in
+analysis/native_reference_time_coordinates.txt and
+analysis/pose/pilot/s05_full_seed1_native_x0_provenance/router_audit.json.
+Reference visual segment [7910,47516), target visual [47986,87592), 42 bins,
+943 spatial tokens per bin, full attention [1,56,87592,128]. Source05 window50-65
+selects query bins[14,20), i.e. positional-frame coverage47-67 inclusive.
+
+Exact mapping for source05, radius0
+
+All frame labels below are zero-based and inclusive. Entries are reference bins
+and their physical positional-frame ranges. Selected query bins never move.
+
+query bin / frames | offset -3 | offset -1 | offset 0 | offset +1 | offset +3
+14 / 47-50        |11 /35-38 |13 /43-46 |14 /47-50 |15 /51    |17 /56-59
+15 / 51           |12 /39-42 |14 /47-50 |15 /51    |16 /52-55 |18 /60-63
+16 / 52-55        |13 /43-46 |15 /51    |16 /52-55 |17 /56-59 |19 /64-67
+17 / 56-59        |14 /47-50 |16 /52-55 |17 /56-59 |18 /60-63 |20 /68
+18 / 60-63        |15 /51    |17 /56-59 |18 /60-63 |19 /64-67 |21 /69-72
+19 / 64-67        |16 /52-55 |18 /60-63 |19 /64-67 |20 /68    |22 /73-76
+
+Start-frame displacements by query bins14..19:
+  -3: [-12,-12,-9,-9,-9,-12]
+  -1: [-4,-4,-1,-4,-4,-4]
+   0: [0,0,0,0,0,0]
+  +1: [4,1,4,4,4,4]
+  +3: [9,9,12,12,9,9]
+
+At24fps, one physical frame=41.667ms: 1/4-frame displacements are approximately
+42/167ms; 9/12-frame displacements approximately375/500ms. They are not constant
+time translations over the whole window and not exact output motion shifts.
+
+Union of selected reference-bin ranges, radius0:
+  offset       source05 query bins14..19     source07 query bins16..21
+    -3                 35-55                          43-63
+    -1                 43-63                          51-68
+     0                 47-67                          52-72
+    +1                 51-68                          56-76
+    +3                 56-76                          64-84
+
+Source07 requested54-69 selects bins[16,22), coverage52-72. No clamping occurs
+for +/-1 or +/-3 in either present interior event window. In particular some
+shifted reference support lies outside the manually chosen event window; the
+reference search is not clipped to the event interval, only to the full video.
+
+Bounds and truncation
+
+Define c=clamp(j+d,0,T-1), A_j=[max(0,c-r),min(T,c+r+1)). Supported r=0 or1.
+The implementation clamps the CENTER first, then clips the neighborhood.
+Example: T42,j0,d-3,r1 selects bins[0,2), not an empty set and not three copies
+of bin0. j41,d+3,r1 selects[40,42). Every selected bin appears once per query.
+Different query bins may collapse onto the same edge bin after clamping. This
+does not duplicate K/V within an attention row, but can flatten temporal variety.
+There is no cross-query conservation/one-to-one assignment constraint.
+
+Radius0 always has943 keys per query-bin group in this geometry. Radius1 has
+2 or3 actual bins at boundaries/interior. Neighborhoods are batched according to
+their true lengths, without padded/duplicated edge keys. All943 spatial positions
+participate; this is temporal localization, not a hand/arm spatial mask.
+
+Same-input mass conservation: exact algebra versus implementation precision
+
+For a fixed layer/forward and fixed native Q,K,V, let R be ALL video-reference
+keys, A_j its shifted selected-bin subset, l_k=q dot k/sqrt(D), and
+  Z=sum_all exp(l_k), Z_R=sum_R exp(l_k), Z_A=sum_A exp(l_k),
+  p_k=exp(l_k)/Z, m_R=Z_R/Z,
+  O=sum_all p_k v_k,
+  O_R=sum_R exp(l_k)/Z_R *v_k,
+  O_A=sum_A exp(l_k)/Z_A *v_k.
+
+Frozen mass_preserve implements O'=O+alpha*m_R*(O_A-O_R).
+Equivalently, for alpha in[0,1]:
+  p'_k = p_k                                      when k outside R;
+  p'_k = (1-alpha)*p_k                             when k in R but outside A;
+  p'_k = (1-alpha)*p_k+alpha*m_R*exp(l_k)/Z_A        when k in A.
+Thus sum_R p'_k=m_R and all non-reference probabilities/contributions are
+unchanged in exact arithmetic, for any valid signed offset. At alpha1 the entire
+original reference-group probability is redistributed inside A; it is not extra
+reference-group strengthening. Within A, native content/position scores remain
+unequal: this is not uniform copying of all selected reference pixels.
+
+The code uses Flash LSE_ref - LSE_all in FP32, clamps tiny positive log-mass to0,
+and casts corrected output back to BF16/FP16. Original/ref/aligned attention
+outputs already contain rounding. Therefore the real implementation approximates
+the exact redistribution; it does NOT promise bitwise conservation of an explicit
+probability matrix (none is materialized). Nonselected query outputs are copied
+from the native Flash output unchanged at this call. Following residuals/layers
+and denoising steps change states, so reference mass is NOT held equal across
+complete native/intervened runs. No claim is made that appearance is unchanged.
+
+hard_route is different: it removes R\A logits and globally renormalizes among
+A plus all non-reference keys. Its resulting reference mass Z_A/(Z_other+Z_A)
+is generally <=native m_R. It does not preserve non-reference probability mass.
+Root's report that hard and mass results are essentially equal means current
+evidence does not establish mass preservation as necessary. It is consistent
+with temporal restriction being the active ingredient, but not a unique proof.
+
+Audit interpretation caveats
+
+validated_layout.key_interval_half_open and key_first_time_coordinate describe
+the NOMINAL same-bin window reconstructed by validate_layout. They are not
+recomputed for time_offset. Reconstruct the actual shifted key sets from audit
+time_offset/radius plus latent_interval and frame_rows; do not label the nominal
+key interval as the actual nonzero-offset selection.
+
+temporal_readouts are explicitly PRE-intervention native QK distributions inside
+the full reference group. They are not post-routing probabilities or motion
+ground truth. Different runs can produce different pre-intervention readouts
+through upstream state changes, but that alone does not measure action timing.
+
+Reference K/V here are current transformer hidden tokens after native RoPE and
+preceding layers, not clean isolated raw-frame motion vectors. They may already
+contain temporal/spatial/identity/background mixtures. The actuator cannot promise
+to change only pose timing or exclude appearance copying.
+
+Comparison with the existing PhaseRoPE actuator
+
+Same-bin native outputQ-refK time-coordinate gap is235 units for source05.
+Let S(j)=sum_{k<j}(1,4,4,4,4)[k%5]. Routing Q_j to reference bin j+d changes the
+pair's existing coordinate gap to 235-(5/3)*(S(j+d)-S(j)), while also changing
+actual key AND value content. PhaseRoPE leaves all reference keys/values eligible
+and instead rotates the temporal pairs of the output-Q reference branch by
+delta_frames*(5/3), giving same-bin gap235+delta_frames*(5/3).
+
+Accordingly a +3 bin route produces native selected-pair gaps215 or220 units;
+a -3 route produces250 or255. Phase delta-12 gives215 for the SAME original key,
+whereas delta+12 gives255. Matching a scalar gap does not make the methods equal:
+bin routing changes support and K/V content, phase rotates Q and soft-redistributes
+over the entire reference video. Neither resets the native origin offset.
+This apparent opposite coordinate sign must not be treated as a proven opposite
+motion-control sign. RoPE is periodic/content-dependent and learned generation
+is not a nearest-time-coordinate lookup.
+
+Both mass-preserving variants conserve the original reference-group mass at the
+same input state algebraically, but their zero points differ:
+  router: time_offset0,alpha1 = same-bin restriction (already strong guidance);
+  phase: delta0 = exact native fast path.
+A phase +/- curve centered at native cannot be compared directly to an offset
++/- curve centered at same-bin mass routing without explicitly showing both
+native and offset0 controls.
+
+Minimum CPU prerequisites for a later signed +/-1 / +/-3 test
+
+1. Reproduce the actual42-bin mapping above from frozen frame_spans; check both
+   source windows and all requested offsets; fail/report any boundary clamp.
+2. Feed temporal-label values with q=k=0 through the ACTUAL frozen route function
+   using a CPU dense backend. The output contribution must select j+d, proving
+   code sign/indexing rather than inferring it from final videos.
+3. Compare each d in{-3,-1,0,1,3}, r in{0,1}, alpha in{0,0.5,1} against independently
+   constructed FP64 dense probability redistribution. Check reference mass and
+   non-reference probabilities, alpha0 exact native, nonselected rows exact native,
+   Q/K/V immutable, and finite outputs. Include boundary clipping separately.
+4. CPU test backend must respect production LSE FP32. A naive FP64 attention
+   callback returns FP64 LSE and fails _aligned_attention's FP32 indexed buffer;
+   that is a toy-backend contract mismatch, not evidence of a production error.
+   Use FP32 tensors/LSE for the actual frozen function and a separate FP64 oracle.
+5. Preserve existing step/layer half-open tests. Switching guidance off is alpha0
+   or native; do not mistake time_offset0 for off. Any later online update needs
+   a block0-latched decision shared by all layers, not in-place asynchronous changes.
+
+CPU checks actually performed in memory for this audit (no new test file):
+- Frozen frame mapping and both support-union tables reconstructed exactly.
+- Five label-value cases d=-3,-1,0,+1,+3, T42, frame_rows2, heads2, dim8,
+  float32 actual route, alpha1/radius0. Expected mass*j_selected matched with
+  maximum absolute error2.86102294921875e-6. Nonselected rows/alpha0 bitwise native.
+- Thirty random float32-route versus independent float64-oracle cases:
+  d=-3,-1,0,+1,+3 x radius0/1 x alpha0/0.5/1.
+  Maximum output absolute error7.110157811407447e-7;
+  dense reference-mass numerical discrepancy <=1.1102230246251565e-16;
+  non-reference probability arrays exact unchanged in oracle;
+  Q/K/V immutable; alpha0 and untargeted output rows exact native.
+- torch.cuda.is_initialized() remained false. Existing local torch environment
+  used with CUDA_VISIBLE_DEVICES=''; no model weights, external packages or GPU.
+- An initial direct-FP64 callback attempt failed at the fixed FP32 LSE buffer;
+  it was corrected by respecting the production callback contract as described.
+  No frozen implementation was changed to make the test pass.
+
+Existing persistent tests already cover dense mass/hard equivalence for offsets
+0,+/-4, alpha0, clipping, invalid indices, and half-open intervals. The in-memory
+checks above extend sign/formula evidence for the contemplated +/-1,+/-3 values;
+they do not prove visual motion control or replace a GPU BF16 implementation smoke
+if root later changes code/backend. Existing frozen GPU smoke remains separate.
+
+Contingency decision, not a new run recommendation
+
+The current static offset API can express the contemplated signs without any new
+model architecture or code. A fair later signed response diagnostic would compare
+native, offset0 mass, and predeclared signed offsets using identical source/seed,
+geometry/prompt/backend/window/layers/steps/alpha. First establish whether the
+late intervention gate is effective; a sign-controllable all-steps oracle does
+not establish controllability after a reliable step10 observation.
+
+The minimum useful empirical question is whether offset-induced changes in signed
+lag are reproducible and order-consistent while preserving edit quality, later
+events and the successful native cases. If both signs improve equally, selection /
+regularization rather than directional correction is plausible. If signs do not
+move lag predictably, it cannot serve as a calibrated feedback actuator merely
+because one seed improves. Do not choose a best offset post hoc and call it an
+automatic controller. Current fixed manual window is still an oracle assumption.
+
+An offset parameter, temporal mask, or normalized reference redistribution alone
+does not resolve novelty overlap with existing frame-aligned/routing methods.
+No new literature claim is made here. The purpose is to audit a bounded fallback
+implementation and its falsifiable semantics while current late/phase outcomes
+are pending, not to proclaim an architectural contribution.

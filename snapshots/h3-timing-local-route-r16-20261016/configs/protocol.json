@@ -1,0 +1,120 @@
+{
+  "schema": "h3-local-query-route-mechanism-pilot-v1",
+  "frozen_at": "2026-10-16T12:45:16.666215+00:00",
+  "claim": "known source-pose mask and per-query blend mechanism diagnostic; no novelty or autonomous detection claim",
+  "parent": "R3 .9 Full6..14",
+  "run_ids": {
+    "roi": "r16_s05_roi_6to14",
+    "uniform": "r16_s05_uniform_6to14"
+  },
+  "geometry": [
+    141,
+    736,
+    1312
+  ],
+  "source_pose_sha256": "e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852",
+  "source_video_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+  "source_query_mask_file_sha256": "16c5e884ea835cae33f75c2bc66061bae3aa5f4fc99042120aac21405400e81c",
+  "source_query_mask_tensor_sha256": {
+    "roi": "02e65866b0bbb328b202f56e22242ab01ef747f5c7b5b850d779a65d0a07683b",
+    "uniform": "4ed89d7323c2f0ab673a4962a219dbcded10f2c96ebd0935b042c2bcc1ea0184"
+  },
+  "geometry_evidence_sha256": "a268fe939f07674bb9cb66cdf830a740a168518d94e973e40a4e440b841f4b41",
+  "reference_clean_tensor_sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734",
+  "reference_prepared_RGB_sha256": "1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42",
+  "frame_mapping": "all141 original decode frames, index i timestamp i/24, no trim/crop/rotation; native _resize cropdisabled at same1312x736; no temporal resampling before denseVAE",
+  "pose_decoder_limit": "sameMP4/frame geometry; sourcepose RGB usesOpenCV8bit vs actualComfyPyAVfloatcolor conversion; RGB values not assumed equal; spatial/timestamp chain verified",
+  "canvas_to_patch": "pose xy+0.5 to pixel-boundary coordinates; patchcenter32*(col+0.5,row+0.5); pixel/16 latent then2x2 patch, row-major",
+  "source_window": [
+    50,
+    65
+  ],
+  "position_bins_half_open": [
+    14,
+    20
+  ],
+  "nominal_coverage": [
+    47,
+    67
+  ],
+  "shape": [
+    6,
+    23,
+    41
+  ],
+  "mask": {
+    "joint_pairs": [
+      [
+        7,
+        9
+      ],
+      [
+        8,
+        10
+      ]
+    ],
+    "inner_px": 32,
+    "outer_px": 64,
+    "confidence_min": 0.3,
+    "time_union": "eachbin allintegerframes plus linearly interpolatedspan center",
+    "source_only": true,
+    "missing_pose": "reject preparation, no post-output widening"
+  },
+  "arms": {
+    "roi": "a_q=M_k(r,c)",
+    "uniform": "a_q=mean_spatial(M_k); float32 once, per-bin sum difference<=1e-5"
+  },
+  "formula": "O+a_q*m_R*(O_same-O_R)",
+  "fixed": {
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "blocks_half_open": [
+      0,
+      50
+    ],
+    "forward_indices": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "sampler": "Euler",
+    "CFG": 1,
+    "seed": 2026101311,
+    "NFE": 20,
+    "Euler_updates": 20,
+    "callbacks": 20,
+    "no_dynamic_gate": true,
+    "no_probe_predictions": true
+  },
+  "group_mass": "eachquery/head reference group mass preserved; sum alpha equal perbin only, not equal sum alpha*m_R acrossspatialpositions",
+  "baseline_reuse_gate": "R3 matching actualconditioning/noise/input/core/model/backend and sameGPU; old baseline doesnot prove newhook correct",
+  "required_CPU": [
+    "allzero nativebitwise",
+    "allone sealedFullbitwise",
+    "dense attention per-query convex reference redistribution",
+    "zero-mask rows not overwritten",
+    "sourceframe/patchorder/halfframe interpolation/missingconfidence",
+    "ROI/UNIFORM perbin sum equalitywithinrounding",
+    "QKV/reference/noise/RNG unchanged",
+    "invalidmask rejects",
+    "actualComfyloader/ModelPatcher clone/50blocks20Euler20NFE/20callbacks plus independentH3X0Readout"
+  ],
+  "GPU_admission": "root only; .9 sameR3 GPU UUID serial; current occupiedtarget refused; max2ownGPU no others touched; finally releaseownedservice",
+  "evaluation": {
+    "primary": "armdirection andwristrelative timing50..65 plus visual duplicatearms/hands, occlusion andidentity",
+    "side_effects": "legkneeankle timing and torso/hip/shoulder motion before/during/afterwindow; compare phase lag plus amplitude/coverage so arms-onlygaincannot hide slowerbody",
+    "quality": "fixed frames of allarms retained; no pose-only qualityclaim",
+    "dose_control": "compare ROI vs UNIFORM notonlyvsFull; subsequent misplacedmask if warranted separatelyfrozen",
+    "all_results_retained": true,
+    "sample_status": "onepreviouslyviewed knownbadsource/seed; noheldout claim"
+  },
+  "efficiency": "log setup/sampling/modelNFE/Eulerupdates/endtoend; record only no separateoptimization",
+  "remaining_gpu_truth": "CPU tests do not verify actual Flashkernelbitwise, speed or output quality"
+}

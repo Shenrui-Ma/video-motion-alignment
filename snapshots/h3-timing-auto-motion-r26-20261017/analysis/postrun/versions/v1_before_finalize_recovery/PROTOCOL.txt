@@ -1,0 +1,57 @@
+R26 sole CPU consumer protocol, frozen before generated output ingestion
+
+Scope: analysis/postrun and media only. Producer graphs, scripts, checkpoints,
+queues, process control and GPU state are read-only. Start the waiting consumer
+only after root supplies exact service identities and deployed manifest hashes.
+Wait at least 61 seconds between snapshots and hold no CPU lock while waiting.
+Completed per-run history+exact graph+registered service+stable archive permits
+CPU consumption while later jobs continue. Service cleanup is not a barrier;
+resident_hold is intentional. Never resubmit a failed or uncertain GPU job.
+
+Reuse R24 v2's source inventory, successful-history and terminal-state handling,
+exact source directory PT enumeration, stable-file observation, hash-before/copy/
+hash-after, failed-output preservation and completed-download recovery. R26 has
+3 Native jobs, not Native/Full pairs. Its r26_contract merges the approved case
+continuations, and each run must use that case's actual source/pose binding.
+
+For each run validate immutable deployed file hashes, exact history and owner,
+20 real forwards, 1000 blocks, zero routing, 20 callbacks and the actual stored
+21 endpoints (x0 indices0..19 plus final), all metadata/signatures/finite values.
+Validate actual noise and every stored condition tensor, including Qwen embedding.
+All PT files remain on the server with complete SHA inventory; local download
+includes actual MP4, JSON, logs and pose overlays. No intermediate VAE decoding.
+Reverify producer/archive hashes after CPU analysis. Run original verify_batch
+at lane completion, including queue/resident evidence and same fixed seed noise.
+
+CPU work is serialized under existing Mac then remote global CPU locks, at most
+4 threads, CUDA_VISIBLE_DEVICES empty and CPU DWPose unchanged. No new models
+or dependencies. Administrative failures are not scientific negative outcomes.
+
+Generated final MP4 must have141 frames1312x736 at24fps with PTS i/24; bind its
+pose to actual SHA and the frozen detector/pose/code hashes. Source pose is the
+already frozen selected-source JSON, retaining full-source tracking context.
+Generated person selection uses the original frozen rule, with all persons and
+ambiguity retained. Do not change selector when a mural or occlusion causes an
+error; flag it for visual audit and UNKNOWN as appropriate.
+
+Timing scan exactly follows design/SCAN_BASELINE_PROTOCOL.txt and its existing
+numerical timing_metrics SHA eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e:
+all complete16/32frame windows at stride4 plus final complete window; all3 arm
+direction descriptors; confidence.3/.5; lags-24..24 and unchanged reliability
+and shape rules. Save every window and every computable49-point curve. If a
+threshold cannot establish torso scale, record the original error as UNKNOWN,
+not fabricated scores. Keep source self-comparison checks. Delayed requires
+both reliable lags>2 and difference<=2; advanced both<-2 with same agreement;
+aligned both within[-2,2] with that same cross-threshold agreement; all other results UNKNOWN. Candidate supports overlap
+and are correlated. They are timing candidates pending visual review, not action
+omission, model-wide error rates or independent sample counts.
+
+Fixed visual checkpoints use selected-source frames0/35/70/105/140 for every
+source. Show the source and Native side by side with equal full-view geometry,
+black captions below, original24fps frame alignment, full141-frame video. No
+third column or invented guided result. Candidate-specific later review is
+separate and must be labeled; source-only checkpoint selection stays unchanged.
+
+Consumer errors retain their full evidence. Resume successful completed archive
+only after all saved hashes and bindings revalidate; partial unmarked CPU archive
+fails closed for manual inspection. Root alone handles GPU/service lifecycle.

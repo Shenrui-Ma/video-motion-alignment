@@ -1,0 +1,14 @@
+Intermediate-x0 observer protocol, frozen before reading decoded checkpoints
+
+Use the existing source05 pose and existing timing_metrics.py without tuning thresholds.
+Run DWPose CPU-only, every original frame, for each complete decoded snapshot (steps 5,10,15,19 and sampler_final). The full clip is decoded first; no isolated temporal latent crop. Evaluate original frozen windows [50,65],[69,81],[80,92],[99,111], both confidence thresholds 0.3 and 0.5, arm_direction primary plus separate arms/wrist_relative as diagnostics.
+
+Observability gate is deliberately conservative: existing local_diagnostic must return a reliable phase at both confidence thresholds; signs must agree outside +/-2-frame deadzone, estimates within 2 frames; direction/position disagreement over 3 frames is a warning and precludes automated intervention at that checkpoint. Missing/confounded pose is unknown, not missing action. Near-zero phase permits no intervention.
+
+Test whether a reliable lag emerges before the last step. This is a necessary condition for feedback, not a test that the remaining denoising steps are controllable. Endpoint step19 is only a sanity check; sampler_final verifies final trajectory. Do not use the final output to relabel a low-confidence early estimate as correct. Early estimates may represent evolving content rather than a stable motion trajectory.
+
+Compare passive native replay final video to no-capture baseline using exact decoded frame equality. The offline x0 encoder differs from Comfy's encoder, so its MP4 hash or decoded-pixel equality is not an endpoint identity requirement. Record pre-encode tensor/pixel hashes, float endpoint difference and pose lag. If output differences are visually or metrically material, diagnose VAE/decode path before interpreting checkpoints.
+
+No automatic controller, classification of action omission, or efficacy claim follows from this probe alone. This observer uses an existing trained pose model but no new training or generative teacher. It is presently whole-body/per-arm signal with an oracle time window, not an automatic local-action detector.
+
+Administrative correction before any x0 decoding: windows copied from existing final observer are 50–65/69–81/80–92/99–111. An earlier draft mistakenly transcribed the second/fourth windows. No checkpoint or result had been read at correction.

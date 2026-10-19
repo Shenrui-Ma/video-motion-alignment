@@ -1,0 +1,97 @@
+语义采样相位×标签2×2：独立运行时准备与验收方案（仅 staging）
+2026-10-16
+
+范围与状态
+本任务只写 semantic_clock_staged/ 和此文件。没有连接/写远程、没有启动GPU、没有改primary/transfer运行代码或队列。
+科研问题与判读规则来自 literature/semantic_sampling_hypothesis.txt；本轮只准备可证伪诊断，不称新架构或新时钟修复。
+当前已完成16项CPU契约测试，真实模型编码与DiT效果都未执行。
+
+一、实例边界
+remote候选 /data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0，GPU0/port8462。
+GPU0已知UUID GPU-REDACTED，但启动时须重新实测，不能凭本文件当空闲证据。
+可共用只读模型/当前已核验core，保持bootstrap、Triton线性、Flash、dtype与前批完全一样；不复制模型，不安装依赖。
+在 transfer0 所有四组队列已结束、controller完成、CPU inventory/归档完成、精确service identity已消失且owned_compute_absent、
+GPU0显存回落之后，root才能安排本实例。不得仅凭“最后视频文件已出现”启动。
+primary49019是历史已知身份，当前仍可能运行；启动时重新核验其PID/startticks/cmdlineSHA/UID与注册记录。
+本任务没有改primary service/queue。若安全runtime需互相放行本用户GPU进程，root沿用已审查pre-CUDA屏障与精确身份admission，
+只做必要身份授权，绝不能允许任意本用户进程，也不能不核验就把历史49019写进允许列表。
+主服务正常完成的处理仍需已审查的exact cleanup规则；新主PID或异常退出应fail closed。
+
+二、具体安装/注册差异（供root后续创建新隔离runtime，不是已执行操作）
+1. 在新instance建立独立Comfy路径/输入/输出/audit/logs/processes，不能调用会覆写primary的prepare_runtime.py。
+2. 复制冻结工具扩展 H3PairAudit、H3TemporalRouter（native模式）和新 extensions/H3SemanticClock。
+   若复用既有runtime的完整whitelist，其余未使用扩展可保留，但科学图不接EventEmphasis/PhaseRoPE/X0Readout。
+3. service whitelist + object_info readiness增加 H3SemanticClockReference、H3SemanticClockNoise、H3SemanticClockGate。
+   本包未改现有service。原H3EventAuditNoise在semantic0会触发主root路径guard，所以图已改用新Noise节点。
+   新Noise仅调用字节未改的 CachedNoise 实现，入口先检查exact semantic0路径、冻结seed与pair_id。
+4. 原样复制 baseline/ 的两个JSON，不改其历史source/cached-noise路径字段；不需要把那些路径当新路径读取。
+   conditioning/noise结构与SHA是比较真值。blob filename相对旧root，但只比shape/dtype/hash，没有读取旧blob的隐式依赖。
+5. 复制同一05原视频、Sam portrait至newinput。核对原始文件SHA；条件节点再核验实际decode/resize/VAE张量SHA。
+6. 使用原本同版本核心snapshot/当前服务code hashes，启动前记录模型链接/核心/扩展/graph SHA和GPU身份。
+   copied audited_event.py的旧audit_root函数没有被导出节点调用；新task_path只允许resolved semantic0子路径。
+
+三、最小图与缓存隔离
+A（科研基线）复用 configs/s05_full_seed1_native.json 的已有原完整视频。
+A0（工程验收）= semantic_clock_staged/configs/s05_semantic_a0_encode_gate.json，终端节点99。
+  包含 2 CLIPLoader, 3 VAELoader, 5 H3SemanticClockReference, 6 H3SemanticClockNoise,
+       21 LoadImage,22 LoadVideo,23 GetVideoComponents,99 H3SemanticClockGate。
+  不含UNETLoader和SamplerCustomAdvanced，因此不会启动20次DiT；会真实执行Qwen/VAE编码和paired-noise生成。
+  这不是第5个效果组，不计改善样本，不需要重复20步baseline；A0仍有真实编码成本，须记录。
+B=P6/T6、C=P0/T6、D=P6/T0三组各20次DiT，共新增60 NFE；无任何修复router，mode始终native。
+  三图源于 full seed1 native，仅节点5的语义输入操作为科学差异。
+  节点6改为相同CachedNoise算法的新安全入口；14/50/51改audit/run/output实例身份；新增99作为采样前依赖。
+  三组condition_run_id分别 s05_semantic_b_p6_t6_condition / c_p0_t6_condition / d_p6_t0_condition。
+  每个节点输入同时带像素phase、标签phase与独立run_id，避免Comfy认为是相同conditioning节点而误复用。
+  noise pair_id全相同05_sam_1312x736_2026101311_v3；cache位于新audit独立文件，并用实际SHA核对旧native。
+  不允许通过清除全部Comfy缓存改变其他科学变量；条件图不同本身就应触发正确重算。
+
+四、实现的精确干预点
+H3SemanticClockReference仍调用当前 MiniMaxH3ReferenceToVideo.execute：原生resize/141截取/全部帧VAE完全原样。
+VAEProxy记录实际prepared dense frames；clip.tokenize(minimax_ref_items=...)时才进入新ClipProxy。
+P只改变送给Qwen的12张图片实际张量，T独立改变12个presentation timestamps，均由同一native sampling_plan计算。
+真正的minimax tokenizer仍把相邻两张图送vision entry，并生成均值时间文本，随后真实CLIP模型进行vision expansion/Qwen。
+没有手改字符串配置后冒称改encoder，也没有修改原视频FPS、dense时钟、VAE latent、RoPE或attention。
+P0/T0保留native的原item/list/tensor对象。P0/T6仍保留同一个图片张量对象，仅新字典的timestamps换为T6。
+P6/T0保留native timestamps，仅换图片张量。P6/T6两项都换。
+P6物理phase=6帧/24fps=0.25s；均值标签经过原1位小数格式化，T0=.2,T6=.5，标签差0.3s。分别记录。
+
+五、硬验收门（必须先通过才能采样）
+所有组都读取 baseline/05_sam_1312x736_shared_v3_conditioning.json 的原字段和SHA；不只按硬编码长度猜一致。
+实际原始视频、每次native VAE prepared frame与latent、最终token_tags、target video/audio shapes、完整PackedLayout
+segments/seq_len/position_ids SHA必须逐项相等；expanded conditioning shape/dtype必须与基线相等。
+真实token ledger必须保持token类型/vision placeholder位置/特殊边界/weight/图块shape与dtype；6视频视觉块+1身份图。
+这直接拒绝timestamp改变导致token数量变化的情况，不准重复token凑数。
+额外逐行验证全39606个dense target/reference视频对应位置的spatial坐标一样，原生time gap仍235。
+A0再额外要求完整原始token ledger与Qwen最终embedding SHA逐位等于基线。
+默认节点本身不扰动，不代表真实模型已自动通过：若硬件/kernel/权重/预处理差异导致不一致，A0拒绝并停止。
+非零组的hidden states变化是预期，只检查形状/dtype，不要求embedding SHA与A一致。
+node99真实调用CachedNoise.generate_noise(target)，逐个视频/音频流核验与baseline noise SHA相等。
+A0通过时写唯一zero_gate，包含baseline文件与扩展源码哈希、accepted condition文件哈希；每次新A0会先废止旧zero_gate。
+B/C/D开始编码前要求zero_gate有效且文件未被改写；每组编码与噪声验收后才释放positive/target给node51→采样。
+node51继续使用原H3PairConditionSnapshot核验run实际条件，与自己的独立condition_run_id配对。
+
+六、可运行CPU核验及诚实边界
+本地命令见 semantic_clock_staged/README.txt；结果 semantic_clock_staged/audit/cpu_tests.txt，16 tests passed。
+测试抽取冻结源码的native execute、真实tokenizer双帧循环、process_video_block、PackedLayout执行，不重新实现这些逻辑。
+模型权重/词表及部分IO后端用stub；不能代替GPU上Qwen/视频VAE输出等价验收。
+实际fullshape PackedLayout87592×3位置张量SHA与归档完全一致，可CPU直接验证。
+独立tag/length/layout/latent破坏都会拒绝；路径prefix/.. /symlink逃逸、陈旧许可、错误noise均测试拒绝。
+包含零值对象identity、P/T交叉实际图片/标签分离、dense frame不变与真实视觉patch变化测试。
+本包只准备未安装；baseline A0效果验收状态必须写pending，不能误标passed。
+
+七、运行后的归档与判读
+先保存A0成功history、实际conditioning/noise/accepted/zero_gate审计，检查zero位等价，再允许排B/C/D。
+每组保留完整141帧视频、原始history、NFE/总时长/显存/内核provenance，采样完成后尽快释放DiT/服务及显存。
+scripts/check_encoded_acceptance.py <newroot> [--require-all]仅CPU读取已编码审计，跨组验证相同P的视觉张量SHA一致、相同T时间标签一致。
+末尾完成controller cleanup + compute/process检查，才算GPU已释放；不要将SaveVideo存在当清理完成。
+效果仍按已预注册50–65主窗口、±24搜索、两置信阈值/拒判规则及其他窗口评估，不按结果调整phase。
+T固定对照：D−A、B−C偏向内容/采样相位；P固定对照：C−A、B−D偏向时间标签。
+若C比A更晚且B比D更晚≥4帧、双阈值同向且视觉确认同一事件，才能支持探索性标签时序敏感。
+即使如此也不是双路冲突或新架构证明；若只B好不能单独归因标签。
+首轮无清楚方向则不扩密度/扫phase搜成功。seed2/正常例重复由root基于完整结果另行决定。
+
+冻结前审查修正：Reference/Gate IS_CHANGED=NaN 强制实时门；A0 Gate每次先撤销旧许可，错误噪声不留下旧passed许可。
+baseline两JSON的原始SHA已固定在源码，GuardedNoise每次生成再次核验实时许可/条件/噪声。
+实际native tokenizer做6–12次纯文本词法探针，验证六段timestamp BPE长度与内容、其他文字IDs逐项不变；这些调用不执行Qwen。
+后验checker使用显式ValueError，不受python -O影响，并核对磁盘baseline/extension SHA及每块视觉像素哈希。
+所有配置filename/run_id均已统一小写，兼容当前job.validate_name。

@@ -1,0 +1,112 @@
+{
+  "registered_unix": 1791899846.124316,
+  "question": "Does manually increasing attention odds toward reference tokens covering a known short event improve faithful source-event preservation in one fixed H3 example?",
+  "selected_source": "06_anime_eye_insert",
+  "old_reference_run": "06_anime_eye_insert_a_s2",
+  "seed": 2026101312,
+  "source_event_frames_inclusive": [
+    39,
+    44
+  ],
+  "source_core_frames_inclusive": [
+    41,
+    42
+  ],
+  "comparison": "fresh factor1 baseline vs factor2 manual temporal-reference attention emphasis",
+  "fixed_recipe": {
+    "frames": 141,
+    "fps": 24,
+    "width": 1312,
+    "height": 736,
+    "steps": 20,
+    "sampler": "Euler",
+    "video_audio_sigma_shift": [
+      12,
+      3
+    ],
+    "turbo_lora": null,
+    "attention": "native PyTorch SDPA mask=None",
+    "quantization": "existing INT8 ConvRot H3 + NVFP4/AWQ Qwen",
+    "semantic_fps": 2,
+    "semantic_phase": 0,
+    "prompt": "unchanged ordinary A prompt, no event description added",
+    "noise": "byte-copied historical actual AV noise cache"
+  },
+  "intervention": {
+    "location": "post-QK RMSNorm/RoPE, pre-output-projection attention result",
+    "factor": 2,
+    "operation": "duplicate selected reference K/V once for selected target-video query rows; equivalent to logit bias +log2 for those keys",
+    "reference_selection": "the single video ref, not the image ref nor Qwen presentation tokens",
+    "target_selection": "output-video query rows covering same temporal latent indices",
+    "latent_indices": [
+      12,
+      13
+    ],
+    "position_frame_coverage_inclusive": [
+      [
+        39,
+        42
+      ],
+      [
+        43,
+        46
+      ]
+    ],
+    "all_spatial_rows": true,
+    "per_latent_frame_rows": 943,
+    "relative_key_query_range_half_open": [
+      11316,
+      13202
+    ],
+    "expected_native_seq_len": 87583,
+    "expected_absolute_reference_keys_half_open": [
+      19217,
+      21103
+    ],
+    "expected_absolute_target_queries_half_open": [
+      59293,
+      61179
+    ],
+    "layers": "all runtime DiT blocks",
+    "denoising_steps": "all20",
+    "unselected_attention_rows": "native attention result retained within each block"
+  },
+  "execution": {
+    "formal_jobs": [
+      "06_seed2_baseline",
+      "06_seed2_emphasis2"
+    ],
+    "technical_jobs": [
+      "06_seed2_emphasis2_benchmark2"
+    ],
+    "technical_outputs_excluded_from_quality": true,
+    "serial_video_jobs": true,
+    "host": "192.0.2.1",
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8446
+  },
+  "evaluation": [
+    "scanall141framesplusdense30–77",
+    "earlyhand-eye relation, occurrencecount, onset/offset,duration and before-point order",
+    "laterlongV/leglift remainsdistinct",
+    "referenceidentityretained ratherthanpinksourceidentitycopy",
+    "surroundingmotion/background/camera/globalquality checked",
+    "comparefreshbaselinewitholdbutoldnotsolecausalcontrol"
+  ],
+  "stop_rules": [
+    "fixedsinglefactor,no outcome-conditionedsweep",
+    "newbaselinefaithful=>cannotclaimrepair",
+    "onlyextraearly/prolongedpose=>behaviorchange,notfaithfulrepair",
+    "technicalretryatidenticalsettingsallowedwithfailedattemptpreserved",
+    "closeownservice/watchdog/controller/keepawakeandverifyVRAM"
+  ],
+  "limitations": [
+    "oraclehumanframewindow,notautomaticeventdetection",
+    "weightedtokenscontaintime-sliceappearanceandbackground,notdisentangledactionfeature",
+    "deepreferencehiddenstatesmixcontext",
+    "temporalpositionbinsarenotstrictVAEreceptivefields",
+    "laterlayerscanpropagatebeyondquerywindow",
+    "singleexample/singleseed,notnovelty/mechanism/general-efficacyproof",
+    "keyduplication-logbiasidentityisordinarysoftmaxmath"
+  ]
+}

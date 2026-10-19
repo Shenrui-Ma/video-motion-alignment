@@ -1,0 +1,23 @@
+R49 full158 source pose sidecar
+
+Scope: five fixed prepared source videos in the unchanged R49 producer manifest.
+Use the existing frozen DWPose script, detector/model and person-selection rule.
+Each phase invokes one source, all158 decoded frames at24fps, at most4 CPU threads,
+with Mac+server nonblocking shared locks and online observation priority.
+Execution timeout240s per pose subprocess; timeout/partial remains for explicit review.
+TMPDIR/TMP/TEMP points to R49/temp. CUDA_VISIBLE_DEVICES is empty.
+
+R47 archive/cases/final take priority. This component changes no production queue,
+consumer source, numerical algorithm, target generation or evaluation threshold.
+Local entry: existing .venv-current/bin/python run_one.py --source chest
+Repeat as separate bounded invocations for crouch,fitness,one_leg,rotate.
+Only after five complete: python finalize.py creates the fixed MANIFEST.json.
+
+The full pose files contain frame0..157 and time_s=i/24. Keep original files intact.
+R50 observes frames0..146; the eleven terminal fill frames147..157 are excluded there.
+Original49 samples are at indices0,3,...144. Repeats are not independent samples.
+Existing raw confidence may exceed1; source sidecar performs no clipping or rescaling.
+
+No inference started while preparing this component. Synthetic8 metadata tests cover
+the full158 grid and rejection of truncated141/147,8fps,NaN,duplicate index,wrongSHA,
+and CUDA-provider records. Actual extraction remains subject to normal CPU admission.

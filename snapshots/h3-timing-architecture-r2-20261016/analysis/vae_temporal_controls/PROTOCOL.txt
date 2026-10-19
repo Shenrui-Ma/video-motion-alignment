@@ -1,0 +1,47 @@
+H3 VAE temporal-phase controls — prepared, not executed
+2026-10-16
+
+目的
+检验直接用 H3 latent 相邻时间差分估计动作时序时，是否受到编码分块相位的影响。这个诊断不评判生成视频动作是否错误，不改已有 pose 主指标，也不运行 DiT。已有 signed-difference 的 ±17帧峰是提出控制的动机，不能先当成 VAE 错误的证据。
+
+已核实源码
+冻结源文件 SHA 在 source_audit.json。
+1. comfy/ldm/minimax/vae.py:327–355：clip_length=17、time_down 乘积4、tokens_chunk_size=ceil(17/4)=5、token_drop=3。
+2. :544–557：每17帧独立调用 _adaptive_encode；尾块重复最后一帧补满17；每块5 latent拼接后统一删除末3。因此141帧被编码为9×5−3=42 latent。
+3. :41–56：每个因果卷积在当前输入块开端做前向零填充，不跨17帧块传递缓存。TemporalIsolatedGroupNorm只在每帧算统计。
+4. :672–689：encode取posterior均值，不采样噪声，然后按固定channel均值/标准差归一化。
+5. comfy/sd.py:1371–1427与nodes_minimax_h3.py:343：参考路径直接调用vae.encode(prepared RGB)。本脚本复用这个入口，不另实现缩放、抽帧或压缩。
+
+结构推论与待实测边界
+如果输入141帧完全相同，每一个补满后的17帧块输入也完全相同。在确定性相同算子下，每个块的5个latent会重复。但这5个latent彼此是否不同取决于实际权重和因果边界响应，仍要实测。重复首帧的假causal-encoder CPU测试只证明循环/重置逻辑，不替代真实VAE。
+若实际恒定RGB产生非恒定但5-bin重复latent，可证实该表征含有编码相位变化，足以否定“任意latent差分都等于真实运动”的普遍假设。不能仅凭它断言以前每个±17帧峰的唯一原因，也不能称生成模型bug、动作丢失或架构创新。
+
+冻结四臂（均141帧，736×1312，24fps语义）
+original：实际preparedRGB，不改像素。
+delay4：frame[t] = original[max(0,t−4)]，前端重复首帧、截去最后4帧，绝不循环平移。
+delay8：同上，位移8帧。
+constant0：原片第0帧重复141次。
+先原片，继而4、8、constant0。源帧索引列表和每个变体实际像素内容SHA随记录保存，不把变体视频另压码。
+
+输入和环境门
+只使用当前 .41 R2 native condition审计中的 prepared_frames 与 latent 对应tensor_file。脚本以CPU mmap读取，验证原始形状、float32、内容SHA和有限性；不从MP4重新解码、不下载1.63GB输入到Mac。输出目录必须新建，原审计目录只读。
+原片通过同机真实VAE重编码后必须与提供的同机缓存latent逐元素及rawSHA一致；不一致即停止，不运行其余3臂，也不擅自放宽阈值。
+原生Comfy的三个关键文件和完整VAE checkpoint必须与source_audit固定SHA相同。固定FP16 VAE、原生内部256空间tile/64overlap、17帧块；若触发wrapper OOM fallback则报错，不改变分块方案。只加载VAE checkpoint，不加载DiT/Qwen/音频VAE，不安装依赖。
+
+预定CPU统计
+1. 每臂全空间、全部24channel：相邻bin RMS、5-bin差异RMS/max、相邻/5-bin逐元素相等标志。
+2. 按t mod5的相位均值拟合解释的时序变化能量比例；总变化为0则unknown，不定义为100%。
+3. 使用真实不等宽position-bin代表中心[1,4,4,4,4]算物理帧间距，报告signed derivative在固定lag1..10 bins的自相关。不能统一乘4，position center也不是精确VAE感受野中心。
+4. 延迟4/8的原片对照：沿用之前signed-vector cosine+线性物理时间插值、lag−24..24、四个窗口50–65/69–81/80–92/99–111，只做全画幅敏感性版本；不据结果换ROI/channel/窗口。保留完整曲线，不将单个best滞后自动判成可靠结果。constant不估计人体动作时间。
+这些是表示/观察器校准控制；不改变既有RGB+pose终点评分。没有训练、教师或在线控制器。
+
+最小结果解释
+- constant RGB恒定而latent显著非恒定且5-bin严格重复：编码相位确实存在；后续观察器需处理它。正常压缩表示可以这样设计，不等于重构视频会闪动。
+- delay4/8仍锁0或±17：当前signed latent差分观察器未通过已知时间移位控制，不能用于决定在线引导；不应据此宣称真实编辑视频有±17帧错误。
+- delay4/8读出正确：对同外观已知位移通过这一小控制，但不证明跨身份或早期x0可用。
+- constant latent也恒定：本次权重/输入没有支持所猜的强分块变化；不能在真实数据里强讲此机制。
+- 原片重编码不等于同机缓存：仅记录环境/路径复现失败，后面机制结论暂停。
+
+资源与执行责任
+本文件和脚本仅在本地准备。由root确认 .41无我们的视频进程并释放显存后，才启动一个独立VAE进程。脚本固定 .41 GPU1 UUID；启动前两次nvidia检查所选卡无进程且显存≤64MiB、利用率0，其他卡无我们的compute进程，其他用户不受限制。主机RAM至少20GiB。单进程四臂顺序编码，CPU单线程。不得在 .9启动本诊断。
+GPU阶段结束卸载VAE/清cache；随后CPU分析，再退出进程。root要独立确认精确PID消失和GPU显存释放；执行脚本自身不能在退出后证明这件事。可用外层timeout −k30s1200s作为事故上限。SIGTERM走finally清理，但SIGKILL只能靠进程退出由驱动回收。

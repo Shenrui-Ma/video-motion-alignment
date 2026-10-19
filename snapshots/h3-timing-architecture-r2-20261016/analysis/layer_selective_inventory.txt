@@ -1,0 +1,100 @@
+H3 DiT层选择与既有消融事实盘点（2026-10-17；只读、零GPU）
+
+结论：H3TemporalRouter原始实现已经支持选择连续DiT层区间。检查所列本地配置和完成档案，未发现早/中/晚层组或等route调用次数的层位置消融。已执行的静态/动态分量、空间ROI/均值、采样步调度、相位符号等比较，都在每个被选模型forward的全部50层上施加其相应操作。此处不作新颖性或性能判断。
+
+1. 代码接口和语义
+R2 root: /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016
+extensions/H3TemporalRouter/__init__.py:18–21暴露block_start/block_end与step_start/step_end；:52–57创建一个共享RouterState，并给全部50个double_block注册patch。
+core.py:281–288验证0<=block_start<block_end<=50；:354–355 selected(block)是层区间与forward采样步区间的交集，均零基、左闭右开。比如block_start=20,block_end=30只改变层20…29；step_start=6,step_end=15是第7…15次模型forward，两种维度互相独立。
+core.py:412–421未选层走mode=native，选择层才调用对应路由并记routed_by_block；:440–477仍要求每forward完整顺序执行50层。它没有跳过未选层或MLP，也不减少Euler20/NFE。当前接口只支持一个连续层段，不支持任意不连续层集合。
+core.py:307–318记录半开区间和逐层/逐forward计数；:371–373的layer_stats是已有诊断观测，不代表做过分层因果干预。:408固定block25的temporal_readout也不是层组消融。
+R2 core SHA 7a7e9c8067c9c0287659fafed06b775549aaa8cab5141c60220c0536b0eeb650
+R2 node SHA a904555ca6ecf32680e4c3b26fdf6af860ec3a0eaf7cbaa8c0b605184a638204
+
+2. 已完成运行的实际证据（均history success/completed=true；路由实际计数，不仅是图中计划）
+- r2_s05_native: 层[0, 50]；每层操作0次，总0；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_native_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_native_provenance/history.json; routerSHA=a3e95022161c43e12ed0fe7584bb1615b81f71225f10deb2f811f3e3467efe32; historySHA=d1f687f3faf6116d534b77b4d5f7e5a0988a3c99b3a21c2a57fa97c4c33dc97f
+- r2_s05_full_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_full_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_full_6to14_provenance/history.json; routerSHA=de0868dd7e74f4ad9ab529995a6bcc547edfa323dee27f8c1bbc1a45c616bf3c; historySHA=9c9cef0faec33484b3cfa19d82668587d801d72a0fb25c5fcaefcd17c0868c50
+- r2_s05_static_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_static_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_static_6to14_provenance/history.json; routerSHA=1d7e5fc06bea951c1cb32c7a0baec022439485abf87dc29c3f8187d3b72cca10; historySHA=d774048f53368ca110accc350ea39c0bd12c91e9319a87179d68deebf4216295
+- r2_s05_dynamic_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_dynamic_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_dynamic_6to14_provenance/history.json; routerSHA=7ddedd6ab0961e30d97a16584b30e90c794e0c757ef44064c31f525ed855b05b; historySHA=f61e7fe0b120031b89ee8094fe4c4db0c7bdb7575724dc04d20252b342672201
+- r3_s05_spatial_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_spatial_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_spatial_6to14_provenance/history.json; routerSHA=45fc3c57b236e0a4ee3711600a680b0696e82928d2f753c2f63041fd61b0d307; historySHA=d16a2e65d1398faa28ef3f432c313d03fde94aed69e21eba0b117c1a15f1d481
+- r11_s05_skip7_6to14: 层[0, 50]；每层操作8次，总400；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-schedule-controls-r11-20261016/analysis/pose/pilot/r11_s05_skip7_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-schedule-controls-r11-20261016/analysis/pose/pilot/r11_s05_skip7_6to14_provenance/history.json; routerSHA=cef45371b65987cf236425190a998289d81bcc26308a181b4f5e2ee09a8a966a; historySHA=b997f1d7b708f255e6514929631b62c6c1738140ab1b7f5de764531e9d8f9f52
+- r11_s05_continuous6to19: 层[0, 50]；每层操作14次，总700；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-schedule-controls-r11-20261016/analysis/pose/pilot/r11_s05_continuous6to19_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-schedule-controls-r11-20261016/analysis/pose/pilot/r11_s05_continuous6to19_provenance/history.json; routerSHA=54e903f966e9d17f8f4fa0ed9a5f5f2b7292b3afe11be765d2d96ad281dfedab; historySHA=f33c1b4f013368bd5a41d0039532882b01fc5b90aa0a9af0ba106e87fc274985
+- r16_s05_roi_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-local-route-r16-20261016/analysis/pose/pilot/r16_s05_roi_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-local-route-r16-20261016/analysis/pose/pilot/r16_s05_roi_6to14_provenance/history.json; routerSHA=0e6df027b82439e097dc96a81992fd33c3e770fdd75bd52781ab828473feda91; historySHA=bcca730c75391c2310ad1ec5634b3ba013d2eb765651de1fefa9373604e61fd8
+- r16_s05_uniform_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-local-route-r16-20261016/analysis/pose/pilot/r16_s05_uniform_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-local-route-r16-20261016/analysis/pose/pilot/r16_s05_uniform_6to14_provenance/history.json; routerSHA=a92558e431117b7a9f0df8b08c952edfa1cf5b52a4c35079d9886aa17a2388ff; historySHA=6dd5c38c65c71d9da919b87d2c6bb4633d24f19f5670c2daaa24ba6a82cdc802
+- r17_s05_plus4_a05_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/pilot/r17_s05_plus4_a05_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/pilot/r17_s05_plus4_a05_6to14_provenance/history.json; routerSHA=793bca161dec0a0a971665bb839ce962b1f2da15978f0529932782f6cbcace5a; historySHA=a18ad109543de1ede6e228dfbf4606ad64c1f97ee2b12ce4cbdf7f237a3d65af
+- r17_s05_minus4_a05_6to14: 层[0, 50]；每层操作9次，总450；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/pilot/r17_s05_minus4_a05_6to14_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-phase-rope-r17-20261016/analysis/pose/pilot/r17_s05_minus4_a05_6to14_provenance/history.json; routerSHA=9d322ce665c6dfa137721928379b66aae6f1bdfdf1e44646187d6e63556be057; historySHA=23f2192fc76781388d22bc8ff369fd96479e4813ad8e2968e649a43e0a0267cf
+- r18_s05_full_6to11: 层[0, 50]；每层操作6次，总300；实际完整forward=20，completed_blocks=1000。
+  /Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/analysis/pose/pilot/r18_s05_full_6to11_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/analysis/pose/pilot/r18_s05_full_6to11_provenance/history.json; routerSHA=f08ad9d637f478544e515ead308864f12da20317f418839a8a83542a7c2c5e4b; historySHA=50cf9678e09d7c0aaa5ed74e0c947b367e188aa341ebb62663b9a8e053afab13
+- r19_s05_pose_observer: 层[0, 50]；每层操作6次，总300；实际完整forward=26，completed_blocks=1300。
+  /Users/researcher/DevProjects/h3-timing-pose-feedback-r19-20261016/analysis/pose/pilot/r19_s05_pose_observer_provenance/router_audit.json
+  history=/Users/researcher/DevProjects/h3-timing-pose-feedback-r19-20261016/analysis/pose/pilot/r19_s05_pose_observer_provenance/history.json; routerSHA=82295a98b23cb1d1bed074e814a9f177a7c0f29d04a9320c483b1ef734bb5921; historySHA=ed104cfa50de87537a336592363a78826a762bf4c835ac69d57b3c36e06d0c5a
+
+R20新源配对另核：
+- /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016/analysis/pose/remote_evidence/audit/router/r20_s07_native.json: 层[0, 50]，每层0次，forward20；SHA=4fbea4538701d62686a59b75731c5282c7f122717f2b132f7a069ce6a81f6c4e。
+- /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016/analysis/pose/remote_evidence/audit/router/r20_s07_full_6to14.json: 层[0, 50]，每层9次，forward20；SHA=fd026023cc8ca06ac7aa3529a5b426760c66887aeaba2d79a7435e8d8befaed9。
+
+解释：R2 Full/static/dynamic各450次是“不同策略同层同采样步调用预算”，没有改变层位置；R16 ROI/UNIFORM也各450次，改变的是query空间alpha。R11的8或14次/层、R18的6次/层及R19的6次/层改变采样时间选择；R19额外native探测使实际26forward，并不增加被干预层种类。“late6”“late11”“6to14”均须看step_interval字段，不能当作深层编号。R17记录的是phase_calls/phase_by_block，也全50层。
+
+3. 检索边界
+共检查26个本地h3-timing-*-20261016项目的configs/*.json（含configs子目录），发现94个Router/PhaseRoPE/EventEmphasis图节点；显式层字段只有[0,50]，部分feedback节点无层输入。未把模板、bench、未启动R21/R22当完成证据。
+另检查router目录或router_audit.json/router.json中的实际计数档案52份、48个唯一run_id；所有含routed_by_block记录都为50层相同计数。包含失败/bench/重复备份，数量不等于完成实验数，完成证明以上面逐项history为准。
+配置子项目计数：
+  h3-timing-architecture-r2-20261016: 6节点；{'[0, 50]': 6}
+  h3-timing-autoresearch-20261016: 40节点；{'[0, 50]': 36, '[None, None]': 4}
+  h3-timing-coarse-to-pose-r21-20261016: 2节点；{'[None, None]': 2}
+  h3-timing-counterfactual-r10-20261016: 1节点；{'[None, None]': 1}
+  h3-timing-cross-source-r20-host41-20261016: 4节点；{'[0, 50]': 4}
+  h3-timing-cross-source-r20-host9-20261016: 4节点；{'[0, 50]': 4}
+  h3-timing-feedback-r6-20261016: 3节点；{'[None, None]': 2, '[0, 50]': 1}
+  h3-timing-fixed-stop-r18-20261016: 2节点；{'[0, 50]': 2}
+  h3-timing-fresh-source-r24-20261016: 1节点；{'[0, 50]': 1}
+  h3-timing-hold-control-r9-20261016: 1节点；{'[None, None]': 1}
+  h3-timing-local-route-r16-20261016: 3节点；{'[0, 50]': 3}
+  h3-timing-native-observer-r12-20261016: 1节点；{'[None, None]': 1}
+  h3-timing-native-screen-r14-20261016: 1节点；{'[None, None]': 1}
+  h3-timing-native-screen-r14-host9-20261016: 1节点；{'[None, None]': 1}
+  h3-timing-normal-feedback-r8-20261016: 1节点；{'[None, None]': 1}
+  h3-timing-normal-fixed-r22-20261016: 3节点；{'[0, 50]': 2, '[None, None]': 1}
+  h3-timing-normal-replay-r7-20261016: 2节点；{'[0, 50]': 2}
+  h3-timing-phase-rope-r17-20261016: 4节点；{'[0, 50]': 4}
+  h3-timing-pose-feedback-r19-20261016: 2节点；{'[0, 50]': 1, '[None, None]': 1}
+  h3-timing-schedule-controls-r11-20261016: 2节点；{'[None, None]': 2}
+  h3-timing-softband-r5-20261016: 2节点；{'[0, 50]': 2}
+  h3-timing-spatial-r3-20261016: 5节点；{'[0, 50]': 5}
+  h3-timing-target-path-r4-20261016: 3节点；{'[0, 50]': 3}
+当前R24两lane在GPU运行，本盘点没有触碰其服务或封存文件，也没有把进行中输出纳入完成判断。范围不覆盖未归档到本机的任意历史实验，结论是“所核档案未发现”，不是全服务器不存在证明。
+
+4. 如果随后做层组检验，最小修改面（仅说明工程边界，未实施）
+原R2节点/数学kernel无需新增机制：在新独立run图修改block_start/block_end和唯一run/audit/output标识即可。仍完整执行50层，原层外native与同query质量保持公式复用。需要一份新冻结protocol和后验期望计数，不能直接改变已封存R24。
+后续冻结包装有额外限制：R24 scripts/r24_contract.py:84–87明确要求[0,50]；R6 H3FeedbackRouter/core.py:94及R12 H3NativeObserverRouter/core.py:144构造时硬写[0,50]。若复用这些壳，须在新副本将guard/配置/后验验证同步改为预登记层段；不能仅改图然后绕过拒绝门。固定R2/R3路径改动最少，不需要把双预测feedback wrapper带入。
+最小验收应核：未选层走native、全层[0,50]复现已有Full、相同source/条件/noise/sigma、实际20forward×50block=1000、routed_by_block仅预定层非零、路由函数不原地改写其Q/K/V输入且不额外改变RNG、未选层使用相同native公式（先前层干预可以改变下游Q/K/V值，不能要求它们与无干预整轨迹相等）。CPU人工20×50调用仅证明接口，不当真实Euler证明。
+
+5. 能回答的因果问题及预算界限
+保持素材、seed、sigma、物理视频窗、采样步6…14、alpha和路由公式相同，仅改变等大小层段，可以检验“路由放在哪个网络深度影响动作时序/重影代价”；层组只用与全50层对比，能检验局部层组是否足以保留某种已观测作用。它不能单独证明这些层天然只编码运动或背景。
+例如纯计数示例：10层×9个采样步=90次路由；[0,10)、[20,30)、[40,50)调用数同为90。全50层×9步是450；把90与450对比会同时改变层位置/覆盖量。该示例未注册为实验计划，也未执行。
+等route次数不等于等数值干预强度：不同层参考注意力质量、V幅度、残差传播不同，已有layer_stats可记录修正量，但不能用计数宣称实际correction norm相等。不同层前后有非线性传播，效果也不应被解释为单层直接时间标签。没有当前数据支持速度、质量或创新性结论。
+
+本轮只创建本文件；未改代码、配置、封存目录或服务，未启动GPU。

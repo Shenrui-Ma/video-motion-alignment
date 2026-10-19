@@ -1,0 +1,139 @@
+{
+  "schema": "r73-short0252-exploratory-final-video-check-v1",
+  "scope": "Exploratory diagnostic selected after seeing first six-frame comparison; not preregistered efficacy evaluation. All full98 valid frames retained.",
+  "media": {
+    "source": {
+      "file": "inputs/short_0252_video.mp4",
+      "sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5"
+    },
+    "native": {
+      "file": "incoming/short_0252/native.mp4",
+      "sha256": "2ddf90b7e6935b6bf191d271c4a2d9bfa227a749145d48e67d3b2ba852404dac"
+    },
+    "forced": {
+      "file": "incoming/short_0252/forced.mp4",
+      "sha256": "0bacd73fea5c586c00341f793d849de5e0e50ce467297ba76911d225317892fc"
+    }
+  },
+  "full_geometry": [
+    1312,
+    736,
+    107,
+    24
+  ],
+  "valid_frames": 98,
+  "person": "right-side foreground adult; left child excluded",
+  "adult_selection_check": "Use frozen largest/IoU tracker. For scoring, require selected box horizontal centre between0.40W and0.75W; otherwise selected_person=None. Keep raw all detections and report rejection count. Fixed from source geometry before pose inspection, applies identically to all videos.",
+  "events": [
+    "Both hands leave lap and reach the hanging oxygen mask; first visible contact/grasp",
+    "Anatomical right hand lifts strap to face/forehead; visible hand and strap positions"
+  ],
+  "event_annotation": "Explore source physical frame intervals and uncertainty. Do not infer exact contact under occlusion. Compare full-time events; no dynamic alignment.",
+  "dense_frames": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    33,
+    36,
+    39,
+    42,
+    45,
+    48,
+    51,
+    54,
+    57,
+    60,
+    63,
+    66,
+    69,
+    72,
+    75,
+    78,
+    81,
+    84,
+    87,
+    90,
+    93,
+    96,
+    97
+  ],
+  "dense_crop_xywh": [
+    440,
+    0,
+    650,
+    720
+  ],
+  "dense_scope": "identical adult-region crop on score1280x720 videos; full-frame originals retained",
+  "thresholds": {
+    "confidence": [
+      0.3,
+      0.5
+    ],
+    "coverage": 0.8,
+    "min_frames": 8,
+    "max_lag_frames": 24,
+    "physical_disagreement_maxframes": 3
+  },
+  "windows": [
+    [
+      0,
+      97
+    ],
+    [
+      0,
+      31
+    ],
+    [
+      32,
+      63
+    ],
+    [
+      64,
+      97
+    ]
+  ],
+  "features": [
+    "arm_direction",
+    "left_arm_direction",
+    "right_arm_direction"
+  ],
+  "pose_external": {
+    "/data5/researcher/h3_runs/timing_autoresearch_20261016/scripts/pose_probe.py": "04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/yzd-v/DWPose/yolox_l.onnx": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt": "d86a0b2b59fddc0901a7076e9f59c9f8602602133ed72511c693fd11eea23d91",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/src/custom_controlnet_aux/dwpose/dw_onnx/cv_ox_det.py": "920a09469d3d719ff032861e78c8a94b85a87521c0efd88bb4aaf9bd281b690f",
+    "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux/src/custom_controlnet_aux/dwpose/dw_torchscript/jit_pose.py": "7622487bf9c47ab48d108d3252c448d8df3686af8099296edb10b921201facd8"
+  },
+  "aux_root": "/data5/researcher/ComfyUI/custom_nodes/comfyui_controlnet_aux",
+  "cpu_lock": "/data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock",
+  "bindings": {
+    "independent_targets.py": "5eacc784c3a23a082e11f8784bc467cc43fe0f5d3429c67e07ce3af3c8395365",
+    "vendor/pose_probe.py": "04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f",
+    "vendor/physical/shared_support.py": "6d41b7c258496d7bf7bee259601046ed3e788e7b1d3ac9267695ab0022159cc0",
+    "vendor/physical/timing_metrics.py": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+    "vendor/physical/PROTOCOL.json": "4f7dfc54f53dc4f6ee0ee15cafb320afabf790e60c48e3e7b64a4b592d48a751",
+    "vendor/physical/evaluate90.py": "e03ea8dd6504ab54b56d20b4f6cdc0991f1bd80de8d112870a2754469a42129e",
+    "vendor/original/scripts/physical_tolerance.py": "48e86013a3b5d0dbdb0073777bbada1496a962a41f7c7f807c4d5b7c09db9010",
+    "vendor/original/scripts/scan_current_pose.py": "b3a556c7fb292c741dca00a6ef449dd40d1a8a1c3a208ddf9ff88c91e2d57571",
+    "vendor/original/scripts/timing_metrics.py": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+    "vendor/original/scripts/pose_domain.py": "76048a56750a51e97ab97f6448a4c95a883966dc91702a35fc64d789cf8aad88",
+    "vendor/original/scripts/pairwise_gain.py": "a5d84914149c0c0fe1d7a945512743e68bc5d15c1edc66c2d2ec848a41acf960",
+    "vendor/original/extensions/H3AutomaticWindowRouter/geometry.py": "3f70a3adbaa1304c2356af87e3d4ddc9fabcb80544004edb35ae49f65af3ba11",
+    "vendor/visible/scripts/physical_tolerance.py": "48e86013a3b5d0dbdb0073777bbada1496a962a41f7c7f807c4d5b7c09db9010",
+    "vendor/visible/scripts/scan_current_pose.py": "4028e5f2b079bc33de4f4c4f7de1c50cf2fc1b0556236c7302db88bf2cb3ec08",
+    "vendor/visible/scripts/timing_metrics.py": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+    "vendor/visible/scripts/pose_domain.py": "76048a56750a51e97ab97f6448a4c95a883966dc91702a35fc64d789cf8aad88",
+    "vendor/visible/scripts/pairwise_gain.py": "a5d84914149c0c0fe1d7a945512743e68bc5d15c1edc66c2d2ec848a41acf960",
+    "vendor/visible/scripts/arm_features.py": "3545628c490e88047a284c0d56487246d5909f830e13ac8640c83f6804efeb2b",
+    "vendor/visible/extensions/H3AutomaticWindowRouter/geometry.py": "3f70a3adbaa1304c2356af87e3d4ddc9fabcb80544004edb35ae49f65af3ba11"
+  },
+  "GPU_calls": 0
+}

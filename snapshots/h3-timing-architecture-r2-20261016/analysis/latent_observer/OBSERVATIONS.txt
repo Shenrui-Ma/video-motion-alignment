@@ -1,0 +1,10 @@
+Offline latent-change observer: feasibility only
+
+Source05: native step005 main-window raw argmin +14f; full-mass step005 0f. This is earlier than the old combined-pose observer passed. Other windows can be wrong (native005 third window -18f).
+Source07: frozen same rule gives native17/17/-2f and mass0/-1/0f in source-only upper-body ROI. Existing pose threshold0.3 gives native15/unknown/-5f and mass-1/-1/-2f. High-threshold native pose is unknown in all three windows.
+
+Interpretation: large-delay vs near-zero difference generalizes descriptively to a second known-failure source, but this is not a calibrated reliable phase sensor. Unknown pose cells remain unverified. No online gate or intervention has been run.
+Confounds: magnitude loses direction; repetitive movement and camera/appearance changes contribute; VAE positional structure repeats every17physical frames, which coincides with some observed optima; positive mass on a nonzero map alone is not a rejection criterion.
+No algorithm, ROI rule, window, lag range, seed or generated result was tuned for source07. Six synthetic sanity checks passed, but do not validate real-world specificity.
+
+Next admissible use: test with actual R3 step006..009 and known-correct clips/counterfactual amplitude/noise cases before any dynamic controller. Do not replace frozen pose endpoints with this favorable primary example.

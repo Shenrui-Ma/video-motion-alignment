@@ -1,0 +1,46 @@
+源端锚点选择离线诊断：执行口径附录
+
+本附录由 root 在真实数值运行前批准。原 source_anchor_selection_design 的六个绑定文件逐字保留。
+本执行仍属事后开发诊断：开发样例已看过；24 帧长度、Q、Kmax=3 和三视图都是新增自由度。没有真实 source/target 数值运行许可。
+
+1. 原数学式与退化
+沿用 Q=V*r*max(min_known_contrast,0)，全部远竞争位置为所有完整整数起点，排除 ±2 同相位容差类。
+单个 (anchor,rival,confidence) 的 27 个距离使用同一三视图、两位置支持交集与六组置信最小权重。每个 u 单独求交集。
+保存全部 9 个跨视图 far 和同位置视图误差、支持位图、权重和/极值/字节 SHA；未知位置显式保留。
+eps 是两端视图直径之和，属于经验尺度，不是误差上界。eps=0 且 far≥1e−8 时 contrast=1；此时 Q 退化为 V*r，绝对区分度很小和很大的位置可能同分。far<1e−8 时固定零除保护会改变该恒等式。
+源视图已是 inverse.pose，不再反射、交换关节或去 padding。
+原 loader 的全局 torso scale 门保持。任一 source 视图/阈值无法加载时所有候选标 source_unobservable、K=0；保留原因。
+
+2. 基线预算与固定实现细节
+保持冻结的逐 slot 贪心，不加可行性回溯、不重抽 random。任一基线填不满，保存已选行和失败 slot，该 source 的五方案直接比较记不可判定。
+主选择按 (-Q,-r,-V,start,length,feature_order)；slot 按主选择的时间顺序排列。
+random 中 source_sha 固定为 SOURCE_BINDING 的 identity_pose.sha256；slot_id 是从 0 开始的整数；candidate_id 为三位 start:两位 length:feature 字符串，例如 044:24:left_arm_direction。SHA 输入 UTF-8 为 source_sha|20261017|slot_id|candidate_id。
+even 中中心为 (start+end)/2；第 j 个零基 slot 的目标中心 (j+1)*140/(K+1)。visibility 按 V；motion 按 identity/.5 的相邻单位骨向量有效加权变化。
+motion 支持分母为 (L−1)*该 feature 骨数，最少 8 个有效相邻帧对；支持低于 .8 或不足 8 时 motion 值为 null。这样的候选仍属于共同自身可见候选池，但不能按未知运动值参与 motion 排名；因此 motion 基线可能不可行，需明确记录。
+K=0 时五方案均为空，source_selection_not_usable；零延后证据不能当正确或零误报。
+同 K/长度/部位多重集比较只识别给定配置下的时间位置排序价值，不能证明自动 K、自动长度或自动部位的独立价值。
+
+3. 目标端门限逐字沿用 R27
+vendor/timing_metrics.py、pairwise_gain.py、physical_tolerance.py 与原文件字节一致。vendor/scan_current_pose.py 只作合成等价性证据。
+每个 descriptor 的两阈值 local_diagnostic 仍搜索 −24..24，共 49 个 lag，原支持、歧义、边界、残差门保留。
+双阈值可靠 lag 差≤2 且均>2 为 delayed_candidate、均<−2 为 advanced_candidate、均在 ±2 为 aligned；对前两者逐字用 pairwise_gain 五 null，再取两阈值最小 gain>.5 得到 delayed/advanced。原 R27 允许 lag=3 候选；没有引入 R36 的另一套标签门。
+其他情况为 UNKNOWN，完整原曲线、支持、拒判理由、gain 均落盘。没有独立标签时 label 固定 UNKNOWN；不计算准确率、误报率或召回率。
+主方案与四基线分别实测 CPU 时间，不共享目标数值缓存以免将缓存节省误记为算法收益。
+全扫描两列：full279 为长度 16/24/32；historical186 为原长度 16/32。两者独立记录成本与证据，不把 279 称为原扫描。
+
+4. 覆盖与所有分母
+原骨槽编号：0=左上臂(5,7)，1=左前臂(7,9)，2=右上臂(6,8)，3=右前臂(8,10)。双臂含 0..3，左右分别含 0..1/2..3。
+descriptor 的名义覆盖是 [start,end]×对应骨槽。多个窗口/部位求集合并集，双臂与单臂重叠去重；匹配用同物理帧同骨槽，不额外 ±2 膨胀。
+aligned/delayed/advanced/UNKNOWN 分别报告 descriptor 数和名义骨槽并集。不同状态可能覆盖同一槽，状态并集数量不能直接相加当总覆盖。
+另列两阈值同帧 source/target 均有限的支持骨槽并集及其 / 全部名义槽并集比例。它是部分可见性描述，不改变原 R27 判定。合格窗口的名义覆盖不等于每个槽都测量可靠。
+相对 full279 覆盖：同状态选点名义槽与同状态全扫名义槽交集数量 / 全扫该状态名义槽并集。分母零输出 null。historical186 同口径另列。全扫只是同测量器参照。
+单端点 UNKNOWN descriptor 率分母是该方案实际 descriptor 数（主方案/基线为实际 K，全扫为 279/186），K=0 则 null。不可行基线的部分结果可以描述，但五方案直接比较为不可判定。
+每条完整轨迹固定 20 个端点：至少一个 delayed 证据的端点数 / 20。UNKNOWN 和 K=0 端点都留在该分母；该值只表示证据出现比例，不能当检测准确率。
+同一 anchor ID 在连续两个真实端点均 delayed 才记 persistently_delayed；整 20 缺任一端点禁止生成轨迹总结。它仅为旧轨迹离线描述，无控制收益含义。
+
+5. 成本、批准与边界
+source 一次预扫描时间、排序时间、27 距离计算槽数；motion 相邻距离槽数单列。每目标端点的选择器扫描时间、实际请求向量距离槽数、全扫 279/186 时间分别记录。这些是实现计数，不是 FLOPs。
+flip/pad16 原 pose COMPLETE 的 elapsed_seconds 计入源预处理附带成本；identity 原 pose 成本未给出则不补估。VAE+完整 pose 是各方案已有共同成本，没有节省它们的声明。
+run_once.py 每次只运行一个有限阶段，使用 Mac 共享 CPU 文件锁，最多四线程。锁忙返回 75，由 root 稍后重试；程序无常驻循环。source 上限 1800 秒，endpoint 上限 900 秒，check/finalize/self-test 各 180 秒。
+必须先写 SOURCE_SELECTION.json 和 SOURCE_COMPLETE.json 并绑定 SHA，endpoint 才能打开目标数值文件。执行授权由 root 验收后单独建立，绑定 execution/design FREEZE；本任务只允许合成测试与格式/hash 检查。
+A 是观察位置，S 是执行器；所有结果 actuator_S=null。本执行不启动 GPU、不改模型、不调用 pose/VAE、不产生新的生成结果。

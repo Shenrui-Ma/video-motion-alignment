@@ -1,0 +1,142 @@
+LATEST RECHECK — root fixes independently verified, 2026-10-16
+
+Resolved since the initial audit below:
+- A1 packaging omissions: exporter now includes logs, processes, scripts_staged and transfer_runtime_staged. Actual exported late11 history/job, corrected transfer EventAudit source, transfer v2 bundle manifest, phase3 service and processes directory were all present.
+- B1 relative URL rebasing: fixed; clip.mp4 now becomes review/clip.mp4 after landing-page promotion.
+- B2 file:// URL rebasing: fixed; file:///.../review/clip.mp4 now becomes review/clip.mp4.
+
+Independent rerun of the current real export:935 manifest-listed files,235,867,594 bytes,54 local landing links checked,0 missing targets,0 manifest byte/hash mismatches. Seven temporary tests passed: relative path, file URI, same-page fragment, self-page anchor, query+fragment preservation, missing-target rejection, external-local-path rejection. All temporary folders were removed. Root source was not modified by this reviewer.
+Current verified exporter SHA256:
+  7ad68e820e0a36e7b67351b9bcf85c742a7f173e0781f6b02140d846eaef76b4
+
+Still pending for root's final pass: historical x3 complete media or explicit exclusion; report/new-arm/per-source-window census; final progress reconciliation; superseded pending README; final pairchecks/results/cleanup and fresh post-freeze export. B3's validation-scope limitation remains nonblocking for the present generated markup, whose actual links passed. Root plans to update report content once final results arrive; no need to rewrite it twice now.
+
+The INITIAL audit below is retained for traceability. Its A1/B1/B2 findings describe the pre-fix script and must not be read as unresolved current failures; initial counts/hashes are historical snapshots.
+
+H3 final-delivery completeness pre-audit (read-only)
+Audit date: 2026-10-16, Asia/Shanghai
+Scope: scripts/export_review.py, scripts/build_research_report.py, locally archived results/provenance and package completeness. No GPU/server/queue/runtime mutation; no credentials inspected. Only this audit file was written persistently. Temporary export/synthetic fixtures were removed automatically.
+This is a point-in-time PRE-audit while experiments are still running, not final sign-off or a recommendation to stop them. Root owns fixes and final refresh.
+
+SUMMARY
+
+The existing generated landing page is usable as a portable review after export: a real temporary export copied 838 files / 217,670,373 bytes, all54 local landing-page links resolved, and every manifest file rehashed correctly. The exporter leaves originals intact. Current landing markup uses absolute local paths in the supported form, so the two synthetic URL-handling bugs below do not currently break it.
+
+Before calling the final package COMPLETE, address (1) omitted runtime/log evidence and archived x3 full media, (2) stale progress / historical pending text, (3) missing transfer/new-control rows in the hardcoded report, and (4) pair audits for arms that finish after this snapshot. The completed discovery mass/hard/late11 controls have passed actual conditioning/noise pairing. No current completed effect arm was found to be missing those hashes after root's new four pair audits arrived. The new seed's native failure is not a transfer success; zero-RoPE is a numerical-equivalence control, not an independent efficacy result.
+
+A. Packaging: concrete current omissions
+
+A1. [Must address for complete reproducibility evidence] FOLDERS at export_review.py:12-13 omits logs/, processes/, transfer_runtime_staged/, and scripts_staged/.
+
+Consequences:
+- Newly synchronized logs/*_history.json and *_job.json, sampler failure logs, controller terminal state, backend-dispatch/smoke evidence and resource history are not exported from their primary locations. Some successful histories are duplicated under analysis/pose/pilot/*_provenance/history.json and WILL be copied, so do not describe all success provenance as lost. But failed warmups and runtime cleanup cannot be reconstructed from the same duplicated subset.
+- The corrected isolated transfer runtime, its exact EventAudit root guard, v2 bundle manifest, path-guard tests, first-failure repair diff and retry instructions are omitted. Main extensions/H3EventAudit is deliberately different from the transfer copy. Copying only main extensions does not preserve the actually executed transfer variant.
+- The actual staged phase3 service/launch configuration under scripts_staged/ is omitted, even though configs/phase3_deployment_manifest.json refers to it.
+- processes/ is not essential to understand video quality, but final exact process cleanup / GPU-release records should be included as a small selected audit bundle if the delivery claims resources were released. Do not package mutable process state while labeling it terminal.
+
+Suggested bounded fix: allowlist the executed runtime variants and immutable audit/log evidence, or include those whole task-owned folders with existing tensor/cache exclusions; preserve a distinction between executed and staged-only code. Avoid claiming that every code/config copied was run. No need to copy duplicate model weights.
+
+A2. [Must address if full raw comparisons are promised] The historical x3 full video is outside this ROOT and is NOT copied by exporter. Current review/old_calibration_s05.mp4 is a72-frame /3second montage, not the complete141-frame x3 raw output. Its JSON points to:
+  /Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/05_sam_s1_baseline_00001_.mp4
+  /Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/05_sam_s1_weight3_00001_.mp4
+The package does contain new full native and its strict archived-reuse audit. It does not contain the complete old x3 video or all external original run files. Copy the archived paired control into a clearly named archived_controls/ section (with hashes and original run date), or explicitly label it externally retained and do not say all raw comparisons are included. Do not rename reused x3 as a newly executed arm.
+
+A3. [Clarify intentional omission] SKIP excludes .pt/.pth/.safetensors/.pyc/.zip/.gz. This deliberately excludes x0 tensors, actual noise caches, some raw VAE tensor blobs and archived source tarballs. Their manifest/hash evidence is included, but the recipient cannot independently reload those tensors from this review package. READ_ME currently says large tensors/weights/cache omitted; retain that statement, and additionally clarify whether the frozen Comfy core and required environment are external dependencies. The portable package is a review bundle, not a self-contained runnable replication environment. Config remote absolute paths may remain as provenance and should not be blindly rewritten.
+
+A4. [Finalization procedure] Export only after a declared evidence snapshot: refresh terminal/progress status, finish all listed artifacts, build page, then export, then validate exported links/hashes. Current exporter copies live source files sequentially, so its internally valid hash manifest is not proof all files came from one consistent research state. A run can finish during copying. Either stop writing to the final snapshot or copy a staged immutable result inventory; do not let a late JSON/file arrival silently change the experiment census.
+
+B. Exporter's link validation limitations (reproduced in local temporary fixtures)
+
+B1. export_review.py:44-55 rewrites only paths where Path(unquote(address)).is_absolute(). Relative URLs are returned unchanged although review/index.html is promoted to package/index.html. Fixture: review/index.html contains src="clip.mp4", review/clip.mp4 exists and is copied to package/review/clip.mp4. Export succeeds, manifest says presentation_links_checked=true, but package/index.html requests missing package/clip.mp4. Resolve relative links against the ORIGINAL page directory before rebasing, or constrain/reject unsupported relative markup explicitly.
+
+B2. A file:///absolute/path URL is parsed as a relative pathlib string, left unchanged, and also passes presentation_links_checked=true. Such a link remains tied to the sender's machine. Use URL parsing; treat file: as local, preserve query/fragment separately, then rebase. The current generated landing page does not use file: URLs, so this is a robustness gap, not an observed broken current link.
+
+B3. Only double-quoted lowercase href/src attributes of the landing page are parsed by the regex. Relative URLs, single quotes, srcset/CSS URLs and nested HTML links are not validated. Current copied analysis/visual/native_review.html has9 relative links and they resolve in the current tree; no current nested absolute link break was found. The manifest flag should describe its actual scope (landing local href/src targets) or validation should parse all copied presentation pages.
+
+B4. A directory link passes exists() and lets a file:// browser browse the folder, but a hosted static server may disallow directory listings. The outputs/configs/audit directory links are acceptable for the documented unzip-and-open-file workflow; do not advertise automatic hosted-browser behavior without an index or host check.
+
+C. Report generator: omissions and stale state
+
+C1. build_research_report.py:22-37 hardcodes discovery source05 runs. It has no rows for s05_full_seed2_{native,mass}_x0 or s07_full_seed1_{native,mass}_x0, and no hard_late11 arm. late6 has a diagnostic name, but videos at95-107 have no late6/hard_late11/transfer cards. Thus new measurements can finish correctly yet never appear in the main quantitative table or montage section. Add explicit registered rows and statuses, not discovery-by-filename that can accidentally count failed/diagnostic artifacts.
+
+C2. diagnostics():43 hardcodes arm_direction/window[50,65]. Source07 is registered for[54,69] and must have a per-case window; adding its filename to names without changing this lookup can StopIteration or select the wrong event if a matching window happens to exist. Use per-run source/window metadata from the protocol. Keep source07 labeled as a known historical failure with related choreography, not blind unseen-domain generalization.
+
+C3. diagnostics(),video(),x0_section(),doclist silently omit missing files. This makes an in-progress page convenient but is insufficient for final completeness: a queued, failed, missing, not-evaluated, or unexecuted arm disappears without distinction. Include a registered experiment-status table with output/history/pair-audit/evaluation/presentation state and reason. A missing result is not evidence of failure to solve motion; a technical startup failure is not a generated bad video.
+
+C4. progress.json is internally stale despite appended newer fields. At audit time:
+- completed_formal_runs stops at phase_zero, omitting completed hard and late11;
+- current_run still hard; next still lists zero/hard/late work already completed;
+- observations still says late controllability pending, while late11 explicitly failed the criterion;
+- transfer.current says mass while transfer.prompt_id is the successful native prompt ID, so the ID should be labeled last_successful_native_prompt or replaced with the actual current run ID;
+- updated_at_client and updated_local differ; neither guarantees all fields describe one state.
+Final report embeds this entire object. Reconcile the canonical state fields after the batch, preserving original history in logs rather than contradictory active fields.
+
+C5. analysis/replication/README.txt still begins "Current decision: PENDING" and lists already-completed prerequisites. archived_pair_reuse_audit.json is now eligible_with_explicit_archive_provenance/eligible=true. This README is automatically exported. Add a dated resolution at the top and retain the preparation section as history; do not present it as current unresolved reuse.
+
+C6. review/RESULTS_IN_PROGRESS.txt retains earlier body paragraphs saying hard/late tests remain to be done, followed by dated appendices with their results. The chronology itself is legitimate, but final delivery needs a top-level latest conclusion and a clear historical-log label. configs/transfer_staged/protocol.json status "staged only" should remain a preregistration snapshot rather than silently rewriting history; link the later deployment/attempt record from a current inventory.
+
+C7. audit/report_static_checks.json and review/static_validation.json are old checks. The former records only3 video elements from an earlier page; current page has more. Regenerate final static-link/media verification against the exported page and state whether browser rendering was actually tested. This audit ran file/link/hash checks only, not a GUI browser playback test.
+
+C8. The generator's current scientific wording is mostly careful: it says the late11 arm is a fixed schedule, explicitly notes sigma≈.908 is not a low-noise tail, limits same-input reference-mass conservation, distinguishes VAE evidence and avoids claiming an online controller. Retain these qualifications. Phase-zero still appears in the same exploratory measurement table; label it "零扰动等价检查，不计有效性/独立样本" or move it into a controls group. Do the same for native replay and passive x0 replay. Do not count10 table rows as10 independent efficacy tests.
+
+D. Actual input/noise pairing coverage at audit time
+
+Parent supplied four new pair audits; I inspected their passed=true records without rerunning those comparisons:
+  native_x0 vs mass_x0: passed
+  native_x0 vs hard_x0: passed
+  native_x0 vs mass_late11_x0: passed
+  native_x0 vs phase_zero_x0: passed (sanity only)
+The existing1024 native/mass paircheck also passed. These records check prepared input/condition hashes, initial video/audio noise, fixed graph nodes, and successful histories; they do not by themselves prove output quality/backend equality.
+
+Additional read-only coverage check I performed:
+- s05_full_seed1_native -> s05_full_seed1_native_x0: pair_snapshot.actual equal, prepared input_video equal, actual_noise_streams equal, noise signatures equal. Both archived histories status=success/completed=true. The141-frame RGB passive equality audit already exists. A dedicated paircheck file is not currently present for this bridge, but the actual checks are not missing; this text records them.
+- historical x3 reuse: archived_pair_reuse_audit.json records equal old-pair conditions/noise, rehashed stored noise/reference tensors, new-full-native matching old condition/noise and141 decodedframes, eligible=true. It is an archived paired control, not a fresh timing result, extra seed, or new successful intervention.
+- seed2 native: successful actual history, seed2026101312, actual conditioning equal to seed1 native_x0, noise streams DIFFERENT as expected. Its +15frame delay is evidence of another failure draw under same source/identity; it is not evidence the new method transfers. Its mass counterpart was not locally completed at this snapshot, so no native/mass paircheck or transfer-success claim is yet available.
+
+Pending arms: phase+12, phase-12, late6, hard_late11, seed2 mass, source07 native/mass and any offset variants that are actually executed. For each completed pair require a new actual-condition/noise/fixed-graph/history audit before interpreting its delta. Do not demand equality between seed1 and seed2 noise; compare within each intended pair. Source07 hashes must pair with source07, not source05. Absence of a paired output for a currently pending arm is expected, not a completed-experiment defect.
+
+Current top-level local raw MP4 census at the check:9files, namely1024 native/mass, full native, full native_x0, full mass_x0, phase_zero_x0, hard_x0, mass_late11_x0, seed2 native_x0. Count successful runs separately from independent source/seed draws and from efficacy controls. More may arrive after this point-in-time audit.
+
+E. Transfer artifact integrity and limits
+
+The local seed2 native provenance archive contains config, successful history, actual conditioning/noise/router audit, measured video hash, pose files, and an archive_manifest mapping remote to local paths. Source05/source07 and Sam reference JPG are all present in inputs/ and will copy. Thus the transfer input media are NOT presently missing.
+
+analysis/pose/TRANSFER_ATTEMPTS.json correctly separates attempt1's root-guard pre-sampling technical failure from the successful retry. Keep this separation. The same logical run name was retried with a new prompt identity; count the successful retry once and retain the failed attempt without treating it as a generated-motion failure. Current analysis/pose/pilot/TRANSFER05_SEED2_NATIVE_REVIEW.md correctly says matching mass is pending and does not claim generalization success.
+
+The isolated runtime's actual corrected guard lives only under transfer_runtime_staged/extensions/H3EventAudit; packaging main extensions alone loses that deployed variant (A1). Include v2 manifest and review alongside its code. A v1 .tar.gz archive is deliberately skipped by current policy; if excluded, retain its hash and patch-difference evidence and state that the old complete tar is external. Final runtime cleanup/termination evidence must be refreshed after alltransfer jobs, not copied from attempt1 cleanup and presented as the current service's cleanup.
+
+F. Validation actually performed
+
+1. Imported exporter and report module with PYTHONDONTWRITEBYTECODE=1; no persistent bytecode.
+2. Ran a real export to a fresh TemporaryDirectory:838manifest-listed files,217,670,373bytes,54landing local links all resolved,0manifest byte/hash mismatches. Temporary folder removed on exit.
+3. Synthetic relative-URL promotion test reproduced a broken requested path despite presentation_links_checked=true.
+4. Synthetic file:// test reproduced an unrewritten absolute local URI despite the same trueflag.
+5. Inspected copied HTML: landing54links and analysis/visual/native_review.html9links; no currently missing source targets found.
+6. Called diagnostics() and x0_section() read-only on current data:10diagnostic rows and10x0 rows, no parsing errors.
+7. Read completed paircheck passed flags and independently checked only the missing full-native/passive bridge and distinct seed2 input/noise relationship; no GPU tensors/model weights were loaded.
+8. No GUI browser test, no remote source rehash, no new GPU inference, and no modification of export/report/runtime/queue files.
+
+Root-owned final checklist, in order:
+- Freeze an explicit run census/status; preserve all failed/skipped/pending outcomes and timestamps.
+- Finish output/provenance sync and within-pair audits for newly successful arms.
+- Update report rows by source/window and separate sanity/replay/effect/transfer categories.
+- Resolve stale progress and pending READMEs without erasing historical preregistration.
+- Add required runtime/log evidence and full archived x3 media or declare their exclusion.
+- Build/export into a NEW final folder, verify all copied presentation links and manifest hashes, and report package size/large exclusions.
+- Include final exact cleanup evidence when available; do not claim final GPU release from old attempt1 records.
+
+Audit input hashes (SHA256; later root changes supersede this snapshot)
+scripts/export_review.py
+  7ad68e820e0a36e7b67351b9bcf85c742a7f173e0781f6b02140d846eaef76b4
+scripts/build_research_report.py
+  1035014fd9003c35a478117d8b1f86bcdd6db53de211bff47c7e28c39a2414ae
+progress.json
+  2858ed132f80305c958875b67a8ec26719d6da87a04ff3b9524cd95fa93d3fbd
+review/index.html
+  3fe61049227fdcd097206ee9ccbb866f6f57b56a001f22ed6be6582a2f5fc7dd
+analysis/replication/README.txt
+  abb49233f8f0db0991e2731976b4a5cf721745bad3dea12cd489e93e6f3829c5
+analysis/replication/archived_pair_reuse_audit.json
+  8e00b4a537e4fa0dfb19312550a2c93464a9a48b5c5b8ad96436ee3babe4da71
+analysis/pose/TRANSFER_ATTEMPTS.json
+  6fb2295b4d5b7b78341c722b5b22d1a95bb7a16ad0df45b1c04d40c49b3ea4c9

@@ -1,0 +1,58 @@
+R41 manual source51310 bounded postrun, preparation only
+
+Single run: r41_source51310_seed2026101701_manual56to127_6to14.
+Producer remains sealed and read-only. This consumer has no GPU/service management.
+Archive and pose are independently available before the Auto parent finishes.
+The compare, media and finalize phases require the completed actual R40 parent.
+
+Root fills BINDING.json from BINDING.template.json using the exact R41 service
+record and external PID/UID/startticks/cmdline SHA; approved must be true.
+Use the existing Python and one explicit bounded phase per invocation:
+  /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python analysis/postrun/one_phase.py --execute
+Run from the R41 local root and redirect each invocation's stdout/stderr to a
+unique log. No argument performs no consumption. Busy/pending/stabilizing do
+not execute a phase. Retrying a technical CONSUMER_FAILURE requires review.
+Lock order is unique R41 consumer -> Mac CPU -> remote CPU, with R40 online
+pose priority. Each remote phase has a 900 second transport bound; actual
+pose is bounded to 300 seconds; runtime tensor verification to 600 seconds.
+
+After archive_complete, root may release the exact producer identity using:
+  REMOTE/analysis/postrun/captured/RUN/RUN_GATE.json
+plus archive_receipts/RUN.json and the recorded SHA. No effect result is
+claimed at this gate. Only exact-owner queue.finalize false->true is an allowed
+administrative change; all scientific source files must remain unchanged.
+
+Once R40 is actually CPU-complete and downloaded, run locally:
+  python analysis/postrun/bind_auto_parent.py --execute
+This validates R40's actual final summary, source, video/pose, five archive
+anchors, manifest and clean/noise gates. It cannot bind an early/native proxy.
+The path is frozen in PROTOCOL.auto_parent_local/auto_parent_root. All nulls in
+AUTO_PARENT_BINDING.template remain unbound until real evidence exists.
+
+Evaluation: Native R38 vs Auto R40 vs Manual R41, primary physical64..95,
+fixed windows0..31/32..63/64..95/96..127/125..140, all186 fullscan rows,
+three-way and each pair's common support. Keep UNKNOWN and visibility limits.
+Manual56..127 + fixed denoising6..14 was declared before its output; it is not
+an oracle timing schedule or ground truth. Automatic need only approach it
+while improving Native. Query dose/NFE differ and are reported separately.
+
+All original PTs stay remote and receive initial/final SHA/tensor checks.
+Every nonPT file is downloaded and its exact inventory revalidated. Fixed
+media use141 same-time frames24fps, fixed0/24/48/72/96/120/140. Chinese strips
+are pre-rendered from the recorded existing Mac font (font not redistributed),
+only under the black48px bottom border, at equal656x368 per-video size.
+Three columns: Source, Native, Manual (3.人工窗口引导).
+Four columns: Source, Native, Auto (3.自动时序干预), Manual (4.人工窗口引导).
+Original English internal diagnostic and RGB hashes remain separately saved.
+Quality stays pending independent visual review; no pose-to-identity inference.
+
+Numerical metrics, pairwise_gain, physical_tolerance and scan_current_pose
+are exact R40 producer copies (also R39 postrun exact). The15 small contract
+and3 fixed-metric/media helper functions retain prior reviewed AST text.
+Three parent evidence JSONs are byte-exact R40 postrun copies. Their historical
+inner provenance is retained, including old predecessor identifiers.
+
+Tests and caveats are recorded in audit/postrun_tests_attempt*.log and
+postrun_remote_smoke_attempt*.log. Failed attempts are retained; no producer
+numerical validation was rerun. Producer actual29NFE/20Euler/450routes/
+21chosen/29branches/9rawinputs are checked by its sealed verify_completed.

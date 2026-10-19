@@ -1,0 +1,73 @@
+{
+  "schema": "r118-compact-consumer-handoff-v1",
+  "producer_seal_sha256": "713abff574c9debe7082322bdedb19b97a68c5ea970411aea7f683b602f725c5",
+  "host": "H3_SERVER_B",
+  "remote_root": "/data4/researcher/h3_runs/timing_ive_interview_guidance_r118_host41_20261019",
+  "source_id": "long_0047",
+  "runs": {
+    "native": "r96_long_0047_seed2026101701_native",
+    "forced": "r118_long_0047_seed2026101701_forced"
+  },
+  "existing_local_inputs": {
+    "source_video": "/Users/researcher/DevProjects/h3-timing-ive-interview-guidance-r118-host41-20261019/inputs/long_0047_video.mp4",
+    "source_provenance": "/Users/researcher/DevProjects/h3-timing-ive-interview-guidance-r118-host41-20261019/inputs/long_0047_provenance.json",
+    "native_video": {
+      "file": "/Users/researcher/DevProjects/h3-ive-native-screen-metrics-r96-20261018/incoming/long_0047/native.mp4",
+      "sha256": "106962740ff88039c261aba2703b1be1acc9b8091ae10b38f652b6db3705d2d3"
+    },
+    "historical_evidence_directory": "/Users/researcher/DevProjects/h3-timing-ive-interview-guidance-r118-host41-20261019/design/historical_native",
+    "source_event_plan": "/Users/researcher/DevProjects/h3-timing-ive-interview-guidance-r118-host41-20261019/design/SOURCE_REVIEW_PLAN.json",
+    "historical_full_frame_review": "/Users/researcher/DevProjects/h3-timing-ive-interview-guidance-r118-host41-20261019/design/HISTORICAL_NATIVE_REVIEW.json"
+  },
+  "geometry": {
+    "generated_frames": 107,
+    "valid_frames": 97,
+    "fps": 24,
+    "width": 1312,
+    "height": 736,
+    "crop_xywh": [
+      16,
+      8,
+      1280,
+      720
+    ]
+  },
+  "gate": {
+    "path": "analysis/postrun/long_0047/PAIR_RUNTIME_GATE.json",
+    "schema": "r118-historical-native-guidance-runtime-gate-v1",
+    "passed": true,
+    "checks": "all true",
+    "service_owner": "full STARTED owner",
+    "runs_native": "historical provenance: run_id/video{file,sha256}/gate_sha256/runtime",
+    "runs_forced": "run_id/video{file,sha256,properties}/valid_frames/evaluation_crop_xywh/job_wall_seconds/routed_blocks/history_sha256/job_sha256/router_file_sha256/binding_artifacts"
+  },
+  "complete": {
+    "path": "audit/<actual attempt>/COMPLETE.json",
+    "fields": "passed=true,jobs=[new forced run],remaining=[],GPU_released=true,gates.long_0047={file,sha256}"
+  },
+  "collect": [
+    "audit/<actual attempt>/STARTED.json",
+    "audit/<actual attempt>/ROOT_EXIT_RECEIPT.json",
+    "audit/<actual attempt>/COMPLETE.json",
+    "processes/cleanup.json",
+    "processes/service.json",
+    "analysis/postrun/long_0047/PAIR_RUNTIME_GATE.json",
+    "configs/graphs/r118_long_0047_seed2026101701_forced.json",
+    "logs/r118_long_0047_seed2026101701_forced_history.json",
+    "logs/r118_long_0047_seed2026101701_forced_job.json",
+    "audit/router/r118_long_0047_seed2026101701_forced.json",
+    "audit/r118_long_0047_seed2026101701_forced_conditioning.json",
+    "audit/r118_long_0047_seed2026101701_forced_noise.json",
+    "audit/r118_long_0047_shared_conditioning.json",
+    "audit/x0/r118_long_0047_seed2026101701_forced/manifest.json",
+    "the exact MP4 in gate.runs.forced.video.file"
+  ],
+  "exclude_large_blobs": [
+    "x0 tensors",
+    "noise.pt",
+    "condition tensor files"
+  ],
+  "evaluation": "Review all97 source/Native/forced valid frames, original gesture events and task success; official MF independently scored. Preserve neutral and negative outcomes.",
+  "created_unix": 1792415559.629247,
+  "consumer_adaptation": "Administrative host41 binding; original host9 compact-consumer schema is unchanged."
+}

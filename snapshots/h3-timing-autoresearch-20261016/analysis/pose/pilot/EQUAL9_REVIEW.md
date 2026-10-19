@@ -1,0 +1,13 @@
+# Same nine routed calls, different sampling intervals
+
+Early calls6..14 yield frozen primary combined-arm lag **+1/+1**, compared with calls11..19 **+11/+12** and native **+13/+13**. Both schedules intervene9calls×50blocks at20total NFE. All-stepmass gives0/0; calls6..19 give1/1. Thus the selected case retains the early-interval benefit when the routed-call count is equal.
+
+The five-arm shared primary support is1.0/.828. Errors(native,allmass,early14,late9,early9) are **1.127/.105/.140/.769/.143** at0.3 and **1.131/.107/.143/.783/.148** at0.5. Across the four original windows, early9 gives **+1/0/+1/+1** at0.3 and **+1/unknown/+1/+1** at0.5. Mid-window0.5 support.731 fails; main-window body_xy lag also abstains due insufficient benefit from shifting an already close pose. These are not converted into successes.
+
+In the same five-arm common-support comparison, whole errors at0.3(native,early14,late9,early9) are.422/.131/.400/.129; pre0–46 .137/.126/.161/.124; post68–140 .473/.122/.482/.122; tail112–140 .097/.066/.094/.067. These descriptive low errors are not a significance test, and the four windows are not independent replications.
+
+Fixed55 shows a hand near the head and a lifted leg;86 shows both arms overhead. Gray clothing and the white room/curtain remain. The frozen direction endpoint passes the complete±2-frame gate with this limited appearance screen; this does not imply comprehensive identity/all-frame quality validation.
+
+Equal count is **not equal dose**: affected video-sigma span is about.1655 for6..14 and.9076 for11..19; attention states/correction magnitude/history differ. The intervals overlap11..14. This supports schedule-location/history dependence at equal call count, not an exact critical interval, universal early-control advantage, online feedback, or architecture novelty. Tail15..19 was unnecessary for this particular endpoint under this early trajectory; not universally dispensable.
+
+The new interval was registered after seeingearly14positive/late9negative, before its output; it is an exploratory ablation. Actual condition/noise pair gate and executed-operator gate now pass: 1,000 block calls across 20 forwards, exactly 450 routed calls in calls6..14. Snapshot005 video/audio is bitwise equal to native; snapshots005/010 are bitwise equal to the calls6..19 trajectory. Audit sources: `audit/early9_actual_operator_gate.json`, `audit/early9_native_prefix_tensor_equality.json`, `audit/early9_late6_prefix_tensor_equality.json`, and the native-to-mass_6to14 pair checker. Exact raw SHA `8c7ffcf450fd6ecd7e3a5722765072e5798ede73c64b273e0ba7d960a93b2f9f`; five-arm data inanalysis/pose/equal_budget/full_schedule_comparison.

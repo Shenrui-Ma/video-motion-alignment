@@ -1,0 +1,909 @@
+{
+  "schema": "h3-event-audit-v1",
+  "run_id": "r49_source_chest_shared",
+  "prompt": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+  "input_video": {
+    "shape": [
+      158,
+      768,
+      1152,
+      3
+    ],
+    "dtype": "torch.float32",
+    "sha256": "00eb49a87be2ed9f27849507e203b58abdd2f66bf9313afe981004b445071d26"
+  },
+  "native_vae_calls": [
+    {
+      "prepared_frames": {
+        "shape": [
+          1,
+          288,
+          480,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "cbc69a137f8f15d51070a628d843b16bd6677b8eabfa649e0aa96806ebfac09c",
+        "tensor_file": "tensor_blobs/7befb1dcfb5fa6cb1438357de43846b83455356ba7a9ebff30e1a41970e12b96.pt"
+      },
+      "latent": {
+        "shape": [
+          1,
+          24,
+          1,
+          18,
+          30
+        ],
+        "dtype": "torch.float32",
+        "sha256": "31aba1e8b13fa7113ef6a6311df64cafb37f0b99752237915ed2976b81515f4a",
+        "tensor_file": "tensor_blobs/d03fe18007fcd727c9149e3249bb8b88639fc28762a72c064406a496b95c6a0e.pt"
+      }
+    },
+    {
+      "prepared_frames": {
+        "shape": [
+          158,
+          768,
+          1152,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "26ae4ea9aa368fc320185e7ef52dcc1064b76ebb7668c540ad5671589c1b806a",
+        "tensor_file": "tensor_blobs/498c4bc350fcf3e9609738f88f5465065493e38751163f47aeee1db0ee2cf922.pt"
+      },
+      "latent": {
+        "shape": [
+          1,
+          24,
+          47,
+          48,
+          72
+        ],
+        "dtype": "torch.float32",
+        "sha256": "95499a5dab4637523d17cfc47af0cf1e9563ab3466b8d7ae286250553bedeaae",
+        "tensor_file": "tensor_blobs/326bfcb1cd6c91d9b430329933af7beaecabe26e0024e1fb8f789ee22ffee201.pt"
+      }
+    }
+  ],
+  "qwen_presentation": [
+    {
+      "type": "image",
+      "data": {
+        "tensor": {
+          "shape": [
+            1,
+            288,
+            480,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "cbc69a137f8f15d51070a628d843b16bd6677b8eabfa649e0aa96806ebfac09c"
+        }
+      }
+    },
+    {
+      "type": "video",
+      "sampling": {
+        "source_fps": 24,
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "sample_indices": [
+          0,
+          12,
+          24,
+          36,
+          48,
+          60,
+          72,
+          84,
+          96,
+          108,
+          120,
+          132,
+          144,
+          156
+        ],
+        "sample_timestamps_seconds": [
+          0.0,
+          0.5,
+          1.0,
+          1.5,
+          2.0,
+          2.5,
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0,
+          6.5
+        ],
+        "temporal_blocks": [
+          {
+            "source_frames": [
+              0,
+              12
+            ],
+            "timestamp_seconds": 0.25,
+            "rendered_timestamp": "<0.2 seconds>"
+          },
+          {
+            "source_frames": [
+              24,
+              36
+            ],
+            "timestamp_seconds": 1.25,
+            "rendered_timestamp": "<1.2 seconds>"
+          },
+          {
+            "source_frames": [
+              48,
+              60
+            ],
+            "timestamp_seconds": 2.25,
+            "rendered_timestamp": "<2.2 seconds>"
+          },
+          {
+            "source_frames": [
+              72,
+              84
+            ],
+            "timestamp_seconds": 3.25,
+            "rendered_timestamp": "<3.2 seconds>"
+          },
+          {
+            "source_frames": [
+              96,
+              108
+            ],
+            "timestamp_seconds": 4.25,
+            "rendered_timestamp": "<4.2 seconds>"
+          },
+          {
+            "source_frames": [
+              120,
+              132
+            ],
+            "timestamp_seconds": 5.25,
+            "rendered_timestamp": "<5.2 seconds>"
+          },
+          {
+            "source_frames": [
+              144,
+              156
+            ],
+            "timestamp_seconds": 6.25,
+            "rendered_timestamp": "<6.2 seconds>"
+          }
+        ]
+      },
+      "actual_sampled_frames": {
+        "shape": [
+          14,
+          768,
+          1152,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "a2bac61c5e4682b11094bb1bee603790db3d2a69e7f7d2e7eecd6147b14d0f83",
+        "tensor_file": "tensor_blobs/3a7ffbae6b66e762f79e610be7e2181a33607e2d1fba4e07b774b678570fc54f.pt"
+      }
+    }
+  ],
+  "tokenization_before_vision_expansion": {
+    "qwen3vl_32b": [
+      [
+        [
+          21604,
+          1.0
+        ],
+        [
+          3826,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  1,
+                  288,
+                  480,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "cbc69a137f8f15d51070a628d843b16bd6677b8eabfa649e0aa96806ebfac09c"
+              }
+            },
+            "original_type": "image"
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          10724,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          15,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "6b16ea156573d47258608b3aa644de501e51d00fe0d1fb020a31867ed890a0aa"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "ce57379aa623ea96cc0c09ca00ceeed18cd265c9da844d49fc36a850c82a8fb1"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "5cf6df4e80d5386b43f45a61860b8a878a5b79887dd7fc505499b07daa692789"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          18,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "7633b07ecfcaa70b2402d59532ebed79fe7f726fcb9f902614c9047e56f3d3e5"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          19,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "f7b7ebc9cb54ab7f3ce0e8823ef71b4c108ea10c1c221d4c814fb5378fe99ae8"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          20,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "5ca74efbea99b000515ea7482a1cfade22aff6a45b217ae274ed419017e38158"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          21,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  768,
+                  1152,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "1006cc2c3ee397fde959de1a540a5e79716fe57b74b33d30a06fbf150dab5dfc"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          10253,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          1697,
+          1.0
+        ],
+        [
+          304,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          5785,
+          1.0
+        ],
+        [
+          2168,
+          1.0
+        ],
+        [
+          438,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          3832,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          3321,
+          1.0
+        ],
+        [
+          47845,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          4583,
+          1.0
+        ],
+        [
+          8500,
+          1.0
+        ],
+        [
+          315,
+          1.0
+        ],
+        [
+          2487,
+          1.0
+        ],
+        [
+          53145,
+          1.0
+        ],
+        [
+          6839,
+          1.0
+        ],
+        [
+          304,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          5785,
+          1.0
+        ],
+        [
+          2766,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          46895,
+          1.0
+        ],
+        [
+          862,
+          1.0
+        ],
+        [
+          18405,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          5106,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          44109,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          81306,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          3832,
+          1.0
+        ],
+        [
+          594,
+          1.0
+        ],
+        [
+          11094,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          6109,
+          1.0
+        ],
+        [
+          6839,
+          1.0
+        ],
+        [
+          304,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          5785,
+          1.0
+        ],
+        [
+          2168,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ]
+      ]
+    ]
+  },
+  "conditioning_embedding": {
+    "shape": [
+      1,
+      6301,
+      5120
+    ],
+    "dtype": "torch.float32",
+    "sha256": "49bdb5d7cd230ed3ec14156018574c5a29fb942c966319af2a4ff3b8b0842c40",
+    "tensor_file": "tensor_blobs/9a32df9339d4adf3f182ce251e637fa8f4fd5597cb475647041d6f3a9c053588.pt"
+  },
+  "token_tags": {
+    "shape": [
+      6301
+    ],
+    "dtype": "torch.int64",
+    "sha256": "2fd8a55055ee2634acef3125a5457427ade1e01f821e0bf318fbd2c784f8c79c",
+    "tensor_file": "tensor_blobs/49f5f7002a030dc0fef713f5e8c0e012b0d0256a5d480df6ccb870c4260759c7.pt"
+  },
+  "target_latent_shapes": [
+    [
+      1,
+      24,
+      47,
+      48,
+      72
+    ],
+    [
+      1,
+      32,
+      2,
+      263
+    ]
+  ],
+  "packed_layout": {
+    "seq_len": 88178,
+    "segments": [
+      [
+        0,
+        6301,
+        "text"
+      ],
+      [
+        6301,
+        6436,
+        "ref_img"
+      ],
+      [
+        6436,
+        47044,
+        "ref_img"
+      ],
+      [
+        47044,
+        47570,
+        "audio"
+      ],
+      [
+        47570,
+        88178,
+        "video"
+      ]
+    ],
+    "position_ids": {
+      "shape": [
+        88178,
+        3
+      ],
+      "dtype": "torch.float64",
+      "sha256": "14b2335a517fb76facc5baf316b561f0675f147d99b08b8ff3970a3fafe93b0d",
+      "tensor_file": "tensor_blobs/fecf6492fd3d40f7fea00a08182bba694385730fe7cc7b1162fa57c8f9fca8a7.pt"
+    }
+  },
+  "notes": [
+    "Default 2 FPS phase 0 delegates native arguments unchanged.",
+    "Dense VAE input is unchanged by semantic FPS/phase settings.",
+    "Phase/FPS may change token count and RoPE layout; compare manifests.",
+    "Native reference augmentation is deterministic: visual 0.999, per-reference CPU RNG restarted at sampler seed; audio uses seed+1.",
+    "Only silent video and optional image are supported by this pilot node."
+  ]
+}

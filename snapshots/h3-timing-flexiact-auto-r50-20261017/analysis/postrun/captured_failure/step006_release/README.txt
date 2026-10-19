@@ -1,0 +1,3 @@
+R50: five predeclared official FlexiAct human pairs, paired Auto after R49 Native. Root-controlled GPU3/8514. Model full158 frames, observation valid147; original49 timestamps for scoring.
+
+Engineering revision v2: GPU3 holds the unchanged main model; GPU2 executes fresh isolated full158 VAE decoders. Both owned GPU slots are reserved. The 12 GiB co-resident gate was not supported by actual allocator measurements; dedicated decoder admission requires >=45000 MiB free, <=1024 MiB used, zero utilization and no compute process. Numerical policy, packed layouts and all R49 parent data remain unchanged.

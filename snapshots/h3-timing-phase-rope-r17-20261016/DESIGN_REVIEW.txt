@@ -1,0 +1,31 @@
+更正（2026-10-16，实际R3forward日志核实后；覆盖下文第1节的错误“当前42头”判断）
+R3 analysis/pose/pilot/r3_s05_full_6to14_provenance/router_audit.json 的 first_attention 实际为[1,56,87592,128]，返回attention inner7168。H3 Attention允许hidden5376与inner7168不同，经out_proj(7168→5376)后才到残差/FinalLayer。因此R13 FinalLayer输入5376不能反推42头，旧56门对这一实际模型并不阻断。此前根与本审查都采用了错误推断，现明确撤回；未部署/运行这个错误42门，未修改模型参数。新的R17副本改从all50实际attention属性推导并校验，通用CPU合同可覆盖42/56，但本实验loader必须匹配已保存的R3实际56证据。GPU smoke必须使用56头、87592tokens。下文原审查保留为错误历史，其“必须修42兼容”与GPU42要求不再有效；其他公式/prior-art/双符号与数值边界仍适用。
+
+R17 reference-only时间RoPE诊断：独立只读设计审查
+2026-10-16。读取R3/extensions/H3PhaseRoPE/{DESIGN.md,core.py,__init__.py,layout.py,audited_flash.py}，旧phase_feedback_second_audit.txt、phase_rope_code_review.txt和test_phase_rope.py，以及R13 single_head_retry_review.txt/actual_head_source_header.json。旧审查实际位于h3-timing-autoresearch-20261016/literature，未在所述R2目录找到；本次复用其已经核实的primary方法证据，没有重复泛检索。未实现、未GPU/远程操作。
+
+1. 当前明确阻断：56头是代码硬门，不只是文档
+core.py PhaseAttentionOverride.__call__写有 `if q.shape[-2] != self.plan["seq_len"] or heads != 56: raise ValueError(...)`。当前Ref2VA的实际约定为42头×128=5376，故该wrapper会在第一层拒绝运行，包括delta=0。底层phase_attention仅检查q.shape[1]==heads以及head_dim128，能够容纳42；TemporalRotation也没有写死head数量。DESIGN的[1,56,N,128]和旧wrapper CPU测试扩展到56头是过时假设，11项测试PASS不能消除此接口错误。
+R13真实head证据独立证明video/audio线性head输入5376；单凭这个header不能确定attention头数，但与已核H3 head_dim128及root当前实际42头记录一致。R17必须在新副本入场从实际diffusion/block接口冻结头数/宽度并逐forward校验，或明确只接收本实验42×128架构；不要只删heads gate或只改文档。补真实42头wrapper通过、错误头数拒绝及返回5376宽度测试。保留旧R3冻结文件不动。init还应绑定实际源码/模型配置与inv_freq证据；它当前只核H3类、patch/latent/50blocks、时间常量及16项freq，不自动证明所有checkpoint变体的partial-RoPE布局。
+旧phase_rope_code_review称56匹配冻结环境的结论必须视为被当前真实架构证据纠正，不能继续当当前验收凭据。
+
+2. 算子精确范围与近邻
+已在native规范化/旋转后的Q中，仅给选定输出视频行克隆一份Q，额外旋转时间对0:16与48:64；空间16:48与64:96及非旋转96:128保持原值。使用实际checkpoint的16个inv_freq，physical delta×5/3换为RoPE单位。克隆Q仅与全部参考视频K/V做条件attention；原始Q/K/V、人物参考图、文本/音频、目标self-attention不被直接替换。选择窗50–65映到latent bins[14,20)，名义RGB覆盖47–67，并非精确VAE感受野。
+ O_new=O+alpha*m_ref*(O_rot−O_ref), m_ref=exp(L_ref−L_all)。
+固定本层输入时，参考组内条件分布变成(1−alpha)r+alpha*r_rot；参考组总质量保持，其他组贡献在精确算术中不变。它等价于适当重标定reference logits，也可把query的相对旋转等价写成reference K反向旋转；这些代数不是新原理。后续层/步状态和最终其他空间画面会变化，不能称全轨迹reference影响不变。
+DiTFlow https://arxiv.org/html/2412.07776v2 §§4.2–4.3/Appendix A：从跨帧attention得到AMF，匹配参考运动，用梯度优化latent或position embeddings，包括Q/K的3D RoPE。已经覆盖冻结DiT中用位置干预纠正运动。这里的具体差别是低维、物理时间单位、仅output→reference-video子交互、无梯度和保该组原质量；当前没有AMF损失、没有自动反馈，不可称首次RoPE运动控制。
+RoPECraft https://arxiv.org/html/2505.13344v1 §§4.1–4.3/Algorithm2；作者代码 https://github.com/berkegokmen1/RoPECraft ：光流轨迹初始化空间RoPE，再以flow-matching/Fourier phase目标优化rotary embeddings。论文初始轨迹变换保留时间分量，并讨论修改时间分量的伪影；这不等于其所有后续实现路径永不触及时间分量，旧审查未逐行排除。Fourier phase也不是动作发生晚几帧。本候选直接限定时间子通道、reference-only且无优化，与其完整公式不同；是否有实用可控性仍须双符号实验证据。不同操作范围可形成受控方法比较，不足以预先宣称架构创新。
+
+3. 建议预登记的双符号诊断合理，但不能预言抵消量
+在修复接口并通过数值门之后，±4物理帧、alpha=0.5、zero-based采样indices6..14、blocks0..49，是有边界的两条诊断。参数应写step_start=6/step_end=15、block_start=0/block_end=50；它们是第7至15次forward，不是视频帧。每臂450次被选block操作、20个DiT NFE；每个选中block仍多两次reference子attention，不是零成本。事件窗、source05/Sam/seed、条件、噪声、sigma及.9后端绑定R3原生条件，不能与R16空间mask叠加。
+±4物理帧对应RoPE偏移±20/3单位，不是±4latent bins。alpha0.5是原参考分布与旋转分布各一半，不是“实际时间位移变成2帧”；非线性softmax和周期频率使两者不等价。正delta仅表示Q时间坐标增加。跨stream原点差、内容、频率周期和后续网络耦合都可能使生成动作的响应不单调；不能因为动作晚4帧就宣称某符号会消除4帧。
+必须保留native/zero锚及两符号全部结果，沿原四窗口lag、same-frame误差、shape/支持与固定原RGB质量检查。只有一符号改善另符号反向且跨重复成立，才支持局部可控性；两符号都改善可能是通用扰动；两符号无效/退化分别记录，不改delta/alpha来追成功。同一已选坏例仅是开发诊断。若数值门显示zero完全与同环境native一致，可复用已绑定native；否则不能把新增backend差异算成RoPE收益。
+
+4. 正式视频前必要GPU数值门（本审查未执行）
+A. 实际42头、128维、BF16和实际checkpoint inv_freq；检查input/output宽度5376及真实packed layout，正确分开人物图与视频参考segment。旧256-token、56-head toy不能替代这一接口门。
+B. delta0和alpha0与本轮实际原生attention路径逐位比较，并验证Q/K/V、freq、输入状态及RNG未改。当前phase_attention即使zero也直接调用显式aten Flash，未调用传入native函数；因此对显式Flash基线的相等不自动证明对原SDPA任意dispatch相等。必须和实际R3后端比，或明示只在同显式Flash基线成立。mask外/未选择query在本次attention输出应逐位保留。
+C. 使用独立小尺寸FP32 dense probability oracle验证±4、alpha0.5的组内混合、other-group贡献、全输出finite，以及高reference-mass压力情形；dense oracle不得复用同一个TemporalRotation函数作为唯一符号/通道证据。旋转部分另比实际comfy_kitchen split-half约定/独立矩阵，确认空间与96:128位保持不变。
+D. BF16先native旋转再额外旋转，与一次性在t+delta旋转不保证逐位相同。子attention输出已BF16舍入，再用FP32相减不能恢复精度。按预定max/RMS误差门验证，而不是声称数学质量守恒在GPU逐位成立；记录LSE正excess与clamp。旧smoke门max<0.01/RMS<0.002可作为沿用的数值容差起点，实际是否通过须记录，不根据结果放宽。
+E. 实际全序列/活动query长度一次有界smoke或forward集成门，检查全量finite与内存，不把最多8heads×128query的审计sample_finite称全张量finite；20×50有序调用、450active与其余native、sigma/条件/noise相同及完整退出清理另由root既有runtime验收。
+
+结论：先修42头硬门，再执行冻结双符号有限诊断是合理推进。它验证已有位置干预家族里一个具体reference-only时间执行器是否可用，目前既无精确动作补偿保证，也无新架构或闭环成功证据。唯一新增文件为本DESIGN_REVIEW.txt。

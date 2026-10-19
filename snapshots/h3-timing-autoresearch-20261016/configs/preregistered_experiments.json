@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "registered_at": "2026-10-15T16:25:27.937670+00:00",
+  "pilot_resolution": [
+    1024,
+    576
+  ],
+  "validation_resolution": [
+    1312,
+    736
+  ],
+  "frames": 141,
+  "fps": 24,
+  "steps": 20,
+  "seeds": [
+    2026101311,
+    2026101312
+  ],
+  "discovery_case": "05_real_megumi_v",
+  "heldout_case": "07_real_ary_v",
+  "identity": "Sam Altman",
+  "arms": [
+    "native",
+    "weight3",
+    "mass_preserve_same_time",
+    "hard_mask_same_time",
+    "mass_preserve_offset4"
+  ],
+  "target_windows": {
+    "05": [
+      50,
+      65
+    ],
+    "07": [
+      54,
+      69
+    ]
+  },
+  "evaluation": [
+    "full clip pose confidence/pose timing (validate against archived visual events)",
+    "target gesture onset/offset and subsequent arms crossing/overhead/extension timestamps",
+    "identity/outfit retained and source copy failure",
+    "all raw outcomes, no best-seed selection",
+    "runtime/memory/intervention readout"
+  ],
+  "acceptance": "A provisional positive result requires target timing improved on more than one event with no gross edit failure, then repeat second source+second seed. Claim of added mechanism requires superiority to simpler matched controls; no such claim if equal or if shifted negative control also works. Full success not guaranteed.",
+  "scope": "Inference architecture intervention with frozen weights; do not call backbone architecture training or prove publication-level novelty.",
+  "amendment_before_formal_results": {
+    "at": "2026-10-15T16:42:57.268102+00:00",
+    "offset_control_interpretation": "offset+4 may compensate inherent lag. It is a phase perturbation control, not assumed to fail. Improvement does not alone disprove temporal routing. If correct and positive offset both improve, add matched -4 offset and inspect signed phase response. Identical gains without signed phase effect weaken timing-specific interpretation.",
+    "aggressive_screen": "alpha1 radius0 all50layers all20steps is an aggressive screen. Failure rejects this setting, not all softer routing."
+  },
+  "interpretation_constraints": [
+    "Subsequent events in one clip are correlated; phase reset is not independent multi-event replication.",
+    "Mass-preserve outperforming hard mask may reflect restored reference-group mass, not a new architectural principle.",
+    "Residual-only route with one global static mean equals full-value route under fixed reference mass; no new mechanism from that algebra.",
+    "Source05 and source07 share related dance choreography; two clips do not cover two independent motion classes."
+  ],
+  "controls_backend_audit": "Random tensors at actual native and x3 shapes/strides: default SDPA dispatched Flash and matched explicit atenFlash bitwise, audit/sdpa_dispatch_shape_check.json. This is not a model-quality result."
+}

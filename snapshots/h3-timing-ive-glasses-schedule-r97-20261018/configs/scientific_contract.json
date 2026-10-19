@@ -1,0 +1,178 @@
+{
+  "schema": "r97-fixed-schedule-extension-v1",
+  "new_method_claim": false,
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 107,
+    "fps": 24
+  },
+  "NFE_per_job": 20,
+  "callback_count": 20,
+  "online_observer": false,
+  "CFG": 1,
+  "sampler": "Euler20",
+  "no_Turbo": true,
+  "blocks_per_job": 1000,
+  "captures": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "seeds": [
+    2026101701
+  ],
+  "arms": [
+    "extended"
+  ],
+  "cases": [
+    {
+      "run_id": "r97_short_0358_seed2026101701_extended",
+      "source_id": "short_0358",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the man seated on the left side of the table in <Video 1>, wearing a light short-sleeved shirt and holding a beer bottle. He is the target for the added glasses; his original identity and complete drinking performance are retained.\n<Subject 2> is the man seated on the right, the background people, original beer bottle, table, papers and bar interior in <Video 1>.\nSource context: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Add a pair of glasses to the left-side man holding the bottle, preserving his original drinking motion and the other people and bar setting.\nRequested edit: Add a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Add eyeglasses to the left-side man’s face, following his face position and head motion. Preserve his identity, clothing, arm gestures and complete bottle-raising, drinking and lowering sequence with the same timing.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the right-side man, background people, bottle, tabletop objects and original bar, including their movements, lighting and placement.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] The original left-side man now wears eyeglasses while holding his beer bottle at the table. He raises the bottle, drinks and lowers it following <Video 1> in the original sequence and timing. The right-side man and bar background remain as in the source.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "parent_graph": "design/R89_ACTUAL/forced_graph.json",
+      "parent_graph_sha256": "cce73cf1ad46e94146a2aa446a7f678d32805fa11102ac7b48ca7b0a24eb3c67",
+      "video": "short_0358_video.mp4",
+      "provenance": "short_0358_provenance.json",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "valid_frame_count": 105,
+      "original_task": {
+        "id": 358,
+        "src_video_name": "short_0358.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+        "edit_prompt": "Add a pair of glasses to the man.",
+        "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+        "target_span": "glasses",
+        "target_phrase": "the man is wearing a pair of glasses"
+      },
+      "video_sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+      "provenance_sha256": "d191c79ad0187c1e36429fc93d0a11ac15ff9b206dde46948e6c790f4770b07a",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "original_source": "short_0358_original.mp4",
+      "arm": "extended",
+      "prompt_version": "P1-local-v1",
+      "parent_semantics": "Same actual R89 fixed conditions/noise; only routing step_end15 to20. Prefix x0 predictions0..14 exact, index15 first permitted divergence."
+    }
+  ],
+  "case_order": [
+    "r97_short_0358_seed2026101701_extended"
+  ],
+  "source_ids": [
+    "short_0358"
+  ],
+  "prompt_version": "P1-local-v1",
+  "router": {
+    "mode": "mass_preserve",
+    "alpha": 1.0,
+    "blocks": [
+      0,
+      50
+    ],
+    "steps": [
+      6,
+      20
+    ],
+    "physical_frames": [
+      0,
+      104
+    ],
+    "routed_calls": 700
+  },
+  "continuous": {
+    "retain_service_between_jobs": false,
+    "cache_none": false,
+    "idle_hold_seconds": 30,
+    "max_service_seconds": 18000,
+    "job_timeout_seconds": 14400,
+    "root_final_close_releases": true,
+    "failure_releases_exact_owned": true
+  },
+  "scope_note": "One existing fixed-schedule control. Same-bin all valid physical bins, alpha1/all50. Adding final5 denoising predictions changes both late position and cumulative intervention dose. No automatic timing or new-method claim.",
+  "prefix_semantics": "Callback x0 at step i is the i+1th model prediction before its Euler update; normalized video identity and audio /4. Compare both streams bitwise at i=0..14 against actual R89 fixed.",
+  "evaluation": {
+    "valid_frames": 105,
+    "crop_xywh": [
+      16,
+      8,
+      1280,
+      720
+    ],
+    "events_source": [
+      [
+        14,
+        18
+      ],
+      [
+        37,
+        40
+      ],
+      [
+        80,
+        84
+      ]
+    ],
+    "events_native": [
+      [
+        28,
+        33
+      ],
+      [
+        50,
+        53
+      ],
+      [
+        94,
+        97
+      ]
+    ],
+    "events_fixed_6_14": [
+      [
+        22,
+        26
+      ],
+      [
+        47,
+        50
+      ],
+      [
+        94,
+        97
+      ]
+    ],
+    "manual_boundaries_used_for_guidance": false,
+    "inspect": "especially final bottle-leaves-mouth timing, also eyeglasses/identity/scene/bottle geometry",
+    "event_review_sha256": "d0f0823e1945729ad9f9fb242b62b5be7660385323722960c5a5e259ecef847b"
+  }
+}

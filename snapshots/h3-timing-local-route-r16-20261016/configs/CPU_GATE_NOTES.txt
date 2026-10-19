@@ -1,0 +1,21 @@
+Actual .9 CPU loader attempt1 (preserved by root)
+================================================
+The first actual loader attempt stopped at the smoke assertion that same-size
+native prepared RGB should exactly equal the input floating point ramp. This
+assertion was incorrect. Actual comfy/utils.py1095..1103 implements Lanczos by
+np.clip(255.*image.cpu().numpy(),0,255).astype(np.uint8), PIL resize, then
+np.array(...).astype(np.float32)/255.0. The round-trip happens even when dimensions
+match. Native _resize passes crop='disabled'. Spatial/frame geometry is retained;
+continuous RGB intensities are quantized. No runtime extension or scientific
+parameter changed in response to this test failure.
+
+The smoke now requires exact independent NumPy uint8 round-trip values, retains
+the shape assertion, checks that the chosen input really differs, and bounds
+the difference by1/255+1e-7. The source coordinate evidence/protocol already
+explicitly refrains from claiming OpenCV and PyAV RGB numerical identity.
+
+Local unit attempt1 was a separate test representation issue: Python tuples
+and integer dictionary keys from mask construction versus their JSON encoding.
+Round-tripping the rebuilt metadata through JSON fixed that test comparison;
+no mask coefficients changed. Local attempt2 records7PASS in0.194s. Both failure
+logs must remain available. No CPU test is a GPU Flash equivalence claim.

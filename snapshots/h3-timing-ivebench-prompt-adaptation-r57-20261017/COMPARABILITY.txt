@@ -1,0 +1,10 @@
+科学变量：每条实际 R54 图的 /5/inputs/prompt。P1 一起增加源/目标描述、参考标签、分节结构和统一保留要求，收益归于整体适配。
+行政变化：独立 run ID、输出前缀、audit 路径、端口8517、新根目录。
+固定：五 source、prepared90 实际字节/映射、seed2026101701、四模型、Euler20/CFG1/sigmas、1312x736@24、单参考视频、零图片、Native attention、20中间+最终AV保存。
+无视频变换/插帧/重新采样。原 P0 prompt/provenance 作为父证据保留，P1 文本另存 configs/prompts。
+新 prompt 改变 Qwen 文本 token、文本 embedding 与 packed position布局，故这些实体不要求和P0相同；VAE reference/Qwen采样帧/初始AV noise在真实P1完成后逐项核验。
+视频条件审计节点仅接收 silent video；原图仍生成并解码音频输出。声音文字仅表示没有特定声音要求。
+既有 R54 数值代码完整保留；当前 only import/run label 的包装改动逐项见 INITIAL_RUNTIME_INHERITANCE。共享 GPU 未准入，R55 完成后顺序执行。
+CPU检查不证明容量、速度、输出质量或实际 noise 一致性。消费者需评分五条完整有效前缀，保留全部失败/UNKNOWN；先核编辑与动作类型，再评同事件时差/MF。
+节点5单字段变化包含多个语义因素：source_prompt/target_prompt 带入动作和场景事实，另有官方结构、参考绑定和统一保留规则。因此P1是整体提示词适配对照，结果不能归因于纯语法格式或仅[video editing]标记。若整体改善，后续可另立等语义纯文本对照分解；当前固定五条P1，不新增实验臂。
+工程 revision2 保持科学变量与启动flags，只修改资源准入/统计监督。free门46353+2048MiB基于R54完整五任务20秒周期样本，采样最大值不等于连续峰值上界，P1真实容量继续记录。只读精确自有身份/卡数门保留；其他用户共存依据实际显存余量。

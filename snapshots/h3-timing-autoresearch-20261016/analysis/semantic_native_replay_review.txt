@@ -1,0 +1,112 @@
+Semantic runtime native replay — independent admission review
+Review time: 2026-10-15T22:03:09.673447+00:00
+Verdict: PASS for the staged graph/runtime interface; efficacy and replay equality remain pending.
+No model forward, process start, queue change, remote file mutation or GPU allocation was performed by this reviewer. Root subsequently admitted this control into the existing semantic service; that admission is separate from this review.
+
+Why this control is appropriate
+A0 proves actual Qwen/VAE/noise/tags/packed-layout equivalence, but does not run the 20-step native DiT trajectory on semantic GPU 0. Comparing B/C/D against primary GPU 2 native without this replay could leave a device/service-path difference confound. This is a post-B runtime control, not a pre-original-study preregistration, not another independent seed and not a new efficacy example.
+
+Exact graph isolation
+Parent: configs/s05_full_seed1_native_x0.json.
+New graph retains all nodes, node classes, graph edges and numerical/scientific input values. Recursive comparison found only the 12 administrative replacements below. In particular prompt, source video, identity portrait, 1312x736, 141 frames, 24 fps, seed 2026101311, 20 Euler manual sigmas,video/audio shift 12/3, model files/precision,reference semantic_fps 2 / phase_frames 0 and Router native are unchanged.
+[
+  {
+    "path": "/5/inputs/audit_dir",
+    "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+    "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+  },
+  {
+    "path": "/5/inputs/run_id",
+    "before": "05_sam_1312x736_shared_v3",
+    "after": "s05_semantic_runtime_native_replay_x0_condition"
+  },
+  {
+    "path": "/6/inputs/audit_dir",
+    "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+    "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+  },
+  {
+    "path": "/6/inputs/run_id",
+    "before": "s05_full_seed1_native_x0",
+    "after": "s05_semantic_runtime_native_replay_x0"
+  },
+  {
+    "path": "/14/inputs/filename_prefix",
+    "before": "s05_full_seed1_native_x0",
+    "after": "s05_semantic_runtime_native_replay_x0"
+  },
+  {
+    "path": "/50/inputs/run_id",
+    "before": "s05_full_seed1_native_x0",
+    "after": "s05_semantic_runtime_native_replay_x0"
+  },
+  {
+    "path": "/50/inputs/audit_dir",
+    "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router",
+    "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit/router"
+  },
+  {
+    "path": "/51/inputs/source_audit_dir",
+    "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+    "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+  },
+  {
+    "path": "/51/inputs/source_run_id",
+    "before": "05_sam_1312x736_shared_v3",
+    "after": "s05_semantic_runtime_native_replay_x0_condition"
+  },
+  {
+    "path": "/51/inputs/run_id",
+    "before": "s05_full_seed1_native_x0",
+    "after": "s05_semantic_runtime_native_replay_x0"
+  },
+  {
+    "path": "/52/inputs/run_id",
+    "before": "s05_full_seed1_native_x0",
+    "after": "s05_semantic_runtime_native_replay_x0"
+  },
+  {
+    "path": "/52/inputs/output_dir",
+    "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/x0",
+    "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit/x0"
+  }
+]
+
+Node and path checks
+- Node5 remains H3EventAuditReference, NOT H3SemanticClockReference; it uses the original native default 2 fps / phase 0 proxy chain.
+- Node6 remains H3EventAuditNoise, NOT semantic GuardedNoise. The same noise pair ID and seed/shape produce the paired cache; compare actual tensor hashes afterward rather than assuming graph equality suffices.
+- Node50 remains Router mode native. The supplied event/window parameters do not introduce routing in native mode; all 20 x 50 calls should use the frozen native Flash branch.
+- Node52 remains H3X0Readout with original dimensions and captures 005/010/015/019 plus sampler_final. All five VIDEO AND AUDIO tensor identities are required by the protocol.
+- Node51 source_run_id matches the newly renamed node5 condition ID, differs from the per-run output manifest ID, and therefore does not overwrite its source manifest.
+- No H3SemanticClock Gate/Reference/Noise nodes appear. It neither overwrites nor invalidates the A0 zero-gate marker; it is an intentionally independent native replay rather than a second semantic perturbation.
+- All node-edge target IDs exist. All per-run IDs are distinct from A0/B/C/D and primary native output IDs.
+- Every audit/output directory is beneath /data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0. The copied EventAudit.audit_root resolves and admits that exact instance root, not the old primary or transfer path.
+- PairAudit requires an absolute source path and matching actual manifest/run identity; the configured path and IDs satisfy these contracts. Router and X0 directory values are absolute and scoped to the semantic instance.
+- The copied input portrait/video exist and are byte-identical to primary local inputs: {"sam_altman_village_global_20221117_original.jpg": true, "05_real_megumi_v.mp4": true}.
+
+Registration and frozen code
+Semantic service/launcher whitelist and install H3EventAudit, H3PairAudit, H3TemporalRouter, H3X0Readout. A read-only HTTP query to the ACTUAL running semantic service 127.0.0.1:8462/object_info on .9 confirmed all five classes H3EventAuditReference, H3EventAuditNoise, H3PairConditionSnapshot, H3TemporalRouter, H3X0Readout registered with the expected input fields. No queue/prompt HTTP mutation was made.
+
+Router core/layout, PairAudit and X0 core in semantic staging are byte-identical to their primary frozen versions. EventAudit diff is only audit_root validation and two default audit paths; reference encoding, noise preparation/hash/cache logic and scientific operators are unchanged. H3SemanticClock uses per-call proxies rather than globally replacing the native node for this replay.
+
+Acceptance after execution
+1. Exact successful history/output provenance and 20 complete forwards; native backend 1000 block calls and zero routed calls.
+2. Prepared input VAE tensors, condition embedding, tags, positions, layout and video/audio noise actual hashes equal GPU 2 native. New run IDs or serialized manifest hashes need not match because administrative provenance differs.
+3. All 5 video/audio x0 tensors bitwise equal GPU 2 native.
+4. Final 141 decoded RGB frames equal GPU 2 native; MP4 container bytes are not a substitute for decoded equality.
+If any mismatch occurs, retain it and stop attributing the full A-versus-BCD change solely to semantic P/T. B/C/D within-service contrasts remain separate evidence, not automatically invalidated or automatically causally proven. Do not label a difference as an architecture effect before diagnosing it.
+
+A complete equality outcome is a replay/passive-runtime check, not extra motion-improvement evidence. It needs no duplicate comparison video if the 141 frames are equal; link the equality audit and reuse the native visual with an explicit explanation.
+
+Reviewed file SHA256:
+{
+  "configs/s05_full_seed1_native_x0.json": "d90de6e1cc1fd5638ca67065fa2a51c4b3e3f35db48d00836dc3e4f5fab695af",
+  "configs/s05_semantic_runtime_native_replay_x0.json": "8b7e26a0a0779b9c59a8f16b9777e82227da774dadbfffd8fa8127bd67002c08",
+  "configs/semantic_runtime_native_replay_protocol.json": "cc39e1ab275c37be74b50f6dae9f59e59d7a9d9b1508a7ca48f0ab138527ad57",
+  "semantic_runtime_staged/scripts/service.py": "8b8b3e4f81984921100f43db2a8661849cacf293084f42853ee7ef0ead9389d3",
+  "semantic_runtime_staged/scripts/launch_remote.py": "701647afc837ef79e0e1bd0d437475f88da15f4aef0e65d3cc276a5f42531170",
+  "semantic_runtime_staged/extensions/H3EventAudit/__init__.py": "87191e6081dbd72a7aa5b013a929f6ede30256f91067b0013d32008ca6a0fb78",
+  "semantic_runtime_staged/extensions/H3PairAudit/__init__.py": "214094c624eced89eef4f4bd0e4a79ea0cc0de12b030dccb04ae618adf38dfde",
+  "semantic_runtime_staged/extensions/H3TemporalRouter/core.py": "7f21d35d58ff8e36f9c0e0d0e819917e680ebd7095c69a28bda40b34a56836e1",
+  "semantic_runtime_staged/extensions/H3X0Readout/core.py": "aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c"
+}

@@ -1,0 +1,32 @@
+最终媒体集合轻量盘点（已完成）
+现存 20 条 MP4；预期20条，无待完成媒体。
+仅复核媒体包装、参数与来源哈希，不重新跑pose，不将布局通过当成科研成功。
+20条全部有渲染JSON与黑底caption PNG；19条72帧3秒，1条完整141帧5.875秒；均1968×426、24fps。每格656×368，无选择性空间裁剪。
+本次负责7条均有frame055截图、独立media_qa.json与已视检visual-verdict；旧媒体的可选QA/frame055缺项逐条保留于JSON，不算生成失败。
+重要例外：s05_posthoc_retime 第三输入原本就是时间重映射结果，caption明确“后处理时间重映射（非新推理）”。不能笼统称全部视频都完全未改时间。其它拼接自身只做同帧trim与等比显示缩放。
+所有caption正确区分原始H3、三倍参考加权、同帧保质量/硬掩码、调用区间、reference-bin offset、reference-interaction RoPE phase与P/T语义条件，没有提示词强调误标。
+Phase标题是易读概述；实际代码仅旋转针对参考子交互的输出query，未改播放时间/全局K。
+完整141frame版本与72frame片段是同一试验的两个展示，不是两次试验。
+当前18个展示条目附相关已批准配置及hash；历史三倍/后处理控制不伪造当前新推理图。配置证据不替代actual-history审计。
+格式/来源hash问题数：0
+
+old_calibration_s05.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.旧实验：短时参考三倍加权 | QA=False frame055=False
+s05_1024_mass_control.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.同帧路由，保持参考总份额 | QA=False frame055=False
+s05_full_hard.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.同帧硬掩码 | QA=False frame055=False
+s05_full_hard_late11.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.第 12 次调用起同帧硬掩码 | QA=False frame055=True
+s05_full_mass.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.保留参考量的同帧读取 | QA=False frame055=False
+s05_full_mass_6to14.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.第7–15次调用同帧路由 | QA=True frame055=True
+s05_full_mass_complete.mp4 | 1968×426 | 24/1 fps | 141 frames | 5.875000 s | 3.保留参考量的同帧读取 | QA=False frame055=False
+s05_full_mass_late11.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.仅最后9次调用同帧路由 | QA=False frame055=False
+s05_full_mass_late6.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.第 7 次调用起同帧读取 | QA=False frame055=True
+s05_full_offset4.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.参考读取 +4 时间格 | QA=True frame055=True
+s05_full_offsetm4.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.参考读取 −4 时间格 | QA=True frame055=True
+s05_phase_minus12.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.参考时间位置偏移 −12 帧 | QA=False frame055=True
+s05_phase_minus12_late11.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.后9次调用：时间位置 −12帧 | QA=True frame055=True
+s05_phase_plus12.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.参考时间位置 +12 帧 | QA=False frame055=False
+s05_posthoc_retime.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.后处理时间重映射（非新推理） | QA=False frame055=False
+s05_seed2_mass.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.同帧参考路由 · 新种子 | QA=False frame055=False
+s05_semantic_b.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.语义 P6T6（采样＋标签） | QA=True frame055=True
+s05_semantic_c.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.语义 P0T6（仅改标签） | QA=True frame055=True
+s05_semantic_d.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.语义 P6T0（仅改采样） | QA=True frame055=True
+s07_seed1_mass.mp4 | 1968×426 | 24/1 fps | 72 frames | 3.000000 s | 3.同帧参考读取 | QA=False frame055=True

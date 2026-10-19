@@ -1,0 +1,36 @@
+R76 · 新五条 IVEBench 人体/手部动作样例：已被动部署，等待 root 排程
+
+Producer local: /Users/researcher/DevProjects/h3-timing-ivebench-body-r76-20261018
+Producer host41: /data3/researcher/h3_runs/timing_ivebench_body_r76_20261018
+Consumer local: /Users/researcher/DevProjects/h3-ivebench-body-metrics-r76-20261018
+Consumer host41: /data3/researcher/h3_runs/ivebench_body_metrics_r76_20261018
+Python: /data3/researcher/ComfyUI/.venv/bin/python
+GPU配置: GPU6, GPU-REDACTED, port8543, normal reserve8；没有启动服务或GPU，admission仍false。
+
+固定源顺序 / 生成帧数 / 有效24fps帧数
+0131: 56 / 44，两个工人搬箱子，黑外套改白；保留两人的动作与角色关系。
+0178: 124 / 121，手抚孕肚，白衬衫改蓝；主要评价手部可见范围。
+0090: 107 / 105，攀爬上伸/换手，转动漫风格；遮挡如实记录。
+0055: 90 / 85，叉子切蛋糕/手持杯，转油画风格。
+0321: 56 / 49，坐姿后仰/举手，添加花束；花束合法遮挡单独标记，不能据不可见直接判动作缺失。
+颜色编辑2条，风格/道具3条分别呈现。五条分母固定。输入来自源视频和官方元数据筛选，尚无这些新源的H3生成结果。
+
+10条队列，每源 Native→forced；P1文本逐字一致，原官方任务/source/target metadata＋R71已经冻结的统一模板。完整官方原片按原始有理数PTS映射24fps，末尾补齐合法17k+5帧。保存每帧映射与解码MD5；纯padding bins不引导。
+20 Euler/seed2026101701，同AV初噪/参考条件/前0..5步clean endpoint核验；forced在steps6..14、50层、alpha1、mass_preserve、有效物理前缀对应bins。没有在线observer。6个数值模块逐SHA继承已运行R73/R64。
+
+实际验证
+本地和host41 producer 40测试PASS；consumer31测试PASS；五条source --check-only PASS；20输入SHA、所有映射/crop像素和24fps通过；host41实际9个Comfy核心文件SHA匹配。无GPUforward。
+第一次部署CPU测试缺R54 fixture而失败，日志原样保留。audit/seal_fixture_revision2将原captures元数据加进seal，数值/图不变；远端v2所有检查通过。原128MBbundle必须配合小overlay使用；当前本地/远端最终文件一致。
+
+执行入口（root独占资源准入）
+进入producer根，核实时显存/自有peer/端口，写configs/admission.json，execution_gate.py approve-first-pair --root-admitted；launch_remote.py --service-only 的具体参数沿R73；完成准确preCUDA ready/go与服务注册后 start_controller.py。首对0131完成后运行 analysis/postrun/verify_pair.py --source short_0131，审看实际成片和容量，再 execution_gate.py approve-rest --root-admitted。其余8条待此正式gate。
+根服务启动/推理/cleanup仍由root，当前保持待发；Flex扩样优先。
+
+CPU消费：scripts/collect_pair.py --source <id> --producer-root <producer>；scripts/prepare_pair.py --source <id>。严格actual r76 gate/P1/shape/噪声/条件/前6步后出READY，root再启动两个target tracker。source/target都fresh host41同运行时/显卡型号；原MF函数逐字继承，按各自有效帧完整24fps取样，未把动作时差混同MF。
+score MP4显式setpts=N/(24*TB)、-bf0规避旧FFmpeg封装PTS偏移；先验证原视频24fps，再逐帧像素完全相等核验。该变化只在新consumer行政编码层，官方数值runtime未动。
+tracker入口 scripts/track_one.py --source <id> --method source|native|forced --gpu-uuid <root准入UUID> --attempt 1 --control <新目录>。ready/go由root精确登记；121有效帧尚无实际capacity，24GiB是保守工程阈值，建议先0178 source记录峰值。没有宣称已测121帧。
+本地三栏/六时刻 scripts/render_pair.py；单文件HTML scripts/make_showcase.py。源选定的上下文在design/EVALUATION_SCOPE.json，模型引导不读取这些事件备注。
+
+Final producer seal: e6a2cc9d2760191ca36be5c3df3e32019ce4c9c9eab900ddae34ff179622089e
+Final consumer freeze: cfb3b09599c99a1bb86e3971447a16f69b858cecdb9a6b1f7a2f9f898e6acf10
+CPU evidence tar: c9f95c527f95fa68c03fb851b22d330b583f4d4c485cf5fae4c33b532b29713a

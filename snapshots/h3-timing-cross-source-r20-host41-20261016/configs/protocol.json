@@ -1,0 +1,149 @@
+{
+  "schema": "h3-r20-cross-source-fixed-full-v1",
+  "purpose": "Paired .41 cross-source check of the existing Full operation; known development case, no new method/unseen-test claim",
+  "arms": [
+    "r20_s07_native",
+    "r20_s07_full_6to14"
+  ],
+  "remote_root": "/data3/researcher/h3_runs/timing_cross_source_r20_20261016",
+  "host": ".41",
+  "port": 8480,
+  "gpu_uuid": "GPU-REDACTED",
+  "own_video_process_cap": 1,
+  "condition_source": "Actual successful source07 graph, verbatim prompt and seed; source05 graph is architecture provenance only",
+  "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+  "seed": 2026101311,
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "video_latent": [
+      1,
+      24,
+      42,
+      46,
+      82
+    ],
+    "audio_latent": [
+      1,
+      32,
+      2,
+      235
+    ],
+    "attention": [
+      1,
+      56,
+      87592,
+      128
+    ]
+  },
+  "sampler": "Euler",
+  "CFG": 1,
+  "NFE_per_arm": 20,
+  "Euler_updates_per_arm": 20,
+  "callback_count_per_arm": 20,
+  "Turbo": false,
+  "router": {
+    "formula": "O_new = O + m_ref*(O_same - O_ref)",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "steps_half_open": [
+      6,
+      15
+    ],
+    "blocks_half_open": [
+      0,
+      50
+    ],
+    "event_frames_inclusive": [
+      54,
+      69
+    ],
+    "latent_bins_half_open": [
+      16,
+      22
+    ],
+    "position_bin_coverage_inclusive": [
+      52,
+      72
+    ],
+    "full_routed_calls": 450,
+    "native_routed_calls": 0,
+    "all_spatial_queries": true
+  },
+  "captures": {
+    "indices_zero_based": [
+      5,
+      10,
+      15,
+      19
+    ],
+    "sampler_final": true,
+    "scope": "Unchanged R2 passive recorder; before-current-Euler x0; 005 is last shared native-prefix endpoint"
+  },
+  "evaluation": {
+    "primary_window": [
+      54,
+      69
+    ],
+    "secondary_windows": [
+      [
+        75,
+        88
+      ],
+      [
+        98,
+        111
+      ]
+    ],
+    "confidence_thresholds": [
+      0.3,
+      0.5
+    ],
+    "lag_search_frames": [
+      -24,
+      24
+    ],
+    "coverage": 0.8,
+    "minimum_frames": 8,
+    "metrics_sha256": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+    "report_both_arms_left_right_and_wrist": true,
+    "preserve_unknown": true,
+    "visual_frames": [
+      60,
+      63,
+      81,
+      105
+    ],
+    "visual_frame_rationale": "60/63 locked historical main gesture;81 secondary-window center;105 final-window center. No output-selected frames.",
+    "quality": "Raw speed/geometry; timing, shape, coverage, ghosting, identity/background and whole clip. No lag alignment, interpolation or pose overlay in evaluation raw."
+  },
+  "pairing": {
+    "actual_conditions": "Compare complete shared prepared inputs, dense reference, Qwen/token metadata/embedding, tags/layout and each per-run actual pair snapshot",
+    "noise": "Compare actual video/audio cached noise and signature, not seed alone",
+    "prefix": "actual video and audio x0_step005 tensors bitwise equal Native vs Full",
+    "cross_host": "Do not require .41 RGB/latent equal .9; known backend/preprocessing variation. Historical .9 records are context, new same-host Native is the paired baseline.",
+    "actual_layout": "Verify 56heads/87592rows, correct source07 key/query event spans and no non-native intervention before index6"
+  },
+  "warmup": "Reuse pinned successful .41 R6 same-geometry backend warmup; no new short GPU exploratory run; current UUID driver error still blocks actual admission",
+  "cost": "Record actual NFE/routed count/elapsed/capture/encode/decode and resources; no speed-success threshold or efficiency claim",
+  "input_sha256": {
+    "07_real_ary_v.mp4": "46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11",
+    "sam_altman_village_global_20221117_original.jpg": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42"
+  },
+  "parent_evidence_sha256": {
+    "source07_actual_graph.json": "7f70147c6ff84cac0e45f4146003ade9c6a5fa9250a3e44175f7bbd2888c88fe",
+    "source07_host9_conditioning.json": "e56c1b5a19f83df3d628ed6eac60d72ae9799f683e0c571fd340d4896edb1043",
+    "source07_host9_noise.json": "846b8827a356b10e922a76d3527b78106723764a6541c12534b2be17e0d06674",
+    "source07_host9_router_audit.json": "9bb2ee587e0763483b1e60fcff3aad9915be1375a40a974a0f391089bdf9df2c",
+    "source07_host9_history.json": "80b6f77d5482f302fdd8ad3209c7792bdee42865ee654d9266c81e83491f80e9",
+    "r2_full_parent_graph.json": "911177c6b768ce415d348aee9e059a34e42ed50cd39ce8165e19958d64342c06",
+    "cross_source_candidate_inventory.txt": "6a0a1a3131fd8b47cd2893386b224587c73dbd1a74252aeddd5d06cd08b74f67",
+    "parent_runtime_provenance.json": "a2ccdfd0659a0b9202f73abfea167276a8b75e099b831558e89d4d0ede7f08ca",
+    "parent_core_hashes.json": "7a30ef2461d58434130eee98134788b59458e1fce0b4ff0731f4660abdcbe88f",
+    "model_hashes_host41.json": "7e0718a0146ad1c8072de30c51bb3767ab886c90ce63bf3bcae5bc4470707ee4",
+    "warmup_reuse_manifest.json": "914ccd58c6911f321779250e367787560e330a6ceb5894579f1f98b9511242a3"
+  }
+}

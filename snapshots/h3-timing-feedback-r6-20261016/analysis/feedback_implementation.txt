@@ -1,0 +1,70 @@
+H3 R6 因果反馈节点实施记录
+2026-10-16。仅本地新扩展与测试；builder未部署、未运行GPU或服务、未安装依赖。
+
+定位
+new_method_claim=false。本轮是单个已知延后样例的机制pilot。Full执行器和gap5常数lag读出均沿用冻结实现；未声称新主干、首次动态指导、自动定位短动作或完整可信传感器。
+已阅读 R2/literature/phase_observer_controller_review.txt §2/6 与只读feedback_design_review；FlowMotion/MotionEcho/MOFT/ReTime/TempoControl/DIAL是必要近邻。
+
+接口
+节点 H3FeedbackRouter，RETURN MODEL，FUNCTION apply。
+required: model MODEL、positive CONDITIONING、policy enum(feedback/off/fixed)、fixed_indices STRING(逗号分隔递增且唯一的零基6..19；feedback/off必须空)、start_frame50、end_frame65、width1312、height736、length141、run_id、绝对audit_dir。
+这些窗口/几何在首轮是硬约束；无法通过UI改为其他尺寸或事件而无声改变实验。
+每个run创建统一FeedbackState；50个FeedbackBlockPatch与一个SAMPLER_SAMPLE FeedbackRecorder共享它。复用unchanged兄弟H3TemporalRouter.RouterState/EventBlockPatch与原route_attention，off走原显式Flash native。
+旧H3X0Readout可前接或后接，独立保存快照。本扩展不改其实现或捕获频率。
+
+因果与规格
+前6次零基forward0..5均native。callback5在forward5全部50块完成后读取当前x0，只向forward6发指令；callback5..18各决定紧接的6..19。callback19仅终点审计。
+每forward的block0锁存有效状态，50层不再变；pending_for必须准确等于本index；每callback严格对应一个50块forward。20个callback=20个forward=1000块，串行CFG双forward也会拒绝。
+accepted lag>=4 ON；-2..2 OFF_ALIGNED；lag3保持当前flag；<=-3 OFF_ADVANCED；unknown OFF_UNKNOWN，不计已修复。
+Full参数alpha1/radius0/time_offset0/全部50层，保留原reference总mass。
+观察源窗50..65，实际query覆盖latent[14,20)、名义物理帧47..67。gap5跨17物理帧，49个整数lag[-24,24]；插值不会恢复时间分辨率，中心不是VAE真实神经感受野。
+
+参考、数值与副作用约束
+唯一kind=video条件的原始FP32 latent从positive的minimax_refs按kind选取，CPU独立copy并SHA；metadata不含tensor。运行真实Guider_Basic original_conds再次核对同一reference签名。
+x0经过原split_streams严格验证packed/Nested、双流完整长度/shape/FP32，CPU副本才process_latent_out；固定video scale1与audio scale4，断言video原值和audio/4。原x0、x、audio、noise、sigmas、RNG不改；不读独立轨迹/未来去噪状态。
+只接受真实BasicGuider cfg1/单positive无negative、无CFG hook/额外forward wrapper/multigpu、Euler20严格递减21sigmas到0、无churn/随机inpaint/denoise mask。
+冻结observer脚本原字节保存为observer_frozen.py，但绝不直接import。它顶层会设置CUDA_VISIBLE_DEVICES；仅SHA核验后AST提取geometry/phase_mean/signal/interp/scan五个原函数，以预置numpy namespace编译，没有执行其imports/环境修改/main。observer_protocol.json原字节SHA也核对。
+
+审计输出
+< audit_dir >/< run_id >.json 沿原RouterState结构，新增feedback字段；独占< run_id >.feedback-reservation防同名覆盖；state单次使用，缓存复用或重复wrapper拒绝。
+feedback记录实际ref签名、冻结observer/hash/几何/标度、20项锁存状态、callback5..19完整49点曲线、拒判/动作提前/对齐原因、下一forward及实际active、raw x0双流签名、实际sigma区间/总dose和active数。
+readout_seconds覆盖同步CPU复制/校验/归一化/计算/决策，细分copy_hash_finite_seconds、normalization_seconds、observer_compute_seconds；不含JSON写盘。完整walltime由root外部运行计时。更少路由次数不等于更少NFE或已加速。
+
+验证
+本地既有CPU Python：/Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python
+命令：python -m unittest discover -s tests -p 'test_feedback*.py' -v
+16个新增CPU测试通过（最近2.239s）。包括边界/unknown/overshoot、严格下一调用因果、20calls/1000blocks、固定mask重放逐值一致、all-off/全aligned逐值一致、packed/Nested、参考按kind复制、错误归一化、CFG双forward、stale/重复state/缺callback/原callback异常、observer原函数AST契约与import环境/RNG不变。
+mapagent独立使用本机已缓存 .41 R4全部九份snapshot验证 FrozenGap5Observer 主窗完整49点曲线、argmin/拒判与旧离线实现逐值一致；主窗lag分别11/12/后续13。记录analysis/native_observer_precheck/builder_readonly_review.txt。
+
+真实Core CPU集成已通过（root在 .41 既有环境执行）
+测试脚本 tests/feedback_wrapper_smoke.py --comfy-root <实际冻结Comfy> --compat-bootstrap <R6/scripts/compatibility_bootstrap.py>。
+使用真实ModelPatcher.clone、Guider_Basic、WrapperExecutor、KSAMPLER/sample_euler、MiniMaxH3.process_latent_out和H3X0Readout；只有DiT采用84token toy QKV和预测函数，无H3权重、无CUDA。
+四case：off + 两种wrapper顺序（其中一个Nested callback）；feedback与相同固定mask重放。核对state identity、callback对象与次数、noise/ref/RNG/env、真实归一化及最终输出逐值一致。
+root第一次运行在toy预测函数位置参数签名处失败，尚未到feedback。已修为(self,x,sigma,model_options=None,seed=None,**kwargs)；此为测试fixture修正，runtime未变化。第二次 .41 执行已由root确认PASS，runtime core SHA55a5e27a53704ce4a4e9d2983bf4136d9e0f606403a6cdae8f7a3f3d48e36aa7。四case均通过：off与native逐位相同；feedback实际mask[6,7,11,19]与固定重放逐位相同；两种wrapper顺序、Nested callback、noise/ref/RNG/env不变，20calls/1000blocks，真实audio_scale4，CUDA_initialized=false。完整原始日志由root归档audit/feedback_cpu_smoke_attempt2.log。root本地全部32个适用测试通过（含上述16个反馈新增测试）；不适用的父round空间路由测试由root另行归档。
+
+后续验收边界
+真实Core smoke现已通过；root仍需单GPU真实observer-only无干预重放/前6次x0相同检查、实际GPU反馈及独立RGB/pose质量结果。本CPU通过不证明GPU数值或论文方法成功。正常native early误触发仍未独立完成，unknown不能计修复；17帧低通不保证短动作遗漏可检测。
+
+文件SHA256（本报告生成时）
+extensions/H3FeedbackRouter/__init__.py 2360b822b197fa39b5f06cbee1e5be89d33e6fe616a999889d0ccebbc53ab4c2
+extensions/H3FeedbackRouter/core.py 55a5e27a53704ce4a4e9d2983bf4136d9e0f606403a6cdae8f7a3f3d48e36aa7
+extensions/H3FeedbackRouter/dependencies.py 9d8ebd4c701178c5272b164faa0f4a8dbb804b1c8fd1d9ff5003028fafd1ceb9
+extensions/H3FeedbackRouter/observer.py a5de0b528cf25956d5d1ecfb598e24804573cd1acd6593422f9b22bd4d770c4a
+extensions/H3FeedbackRouter/observer_frozen.py c84cca34903c9476adc36fa2af0c9e3507b736031efac5bf361187a2c63de075
+extensions/H3FeedbackRouter/observer_protocol.json e84af137304d6b950e3bba078a96d1631c665a7fdcce84ef6c93d7e9551f4a16
+tests/test_feedback_core.py 56ecb89fafbed576b5c68fc1fa5637ed7d46e3cd6504fe3a20743b159a3cf5dd
+tests/test_feedback_observer.py 59afec4f8edd77c55cb552719be4719d333f7a95e52e37515b1526e016eb5c44
+tests/test_feedback_support.py ebc0bdedaeb5c28273de31a3101192d91d14c0085b323f7f2b8358ca79f2bd5d
+tests/feedback_wrapper_smoke.py e80bdce5ee5a488395c7a5612a1bc4cd78ddad1f0ebf8385114a489bd76635ed
+
+
+实际图入口失败后的修正（保留原证据）
+R6首次实际GPU图完成bench2后，正式job在FeedbackRecorder入口validate_guider失败，尚未进入第一块DiT。日志指向“only unmodified BasicGuider CFG1 is supported”。原CPU smoke使用canonical import构造Guider_Basic，漏测了Comfy实际节点装载方式。
+只读核对实际 .41 nodes.py:load_custom_node：对.py文件把去扩展名的完整路径作为sys.modules键，再执行模块；comfy_extras/nodes_custom_sampler.py的BasicGuider.execute从该模块创建Guider_Basic。扩展另行canonical import同一文件，会形成另一份类对象，原type is判断错误拒绝。实际graph节点7仍是BasicGuider，cfg1/单positive要求没有改变。
+修正仅增加official_basic_guider_class：canonical类仍可接受；别名类必须来自同一resolved官方nodes_custom_sampler.py文件、module.Guider_Basic准确指向该类、同一个直接CFGGuider基类、类成员集合与qualname相同、set_conds code对象相等，且官方类只能覆盖set_conds。其他同名文件、子类、改过方法或增加override均拒绝。审计新增实际/预期module,class,cfg与同源匹配结果。
+回归测试现在调用真实nodes.load_custom_node和NODE_CLASS_MAPPINGS，读取正式graph的节点7，使用registry BasicGuider.execute构造guider；明确断言其类对象与canonical import不相等而源文件相同。这样覆盖造成实际失败的装载路径。
+本地17个反馈测试通过（2.042s），包含严格alias正负例。真实 .41 装载路径smoke attempt3已由root执行并通过全部4case：actual_node_loader_module_alias_tested=true，graph class_type=BasicGuider；off与native、feedback与固定mask重放均逐位相同，无CUDA初始化。原始日志已下载audit/feedback_cpu_smoke_attempt3.log。root本地全部33项适用测试通过；远程同33项测试由root继续核对。builder没有运行GPU/重启服务/改远程文件；root保留失败证据并负责上传。
+修订文件SHA256：
+extensions/H3FeedbackRouter/core.py afd1b6c3cc7892f0188d80490f8404a6a283351d75c70f9874339e1dd246be8a
+tests/test_feedback_core.py c62d395981b646154b7fde578d8dcdcf9a58b0146211a7364b3dfbb0406fe085
+tests/feedback_wrapper_smoke.py f870ed266f682f375d90fb409cd4e4f3d3bbda6e912152718f490ee95eb1eb3e

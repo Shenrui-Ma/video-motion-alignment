@@ -1,0 +1,149 @@
+{
+  "schema": "r111-cpu-correspondence-proposal-v1",
+  "scope": "Synthetic algebra only; no learned features, model execution, or empirical success claim.",
+  "checks": [
+    "native_expected",
+    "same_time_expected",
+    "spatial_marginal_expected",
+    "fixed_one_bin_expected",
+    "matched_one_bin_expected",
+    "adjacent_identity_match_0",
+    "adjacent_identity_match_1",
+    "native_nonnegative_unit_mass",
+    "same_time_nonnegative_unit_mass",
+    "spatial_marginal_nonnegative_unit_mass",
+    "fixed_one_bin_nonnegative_unit_mass",
+    "matched_one_bin_nonnegative_unit_mass",
+    "one_bin_distance_bound",
+    "unmatched_native",
+    "tie_rejected",
+    "zero_vectors_rejected",
+    "same_time_native",
+    "track_constant_invariance",
+    "static_pixel_invariance_is_lost",
+    "wrong_match_leaks_identity",
+    "padding_native",
+    "original_reference_mass_nonreference_contribution"
+  ],
+  "passed": 22,
+  "moving_identity_example": {
+    "values": [
+      [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      [
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.4
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      [
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.8
+        ]
+      ]
+    ],
+    "weights": [
+      [
+        0.7,
+        0,
+        0
+      ],
+      [
+        0,
+        0.2,
+        0
+      ],
+      [
+        0,
+        0,
+        0.1
+      ]
+    ],
+    "tau": 2,
+    "outputs_identity_ABC_then_phase": {
+      "native": [
+        1.0,
+        0.0,
+        0.0,
+        0.16000000000000003
+      ],
+      "same_time": [
+        1.0,
+        0.0,
+        0.0,
+        0.8
+      ],
+      "spatial_marginal": [
+        0.1,
+        0.7,
+        0.2,
+        0.08000000000000002
+      ],
+      "fixed_one_bin": [
+        0.1,
+        0.0,
+        0.8999999999999999,
+        0.08000000000000002
+      ],
+      "matched_one_bin": [
+        1.0,
+        0.0,
+        0.0,
+        0.52
+      ]
+    }
+  },
+  "counterexamples": [
+    "Mutual nearest matching can be semantically wrong.",
+    "Track-constant values yield zero correction, including an identity-only pure-translation representation.",
+    "Static image-coordinate feature invariance is lost."
+  ],
+  "pending": "Validate native H3 correspondence and result quality before any architecture contribution claim."
+}

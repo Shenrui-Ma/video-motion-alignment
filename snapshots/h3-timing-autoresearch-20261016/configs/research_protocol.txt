@@ -1,0 +1,8 @@
+Research protocol v1
+Question: Does preserving reference modality attention mass while routing reference temporal correspondence improve local motion timing in frozen H3 beyond scalar reference gain and simple frame-aligned routing?
+Known collisions: DIAL gain; Sync-LoRA/UNIC/VideoCoF temporal RoPE; Vidu S2 frame-aligned attention. No claim of first temporal alignment.
+Pilot: original Sam05 seed2026101311, same full141 frames/1312x736/20 Euler/nativeSDPA/INT8; baseline, x3 established control, temporal route variants. Local event region pre-specified frames50-65; assess all events to detect relocation/tradeoffs.
+Success gate: correct conditioning/noise; original timestamp preservation; reduction of source-normalized event time error on multiple events, not mere frame copying; character-edit retained; control on second video and seed before generalization. Fail gate: equality with simpler control, pose degeneration, timing gain entirely from identity/source copy, or gain nonrepeatable.
+Novelty status: candidate only; open literature audit may reject.
+
+Amendment before sampling: pilot 1024x576/141f; regenerate all paired arms, no direct score comparison to old1312x736 outputs. Recheck native baseline event timing before interpreting interventions.

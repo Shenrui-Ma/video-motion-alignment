@@ -1,0 +1,35 @@
+R113 CPU 审查与后续执行入口
+
+本地目录
+/Users/researcher/DevProjects/h3-timing-oxygen-seed-replication-r113-20261019
+
+预定目标（尚未部署）
+H3_SERVER_A:/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019
+.9 GPU0 UUID GPU-REDACTED，端口 8576。
+
+CPU 验证
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python -m unittest discover -s tests -v
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/preflight.py
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/verify_input_timeline.py
+seal 由 scripts/execution_gate.py seal 生成。audit/CPU_VERIFIED.json 绑定测试、来源验证与封存 SHA。
+
+生命周期来源
+source_snapshot/r106 保存 R106 的 59 个封存文件及其 deploy_manifest。实际生命周期从 R106 复用，科学配置恢复为 R73 固定路由并扩为两个新 seed 的 Native/fixed 四条。主要逻辑变更见 design/SOURCE_CHANGES.json。
+
+后续部署与运行前置
+1. root 审查本 producer seal，写 audit/GPU_DEPLOYMENT_REVIEW.json：approved=true，reviewer=root，scope=r113-two-seed-gpu-execution，producer_seal_sha256 精确绑定当前 deploy_manifest。
+2. root 确认当前 .9 的排期，包括短 MF 评分优先顺序；本包不会自动抢占 GPU0。
+3. 目标无 service registry；上传后逐文件验证 seal/input/core，并以 CUDA_VISIBLE_DEVICES='' 执行 audit/remote_cpu_validate.py。此检查只导入、不加载权重。
+4. R105 整批终结并精确释放；由 scripts/predecessor.py:check 验证其 frozen seal/runtime、所有 source 已审核、STARTED/ROOT_EXIT/COMPLETE 和当前 PID/NVML。缺失或不一致即拒绝。
+5. 当前服务占用通过 peer registry 和两卡上限检查，GPU/host/storage 余量满足原 R106 门。
+
+预定启动形式（实际 attempt 名由 root 核实后填入）
+python3 -u audit/root_run_seedpairs.py --execute --attempt root_oxygen_seedpairs_attempt1 --predecessor-attempt R105=<R105实际完成的attempt名>
+若 R104 仍占另一张卡，追加 --peer-root /home/researcher/h3_runs/timing_flexiact_remaining_repair_r104_20261019；实际 peer 必须与其已运行 registry 相符。
+
+有界故障行为
+没有 root review 或实际前置回执时不能启动。单条任务超过 14400 秒、整批超过 64800 秒、条件/任务执行失败或身份异常时保存失败证据并仅释放本 attempt 的准确 PID。任务视觉质量不作为提前丢弃某个 seed 的条件；如算子/系统故障导致后续未完成，报告明确列出未完成项。
+每 seed 的实际比较门在四条完成、释放 GPU 后检查，完成回执质量字段保持 PENDING，待独立 consumer 与完整帧审查。
+
+接收预算
+107帧 MP4 和小回执可收本机；完整 x0/条件/噪声 tensor 留在服务器。后续 consumer 需精确绑定两个 per-seed gate 和 aggregate gate，读取所有四条成片，重做任务与事件可见性验收。不能用 R73 普通编辑替换新 seed 的 Native。

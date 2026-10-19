@@ -1,0 +1,60 @@
+R78 原场景局部换色 · 同输入 P0/P1 普通编辑对照
+
+已被动部署：/data3/researcher/h3_runs/timing_local_edit_protocol_r78_20261018
+本地：/Users/researcher/DevProjects/h3-timing-local-edit-protocol-r78-20261018
+Host：H3_SERVER_B；GPU6 UUID GPU-REDACTED；port8546。
+本准备过程没有启动 GPU、Comfy 服务、controller 或 watcher。
+
+实验：short_0370 蓝衣→白衣，同一人物、房间、家具、杯子及喝水动作保留。
+顺序：r78_short_0370_seed2026101701_p0 → r78_short_0370_seed2026101701_p1。
+两条均 Native、20 NFE/20 Euler、CFG1、20 个原始 manual sigma、90 帧24fps、1312×736；有效前89帧，裁掉16/8空间padding。
+source、原始指令、seed、全部数值图参数沿 R69；P1 使用完整官方 full-reference 结构 P1-local-v1，含 Video 1、Subject 1/2、retention 与 [Shot 1]，具体写明上述保留内容。
+两图科学差异仅 /5/inputs/prompt。cache/run/output 标识分别绑定。P0 继承 R69 图的全部数值参数，6个数值源文件与 R69 逐字节一致。
+初始 AV noise 先在两版之间核同一实际张量，再与 R69 原实际 noise SHA 核对；文本、token长度、绝对位置和去噪输出允许自然变化。
+两条后自动释放服务并写 COMPLETE_REVIEW_HOLD.json；只有这一对被登记，后续质量复核由 root 进行。
+该对照检验提示适配与编辑忠实度，不计作时序引导收益。
+
+CPU 证据：
+- 本机43tests PASS；修订版 .41 CPU 验证收据见 audit/CPU_PASSIVE_P1_LOCAL_V1.json 与 audit/REMOTE_CPU_TESTS_P1_LOCAL_V1.log。
+- .41 passive_check PASS，修订版seal逐项一致，9个实际Comfy核心文件SHA一致。
+- 新service.stop行政修复：PID退出后至多等待30s的NVML旧PID条目清除；PID被复用立即拒绝；保留原错误。暂留→消失、持续存在、PID复用3项测试通过。
+- 输入90帧PTS=i/24通过，source-only六时刻0/18/35/53/70/88已经查看。
+- 远端磁盘此时约169.6GiB空余；两条预留5GiB。大PT留远端，Mac消费仅视频和JSON。
+- checkpoints继承既有SHA，实际路径/尺寸/mtime已核；此次未重新读取约40GB权重全文。
+
+准确运行依赖：
+Python：/data3/researcher/ComfyUI/.venv/bin/python
+Core：/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI
+Runtime deps：/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps
+KJNodes：/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/custom_nodes/ComfyUI-KJNodes
+Models：/data3/researcher/ComfyUI-H3/models
+Weights resolve to /data3/researcher/h3_staging_20260819/models/...
+Profile：normal、reserve8、disable_dynamic_vram、原Triton INT8；无TurboLoRA、无新模型依赖。
+
+root 一键生命周期（GPU仅此显式调用启动）：
+cd /data3/researcher/h3_runs/timing_local_edit_protocol_r78_20261018
+PYTHONDONTWRITEBYTECODE=1 python3 -u audit/root_run_pair.py --execute --attempt root_attempt1
+
+如果同机另一个已登记服务仍活，逐项追加 --peer-root /data3/researcher/h3_runs/该服务根。
+脚本从这些根读取实际service记录并核PID/UID/start/cmd；退出peer跳过，身份变化拒绝。其余自身CUDA进程必须已登记，live/planned己方卡≤2。外国用户任务可共存，目标实际free≥30GiB、温度/UUID/index需通过原资源门。
+脚本完成fresh资源门→preCUDA exact identity→双向peer登记→GO→HTTP→controller→两条→精确退出/CUDA释放→CPU实际配对核验→collect。失败留FAILURE与cleanup证据。没有自动重试或自动下一组。
+root仍应确认当前GPU6与端口8546可用；40GiB是既有容量试验准入条件，实际容量由本次完整轨迹确认。
+
+运行产物：
+audit/root_attempt1/{STARTED,ROOT_EXIT_RECEIPT,COMPLETE_REVIEW_HOLD,FAILURE}.json
+analysis/postrun/short_0370/PAIR_RUNTIME_GATE.json
+audit/consumer/incoming/{p0.mp4,p1.mp4,COLLECTION.json,PAIR_RUNTIME_GATE.json,...}
+此consumer核所有gate，包括原R69噪声，而非依据文件名认定配对。
+
+仅需视频/JSON下载本地：
+rsync -a H3_SERVER_B:/data3/researcher/h3_runs/timing_local_edit_protocol_r78_20261018/audit/consumer/incoming/ /Users/researcher/DevProjects/h3-timing-local-edit-protocol-r78-20261018/audit/consumer/incoming/
+然后本机已配套Python执行 audit/consumer/postrun.py render，再 document。
+生成3列完整89帧同帧视频、6时刻图、内嵌HTML，底部中文caption，写入Downloads独立R78文件名。
+render依赖本机ffmpeg/ffprobe和系统STHeiti字体；收集与正式张量gate在.41完成。
+判断顺序依照 design/EVALUATION_RULES.txt：编辑完成→场景/物体保留→动作内容对应→可测时间差。该文件与root登记SHA绑定。
+
+修订：P1-local-v1 补齐官方 §2.3 可见 Subject 定义与 §5.1 [Shot 1]，与旧 R73 P1 文本有区别。旧 57 项 seal 及完整 draft 保存于 audit/pre_p1_local_v1_snapshot/。原始 edit/source/target 文本逐字保留；新增明确局部保留约束，属于 prompt bundle 对照。无数值机制改变。
+
+失败处理：每次执行 UUID token 写入 ATTEMPT_BINDING 并继承至 supervisor/service；launcher 异常、owner 未赋值时只回收匹配本 attempt 的精确 supervisor/service。失败日志写入异常不会跳过清理，清理错误另留回执并保留原始异常。
+
+30GiB试跑修订：旧59seal完整快照 audit/pre_30gib_trial_snapshot/。仅新行政门与root传参改为30720MiB；图/科学参数逐字节不变。.41缺少此余量完整成功实证，.9 R63层offload提供尝试依据，本次是新的容量trial；详见audit/CAPACITY_TRIAL_30GIB.json。失败精确释放，无自动fallback。

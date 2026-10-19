@@ -1,0 +1,42 @@
+IVEBench supplementary physical-time protocol
+
+Five fixed pairs: short_0210, short_0230, short_0263, short_0352, short_0370.
+Native and Auto use actual full90 generated frames at24fps. The effective source
+prefix lengths are87,86,74,78,89. Padding is excluded before normalization.
+Source90 poses were already extracted and are bound by exact source cache SHA.
+
+The inherited timing_metrics.py is byte-identical to the previously tested
+physical-time module. local_diagnostic receives max_lag24. It searches signed
+lag within one second and retains low visibility, ambiguous minima, boundary
+hits and large residual pose differences as UNKNOWN. Confidence thresholds are
+.3 and.5. Their reporting tolerance is125ms=3frames; the online controller's
+two-frame criterion is unchanged. Four predefined windows per pair are the
+whole effective prefix,0..31,32..63,64..N-1. Both/left/right arm directions are
+reported separately. Shared-support errors compare Native and Auto on exactly
+the same valid observations using unchanged common_error from shared_support.py.
+The twelve overlapping rows are diagnostic views, not twelve independent trials.
+
+MANIFEST.json has ten fixed records. Missing generated results remain pending.
+pose90.py binds a completed consumer CASE_FILES, METRIC_INPUTS, actual consumer
+FREEZE and BINDING, the generation/release records, full video, reference and
+provenance SHA before extracting90 frames. It uses the identical source CPU
+probe, models, provider and runtime versions. All raw90 records are preserved.
+A partial failed extraction is retained and requires explicit review.
+
+The Mac entry acquires the existing global CPU lock; server entries acquire
+the shared .41 CPU lock and yield to the online observer. Four threads maximum.
+No GPU inference starts in this package. Root controls evaluation release and
+policy freeze; no generated IVE quality was read while preparing this package.
+
+Deploy this directory under:
+/data3/researcher/h3_runs/timing_auto_motion_r26_20261017/analysis/ivebench_physical_time_eval_20261017
+
+One extraction:
+python run_remote_phase.py pose --pair short_0210 --method native --metric-inputs ACTUAL_RELEASED_METRIC_INPUTS
+One paired diagnostic after both methods complete:
+python run_remote_phase.py pair --pair short_0210
+Refresh fixed ten-record receipt manifest:
+python run_remote_phase.py manifest
+
+Download records/results/MANIFEST after each completed CPU phase. Keep full five
+pair denominator and edit-attainment evidence independent from motion scores.

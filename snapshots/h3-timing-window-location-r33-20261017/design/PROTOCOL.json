@@ -1,0 +1,537 @@
+{
+  "schema": "r33-equal-budget-displaced-window-design-v1",
+  "status": "frozen_design_only_no_implementation_no_GPU",
+  "created_utc": "2026-10-16T22:21:24.999793+00:00",
+  "new_method_claim": false,
+  "question": "同一index4、一次Full和相同query行数下，把R27实际选中13..17改成23..27，是否仍产生相同的全片时序改善？",
+  "scope": "Posthoc one-case mechanism control after R27 success; one selected source05/Sam development failure. R31 new-source work has priority.",
+  "planned_run_id": "r33_s05_index4_bins23to27",
+  "parent_run_id": "r27_s05_bad1311_auto",
+  "parent_remote_root": "/data5/researcher/h3_runs/timing_auto_controller_r27_20261017",
+  "seed": 2026101311,
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "video_latent": [
+      1,
+      24,
+      42,
+      46,
+      82
+    ],
+    "audio_latent": [
+      1,
+      32,
+      2,
+      235
+    ],
+    "packed_tokens": 87592,
+    "patch_grid": [
+      23,
+      41
+    ]
+  },
+  "scientific_change": {
+    "from_query_bins": [
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "to_query_bins": [
+      23,
+      24,
+      25,
+      26,
+      27
+    ],
+    "at_denoising_index_zero_based": 4,
+    "all_other_indices": "Native",
+    "other_scientific_inputs": "actual R27 parent graph, conditions/noise/grid/models/backend unchanged"
+  },
+  "actual_mapping": {
+    "auto_requested_frames_inclusive": [
+      44,
+      59
+    ],
+    "auto_nominal_extent_inclusive": [
+      43,
+      59
+    ],
+    "displaced_nominal_extent_inclusive": [
+      77,
+      93
+    ],
+    "delta_bins": 10,
+    "delta_nominal_frames": 34,
+    "period_phases": [
+      3,
+      4,
+      0,
+      1,
+      2
+    ],
+    "spans": [
+      4,
+      4,
+      1,
+      4,
+      4
+    ],
+    "rows_per_bin": 943,
+    "selected_query_rows_per_call": 4715,
+    "same_bin_reference_keys_per_query": 943,
+    "target_minus_reference_time_coordinate": 235,
+    "change_time_origin": false,
+    "exact_neural_receptive_field_claim": false,
+    "evidence": "evidence/ACTUAL_LAYOUT_CHECK.json"
+  },
+  "operator": {
+    "formula": "O_prime[q]=O[q]+g[q]*m_ref[q]*(A_same_time[q]-A_all_reference[q])V_ref",
+    "mode": "mass_preserve",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "value_component": "full V_ref",
+    "reference_group": "reference video only; exclude portrait",
+    "plan_frames_inclusive": [
+      0,
+      140
+    ],
+    "plan_bins": 42,
+    "query_gain": "binary1 on all spatial rows of23..27,0 elsewhere",
+    "blocks_zero_based": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
+    ],
+    "reference_bin_rule": "same corresponding physical bin as each selected query, with native positional origins",
+    "implementation": "Byte-identical R27 TemporalRouter numerical core/layout/mask and make_gain; retain full42bin plan, Flash/LSE/FP32 correction and casts. Do not optimize by narrowing plan."
+  },
+  "execution": {
+    "implementation": "Independent R27 transaction-shell static replay adapter; no online observer",
+    "native_predictions": 20,
+    "extra_full_predictions": 1,
+    "NFE": 21,
+    "Euler_updates": 20,
+    "callbacks": 20,
+    "blocks_per_prediction": 50,
+    "total_block_calls": 1050,
+    "full_route_calls": 50,
+    "selected_query_row_writes_per_call": 4715,
+    "query_row_block_budget": 235750,
+    "native_index4_nfe_index": 4,
+    "full_index4_nfe_index": 5,
+    "online_observations": 0,
+    "observation_schema": "static_plan; no fabricated pose or decoder records",
+    "transaction": "Native(x_n,t_n,c); atn4 additionally Full on exact same x_n,t_n,c; choose one endpoint; one actual Euler update",
+    "decisions": [
+      {
+        "denoising_index": 0,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 1,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 2,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 3,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 4,
+        "chosen": "Full",
+        "bins": [
+          23,
+          24,
+          25,
+          26,
+          27
+        ]
+      },
+      {
+        "denoising_index": 5,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 6,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 7,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 8,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 9,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 10,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 11,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 12,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 13,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 14,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 15,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 16,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 17,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 18,
+        "chosen": "Native",
+        "bins": []
+      },
+      {
+        "denoising_index": 19,
+        "chosen": "Native",
+        "bins": []
+      }
+    ],
+    "video_sigmas": [
+      1.0,
+      0.9956331849098206,
+      0.9908257126808167,
+      0.9855072498321533,
+      0.9795918464660645,
+      0.9729729890823364,
+      0.9655172228813171,
+      0.9570552110671997,
+      0.9473684430122375,
+      0.936170220375061,
+      0.9230769276618958,
+      0.9075630307197571,
+      0.8888888955116272,
+      0.8659793734550476,
+      0.8372092843055725,
+      0.800000011920929,
+      0.75,
+      0.6792452931404114,
+      0.5714285969734192,
+      0.3870967626571655,
+      0.0
+    ],
+    "audio_sigmas": "Bind actual parent audio grid/shift separately; video grid alone is insufficient.",
+    "sampler": "official Euler, BasicGuider CFG1, no churn",
+    "video_normalization": 1,
+    "audio_normalization_divisor": 4,
+    "chosen_capture_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "capture_final": true,
+    "branch_archive": "20 Native PT+1Full PT;21chosen/finalPT; capture actual input4 separately",
+    "prefix": "chosen0..3 and current Native0..4 exact; Full4/future old states permanently N/A",
+    "zero_correction": "Finite zero correction is valid; do not require effect."
+  },
+  "observer_difference": {
+    "omitted": "20 live VAE/pose/scan calls and online selection; explicit static plan uses already observed schedule",
+    "control": "Keep input/condition/grid/noise/RNG guards; actual prefix0..4 must pass. Inherited R27 parent-state guards document old observer neutrality.",
+    "efficiency": "Record walltime,NFE,route/capture costs and omitted observations; no automatic-controller speed claim."
+  },
+  "acceptance": {
+    "pre_execution": [
+      "Actual42bin and943rows layout; disjoint portrait/refvideo/audio/target; both masks4715rows,no clamp; phase and origin unchanged.",
+      "CPU dense toy + frozen R27 path oracle for13..17 and23..27; zero mask exactNative; QKV unchanged; nonselected rows bitwise same-backend prewrite full; inherited dtype tolerances.",
+      "Actual Comfy tiny fixture20Euler/21NFE/1050blocks/50routes; Native4/Full4 same-state; callbacks and21captures; no observer call; independent cached-base state.",
+      "Negative tests for wrongPT/hash/seed/sigma/audio normalization/bin/condition, extraFull, duplicatecallback. Exact owner lifecycle and root-only GPU scheduling."
+    ],
+    "run": [
+      "Successful exact history/graph/output with stable inventory; all failed attempts retained.",
+      "Actual cleanvideo+portrait, embedding/tags/positions/layout, AVnoise, AVgrids, augmentation seed/code equalR27. Original+processed tree equality excluding only the two matching valid UUID leaves original.positive[0].uuid and processed.positive[0].uuid.",
+      "Read actual parent NativePT0..4 by SHA/metadata and compare both AV streams bytewise. Chosen0..3 exact. Current packedinput4 signature must equal2c5fabc58151f7f7355d001ff26f03253bdb7df71bb9414795c289776eb937db. R27 oldrawinput4 file absent: label signature equality honestly.",
+      "Native4/Full4 identical input/sigma/condition, unchanged globalRNG;21/20/1050/50 counts and exact index placement. No future oldtrajectory replay claim.",
+      "Unique finite21chosen/final and21branch PTs, full metadata/schema/seed/AVnormalization.141frames1312x736/24fps/PTS=i/24 and exact downloaded hashes.",
+      "Actualowner UID/PID/start/cmdsha/model/kernel provenance and boundedresidence or exactcleanup. Root schedules separately, <=2ownGPUs; no services are started by design."
+    ]
+  },
+  "evaluation": {
+    "primary_window": [
+      50,
+      65
+    ],
+    "original_windows": [
+      [
+        50,
+        65
+      ],
+      [
+        69,
+        81
+      ],
+      [
+        80,
+        92
+      ],
+      [
+        99,
+        111
+      ]
+    ],
+    "confidence": [
+      0.3,
+      0.5
+    ],
+    "lags": [
+      -24,
+      -23,
+      -22,
+      -21,
+      -20,
+      -19,
+      -18,
+      -17,
+      -16,
+      -15,
+      -14,
+      -13,
+      -12,
+      -11,
+      -10,
+      -9,
+      -8,
+      -7,
+      -6,
+      -5,
+      -4,
+      -3,
+      -2,
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "primary_features": [
+      "arm_direction",
+      "wrist_relative"
+    ],
+    "sensitivities": [
+      "left_arm_direction",
+      "right_arm_direction",
+      "body_xy"
+    ],
+    "gates": "Frozen normalization/support/ambiguity/residual/boundary rules unchanged; UNKNOWN retained.",
+    "complete_timing": "Bothfeatures×bothconfidence accepted andabs(lag)<=2.",
+    "whole_scan": {
+      "lengths": [
+        16,
+        32
+      ],
+      "stride": 4,
+      "include_last_complete_start": true,
+      "features": [
+        "arm_direction",
+        "left_arm_direction",
+        "right_arm_direction"
+      ],
+      "rows": 186,
+      "warning": "Overlapping descriptors from1trajectory, not186independent trials."
+    },
+    "common_support_groups": [
+      [
+        "Native",
+        "FixedFull6to14",
+        "Auto4",
+        "Displaced4"
+      ],
+      [
+        "Auto4",
+        "Displaced4"
+      ]
+    ],
+    "common_support": "Source+all outputs intersection, shared minimum clippedconfidence weights; original>=.8 usable fraction; report raw coverage and perframeerror.",
+    "regions": "Original4windows/full141/Auto nominal43..59 andcomplement; displaced77..93 andcomplement additionally diagnostic.",
+    "quality": {
+      "frames": [
+        55,
+        86,
+        105
+      ],
+      "clip_inclusive": [
+        42,
+        82
+      ],
+      "full141_view": true,
+      "blind_pair": [
+        "Auto4",
+        "Displaced4"
+      ],
+      "blind_order_seed": 2026101713,
+      "format": "same24fps/sameframe/fullframe scale",
+      "checks": [
+        "ghost/extra limbs",
+        "edit/identitypresence",
+        "roombackground",
+        "handblur",
+        "flicker/actioncontinuity"
+      ],
+      "verdict": [
+        "better",
+        "similar",
+        "worse",
+        "UNKNOWN"
+      ],
+      "rule": "Do not choose new winning frames; pose does not certify appearance."
+    },
+    "failure": "Technicalfailure separate fromUNKNOWN; no reseed/reselection."
+  },
+  "decision_rules": {
+    "location_sensitive_development_evidence": "All pairinggates pass; Auto4 remains within±2; Displaced4 acceptedoutside±2 inall4primarycells with>=4frame worsening ineach, andpositive common-support sameframeerror difference atboththresholds without qualityfailure explaining it. Supports a location effect here, notoptimality/generalization.",
+    "smaller_or_mixed": "Report descriptive differences; no success label.",
+    "equally_effective_displacement": "IfDisplaced4 also meetsall4±2cells without clear whole-video/qualityloss, selectionnecessity isnot established; localchanges canpropagate globally.",
+    "unknown": "Integrityfailure,insufficientsupport,ambiguouslag or unjudgeablequality cannot be counted asshifted-arm failure.",
+    "content_caveat": "77..93 coversrealactions andoverlapsauxiliarywindows; it isnot a guaranteedirrelevantnull.",
+    "limits": [
+      "oneposthoccase/onefixeddisplacement",
+      "same rowbudget doesnot equate attentionmass or importance",
+      "no heldoutgeneralization/noveltyclaim",
+      "oldFixedFull hasdifferent9steps/support and isonly benchmark",
+      "doesnot identify unique original errorcause"
+    ]
+  },
+  "alternative_not_selected": {
+    "method": "20NFE singleFull4 omittingdiscardedNative4",
+    "reason": "Changesbranchbudget andremovesexactcurrentNative4gate. Separate root-approved amendment needed; donot implement silently."
+  },
+  "handoff": {
+    "interface": "Independent FrozenWindowReplayRouter(model,positive,run_id,audit_dir,decision_plan);20fixeddecisions immutable; reuseR27transaction shell withobserver/controller deliberatelyremoved andevidencecontract updated.",
+    "warning": "R27POLICIES contains onlyautomatic_windows. Vestigialfixed_indices cannotactivate a fixedmode. Do not patchR27.",
+    "prefix_evidence": "evidence/ACTUAL_PREFIX_0_TO_4.json",
+    "GPU": "NoGPUauthorization; R31priority; root decideslater."
+  }
+}

@@ -1,0 +1,14 @@
+v3离线63端点准备协议
+2026-10-17
+
+仅准备和合成测试。实际63评分和finalize须root新授权绑定本目录FREEZE、v3候选CODE/PROTOCOL及原INPUTS。输入沿用INPUTS SHA2386219d3264c320365dd8ce076310103d6085a37ff56b8a266cccb3b0e6f3fc，68个唯一pose文件、63目标及顺序保持，141帧/24fps/0-based 0..140。
+
+输入转换逐字复用旧execution_v1/adapter.py的load/from_features/blank。按.3/.5分别转换；有限confidence>1保留原值，两端原关节confidence/xy非有限时对应骨UNKNOWN。仅已知缺可靠躯干锚点ValueError变科学缺测，格式/JSON/索引技术失败留痕退出。metadata检查只读hash/frame/time/schema，不提取真实方向或算真实phase。
+
+实际执行每端点同一输入并列v1/v2/v3。v1使用原精确phase核；v2使用原方向集合核；v3在v2基础上仅替换源/目标全集顺序选择器。每个方法以独立模块对象和threshold-grid代理适配输入，不改冻结磁盘文件。v1的K/parts/selected必须与历史已封存结果逐值一致；v2/v3的全部evidence数组和候选counts必须逐值一致，独立计时。这里的唯一新增科学改变是v2到v3的选择器；v1到v2的已知用途差异完整并列。
+
+输出：每端点一个RESULT.json、一个含全部三版原始证据的EVIDENCE.npz、一个原子COMPLETE.json，累计189产物。保存完整D、未知位图、common masks、raw/profile、J、K、区间、选择器完整候选、时间和转换缺失。汇总每方法共同支持骨槽/名义槽与逐目标原始计数，全部63目标必须完成；失败/BUSY分别留档。
+
+真实数据均为开发集，包含历史受旧在线控制影响的3条20端点轨迹及3项final-only；source07只有final压力测试。可比较决策和覆盖，不能写accuracy/FPR或独立泛化成功。v3遮挡孤立反向候选安全性FAIL仍未解决，见candidate_v3/SAFETY_COUNTEREXAMPLE.json；离线评分不构成上线准入。未选窗口不等于已对齐；所有UNKNOWN保留。
+
+授权要求literal true，绑定全体63名单及execution/candidate/input SHA。每次有界phase共享Mac锁，≤4线程，120s；BUSY75退让。COMPLETE前复核本phase输入/代码/授权SHA，拒绝已有提交；finalize逐个校验target id、完整input记录和BINDING。

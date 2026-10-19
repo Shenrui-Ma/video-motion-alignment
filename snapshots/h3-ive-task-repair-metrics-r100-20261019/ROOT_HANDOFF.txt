@@ -1,0 +1,25 @@
+R100 CPU consumer — prepared, frozen, no watcher
+
+Producer: h3-timing-ive-task-repair-r100-20261019
+Producer seal: 918d64da3afc8d4beb6621025957ffd5b83c9eb98928a6bcd685d09edfded1de
+Consumer freeze (25 files): a6294397ee57e807b54bd419ac9e3511d93c273c2c809ff66fee635e5e1dc8fd
+48 CPU tests PASS; actual .9 producer seal/runtime/contract bytes checked. Synthetic 2/3-column MP4 frame counts, PTS, image order, caption and six embedded HTML assets checked.
+
+Only after root STARTED and actual producer NATIVE_RUNTIME_GATE:
+cd /Users/researcher/DevProjects/h3-ive-task-repair-metrics-r100-20261019
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_native.py --source short_0114 --attempt ACTUAL_ROOT_ATTEMPT
+Use short_0392 for the second source. The producer controller creates gates. This consumer does not execute a producer verifier or submit inference.
+
+After root accepts the Native task and a matched actual PAIR_RUNTIME_GATE exists:
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_pair.py --source short_0114 --attempt ACTUAL_ROOT_ATTEMPT
+
+Source order: short_0114 neon basketball (105 valid of 107 frames); short_0392 remove ornate fireplace (57 valid of 73). Both 24fps, crop16,8,1280,720. Original source/provenance metadata retained. Only Video1 input; no reference image.
+
+Native media: incoming/<source>/ and showcase/<source>/ (two columns).
+Paired media: incoming_pairs/<source>/ and showcase_pairs/<source>/ (three columns).
+Full-valid video plus fixed 6/12 same-index sheets and Downloads single-file HTML. Chinese captions, black bottom strip, equal image area and original playback speed.
+
+Official MF-ready input manifests: prepared/<source>/{native,paired}/MF_INPUTS.json. They bind actual gate, collection, source/generated SHA, crop, valid frame indices and PTS. Scores are pending; no tracker or metric execution is included.
+
+No execution binding has been created. No autonomous watcher/service/GPU started. Each entrypoint is a single bounded invocation.
+Preparation receipt: audit/FINAL_PREPARATION.json

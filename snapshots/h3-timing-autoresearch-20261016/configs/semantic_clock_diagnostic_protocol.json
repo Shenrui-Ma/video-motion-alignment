@@ -1,0 +1,67 @@
+{
+  "schema": "h3-semantic-clock-diagnostic-v1",
+  "registered_client_time": "2026-10-16T05:01:48.240508+08:00",
+  "status_at_registration": "No A0 or B/C/D GPU execution; runtime uploaded, CPU tests passed.",
+  "design": {
+    "A": "P0/T0 native output reused only after actual A0 equality gate",
+    "B": "P6/T6",
+    "C": "P0/T6",
+    "D": "P6/T0",
+    "P6_physical_seconds": 0.25,
+    "T_rendered_text_seconds_difference": 0.3,
+    "note": "Native formatting rounds pair timestamps; content shift and displayed label difference are not the same numeric quantity."
+  },
+  "fixed": [
+    "source05, seed2026101311, Sam identity",
+    "1312x736,141frames,24fps,20Euler, noTurboLoRA",
+    "dense VAE condition, actual noise, token counts/tags/packed positions, prompt, native attention",
+    "primary and sensitivity pose windows, confidence thresholds and reject gates"
+  ],
+  "primary_window": [
+    50,
+    65
+  ],
+  "other_windows": [
+    [
+      69,
+      81
+    ],
+    [
+      80,
+      92
+    ],
+    [
+      99,
+      111
+    ]
+  ],
+  "confidence_thresholds": [
+    0.3,
+    0.5
+  ],
+  "factorial_signed_lag_contrasts": {
+    "timestamp_at_P0": "C-A",
+    "timestamp_at_P6": "B-D",
+    "pixels_at_T0": "D-A",
+    "pixels_at_T6": "B-C",
+    "interaction": "B-D-C+A"
+  },
+  "exploratory_meaningful_effect": {
+    "absolute_contrast_at_both_thresholds_at_least_frames": 4,
+    "threshold_contrast_disagreement_at_most_frames": 2,
+    "require_reliable_primary_lag": true,
+    "same_effect_across_other_factor": "Both contrasts for a factor must have same sign and pass magnitude gate; no sign is presumed from metadata alone.",
+    "shape_coverage": "Keep existing frozen observer reject rules; report residuals and same-frame errors. Do not treat rejected lag as zero.",
+    "quality": "No gross identity reversion, background destruction or action-shape failure for full success. Pose-only result must be labeled as such."
+  },
+  "limits": [
+    "One source/seed factorial diagnostic, not statistical inference.",
+    "Four arms do not establish universal dual-clock conflict or architectural novelty.",
+    "Effect on Qwen hidden states includes lexical/contextual effects; text timestamp edit is not a direct RoPE intervention.",
+    "No additional FPS/phase sweep automatically appended if this fixed probe is negative.",
+    "A0 is encoding/noise acceptance only, not an independent quality inference.",
+    "Normal-case and second-seed replication would be required before advocating correction."
+  ],
+  "all_outcomes_retained": true,
+  "runtime_manifest_sha256": "177fe72d697a16974a7d6a9838d6f3456dba2825d75ff6edeaabfb013f419652"
+}

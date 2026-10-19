@@ -1,0 +1,11 @@
+R48：R46 strict output-head guard 的独立修复版本
+
+科学范围原样：R33 bad1311 与 R37 normal1313 的实际 raw state index4，各一次 terminal Native，合计2NFE；0Euler/0callback/0VAE/0Qwen。block25、四固定head、42×25query、43小attention调用与全部probe/kernel/position/源PT不变。不是新的读出实验参数。R46失败证据保留，未复用其failed readout作为成功数据；1ULP目前仍是候选原因，旧guard无实际值日志，不将猜测写成已定因。
+
+入口sigma严格等于原21点FP32 grid[4]。新增只读diffusion forward-prehook取得模型实际收到的timestep，并对官方ModelSamplingAV.timestep(entry_sigma).float()在同device/dtype逐位比较。输出头sigma应等于官方 MiniMaxH3Model._forward 的 (timestep.flatten()[0]/1000.0).float().clamp(min=1e-6)，在同设备重新计算并精确比较；不再错误要求派生sigma等于CPU表格浮点数。两个hook先保存dtype/device/shape/values/raw FP32 bits，之后分别核entry、映射、全grid、nearest index4、shifts12/3及实际head结构。错误device使index=null，避免写证据前先做跨设备算术。无isclose、无sigma写回、无条件/模型输入修改。最终两路AV仍必须与各自历史PT torch.equal；任何失败停止第二状态，无额外NFE。
+
+序列R48 bad→normal，GPU3/8510由root准入。R46生命周期代码原样继承：同PID preCUDA ready/go、exact UID/start_ticks/string/cmd身份、supervisor子代清理、controller代际和互斥、最大2张我方卡、600s有界hold/7200s上限。为减少变更保留legacy r46_contract模块名及r46-single-state-report-v1 schema；实际run_id/queue、remote root、GPU/port、protocol/source SHA明确属于R48，新增sigma_path字段不删除原report字段。sources和旧证据完整保留原字节，未做全目录文本替换。
+
+新CPU覆盖经过官方BaseModel._apply_model→ModelSamplingAV.timestep→diffusion Module前hook→MixedPrecisionOps官方FinalLayer，旧R46 smoke绕过前两层的局限已修复。条件/真实PT/position结构保留，DiT/QKV为小型synthetic fixture、未载checkpoint或CUDA。两合法state及故意endpoint mismatch验证计数和hook/extra_conds还原。1ULP测试同时覆盖CPU reciprocal候选拒绝、模拟合法device派生值不被CPUgrid错误否决；不能把模拟当作CUDA定因。最终GPU gate与真实AV端点待root执行，资源模板全null不伪造余量。
+
+postrun validate_sigma_path核rawbits与记录浮点自洽、actual/expected同device精确、entry/grid/index/shifts；它不在CPU假装重现CUDA rounding。probe数组schema及数值描述不变，解释仍须两个endpoint成功及qualityPASS。两个状态不能拟阈值/选头/声称attention时间偏移等于动作延迟或创新成功。

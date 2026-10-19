@@ -1,0 +1,27 @@
+R114：三个尚未运行的 IVE 来源，CPU 准备与冻结
+
+本地：/Users/researcher/DevProjects/h3-timing-ive-three-source-r114-20261019
+拟用远端：/home/researcher/h3_runs/timing_ive_three_source_r114_20261019
+已完成本地和目标主机 CPU 验证；未启动 GPU。configs/admission.json 保持 ready_for_launch=false。
+producer seal：70eeb832c7437afb99627979986a9dedf39b31fdf69cc834b6ee3e1d759e794c（112 文件）
+
+固定三源、六任务顺序：
+1. long_0081：红酱替换，完整149原帧@30fps，120有效/124总帧。
+2. long_0059：手中添加白手帕，原帧[175,325)@25fps，7–13秒，144有效/158总帧。
+3. long_0163：浅蓝上衣改黑，原帧[52,202)@25fps，2.08–8.08秒，144有效/158总帧。
+后两条按 IVE 素材片段实验报告。全部无参考图，原片/输入/提示词字节和事件计划条目继承 R93。
+
+设备配置：.9 GPU3 / GPU-REDACTED，port8574；准备时端口无监听，启动前须重新核对。
+输入1312×736，评分有效裁剪16,8,1280,720。20Euler/CFG1，无LoRA；固定时序引导6–14步、alpha1、50层、全部有效物理时刻。
+六个数值模块逐字继承R93。该轮记录固定引导是否有效。source event标签仅用于评价。
+
+执行前置：R104完整结束并验证原PID/UID/start/cmd消失和CUDA释放；先补root安排的短MF；root完成审核和fresh资源准入后启动。
+资源门：至少40960MiB空闲，normal/reserve8，磁盘至少20GiB；最大两张自有GPU。
+跨/data5与/home的peer身份函数逐字继承已审R104，PID/UID/start/cmd/runtime/GPU/port均核对。精确收尾逻辑继承R93/R104共用实现。
+每条普通编辑实际NATIVE_RUNTIME_GATE通过后，全片审阅任务与动作，再决定guide/skip。首个实际引导结果必须PAIR_RUNTIME_GATE通过并全片审阅后放行后续。
+审核等待1800秒，单任务10800秒，服务57600秒。正常/异常/超时结束均精确释放；保留失败或跳过记录。
+
+验证：128个CPU测试通过；三源原始PTS/24fps映射及尾帧排除核验通过；112个封存SHA通过。
+证据：audit/CPU_PREPARATION_VERIFIED.json、audit/CPU_TESTS_FINAL.txt、audit/INPUT_TIMELINE_ACTUAL.json、audit/INHERITED_BYTE_BINDINGS.json。
+目标验证：128项测试、import-only、preflight、实际PTS、112个封存SHA及core/input校验全部通过；CUDA隐藏且未初始化、无模型加载。详见 audit/target_cpu/TARGET_CPU_VERIFIED.json。
+后续：consumer配对收取准备；R104完整精确释放，root先安排短MF，然后fresh资源检查并明确调度R114。实际GPU容量与编辑效果在运行后确认。

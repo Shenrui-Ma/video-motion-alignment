@@ -1,0 +1,25 @@
+R92 单次 Native 收取和审片：CPU 已准备，尚未绑定实际 STARTED
+
+目录 /Users/researcher/DevProjects/h3-ive-native-screen-metrics-r92-20261018
+绑定生产 seal 890bba78aef30453585b9a41ce45d9c632e5d72bd258fc6f8af0334b4aacb04d（115项）。Native门 schema r92-native-runtime-gate-v1；实际service owner/runtime/graph/input/history/output SHA均核验。
+五源顺序 long_0047 / long_0123 / long_0167 / long_0173 / long_0174。
+有效/总帧：97/107、144/158、144/158、145/158、145/158。全部24fps，统一crop16,8,1280,720。源视频独立副本与provenance SHA已绑定，原片和原始PTS引用保留。
+
+当 root 的真实 STARTED 及该源 NATIVE_RUNTIME_GATE 写入之后，在 Mac 执行一次：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python /Users/researcher/DevProjects/h3-ive-native-screen-metrics-r92-20261018/scripts/consume_native.py --attempt root_native_screen_attempt1 --source long_0047
+
+只读取实际远端文件；直接 H3_SERVER_A，SSH有界。缺gate返回PENDING_GATE/exit3；已存在收据会核SHA后复用。producer seal或service代次改变会明确拒绝，需要root审查恢复绑定。服务已退出但同代记录存在时可回收完成结果。
+无producer verifier、GPU、监控daemon、guide/skip审批或排队操作。仅取小JSON与视频，noise/condition/x0大PT保持远端原样，由实际producer门承担其验证。
+
+产物
+incoming/<source>/：Native原成片、actual Native门、job/history/router/graph及小binding JSON、COLLECTION.json。
+showcase/<source>/：source_native_full_valid.mp4（2560x808）、6_times.jpg、12_times.jpg、PRESENTATION.json。
+默认 Downloads/H3_R92_<source>_普通编辑预览_20261018.html：单文件内嵌上述视频与截图，明确Native-only，2栏下方中文caption；--output可指定路径。
+原始成片完整T帧保留，展示只取valid前缀。严格核原输出PTS=i/24，发现封装偏移会拒绝并保留原片，需另行诊断；不会自行修时间戳。图像只统一裁边、缩放，保持同帧。
+该页面供root在30分钟待审期内判断任务和动作，再由root执行guide/skip；本工具不生成第三栏或伪造pair。
+
+验证
+27项CPU测试通过，audit/CPU_TESTS.log。涵盖Native schema、无第三臂、实际检查/服务代次/配置/任务/输入时间范围、路径、job/history/output篡改、PENDING不收取等。
+真实ffmpeg/PIL合成媒体测试：audit/synthetic_media_fixture/FIXTURE_RESULT.json，通过20总帧→18有效帧、24fps、双栏顺序/裁边/黑底、6/12同帧图。纯红蓝素材明确标记为SYNTHETIC FIXTURE，不是推理结果。
+未验证：实际远端输出收取（R92尚未STARTED/成片）；真实任务质量需成片后审查。
+R85/R89既有watcher及生产包未改动。

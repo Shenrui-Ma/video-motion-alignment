@@ -1,0 +1,38 @@
+R92 Native-first：准备/被动部署，GPU与watcher未启动
+
+本地 /Users/researcher/DevProjects/h3-timing-ive-native-screen-r92-20261018
+远端 /data5/researcher/h3_runs/timing_ive_native_screen_r92_20261018
+115 文件producer seal SHA 890bba78aef30453585b9a41ce45d9c632e5d72bd258fc6f8af0334b4aacb04d
+原R88仍112文件seal全匹配；46项源/输入/设计/P1证据与6数值文件原字节保留。新增代码范围见 audit/CHANGE_MANIFEST.json。
+
+固定来源顺序：long_0047、long_0123、long_0167、long_0173、long_0174。
+有效/总帧97/107、144/158、144/158、145/158、145/158；24fps。全部属于IVEBench素材片段探索，保留原始视频与精确原始PTS映射，评估排除padding。
+
+启动条件
+.9 GPU0 UUID GPU-REDACTED；port8557；normal reserve8/free>=40960MiB；磁盘>=20GiB。先等该GPU旧任务精确释放。peer-root填当时仍活的另一张卡任务根，示例R90若已退出会跳过；未来若是R91则换为其真实根。root实际fresh准入后才启动：
+cd /data5/researcher/h3_runs/timing_ive_native_screen_r92_20261018
+nohup python3 -u audit/root_run_batch.py --execute --attempt root_native_screen_attempt1 --peer-root /data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018 > audit/root_native_screen_attempt1_wrapper.log 2>&1 < /dev/null &
+
+Native成片后
+controller状态 awaiting_native_review；证据 analysis/postrun/<source>/NATIVE_RUNTIME_GATE.json。root看实际普通编辑，然后选其中一个（source换成当前实际等待ID，reason写观察）：
+python3 scripts/execution_gate.py decide --root-reviewed --source long_0047 --choice guide --reason '任务完成且观察到需要检验的时序偏移'
+python3 scripts/execution_gate.py decide --root-reviewed --source long_0047 --choice skip --reason '普通编辑已同步，保留Native-only'
+只能创建一次，决定绑定gate/video/rawnoise/condition/graph/history SHA和服务PID/UID/start/cmd。决定只消费完成的Native证据，不能预选尚未生成的病例。
+
+第一次实际引导完成后
+controller状态 awaiting_first_guided_review；实际pair gate为当前被选source的analysis/postrun/<source>/PAIR_RUNTIME_GATE.json。root查看该pair后执行一次：
+python3 scripts/execution_gate.py review-first-guided --root-reviewed
+首例0047无需强制guide；若先skip，第一个后续guide才触发这道门。首次pair核验为20+20NFE/0与450路由/实际同conditions+noise/前6次AVx0逐位相等。五例全skip则guided容量与效果标未验证。
+
+终态与退出
+每次等待最多1800秒，服务总上限57600秒、单任务10800秒；watchdog若稍早在同代服务触发有界空闲退出，会归入review_timeout。未知HTTP继续观察，POST不自动重发，期限不重置。结束或超时均精确释放服务并确认/proc与CUDA；ROOT_EXIT_RECEIPT存audit/<attempt>/。完成写COMPLETE.json，待审退出写RELEASED_PENDING_REVIEW.json。
+audit/SCREEN_LEDGER.json逐源记录paired或native_only。controller.completed只含实际成功run；skip不造forced job、history、pair gate。所有五源及skip理由保留。
+服务释放后本包不自动跨代次续跑；保留原文件，交root明确恢复。原service记录/已有job/ledger会阻止重复首次启动。
+
+验证范围
+本机和实际.9各121项CPU回归通过。实际目标CPU结果见 audit/TARGET_CPU_VERIFIED.json，包含seal/20输入SHA/9实际coreSHA/原始与24fps PTS/目标unittest。实际GPU容量与质量尚待运行。
+主要新增：scripts/execution_gate.py 的原子决定与ledger；scripts/run_queue.py逐Native分支/hold；analysis/postrun/verify_pair.py Native-only门；audit/root_run_batch.py终态收尾；service.py仅新approval文件路径；job.py沿用锁内及POST前复核。
+parent六数值文件及source/prompt不变。没有新增依赖、模型下载、自动观察器或新的长期daemon。
+
+行政读取量
+hold绑定只读rawnoise PT及Native MP4和JSON，不遍历20份x0 PT、final PT或cleancondition PT。完整五源noise payload约76.27MiB/遍，另加实际视频/JSON。Native待审通常1遍/20s，首guided待审2遍/20s；详 audit/REVIEW_HASH_IO.json。这些是行政耗时；job_wall/capture时间与review等待分别保留。

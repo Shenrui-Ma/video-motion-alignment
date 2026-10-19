@@ -1,0 +1,147 @@
+"""Read-only producer intake, one fixed two-job batch. All inference is already complete."""
+import argparse,fcntl,os,shutil,subprocess,sys,time
+from pathlib import Path
+from contract import *
+P=read(HERE/'PROTOCOL.json');ROOT=Path(P['root_remote']);ARC=HERE/'captured/batch';OLD=Path('/data5/researcher/h3_runs/timing_autoresearch_20261016')
+
+def bound():
+ b=read(HERE/'BINDING.json');owner=check_binding(ROOT,b,P)
+ proc=Path('/proc')/str(owner['pid'])
+ if proc.exists():
+  stat=(proc/'stat').read_text().split(') ',1)[1].split();require(proc.stat().st_uid==b['external_identity']['uid'] and stat[19]==b['external_identity']['start_ticks'],'owner PID changed')
+  if stat[0]!='Z':require(hashlib.sha256((proc/'cmdline').read_bytes()).hexdigest()==b['external_identity']['cmdline_sha256'],'owner command changed')
+ return owner
+
+def inventory():
+ rels={'processes/service.json','deploy_manifest.json','configs/queue.json','configs/runtime.json','configs/runtime_provenance.json'}
+ for case in P['cases']:
+  run=case['run_id'];g=read(ROOT/'configs/graphs'/f'{run}.json');h=read(ROOT/'logs'/f'{run}_history.json');j=read(ROOT/'logs'/f'{run}_job.json');require(h['status']['completed'] is True and h['status']['status_str']=='success' and j['status']=='success','both jobs must complete')
+  rels.update((f'logs/{run}_history.json',f'logs/{run}_job.json',f'configs/graphs/{run}.json',f'audit/{run}_conditioning.json',f'audit/{run}_noise.json',f'audit/router/{run}.json',f'audit/x0/{run}/manifest.json'))
+  m=read(ROOT/'audit/x0'/run/'manifest.json');names=[f'x0_step{i:03d}.pt' for i in range(20)]+['sampler_final.pt'];require(m['status']=='complete' and [r['file'] for r in m['captures']+[m['final_sampler_result']]]==names and sorted(x.name for x in (ROOT/'audit/x0'/run).glob('*.pt'))==sorted(names),'21 chosen inventory')
+  rels.update(f'audit/x0/{run}/'+x for x in names);n=read(ROOT/'audit'/f'{run}_noise.json');rels.add('audit/'+n['pair_id']+'_noise.pt');shared='audit/'+g['5']['inputs']['run_id']+'_conditioning.json';rels.add(shared)
+  def visit(v):
+   if isinstance(v,dict):
+    if 'tensor_file' in v and {'shape','dtype','sha256'}<=set(v):rels.add('audit/'+v['tensor_file'])
+    for x in v.values():visit(x)
+   elif isinstance(v,list):
+    for x in v:visit(x)
+  visit(read(ROOT/shared));rels.add(relative(ROOT,output_file(ROOT,h,run)))
+ for rel in read(ROOT/'deploy_manifest.json')['files']:
+  if rel.startswith('inputs/'):
+   rels.add(rel)
+   if not rel.endswith('_provenance.json'):rels.add(rel.replace('inputs/','input/',1))
+ return [safe(ROOT,x) for x in sorted(rels)]
+
+def snapshot():
+ owner=bound();controller=read(ROOT/'logs/controller_state.json') if (ROOT/'logs/controller_state.json').exists() else {};states=[]
+ for c in P['cases']:
+  run=c['run_id'];hp=ROOT/'logs'/f'{run}_history.json';jp=ROOT/'logs'/f'{run}_job.json';h=read(hp) if hp.exists() else {};j=read(jp) if jp.exists() else {}
+  if h.get('status',{}).get('status_str')=='error' or j.get('status') in ('error','unknown_missing','submission_uncertain'):return {'status':'failed','run':run,'history':h.get('status'),'job':j.get('status')}
+  states.append(h.get('status',{}).get('completed') is True and h.get('status',{}).get('status_str')=='success' and j.get('status')=='success')
+ if not all(states):return {'status':'failed' if controller.get('status')=='failed' else 'pending','job_success':states,'controller':controller}
+ ps=inventory();token=canonical_sha([{'rel':relative(ROOT,p),'bytes':p.stat().st_size,'mtime_ns':p.stat().st_mtime_ns,'json_sha':sha(p) if p.suffix=='.json' else None} for p in ps]);return {'status':'success_files_present','token':token,'owner':owner,'files':len(ps)}
+
+def online_pending():
+ for root in map(Path,P['online_priority_roots']):
+  for d in (root/'audit/observations').glob('step*'):
+   if (d/'request.json').exists() and (d/'native.json').exists() and not (d/'pose_complete.json').exists() and not (d/'response.json').exists():return True
+ return False
+
+def locked():
+ if online_pending():raise BlockingIOError('online pose priority')
+ f=Path('/data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock').open('a');fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ if online_pending():f.close();raise BlockingIOError('online pose priority')
+ return f
+
+def checked_archive():
+ owner=bound();gate=read(ARC/'RUN_GATE.json');require(gate['passed'] is True and gate['run_id']=='batch' and gate['owner']==owner,'batch gate identity');verify_source_archive(ROOT,ARC,owner,'batch');return owner
+
+def archive(token):
+ with locked():
+  owner=bound();require(snapshot()['token']==token,'completion token changed');require(not ARC.exists(),'partial archive requires explicit review')
+  for rel,r in read(ROOT/'deploy_manifest.json')['files'].items():require(sha(safe(ROOT,rel))==r['sha256'],'sealed producer changed '+rel)
+  files=inventory();inv={relative(ROOT,p):{'sha256':sha(p),'bytes':p.stat().st_size} for p in files};ARC.mkdir(parents=True)
+  for p in files:
+   dest=safe(ARC,relative(ROOT,p));dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest);require(sha(dest)==sha(p)==inv[relative(ROOT,p)]['sha256'],'archive changed during copy')
+  save(ARC/'FILE_INVENTORY.json',inv);save(ARC/'ADMIN_ADMISSION_AT_ARCHIVE.json',read(ROOT/'configs/admission.json'))
+  with (ARC/'verify.log').open('x') as log:
+   proc=subprocess.run([sys.executable,str(ROOT/'scripts/verify_batch.py'),'--output',str(ARC/'RUNTIME_GATE.json')],stdout=log,stderr=subprocess.STDOUT,env=dict(os.environ,CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1'),timeout=480)
+  require(proc.returncode==0 and read(ARC/'RUNTIME_GATE.json')['passed'] is True,'fixed batch runtime gate failed')
+  gate={'passed':True,'run_id':'batch','runs':[x['run_id'] for x in P['cases']],'owner':owner,'file_inventory_sha256':sha(ARC/'FILE_INVENTORY.json'),'runtime_gate_sha256':sha(ARC/'RUNTIME_GATE.json'),'cleanup_claim':False,'CPU_final_pending':True};save(ARC/'RUN_GATE.json',gate);verify_source_archive(ROOT,ARC,owner,'batch');return gate
+
+def source_pose(sourcevideo):
+ from scan_current_pose import valid_pose
+ folder=ARC/'source_pose';inventory=folder/'SOURCE_FILES.json'
+ if folder.exists():
+  require(inventory.exists(),'partial source pose needs review');files=read(inventory)
+  require({str(x.relative_to(folder)) for x in folder.rglob('*') if x.is_file()}==set(files)|{'SOURCE_FILES.json'},'source pose inventory differs')
+  for rel,d in files.items():require(sha(safe(folder,rel))==d,'source pose changed')
+ else:
+  folder.mkdir();cmd=[sys.executable,str(OLD/'scripts/pose_probe.py'),'--video',str(sourcevideo),'--output-dir',str(folder),'--threads','4','--stride','1']
+  with (folder/'pose.log').open('x') as log:proc=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,env=dict(os.environ,CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4',MKL_NUM_THREADS='4'),timeout=240)
+  require(proc.returncode==0,'source pose technical failure')
+  save(inventory,{str(x.relative_to(folder)):sha(x) for x in folder.rglob('*') if x.is_file()})
+ pose=folder/(sourcevideo.stem+'.pose.json');raw=valid_pose(pose);require(raw['video']['sha256']==sha(sourcevideo),'source pose input hash');return pose
+
+def evaluate_case(case):
+ from evaluate import fixed_metrics,common_regions,media_and_pixels
+ import timing_metrics as metrics
+ from scan_current_pose import observe,valid_pose
+ start=time.monotonic();run=case['run_id'];dest=ARC/'final'/run;require(not dest.exists(),'partial case evaluation requires review');dest.mkdir(parents=True)
+ for path,d in P['frozen_external'].items():require(sha(path)==d,'frozen metric/model changed '+path)
+ h=read(ARC/'logs'/f'{run}_history.json');video=output_file(ARC,h,run);g=read(ARC/'configs/graphs'/f'{run}.json');sourcevideo=ARC/'input'/g['22']['inputs']['file'];source=source_pose(sourcevideo)
+ cmd=[sys.executable,str(OLD/'scripts/pose_probe.py'),'--video',str(video),'--output-dir',str(dest/'pose'),'--threads','4','--stride','1']
+ for f in P['fixed_visual_frames']:cmd+=['--overlay-frame',str(f)]
+ with (dest/'pose.log').open('x') as log:proc=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,env=dict(os.environ,CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4',MKL_NUM_THREADS='4'),timeout=240)
+ require(proc.returncode==0,'technical pose failure');pose=dest/'pose'/(video.stem+'.pose.json');raw=valid_pose(pose);require(raw['video']['sha256']==sha(video) and raw['provenance']==read(source)['provenance'],'pose input/model/provenance changed')
+ poses={str(case['seed']):pose};fixed=fixed_metrics(source,poses,case['windows'],P['thresholds'],metrics);save(dest/'FIXED_WINDOWS.json',{'window_scope':case['window_scope'],'results':fixed})
+ scan=observe(source,pose,19);save(dest/'NATIVE_WHOLE_SCAN.json',scan);summary_scan=observer_summary(scan)
+ regions={'whole_clip':list(range(141))};regions.update({f'pregeneration_source_{a}_{b}':list(range(a,b+1)) for a,b in case['windows']})
+ for confidence in P['thresholds']:save(dest/f'COMMON_{confidence}.json',common_regions(source,poses,regions,confidence,metrics))
+ media_and_pixels({'SOURCE':sourcevideo,'NATIVE seed'+str(case['seed']):video},dest/'media',P['fixed_visual_frames'],P['fixed_clip_inclusive'])
+ router=read(ARC/'audit/router'/f'{run}.json');job=read(ARC/'logs'/f'{run}_job.json');summary={'passed':True,'run_id':run,'seed':case['seed'],'NFE':20,'actual_routed_blocks':router['routed_calls'],'video':str(video),'video_sha256':sha(video),'pose':str(pose),'pose_sha256':sha(pose),'source_pose':str(source),'source_pose_sha256':sha(source),'scan_summary':summary_scan,'job_wall_seconds':job['observed_unix']-job['submitted_unix'],'CPU_seconds':time.monotonic()-start,'quality_review':'pending identity/background/shape/limb/ghosting inspection; arm pose cannot evaluate kick fidelity','scope':P['scope'],'all_UNKNOWN_retained':True};save(dest/'SUMMARY.json',summary);return summary
+
+def two_seed_common():
+ from evaluate import common_regions,media_and_pixels
+ import timing_metrics as metrics
+ summaries=[read(ARC/'final'/case['run_id']/'SUMMARY.json') for case in P['cases']];source=Path(summaries[0]['source_pose']);require(all(x['source_pose_sha256']==sha(source) for x in summaries),'different source pose across seeds')
+ poses={str(x['seed']):Path(x['pose']) for x in summaries};folder=ARC/'two_seed';require(not folder.exists(),'partial two-seed comparison needs review');folder.mkdir()
+ for confidence in P['thresholds']:save(folder/f'COMMON_{confidence}.json',common_regions(source,poses,{'whole_clip':list(range(141))},confidence,metrics))
+ g=read(ARC/'configs/graphs'/f'{P["cases"][0]["run_id"]}.json');videos={'SOURCE':ARC/'input'/g['22']['inputs']['file']};videos.update({'NATIVE seed'+str(x['seed']):Path(x['video']) for x in summaries});media_and_pixels(videos,folder/'media',P['fixed_visual_frames'],P['fixed_clip_inclusive'])
+ save(folder/'SUMMARY.json',{'two_seeds_retained':True,'seeds':[x['seed'] for x in summaries],'evaluation_only':True,'independent_replicates':2,'scan_rows_not_independent_trials':True,'quality_review':'pending; no automatic success claim'})
+
+def validate_final():
+ checked_archive();done=read(ARC/'CPU_COMPLETE.json');require(done['passed'] is True and done['runs']==[x['run_id'] for x in P['cases']],'wrong completion')
+ inv=read(ARC/'FILE_INVENTORY.json');derived=read(ARC/'DERIVED_FILES.json');allowed={'FILE_INVENTORY.json','DERIVED_FILES.json'}|({'ADMIN_RELEASE_ACCEPTANCE.json'} if (ARC/'ADMIN_RELEASE_ACCEPTANCE.json').exists() else set());require(set(done['derived_outputs'])|{'CPU_COMPLETE.json'}==set(derived),'derived manifest omitted output')
+ require({str(p.relative_to(ARC)) for p in ARC.rglob('*') if p.is_file()}==set(inv)|set(derived)|allowed,'exact final inventory')
+ for rel,d in derived.items():require(sha(safe(ARC,rel))==d,'derived output changed '+rel)
+ return done
+
+def status():
+ if not ARC.exists():return {'phase':'archive'}
+ checked_archive()
+ if (ARC/'CPU_COMPLETE.json').exists():return {'phase':'complete','result':validate_final()}
+ for c in P['cases']:
+  p=ARC/'final'/c['run_id']/'CASE_FILES.json'
+  if not p.exists():return {'phase':'case','run':c['run_id']}
+  files=read(p);folder=p.parent;require({x.name for x in folder.iterdir()} >= {'SUMMARY.json','CASE_FILES.json'},'case incomplete')
+  require({str(x.relative_to(folder)) for x in folder.rglob('*') if x.is_file()}==set(files)|{'CASE_FILES.json'},'case exact inventory')
+  for rel,d in files.items():require(sha(safe(folder,rel))==d,'case result changed')
+ return {'phase':'finalize'}
+
+def main():
+ p=argparse.ArgumentParser();p.add_argument('mode',choices=['snapshot','archive','status','case','finalize']);p.add_argument('--token');p.add_argument('--run');a=p.parse_args()
+ for rel,d in read(HERE/'FREEZE.json')['files'].items():require(sha(HERE/rel)==d,'consumer changed')
+ if a.mode=='snapshot':result=snapshot()
+ elif a.mode=='archive':result=archive(a.token)
+ else:
+  with locked():
+   if a.mode=='status':result=status()
+   elif a.mode=='case':
+    checked_archive();cases=[x for x in P['cases'] if x['run_id']==a.run];require(len(cases)==1,'case outside fixed protocol');result=evaluate_case(cases[0]);dest=ARC/'final'/a.run;save(dest/'CASE_FILES.json',{str(x.relative_to(dest)):sha(x) for x in dest.rglob('*') if x.is_file()})
+   else:
+    require(status()['phase']=='finalize','not all cases complete');checked_archive();two_seed_common();original=read(ARC/'FILE_INVENTORY.json');paths=sorted(str(x.relative_to(ARC)) for x in ARC.rglob('*') if x.is_file() and str(x.relative_to(ARC)) not in original and x.name!='ADMIN_RELEASE_ACCEPTANCE.json');result={'passed':True,'runs':[x['run_id'] for x in P['cases']],'derived_outputs':paths,'no_GPU':True,'cleanup_claim':False};save(ARC/'CPU_COMPLETE.json',result);save(ARC/'DERIVED_FILES.json',{rel:sha(ARC/rel) for rel in paths+['CPU_COMPLETE.json']});validate_final()
+ print(json.dumps(result,allow_nan=False))
+if __name__=='__main__':
+ try:main()
+ except BlockingIOError:print('CPU_LOCK_BUSY_OR_ONLINE_PRIORITY');raise SystemExit(75)

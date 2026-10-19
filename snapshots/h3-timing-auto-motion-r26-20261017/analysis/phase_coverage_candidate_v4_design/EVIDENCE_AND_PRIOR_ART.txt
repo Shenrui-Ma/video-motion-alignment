@@ -1,0 +1,43 @@
+设计依据与相关工作核对，2026-10-17
+
+本轮建议只保留一个候选：METHOD_AND_RULES.txt中的成对profile比较图＋统一null witness。此前考虑过的缺测最坏界已在本文件中归档为未推进选择，未实现。
+
+A. 为什么先处理coverage
+
+v3真实63端点结果：v2/v3均只有6个端点各1窗，两版选择完全相同；R27 bad的20项全K0。全35,532名义骨槽只有9,976通过49lag共同支持；1,139,670个重叠区间中1,095,344首先因支持不足退出。顺序约束没有多窗可作用。继续修复单个旋转别名，无法为这些K0提供新增可见证据。
+
+优先coverage只表示实验顺序。遮挡局部反向窗口依然禁止把v3称为安全观察器。新观察器应把这一反例纳入全程安全表；成功恢复更多窗口后，再判断是否需要共享旋转等第二项修改。若新增窗口多数是形状别名，则coverage候选本身未达到目标，不能以窗口更多替代动作检测有效。
+
+B. 既有负结果如何改变本次设计
+
+1) robust_coverage_pilot/R26_REPORT_v2.txt：558个相关描述子，四种最坏缺测界均新增0个certified窗口，且分别撤销24/22/27/24个旧合格延后描述子。该批是3个final Native，没有加载R27历史轨迹。观测姿态被条件为正确，低支持缺失部分按最坏完成。报告和公式均已读取。
+2) R27 correspondence_ambiguity/NEGATIVE_PREREQUISITE.json：13个多正lag描述子，边界拒判后成对/共同支持均无原gain>.5；实测最大minimum gain约.258974。单改“只要方向同号就可接受”无法救回这些行。
+3) 新候选的差别：当前SO(2)先消去每骨常量角偏移，损失与旧位置/方向扫描不同；比较图评估完整49个lag对，不限旧13行；支持是源+d+e的交集，输出witness是源+d+5null的交集，覆盖改动直接落在49路共同支持这一已观测瓶颈。阈值继承现有profile方案，而非事后降低旧relative-gain阈值。完整63最终若仍K0，就保留为第二项负结果。
+
+C. 必须承认的先例（仅用原始论文/官方页面）
+
+1. Dvornik et al., Drop-DTW: Aligning Common Signal Between Sequences While Dropping Outliers, NeurIPS 2021.
+https://arxiv.org/abs/2108.11996
+https://papers.nips.cc/paper_files/paper/2021/file/729c68884bd359ade15d5f163166738a-Paper.pdf
+已核官方摘要及论文索引全文§3：在单个动态规划中联合匹配与丢弃离群元素，保留时间顺序，drop cost控制跳过行为。提供可微形式，亦可用固定特征做推理匹配。它处理部分序列无对应的核心思想已有明确先例。当前候选用可见性硬定义支持、对离散lag作配对比较，不优化drop代价或完整DTW对应路径。这个区别说明实现目标，不自动构成创新。
+
+2. Zhang, Zhu, Derpanis, From Actemes to Action: A Strongly-Supervised Representation for Detailed Action Understanding, ICCV 2013.
+https://openaccess.thecvf.com/content_iccv_2013/papers/Zhang_From_Actemes_to_2013_ICCV_paper.pdf
+官方索引全文§2.1：可见关键点的Procrustes空间对齐配合离散时间偏移和小范围时间缩放；距离同时含姿态、可见集合一致性（1-IoU）和速度差。其“局部、可见性、姿态nuisance、时序对齐”的组合已有先例。该工作依赖带可见性标注的监督acteme发现；本候选的用途是推理过程中决定是否有足够的局部方向证据。不能把只比较可见点或消除旋转单独列作新机制。
+
+3. Liu et al., Learning to Align Sequential Actions in the Wild (VAVA), CVPR 2022.
+https://arxiv.org/abs/2111.09301
+https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Learning_To_Align_Sequential_Actions_in_the_Wild_CVPR_2022_paper.pdf
+已核官方摘要及索引全文§3.2/3.3、§4.2：时间一致性与匹配最优性先验共同约束最优传输；virtual frame接收无匹配/背景帧，并训练表示。它清楚建立了“部分动作无对应需显式处理”的先例。当前候选针对顺序应保持的视频编辑，保留无法比较的lag为UNKNOWN；未引入virtual frame或训练表征。可见性阈值与UNKNOWN也不能因此被称为首创。
+
+检索限制：CVF直接PDF访问多次403，OpenReview直开出现校验页；上述具体段落来自同一官方PDF的可检索全文，arXiv摘要可直接打开。未借二手文章补充论文未核实的公式。本次仅3篇最直接文献，不能据此宣称“尚无人做过”。
+
+D. 数学归属和候选增量
+
+SO(2)/Procrustes profiling、共同支持比较、优劣图/未被支配集合、顺序最大权链均为成熟思想。成对支持随lag变化可能产生非传递性，本文选择显式拒判循环；这是有限工程选择，未声称新的排序理论。候选增量是把局部可见性条件下的相位比较与H3推理干预所需的方向/执行支持分开，并检验它能否恢复真实失败片段的自动检测。要成立为论文贡献，还需新源泛化、对照方法、干预效果与成本证据。
+
+E. 本候选防住什么，仍防不住什么
+
+两种lag按各自可见帧求平均再排名，会把样本组成差异误当成匹配优势。本文每条比较边的两侧帧、骨、权重完全相同，直接消除这一混淆；任何缺证据lag仍在图中。零时移且观测误差符合逐点容忍度时，lag0不能被排除，见方法第6节。
+
+但可见性相关的选择仍可使共同可见子集不代表完整动作；不同pair子集可冲突；姿态测错、真实动作本身的重复、较大形状编辑都可能制造别名。所有49lag扫描和多区间搜索共享大量帧，任何计数均为开发数据的描述。禁止把UNKNOWN减少或K增加写成准确率提高。

@@ -1,0 +1,74 @@
+{
+  "schema": "r47-native-two-source-v1",
+  "status": "CPU preparation; actual GPU admission by root",
+  "run_order": [
+    "r47_source_10264579_seed2026101701_native",
+    "r47_source_6980766_seed2026101701_native"
+  ],
+  "identities": [
+    "Sam Altman",
+    "Elon Musk"
+  ],
+  "source_selection_before_output": true,
+  "seed_each": 2026101701,
+  "sampling_recipe": "R43 exact Euler20/sigma12,audio3/CFG1/int8 base/native SDPA/noLoRA/defaultcache",
+  "source_normalization": "Original 4096x2160; nearest24fps before exact141frame trim; scale=-2:736 yields1396x736, crop=1312:736:42:0, setsar1. Equal physical time; source aspect preserved to even integer rounding.",
+  "selection_role": "development source screening, no held-out claim",
+  "geometry": [
+    1312,
+    736,
+    141,
+    24
+  ],
+  "postprocess": "raw generation output; all21AV endpoints per job",
+  "batch_behavior": "same cached service, exactly2 immutable jobs in declared sequence, separate conditioning manifests and source-specific noise cache IDs",
+  "no_repeat_sampling_selection": true,
+  "source_pose": "No new pose required for source preparation; source grids inspected before generation. Source events are descriptive, excluded from graph/controller inputs.",
+  "source_visibility": {
+    "10264579": "Upper body/arm transitions visible. Original source has bottom-edge cropped feet/lower legs and raised hands close to top edge; center crop removes only sides. Preserve UNKNOWN for affected limbs.",
+    "6980766": "Full body/arms visible in24grid samples; dim smoke, mask and smaller subject can affect matching."
+  },
+  "resource": {
+    "server": ".9",
+    "GPU": "GPU-REDACTED",
+    "port": 8509,
+    "parent_limits": ".9 max2 owned GPUs; exact peer admission by root; singleR47CUDAprocess",
+    "CPU_threads_max": 4,
+    "CPU_lock": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/cpu_evaluation_global.lock"
+  },
+  "measurements": [
+    "Setup/coldload and completejobwall",
+    "20NFE,20callbacks,1000attentionblocks,0routes perjob",
+    "20intermediatecapturetime and21snapshotbytes perjob",
+    "GPUpeak/step/resources logs andbackendactual dispatch",
+    "Same-index raw output/source for qualitativeandpose followup"
+  ],
+  "completion": "Root archive success then final close; task-owned PIDs verified exited and VRAM released; inherited bounded watchdog covers failures. GPU launch requires root exactPID gate.",
+  "limits": [
+    "No actual H3 output yet",
+    "Source license/age evidence limits in SOURCE_ONLY_SELECTION",
+    "2new source clips×one identity andone seed are screening observations, not population prevalence or method efficacy"
+  ],
+  "evaluation_fixed_windows": [
+    [
+      0,
+      31
+    ],
+    [
+      32,
+      63
+    ],
+    [
+      64,
+      95
+    ],
+    [
+      96,
+      127
+    ],
+    [
+      125,
+      140
+    ]
+  ]
+}

@@ -1,0 +1,1 @@
+R49 FlexiAct fixed-five Native pilot. CPU preparation only; formal deployment and CUDA require root admission. See design/PROTOCOL.json. Original captions are metadata only. No generation-driven sample selection.

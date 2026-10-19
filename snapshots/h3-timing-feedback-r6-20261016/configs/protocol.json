@@ -1,0 +1,82 @@
+{
+  "schema": "h3-feedback-pilot-v1",
+  "created_utc": "2026-10-16T05:11:52.947650+00:00",
+  "scope": "One known delayed sample causal feasibility; not independent reliable-observer validation or an established novel architecture",
+  "new_method_claim": false,
+  "prior_art": {
+    "path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/phase_observer_controller_review.txt",
+    "sha256": "9536ab03f13d441725803108f3164bfb1fa46da6e24a41f6f43feb505791a520",
+    "nearest": [
+      "FlowMotion",
+      "MotionEcho",
+      "MOFT",
+      "ReTime/SPF",
+      "TempoControl",
+      "DIAL"
+    ]
+  },
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "sampler": "Euler",
+    "NFE": 20,
+    "seed": 2026101311,
+    "Turbo": false
+  },
+  "event_frames_inclusive": [
+    50,
+    65
+  ],
+  "event_localization": "fixed manual source event; no automatic detection",
+  "target_bin_range_half_open": [
+    14,
+    20
+  ],
+  "target_nominal_physical_coverage_inclusive": [
+    47,
+    67
+  ],
+  "observation": "Frozen full-frame same_phase_gap5 signed cosine constant-lag search over [-24,24], per physical frame; 17-frame span",
+  "feedback_first_observation_callback_index": 5,
+  "feedback_first_possible_forward_index": 6,
+  "feedback_last_decision_callback_index": 18,
+  "feedback_last_possible_forward_index": 19,
+  "final_callback_index": 19,
+  "index_convention": "all indices zero-based; first observation after model call6, first actuation call7",
+  "state_machine": {
+    "accepted_lag_at_least4": "ON",
+    "accepted_lag_from_minus2_to2": "OFF_ALIGNED",
+    "accepted_lag_equal3": "keep prior active flag",
+    "accepted_lag_at_most_minus3": "OFF_ADVANCED; not an alignment success",
+    "unknown": "OFF_UNKNOWN; not an alignment success"
+  },
+  "actuator": "unchanged R2 mass_preserve alpha1 radius0 all50blocks, query window only",
+  "baseline_fixed_router_indices": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "causality": "Actual current x0 callback controls next forward only. No future snapshots or independent mass/native future trajectories. Early inactive prefix x0_step005 must match R4 native bitwise before first actuation.",
+  "tests": {
+    "primary": "same frozen four windows / pose thresholds .3 and .5; main50..65 lag <=2; unknown preserved",
+    "quality": "fixed frames55/86/105 plus same-support direction/amplitude and before/after/tail errors, compare R2 Full and native",
+    "dynamic": "actual on/off counts/reasons, recurrence after stopping; endpoint estimator compared to independent final pose",
+    "efficiency": "NFE remains20; include observer CPU copy/compute time and routing timing, sigma intervals, blocks. Fewer routed blocks alone not claimed inference speedup."
+  },
+  "paired_followup_control": "After feedback yields K active forwards, run a fixed K-call consecutive pulse starting zero-based6 if K>0 and different from realized schedule. This is post hoc paired budget matching; no placement optimization. Identical schedule should exactly replay and alone does not establish feedback advantage. Cross-instance schedule swap or normal cases later required.",
+  "limitations": [
+    "Frozen numerical degeneracy checks are not calibrated confidence.",
+    "Known delayed example, limited early pose truth, independent normal native early false-trigger evaluation outstanding.",
+    "gap5 lowpass may merge short actions and cannot prove omission detection.",
+    "One-instance success permits next validation; no universal method/paper claim."
+  ],
+  "resources": "Prefer .41 GPU1 when R4 process+postprocessing complete; one owned inference process. .9 running onlyR5 GPU2."
+}

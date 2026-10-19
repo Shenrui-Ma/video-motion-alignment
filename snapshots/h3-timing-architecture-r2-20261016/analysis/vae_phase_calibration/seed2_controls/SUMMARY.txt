@@ -1,0 +1,79 @@
+第二seed现成快照：冻结VAE相位观察器必要性检查
+
+结论：第二seed最终结果中，两方法在全部已有姿态可判格都符合固定两帧容差；没有把native的大延后读成近零，也没有把mass的近零读成明显延后。中间去噪阶段没有独立标签，不能判对错。两臂都已有背景保存失败，不能称正常编辑或整体成功。
+
+输入核验：29项通过。native/mass以及seed1的实际原RGB、VAE prepared frames/latents、Qwen presentation/embedding、token tags、prompt、目标shape、packed layout均一致，仅去掉tensor_file路径再比较。seed2两臂实际噪声一致、seed=2026101312。10份快照文件与远端SHA一致，视频/音频raw tensor与capturemanifest一致；参考rawSHA与每条真实conditioning匹配。
+
+规则未变：全画面主结果、原视频固定上身ROI敏感性；两个方法phase_mean_centering/same_phase_gap5；四窗50–65/69–81/80–92/99–111；±24物理帧搜索，原拒判阈值，所有49点曲线保留。每个step为0-based去噪调用，不是视频帧。
+
+全部读出（数组依次为四个固定窗口）：
+native/x0_step005: model_call=6, sigma_video=0.9729729890823364, sigma_audio=0.9000000551342989
+  primary_full_frame / phase_mean_centering: [16, 15, 16, 17]
+  primary_full_frame / same_phase_gap5: [14, 15, 14, 16]
+  sensitivity_source_upper_body / phase_mean_centering: [14, 14, 15, 17]
+  sensitivity_source_upper_body / same_phase_gap5: [13, 15, 14, 16]
+native/x0_step010: model_call=11, sigma_video=0.9230769276618958, sigma_audio=0.7500000121071936
+  primary_full_frame / phase_mean_centering: [16, 16, 17, 17]
+  primary_full_frame / same_phase_gap5: [15, 16, 15, 17]
+  sensitivity_source_upper_body / phase_mean_centering: [16, 16, 16, 17]
+  sensitivity_source_upper_body / same_phase_gap5: [14, 16, 15, 17]
+native/x0_step015: model_call=16, sigma_video=0.800000011920929, sigma_audio=0.5000000186264519
+  primary_full_frame / phase_mean_centering: [16, 16, 16, 17]
+  primary_full_frame / same_phase_gap5: [15, 16, 15, 16]
+  sensitivity_source_upper_body / phase_mean_centering: [16, 16, 16, 17]
+  sensitivity_source_upper_body / same_phase_gap5: [14, 16, 15, 17]
+native/x0_step019: model_call=20, sigma_video=0.3870967626571655, sigma_audio=0.13636363063715712
+  primary_full_frame / phase_mean_centering: [17, 16, 16, 17]
+  primary_full_frame / same_phase_gap5: [15, 16, 15, 16]
+  sensitivity_source_upper_body / phase_mean_centering: [16, 16, 16, 17]
+  sensitivity_source_upper_body / same_phase_gap5: [14, 16, 15, 17]
+native/sampler_final: model_call=20, sigma_video=0.0, sigma_audio=0.0
+  primary_full_frame / phase_mean_centering: [17, 16, 16, 17]
+  primary_full_frame / same_phase_gap5: [15, 16, 15, 16]
+  sensitivity_source_upper_body / phase_mean_centering: [16, 16, 16, 17]
+  sensitivity_source_upper_body / same_phase_gap5: [14, 16, 15, 17]
+mass/x0_step005: model_call=6, sigma_video=0.9729729890823364, sigma_audio=0.9000000551342989
+  primary_full_frame / phase_mean_centering: [-1, -1, -1, 0]
+  primary_full_frame / same_phase_gap5: [-2, -1, -2, -1]
+  sensitivity_source_upper_body / phase_mean_centering: [-1, -2, -2, 0]
+  sensitivity_source_upper_body / same_phase_gap5: [-3, -2, -2, -2]
+mass/x0_step010: model_call=11, sigma_video=0.9230769276618958, sigma_audio=0.7500000121071936
+  primary_full_frame / phase_mean_centering: [0, -1, -1, 0]
+  primary_full_frame / same_phase_gap5: [-2, -1, -2, -1]
+  sensitivity_source_upper_body / phase_mean_centering: [-1, -1, -1, 0]
+  sensitivity_source_upper_body / same_phase_gap5: [-2, -1, -2, -1]
+mass/x0_step015: model_call=16, sigma_video=0.800000011920929, sigma_audio=0.5000000186264519
+  primary_full_frame / phase_mean_centering: [0, -1, -1, 0]
+  primary_full_frame / same_phase_gap5: [-2, -1, -2, -1]
+  sensitivity_source_upper_body / phase_mean_centering: [-1, -1, -1, 0]
+  sensitivity_source_upper_body / same_phase_gap5: [-2, -1, -2, -1]
+mass/x0_step019: model_call=20, sigma_video=0.3870967626571655, sigma_audio=0.13636363063715712
+  primary_full_frame / phase_mean_centering: [0, -1, -1, 0]
+  primary_full_frame / same_phase_gap5: [-2, -1, -2, -1]
+  sensitivity_source_upper_body / phase_mean_centering: [-1, -1, -1, 0]
+  sensitivity_source_upper_body / same_phase_gap5: [-2, -1, -2, -1]
+mass/sampler_final: model_call=20, sigma_video=0.0, sigma_audio=0.0
+  primary_full_frame / phase_mean_centering: [0, -1, -1, 0]
+  primary_full_frame / same_phase_gap5: [-2, -1, -2, -1]
+  sensitivity_source_upper_body / phase_mean_centering: [-1, -1, -1, 0]
+  sensitivity_source_upper_body / same_phase_gap5: [-2, -1, -2, -1]
+
+最终pose原表（.3/.5置信度；不是两个独立实验）：
+native方向：[15,15,16,17] / [15,unknown,16,17]；mass方向：[-1,-2,-1,-1] / [-1,unknown,-1,-1]。
+每方法每ROI：最终严格双阈值可判6/8窗，6/6在两帧内；单阈值已知14/16格，14/14在两帧内。第二窗的高阈值继续unknown，不用低阈值填补。
+全部160个latent窗口均被原退化门接受，无端点clamp或搜索边界。不能据此声称置信度充分；本次没有形成新的拒判反例。
+
+中间阶段边界：
+全部128个中间格没有相同checkpoint的独立pose标签。native持续读出约+13到+17，mass全画面约−2到0，这只是轨迹读出。不能拿最终pose作为这些时刻真值。
+一个需保留的例外：mass step005的上身ROI/gap5在主窗读到−3（超出near-zero±2），全画面同方法为−2；当前没有早期标签，不能说ROI误报已被证实，也不能事后换ROI避免它。
+
+质量混杂：
+已有独立视觉审查确认，两臂均把大片白色窗帘/墙面改成黑色。native已坏，不能说mass新引入了背景泄漏。即使时间相位正确，单一动作读出也不能判断编辑身份、背景、画质、手指或整体连贯性。
+这是同一素材的第二随机种子，不是新场景。step019与final来自相邻端点，不是独立样本。5bin差分仍跨17帧，不能据本结果证明短动作粒度；去相位均值也仍可能删真实周期运动。
+
+最小补证建议（未启动任何推理）：
+最便宜的正常最终态控制是复用已知动作基本正常的1024 native MP4，后续单独VAE重编码 source和output并同时保留原RGB pose/quality判断；这只验证重新编码后的最终态，不能替代真实采样x0，不可与本次snapshot精度无区别合并。
+若必须检验早期误触发，最少需要一次预先固定的新素材native运行，被动保存同样的step005/010/015/019/final。先只根据源视频定义窗口/ROI/geometry，再执行一次固定seed；不根据生成结果抽卡筛选。独立pose与背景质量通过且lag近零后才构成正常控制。1024旧素材重放也可作为廉价必要检查，但仍不是独立场景。
+新增正常例应在计算latent观察器前冻结评估；同时保留失败/延后结果，不能只保留恰好正常的片子。不要因为本次全部接受就调margin或改方向阈值。
+
+验证：3项新CPU provenance契约测试通过；复用冻结方法/输入校验。计算12.036秒，CUDA_initialized=False。无GPU、无新模型、无VAE重编码、无DWPose调用。

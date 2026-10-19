@@ -1,0 +1,163 @@
+H3 语义采样历史盘点（只读、零 GPU）
+核查时间：2026-10-16T16:53:42.090684+00:00
+
+结论：语义取帧相位已经实际成功运行，已有完整2×2因子诊断；不能重复登记为未做的 phase0/6 候选。更高 semantic FPS 的成功运行在本次本地范围内未发现。
+
+一、已找到的真实执行
+项目：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+远程历史根：/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0
+固定 source05 / Sam / seed2026101311，1312×736×141，24fps，20 Euler，无Turbo。取帧率始终2fps，12帧/6个语义图像对。
+A=P0/T0 原始 native；B=P6/T6 同时改变语义图像与呈现时间；C=P0/T6 仅改变呈现时间；D=P6/T0 仅改变语义图像。
+B/C/D三条已核：actual history status_str=success 且completed=true、实际prompt图逐项等保存config、实际qwen_presentation中的索引/两套时间、141帧视频文件SHA与已存pose元数据一致。不是只看到计划/CPU测试/编码门。
+P6实际抽取 [6,18,30,42,54,66,78,90,102,114,126,138]，比P0=[0,12,...132]偏移6/24=.25秒。T6原始时间戳同样为[.25,.75,...5.75]；两帧合并后文字一位小数格式化使显示标签从[.2,1.2,...5.2]到[.5,1.5,...5.5]，显示差为.3秒。两者不能混当同一个数。
+
+二、已有评价（读取旧JSON，不重新算pose）
+主窗50–65，arm_direction lag（阈值0.3 / 0.5）：
+ A=P0/T0  13 / 13
+ B=P6/T6   5 /  5
+ C=P0/T6  13 / 13
+ D=P6/T0  13 / 13
+wrist_relative lag依次为A 13/12、B 5/5、C 13/13、D 13/12；不可把方向的“双阈值一致”泛化为所有特征。
+预登记因子比较：timestamp在P0为C−A=0、在P6为B−D=−8；pixels在T0为D−A=0、在T6为B−C=−8（上述direction两阈值均相同）。因此两个“跨另一因子均成立”的主效应门均失败；只支持该已选 source/seed 的条件性交互。B减轻延后，但仍残留5帧，不能称修复至正常，也不能归因为普遍Qwen抽帧遗漏/错误时钟。
+原协议已说明不因阴性自动追加FPS/phase扫描。四臂仅一个开发样例，文字修改也改变Qwen上下文表示；不提供新架构或泛化成功证明。其他窗的unknown、共同支持与质量限制保留在完整结果中，本文未替换这些格。
+
+GPU0同runtime的native重放已经完成：实际条件/噪声、5份video+audio端点和141帧decoded RGB与原GPU2 native全部逐位一致；该门排除这一次设备/服务路径差异解释，属于已存重放证据，不算额外有效性样例。
+
+三、为何最初仅按phase_frames查会漏掉
+H3SemanticClockReference将一个phase拆成pixel_phase_frames和label_phase_frames。标准H3EventAudit中的phase_frames仍全为0，不能据此推出所有语义取帧都为0。已有phase_plus12/minus12/R17等名称另属于DiT RoPE；它们不构成这次语义因子的证据。
+实际实现：semantic_runtime_staged/extensions/H3SemanticClock/__init__.py:49–66 clock_plan固定2fps与P/T=(0, 6)，:95–111分别改视频data与timestamps；:173–204逐项核dense VAE、token数量/拓扑、tags与packed位置等。只有12样本相同不足以保证token数，旧代码和accepted门另有实际校验。
+
+四、全项目范围与未发现的部分
+本次对 /Users/researcher/DevProjects 下目录名含h3的61项目进行rg --hidden --no-ignore枚举，排除.git/.venv*/venv/site-packages/node_modules；共7026 JSON，792份含采样字段，均成功解析。递归字段计数（包含复制/配置/schema旁的数值，不能当独立实验数）：
+ label_phase_frames=0: 29
+ label_phase_frames=6: 32
+ phase_frames=0: 804
+ pixel_phase_frames=0: 29
+ pixel_phase_frames=6: 32
+ semantic_fps=2: 827
+semantic_fps数值全部为2，没有找到改变语义FPS的实际成功图/audit。原生phase_frames全0的事实只适用于该字段；新的P/T字段及真实sample_indices证明上面的相位实验已经完成。
+228份history JSON内，标准字段显式2/0的成功记录144条，去重106个prompt UUID；另18条成功记录不含这两个“精确字段”，其中包含SemanticClock运行，因此不能把它们笼统记成未审默认值。183份实际qwen_presentation审计包含标准及P/T两种schema。本次未重跑任何模型或pose，也未登录服务器扫描未镜像的历史；不声称所有远程更早实验均已穷尽。
+20261013 configs/preregistered_plan.json:128–132已登记higher semantic FPS / phase intervention。本次新增发现是20261016三条完整生成及实际评价，而非仅那份旧计划。
+
+五、可直接复核的B/C/D绑定
+
+B s05_semantic_b_p6_t6，P6/T6，prompt UUID 709485f5-5b7b-4141-b08a-a8216626b337
+ history: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/logs/s05_semantic_b_p6_t6_history.json
+ SHA f9a381382a173aade770da4469ca439fbc5e23a1ba4933c4106312d629eef8ef
+ graph: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/semantic_runtime_staged/configs/s05_semantic_b_p6_t6.json
+ SHA 4b8f03fe607602e8015f9512ed28c2caeb0383af1c12dca3b2761fce09e7323e
+ audit: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_b_p6_t6_conditioning.json
+ SHA 5f465e143f0289bda03d9b4d4870d1d5ab8d2b212cea02c62828ba9f25fe93f9
+ acceptance: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_b_p6_t6_condition_accepted.json
+ SHA ff5a818c4f745879f2a666b99148d6ffa81656f7520abc4e22ef101f4564ce8b
+ output: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_semantic_b_p6_t6_00001_.mp4
+ SHA 6f243b4eabbe93048e755df82f474481bf92e85c091178ca558cdc008cee5359
+
+C s05_semantic_c_p0_t6，P0/T6，prompt UUID ddb189ee-ad5d-4bd1-8e63-6f5b83b25096
+ history: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/logs/s05_semantic_c_p0_t6_history.json
+ SHA ff69dcd6c9159da314624e6e00a2f71a567710ec7d361e0993706db92a536059
+ graph: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/semantic_runtime_staged/configs/s05_semantic_c_p0_t6.json
+ SHA 64fb3ce33bcc1af78ff6a94be672bcf9b823c47824f74b1a405e3d329c4acbbb
+ audit: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_c_p0_t6_conditioning.json
+ SHA 7b6700a85071a9a6aab4c4c7893eb2a998d2c40e664de9df3edeb41922c76e6e
+ acceptance: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_c_p0_t6_condition_accepted.json
+ SHA f3a7f6c5848b0638fef68c8a0e2632ee852b999f4e5564aa388406f376eadd8a
+ output: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_semantic_c_p0_t6_00001_.mp4
+ SHA f4f292674d86096f0a4e0e2c55f7240fc792cea1a79116dfa70acce675d15013
+
+D s05_semantic_d_p6_t0，P6/T0，prompt UUID 08ad9fcc-fb06-4598-b512-1b87b885a4de
+ history: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/logs/s05_semantic_d_p6_t0_history.json
+ SHA 8ede0c16cb9d40dd1177a0722ba720d1ba6078b555e164ac2b2c18e45417acb1
+ graph: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/semantic_runtime_staged/configs/s05_semantic_d_p6_t0.json
+ SHA 7db9f8296023322e2fa21a39553a80706d67b1dc5c728091f766e837490ebf3b
+ audit: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_d_p6_t0_conditioning.json
+ SHA 85be230a11594599fa3bc86d35b399b15ee1d0711e3535e69b33d76f98d3d2e8
+ acceptance: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/semantic_runtime_evidence/audit/s05_semantic_d_p6_t0_condition_accepted.json
+ SHA 93dbb85806f7149dac44407c432cafdfbca88e5aeb2927a52dded7025332bdf5
+ output: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_semantic_d_p6_t0_00001_.mp4
+ SHA a70bb6f9e4e17305fbb6df51103d85e7cae1a25193d2d79e840ea03ac58fb411
+
+六、后续补齐全局历史的入口（应先读现有总结果再立新候选）
+总结果含24次正式推理及计数边界: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/review/RESULTS.txt
+ SHA 915cf59ef26c92c8abf0e9f1fcf925cc4fef99e66cc68f391e6a3338ae9177c3
+全22指标条件索引: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/round_metrics_index.json
+ SHA 3f484f3f7a5173915ec7736a3ff67b4c2401a10631c89fb621de3b75d5e318d6
+完整pose总结/unknown/质量限制: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/ROUND_FINAL_REVIEW.md
+ SHA 1a76b672405fa9477e46e434966c2422c43f6f955185df73835f285a7e4d3b96
+语义因子完整结果: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/semantic_factorial/full_factorial_complete/summary.json
+ SHA 052f0dc7751e1605c187ff25b49cf3bbbbbf73bcf087c2537e3eaef1e319d13d
+语义因子预登记: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/configs/semantic_clock_diagnostic_protocol.json
+ SHA 3f57d034eda1fb8a204fc5159ec043529c0833404cce395d89a6b876e656dda5
+语义native重放已完成门: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/replication/semantic_gpu0_native_replay_gate.json
+ SHA 824d0355c07f926fdde7603d3db2b102b14db968a1abb34331c8073a38488357
+方法与复现路径: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/METHODS_AND_REPRODUCTION.txt
+ SHA 98a303d60aba7e8d780c32afb83dcbce1ef3ce3b2a8b180ca71cd9cf772c3d8e
+最终创新主张审查: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/literature/final_claim_review.txt
+ SHA 7e542f138374af961d0ab24529d321a96c8381ca9b739db9354626921f36aa71
+下一候选的旧审查: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/literature/next_candidate_gate.txt
+ SHA 17afd0f1ee0f35460e0a63e025fdd89521c0230c5c8fb682d465ed2f55547a95
+
+全文覆盖项目名：
+comfyui-h3-behavior-20261011
+comfyui-h3-codec-20261011
+comfyui-h3-research-20261008
+diffsynth-h3-next-study-20261013
+diffsynth-h3-pr-study-20261013
+h3-background-leakage-20261007
+h3-backup-allocation-20261013
+h3-black-english-showcase-20261013
+h3-black-english-showcase-all-20261013
+h3-event-emphasis-factor3-20261014
+h3-event-emphasis-pilot-20261013
+h3-event-emphasis-silverwolf-20261014
+h3-fast-motion-followup-20261013
+h3-fast-screen-20261008
+h3-five-second-share-20261015
+h3-four-full-comparisons-20261015
+h3-four-pair-evidence-review-20261015
+h3-four-short-comparisons-20261015
+h3-motion-timing-audit-20261013
+h3-motion-timing-literature-20261015
+h3-musk-bedside-pair-20261014
+h3-musk-real-dance-pair-20261014
+h3-previous-present-showcase-20261013
+h3-real-event-triplets-20261013
+h3-research-presentation-20261016
+h3-sam-real-dance-batch-20261014
+h3-sam-real-dance-batch-20261015
+h3-server-maintenance-inventory-20261013
+h3-short-event-pilot-20261013
+h3-short-event-switching-20261013
+h3-silverwolf-baseline-20261014
+h3-square-trios-20261015
+h3-timing-architecture-r2-20261016
+h3-timing-autoresearch-20261016
+h3-timing-coarse-to-pose-r21-20261016
+h3-timing-counterfactual-r10-20261016
+h3-timing-cross-source-feedback-r23-20261016
+h3-timing-cross-source-r20-host41-20261016
+h3-timing-cross-source-r20-host9-20261016
+h3-timing-feedback-r6-20261016
+h3-timing-fixed-stop-r18-20261016
+h3-timing-fresh-source-r24-20261016
+h3-timing-hold-control-r9-20261016
+h3-timing-local-route-r16-20261016
+h3-timing-native-observer-r12-20261016
+h3-timing-native-screen-r14-20261016
+h3-timing-native-screen-r14-host9-20261016
+h3-timing-normal-feedback-r8-20261016
+h3-timing-normal-fixed-r22-20261016
+h3-timing-normal-replay-r7-20261016
+h3-timing-one-step-fork-r13-20261016
+h3-timing-phase-rope-r17-20261016
+h3-timing-pose-feedback-r19-20261016
+h3-timing-pose-observer-r15-20261016
+h3-timing-schedule-controls-r11-20261016
+h3-timing-softband-r5-20261016
+h3-timing-spatial-r3-20261016
+h3-timing-target-path-r4-20261016
+h3-triplet-scale-check-20261013
+h3_blur_diagnosis
+h3_seg2_diagnosis
+
+建议记录状态：semantic pixel/timestamp phase factorial = ALREADY_EXECUTED_ONE_DEVELOPMENT_CASE_INTERACTION_ONLY；higher semantic FPS = NO_SUCCESS_FOUND_IN_LOCAL_61_PROJECT_INVENTORY。没有启动/修改R24服务或队列。

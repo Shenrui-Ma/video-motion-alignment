@@ -1,0 +1,21 @@
+R67 fitness：参考 VAE 编码/回解诊断完成
+
+主要结果
+实际参考 RGB→已保存 clean VAE latent→原生 VAE decode，在前段0–1.875秒的双臂、左臂、右臂上，confidence0.3和0.5均为0ms时差，观测覆盖100%。双臂同帧姿态误差0.0053558。中段2–3.875秒也全部0ms、100%覆盖。
+全片0–6秒双臂在两个阈值均0ms，覆盖94.90%/89.80%。尾段4–6秒右臂在两阈值都UNKNOWN，全片右臂及尾段双臂在0.5也UNKNOWN，原因是姿态测量覆盖不足；这些结果保留在PHYSICAL.json中。
+原始采样间隔125ms。0ms表示当前离散测量选中同一原始采样时刻，不能视作亚帧级零误差。
+
+视觉核查
+已查看全部49个原始采样时刻的同帧图。抬手、头顶保持、双掌合拢后下降阶段均贴近原参考。没有出现此前普通编辑可见的约375ms抬臂延后。头顶部分手腕会出画，限制精细手指/接触的判断。
+六时刻总图：media/six_times_0_to_2p5s.png；全49图分7页保留。展示使用实际preparedRGB，未靠时间平移取得对齐。
+
+科学含义
+这条fitness参考表示及现有decoder能重建前2秒抬臂时间信息。R65普通编辑和固定引导仍存在的约375ms延后，因而更需要检查后续生成如何使用参考，而不能简单解释成VAE已把此动作时间抹去。本诊断未单独定位哪个DiT层或Attention成分。
+
+实际绑定
+输入取自R65 .41实际参考编码；直接读取 VAE.encode 返回的FP32 [1,24,47,48,72]，随后在.9以相同core代码和权重、FP16原生VAEdecode回解。VAE自身处理channel反归一化，外部没有重复改尺度。
+原prepared158、有效147、原49样本和相同三份回解全部用RGB无损编码并逐帧回读。两份158帧视频均新跑相同DWPose，评分复用已冻结原49时刻、固定窗口、双阈值。
+实际decode39.56s，整个decode+导出进程93.84s，peakreserved5.57GiB，fallback0次。root已核PID26687及其CUDA分配退出。第一次启动因bootstrap导入路径失败而未开始CUDA；原失败保留，attempt2用了独立已CPU实测的启动wrapper。
+源encode来自.41 Torch2.11，decode来自.9 Torch2.5.1，此跨runtime事实随证据保存。
+
+完整数值：../fitness_attempt2/PHYSICAL.json；实际解码记录：../../outputs/fitness_attempt2/RESULT.json；输入/输出hash：ACTUAL_BINDING.json。

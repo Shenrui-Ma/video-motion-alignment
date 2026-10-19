@@ -1,0 +1,27 @@
+R24 FIRST-SEED NORMAL-CASE EARLY GAP5 CHECK
+
+Actual CPU calculation seconds: 7.192227; CUDA initialized: False.
+PROTOCOL SHA a007b7ba3b9659db2dab586d5667326ae774d63a29ea075a4d2efa1ffb7503ef
+RESULTS SHA da25a713e4186baed3e0579337c236edb41e31b4eb62ca086f627aae1a0b3f82
+
+Frozen R20 pure functions and rejection rules reused byte-exact. Both current R24 actual native index005 x0 and each current actual clean reference were verified by file SHA, tensor SHA, metadata, completed run gate, and actual conditioning. No old source tensor used. FP32 saved tensors analyzed in FP64 without rescaling. Forty-two bins span141 RGB frames via1/4/4/4/4 widths; gap5 spans17 physical frames.
+
+fresh_a
+Actual x0 file SHA 646e0685b296f96c6617bc8126f9b016fd5d1a87419257c3cfce66a7d0cadb36
+Reference file SHA ffdfb0c6f420ecef6680a8af25cd549e66078bc50dd6c1b7d19a00038dd4c3bc
+Window [44, 61]: accepted=True; lag=-1; coverage=1.0; clamp=0; error=0.485484751; separated margin=0.152863651; reject=[]; would trigger lag>=4 start=False.
+Window [17, 34]: accepted=True; lag=0; coverage=1.0; clamp=0; error=0.419370050; separated margin=0.143811641; reject=[]; would trigger lag>=4 start=False.
+Window [82, 99]: accepted=True; lag=-1; coverage=1.0; clamp=0; error=0.535618789; separated margin=0.118238872; reject=[]; would trigger lag>=4 start=False.
+
+fresh_b
+Actual x0 file SHA 3ffffe813889618d344bfccdbce51970fe1c5146e3bdcf0594e4401b141a03bb
+Reference file SHA 238df3828c41793ad6fab9f57afd178467ac2ec0b47ddf700495432a5f76c15e
+Window [64, 81]: accepted=True; lag=-1; coverage=1.0; clamp=0; error=0.499941161; separated margin=0.141700284; reject=[]; would trigger lag>=4 start=False.
+Window [23, 40]: accepted=True; lag=0; coverage=1.0; clamp=0; error=0.349810005; separated margin=0.133121634; reject=[]; would trigger lag>=4 start=False.
+Window [103, 120]: accepted=True; lag=-1; coverage=1.0; clamp=0; error=0.462181140; separated margin=0.176851601; reject=[]; would trigger lag>=4 start=False.
+
+Result: both A and B read −1/0/−1 across their three preselected windows. All six have full18-frame nonzero support, no clamped winner, and pass the original rejection rules. Neither primary window would trigger the existing positive-lag>=4 start rule. This supplies two new-source first-seed normal-case observations of non-triggering, rather than a new observer design or a measured overall false-positive rate.
+
+Final pose main windows were direction/wrist−1/−1. Those are final outputs, not independent index005 pose truth. Current evidence does not prove exact early lag accuracy,2-frame stopping accuracy, robustness on all cases, or causal preservation under an online policy. Coarse gap5 still averages17frames and can hide short events. All49 lag scores and rejection fields are preserved for each window; no new thresholds/ROI/windows were fitted.
+
+No GPU inference/decoding/encoding and no producer/runtime changes. Shared CPU locks were acquired Mac then remote and released on exit. Full/postrun consumer continues independently and has priority.

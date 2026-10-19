@@ -1,0 +1,30 @@
+仅root在 .41完整清理当前owned推理进程、确认GPU1空闲后执行。不要在 .9运行。
+
+部署只需此analysis/vae_temporal_controls目录，不修改任何runtime或model。
+以下是 .41 的既有路径。condition/cache应来自实际r2_s05_native；若不存在，不换成未经核验的其他机器缓存。
+
+先CPU输入校验（输出目录单独占用，真正执行必须另一个新目录）：
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 \
+/data3/researcher/ComfyUI/.venv/bin/python \
+/data3/researcher/h3_runs/timing_architecture_r2_20261016/analysis/vae_temporal_controls/encode_controls.py \
+--condition /data3/researcher/h3_runs/timing_architecture_r2_20261016/audit/r2_s05_native_conditioning.json \
+--audit-root /data3/researcher/h3_runs/timing_architecture_r2_20261016/audit \
+--output-dir /data3/researcher/h3_runs/timing_architecture_r2_20261016/analysis/vae_temporal_controls/input_precheck
+
+四臂顺序VAE编码+CPU分析：
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 \
+PYTHONPATH=/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps \
+timeout -k 30s 1200s /data3/researcher/ComfyUI/.venv/bin/python \
+/data3/researcher/h3_runs/timing_architecture_r2_20261016/analysis/vae_temporal_controls/encode_controls.py \
+--execute \
+--condition /data3/researcher/h3_runs/timing_architecture_r2_20261016/audit/r2_s05_native_conditioning.json \
+--audit-root /data3/researcher/h3_runs/timing_architecture_r2_20261016/audit \
+--core /data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI \
+--runtime-deps /data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps \
+--bootstrap /data3/researcher/h3_runs/timing_architecture_r2_20261016/scripts/compatibility_bootstrap.py \
+--vae /data3/researcher/ComfyUI-H3/models/vae/minimax_h3_video_vae_fp16.safetensors \
+--gpu-uuid GPU-REDACTED \
+--output-dir /data3/researcher/h3_runs/timing_architecture_r2_20261016/analysis/vae_temporal_controls/run1
+
+首次运行前检查三个actual core SHA，尤其comfy/sd.py此前不在9文件runtime对照名单里，本脚本新增严格检查。若拒绝，先审查实际源码差异，不删guard绕过。
+输出四个小latent .pt、execution.json和RESULTS.json；不输出视频、不做pose/网页。

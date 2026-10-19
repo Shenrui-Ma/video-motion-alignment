@@ -1,0 +1,1935 @@
+{
+  "schema": "h3-event-audit-v1",
+  "run_id": "r20_s07_native",
+  "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+  "input_video": {
+    "shape": [
+      141,
+      736,
+      1312,
+      3
+    ],
+    "dtype": "torch.float32",
+    "sha256": "3d6a128eff3138e6f448460e10a60c2361850179bfc8e3feeb0c8afe481c17bf"
+  },
+  "native_vae_calls": [
+    {
+      "prepared_frames": {
+        "shape": [
+          1,
+          1216,
+          800,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087",
+        "tensor_file": "tensor_blobs/611c77971c693b7b82d2a5792a77b9e21ee7c9915f3bdb160c7db85a5e2d891a.pt"
+      },
+      "latent": {
+        "shape": [
+          1,
+          24,
+          1,
+          76,
+          50
+        ],
+        "dtype": "torch.float32",
+        "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5",
+        "tensor_file": "tensor_blobs/8340480c005b362d7a7ef8c3b6215d46985705fcba4f284ab8942fcc776d1d02.pt"
+      }
+    },
+    {
+      "prepared_frames": {
+        "shape": [
+          141,
+          736,
+          1312,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "8ca1262bdc1972241623868d517380343a44f51e3b3b60c9a6b15188f828afc8",
+        "tensor_file": "tensor_blobs/0b4e5e0679200f6de71dde11fc41092a0b0d7e07af1029e4db7b13ca1b637e60.pt"
+      },
+      "latent": {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "82d1e8f70a38ee0c5d7e447c3c9919ed5288e49f82677d3d3835bd7b7a1c4db3",
+        "tensor_file": "tensor_blobs/c7e7fceee07ae7554907dbdb917ff80a06d13cd52f427e0ff116e8ccd9211d4c.pt"
+      }
+    }
+  ],
+  "qwen_presentation": [
+    {
+      "type": "image",
+      "data": {
+        "tensor": {
+          "shape": [
+            1,
+            1216,
+            800,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087"
+        }
+      }
+    },
+    {
+      "type": "video",
+      "sampling": {
+        "source_fps": 24,
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "sample_indices": [
+          0,
+          12,
+          24,
+          36,
+          48,
+          60,
+          72,
+          84,
+          96,
+          108,
+          120,
+          132
+        ],
+        "sample_timestamps_seconds": [
+          0.0,
+          0.5,
+          1.0,
+          1.5,
+          2.0,
+          2.5,
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5
+        ],
+        "temporal_blocks": [
+          {
+            "source_frames": [
+              0,
+              12
+            ],
+            "timestamp_seconds": 0.25,
+            "rendered_timestamp": "<0.2 seconds>"
+          },
+          {
+            "source_frames": [
+              24,
+              36
+            ],
+            "timestamp_seconds": 1.25,
+            "rendered_timestamp": "<1.2 seconds>"
+          },
+          {
+            "source_frames": [
+              48,
+              60
+            ],
+            "timestamp_seconds": 2.25,
+            "rendered_timestamp": "<2.2 seconds>"
+          },
+          {
+            "source_frames": [
+              72,
+              84
+            ],
+            "timestamp_seconds": 3.25,
+            "rendered_timestamp": "<3.2 seconds>"
+          },
+          {
+            "source_frames": [
+              96,
+              108
+            ],
+            "timestamp_seconds": 4.25,
+            "rendered_timestamp": "<4.2 seconds>"
+          },
+          {
+            "source_frames": [
+              120,
+              132
+            ],
+            "timestamp_seconds": 5.25,
+            "rendered_timestamp": "<5.2 seconds>"
+          }
+        ]
+      },
+      "actual_sampled_frames": {
+        "shape": [
+          12,
+          736,
+          1312,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "dd7b23d58043fcd3d9276fc159f7b1dccc4e97763835b7d1658b22bace18da7a",
+        "tensor_file": "tensor_blobs/d90ad7f78a0b30e83c5d13457ccd7159e01783b6d0f3465cfec148498669941b.pt"
+      }
+    }
+  ],
+  "tokenization_before_vision_expansion": {
+    "qwen3vl_32b": [
+      [
+        [
+          21604,
+          1.0
+        ],
+        [
+          3826,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  1,
+                  1216,
+                  800,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087"
+              }
+            },
+            "original_type": "image"
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          10724,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          15,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  736,
+                  1312,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "4d461544d3292e3bf6ce58426c93746a46ba0214f52a0eafb990f0661d416718"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  736,
+                  1312,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "78f81c7436988347a2b4e0416477b9827c21e33066afb5a7e16d839b9d655528"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  736,
+                  1312,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "bb0339c6f7a2006d16200444c3e61019396971596cf2afe689fec19e8d2c74aa"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          18,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  736,
+                  1312,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "1613d595608771dfa18b0b3415e88aa19c961f68542a233f6904911e1dc269d4"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          19,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  736,
+                  1312,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "533fda9add13a24bb9f8787bcb9414bb3b34dd5e8a7e54bab377b7ffee0ee2ca"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          20,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          17,
+          1.0
+        ],
+        [
+          6486,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          151652,
+          1.0
+        ],
+        [
+          {
+            "type": "image",
+            "data": {
+              "tensor": {
+                "shape": [
+                  2,
+                  736,
+                  1312,
+                  3
+                ],
+                "dtype": "torch.float32",
+                "sha256": "5a71f6a7b39cf3c7e2c6cfcbdfb1029811bc9310bcc98048f979fdde6ce3519e"
+              }
+            },
+            "original_type": "image",
+            "minimax_video_block": true
+          },
+          1.0
+        ],
+        [
+          151653,
+          1.0
+        ],
+        [
+          11501,
+          1.0
+        ],
+        [
+          84881,
+          1.0
+        ],
+        [
+          510,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          13019,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          8224,
+          1.0
+        ],
+        [
+          23682,
+          1.0
+        ],
+        [
+          1515,
+          1.0
+        ],
+        [
+          438,
+          1.0
+        ],
+        [
+          6839,
+          1.0
+        ],
+        [
+          304,
+          1.0
+        ],
+        [
+          366,
+          1.0
+        ],
+        [
+          24669,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          65795,
+          1.0
+        ],
+        [
+          990,
+          1.0
+        ],
+        [
+          419,
+          1.0
+        ],
+        [
+          33033,
+          1.0
+        ],
+        [
+          1172,
+          1.0
+        ],
+        [
+          369,
+          1.0
+        ],
+        [
+          9569,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          17438,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          448,
+          1.0
+        ],
+        [
+          17040,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          6168,
+          1.0
+        ],
+        [
+          504,
+          1.0
+        ],
+        [
+          366,
+          1.0
+        ],
+        [
+          10724,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          29816,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          10724,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          576,
+          1.0
+        ],
+        [
+          4583,
+          1.0
+        ],
+        [
+          2530,
+          1.0
+        ],
+        [
+          2766,
+          1.0
+        ],
+        [
+          311,
+          1.0
+        ],
+        [
+          4499,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          5785,
+          1.0
+        ],
+        [
+          369,
+          1.0
+        ],
+        [
+          678,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          11379,
+          1.0
+        ],
+        [
+          624,
+          1.0
+        ],
+        [
+          1708,
+          1.0
+        ],
+        [
+          510,
+          1.0
+        ],
+        [
+          58,
+          1.0
+        ],
+        [
+          9986,
+          1.0
+        ],
+        [
+          15664,
+          1.0
+        ],
+        [
+          60,
+          1.0
+        ],
+        [
+          29558,
+          1.0
+        ],
+        [
+          1172,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          1887,
+          1.0
+        ],
+        [
+          48154,
+          1.0
+        ],
+        [
+          304,
+          1.0
+        ],
+        [
+          366,
+          1.0
+        ],
+        [
+          10724,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          29,
+          1.0
+        ],
+        [
+          448,
+          1.0
+        ],
+        [
+          8224,
+          1.0
+        ],
+        [
+          23682,
+          1.0
+        ],
+        [
+          1515,
+          1.0
+        ],
+        [
+          504,
+          1.0
+        ],
+        [
+          366,
+          1.0
+        ],
+        [
+          24669,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          14276,
+          1.0
+        ],
+        [
+          81306,
+          1.0
+        ],
+        [
+          806,
+          1.0
+        ],
+        [
+          65252,
+          1.0
+        ],
+        [
+          27800,
+          1.0
+        ],
+        [
+          4419,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          2805,
+          1.0
+        ],
+        [
+          12045,
+          1.0
+        ],
+        [
+          25642,
+          1.0
+        ],
+        [
+          832,
+          1.0
+        ],
+        [
+          13876,
+          1.0
+        ],
+        [
+          6869,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          4240,
+          1.0
+        ],
+        [
+          7514,
+          1.0
+        ],
+        [
+          5276,
+          1.0
+        ],
+        [
+          3579,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          3100,
+          1.0
+        ],
+        [
+          17545,
+          1.0
+        ],
+        [
+          1293,
+          1.0
+        ],
+        [
+          1331,
+          1.0
+        ],
+        [
+          8501,
+          1.0
+        ],
+        [
+          2066,
+          1.0
+        ],
+        [
+          13627,
+          1.0
+        ],
+        [
+          95433,
+          1.0
+        ],
+        [
+          52103,
+          1.0
+        ],
+        [
+          60121,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          18608,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          27303,
+          1.0
+        ],
+        [
+          448,
+          1.0
+        ],
+        [
+          6319,
+          1.0
+        ],
+        [
+          67676,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          6319,
+          1.0
+        ],
+        [
+          15294,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          5443,
+          1.0
+        ],
+        [
+          25489,
+          1.0
+        ],
+        [
+          6683,
+          1.0
+        ],
+        [
+          8593,
+          1.0
+        ],
+        [
+          2487,
+          1.0
+        ],
+        [
+          48792,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          29364,
+          1.0
+        ],
+        [
+          311,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          4583,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          5068,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          81306,
+          1.0
+        ],
+        [
+          1449,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          1917,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          1424,
+          1.0
+        ],
+        [
+          30157,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          7493,
+          1.0
+        ],
+        [
+          18405,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          1917,
+          1.0
+        ],
+        [
+          1973,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          4628,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          36290,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          81306,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          3054,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          14549,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          6171,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          4004,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          6249,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          18037,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          23806,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          5443,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          33033,
+          1.0
+        ],
+        [
+          1172,
+          1.0
+        ],
+        [
+          369,
+          1.0
+        ],
+        [
+          11094,
+          1.0
+        ],
+        [
+          26,
+          1.0
+        ],
+        [
+          653,
+          1.0
+        ],
+        [
+          537,
+          1.0
+        ],
+        [
+          2975,
+          1.0
+        ],
+        [
+          1181,
+          1.0
+        ],
+        [
+          1099,
+          1.0
+        ],
+        [
+          46313,
+          1.0
+        ],
+        [
+          17040,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          13753,
+          1.0
+        ],
+        [
+          10496,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          88471,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          10525,
+          1.0
+        ],
+        [
+          476,
+          1.0
+        ],
+        [
+          4004,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          13655,
+          1.0
+        ],
+        [
+          264,
+          1.0
+        ],
+        [
+          25489,
+          1.0
+        ],
+        [
+          3887,
+          1.0
+        ],
+        [
+          25059,
+          1.0
+        ],
+        [
+          11094,
+          1.0
+        ],
+        [
+          624,
+          1.0
+        ],
+        [
+          2122,
+          1.0
+        ],
+        [
+          2939,
+          1.0
+        ],
+        [
+          42682,
+          1.0
+        ],
+        [
+          510,
+          1.0
+        ],
+        [
+          27,
+          1.0
+        ],
+        [
+          10724,
+          1.0
+        ],
+        [
+          220,
+          1.0
+        ],
+        [
+          16,
+          1.0
+        ],
+        [
+          26818,
+          1.0
+        ],
+        [
+          81306,
+          1.0
+        ],
+        [
+          678,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          11379,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          1917,
+          1.0
+        ],
+        [
+          18405,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          6249,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          3054,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          6171,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          4004,
+          1.0
+        ],
+        [
+          26,
+          1.0
+        ],
+        [
+          8290,
+          1.0
+        ],
+        [
+          1172,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          1887,
+          1.0
+        ],
+        [
+          48154,
+          1.0
+        ],
+        [
+          594,
+          1.0
+        ],
+        [
+          9569,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          27303,
+          1.0
+        ],
+        [
+          438,
+          1.0
+        ],
+        [
+          11223,
+          1.0
+        ],
+        [
+          624,
+          1.0
+        ],
+        [
+          67,
+          1.0
+        ],
+        [
+          10111,
+          1.0
+        ],
+        [
+          11448,
+          1.0
+        ],
+        [
+          510,
+          1.0
+        ],
+        [
+          14367,
+          1.0
+        ],
+        [
+          5852,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          4024,
+          1.0
+        ],
+        [
+          2530,
+          1.0
+        ],
+        [
+          6168,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          862,
+          1.0
+        ],
+        [
+          1973,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          18405,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          36290,
+          1.0
+        ],
+        [
+          13,
+          1.0
+        ],
+        [
+          13655,
+          1.0
+        ],
+        [
+          279,
+          1.0
+        ],
+        [
+          2530,
+          1.0
+        ],
+        [
+          31959,
+          1.0
+        ],
+        [
+          4628,
+          1.0
+        ],
+        [
+          11,
+          1.0
+        ],
+        [
+          6249,
+          1.0
+        ],
+        [
+          323,
+          1.0
+        ],
+        [
+          8090,
+          1.0
+        ],
+        [
+          624,
+          1.0
+        ],
+        [
+          74455,
+          1.0
+        ],
+        [
+          643,
+          1.0
+        ],
+        [
+          3095,
+          1.0
+        ],
+        [
+          5330,
+          1.0
+        ],
+        [
+          510,
+          1.0
+        ],
+        [
+          2753,
+          1.0
+        ],
+        [
+          8806,
+          1.0
+        ],
+        [
+          476,
+          1.0
+        ],
+        [
+          3694,
+          1.0
+        ],
+        [
+          5112,
+          1.0
+        ],
+        [
+          6239,
+          1.0
+        ],
+        [
+          525,
+          1.0
+        ],
+        [
+          11223,
+          1.0
+        ],
+        [
+          624,
+          1.0
+        ],
+        [
+          6280,
+          1.0
+        ],
+        [
+          61588,
+          1.0
+        ],
+        [
+          35224,
+          1.0
+        ],
+        [
+          61863,
+          1.0
+        ],
+        [
+          510,
+          1.0
+        ],
+        [
+          4064,
+          1.0
+        ],
+        [
+          624,
+          1.0
+        ]
+      ]
+    ]
+  },
+  "conditioning_embedding": {
+    "shape": [
+      1,
+      6960,
+      5120
+    ],
+    "dtype": "torch.float32",
+    "sha256": "31e1b8a5444c94fc0b1bc2a646f9f4bdd8f9ca0e735b5de303d0b97fbff164d3"
+  },
+  "token_tags": {
+    "shape": [
+      6960
+    ],
+    "dtype": "torch.int64",
+    "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159",
+    "tensor_file": "tensor_blobs/1f8207166f152df114c1c11c65b5782b4220546a340469036aa9087965298b11.pt"
+  },
+  "target_latent_shapes": [
+    [
+      1,
+      24,
+      42,
+      46,
+      82
+    ],
+    [
+      1,
+      32,
+      2,
+      235
+    ]
+  ],
+  "packed_layout": {
+    "seq_len": 87592,
+    "segments": [
+      [
+        0,
+        6960,
+        "text"
+      ],
+      [
+        6960,
+        7910,
+        "ref_img"
+      ],
+      [
+        7910,
+        47516,
+        "ref_img"
+      ],
+      [
+        47516,
+        47986,
+        "audio"
+      ],
+      [
+        47986,
+        87592,
+        "video"
+      ]
+    ],
+    "position_ids": {
+      "shape": [
+        87592,
+        3
+      ],
+      "dtype": "torch.float64",
+      "sha256": "06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee",
+      "tensor_file": "tensor_blobs/9e67538fbe6cbd4d34083d65cc5d7165ad9ca89153b11b6166b87a59abcb87c3.pt"
+    }
+  },
+  "notes": [
+    "Default 2 FPS phase 0 delegates native arguments unchanged.",
+    "Dense VAE input is unchanged by semantic FPS/phase settings.",
+    "Phase/FPS may change token count and RoPE layout; compare manifests.",
+    "Native reference augmentation is deterministic: visual 0.999, per-reference CPU RNG restarted at sampler seed; audio uses seed+1.",
+    "Only silent video and optional image are supported by this pilot node."
+  ],
+  "pair_snapshot": {
+    "schema": "h3-pair-condition-snapshot-v1",
+    "verified": true,
+    "source_run_id": "07_sam_1312x736_shared_r20",
+    "source_manifest": "07_sam_1312x736_shared_r20_conditioning.json",
+    "source_manifest_sha256": "5be3c6e81bf8c39d4c21d586090fca117a4aaab52d7c92cc148ae917e966702e",
+    "preprocessing_provenance": "Copied from the shared source computation; this node does not encode or tokenize.",
+    "tensor_file_base": ".",
+    "cache_usage": {
+      "assumption": "Identical shared node inputs permit Comfy cache reuse across benchmark and paired runs.",
+      "verified": false,
+      "required_evidence": "Check shared node 5 in each prompt history execution_cached event."
+    },
+    "actual": {
+      "conditioning_embedding": {
+        "shape": [
+          1,
+          6960,
+          5120
+        ],
+        "dtype": "torch.float32",
+        "sha256": "31e1b8a5444c94fc0b1bc2a646f9f4bdd8f9ca0e735b5de303d0b97fbff164d3"
+      },
+      "token_tags": {
+        "shape": [
+          6960
+        ],
+        "dtype": "torch.int64",
+        "sha256": "9be8be92abe6680cd0c62fae43ca0614227e156d944c6f8cfb46541419a36159"
+      },
+      "references": [
+        {
+          "reference_index": 0,
+          "kind": "image",
+          "source_vae_call_index": 0,
+          "clean_latent": {
+            "shape": [
+              1,
+              24,
+              1,
+              76,
+              50
+            ],
+            "dtype": "torch.float32",
+            "sha256": "84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5"
+          }
+        },
+        {
+          "reference_index": 1,
+          "kind": "video",
+          "source_vae_call_index": 1,
+          "clean_latent": {
+            "shape": [
+              1,
+              24,
+              42,
+              46,
+              82
+            ],
+            "dtype": "torch.float32",
+            "sha256": "82d1e8f70a38ee0c5d7e447c3c9919ed5288e49f82677d3d3835bd7b7a1c4db3"
+          }
+        }
+      ],
+      "target_latent_shapes": [
+        [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          235
+        ]
+      ],
+      "target_latent_dtypes": [
+        "torch.float32",
+        "torch.float32"
+      ],
+      "packed_layout": {
+        "seq_len": 87592,
+        "segments": [
+          [
+            0,
+            6960,
+            "text"
+          ],
+          [
+            6960,
+            7910,
+            "ref_img"
+          ],
+          [
+            7910,
+            47516,
+            "ref_img"
+          ],
+          [
+            47516,
+            47986,
+            "audio"
+          ],
+          [
+            47986,
+            87592,
+            "video"
+          ]
+        ],
+        "position_ids": {
+          "shape": [
+            87592,
+            3
+          ],
+          "dtype": "torch.float64",
+          "sha256": "06a2c48d76d25168499fb879db993bef5911c51ac055f77372b250eae55ecbee"
+        }
+      }
+    }
+  }
+}

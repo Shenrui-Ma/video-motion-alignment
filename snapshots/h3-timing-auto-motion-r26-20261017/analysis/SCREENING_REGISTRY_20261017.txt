@@ -1,0 +1,40 @@
+自动化实验样本分母盘点 — 2026-10-17
+
+快照时间：2026-10-17T04:11:11.381380+00:00；只读现有文件/远端小状态，无数值重算。
+
+范围内有12份原素材/裁切输入：10个明确素材ID，另2份legacy05/07的原始平台ID未知。14条Native实例已完成最终评价，来自10份裁切输入；另外28289/Musk与51765/Sam各1条已冻结Native计划，快照尚无正式服务/输出。合计16条Native计划。
+已完成14条中，3条为早已观察的旧开发基线，11条来自8份在Native前仅按源视频选择的新裁切。它们现在均进入开发档案。相同素材不同seed不是独立场景；51304/51317/51310属于同一球场拍摄family，独立场景总数未知。51314与该family的关系未核定。
+
+冻结186窗扫描：9/14条至少有一个accepted delay/advance描述，7/14至少有delay；5/14没有accepted偏差但仍有UNKNOWN。这里没有统一肉眼失败标签，不能把9/14称为生成失败率。正常1313的单个advance和空手道的稀疏候选均原样保留。
+
+Native实例（D/A/Aligned/UNKNOWN是186个相关描述；不是样本数）：
+- 40367 | Sam Altman | seed2026101610 | 0/0/95/91 | r24_fresh_a_seed2026101610_native
+- 40367 | Sam Altman | seed2026101611 | 0/0/92/94 | r24_fresh_a_seed2026101611_native
+- 51314 | Sam Altman | seed2026101610 | 0/0/66/120 | r24_fresh_b_seed2026101610_native
+- 51314 | Sam Altman | seed2026101611 | 0/0/68/118 | r24_fresh_b_seed2026101611_native
+- 40372 | Sam Altman | seed2026101701 | 97/11/14/64 | r26_source_40372_seed2026101701_native
+- 51317 | Sam Altman | seed2026101701 | 0/0/86/100 | r26_source_51317_seed2026101701_native
+- 51304 | Sam Altman | seed2026101701 | 54/0/25/107 | r26_source_51304_seed2026101701_native
+- legacy05 | Sam Altman | seed2026101311 | 102/0/59/25 | r3_s05_native
+- legacy05 | Sam Altman | seed2026101313 | 0/1/165/20 | r14_s05_seed1313_native_host9
+- legacy07 | Sam Altman | seed2026101311 | 26/26/42/92 | r20_s07_native
+- 49617 | Sam Altman | seed2026101701 | 2/0/102/82 | r31_source_49617_seed2026101701_native
+- 49617 | Sam Altman | seed2026101702 | 0/3/100/83 | r31_source_49617_seed2026101702_native
+- 51310 | Sam Altman | seed2026101701 | 47/0/82/57 | r38_source_51310_seed2026101701_native
+- 43210 | Sam Altman | seed2026101701 | 17/0/0/169 | r38_source_43210_seed2026101701_native
+- 28289 | Elon Musk | seed2026101701 | 待结果 | r42_source_28289_seed2026101701_native
+- 51765 | Sam Altman | seed2026101701 | 待结果 | r43_source_51765_seed2026101701_native
+
+配对分母：自动Native/Auto已最终评价4对、3份源裁切（source05两seed、40372、source07）；其中3对原完整门通过，正常source05一对以AV exact且原141RGB门失败的限定范围完成。R40的51310自动对仍运行。R24另有4对Native/固定Full正常保持对照；R37正常早期pulse比较已完成。R41的51310人工窗生成成功、后验尚待完成。以上均不等于效果成功数量。
+
+R40快照pending_or_running；R41 resident_hold且任务列入completed；R42仅正式目录存在、无service/controller记录；R43尚未正式目录。运行状态随时间变化，本文件不把准备时旧status当实时状态。
+
+主要限制：43210有169/186 UNKNOWN；其他所有Native也有UNKNOWN。全片姿态代理、局部可见动作、腿部、身份/重影/闪烁须分开判断。Auto改善Native并接近人工/固定是目标；GlobalFull6to14是固定配方参照，非逐事件人工真值。R39等事后匹配控制不是无需检测的先验基线。
+
+JSON逐条保存原素材SHA、裁切、人物、seed、实际graph/完成门/指标文件SHA，及所有干预关联。additional_reference_links仅供相关历史参照，不混入headline计数。没有把186重叠窗、63端点或同源不同seed扩成独立样本。
+
+最新行政补充：R43于1792210365.572181完成52文件staged-only校验，CUDA_started=false；不改变14已评价/2待Native输出的计数。旧远端快照“目录不存在”是之前时点事实。
+
+验收口径：Auto优于Native并描述性接近合适Manual/固定参照即可，不要求胜过Manual。2帧是描述性接近标准，没有功效设计，不是统计非劣检验。R41人工物理span56..127取自Native、去噪6..14继承固定schedule，属于指定人工参照，不是oracle最优上界。R39采用Auto已观察的2/4/5/6做事后同调用数global消融，当前接近结果只削弱该例局部支持必要性，不否定自动化整体价值。
+
+JSON SHA256: 351d01d5e3f97e3717ca6349ad7ca2caa8683db699b9519e8bfec4cee74ad410

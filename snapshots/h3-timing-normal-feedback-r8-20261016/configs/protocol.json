@@ -1,0 +1,91 @@
+{
+  "schema": "h3-normal-feedback-pilot-r8-v1",
+  "created_utc": "2026-10-16T07:12:39.730037+00:00",
+  "new_method_claim": false,
+  "scope": "Apply the exact R6 feedback candidate to a deliberately selected previously normal1024 native case; false-trigger/control-harm check, not unseen generalization.",
+  "parent_runtime": "R7 host9 normal native replay; reuse model/core/backend and all conditioning/noise settings",
+  "candidate_source_core_sha256": "afd1b6c3cc7892f0188d80490f8404a6a283351d75c70f9874339e1dd246be8a",
+  "candidate_change": "Explicit frozen geometry only:1024x576x141, video latent1x24x42x36x64; no signal/scan/threshold/actuator/callback change",
+  "geometry": {
+    "width": 1024,
+    "height": 576,
+    "frames": 141,
+    "fps": 24,
+    "video_latent_shape": [
+      1,
+      24,
+      42,
+      36,
+      64
+    ]
+  },
+  "sampler": "Euler20 CFG1 BasicGuider;21 shifted video sigmas;video12/audio3;noTurbo;native Flash attention;existing Triton INT8 backend",
+  "seed": 2026101311,
+  "event_frames_inclusive": [
+    50,
+    65
+  ],
+  "event_latent_bins_half_open": [
+    14,
+    20
+  ],
+  "query_nominal_frame_coverage_inclusive": [
+    47,
+    67
+  ],
+  "observer": "Frozen full-frame same_phase_gap5 signed cosine,49 integer lags[-24,24], original rejection rules unchanged; gap17physicalframes",
+  "first_callback_index": 5,
+  "decision_callback_indices": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "terminal_audit_callback_index": 19,
+  "first_possible_forward_index": 6,
+  "last_possible_forward_index": 19,
+  "rule": {
+    "lag_ge4": "ON",
+    "lag_minus2_to2": "OFF_ALIGNED",
+    "lag3": "HOLD prior active",
+    "lag_le_minus3": "OFF_ADVANCED",
+    "unknown": "OFF_UNKNOWN; never alignment success"
+  },
+  "actuator": "unchanged mass_preserve alpha1/radius0/offset0/all50blocks; reference total mass preserved",
+  "planned_graph": "r8_s05_normal_feedback; one formal-only sealedqueue",
+  "warmup": "Reuse immediately preceding R7 bench at identical1024 geometry/model/backend; preserve and verify its timing evidence. No new scientific warmup assumption.",
+  "before_launch_gate": "Root verifies R7 independent early pose and same-host input/runtime; no threshold/protocol edits after inspecting outputs",
+  "checks": [
+    "Native first6forwards must match R7 actual x0 index5 before firstpossible intervention",
+    "R8 module observer all9R7 snapshots full49point curves exactly match original frozen analysis",
+    "Actual reference/noise/condition bindings must match R7",
+    "Report all actual ON/OFF/unknown/advance events; independent final pose/quality and all windows; normal control harm retained",
+    "No claim of improved specificity from just same-source normal case"
+  ],
+  "resources": {
+    "host": "H3_SERVER_A",
+    "remote_root": "/data5/researcher/h3_runs/timing_normal_feedback_r8_20261016",
+    "port": 8469,
+    "gpu_uuid": "GPU-REDACTED",
+    "max_owned_host9_gpus": 2,
+    "selected_gpu_must_be_idle": true
+  },
+  "no_gpu_started_by_builder": true,
+  "limitations": [
+    "manual source event",
+    "gap5 smooths17frames; cannot prove short-action omission detection",
+    "normal final label does not automatically label early x0",
+    "one source selected from previously observed normal result",
+    "new_method_claim=false"
+  ]
+}

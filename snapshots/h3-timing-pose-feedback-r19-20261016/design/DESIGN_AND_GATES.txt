@@ -1,0 +1,177 @@
+R19 在线姿态停止：待实施协议
+2026-10-16。范围仅设计；未修改R12/R15/R18、未实现控制器、未部署或使用GPU。
+
+核心问题
+R12在实际native index10读到latent gap5=2便停，但同一端点的独立方向和
+腕部测量均4/4。R15在R10共同Full历史上测得native10..14为4/3/2/1/1。
+这些是已看过的开发证据，不是新验证集，也不证明停止后的轨迹会保持。
+R18固定Full6..11专门检验后一前提。R19实施前必须由root检查R18的运行
+配对门、最终主窗及质量；R18结果支持停止可控性后，root才决定是否实现。
+R18失败不证明所有闭环都不可能，但不能跳过该失败直接把历史native12=2
+当成可保持的事实。当前协议不隐含实施或资源授权。
+
+一、冻结的计算与选择
+沿用R12同状态native-first包装器，原R3 source05/Sam/seed2026101311、
+1312×736×141、24fps、20步Euler/原21个sigma、CFG1、参考和提示词全部固定。
+保留原Full O+m_ref*(O_same-O_ref)，querybins14..19、all943空间/all50块、
+alpha1/radius0/offset0。无空间mask、RoPE旋转、latent优化或新模型训练。
+
+所有索引均指零起始物理Euler步n，不是视频帧，也不是追加分支后的NFE计数。
+0..5只选native；6..9每步先算native，再强制算同状态Full并选择Full。
+从10..19，每步先计算：yN=F_native(x_n,sigma_n,c)。native保留H3原条件，
+仅关闭我们的Full；它在真实已受之前干预影响的状态上预测，不是平行纯原生轨迹。
+对yN的视频流作现有process_latent_out规范化CPU副本，完整VAE解码141帧，
+用冻结DWPose/检测器与原timing_metrics计算固定窗50..65的四个可靠lag：
+arm_direction(.3/.5)、wrist_relative(.3/.5)。不能解码x_n或本步Full来决策。
+
+先要求原local_diagnostic可靠，且evaluate_x0.gate.reasons为空；四值为
+有限整数。保留原跨阈值差≤2、方向/位置差≤3、缺测/多峰/支持/尺度等门。
+然后按以下互斥规则选择，不能用历史下一步标签代替当前测量：
+  四值全部>2：ON_LATE，追加同x/sigma/条件/seed的Full并选择它。
+  四值全部在[-2,2]：OFF_ALIGNED，选择已经算出的native。
+  四值全部<-2：OFF_ADVANCED，选择native，单列提前，不算对齐。
+  正常完成测量但原门拒判、缺测或类别混合：UNKNOWN，选择native，不留旧值。
+例如[3,3,3,3]开启；[2,3,2,3]未知；[2,2,2,2]关闭；[-3,-3,-3,-3]
+为提前关闭；任何None均未知。即使全正，若旧可靠性门拒判也不能开启。
+首次OFF不进入永久停止；下一物理步重新测当前native，可靠延后可再开启。
+index19仍适用同一规则。UNKNOWN不能计为成功修复或有把握的停止。
+
+API错误、超时、错误SHA/物理索引、解码不完整、错误模型/设备、输入变动
+属于RUN_ERROR并终止，不能转换成UNKNOWN后继续。UNKNOWN仅指通过完整性
+验证的实际测量在原科学规则下不可判。保留原离线observer中的
+automatic_intervention_authorized=false；新R19选择器必须单独记录其规则，
+不能篡改旧字段来伪造原离线模块已授权闭环。
+
+选择整个原processed AV端点返回原sampler，不只替换video而混用另一audio。
+每物理步一次原Euler更新、一个chosen callback。视频流公式：
+ x_(n+1)=(sigma_(n+1)/sigma_n)*x_n+(1-sigma_(n+1)/sigma_n)*y_chosen。
+实际AV/PDD尺度映射仍走原实现；不将本式另套音频或自己推进latent。
+20+K DiT NFE，K=4+10..19实际Full次数，所以24≤NFE≤34；20callbacks，
+20Eulerupdates，50(20+K)块调用，50K路由。前缀4次Full也计入K。
+10次完整VAE/CPUpose是额外成本，不是免费读出；不再追加全程被动重放。
+
+因果范围要准确：R12是单个gap5读数及>=4/lag3保持，R19是四个姿态读数及
+±2类别规则。因此严格地说改变的是“观测与停止判定接口”，不是在完全相同
+标量判定代码里只换传感器。固定6..9与本例R12实测动作相同，保住index10
+前的科学轨迹；这不等于对所有视频都保持同一启动策略。
+
+二、最轻的隔离与验证，不另跑20NFE重放
+ONLINE_POSE_ENGINEERING.txt曾建议整条强制Full被动重放。这里明确修订为
+以下较轻组合：既有R12实际同状态分支/原Euler验证 + 独立子进程隔离 +
+本次真实共同前缀/当前index10精确门。验证范围限被测接口与轨迹，不能据此
+泛称任何decoder实现都无副作用。若这些门失败，应修接口/查差异，不能降门。
+
+G0：实施前静态与CPU门。
+固定原代码/模型/输入证据SHA；选择器纯函数测试上述各类别、边界±2/±3、
+混合值、旧门拒判及非有限值。用真实Comfy WrapperExecutor/Euler接口小张量
+检验native-first、强制前缀、10..19当前步选支、20callback/20+K、一个chosen
+返回、index19、变长inventory和两种wrapper顺序；复用R12已有测试形状。
+子进程成功/失败/过期返回、重复request、错run/index/SHA、错误设备和超时
+必须拒绝；失败不推进Euler。无需实际GPU来验证这些协议负例。
+
+G1：真实共同前缀与同状态输入。
+实际条件/噪声/网格/weights/core/backend/inputprepared匹配R3。
+R19index5的实际video/audio对R3保存端点逐位相等；6..9实际Full端点及输入
+签名对R10/R12保存记录逐项相等；index10保存packed x与两者实际input10
+文件逐位比，native10 AV端点实际tensor比。不要只比seed或摘要。
+跨运行条件完整SHA可因两个uuid叶而不同：只允许已有核实的
+original.positive[0].uuid和processed.positive[0].uuid差异，其余树必须相等；
+本次运行内部UUID不许改变。端点精确相等是此特定跨UUID等价的实证门。
+任何共同前缀失败先判运行配对失败，不能归因姿态观测。
+
+G2：一次真实index10子进程解码/姿态桥接，嵌入正式运行，不额外DiT预测。
+当前native10已和R12实际x0_step010绑定；把它通过拟用的新decoder请求通道
+在GPU3解码，并同旧R12 index10 decode record/MP4/pose结果比较。核输入
+normalized video/audio SHA、VAEfloat输出/预编码RGB SHA、141帧24fps/PTS、
+无插帧裁剪、H264路径，以及原pose模型/代码/CPUproviders/全部主窗scores。
+容器MP4 SHA不能代替tensor/RGB比较。旧R12该点四值4/4/4/4应能复现；
+这个预期是接口校验，不能绕过实际测量强行填4或强制选择Full。
+跨GPU浮点差异若出现，即使最终lag相同，也先留档并交root检查；当前不预设
+新的容差、不自动修改阈值、不默默接受另一个preprocessing路径。是否放宽
+数值门需在新版本协议中说明，不把基础设施差异当方法响应。
+
+G3：本步观察前后不变门与第一次延续的精确门。
+DiT进程记录native输出/packed x/sigma/fullgrid/processed conditions和本设备
+CPU/CUDA RNG前后SHA；其原生返回对象未被替换，model参数设备/dtype/驻留
+与patch对象身份不变。只检查DiT可见设备的CUDA RNG，不在父进程初始化GPU3。
+子进程exec接收不可变CPU文件，不传共享CUDA tensor、DLPack或父model对象，
+不调用父comfy.model_management，不更改父环境/线程/随机数状态。
+观察后若正确ON_LATE，same-state Full10实际端点必须逐位等于R10 Full10；
+它同时覆盖“等待decoder/pose后DiT仍能正确延续”的真实数值门，无需追加
+第二次native或整条重放。若并未ON_LATE，保留测量与失败门，不偷偷跑这条
+参考Full来改变决策。模型module身份/dtype门本身不等于权重全tensorSHA；
+独立进程架构、冻结只读源/模型与实际端点桥接共同构成本次最低实证。
+
+G4：正式变量轨迹验收。
+按每个物理n独立重建规则，20个native文件、K个Full文件、20个chosen映射、
+raw inputs6/10/14、10个请求及完成测量、10条决策，实际NFE连续且无重复。
+保留R12全分支归档、所有20个chosen与final，并可沿同一被动hook保存
+5/6/7/8/9/10/11/12/15/19快照；不为快照更改采样。R12原函数若合并了
+save_endpoint和gap5读数，可保留gap5为被动诊断；它不能再控制选择。
+每个观察的inputfileSHA、tensorSHA、index/sigma/run/nonce、模型版本、时基、
+所有分数/可靠性原因、状态、选支与下一状态签名绑定；旧成功JSON不能复用
+为新请求。不得按未来最终视频回改任何早期标签或选择。
+
+与历史轨迹比较只延伸到确实共同的分支。一旦选择不同，后续端点不该继续
+要求等于R10固定Full。若R19最终mask恰为6..11，应与R18的同一科学轨迹在
+可比chosen端点及最终输出精确匹配；这时观测器改变了R12的过早停止，但
+没有证明动态选择胜过固定mask。其成本还更高，照实记录。
+
+三、资源与错误语义
+root准入后仅.9 GPU2驻留DiT、GPU3独立VAE decoder，最多两张我们占用的GPU。
+每个请求新exec decoder，GPU3必须idle且精确UUID/进程准入；完成后核验
+对应PID/UID/startticks/cmdsha退出及owncompute清空，再运行CPUpose。
+不能在GPU3忙时把VAE切到GPU2、挤走DiT，不能退成tiled或半分辨率。
+本设计不指定端口或启动服务，也不对当前R16/R17等任务发清理命令。
+
+GPU等待时不持CPU锁；decoder退出后，CPU子进程CUDA_VISIBLE_DEVICES为空，
+最多4线程，只获取既有远端consumer.lock。绝不在持该锁时等待本run最终
+history/GPU/下载，也不反向请求Mac全局锁；若必须同时使用两锁，沿既有
+Mac->remote顺序。结果消费者只在正式结束后拿锁，避免采样等CPU而消费者
+等采样的死锁。父进程持有DiT显存的观察等待是明确成本，不是假装GPU已释放。
+
+冻结行政等待上限：GPU3准入600s、CPU锁600s、decoder180s、pose240s、
+单job7200s；到期FAIL并清理自己的exact进程，不默认为UNKNOWN。既有一小时
+job门可能因10次decode/pose等待误杀，本次实施需按本协议更新行政timeout，
+不改科学参数。用户新输入中断、所有异常、正常完成均清理自己的decoder/
+pose及DiT service；不能杀其他用户任务。GPU3工作进程不得残留到下一请求。
+
+四、成功、失败和必要比较
+先看G0..G4完整性，失败不判方法胜负。科学可行性要求当前index10正确识别
+剩余延后并继续，真正OFF后持续native重测能检出反弹，最终方向/腕部四值
+都可靠且±2内；未知、提前、停后再开均保留。相同pose工具既控制又评价
+有同源偏差，须固定55/86/105及原始时间轴短视频人工确认事件、重影和外观。
+其他三窗、左右臂、腿/躯干及共同有效支持上的形状误差照原冻结评估全报；
+不能只展示主窗lag，不以低运动躯干的lag单独作真实时延。
+
+主要比较：R12latent停止、R18固定6..11、R3/R10固定6..14。若mask相同但
+视频不同先查接口/运行，不把差异当自适应效果。若mask不同，先报告mask/
+sigma分布和结果；本轮不据其优势自动追加K匹配参数扫。以后要证明实例
+适应性，需预先固定不同源/seed及正常例，用同一规则展示不同必要mask，
+当前固定前缀试验不证明正常样例可免干预。
+
+失败应决定具体后续：测量可靠但持续Full仍不能修复→执行器/控制持久性；
+真实观察unknown过多→可观测性/姿态域；正确关闭后反弹→再启动是否有效；
+指标改善而重影/身份损害→局部化与质量约束。不要只因失败换阈值或事后
+缩窄窗口。成功也只支持这个开发实例中观测与停止接口的因果用途。
+
+五、先例及尚不能声称的创新
+MotionEcho §3.4/Algorithm1已有当前状态运动损失触发/停止和同状态分支；
+它的教师G不是当前执行器输出即时变好就直接停止。因此native-first观测
+与干预分离不能作为我们的首创点：
+https://arxiv.org/html/2506.19348v2#S3.SS4
+FlowMotion已有clean端点运动匹配、无需生成教师的采样纠偏；其run.py按
+固定guidance_step优化latent。本轮不同变量是解码姿态的物理帧时延与
+同模型参考路由的启停，不能说首次x0运动反馈：
+https://arxiv.org/html/2603.06289v2#S3
+https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py#L183-L255
+DiTFlow已有AMF运动差异指导latent/位置优化；body-part phase工作已有
+decode-x0->冻结phase网络的局部相位比较链：
+https://arxiv.org/html/2412.07776v2#S4
+https://arxiv.org/html/2603.19795v1#S4
+这些已核先例作为必要近邻，不因相似而否定有用诊断，也不据未找到完全
+同构代码证明空白。DIAL类参考注意力控制仍是执行器基础近邻。
+本轮可称training-free、无生成教师；DWPose和检测器仍是额外预训练模型，
+不能写“无额外模型”。现有置信阈值是检测分数门，四值区间也不是统计置信
+区间或概率停止保证。无自动事件定位、局部动作缺失类型识别或已成架构创新。
+实际新贡献要由后续跨例可观测性、控制价值、质量或计算复用证据支撑。

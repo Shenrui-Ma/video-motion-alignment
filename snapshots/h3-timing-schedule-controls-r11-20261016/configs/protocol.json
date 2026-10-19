@@ -1,0 +1,154 @@
+{
+  "schema": "h3-fixed-schedule-factorial-diagnostic-v1",
+  "created_utc": "2026-10-16T09:16:32.616966+00:00",
+  "scope": "Post-R6/R9 failure diagnosis on a known development case, not a new method or independent generalization evaluation",
+  "new_method_claim": false,
+  "reason": "Separate omission of zero-based forward index7 from extending Full through final forward19. Two new fixed schedules complete an exploratory2x2 with existing R2Full and realized R6mask.",
+  "prior_art_review": {
+    "path": "/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/query_time_posterior_gate_review.txt",
+    "sha256": "87a0fd8238932f7d317c0729baade32ef69290f74fa618e6dedbbb59d636fecd",
+    "section": "6.5",
+    "claim": "Fixed interval and budget controls are required baselines, no innovative mechanism claimed."
+  },
+  "factors": {
+    "index7": [
+      "include",
+      "skip"
+    ],
+    "last_active_index": [
+      14,
+      19
+    ]
+  },
+  "cells": [
+    {
+      "arm": "R2 fixedFull existing",
+      "include7": true,
+      "last_active": 14,
+      "fixed_indices": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "observed_before_protocol": "main pose lag2/2"
+    },
+    {
+      "arm": "R6 realized controller mask existing",
+      "include7": false,
+      "last_active": 19,
+      "fixed_indices": [
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "observed_before_protocol": "failed main pose lag13/unknown; actual schedule reused, not a new fixed replay"
+    },
+    {
+      "arm": "r11_s05_continuous6to19",
+      "include7": true,
+      "last_active": 19,
+      "fixed_indices": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "outcome": "not yet run"
+    },
+    {
+      "arm": "r11_s05_skip7_6to14",
+      "include7": false,
+      "last_active": 14,
+      "fixed_indices": [
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "outcome": "not yet run"
+    }
+  ],
+  "scientific_changes": "New graphs change policy to fixed, the exact listed fixed_indices, and administrative run IDs/directories only. No tuning of masks after outcomes.",
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "seed": 2026101311,
+    "Euler_updates": 20,
+    "Turbo": false
+  },
+  "actuator": "unchanged R9/R2 Full alpha1 radius0 mass-preserving, all50blocks, eventsource50..65, querybins14..19",
+  "observer": "unchanged R9 frozen gap5, all49lags; passive in policy=fixed; proposed feedback/streak cannot alter actual routing",
+  "recording": {
+    "x0_zero_based_indices": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      15,
+      19
+    ],
+    "sampler_final": true,
+    "noise_condition_snapshots": true
+  },
+  "index_convention": "zero-based forward indices; index6=modelcall7, index7=modelcall8. Native first6forwards.",
+  "tests": {
+    "runtime": "exact fixedmask routing counts, inactive/native branch retained, observer sequence cannot change fixed outputs,20forwards50blocks perforward",
+    "pairing": "actual condition/reference/noise equality and common nativeprefix x0_step005 with existingarms before causal interpretation",
+    "quality": "same frozen four pose windows dual thresholds.3/.5; main50..65 lag<=2; unknown retained; shape/amplitude/direction and before/after/tail errors; frames55/86/105",
+    "efficiency": "record actual NFE,routedcounts,walltime,observercost,sigma-dose. No speed diagnosis or extra benchmark regardless of high/low timing."
+  },
+  "expected_routed_blocks": {
+    "r11_s05_continuous6to19": 700,
+    "r11_s05_skip7_6to14": 400
+  },
+  "warmup": "Reuse verified historical R6warmup evidence and same unchanged backend. No new benchmark.",
+  "resources": {
+    "host": ".41",
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8472,
+    "remote": "/data3/researcher/h3_runs/timing_schedule_controls_r11_20261016",
+    "own_concurrency": 1,
+    "queue": "sealed two jobs sequential, finally release owned service"
+  },
+  "limitations": [
+    "Historical arms use different observer wrappers and CPU capture overhead. Need actual numerical pairing; no overhead speed conclusion.",
+    "R6 is a realized feedback trajectory, not a fresh fixedmask GPUreplay. CPU fixedmask equivalence supports implementation, not an independent scientific replicate.",
+    "2x2 prescribed after failures; exploratory development-case diagnosis and no significance/generalization claim.",
+    "Includingindex7 changes totaldose; extension changesdoseandlateplacement. Results isolate these operational choices, not a dose-independent timingmechanism.",
+    "All outcomes retained; no mask search or choosing best result to describe as a new algorithm."
+  ]
+}

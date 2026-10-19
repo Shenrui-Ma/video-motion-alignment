@@ -1,0 +1,32 @@
+源片筛选：2 条真人 + 1 条动漫候选（仅源片，尚未本轮推理）
+
+固定选择见 SELECTION_FROZEN.json；预览与核验见 PREVIEW_MANIFEST.json。三个预览均 141 帧、24 fps、640×360、5.875 秒。仅供源片确认，不作为正式推理输入；正式编码应从已绑定源文件重新制作。每个 selected_overview.jpg 按行依次为局部帧 0,6,...,138。未启动模型、GPU、姿态估计或编辑视频评价。
+
+1. 真人 / Mixkit 51310：Boy dancing an animated choreography at night
+原始来源 https://mixkit.co/free-stock-video/boy-dancing-an-animated-choreography-at-night-51310/
+已下载官方720p源 assets/51310.mp4，SHA 4a244c5baad079a65ddb5dd52389901772eeff09ae9d6737f45293b0889fd5ca。
+固定原片起点0.0秒，经fps24:round=near取0..140帧；不再按后续生成结果换段。
+可见动作序列：双臂向两侧张开/屈肘 → 双臂向身体收回 → 一侧手到脸前、另一侧下放 → 侧身迈步 → 双手在胸前交替 → 再次向两侧展开。运动中多次改变手臂方向与身体朝向，适合把短手势与后续步法分开检查；不是只以幅度大作为入选依据。
+限制：夜间绿色灯光、面前遮挡和身体转向可能降低手部置信度；左上运动员壁画可能干扰主人物选择。与 R24/R26 球场系列场景相似，可能同一演员/拍摄系列，不称独立演员或跨场景泛化。
+
+2. 真人 / Mixkit 43210：Woman dancing in an old abandoned place
+原始来源 https://mixkit.co/free-stock-video/woman-dancing-in-an-old-abandoned-place-43210/
+已下载官方720p源 assets/43210.mp4，SHA1493e4e5f8a2bcc8cf5e2eb2dc7ed02df7b7a170b345b995dd342afe2033fde3。
+固定原片起点0.0秒，经fps24:round=near取0..140帧。
+可见动作序列：上举手臂后前倾 → 抬腿转身 → 屈膝低身/单臂下垂 → 单臂绕头上举 → 双臂回收 → 正面抬膝。前倾、抬腿、低身和头上绕臂具有不同身体构型，可作为与球场小手势不同的短动作切换候选。
+限制：长裙遮住髋/腿，灰暗逆光、转身和头发遮挡明显；不保证现有肩髋归一化指标可判。连续转圈也可能带来周期对应歧义。它是条件候选，不能在未来UNKNOWN时悄悄换到更易测的片段。
+两条 Mixkit 页面均明确链接 Stock Video Free License：https://mixkit.co/license/#videoFree 。这是对应素材许可，不是CC许可证或无条件再分发声明。已保存项目原网页与真实下载地址。
+
+3. 动漫 / 千花连续片段22.2秒
+复用已有 source_candidates/anime/chika_candidate_22p2.mp4 的全部0..140帧。父源为chika_public93.mp4，公开页面 https://www.youtube.com/watch?v=DMH1LLxXNQ8 。来源是用户转载、元数据license为空；本轮未把它认定为开放许可数据。具体SHA与绝对路径见SELECTION_FROZEN.json。
+可见动作序列：脸旁手势/指向 → 左右方向的踢腿配合手势 → 短暂手遮脸并双手回到胸前 → 双臂上举过头 → 单臂斜向指向、另一手靠头。连续镜头中短手势被大肢体动作夹住，切换语义比一个持续动作清楚。
+边界：这是已看过的同一 Chika 原片的新窗口，旧正式实验使用33.4秒起段。本候选22.2秒在旧source-screen中已被检查，不能称unseen、独立新源或无预筛选。保存的60fps转载可能已被上游重采样，原始作画节奏未知；黑边和源字幕保留。未发现此候选文件在检查的旧正式输入清单中作为生成输入，但这不是整个磁盘所有历史任务的穷尽证明。
+
+未选来源（保留筛选失败信息）：
+- 本地 Mixkit4823：背身走路+手靠头，面部不可见；还可能与旧headphone测试同源，优先级低。
+- 本地 Mixkit41326：拿杯子跳舞、手势丰富，但髋部/下肢裁掉，不适合现有全身归一化。
+- Kirara官方角色演示：动作丰富但频繁切镜头，多人/战斗特效、远景与近景混合；未找到本轮要求的稳定单主体5.875秒段。
+- Miku Catch the Wave粉丝动画：多数短镜头或近静态画面，不满足连续多动作切换。
+- Chika24fps另一个上传版本明确使用Flowframes插帧，未选。
+
+可执行下一步：根线程先看三条固定预览。若认可可按固定源段制作正式输入并只跑Native；现阶段不预设哪条会出现动作缺失/延后。动漫如果要求完全不同作品，需另补新源，这一条只满足同源不同动作序列的开发扩展。

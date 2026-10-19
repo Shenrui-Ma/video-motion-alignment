@@ -1,0 +1,26 @@
+R34 final-only postrun preparation (no service, GPU, remote deployment or consumer started)
+
+Owner write scope: this analysis/postrun directory only. Producer, root-level four design files and runtime remain unchanged.
+
+Invocation after root fills actual service BINDING.json:
+  python3 analysis/postrun_v3/one_phase.py --execute
+Each invocation performs at most one phase, then exits. Without --execute it only describes preparation. No resident loop is created. Root may invoke again after reporting busy/stabilizing. A technical failure writes CONSUMER_FAILURE.json and blocks automatic retry until evidence is reviewed. No producer or queue mutation is possible through this consumer.
+
+Phases: archive -> pose -> compare -> media -> finalize.
+- archive: actual history/job success and 60-second size/mtime/JSON stability; exact23 raw endpoint/input/final PT plus21 chosen PT; all condition/noise payloads; immutable producer SHA; run the frozen producer verify_completed.py with CUDA hidden, including current same-state4 and actual R26 Native0..4 AV reload,21NFE/20Euler/20callback/1050blocks/50route. Source and copied full inventory both checked.
+- pose: final MP4 only. Actual input, source.pose and frozen CPU DWPose dependencies checked before/after; one current final pose execution with original selection/thresholds. No intermediate endpoint decode.
+- compare: requires real completed R32 final binding. Fixed40..55 direction/wrist plus body/left/right; all186 descriptors and49lag curves, both confidence levels; four-method and Auto/Pulse common support over full141, all62 distinct scan windows, and Auto union/complement. 186 rows are related descriptors, not independent samples.
+- media:0/35/70/105/140 and complete141frames at24fps, same original frame coordinate. SOURCE/Native/GlobalFull6to14/Auto/EarlyGlobalPulse, plus independently shuffled Auto/Pulse blind pair (seed2026101734). Black footer, complete field of view. Final visual review remains pending; no automated quality claim.
+- finalize: all original/copied PT and derived inventory plus all immutable producer sources rechecked. Queue only permits exact-owner recorded finalize false->true administrative release, with matching archived RUN_GATE hash. Final/download manifests exact; raw large tensors stay archived remote, all nonPT assets/metadata copied locally.
+
+Status uses small gate/inventory/phase receipt hashes only. It does not repeatedly scan PT. Each numeric/media phase verifies only actual dependencies and sealed Python imports; archive/finalize are the full inventory boundaries. Mac CPU lock -> remote consumer.lock, nonblocking; R32 and R35 online-pose markers have priority. No lock held while waiting for GPU completion.
+
+R32 is pending in this preparation. AUTO_PARENT_BINDING.template.json has nulls and approved=false. Once actual R32 postrun archive is complete and downloaded, run:
+  python3 analysis/postrun_v3/bind_auto_parent.py --execute
+It derives paths from actual final/FINAL_SUMMARY.json and verifies RUN_GATE, CPU_COMPLETE, both inventories, actual final video/pose hashes, source SHA and parent noise/condition checks. It writes AUTO_PARENT_BINDING.json with exact real values; no Native or provisional endpoint substitution. The root invocation syncs it. An absent binding returns waiting_parent after R34 pose; root can archive/release the producer first.
+
+Existing parents are pinned source40372/Sam/seed2026101701: R26 Native and R29 globalFull6..14. R34 is index4 globalFull, a fixed-pulse control. It is not automatic control or a new operator. R26 actual Native0..4 normalized AV bridge exists; historical rawinput4 and full processed-condition tree were not archived. Current state/tree checks do not repair that historical gap.
+
+Tests:22 lightweight local synthetic/contract tests, no actual result consumed, no model import/inference. Four numerical modules are byte-identical to frozen R32 scripts. Reused fixed/common/media helpers are source-extracted verbatim from R35. Actual Linux remote consumer/pose execution remains to be verified at root-run phases. Current tests cannot assert that unseen R34/R32 output already passes.
+
+Version 3 is an administrative path migration only. The old 20 payload files and actual BINDING remain unchanged. Both old/new drivers share the original unique_consumer.lock. Root must approve a NEW BINDING with this protocol SHA; no old authorization is copied. R32 parent is its actual analysis/postrun_bounded_v2/captured path; all original final result and inventory bytes remain unchanged. AUTO_PARENT_BINDING is created only after actual R32 final completion.

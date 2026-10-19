@@ -1,0 +1,1 @@
+Single declared source28289/Elon Musk/seed2026101701 Native screen. Original frames0..140 at24fps. No actuation, no event-window selection. Models, kernels, sigma, geometry and callbacks inherit actualR38. All results retained. Source-only preselection does not establish generated motion errors. Runtime launch only by root after exact peer registration before CUDA.

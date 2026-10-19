@@ -1,0 +1,445 @@
+{
+  "schema": "r74-six-remaining-official-flex-pairs-v1",
+  "selection_sha256": "dacc348d15176d356340671c4495f9107c65f65337e90ae2c5412cf0ac88ab6c",
+  "excluded_R72": [
+    "fitness__game_man_5",
+    "one_leg__movie_man_9"
+  ],
+  "pairs": [
+    {
+      "pair_key": "chest__game_man_5",
+      "motion_source_id": "chest",
+      "candidate_id": "01_chest__game_man_5",
+      "identity": "benchmark/target_images/human/game_man_5.jpeg",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "01_chest__game_man_5",
+      "official_csv_row_zero_based": 2,
+      "official_target_caption": "A humanoid cartoon monster is exercising with a resistance machine. It leans slightly forward while keeping its back straight. It grips the handles of the resistance machine and pulls them downward with force. After fully extending its arms, it returns them to the starting position and repeats the same motion.",
+      "original_metadata_flag": null,
+      "caption_review": [
+        "Official target caption says cartoon monster; image shows red/gold armored humanoid. P1 follows visible target identity."
+      ],
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/chest.mp4",
+        "sha256": "bef0c6c6b2fccadcab3d97ecbcbcd587e49bf66bbb4e7dd3778d8c3199def528",
+        "bytes": 374600,
+        "dataset_path": "benchmark/reference_videos/human/chest.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "adb4334f539e1d80de213e8e8d5f5db51c17b91b",
+        "lfs_sha256": "bef0c6c6b2fccadcab3d97ecbcbcd587e49bf66bbb4e7dd3778d8c3199def528",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/chest.mp4"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_5.jpeg",
+        "sha256": "fb2f5f3f0bfb2d1023b47711be93e424f4d954933c901268e12e8a110d47c0e2",
+        "bytes": 104978,
+        "dataset_path": "benchmark/target_images/human/game_man_5.jpeg",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "34dfe4e082beaf1054784f898371972b9aad93e3",
+        "lfs_sha256": "fb2f5f3f0bfb2d1023b47711be93e424f4d954933c901268e12e8a110d47c0e2",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_5.jpeg"
+      },
+      "source": {
+        "video": "source_chest_video.mp4",
+        "video_sha256": "531993813d0236bff34875868806ccc2b0412927307bf4a2af01c410c12f5d7d",
+        "original": "source_chest_original.mp4",
+        "original_sha256": "bef0c6c6b2fccadcab3d97ecbcbcd587e49bf66bbb4e7dd3778d8c3199def528",
+        "provenance": "source_chest_provenance.json",
+        "provenance_sha256": "6759794f1e7db706957b9a84ca84de3a974e06a1ac59a31f9c110c8b462f64bb"
+      },
+      "portrait": "target_game_man_5.jpeg",
+      "portrait_sha256": "fb2f5f3f0bfb2d1023b47711be93e424f4d954933c901268e12e8a110d47c0e2",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated_at_selection": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          1920,
+          1080
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          1248,
+          704
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          44,
+          78
+        ],
+        "expected_DiT_visual_patch_tokens": 858,
+        "formula": "native nodes_minimax_h3.py:301-311; scale=min(1,sqrt(1152*768/(w*h))), axes rounded32; no portrait preprocessing"
+      },
+      "p1_fields": {
+        "target_identity": "the red-and-gold armored humanoid character",
+        "source_caption": "A man wearing a dark blue vest is exercising with a resistance machine. He leans slightly forward while keeping his back straight. He grips the handles of the resistance machine and pulls them downward with force. After fully extending his arms, he returns them to the starting position and repeats the same motion.",
+        "target_action": "The subject grips the resistance-machine handles, pulls both arms downward and inward, then opens and raises the arms again, repeating the visible movement sequence."
+      },
+      "prompt_file": "configs/prompts/chest__game_man_5.txt",
+      "prompt_sha256": "572747f1b67d81e213698df22845922ebeb8a7ca1db4e0eda7e9dd2f63c5c2af",
+      "prompt": "subject_definitions:\n<Subject 1> is the red-and-gold armored humanoid character in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A man wearing a dark blue vest is exercising with a resistance machine. He leans slightly forward while keeping his back straight. He grips the handles of the resistance machine and pulls them downward with force. After fully extending his arms, he returns them to the starting position and repeats the same motion.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the red-and-gold armored humanoid character from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The subject grips the resistance-machine handles, pulls both arms downward and inward, then opens and raises the arms again, repeating the visible movement sequence.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n"
+    },
+    {
+      "pair_key": "chest__movie_man_7",
+      "motion_source_id": "chest",
+      "candidate_id": "02_chest__movie_man_7",
+      "identity": "benchmark/target_images/human/movie_man_7.jpg",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "02_chest__movie_man_7",
+      "official_csv_row_zero_based": 7,
+      "official_target_caption": "A man is exercising with a resistance machine. He leans slightly forward while keeping his back straight. He grips the handles of the resistance machine and pulls them downward with force. After fully extending his arms, he returns them to the starting position and repeats the same motion.",
+      "original_metadata_flag": null,
+      "caption_review": [],
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/chest.mp4",
+        "sha256": "bef0c6c6b2fccadcab3d97ecbcbcd587e49bf66bbb4e7dd3778d8c3199def528",
+        "bytes": 374600,
+        "dataset_path": "benchmark/reference_videos/human/chest.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "adb4334f539e1d80de213e8e8d5f5db51c17b91b",
+        "lfs_sha256": "bef0c6c6b2fccadcab3d97ecbcbcd587e49bf66bbb4e7dd3778d8c3199def528",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/chest.mp4"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_7.jpg",
+        "sha256": "b42876941655977d7071a74f3cb7afd082e8b3290e947dab8b62861104a97fbb",
+        "bytes": 390615,
+        "dataset_path": "benchmark/target_images/human/movie_man_7.jpg",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "ca798d931598ec4b0cb70edc80c27d9daa0241f0",
+        "lfs_sha256": "b42876941655977d7071a74f3cb7afd082e8b3290e947dab8b62861104a97fbb",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_7.jpg"
+      },
+      "source": {
+        "video": "source_chest_video.mp4",
+        "video_sha256": "531993813d0236bff34875868806ccc2b0412927307bf4a2af01c410c12f5d7d",
+        "original": "source_chest_original.mp4",
+        "original_sha256": "bef0c6c6b2fccadcab3d97ecbcbcd587e49bf66bbb4e7dd3778d8c3199def528",
+        "provenance": "source_chest_provenance.json",
+        "provenance_sha256": "6759794f1e7db706957b9a84ca84de3a974e06a1ac59a31f9c110c8b462f64bb"
+      },
+      "portrait": "target_movie_man_7.jpg",
+      "portrait_sha256": "b42876941655977d7071a74f3cb7afd082e8b3290e947dab8b62861104a97fbb",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated_at_selection": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          2394,
+          1496
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          1184,
+          736
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          46,
+          74
+        ],
+        "expected_DiT_visual_patch_tokens": 851,
+        "formula": "native nodes_minimax_h3.py:301-311; scale=min(1,sqrt(1152*768/(w*h))), axes rounded32; no portrait preprocessing"
+      },
+      "p1_fields": {
+        "target_identity": "the shirtless man wearing black shorts",
+        "source_caption": "A man wearing a dark blue vest is exercising with a resistance machine. He leans slightly forward while keeping his back straight. He grips the handles of the resistance machine and pulls them downward with force. After fully extending his arms, he returns them to the starting position and repeats the same motion.",
+        "target_action": "The subject grips the resistance-machine handles, pulls both arms downward and inward, then opens and raises the arms again, repeating the visible movement sequence."
+      },
+      "prompt_file": "configs/prompts/chest__movie_man_7.txt",
+      "prompt_sha256": "ba71afb3cc2787414326db15d35bf075c8d2f131e433a00322fc9eba84b63b88",
+      "prompt": "subject_definitions:\n<Subject 1> is the shirtless man wearing black shorts in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A man wearing a dark blue vest is exercising with a resistance machine. He leans slightly forward while keeping his back straight. He grips the handles of the resistance machine and pulls them downward with force. After fully extending his arms, he returns them to the starting position and repeats the same motion.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the shirtless man wearing black shorts from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The subject grips the resistance-machine handles, pulls both arms downward and inward, then opens and raises the arms again, repeating the visible movement sequence.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n"
+    },
+    {
+      "pair_key": "crouch__movie_man_5",
+      "motion_source_id": "crouch",
+      "candidate_id": "03_crouch__movie_man_5",
+      "identity": "benchmark/target_images/human/movie_man_5.jpg",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "03_crouch__movie_man_5",
+      "official_csv_row_zero_based": 1,
+      "official_target_caption": "A man is exercising with a resistance machine. He leans slightly forward while keeping his back straight. He grips the handles of the resistance machine and pulls them downward with force. After fully extending his arms, he returns them to the starting position and repeats the same motion.",
+      "original_metadata_flag": "official caption describes resistance machine, while source is an outdoor squat sequence",
+      "caption_review": [
+        "Official target caption describes resistance-machine exercise; original video and official source caption show squats. P1 follows source squat action; original target caption retained here."
+      ],
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/crouch.mp4",
+        "sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "bytes": 245089,
+        "dataset_path": "benchmark/reference_videos/human/crouch.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "60fcae884a053eaed142c26972f6c40824f71dc2",
+        "lfs_sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/crouch.mp4"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_5.jpg",
+        "sha256": "1f3bfe059d5a2b241d9caf589418ada64d36e3f1ea25f67e809f86425f7a6e78",
+        "bytes": 69213,
+        "dataset_path": "benchmark/target_images/human/movie_man_5.jpg",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "48587e5cbd44dd99af2b0ea89ef967b96c7f721b",
+        "lfs_sha256": "1f3bfe059d5a2b241d9caf589418ada64d36e3f1ea25f67e809f86425f7a6e78",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_5.jpg"
+      },
+      "source": {
+        "video": "source_crouch_video.mp4",
+        "video_sha256": "4226cc5364257d1cf4a4f84f30cc3ad06f7168287daf56ea04121f081cb80e40",
+        "original": "source_crouch_original.mp4",
+        "original_sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "provenance": "source_crouch_provenance.json",
+        "provenance_sha256": "bee467d114bd00f753c1c08c00ca84b8e996c1d24c9d409ff70629fdb19e457b"
+      },
+      "portrait": "target_movie_man_5.jpg",
+      "portrait_sha256": "1f3bfe059d5a2b241d9caf589418ada64d36e3f1ea25f67e809f86425f7a6e78",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated_at_selection": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          1000,
+          667
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          992,
+          672
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          42,
+          62
+        ],
+        "expected_DiT_visual_patch_tokens": 651,
+        "formula": "native nodes_minimax_h3.py:301-311; scale=min(1,sqrt(1152*768/(w*h))), axes rounded32; no portrait preprocessing"
+      },
+      "p1_fields": {
+        "target_identity": "the man wearing a dark suit and tie",
+        "source_caption": "A man wearing a jacket and black pants is doing squats.",
+        "target_action": "The subject bends the knees and hips into a squat while raising the hands in front of the chest, returns to standing, and repeats the squat as shown in the reference video."
+      },
+      "prompt_file": "configs/prompts/crouch__movie_man_5.txt",
+      "prompt_sha256": "074022e44003f2fbb8b04b4afca35cf5c0683b08a175bfc713bef050cc82a90c",
+      "prompt": "subject_definitions:\n<Subject 1> is the man wearing a dark suit and tie in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A man wearing a jacket and black pants is doing squats.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the man wearing a dark suit and tie from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The subject bends the knees and hips into a squat while raising the hands in front of the chest, returns to standing, and repeats the squat as shown in the reference video.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n"
+    },
+    {
+      "pair_key": "crouch__movie_man_9",
+      "motion_source_id": "crouch",
+      "candidate_id": "04_crouch__movie_man_9",
+      "identity": "benchmark/target_images/human/movie_man_9.webp",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "04_crouch__movie_man_9",
+      "official_csv_row_zero_based": 5,
+      "official_target_caption": "An elderly man clad in a suit is doing squats.",
+      "original_metadata_flag": "official caption describes resistance machine, while source is an outdoor squat sequence",
+      "caption_review": [
+        "Original fixed8 metadata_flag wrongly flags resistance-machine caption; this row official_target_caption already says squats. Preserve original flag as ancestry, corrected by reading row."
+      ],
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/crouch.mp4",
+        "sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "bytes": 245089,
+        "dataset_path": "benchmark/reference_videos/human/crouch.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "60fcae884a053eaed142c26972f6c40824f71dc2",
+        "lfs_sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/crouch.mp4"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_9.webp",
+        "sha256": "94c1ff8895ca10d14c198e70efa4fa4f534fb10d95474d16dc1a8e7d90a62ce9",
+        "bytes": 123676,
+        "dataset_path": "benchmark/target_images/human/movie_man_9.webp",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "ba35c5558d93b73fb5c6f5e9a15ac6122a992649",
+        "lfs_sha256": "94c1ff8895ca10d14c198e70efa4fa4f534fb10d95474d16dc1a8e7d90a62ce9",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_9.webp"
+      },
+      "source": {
+        "video": "source_crouch_video.mp4",
+        "video_sha256": "4226cc5364257d1cf4a4f84f30cc3ad06f7168287daf56ea04121f081cb80e40",
+        "original": "source_crouch_original.mp4",
+        "original_sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "provenance": "source_crouch_provenance.json",
+        "provenance_sha256": "bee467d114bd00f753c1c08c00ca84b8e996c1d24c9d409ff70629fdb19e457b"
+      },
+      "portrait": "target_movie_man_9.webp",
+      "portrait_sha256": "94c1ff8895ca10d14c198e70efa4fa4f534fb10d95474d16dc1a8e7d90a62ce9",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated_at_selection": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          1240,
+          826
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          1152,
+          768
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          48,
+          72
+        ],
+        "expected_DiT_visual_patch_tokens": 864,
+        "formula": "native nodes_minimax_h3.py:301-311; scale=min(1,sqrt(1152*768/(w*h))), axes rounded32; no portrait preprocessing"
+      },
+      "p1_fields": {
+        "target_identity": "the elderly man wearing a dark suit",
+        "source_caption": "A man wearing a jacket and black pants is doing squats.",
+        "target_action": "The subject bends the knees and hips into a squat while raising the hands in front of the chest, returns to standing, and repeats the squat as shown in the reference video."
+      },
+      "prompt_file": "configs/prompts/crouch__movie_man_9.txt",
+      "prompt_sha256": "b461a1aee55ddd0c66d820d7c70f179921bcb5392f28c398bd4af74beaf0edfa",
+      "prompt": "subject_definitions:\n<Subject 1> is the elderly man wearing a dark suit in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A man wearing a jacket and black pants is doing squats.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the elderly man wearing a dark suit from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The subject bends the knees and hips into a squat while raising the hands in front of the chest, returns to standing, and repeats the squat as shown in the reference video.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n"
+    },
+    {
+      "pair_key": "rotate__game_man_1",
+      "motion_source_id": "rotate",
+      "candidate_id": "07_rotate__game_man_1",
+      "identity": "benchmark/target_images/human/game_man_1.jpg",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "07_rotate__game_man_1",
+      "official_csv_row_zero_based": 2,
+      "official_target_caption": "A cartoon character wearing a red hat, a blue overall, and white gloves is performing a fitness exercise. He clasps his hands together, placing them in front of his chest, and keeps his forearms horizontal. He stands with his legs apart. He rotates his upper body, and his arms rotate along with his upper body. Meanwhile, his hands remain clasped together, and his lower body stays stationary.",
+      "original_metadata_flag": null,
+      "caption_review": [],
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/rotate.mp4",
+        "sha256": "45aa1334208b9714d1c0b4d2c058379a6d72727482083647d261af6235d0ec74",
+        "bytes": 199754,
+        "dataset_path": "benchmark/reference_videos/human/rotate.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "46435dbf0542745610a93c7e47e622dfefd48638",
+        "lfs_sha256": "45aa1334208b9714d1c0b4d2c058379a6d72727482083647d261af6235d0ec74",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/rotate.mp4"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_1.jpg",
+        "sha256": "7bbb5f74804e40e7b04bd564383db30bf0b03992c89e2e31dc8325155d3778e3",
+        "bytes": 39215,
+        "dataset_path": "benchmark/target_images/human/game_man_1.jpg",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "4922db9372457ddb208d320eb7615c886aaaccad",
+        "lfs_sha256": "7bbb5f74804e40e7b04bd564383db30bf0b03992c89e2e31dc8325155d3778e3",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_1.jpg"
+      },
+      "source": {
+        "video": "source_rotate_video.mp4",
+        "video_sha256": "e5940a9def2356e4ff888dafd2d6e5f6e5ca42b0a92ca8921f782d023e225cad",
+        "original": "source_rotate_original.mp4",
+        "original_sha256": "45aa1334208b9714d1c0b4d2c058379a6d72727482083647d261af6235d0ec74",
+        "provenance": "source_rotate_provenance.json",
+        "provenance_sha256": "1d281b40e7351cac93156f1aaef2c9c68ae081a9735e0b7f96064e38e9acd847"
+      },
+      "portrait": "target_game_man_1.jpg",
+      "portrait_sha256": "7bbb5f74804e40e7b04bd564383db30bf0b03992c89e2e31dc8325155d3778e3",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated_at_selection": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          728,
+          546
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          736,
+          544
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          34,
+          46
+        ],
+        "expected_DiT_visual_patch_tokens": 391,
+        "formula": "native nodes_minimax_h3.py:301-311; scale=min(1,sqrt(1152*768/(w*h))), axes rounded32; no portrait preprocessing"
+      },
+      "p1_fields": {
+        "target_identity": "the cartoon character wearing a red cap, blue overalls and white gloves",
+        "source_caption": "A woman is performing a fitness exercise. She clasps her hands together, placing them in front of her chest, and keeps her forearms horizontal. She stands with her legs apart. She rotates her upper body, and her arms rotate along with her upper body. Meanwhile, her hands remain clasped together, and her lower body stays stationary.",
+        "target_action": "The subject stands with the legs apart and the hands held together in front of the chest, then rotates the torso and arms from side to side while the feet remain planted."
+      },
+      "prompt_file": "configs/prompts/rotate__game_man_1.txt",
+      "prompt_sha256": "4ec1decb2086ccad7d4b108bffa21bf05c45fe314af2cc3f3d97bd70402f287c",
+      "prompt": "subject_definitions:\n<Subject 1> is the cartoon character wearing a red cap, blue overalls and white gloves in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A woman is performing a fitness exercise. She clasps her hands together, placing them in front of her chest, and keeps her forearms horizontal. She stands with her legs apart. She rotates her upper body, and her arms rotate along with her upper body. Meanwhile, her hands remain clasped together, and her lower body stays stationary.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the cartoon character wearing a red cap, blue overalls and white gloves from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The subject stands with the legs apart and the hands held together in front of the chest, then rotates the torso and arms from side to side while the feet remain planted.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n"
+    },
+    {
+      "pair_key": "rotate__game_man_4",
+      "motion_source_id": "rotate",
+      "candidate_id": "08_rotate__game_man_4",
+      "identity": "benchmark/target_images/human/game_man_4.jpg",
+      "group": "official_csv_identity_generalization",
+      "original_pair_id": "08_rotate__game_man_4",
+      "official_csv_row_zero_based": 5,
+      "official_target_caption": "A cartoon man draped in a deep green cape, wearing a brown coat, and black shoes is performing a fitness exercise. He clasps his hands together, placing them in front of his chest, and keeps his forearms horizontal. He stands with his legs apart. He rotates his upper body, and his arms rotate along with his upper body. Meanwhile, his hands remain clasped together, and his lower body stays stationary.",
+      "original_metadata_flag": null,
+      "caption_review": [
+        "P1 binds visible dark-haired anime man in green cape; official brown-coat wording retained in ancestry. No added anatomy/appearance."
+      ],
+      "source_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/rotate.mp4",
+        "sha256": "45aa1334208b9714d1c0b4d2c058379a6d72727482083647d261af6235d0ec74",
+        "bytes": 199754,
+        "dataset_path": "benchmark/reference_videos/human/rotate.mp4",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "46435dbf0542745610a93c7e47e622dfefd48638",
+        "lfs_sha256": "45aa1334208b9714d1c0b4d2c058379a6d72727482083647d261af6235d0ec74",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/rotate.mp4"
+      },
+      "target_asset": {
+        "path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_4.jpg",
+        "sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "bytes": 87597,
+        "dataset_path": "benchmark/target_images/human/game_man_4.jpg",
+        "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "git_blob_oid": "dfa2b3df57708ab7d4be936998a8955fbad14784",
+        "lfs_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_4.jpg"
+      },
+      "source": {
+        "video": "source_rotate_video.mp4",
+        "video_sha256": "e5940a9def2356e4ff888dafd2d6e5f6e5ca42b0a92ca8921f782d023e225cad",
+        "original": "source_rotate_original.mp4",
+        "original_sha256": "45aa1334208b9714d1c0b4d2c058379a6d72727482083647d261af6235d0ec74",
+        "provenance": "source_rotate_provenance.json",
+        "provenance_sha256": "1d281b40e7351cac93156f1aaef2c9c68ae081a9735e0b7f96064e38e9acd847"
+      },
+      "portrait": "target_game_man_4.jpg",
+      "portrait_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+      "source_is_new_motion_content": false,
+      "target_pair_previously_generated_at_selection": false,
+      "reference_image_expected": {
+        "original_width_height": [
+          975,
+          600
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          960,
+          608
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          38,
+          60
+        ],
+        "expected_DiT_visual_patch_tokens": 570,
+        "formula": "native nodes_minimax_h3.py:301-311; scale=min(1,sqrt(1152*768/(w*h))), axes rounded32; no portrait preprocessing"
+      },
+      "p1_fields": {
+        "target_identity": "the dark-haired anime man wearing a green cape",
+        "source_caption": "A woman is performing a fitness exercise. She clasps her hands together, placing them in front of her chest, and keeps her forearms horizontal. She stands with her legs apart. She rotates her upper body, and her arms rotate along with her upper body. Meanwhile, her hands remain clasped together, and her lower body stays stationary.",
+        "target_action": "The subject stands with the legs apart and the hands held together in front of the chest, then rotates the torso and arms from side to side while the feet remain planted."
+      },
+      "prompt_file": "configs/prompts/rotate__game_man_4.txt",
+      "prompt_sha256": "8f3977bf96ebb9ee4127007c01f86bbc67a67190ab93f3d20c11b3e9ea06b58a",
+      "prompt": "subject_definitions:\n<Subject 1> is the dark-haired anime man wearing a green cape in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A woman is performing a fitness exercise. She clasps her hands together, placing them in front of her chest, and keeps her forearms horizontal. She stands with her legs apart. She rotates her upper body, and her arms rotate along with her upper body. Meanwhile, her hands remain clasped together, and her lower body stays stationary.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the dark-haired anime man wearing a green cape from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The subject stands with the legs apart and the hands held together in front of the chest, then rotates the torso and arms from side to side while the feet remain planted.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n"
+    }
+  ],
+  "prompt_policy": "R72 P1 structured reference-generation; Picture1 appearance+scene, Video1 full motion/timing; official source caption and visually verified target identity. Complete official target captions retained as ancestry; mismatches recorded before generation. Both Native and forced use exact same P1."
+}

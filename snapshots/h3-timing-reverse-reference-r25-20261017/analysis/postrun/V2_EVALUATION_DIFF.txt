@@ -1,0 +1,65 @@
+Evaluation-only v2. No producer/runtime/metrics/pose implementation changes. Exact legacy source script plus exact generated script separately bound; no general provenance waiver. Cached BLOCK pose is reused only at registered video and pose SHA. Original v1 failure retained in archive/consumer_v1.
+
+--- remote_consume_v1
++++ remote_consume_v2
+@@ -88,6 +88,21 @@
+   rows=read(paths[0])['diagnostics'];require(len(rows)==20 and all(len(r['curve'])==49 for r in rows),'frozen20x49 curves')
+   result[str(conf)]=[{k:r.get(k) for k in ('window','feature','status','flags','reliable_lag_frames')}|{'same_frame_error':r['same_frame']['error'],'same_frame_coverage':r['same_frame']['coverage'],'best_error':r['best']['error'] if r['best'] else None} for r in rows]
+  save(arc/'COMPACT_RESULTS.json',result);return result
++
++def check_pose_provenance(source,generated,parents):
++ require(source['script_sha256']=='b0eb01e8a0d24049cff8880dc3f356a177ada760cc919a31cfbd11ee7f82fa89','unexpected source script')
++ require(generated['script_sha256']==HASHES['scripts/pose_probe.py'],'unexpected generated script')
++ require(all(generated==p for p in parents),'generated differs from exact frozen R3 evaluation provenance')
++ require({k:v for k,v in source.items() if k!='script_sha256'}=={k:v for k,v in generated.items() if k!='script_sha256'},'source/model/selection/runtime provenance mismatch')
++
++def check_cached_pose(run,pose,video,recovery):
++ record=recovery['reused_pose'].get(run)
++ require(record is not None and sha(pose)==record['pose_sha256'] and sha(video)==record['video_sha256'],'unregistered cached pose')
++
++def check_partial_archive(arc,before):
++ require((arc/'FILE_INVENTORY.json').exists() and read(arc/'RUN_GATE.json')['passed'],'unverified partial archive; inspect')
++ require(before==read(arc/'FILE_INVENTORY.json') and all(sha(safe(arc,k))==v['sha256'] for k,v in before.items()),'resume archive/source changed')
++
+ def consume(lane,token):
+  lock=locked();start=time.time();root,b,owner=bound(lane);run=b['run_id'];require(snapshot(lane)['stability_token']==token,'files changed after stable observation')
+  for rel,e in read(root/'deploy_manifest.json')['files'].items():require(sha(safe(root,rel))==e['sha256'],'sealed file changed '+rel)
+@@ -95,22 +110,29 @@
+  if (arc/'CPU_COMPLETE.json').exists():
+   done=read(arc/'CPU_COMPLETE.json');require(done['passed'] and read(arc/'RUN_GATE.json')['passed'],'bad existing completion')
+   require(all(sha(safe(root,k))==sha(safe(arc,k))==v['sha256'] for k,v in read(arc/'FILE_INVENTORY.json').items()),'existing archive/source changed');return done
+- require(not arc.exists(),'incomplete archive; inspect before retry');arc.mkdir(parents=True)
+  paths=inventory(root,run);before={str(p.relative_to(root)):{'sha256':sha(p),'bytes':p.stat().st_size} for p in paths}
+- p=launch([sys.executable,str(root/'scripts/verify_completed.py'),'--root',str(root),'--parent-root',binding['parent_root'],'--output',str(arc/'RUN_GATE.json')],arc/'verify.log')
+- require(p.returncode==0 and read(arc/'RUN_GATE.json')['passed'],'sealed actual verifier failed; see retained log')
+- for src in paths:
+-  rel=str(src.relative_to(root));dst=safe(arc,rel);dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(src,dst);require(sha(dst)==before[rel]['sha256']==sha(src),'copy/source changed')
+- save(arc/'FILE_INVENTORY.json',before)
++ if arc.exists():
++  check_partial_archive(arc,before)
++ else:
++  arc.mkdir(parents=True)
++  p=launch([sys.executable,str(root/'scripts/verify_completed.py'),'--root',str(root),'--parent-root',binding['parent_root'],'--output',str(arc/'RUN_GATE.json')],arc/'verify.log')
++  require(p.returncode==0 and read(arc/'RUN_GATE.json')['passed'],'sealed actual verifier failed; see retained log')
++  for src in paths:
++   rel=str(src.relative_to(root));dst=safe(arc,rel);dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(src,dst);require(sha(dst)==before[rel]['sha256']==sha(src),'copy/source changed')
++  save(arc/'FILE_INVENTORY.json',before)
+  h=read(arc/'logs'/f'{run}_history.json');video=output_file(arc,h,run)
+  import cv2
+  cv2.setNumThreads(1);cap=cv2.VideoCapture(str(video));geo=[int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),cap.get(cv2.CAP_PROP_FPS)];cap.release();require(geo==[1312,736,141,24.0],'formal MP4 geometry')
+  cmd=[sys.executable,str(OLD/'scripts/pose_probe.py'),'--video',str(video),'--output-dir',str(arc/'pose'),'--threads','4']
+  for f in (55,86,105):cmd+=['--overlay-frame',str(f)]
+- p=launch(cmd,arc/'pose_extract.log');require(p.returncode==0,'pose extractor execution error; output retained')
+- pp=arc/'pose'/(video.stem+'.pose.json');raw=read(pp);require(raw['video']['sha256']==sha(video) and raw['statistics']['processed_frames']==141 and [r['frame'] for r in raw['frames']]==list(range(141)),'pose input/frame binding')
++ pp=arc/'pose'/(video.stem+'.pose.json')
++ if pp.exists():
++  check_cached_pose(run,pp,video,read(HERE/'RECOVERY.json'))
++ else:
++  p=launch(cmd,arc/'pose_extract.log');require(p.returncode==0,'pose extractor execution error; output retained')
++ raw=read(pp);require(raw['video']['sha256']==sha(video) and raw['statistics']['processed_frames']==141 and [r['frame'] for r in raw['frames']]==list(range(141)),'pose input/frame binding')
+  sp=read(source)['provenance']
+- for k in ('detector_sha256','pose_sha256','detector_code_sha256','pose_code_sha256','script_sha256'):require(raw['provenance'][k]==sp[k],'pose provenance '+k)
++ check_pose_provenance(sp,raw['provenance'],[read(v['pose'])['provenance'] for v in binding['parents'].values()])
+  unknown={}
+  for conf in (.3,.5):
+   cmd=[sys.executable,str(OLD/'scripts/timing_metrics.py'),'--source',str(source),'--edited',str(pp),'--confidence',str(conf),'--max-lag','24','--output-dir',str(arc/'timing'/str(conf))]

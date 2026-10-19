@@ -1,0 +1,39 @@
+R26 final: robust missing-support necessity pilot, v2 raw-score compatibility
+2026-10-17; offline completed archives only; no GPU/live controller changes.
+
+Outcome: all three bound endpoints completed; no newly certified delayed/advanced row in any of four frozen variants. These data do not show that the interval approach rescues the old coverage rejection. Tightening single-sided information retains some evidence discarded by the coarser bound; this does not establish better physical-lag accuracy.
+
+Denominators: 3 source/Native trajectories; each 186 overlapping window×part rows (16/32 frames, stride4, bilateral/left/right); total558, each with two confidences =1116 confidence rows. Every proposal retains all49 lag candidates. These are not558 independent samples.
+Original comparison is the pilot's joint original diagnostic + common-support gain rule: delayed97, aligned125, unknown336. It is not the count of every raw scanner candidate.
+
+Per-case: case | old delayed/aligned/unknown | uniform coarse certified/UNKNOWN | uniform tight | confidence coarse | confidence tight
+r26_40372_final | 60/14/112 | 49/137 | 51/135 | 47/139 | 50/136
+r26_51317_final | 0/86/100 | 0/186 | 0/186 | 0/186 | 0/186
+r26_51304_final | 37/25/124 | 24/162 | 24/162 | 23/163 | 23/163
+
+Totals: uniform coarse73/485; uniform tight75/483; confidence completion coarse70/488; confidence completion tight73/485. All certifications are positive delayed evidence. Newly certified0 in all methods; revoked old delayed evidence24/22/27/24. Certified below old .8 common-support coverage0 in all methods.
+Tight versus coarse adds2 uniform and3 confidence-completion certificates, all already accepted by the original comparison. No threshold or window was changed after seeing results.
+UNKNOWN here means failure to certify a signed out-of-tolerance advantage against every null[-2,2]. It deliberately includes all125 originally aligned rows; it is not a statement that125 aligned cases became unobservable. The 51317 endpoint retains86 originally aligned rows and has no new delayed certificate.
+Computed null-comparison objects per method:1855+1820+1860=5535 of5580 potential;45 absent because no finite proposal. Some objects explicitly report invalid domain/support rather than a numeric bound. Full overlapping reasons and coverage ranges are in R26_SUMMARY_v2.json; all individual bounds and curves remain in the3 result files.
+
+Evidence/cost: v2 actual NumPy loader synthetic gate PASS (14.902s compute/17.030s Mac-to-remote lock duration); actual batch compute42.4247s, one thread, CUDA hidden. Mac owner59475 and remote owner46910 exited0; no resident consumer was created. Pre/post15 bound-file checks were completed by evaluate.py. All3 downloaded result SHA match COMPLETE.json.
+
+Preserved history: v1 source path intake failure; v1 raw detector score contract failure; first v2 admission attempt exit75 on occupied remote CPU lock. The completed numeric result is results_r26_final_v3_attempt4. No earlier partial run is represented as a successful batch.
+Compatibility change: original detector scores are finite but may exceed1. Known complete-triplet weights now exactly follow min(raw three).clip(0,1), as the original metric; raw visibility thresholds remain unchanged. Missing weights remain unknown[0,1], cap1. These scores are not calibrated probabilities. v1 and its failed attempts remain in versions/v1 and the historical logs.
+
+Interpretation limits: visible measured pose is conditioned as correct; interval completion does not cover erroneous observed keypoints. Uniform and confidence-completion estimands differ from each other and from the old missing-zero metric. Certification compares the five null lags, not every possible hidden alias; it does not prove unique true lag. Results measure conditional evidence availability, not guidance utility. R27 index5 OFF is not established harmful; later index9–11 was aligned after one intervention. R27 trajectories were not loaded by this batch.
+
+Suggested disposition: do not replace the live .8 rule from these results, do not tune the pilot to rescue a named window. Retain as a negative necessity result and a conditional bound tool. A separately authorized complete R27 binding could test the already frozen formulas, but this report does not require or authorize a new run.
+
+Integrity:
+PROTOCOL.json ecae141436843d495f30699318a156f61e55468d979d07e0d6c9002da1521f09
+FREEZE.json 4f83ffa575bd116c507b18260514cdb3841807ad194a7c31351cea7cdb133847
+BINDING_R26_v3.json eafb4b2ee7b61281344a34e6bbbe2fd5587c04d38d546678328d1e8e9cb60600
+COMPLETE.json b5514cf66a3149c217e1e67bd4d006eba03aa5d7639de76147b0bdf9e7125e3e
+R26_SUMMARY_v2.json 8953413a31b725badbe8ccce213c0441a6d5d4ba0c450056ddca79115855bd49
+
+Count reconciliation against archived whole-scan baseline (all baseline-stored diagnostic fields match at every confidence/window; pilot additionally retains per-lag frame lists/errors):
+40372 raw delayed97/advanced11/aligned14/unknown64 -> qualified delayed60/aligned14/unknown112;37 raw delayed and all11 raw advanced fail the additional qualification.
+51304 raw delayed54/aligned25/unknown107 -> qualified delayed37/aligned25/unknown124;17 raw delayed fail qualification.
+51317 raw delayed0/advanced0/aligned86/unknown100 unchanged.
+Across all3: raw delayed151,advanced11,aligned125,unknown271. Qualified unknown336 = originalunknown271 +54 delayed not qualified +11 advanced not qualified. The97 qualified delayed rows equal60+37, not the unrelated raw40372 count97. See BASELINE_STATUS_RECONCILIATION.json and exact archived source SHA.

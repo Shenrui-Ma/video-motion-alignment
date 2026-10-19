@@ -1,0 +1,28 @@
+R103：原任务 P1 修复，先普通编辑验收，再决定固定时序引导。
+
+本机：/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019
+远端：/data4/researcher/h3_runs/timing_flexiact_p1_repair_r103_20261019
+SSH：H3_SERVER_B（直连）；UID1004；GPU2 UUID GPU-REDACTED；port8567。
+模型/Python/core/dependencies：逐字复用R96 runtime，normal/reserve8；准入40GiB显存及64GiB cgroup有效余量。被动验证不执行容量准入，以免把R96正在占用的资源视为部署失败。root实际启动时重新核对。
+
+已核验：本机115项、实际.41 CPU115项通过；90项封存、8份输入、9份core源码SHA匹配；实际CPU H3/4扩展导入，CUDA未初始化。两个源原49帧@8fps，准备158帧@24，147有效帧；0,3,...144保留原源时刻。原图原片字节保持。
+封存SHA：d954b5e115cf73d1eefe8f24fe2ab16681e1aec1c7449bc572bc9d04df3d626f
+
+顺序：human2animal_2__game_man_4，再chest__game_girl_1。第一项为官方素材交叉配对，第二项为原官方human/chest/000；均为既有动作源。P1逐字复用root已审R103设计。chest参考只提供半身女性盔甲，不给不可见手腿设置身份真值。目标图背景属于这两项任务要求。
+
+每源Native完成后自动生成实际NATIVE_RUNTIME_GATE，controller等待root决定guide/skip。guide通过后同一服务生成forced，实际8个条件blob、AV原噪声、前6步AV预测逐位一致，完整21快照、20Euler/1000block、forced450route均核验；首个完整引导结果再等待root review-first-guided。Native/forced科学差异仅路由mode；steps6..14、alpha1、50层、44有效位置bin。旧P0为历史失败记录；本批是提示词bundle修复及已知固定方法测试，不声称新架构。
+
+只由root启动（R96全部5源审阅+精确释放后）：
+cd /data4/researcher/h3_runs/timing_flexiact_p1_repair_r103_20261019
+python3 audit/root_run_batch.py --execute --attempt root_p1_repair_attempt1
+
+root验收某Native后：
+python3 scripts/execution_gate.py decide --root-reviewed --source human2animal_2__game_man_4 --choice guide --reason '实际全有效帧任务与动作验收结论'
+或choice skip，原因需实写。首个完整guided后：
+python3 scripts/execution_gate.py review-first-guided --root-reviewed
+
+自动门：analysis/postrun/<pair>/NATIVE_RUNTIME_GATE.json、PAIR_RUNTIME_GATE.json；schemas r103-native-runtime-gate-v1/r103-paired-runtime-gate-v1。runs含video/file/SHA、valid_frames147、evaluation_indices49、fps8评分时刻、NFE/routed_blocks与binding_artifacts；service_owner精确代次。STARTED在audit/<attempt>/STARTED.json。所有root决策、失败、skip和成对结果留SCREEN_LEDGER。
+
+前置：configs/predecessor.json锁定R96实际951112/start10923395代次、原封存；要求原attempt COMPLETE确认5源终结，ROOT_EXIT_RECEIPT和当前/proc/CUDA一致。不会停止R96或其它服务。HTTP未知保持UNKNOWN并保留job/总deadline；错误精确清理自有代次。当前未启动GPU、服务或额外watcher。
+
+证据：audit/SCIENTIFIC_DIFF.json、INHERITED_BYTE_BINDINGS.json、TARGET_CPU_VERIFIED.json、FINAL_PREPARATION.json；design/EVIDENCE.json与ACCEPTANCE.json提供原任务、素材与验收条件。

@@ -1,0 +1,160 @@
+{
+  "schema": "r47-two-new-source-native-screen-v1",
+  "new_method_claim": false,
+  "seeds": [
+    2026101701
+  ],
+  "arms": [
+    "native"
+  ],
+  "case_order": [
+    "r47_source_10264579_seed2026101701_native",
+    "r47_source_6980766_seed2026101701_native"
+  ],
+  "cases": [
+    {
+      "source_id": "10264579",
+      "parent_graph": "configs/parent/graph.json",
+      "parent_graph_sha256": "78cbf4e36c695ed2b303402a36e2977a30f05f528f5003bcebbb5ed460f548ae",
+      "parent_root": "/data5/researcher/h3_runs/timing_source51765_native_r43_20261017",
+      "parent_run": "r43_source_51765_seed2026101701_native",
+      "video": "source_10264579_video.mp4",
+      "portrait": "source_10264579_portrait.jpg",
+      "provenance": "source_10264579_provenance.json",
+      "seed": 2026101701,
+      "run_id": "r47_source_10264579_seed2026101701_native",
+      "identity": "Sam Altman",
+      "prompt": "Replace the dancer in the reference video with the man from the reference image, Sam Altman. He wears a plain gray long-sleeve shirt and dark trousers. Preserve the original dance motions and their exact timing, the sequence of body poses, the camera movement, and the large windows, studio background and lighting of the reference video.",
+      "video_sha256": "e951fb750fdae1c927e6a59697ffe13d31c0d08f825ae008f3a39579cf0700e2",
+      "portrait_sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42",
+      "provenance_sha256": "c606c5451da8ae75d7ae371260e78304e402c02ede1847ba187d07e5b2e89f0b"
+    },
+    {
+      "source_id": "6980766",
+      "parent_graph": "configs/parent/graph.json",
+      "parent_graph_sha256": "78cbf4e36c695ed2b303402a36e2977a30f05f528f5003bcebbb5ed460f548ae",
+      "parent_root": "/data5/researcher/h3_runs/timing_source51765_native_r43_20261017",
+      "parent_run": "r43_source_51765_seed2026101701_native",
+      "video": "source_6980766_video.mp4",
+      "portrait": "source_6980766_portrait.jpg",
+      "provenance": "source_6980766_provenance.json",
+      "seed": 2026101701,
+      "run_id": "r47_source_6980766_seed2026101701_native",
+      "identity": "Elon Musk",
+      "prompt": "Replace the dancer in the reference video with the man from the reference image, Elon Musk. He wears a plain gray long-sleeve shirt and dark trousers. Preserve the original dance motions and their exact timing, the sequence of body poses, the camera movement, and the gym background and lighting of the reference video.",
+      "video_sha256": "95125ca6e12b12fff2007f7bae0a5b218d24b5cd66fb1cbef09bb7df908aa44e",
+      "portrait_sha256": "8aab8262f1da5ae98dec83f7ed677c1aed5164130ddf73d51d80ad922ee40b45",
+      "provenance_sha256": "dd29208b8dfdaff27d2f18068b5426d7e1171cf58f56877024491ceb44f4a00f"
+    }
+  ],
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24
+  },
+  "CFG": 1,
+  "sampler": "Euler20",
+  "no_Turbo": true,
+  "NFE_per_job": 20,
+  "callback_count": 20,
+  "blocks_per_job": 1000,
+  "routed_blocks_per_job": 0,
+  "captures": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "router": {
+    "mode": "native",
+    "physical_window_metadata_only": [
+      0,
+      140
+    ],
+    "window_not_used_for_intervention": true
+  },
+  "purpose": "Two preselected normal-speed dance sequences, one declared seed per source and fixed Sam/Musk replacement; all outcomes retained",
+  "condition_scope": "Store actual Qwen/tag/reference/position/AV noise entities and21chosen endpoints. New source and identity have no historical same-input trajectory. Full processed/postaugmentation tree is not archived; later control must use actual prefix AV and recorded clean inputs/code/seed.",
+  "continuous": {
+    "retain_service_between_jobs": true,
+    "cache_none": false,
+    "idle_hold_seconds": 1800,
+    "max_service_seconds": 43200,
+    "job_timeout_seconds": 7200,
+    "root_final_close_releases": true,
+    "failure_releases_exact_owned": true
+  },
+  "single_CUDA_process": true,
+  "preCUDA_gate": true,
+  "source_event_annotations": "Source-only coarse events explain selection; no event windows or pose scores are consumed by generation",
+  "cost": "record20NFE/20callbacks/1000blocks/0routes; intermediate20 snapshot time and21files; final capture inside total wall",
+  "source_ids": [
+    "10264579",
+    "6980766"
+  ],
+  "evaluation": {
+    "fixed_windows": [
+      [
+        0,
+        31
+      ],
+      [
+        32,
+        63
+      ],
+      [
+        64,
+        95
+      ],
+      [
+        96,
+        127
+      ],
+      [
+        125,
+        140
+      ]
+    ],
+    "whole_scan": "Inherited186 correlated16/32frame windows stride4 plus tail, both confidence levels, preserveUNKNOWN",
+    "stills": [
+      0,
+      24,
+      48,
+      72,
+      96,
+      120,
+      140
+    ],
+    "video": "full141frames same-index source versus native",
+    "quality": "review action ordering, local timing and shape/identity artifacts separately; pose error is a candidate indicator",
+    "legs": "10264579 original lower legs/feet partly out of frame; supplementary valid-support evidence only. 6980766 full body visible in source grid."
+  },
+  "acceleration_axes": {
+    "weights": "same four model files asR43, historical hash+size/mtime binding",
+    "runtime": "existing .9 torch2.5/PyAV16 task-local compatibility",
+    "attention": "Native PyTorch SDPA via inherited audited block wrapper; H3 Sage patch absent",
+    "linear_backend": "Triton INT8 with inherited row chunking guard",
+    "sampler": "Euler20 manual shifted video sigmas12/audio3, CFG1",
+    "lora": "none",
+    "cache": "default Comfy model/node cache, service retained between both jobs",
+    "postprocessing": "raw24fps1312x736; no RIFE/VSR",
+    "snapshot_cost": "20 intermediate AV snapshots plus final per job; measure separately"
+  }
+}

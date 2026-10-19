@@ -1,0 +1,237 @@
+参考时间映射：hard=mass 之后的创新门槛与最小区分实验
+2026-10-16；独立科学审查 /root/h3_timing_prior_art_20261016。
+仅本地只读源码/数据与定向 primary 文献检索；未修改科学代码、配置、队列，未操作 GPU。
+
+结论
+====
+目前没有足够证据声称已经得到强的“架构创新”。普通同帧 hard masking 与
+mass-preserving same-bin routing 在发现样例上基本同等有效，直接削弱了后者作为
+核心贡献的必要性。连续 RoPE 时间旋转也不能仅因“连续、可微、无训练、参考分支
+专属”就获得创新资格；这些组件各有明确先例。
+
+尚值得一次有上限检验的区别是：冻结编辑器中是否存在一个可校准的、相对于参考
+视频物理时间的动作时间控制变量；它能改变同一个动作的发生时刻，而不是只增强
+参考复制、改变动作幅度或整体重定时。局部单调时间映射和误差反馈只是对这个假设
+的受约束实现。必须先证明有符号可控性、动作顺序和编辑保持，再讨论闭环。
+若当前 ±RoPE 没有稳定方向，而 shifted-bin 有方向，就优先承认后者是可用的普通
+执行器；这不会自动形成新的架构。若两者都没有方向，停止为此叠加观察器/阈值。
+
+一、新证据如何改变结论
+======================
+实际读取：analysis/pose/pilot/FULL_HARD_1312_REVIEW.md，
+phase_zero_rgb_equality.json 的汇总字段，原 architecture_novelty_gate.txt。
+
+Sam05 seed1 的主窗口50–65：native约+13帧，mass与hard均0帧；四窗口 both-arm
+lag同为0/-1/0/-1。共同有效支持上的误差，mass/hard分别约：.098/.097、.525/.526、
+.107/.106、.095/.110。单样例差异不足以支持哪种更优。中间窗口的残差/覆盖失败仍
+必须保留；窗口外也有小幅姿态代价，不能声称干预在最终视频中严格局部。
+phase-zero与native的141帧解码RGB、时间戳、几何均完全相同，支持零操作契约。
+
+允许的现有结论：同帧参考限制足以修复这个已选坏例；group-mass保持不是该修复的
+必要条件。不能推出二者算子相同，也不能把无显著差别称为所有条件下等效。
+当前还没有自动定位、动态反馈、用户动作编辑豁免、跨例一般性或新骨干架构证据。
+
+二、两个执行器实际改变了什么
+==========================
+源码：extensions/H3TemporalRouter/core.py、layout.py；
+extensions_staged/H3PhaseRoPE/core.py。以下是本审查推导，不冒称文献新公式。
+
+记原attention在参考视频集合R上的总量m_q，参考内条件分布pi_0，条件输出mu_0。
+在同一层固定输入上，mass形式为 O'=O+alpha*m_q*(mu_new-mu_0)。它只是消除gain
+这个即时混杂因素，既非新分解，也不保证后续层或其他采样步的总参考影响不变。
+
+A. 当前连续时间RoPE旋转
+对选中输出Q的时间16对维度额外旋转R(c*u)，c=5/3 RoPE单位/24fps物理帧；仅用
+克隆Q重算Q→ref-video分支，保留所有ref K/V、空间RoPE和其他同层交互。
+pi_u(k) ∝ exp(<R(c*u)Q_q,K_k>/sqrt(d)), k∈R。
+u=0精确native，不是same-bin路由。它改的是兼容性；不承诺哪个参考帧实际被读取。
+内容项、learned频率、周期性、跨帧上下文化的K/V均可造成非单调或近零响应。
+旋转角连续/向量范数不变，不等于输出动作相位连续或方向可知。
+
+B. 已冻结router的time_offset
+对输出latent bin i，候选参考bin为clamp(i+d)，radius可为0或1；K/V保留原本RoPE，
+直接缩小可读取的参考token集合。radius0时只在那一帧的空间tokens内归一化。
+可用mass_preserve固定同层参考总量，也可用hard_route重新归一化完整组。
+d=0已经是强same-bin干预；它在当前坏例上已经修好。因此不能把RoPE的u=0和
+router的d=0当作相同baseline，直接比较相对native的涨分后说哪种更有控制力。
+必须分别比较各自e(-h),e(0),e(+h)的响应曲线，再比较相同物理位移/保持预算。
+
+C. H3 bin并非等间隔四帧
+layout.frame_spans按[1,4,4,4,4]重复，属于位置分组，不等于严格VAE感受野。
+50–65帧窗口实际覆盖latent bins14..19，其位置分组起点是47,51,52,56,60,64。
+
+query bin       14   15   16   17   18   19
+offset +3帧差    +9   +9  +12  +12   +9   +9
+offset -3帧差   -12  -12   -9   -9   -9  -12
+offset +4帧差   +13  +13  +16  +13  +13  +13
+offset -4帧差   -13  -16  -13  -13  -13  -13
+offset +5帧差   +17  +17  +17  +17  +17  +17
+offset -5帧差   -17  -17  -17  -17  -17  -17
+
+故pending RoPE±12帧不能冒称等价于router±3或±4bin。±5bin恰好跨完整周期，能
+和RoPE±17帧比较名义物理位移；即便如此仍是位置语义比较，不是VAE逐帧硬对齐。
+现有offset边界会clamp产生多对一映射；测试窗口应远离参考首尾，别把clamp当相位
+控制或单调性证据。整数bin限制和连续RoPE差异是真实工程差异，非自动的论文贡献。
+
+D. “reference-relative”要有准确含义
+H3实际拼接序列有不同的参考/输出时间原点o_R、o_Q。native相对坐标包含
+o_Q-o_R+c*(tau_q-tau_k)。当前额外旋转只增加c*u，保留模型原有模态偏移。
+不能写成“已经把输出与参考坐标完全对齐”；直接去掉o_Q-o_R又是另一个未经验证的
+大干预。物理时间控制应按每个视频自己的时间轴定义，再加到原始关系上，避免把
+concat token索引、物理帧和去噪步混淆。共同平移Q/K不改变RoPE内积是标准性质，
+不能作为新的相对坐标理论。仅改某类query-key关系也已有参考分支控制先例。
+
+三、“局部单调时间图”的必要约束与陷阱
+===================================
+若定义phi_s(tau)=tau+u_s(tau)，s是去噪检查点，tau是视频物理时间，则至少要求：
+  phi_s(0)=0, phi_s(T)=T；0<v_min≤dphi_s/dtau≤v_max；
+  在保护区外u_s=0；在用户明确要改变动作的区域不施加源动作校正；
+  限制|u_s|与相邻检查点更新幅度，并在观测不可辨识时不更新。
+这些是常规受约束time warp/控制设计，不是新的数学原理。
+
+当前“仅50–65帧+12、外侧立即0”的矩形干预不是整体单调time map：若按物理参考
+读取解释，65帧读77，下一帧66又读66，局部时间倒退。负偏移在左边界有同类问题。
+因此即使目标动作提前，也可能重复/丢掉邻近动作；需检查onset、peak、offset和顺序。
+实际路由作用覆盖47–67的位置bins，应按实际覆盖检查边缘，不能只按UI窗口算。
+
+要让+12位移平滑回到0而仍dphi/dtau>0，回落过渡至少要超过12帧。若进一步限制
+0.5≤dphi/dtau≤1.5，则+12的上升、回落各至少24帧。这个简单边界算术意味着：
+“很窄窗口、很大时间纠正、窗口外完全不动、严格保序”不可能同时免费满足。
+可以扩展缓冲区、减小位移或放宽局部速度，但必须把代价写清楚，不能靠mask名称掩盖。
+
+最小实现定义（仅候选，不要求现在写代码）：在少量真实物理时间knots上估计u，
+投影到上述单调/端点/速率约束后分段线性插值；在允许保留动作的区域仅改变参考
+分支时间关系，其他分支沿native。保护区域先用人工确认的固定范围，别同时引入
+自动意图解析、自动ROI和闭环三个未验证组件。单调phi也不保证生成动作单调响应；
+前者是控制命令的几何约束，后者仍需实验。
+
+可能更有原则的研究命题不是“我们用了monotone warp”，而是“冻结编辑器存在可
+辨识的低维动作时间响应，关系隔离允许以有限旁侧代价调节它”。若成立，可量化
+J_ij=∂event_time_i/∂u_j：目标事件方向稳定、邻近事件耦合可界定、外观编辑保持。
+如果只有整个视频一起快慢移动，不能称局部动作时间控制。该系统辨识思想本身也
+不新；价值要来自在视频编辑中发现并验证具体可复现结构，而不是换术语。
+
+四、最接近先例与不能主张的“区别”
+================================
+沿用此前已读primary全文/固定代码，仅补读最相关原段和有限定向检索。
+
+1. Vidu S2 §3.2：输出只与时间对应source帧交互；直接占据same-frame routing。
+https://arxiv.org/html/2609.11638v1
+hard=mass之后，不能再以H3无训练适配或组归一化把这个基本机制变成新架构。
+
+2. Sync-LoRA §3：source/target沿时间token拼接、共享经VAE/FPS缩放的时间位置，
+通过训练同步人物编辑。物理时刻对应与reference-relative coordinate并非空白。
+https://arxiv.org/html/2512.03013v1
+https://github.com/SagiPolaczek/Sync-LoRA
+候选差别只能是冻结模型残余相位误差的在线校正，而不是首次建立时间对应。
+
+3. DiTFlow §4.2–4.3/Eq8：用参考/生成Attention Motion Flow差优化latent或位置编码。
+https://arxiv.org/html/2412.07776v2
+把位置优化限制成一维时间变量是它的强近邻/参数子空间特例反驳。需要匹配低维变量
+和phase loss的优化对照，不能仅用“不反传”声称新结构。
+
+4. RoPECraft §4.1–4.3：光流空间轨迹初始化RoPE，再测试时优化；初始化明确保留t
+分量，理由是修改它易产生伪影。此处phase loss是Fourier phase，不是动作晚δ帧。
+https://arxiv.org/html/2505.13344v1
+这里未看到本候选完整反馈链，但它直接否定“首次运动驱动RoPE调整”，并提供时间
+bank未必有用的危险反证。未逐行排除它全部优化器变体影响t的可能。
+
+5. BulletTime §3.2/Eq5–6：连续world-time进入Time-RoPE，再用训练Time-AdaLN补充
+细粒度时间控制；具有source-target条件，支持变速/暂停。Time-RoPE分支本身无新增
+参数，但论文训练了整体时间控制系统；“无新增参数”不等于其方案整体training-free。
+https://arxiv.org/html/2512.05076v1
+直接占据连续时间旋转控制视频时序；候选只剩局部reference子关系、冻结模型纠偏
+与在线误差反馈。该文还强调全局时间信号的稳定性，不能假定局部更好。
+
+6. SpaceTimePilot §3.2.1/Eq2/AppD.3：source/target有独立animation-time映射，
+sinusoidal编码+1D Conv投影到latent后加进attention输入；用time-warp训练。
+https://arxiv.org/html/2512.25075v1
+固定代码：https://github.com/ZheningHuang/spacetimepilot/blob/e9cd3f5d618d6146399b8dbe6786977bc2f98934/spacetimepilot/model/spacetimepilot.py#L300
+该工作已能给定重映射；RoPE-only消融同时冻结相机是直接警告。候选反馈残余误差
+不同于用户重定时，但必须证明没有同样的camera耦合。
+
+7. Infinity-RoPE与Knot Forcing：在线重定位Q/K时间坐标、参考锚点/缓存已出现，
+前者推理包装无需新训练；依据rollout和场景条件而非生成动作的signed lag。
+https://arxiv.org/html/2511.20649v1
+https://github.com/yesiltepe-hidir/infinity-rope/blob/63d7b84f043a2536ccb62d5171ed54dfadc0a721/wan/modules/causal_model.py#L223
+https://arxiv.org/html/2512.21734v2
+因此“在线移动参考时间坐标”本身不新，局部误差驱动只是待证明的限定。
+
+8. DIAL、Untwisting RoPE：reference-only注意力偏置/频带调制已有，包括第三方
+H3 post-RoPE参考K适配。保mass的旋转仍可等价写成reference logit bias加行常数；
+不能声称数学上完全脱离DIAL，而应证明它控制的是有符号时刻而非强度。
+https://arxiv.org/html/2609.11507v1
+https://arxiv.org/html/2602.05013v1
+https://github.com/xmarre/ComfyUI-Untwisting-RoPE/blob/63c8d8df5e08dfdad4b397480d966b90f9b5a6c6/flux_untwist/patches.py#L412
+
+9. Phase ControlNet Eq11 + TempoControl/MotionEcho：局部phase传感、predicted x0
+比较、达到条件停止指导，各有先例。换tracker/阈值/低维参数不自动成为独立架构。
+https://arxiv.org/html/2603.19795v1
+https://arxiv.org/html/2510.02226v3
+https://arxiv.org/html/2506.19348v2
+
+本轮定向检索新增近邻（限制于相关点）：AV-FlowEdit Method/Eq9起，用source-target
+flow saliency与音频活动自适应决定保护哪些结构，配合扩散阶段schedule；LTX-2上
+training-free。它不等同signed reference-time map，但“只纠正非意图变化、放行
+用户希望的事件”已是明确preservation设计目标，不可作为本候选独占概念。
+https://arxiv.org/html/2610.13072v1
+没有在此次有限检索找到完整“在线signed lag→局部单调ref-time map→增益隔离”的
+直接同类；这只是not found，不是absence proof，更不是对组件组合非显而易见性的认证。
+
+五、最小、能区分解释的实验
+=========================
+顺序A：先消费已排队的phase零/±12和late11，不新增复杂控制器。
+对每个arm同时报告同一动作的发生时间、best-aligned形状残差、幅度/有效支持、
+旁侧事件、身份/外观编辑与camera。拟合e(u)时必须确认三臂仍是同一个动作。
+要求正负扰动的效果反号且顺序稳定，幅度超过预先规定的读数容忍度；本试验可用
+两帧作为screening阈值，但它是操作阈值，不是统计显著性。重测另一seed才能谈稳定。
+如果±12都只是使图像更接近源、都改善/都崩而无时刻顺序，不能叫有符号执行器。
+late11即使有效仍是固定schedule，不能被写成动态闭环。
+
+顺序B：如果要检验“RoPE失败只是执行器不对”，最小追加为同一source/seed、固定
+全部原参数的mass_preserve time_offset=-3/+3，两条；现有d=0作为第三臂。
+这是对实际reference-bin执行器的有符号可控性检验，不是严格±12frame等价对照。
+上表的每-bin物理位移须随结果一起存。目标在片中，不触发边界clamp。
+若B有稳定方向而A无，停止RoPE相位旋转叙事；保留显式时间路由的可控性实证。
+若A/B都无，停止闭环；如果两者都有，才考虑下一步严格配对。
+
+严格对比的最低代价选项：以同一保护窗口、同层mass规则、相同步层预算，追加
+router d=±5与RoPE u=±17四条；两者名义物理偏移相同。±17较大，不强推此组。
+更小位移需每-bin物理delta旋转或连续bin插值，属于新实现，先通过单元测试再另行
+登记。不能把不匹配的bin/frame值直接作为连续执行器优越性的证据。
+
+在单一已修好的坏例中，正负offset可能只是重新制造错位；它可以证明执行器有
+方向，不能证明自动纠偏实用。反馈前还需至少一个可靠提前错误和一个原本正常例。
+保持seed固定；拒绝用逐次换seed挑到想要的方向响应。
+
+顺序C：只有前两关通过才测“局部单调map”是否有必要。
+预先选择两个事件，其错误符号/幅度不同；用人工oracle给出低维时间knots，投影成
+保序map。比较：零offset same-bin、开发集固定最佳offset、局部oracle map；相同
+参考mass与保护ROI。另一ROI/邻近事件是外部性检查。如果固定offset/同帧mask已经
+同样好，map复杂度没有必要。若需要map，再比较有界非单调map或矩形offset与单调
+平滑map的事件顺序/副作用，才能说约束解决了什么。此阶段仍不叫自动反馈。
+
+真正的反馈实验至少还要：同样观察开销但不控制、固定/冻结/反号误差信号对照；
+错误能被中间x0观察到时执行器仍有作用；以confidence不足/幅度变化/遮挡作拒判。
+否则会把“目标动作形状错误”硬拟合成lag，或把所有收益归给一个早已固定的mask。
+
+六、明确可证伪的最窄区别与停止条件
+=================================
+候选命题H：在冻结RGB视频编辑器的允许保留动作区域内，reference子关系的物理
+时间映射形成一种低维控制模式；在固定同层参考总mass时，正/负扰动引起可重复
+的动作时刻反向响应；局部保序反馈能修复多事件不同相位误差，且优于最佳固定
+same-time/offset策略，不靠撤销外观编辑、全片重定时或改变相机换来。
+
+以下任一成立就削弱或否决对应创新主张，即使某项总分上涨：
+* hard=mass：已否决当前单例“保mass必要”解释，后续保mass只作消混杂工具。
+* RoPE±无方向或只通过identity回退改善：否决RoPE作为相位执行器的证据。
+* bin±有效、但固定d=0足够：可用工程路由，无闭环/时间图创新必要性。
+* 增益调整、entropy匹配的非时序限制同样解释收益：未证明物理time correspondence。
+* 全局同样时间变换与局部操作无副作用差异：关系/区域隔离的关键性不成立。
+* 单调性只在命令phi成立，动作顺序仍错：不能声称模型满足保序控制。
+* 误差直到不可控制的末期才可见，或controller不优于固定策略：停止当前闭环。
+* 直接把DiTFlow/Time-RoPE等现有变量约束到同一子空间即可复现全部性质：承认
+  是已有思路的受约束适配，贡献只能来自新的实证/效率/可靠性，不冒称新架构。
+
+当前决定：有限执行器诊断可继续；没有强架构创新已成立的结论。新颖性需要机制
+证据与相关先例对照共同支持，不能由“未搜到完全同一句描述”或单坏例修复推出。

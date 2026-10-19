@@ -1,0 +1,90 @@
+R21：早期 gap5、后期姿态观察器的最小协议与工程可行性
+2026-10-16。只读设计；未实现 R21、未运行新测试、未使用 GPU。
+本目录 PROTOCOL.json 是候选的具体定义；EVIDENCE.json 绑定所读历史文件 SHA。
+
+结论
+
+可以用 R19 已有同状态 native-first 包装器实现，新增控制计算只涉及 indices6..9 的选择和病例绑定。R19 已被动计算每个 >=5 端点的 gap5，因此早期控制不需额外 DiT。正常例可能为20NFE，最坏34NFE；仍是20个原 Euler 更新、20个 chosen callback。晚期固定10次完整 VAE+姿态观察的成本保留。
+
+这份设计未证明候选成功。R12 已执行坏例早期 native lag10/6/3/3，原选择为 Full/Full/HOLD Full/HOLD Full；与 R19 固定 Full6..9 一致。正常 R14 的同物理 indices6..9 均 accepted lag−1，支持该例早期零干预。正常例晚期目前只有 index10/15 的姿态，不足以证明整个闭环零干预。
+
+1. 精确状态与时间定义
+
+physical n 指20个 Euler 物理采样点的零起始 index，不是模型 NFE，也不是视频帧。source frames50..65 是物理视频时间窗，24fps；query nominal coverage47..67、latent bins[14,20)，每 bin943空间token、50层和原 Full 公式全部不变。
+
+每步先在真实当前 x_n/sigma_n/c 上运行 native。这仍包含原 H3 条件和此前被 Full 改变的状态，不能叫未干预参考轨迹。只有当前 native 观察决定是否再在相同输入上运行 Full。返回其中完整 raw packed AV 端点，再调用原 sample_euler 一次。音频不作为控制信号，但被选端点的音频不能替换为另一分支或擅自丢弃。
+
+R12 core.selection_decision、observer.next_decision 的真实原义：
+- 初始 previous_choice=false；0..5 全 native。index5 可以归档 gap5，但不改变 previous_choice。
+- 6..9 用当前 native 端点，accepted lag>=4 ON；[-2,2] OFF_ALIGNED；lag3 HOLD 上一步“实际选中的分支”；<=−3 OFF_ADVANCED；测量被拒判则 OFF_UNKNOWN。
+- previous_choice 在可选 Full 完成并且实际分支被选中后更新，不能提前写为建议值，不能用 Full 端点的 gap5 置零，也不能由 index5 预热。
+- 原 R12 对缺失 eligible observation、accepted lag 类型/范围异常会报错。R21 保留这些运行完整性错误；科学 UNKNOWN 仅指有效测量记录被原可靠性规则拒判。
+- index10 起直接调用 R19 当前四姿态规则。无需等待 early aligned、无需继承 HOLD；UNKNOWN 与 ADVANCED 都选 native，但各自保留原因。可再进入 Full，index19 仍可 ON。
+
+四值顺序为 arm_direction/conf0.3、arm_direction/conf0.5、wrist_relative/conf0.3、wrist_relative/conf0.5。必须先满足原 gate reasons为空、四值为有限整数；全>2 ON_LATE；全在[-2,2] OFF_ALIGNED；全<-2 OFF_ADVANCED；混合类别、缺失可靠值或原门拒判为 UNKNOWN。完整请求/解码/姿态运行失败应 ABORT，不能吞成 UNKNOWN。
+
+R14 使用旧 callback-feedback 节点的 off 模式，audit“next_forward”字段没有运行控制含义。其 callback6 的 native x0 正好是 physical6 的已选端点，可以给 R21 physical6 作离线读数证据；不能把 callback5 的−1当作 R21 physical6 的当前观测。实际未来是否仍沿 R14 native 轨迹，取决于此前所有选择都 OFF。
+
+2. 已有数据能证明到哪里
+
+坏例：source05/Sam/seed2026101311。R12 数据中的 index5为被动10，index6为10、previous=false→Full，7为6→Full，8/9为3、previous=true→Full。index10内部2→OFF；同端点外部四值4，这是既有停止错误的证据。R19 若实际完成且共用前缀逐位门通过，可把它实际归档的每个早期 native gap5 输入交给 R21 纯选择器，逐行检查选择与 R19 相同；late10..19 又复用同一个 R19 selector，因此可证明“冻结规则在这条已执行轨迹上的选择等价”。这是复用 R19 的轨迹证据，不是已执行 R21 图，也不是第二个泛化成功样本。若 R19 出错/最终质量失败，不预支成功。
+
+正常例：source05/Sam/seed2026101313，.9，同1312×736×141几何。R14实际off路径保存了 gap5 callback5..19 的全部49点曲线，15个 accepted lag均−1。完整正常例最终四姿态亦−1；R15实际解码的 native5/10/15 四姿态均−1、原可靠门通过。当前尚缺 late11/12/13/14/16/17/18/19 的完整姿态观察。R14只归档 x0[5,6,7,8,9,10,15,19]+final；11..14、16..18 没有旧 endpoint 可直接复用，19有tensor但没有对应在线pose。
+
+不能以最终pose代替index19。R14 capture manifest明确记录 x0_step019与sampler_final存在原Euler末步舍入差异：video max_abs2.384185791015625e−7，audio5.960464477539063e−8。这个差异本身不是运行失败，也没有证据保证检测阈值完全不变。R21既要保留真实index19观察，也要独立检查最终结果；不能把Euler重新写成数学等价加权和来强迫它们逐位相同。
+
+因此，最少可信的下一次正式计算是正常 seed1313 的完整 hybrid run，所有晚期10..19都实际读取。如果始终OFF，每步状态按原Euler递推与R14相同，可要求现有8个checkpoint、final和141帧最终RGB逐位重放；没有旧tensor的七个中间点只能记录此次完整证据，不能宣称历史逐位比较过20点。如果首次出现ON，正常例“零干预保持”的主判据失败；此后历史R14未来端点不再是同状态，不能继续以它们的精确不等作为运行故障，也不能拿它们的未来pose替代新闭环。保留此次所有结果，按既定策略完成，除非运行/安全门失败。
+
+零Full且部分UNKNOWN可以证明视频保持，但不能声称可靠识别为对齐；分别报告十次中 accepted-aligned、advanced、UNKNOWN数量。晚期全部有效且OFF是更强的观察器证据。两种结果不能混写。现有两个seed均已看过，应标开发案例。即使正常零干预与坏例修复同时成立，也尚未证明胜过固定6..11，更未证明通用架构贡献。
+
+3. R19 哪些代码可以直接复用，哪些绑定必须变
+
+现有 R19/extensions/H3PoseObserverRouter：
+- core.State.save_endpoint 已对physical>=5计算同一 FrozenGap5Observer；无额外 GPU。PredictionProbe 当前在 native 完成后、Euler 前调用 select，适合替换6..9选择。
+- core.State.previous_choice 的初始化/更新时机已经沿用R12。保持它，只使6..9选择读取它。
+- selector.select 的10..19分支原样复用。early 分支独立代理原R12 next_decision，写清 observation_stage、previous_actual_full、proposal、chosen、reason，不能改冻住的晚期阈值。
+- 原 SamplerAudit.finish 强制 full_indices[:4]==[6,7,8,9]，此断言要改成逐步决策/分支一致和20+K计数；正常例允许K=0。ten measurements门必须保留，physical index不能误用NFE。
+- transport.validate_request 硬绑定seed2026101311，pair_gate.begin硬绑定R10/R12，live_observer.bridge10硬绑定旧R12 native010。这三处都是R19专用证据，不能直接用于正常seed1313。R21应只允许协议列出的两个case ID，各有固定seed/input/condition/noise/bridge SHA；不引入任意seed的宽松免检。
+- 旧seed2图改变的是起始噪声和H3 reference augmentation seed。正常case必须沿R14真实原图和实际条件绑定，不能仅把R3noise节点seed改掉却留下旧augmentation。
+
+新病例证据门应分成：
+(a) 初始图、完整sigma/grid/shift、模型/core/backend、source prepared RGB/clean latent、语义条件/帧位置/提示词、病例noise与augmentation seed的固定门。两个case不可互相替代condition SHA。
+(b) 真实共同前缀门。坏例按R19/R10/R12历史事实；正常例至少R14index5，随后在“历史选择仍相同”的区间核可用checkpoint和同状态签名。每次分支变化都更新配对资格，不能无条件要求所有后续旧native端点相等。
+(c) 观察通道门。若正常前缀6..9全OFF，native010必须等R14 old010，完整VAE/RGB/MP4/pose/全曲线可与R15 r14_native_step010直接桥接；15只在此前仍全OFF时可同样配对。如果在10之前已经实际ON，应记录该科学失败，不再假称old010是当前端点。正式实现前可使用独立固定旧fixture验证同一decoder/transport数值路径，同时对所有current请求坚持SHA、raw/normalized streams、stage/source绑定和父状态保护。历史同状态条件不成立时，明确记配对“不适用”，不能给假PASS，也不能继续执行旧G2强制等值。
+(d) 父进程观察前后 G3：实际x、native、sigma、sampler_sigmas及model_options sample_sigmas、cond、RNG、环境/线程、model/patcher、参数指针/dtype/device/驻留，全部与R19保持。
+
+最小可能改动文件清单（仅规划，未创建代码）：新R21 extension的selector/core/pair_gate/transport/live_observer病例绑定；configs两case图/protocol/input与sourcebindings/admission模板；现有脚本中的runroot/node/clientid及verify_completed规则；沿用R19decoder/pose/childlifecycle原语。H3TemporalRouter算子、Euler、VAE、姿态提取与指标均无需改动。
+
+4. 必要 CPU 门（尚未运行）
+
+A. 纯选择器逐项契约：对accepted lag−24..24、previous false/true逐项与冻结R12 next_decision完全相同；拒判同时带大argmin也必须UNKNOWN/OFF；类型、越界、缺失记录报错。late10..19与冻结R19 select逐项一致，覆盖四种单类、混合、空值、置信门拒判、bool/float伪整数、传输失败。stage5→6、9→10、18→19独立核对。
+
+B. previous状态因果：四步[3,4,3,3]→[native,Full,Full,Full]；[4,UNKNOWN,3,3]→[Full,native,native,native]；[4,3,0,3]→[Full,Full,native,native]。index5大lag不改变6的HOLD初值；index9Full+index10UNKNOWN必须OFF；10OFF后11四值>2可重启。Full预测前异常不得留下可用于下一步的错误previous状态。Full端点自带低lag不得影响下一HOLD。
+
+C. 真实Comfy CPU wrapper/loader：复用R19真实Guider_Basic、ModelPatcher clone、KSAMPLER Euler、COND*/PackedLayout、actual extra_conds与localGenerator测试路径，保持单positive/CFG1/nochurn和alias身份门。至少全OFF20NFE、全ON34NFE、同时含HOLD/UNKNOWN/停止/重启的混合序列。每案要核20真实Euler更新/20chosen callbacks、每NFE50blocks、单步最多native+Full两次；配对一个独立单forward固定mask轨迹，要求所有20chosen与最终packed AV逐位相同。不能仅用手动CPU forward循环宣称20Euler通过。
+
+D. 原R14真实gap5早期曲线/决定回放：读取callback6/7/8/9，原49点曲线保持，独立case条件SHA绑定，得四次OFF；bad原R12 native6..9得四次Full。此项仅是历史函数/接线回归，无GPU、不算R21运行。R19完成后可追加完整20步规则trace-equivalence，保留其真实未知/重入而非先写预期mask。
+
+E. 病例/桥接负例：1311/1313混用noise或augmentation、只改noiseseed、错误R14/R12 bridge、错误positive UUID之外字段、被篡改actualsample_sigmas、index19/final互换、错误branch/NFE/oldrequest、分支变化后仍声称旧native当前态，全部拒绝或按明确配对“不适用”规则记录。有效科学UNKNOWN不能等价于损坏请求。正确case全部字节不变。
+
+F. 原安全门回归：decoder普通全141frames不变、强制OOM fallback拒绝、正确父GPU2共驻留与free-memory门、跨任务exact身份且最多两张我们的GPU、超时/父TERM/KILL/CPU锁等待时子进程精确清理、PID复用外部进程不杀、nvidia残留不能报清理成功。除非这些函数有改动，可引用封存R19同SHA实际CPU证据而不重复测试；改了病例request schema/路径必须跑对应真实child接口负例。
+
+没有必要为这份设计新增重型依赖或CPU视频/模型运行。已有源JSON足以说明接口可接与数据缺口；真实CPU验收和GPU观察发生在后续明确授权的实现阶段。
+
+5. 实际最小验证及失败分解
+
+先等待R19完成和最终motion/quality门；随后对其真实日志做规则trace-equivalence，并执行唯一正常case。所有规则、两个seed、主窗和三副窗、pose置信0.3/0.5、handoff10先封存，不因为输出改变。如果相同病例或same-masks重放，不增加独立样本数。
+
+运行完整性失败与科学失败分开：接口/数值/资源门失败即中止留档；有效观测使正常例ON是候选假触发；UNKNOWN率高是可观测性缺口；坏例观测对齐但最终反弹/肢体重影是持久控制/质量失败。统一动作终评必须保留四窗口、方向/腕、共同有效support、55/86/105固定图与腿/躯干副作用。控制使用同一姿态工具，最终姿态分数有指标闭环偏差，不能替代人工短片动作/质量检查。
+
+成本只记录：各NFE模型秒、CPU复制/全条件hash秒、gap5秒、每次VAE/pose/锁等待/transport秒、总wall、child峰值与Full次数。不按效率选择阈值、不声称省总时长。K=0比固定前缀少4次DiT也仍多10次VAE/pose。
+
+6. 与现有工作的边界
+
+本次使用已完成且SHA绑定的 R2/literature/coarse_to_pose_observer_scope_20261016.txt；未重复网页检索。该审查已覆盖原始论文/作者实现：MotionEcho运动损失阈值启停；FlowMotion内部端点/时间差分及早粗晚细；FrameGuidance分阶段控制；Modular Body-Part Phase Control解码motion features的局部相位；AdaptiveGuidance条件/无条件相似度停止；IB-CFG能量阈值激活；DIAL参考注意力执行器。
+
+所以本候选目前只能称混合观察器与固定阶段调度的受控诊断。handoff10是从这些开发轨迹选出的固定点，不是自动可靠性切换；gap5没有2帧精度保证，pose也不是概率校准保证。外部预训练DWPose意味着training-free、无生成教师，但不是无外部模型。没有检索到完整同构实现不等于证明空白。若两个开发例都通过，下一个科学门是预先冻结跨源案例与固定6..11/6..14等直接基线，而不是把两个传感器拼接本身叫架构创新。
+
+交付边界
+
+仅新建本R21 design目录三份文件。现有R19和其他实验封包均未修改。EVIDENCE.json仅摘取已存在JSON并计算文件SHA，不含新的模型/姿态实验结果。此报告中的所有CPU门为计划，不能当作已通过的测试。

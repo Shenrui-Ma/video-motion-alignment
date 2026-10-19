@@ -1,0 +1,59 @@
+R71 · fresh P0/P1 Native prompt adaptation diagnostic · CPU prepared 2026-10-18
+
+Local: /Users/researcher/DevProjects/h3-timing-ivebench-prompt-pair-r71-20261018
+Remote: /data5/researcher/h3_runs/timing_ivebench_prompt_pair_r71_20261018
+Host H3_SERVER_A, GPU3 GPU-REDACTED, port8540.
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+Dependencies /data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps
+Inherited R63 .9 core/model paths, normal memory, reserve8, unchanged six numerical files.
+
+Queue: r71_short_0210_seed2026101701_p0, then r71_short_0210_seed2026101701_p1.
+Both Native, 20 Euler, CFG1, original sigmas/video12/audio3, seed2026101701,
+1312x736,90frames,24fps. Score/present valid87 frames after fixed16/8pad crop.
+One reference video, zero reference images; input reference audio absent.
+Audio is jointly generated internally. P1 soundscape text is part of the frozen prompt.
+No online observer or forced temporal routing. Actual required routed blocks=0/0.
+
+P0 exactly matches original R63 short0210 prompt. P1 exactly matches R57's frozen
+short0210 graph and P1_TEMPLATE applied to original IVEBench metadata. No new wording.
+Prompt adaptation bundles reference tag, source/target context, preservation text and
+section organization; this pair cannot isolate the contribution of each component.
+Separate conditioning IDs prevent stale P0 text reuse. Shared AV noise cache enforces
+same actual initial tensors. Raw RGB, VAE prepared frames/latents, and raw Qwen sampled
+frames/timestamps are checked equal; joint Qwen embeddings, token tags, packed positions
+and x0 predictions can differ. There is no first-six-step equality requirement.
+
+CPU evidence:
+27 tests PASS,28 Python files parse,6 numerical file SHAs equal frozen R63.
+Actual graph diff: one scientific field /5/inputs/prompt plus run/cache/output identities.
+Inputs are copied exact17,492,188bytes; input_hashes and source provenance retained.
+Formal seal includes47 files, including runtime verifier/tests and prompt ancestry.
+No GPU/process/service was started by preparer. Actual capacity remains root's trial.
+
+Root deployment sequence:
+1. Extract audit/R71_CPU_BUNDLE.tar.gz into the exact remote root, preserve new ownership.
+   Verify audit/BUNDLE.json SHA locally, then the deploy_manifest SHA and47 file entries.
+2. CPU checks from remote root:
+   CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/preflight.py
+   CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /home/researcher/miniconda3/envs/comfyui/bin/python -m unittest discover -s tests -v
+3. Root observes actual GPU3 health/free>=40960MiB and own GPU union<=2.
+   Set configs/admission.json ready_for_launch=true; exact own peer generation records
+   go in permitted_compute_processes. Foreign UID tasks are accepted with sufficient memory.
+   R70 pre-CUDA identity may be registered as the other own peer; root updates admission.
+   Record observed model/checkpoint evidence against configs/expected_checkpoint_hashes.json;
+   its values are inherited checkpoint expectations, not fresh full-file reads by preparer.
+4. PYTHONDONTWRITEBYTECODE=1 python3 scripts/execution_gate.py approve-first-pair --root-admitted --free-mib 40960
+5. PYTHONDONTWRITEBYTECODE=1 python3 scripts/launch_remote.py --service-only
+   Wait exact cuda_gate_ready and service registry, register that exact PID in peer policy,
+   atomically link identical ready JSON to cuda_gate_go.json. Wait HTTP /object_info.
+6. PYTHONDONTWRITEBYTECODE=1 python3 scripts/start_controller.py --pid ACTUAL --start-ticks ACTUAL
+   Queue contains precisely two runs. finalize=true releases exact service after both.
+   Failure also runs exact own cleanup; no retries/repeated scientific runs are automatic.
+7. Actual CPU pair verification after both success:
+   CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps /home/researcher/miniconda3/envs/comfyui/bin/python analysis/postrun/verify_pair.py --source short_0210
+   Receipt analysis/postrun/short_0210/PAIR_RUNTIME_GATE.json. Inspect edit completion,
+   original action/content retention and same-time source/P0/P1 videos before lag/MF claims.
+
+R57 original five-case package stays unchanged. R64/R69 P0 tests continue as frozen.
+This is an input-protocol diagnostic on one known development source, separate from
+our temporal intervention experiments and from any held-out benchmark claim.

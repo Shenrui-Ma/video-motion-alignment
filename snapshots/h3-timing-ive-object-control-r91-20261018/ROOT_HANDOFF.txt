@@ -1,0 +1,35 @@
+R91 两条物体编辑 / fresh Native→fixed：CPU准备及被动部署
+
+本地 /Users/researcher/DevProjects/h3-timing-ive-object-control-r91-20261018
+远端 /data5/researcher/h3_runs/timing_ive_object_control_r91_20261018
+producer 91 文件 seal SHA e6a43151e1e61d09ad2a68d7c9a40d20d9dc8c72e2ed399b9c316a246f9745b8
+本机/实际.9各79项CPU tests PASS；91 seal、8输入SHA、9 actual Comfy core SHA、实际PTS全部通过。收据 audit/TARGET_CPU_VERIFIED.json。
+输入共90,606,735 bytes，源与全部实际PTS、选帧映射和回读MD5在 inputs/*_provenance.json；官方LFS证明在 configs/source_selection/OFFICIAL_SOURCE_RECEIPTS.json。
+root 原始 PROPOSAL / INPUT_PLAN / 两份 P1 candidate / README 字节保持，audit/ROOT_DESIGN_BINDINGS.json 可核。
+
+顺序：
+1 r91_short_0114_seed2026101701_native
+2 r91_short_0114_seed2026101701_forced
+3 r91_long_0039_seed2026101701_native
+4 r91_long_0039_seed2026101701_forced
+篮球完整原片109@25→105有效@24/107总；取书原[0,150)帧→144有效@24/158总，书为IVEBench素材片段探索。
+两组同主机 fresh Native/forced；P1文本分别SHA e90c32a37b91b34f19ca59e297977978b3bfaa25feb69a244a84ffbe6a607259 与703cf6574e5777bb50fdf3b2fca561b4688edd18733402c0cadd7331986f9dd0，保留root逐字文本。
+
+根择时启动：确认GPU3上一任务精确退出后，按当前实际peer填写--peer-root；示例当前R89若已退出则自动跳过：
+cd /data5/researcher/h3_runs/timing_ive_object_control_r91_20261018
+nohup python3 -u audit/root_run_batch.py --execute --attempt root_pair_attempt1 --peer-root /data5/researcher/h3_runs/timing_ive_subject_capacity_r89_20261018 > audit/root_pair_attempt1_wrapper.log 2>&1 < /dev/null &
+
+planned GPU3 UUID GPU-REDACTED / port8556，free>=40960MiB，normal/reserve8。preCUDA按PID/UID/start/cmd登记peer后GO；己方最多2卡。未自动更改数值或重跑POST。CUDA进程生命周期/资源由root执行；本包准备阶段未启GPU。
+首对20+20完成后CPU核gate：analysis/postrun/short_0114/PAIR_RUNTIME_GATE.json，根wrapper写 audit/<attempt>/FIRST_PAIR_REVIEW_HOLD.json。root看任务与时序后才能执行：
+python3 scripts/execution_gate.py approve-rest --root-admitted --first-pair-reviewed
+等待review最长1800秒，届满释放。若释放后仍需继续，保留此attempt并明确恢复，不重发已有任务。
+
+四条实际完成后controller自动精确释放，根检查/proc和CUDAallocation消失并留ROOT_EXIT_RECEIPT，再CPU复验两gate。只有顶层created_unix变化时保存原gate字节，其余任何变化拒绝覆盖，已回归。实际视频质量须另行审核，gate只证明运行一致性。
+
+数值6文件继承R88逐字。20Euler/20NFE，CFG1/noTurbo/shifts12/3；fixed alpha1，indices6..14/all50/allspatial，有效时间相交bins。短片latent videoT32/audioT178，书T47/audioT263；原H3尺度H46/W82。纯padding bins原生，边界共享bin明确在README_IMPLEMENTATION说明。source/prompt/noise/conditions配对相同，前6步AVx0逐位核验。
+
+依赖：Python /home/researcher/miniconda3/envs/comfyui/bin/python
+core /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+deps /data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps
+models /data5/researcher/ComfyUI/models
+GPU峰值/实际新P1容量尚待本次运行。预计新增8GiB，启动磁盘余量>=16GiB。大型PT/condition留远端。

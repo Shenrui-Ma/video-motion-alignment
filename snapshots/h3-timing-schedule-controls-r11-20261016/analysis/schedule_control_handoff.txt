@@ -1,0 +1,66 @@
+R11 fixed-schedule diagnostic controls, prepared locally only
+
+Purpose and interpretation
+The existing R2 Full schedule indices6..14 repaired the known development case;
+R6's realized mask[6,8..19] did not. R9's short hold also failed. This run adds
+two prescribed fixed schedules to separate two operational factors: including
+index7 and extending the active interval through index19. No new-method claim.
+The protocol was frozen before R11 generation and explicitly records that the
+design was chosen after seeing the failures. All outcomes must be retained.
+
+Four exploratory cells (all indices zero-based)
+                       Stop at14                     Continue through19
+Include index7         Existing R2 Full[6..14]        NEW r11_s05_continuous6to19
+Skip index7            NEW r11_s05_skip7_6to14         Existing R6[6,8..19]
+
+New continuous mask:6,7,8,9,10,11,12,13,14,15,16,17,18,19 (700 routed blocks).
+New skip7 mask:6,8,9,10,11,12,13,14 (400 routed blocks).
+Each has20 Euler updates,50 blocks/forward and a native prefix through index5.
+Index7 means the eighth model call. These cells do not equalize routing dose.
+The existing R6 cell is its realized feedback trajectory, not a new fixed replay.
+Cross-arm actual conditioning/noise and nativeprefix equality remain required.
+This is a development-case diagnostic, with no statistical/generalization claim.
+
+Implementation
+H3FeedbackRouter policy=fixed is unchanged from the actual CPU-validated R9 code.
+Core/observer/frozen49-lag search/thresholds/actuator/X0 recorder remain byte-identical.
+The observer records proposed feedback decisions but cannot set the fixed route
+mask. Only graph policy/fixed_indices and owned run metadata change. The graph
+comparison is tested against the original R9 graph. Inputs, prompt,seed2026101311,
+1312x736x141 geometry,24fps,all50 Full blocks,alpha1,radius0 and event50..65 remain.
+Independent x0 snapshots:[5,6,7,8,9,10,15,19] plus sampler_final.
+
+Validation already completed
+45 local CPU unit tests PASS; both new masks tested with delayed/aligned/unknown
+observer sequences and output tensor equality across sequences. Counts are exactly
+700/400 routed blocks,1000 total blocks/20 forwards. Empty fixed schedule is
+bitwise equivalent to off. Existing causal guards, callback normalization, fixed
+replay, original/expanded X0 equivalence, runtime admission and cleanup identity
+tests also pass. All Python sources compile.
+
+R9 actual real-Comfy CPU integration is reused with a source-identity gate:
+18 extension Python files checked against the R9 frozen bundle (only audit-root
+administrative paths normalize), actual coreSHA matches its success report.
+The report checks clone/guider alias/actual Euler/wrapper/normalization, fixedmask
+equivalence and common4/8point recorder endpoints. R11 does not claim a newly
+executed real-Comfy CPU smoke. Its new fixed configurations are tested separately.
+The original R6 successful warmup graph/history/log/model/backend hashes are also
+verified before service launch. No new GPU benchmark or speed diagnosis added.
+
+Remote launch details for root
+Directory:/data3/researcher/h3_runs/timing_schedule_controls_r11_20261016
+Port8472;GPU1 UUID GPU-REDACTED;one owned .41 job at a time.
+Sealed queue executes continuous6to19, then skip7_6to14, sequentially in one service.
+launch_remote.py verifies integration_reuse and warmup_reuse before service start.
+Existing supervisor/controller/watchdog with finally cleanup preserve PID+UID+
+starttick ownership checks. Root validates current process/GPU admission, uploads,
+hash-verifies, and launches. Builder performed no remote or GPU action.
+
+After generation
+Check actual condition/reference/noise pairing, x0_step005 nativeprefix equality,
+exact fixed masks and observer passivity. Evaluate the same frozen four windows,
+dual pose thresholds.3/.5,unknown retention,shape/amplitude/direction,tails and
+fixed frames55/86/105. Record NFE,routedcounts,sigma-dose,observer time and walltime;
+do not start a speed investigation based on timing differences. Historical arms
+have different passive observer/capture overhead, so speed comparisons are limited.
+No future mask search or choosing only a favorable cell under this protocol.

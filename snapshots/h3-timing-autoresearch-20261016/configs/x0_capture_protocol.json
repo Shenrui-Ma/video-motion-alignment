@@ -1,0 +1,29 @@
+{
+  "registered_at": "2026-10-15T17:21:20.611972+00:00",
+  "purpose": "Observe signed physical action timing in intermediate predicted clean endpoints; not claimed as novel mechanism",
+  "capture_indices_zero_based": [
+    5,
+    10,
+    15,
+    19
+  ],
+  "index19_role": "endpoint normalization/decoder sanity",
+  "fixed_denoising_steps": 20,
+  "geometry": [
+    1312,
+    736,
+    141,
+    24
+  ],
+  "condition_and_noise": "same audited source05/Sam seed2026101311 full-resolution pair",
+  "monitor_only_acceptance": "Replayed native final decoded pixels must equal matched no-capture native; callbacks and NFE unchanged",
+  "interpretation": [
+    "Unknown when low-confidence joints or indistinguishable lag curves; never count as missing action",
+    "Use full42-latent decode to141frames before physical-time crops",
+    "No per-step threshold fitting to final video",
+    "Controller requires both observable intermediate signed lag and a stable signed offset actuator response"
+  ],
+  "implementation_state": "staged extension under independent implementation; no live edits",
+  "service_transition": "Finish current native, terminate owned service, then install staged recorder and restart isolated service; no live module mutation",
+  "endpoint_audit": "Also persist sampler_final.pt after Euler returns; compare numerically to step19 x0, allowing final-update floating roundoff. No extra denoiser forward."
+}

@@ -1,0 +1,26 @@
+独立审查：PASS_WITH_SCOPE_LIMITS
+
+原 PROTOCOL、diagnose.py、FREEZE、RESULT 均未改。独立核对四份远端 PT 的 sha256sum，逐项与协议、归档 FILE_INVENTORY、actual counterfactual branch record 相同；两个 inventory SHA 与协议一致。脚本已完成的真实 tensor 能量没有再次重算；本审查重算了公开 42 项能量的聚合/比例/每-bin归一及 sigma 换算，全部通过。没有新模型、VAE、DiT 或 GPU 工作。
+
+证据绑定
+- diagnose.py:51–67 检查 PT 字节、index4/seed1311/分支/视频形状与精度及两组 Native AV 完全相等。两组 PT 文件SHA不同来自归档元数据，不表示 Native 数值不同。
+- 该短脚本自身未核 input ledger 或 inventory；本审查补核两份实际 counterfactual 审计：四分支 same_input 均为2c5fabc5…eb937db，shape[1,1,3817216] FP32；Native normalized video/audio签名相同。两个完整条件树只差 original/processed 的同一 UUID 两处，其余全相等；各组 Native/Full 的条件、reference、sigma、seed 和 RNG 不变记录一致。历史 input4 实体缺失边界保留，没有新增“旧 raw input torch.equal”声明。
+- R33 H3StaticWindowRouter/core.py:166–193 先拆 raw 流、保存FP32，视频 process_latent_out恒等，音频×0.25；:273–320 记录同一sigma/input/condition，Native再Full，仅一个后续Euler更新。actual R33 gate 为21NFE、20updates、1050blocks、50routes。
+
+公式与归一
+令 E_t = sum_{b,c,h,w}(y_F−y_N)^2。diagnose.py:69–91 的42bin归约正确。5个窗内与37个窗外维度数不同，均匀能量的窗外占比原本是37/42=88.095%。
+Auto：窗内18.203%，窗外81.797%；每bin窗内10852.586、窗外6590.200，密度比1.647。
+Displaced：窗内32.361%，窗外67.639%；每bin窗内16494.944、窗外4659.099，密度比3.540。
+所以结果证明局部路由的输出扰动扩展到全部42bin；同时窗内每bin扰动更强。不能由“多数总能量在窗外”推出“窗外更强/路由不局部/窗外造成修复”。这个归一是在latent坐标中，42bins的VAE边界映射不等同等宽物理帧箱。
+
+固定同state时v=(x−y)/sigma，因此||delta_v||²=||delta_y||²/sigma²，脚本此项正确。sigma=.9795918465，sigma_next=.9729729891，实际单步Euler状态差是(1−sigma_next/sigma)delta_y，系数.00675675018；比例不变而绝对量不同。记录的audio是归一化后的另一个坐标，不应与video原始能量直接横比。所有bin能量为正只表明数值传播，不代表动作语义改善。
+
+最小机制解释与可检验下一步
+现有执行器每层只对选定query显式写入修正，但H3TemporalRouter/core.py:232、246–295、475–507在全序列attention及50个连续block内传播更新。下一block的Q/K/V来自已改变的隐状态，故最终端点不受“只改5bin”的隔离约束。移位脉冲仍可经全局耦合改变原事件段、早期序列相位或动作选择；后续采样可能保留这一选择。这与13→1相容，尚未识别具体传播层或证明位置无关。
+补充描述（事后固定重聚合，不是新成功标准）：Displaced在原Auto bins13..17的能量49504.933，约为Auto同区域54262.928的91.23%；能量相近不等于更新方向相近，未计算delta方向cosine。
+
+建议仅作一条机制对照：复用R33的当前Native4与Full4计算，进入同一个Euler更新前，video在23..27保留Full，其他video bin恢复为同state Native；audio保留原Full，避免同时改变音频。即 y_control_video=y_N+M23:27*(y_F−y_N)。仍21NFE/20Euler，不改路由或后续策略。对照现有R33/Native，检查同一固定窗、186行与画质。
+若修复消失，支持该冻结轨迹依赖窗外视频端点分量；若保留，说明这一时刻的窗外分量并非必要，后续传播仍可能发生。删除分量也改变总剂量，因此不能单独声称位置效应，需明确这一限制。这是已知残差投影/状态恢复类因果消融，FlowDirector/PFB-Diff近邻已由主线审查；不包装成新算子，不在本任务实现。
+
+本次零推理结论只限单个已见开发样例。它削弱“修复必须命中原动作窗口”的强解释，尚不证明自动窗口选择、其他样本或任意移位脉冲都有效。
+详细校验与四文件输入SHA：REVIEW.json。

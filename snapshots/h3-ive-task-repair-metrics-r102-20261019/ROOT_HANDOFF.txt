@@ -1,0 +1,37 @@
+R102 一次性 CPU 媒体消费者
+
+本地 /Users/researcher/DevProjects/h3-ive-task-repair-metrics-r102-20261019
+Producer /Users/researcher/DevProjects/h3-timing-ive-task-repair-r102-20261019
+远端 /data5/researcher/h3_runs/timing_ive_task_repair_r102_20261019 (.9 / H3_SERVER_A)
+Producer seal 69ec97ea0143821e5bcfa16f1da3d88f972a1c8b595fd57b06ca04d2f457834a
+Consumer freeze 033da2a88143f9ca4010f31e090a2708499f66ff1e9845f61a5d5385b12c71ee
+
+原任务固定顺序
+short_0263：把女人换成年轻女孩，保留蓝色斜躺椅、持书阅读、庭院。74有效/90总帧。
+short_0092：移除室内植物，保留女人、手势、摄像机和其他房间内容。58有效/73总帧。
+short_0126：床上男人旁加猫，保留背向镜头坐床边上伸。109有效/124总帧。
+三者24fps、原1312×736输入，展示统一crop16,8,1280,720；原片MP4、准备输入、provenance均复制并绑定SHA。无参考图。0126官方原指令/target caption完整保留。
+
+只在实际STARTED与对应成功Native门出现后手动调用
+cd /Users/researcher/DevProjects/h3-ive-task-repair-metrics-r102-20261019
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_native.py --source short_0263 --attempt ACTUAL_ROOT_ATTEMPT
+将source替换为short_0092或short_0126处理后续。actual STARTED读取producer audit/<attempt>/STARTED.json；首次执行绑定其service身份和封存元数据。
+Native gate要求schema r102-native-runtime-gate-v1、真实成功history/graph、NFE20/route0、该源有效域、实际文件hash；输出参考/普通编辑两栏，供root验收。基础任务失败可保留此页面，guide/skip决定由producer/root处理。
+
+实际成对完成且PAIR_RUNTIME_GATE存在后
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume_pair.py --source short_0263 --attempt ACTUAL_ROOT_ATTEMPT
+Pair schema r102-paired-runtime-gate-v1，要求Native/forced真实gate，六个前缀AV预测一致、conditions/noise checks通过、NFE20/route450。已收Native预览时，pair中的Native媒体/history/绑定必须仍完全相同。
+
+输出
+Native：incoming/<source>/ 与 showcase/<source>/，2栏。
+Paired：incoming_pairs/<source>/ 与 showcase_pairs/<source>/，3栏。
+中文caption在底部黑边：参考视频 / 普通编辑 / 时序引导。各列相同物理帧、等大画幅；完整有效帧横拼MP4及6/12时刻图。单文件内嵌HTML默认保存Downloads，原始完整生成MP4保存在incoming。不会生成尚未完成的第三栏。
+每条单次调用完成后生成 prepared/<source>/{native,paired}/MF_INPUTS.json，包含实际媒体SHA、crop、24fps、全有效帧列表、gate/provenance绑定。official MF尚待评分，当前不运行tracker、不产生推断分数。
+
+证据
+49项CPU测试；实际.9 producer seal/runtime/contract SHA核验。
+合成2/3栏MP4的帧数、PTS、左右顺序与黑色caption区域已验证，HTML中6个嵌入媒体逐SHA等于实际文件。合成素材只用于工具检查，不进入incoming或研究结果。
+UI浏览器因Work设置不可用，布局视觉验收not_assessed。未尝试绕过设置。
+audit/FINAL_PREPARATION.json；audit/METADATA_ERRATUM.json说明producer继承的“clip exploration”描述，实际本批为三个完整官方短片的development任务修复，数值及旧封存文件不变。
+
+未启动watcher、GPU、service，也未重复执行producer verifier。每个入口是一次有界读取、下载、校验和渲染；真实未完成返回PENDING。

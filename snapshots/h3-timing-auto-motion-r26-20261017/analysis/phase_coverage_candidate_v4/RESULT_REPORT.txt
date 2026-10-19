@@ -1,0 +1,131 @@
+v4 成对共同可见支持：55 项合成验证完整报告
+
+结论与执行边界
+本轮完成全部 55 个预登记案例、finalize 与 165 个产物的 SHA 校验。封存科学代码和阈值在真实运行期间保持一致。原 43 项的 v3 科学输出逐项严格重现归档；每项只排除运行时间字段后比较。没有新增真实端点评分、pose 提取或 GPU 运行。
+v4 在 50 项必过检查中通过 46 项；v3 通过 42 项。原 43 项包含 38 项必过检查，两版均通过 38 项。新增 12 项中 v4 通过 8 项、v3 通过 4 项。四个失败均为分散缺测 S 的物理覆盖不足。另有一项预先列为诊断的遮挡案例出现反向干预，独立安全门 FAIL，必须计入候选局限。
+所有 25 个零时移、±2 帧容忍、不可辨和无观测控制均输出 K=0；这些是开发合成上的预设检查，不是未知真实分布的错误率保证。
+本轮没有通过完整准入门。按照 root 的最新要求，止于离线报告，不进入真实 63 或 GPU。
+
+方法与保留条件
+每个 lag 对使用该对与源视频的共同可见骨槽、相同原始置信度权重和分母，逐骨拟合一个常量 SO(2) 偏置。两个置信度阈值的 RMS 用 max 聚合；优势边表达最坏阈值的聚合偏好，并不保证两个阈值分别同向获胜。49 个 lag 节点全部保留，缺失比较不产生边；有向循环、包含 null 的集合、异号或不连通相位集合均拒判。最终 witness 仍要求选定 lag 与全部五个 null lag 有共同支持，而且所选物理窗口每帧至少一根骨可见。两个肢体独立选窗，v3 的完整 D 集合源/目标顺序约束继续使用。
+固定范围为 141 帧、24 fps、lag −24…24、每臂全部 9045 个长度至少 8 帧的区间。eps=2sin(0.05/2)，tau=2eps。没有按结果改变长度、阈值、窗口族或案例列表。全部 SOURCE/TARGET 坐标为 0-based、闭区间。
+
+预登记总门
+- 全部零/null/不可辨控制 K0：PASS。
+- S/B 每种缺测模式同时有正、负方向达到两臂 ≥0.5 物理覆盖且优于 v3：FAIL，S 的四项全部不足。
+- 至少四个缺测正例满足上述单例覆盖条件：PASS，恰为 B 四项。
+- 55 项全部无反向/错误执行窗口：FAIL，local_separate_arms_occluded。
+选择窗口数量增加属于覆盖描述，不能替代方向与安全验收。partly_missing 和 nonfinite 的原必过项主要检查支持处理；其 PASS 不等同于它们满足所有正例覆盖要求。
+
+缺测覆盖：每一项完整保留
+S：目标每根骨均删除帧 35、70、105。
+B：目标每根骨均删除 60…62。
+覆盖分母为物理真值域（±12 时为 129 帧，±6 时为 135 帧），包含不可见帧；没有改成可见帧分母。
+case | v3 左/右覆盖 | v4 左/右覆盖 | 新覆盖且不在旧49共同支持的左/右帧数 | 单例门
+
+mask_S_true_-12_rot1 | 0.00%/0.00% | 47.29%/47.29% | 61/61 | FAIL
+mask_B_true_-12_rot1 | 32.56%/32.56% | 72.87%/72.87% | 52/52 | PASS
+mask_S_true_-6_rot1 | 0.00%/0.00% | 46.67%/46.67% | 63/63 | FAIL
+mask_B_true_-6_rot1 | 31.11%/30.37% | 75.56%/75.56% | 60/60 | PASS
+mask_S_true_6_rot1 | 0.00%/0.00% | 38.52%/38.52% | 52/52 | FAIL
+mask_B_true_6_rot1 | 22.22%/22.22% | 75.56%/75.56% | 60/60 | PASS
+mask_S_true_12_rot1 | 0.00%/0.00% | 45.74%/31.01% | 59/40 | FAIL
+mask_B_true_12_rot1 | 23.26%/23.26% | 72.87%/72.87% | 52/52 | PASS
+
+遮挡反向错误的精确位置
+原始目标在 60…65 帧四根骨全部缺测。v4 右臂选择源 96…121、目标 80…105，D={−16}，共 26 帧，方向纯度 0。真实对应相位在这段为 0…+9.66044，处于延后逐渐回零的过渡。错误 witness 两个 h 都有 52/52 骨槽、权重和 52、没有任何缺失物理帧。旧49共同掩码只在该窗 117…121 因远 lag 越界而失效。局部错误并非所选 witness 自身的可见性缺口。
+错误窗的 profile RMS=0.05308837，小于 tau≈0.09999；null gain=0.58355832；两个骨的拟合旋转约 0.15480/0.15075 rad。该局部波形通过常量旋转与早先另一段动作形成低残差别名。相同肢体没有另一条被保留的正确时序窗口来排除它，独立异常窗顺序链在此无法提供足够上下文。
+真实右臂 plateau 是源 72…88、目标 84…100，+12 的已存 witness RMS=0，支持两阈值均成立。但它的 D 还包含 −24…−10：这些假设对应的目标部分落在遮挡 60…65，成对可比支持不足，无法建立排除它们的优势边。该区间因此为 UNKNOWN_DIRECTION；覆盖该 plateau 至少 9 帧的合格候选数为零。以 −16 为例，在正确 plateau 上的现存 RMS=1.124919，但完整 witness 支持为 false，当前规则保留未被比较击败的节点。详见 LOCAL_COUNTEREXAMPLE.json。
+早期右臂源 24…35 的 D={0}，是已对齐证据。这个单独的早期锚点与错误 96…121→80…105 仍满足顺序；仅把这个锚点加进当前选择器不足以构成修复。
+v4 恢复了同例左臂源 26…37 的正确延后窗口，覆盖左臂 plateau 10/13=76.92%；右臂 plateau 覆盖仍为零。两侧结果并列保留。
+
+S/B 的覆盖损失与相位不确定性
+旧49交集会把每个缺测帧向源时间两侧各扩散 24 帧。S 的三个缺测点使旧49共同支持在整段为空；B 仅剩 24…35 和 87…116。v4 的成对支持避免了这项全族交集损失，八个缺测时移案例的正确覆盖都有提升。
+S 的剩余失败包含至少三类因素，现有证据不足以把它们统一解释为运动信息本身已消失：
+1. witness 同时要求五个 null 与候选 lag 可见，每个删除点产生 null 的五帧缺口，另有按候选 lag 平移的缺口。窗口不能跨完全缺失帧，故整段被切碎。
+2. 短波形可被多个时间位置和常量旋转同时解释。例如 S、+12 的左臂源 24…32，真 +12 拟合 RMS=0，但 D={−13,−12,9,10,11,12,13}；59…67 的 D={−18,−17,12}。相反，38…57 与73…92 的 D={12}，可辨且被纳入候选。
+3. 片端缺少远 lag 支持时，未比较节点仍留在 D。例如 S、+6 的源2…28保留真+6和−24…−8；108…134保留+6和12…24。这是保守缺测处理与固定完整搜索族造成的拒判，不能直接写成已证明的相位物理不可辨识。
+同一 S、+6 案例中两个中间窗口38…63、73…98均 D={6}，合计52/135=38.52%。存在可辨识局部，但当前规则无法使全片物理覆盖达到50%。S、−12和−6约47%；S、+12左右约46%和31%，均保留失败。
+B 留下两个较长证据区间，时序变化更充分，主要覆盖落在这两段。四项达到72.87%–75.56%，每臂新覆盖52或60帧来自旧49支持之外。长段的片端仍可能 UNKNOWN；候选族可选出其中可比子区间。所有真 lag 的可用段、已有 D、支持、RMS 和首次拒判字段均写入 MECHANISM_EVIDENCE.json。
+图循环在55项两臂合计994950个区间中出现523次并被拒判。v4 QUALIFIED=122023；v3=60229。两版支持状态定义不同，不能把 UNKNOWN_SUPPORT 数值下降当作准确率增益。v4 的575147个 NO_SUPPORTED_TIME_DEVIATION 只表示当前 D 包含 null，也不能统计成视频已正确对齐。
+
+一个后续候选建议（本轮仅建议，不实施）
+优先研究“显式缺测状态的连续单调对应路径”：以整个可见动作序列的对应路径作为推断对象，允许 lag 随源物理时间变化，将零时移证据和未知片段一同纳入路径成本，再从路径中读出可执行区间。当前常量 lag 窗口在过渡区可把另一段相似波形判为低残差；只对已合格异常窗做顺序选择还会丢掉被局部 UNKNOWN 隐藏的正确动作段。路径上下文是针对此机制的候选。
+该建议需要事先固定缺测/跳过代价与连续性假设，并让缺测区域保持不可观测标记。不能仅把没有比较支持的 lag 删掉，也不能把插值得到的连续路径直接视为观测证据。检查必须保留现在的遮挡反向窗、shape-edit零时移和S/B全部原门，另外验证真实动作突变被连续性先验抹平的风险。局部完全可见但近似相同的波形属于现有特征下的辨识限制，需要上下文或其他观测；数值警告与日志整理属于实现层，两者应分别处理。
+DTW/Drop-DTW、可见关键点 Procrustes/局部时序匹配、VAVA 都已有相应基础。单调路径、常量旋转拟合或显式跳过本身不能作为独立新理论。可能的新内容只能来自针对生成中动作时序风险的约束和控制接口，并需独立验证；本轮结果尚未证明创新成立。
+先例链接：
+https://arxiv.org/abs/2108.11996
+https://openaccess.thecvf.com/content_iccv_2013/papers/Zhang_From_Actemes_to_2013_ICCV_paper.pdf
+https://arxiv.org/abs/2111.09301
+
+效率与执行记录
+
+55个有效case phase合计 434.831秒，median 7.869秒，范围 5.965–9.113秒；不含共享锁等待。v3 kernel合计 12.782秒，v4 kernel合计 307.106秒。最大进程峰值RSS 1169326080 bytes。165产物总大小 3843566319 bytes。34次BUSY均退让；技术失败0，超时0。
+缺测诊断在 fully_missing、partly_missing、local_separate_arms_occluded 及两个 mask_A 控制出现 inf−inf 的 RuntimeWarning。value 非有限后置为无效，支持不足区间拒判；原科学实现未修改。该警告保留在执行工具输出并在此记录，不能用警告消失代替科学验收。
+
+全55项逐例验收
+格式：案例 | v3 K→v4 K | 必过项 | v4检查逐项 | 独立安全门。diagnostic表示预设非必过；其安全反例仍计入。
+old8_b8_a0.05_s-1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b8_a0.05_s1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b8_a0.1_s-1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b8_a0.1_s1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b16_a0.05_s-1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b16_a0.05_s1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b16_a0.1_s-1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+old8_b16_a0.1_s1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+constant_rotation | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+true_-12_rot0 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_-12_rot1 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_-6_rot0 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_-6_rot1 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_6_rot0 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_6_rot1 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_12_rot0 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+true_12_rot1 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+null_-2 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+null_-1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+null_0 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+null_1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+null_2 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+uniform | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+periodic | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+fully_missing | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+partly_missing | 2→4 | PASS | witness_no_empty_frame=PASS | PASS
+nonfinite | 2→2 | PASS | witness_no_empty_frame=PASS | PASS
+old_true_-12 | 2→2 | diagnostic | witness_no_empty_frame=PASS | PASS
+old_true_-6 | 0→0 | diagnostic | witness_no_empty_frame=PASS | PASS
+old_true_6 | 0→0 | diagnostic | witness_no_empty_frame=PASS | PASS
+old_true_12 | 2→2 | diagnostic | witness_no_empty_frame=PASS | PASS
+local_single_6 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_single_-6 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_single_12 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_single_-12 | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_double_6_6_left | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_double_6_12_left | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_separate_arms | 2→2 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS, no_cross_null_plateau_merge=PASS | PASS
+local_zero_identity | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+local_zero_rotation | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+local_zero_smooth_shape | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+local_zero_abrupt_shape | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+local_separate_arms_occluded | 1→2 | diagnostic | witness_no_empty_frame=PASS | FAIL
+mask_S_true_-12_rot1 | 0→8 | FAIL | witness_no_empty_frame=PASS, all_scopes_half_covered=FAIL, all_selected_direction_purity80=PASS | PASS
+mask_B_true_-12_rot1 | 4→4 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+mask_S_true_-6_rot1 | 0→6 | FAIL | witness_no_empty_frame=PASS, all_scopes_half_covered=FAIL, all_selected_direction_purity80=PASS | PASS
+mask_B_true_-6_rot1 | 4→4 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+mask_S_true_6_rot1 | 0→4 | FAIL | witness_no_empty_frame=PASS, all_scopes_half_covered=FAIL, all_selected_direction_purity80=PASS | PASS
+mask_B_true_6_rot1 | 2→4 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+mask_S_true_12_rot1 | 0→6 | FAIL | witness_no_empty_frame=PASS, all_scopes_half_covered=FAIL, all_selected_direction_purity80=PASS | PASS
+mask_B_true_12_rot1 | 2→4 | PASS | witness_no_empty_frame=PASS, all_scopes_half_covered=PASS, all_selected_direction_purity80=PASS | PASS
+mask_S_old8_b8_a0.1_s1 | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+mask_S_constant_rotation | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+mask_A_local_zero_smooth_shape | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+mask_A_local_zero_abrupt_shape | 0→0 | PASS | witness_no_empty_frame=PASS, K_zero=PASS | PASS
+
+验收文件
+RESULT_STATISTICS.json：全部55行、两版完整selected/assessment、覆盖及门。
+MECHANISM_EVIDENCE.json：九个机制案例的原曲线切片、所有候选witness支持与精确区间。
+LOCAL_COUNTEREXAMPLE.json：遮挡例三个已评分区间的对照。
+results/SUMMARY.json：165项产物完整SHA清单。
+CODE_FREEZE.json：seal002科学代码，运行中未改。
+PROTOCOL_FREEZE.json：公式、案例与旧版本绑定。
+RESULT_DELIVERY.json：本轮报告、审计和汇总SHA。

@@ -1,0 +1,17 @@
+R109：篮球提示词简化的单因素普通编辑对照
+
+目的：检查 R100 的镜头俯仰、人物裁切和球场构图偏移是否与长提示词有关。
+新提示词的完整字节为：Replace the basketball with a neon-lit basketball.
+文件末尾没有换行。原 R100 使用六段 P1；两版都运行普通编辑，R100 时序引导成片不构成本次新提示词的配对。
+
+来源：IVEBench short_0114，原109帧/25fps，模型输入107帧/24fps，其中105帧为有效内容。
+模型、20步Euler、CFG1、sigmas、原视频预处理、原始AV噪声、六个数值文件保持R100实际配置。新任务GPU3，旧R100 GPU0，同一 .9 A800；设备差异显式记录。
+新旧graph只容许prompt、run/pair ID、审计路径、输出前缀改变。干预模式均为native，实际路由0次。
+
+执行前：CPU合同、54项测试、实际输入PTS、原始R100成片/history/condition/noise/gate绑定，冻结seal和被动部署。
+执行：audit/root_run_native.py --execute --attempt root_shortprompt_attempt1 --peer-root <当前真实的另一条任务root>
+启动前必须确认R101 owner 53283/start2640759591 完成且进程/CUDA释放；脚本核验确切历史/cleanup。
+R109完成后自动释放自身显存，并对实际输入RGB、clean VAE、原始AV噪声、20NFE、0路由、所有中间采样快照、媒体尺寸和完整历史做CPU审计。
+消费后展示“参考视频 / 原六段提示词普通编辑 / 简短提示词普通编辑”。检查105有效帧，并单列构图/目标球外观/动作相位。
+
+保持R100旧失败与全部证据，不改R101、R102、R108或其他人的进程/配置。不开R90。

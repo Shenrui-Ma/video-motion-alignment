@@ -1,0 +1,42 @@
+R14 host9 原生筛查交接
+2026-10-16
+
+本地包已准备，GPU尚未启动。原.41 sealed包未改动。
+唯一任务 r14_s05_seed1313_native_host9：source05/Sam，seed2026101313，1312×736×141，24fps，Euler20，20 NFE，policy off，0路由。1314仅协议备用，未入队。
+本地：/Users/researcher/DevProjects/h3-timing-native-screen-r14-host9-20261016
+远程：/data5/researcher/h3_runs/timing_native_screen_r14_host9_20261016
+端口8475；GPU2 UUID GPU-REDACTED；等待R13完全退出并释放后串行。
+
+资源改派证据
+.41原启动在admission前置检查被占卡拒绝，尚无servicePID或推理；旧日志保留，副本在audit/host41_admission。
+最初考虑.9 GPU1，但主线程10:50UTC快照显示其他用户占17.8GB，故在创建此协议前改为GPU2。该GPU1计划没有启动。只改变资源安排，不改变seed、动作窗、阈值或其他科学配置。
+
+复用范围
+H3FeedbackRouter/core.py SHA 07ab4b994e6acff8fb9bd4bad139c5e13c8cedb55a0b6e78783244e4bbeca7e5，与R14/.41逐字节相同。所有扩展源码仅允许owned audit根路径改变，并有R11归一化SHA测试。
+源图在归一化root/run_id后与.41 R14完全相同：analysis/host_graph_diff.json。
+.9环境直接采用R12/R13已用Core、Python、dependencies、模型路径。三个兼容/数值脚本与R12逐字节相同。借用R3同机相同输入几何/四模型的资源warmup；这只说明历史后端可运行，不替代本包真实CPU接口测试或当前机器速度评估。
+跨主机PyAV/编解码、VAE、条件编码或内核数值可能不同，必须核验实际input/prepared/clean reference/conditioning与noise。尚无.41 seed1313输出，也不能声明与.41同轨迹。
+
+准入行为
+目标GPU上任何UID的计算进程均拒绝。其他GPU的他人任务允许且不读取其命令参数。自己的既有任务按独立GPU UUID去重；已有0或1张卡允许再占目标卡，已有至少2张卡拒绝。同一其他卡多个己方PID不误计为多卡。自己的PID身份读取失败/变化或UID未知时要求重新检查，不盲目放行。
+job提交前仍再次检查，排除的仅是本服务已核验身份的PID。正常服务结束使用原严格PID/UID/start_ticks/命令/GPU/端口身份检查，只终止本任务服务。finally清理逻辑保留。
+本次实际安排是R13后GPU2串行；允许两卡的通用资源门不代表已批准占用当前被别人使用的GPU1。
+
+验证
+41项本地CPU测试全部PASS，3.440秒。涵盖多PID同卡、已有两张独立己方卡、他人其他卡、任意UID占目标卡、未知/变化身份、排队门、cleanup身份、off观察不干预、图科学参数不变、完整8+final快照。
+39份Python静态compile通过。R3历史warmup绑定PASS。
+真实.9 Comfy CPU目前PENDING，launch_remote.py在启动任何服务前调用integration_reuse.validate，缺少合格记录会拒绝启动。没有把旧.41 PASS当成.9 PASS。
+
+主线程下一步
+1. 验证包manifest与SHA后上传到新host9目录，不覆盖旧.41档案或其他轮次。
+2. 在.9现有环境运行本包tests/feedback_wrapper_smoke.py，参数：
+   --comfy-root /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+   --compat-bootstrap /data5/researcher/h3_runs/timing_native_screen_r14_host9_20261016/scripts/compatibility_bootstrap.py
+   使用 /home/researcher/miniconda3/envs/comfyui/bin/python，PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps，线程限1，CPU测试不加载权重。脚本内部禁用CUDA并断言未初始化。保存尝试日志为audit/real_comfy_cpu_smoke_host9_attempt1.log；通过后复制到audit/real_comfy_cpu_smoke_host9.log供launch gate读取，失败日志保留不覆盖。
+3. 实际CPU日志需只有一个H3_FEEDBACK_CPU_SMOKE成功记录，包含off=native、双wrapper顺序、真实Guider/clone/Euler/normalization、CPU无权重无CUDA、实际Comfy路径和Core/本包runtime SHA。修改源码后旧日志不能再通过校验。该新日志是明确允许后续追加的运行证据，不在初始immutable文件清单里。
+4. 验证integration_reuse与warmup_reuse均PASS、模型size/mtime/历史SHA与Core哈希。当前CPU测试仅验证接口和toy数值，不证明新的GPU输出与另一主机相等。
+5. 等R13完全结束，检查GPU2空闲、其他己方GPU数量、主机RAM/端口健康，主线程审查后启动scripts/launch_remote.py。仍只有一条sealed队列。
+6. 采集20 NFE/20 callback/1000 block/0 route，8个x0加final、actual noise/condition、成功history和原始141帧MP4。按冻结双阈值pose和55/86/105质量帧评价，无论延后、正常、unknown、背景退化均保留。效率只记录，不另做诊断。
+7. 最后确认自有service/controller/supervisor/watchdog退出、GPU计算进程和显存释放。任何他人任务不动。
+
+尚待完成：真实.9 CPU smoke、运行准入、GPU生成、结果审核和现场清理。当前只完成本地 staging。

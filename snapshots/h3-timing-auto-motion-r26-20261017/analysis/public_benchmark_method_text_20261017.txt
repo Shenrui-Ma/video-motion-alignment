@@ -1,0 +1,72 @@
+当前自动动作时间控制：论文式 HTML 文本提纲
+2026-10-17；根据实际代码及归档结果编写。正文可直接引用，R50须明确标为适配准备/待公开实测。本文不替代冻结协议。
+
+建议开场
+我们在 H3 编辑推理中加入一个无需训练的动作时间控制器：每个去噪步骤先观察当前轨迹的原生预测，比较参考与预测的手臂运动，在持续检测到可靠延后时，对自动选出的物理时间区域施加同时间参考读取，再继续原有采样。方法自动决定窗口数量及去噪开停；检测阈值仍是固定开发超参。[A1–C1]
+
+模块一：在 attention 输出中重新分配参考贡献
+对一个被选中的目标视频 query，令 O 为该次原生 joint-attention 输出，O_R 为只读取参考视频组的归一化输出，m_R 为参考视频组占完整 attention 的概率质量，O_same 为只读取同一名义时间 bin 内参考 K/V 的输出。当前执行器为：
+  O' = O + I_selected · m_R · (O_same − O_R).
+其中 α=1、时间半径radius=0、offset=0；m_R由组/全体log-sum-exp差求得，代码将微小正舍入溢出截到0。它保留参考组总质量、改变组内时间分配，不等同于给参考logits统一乘3。实际作用于每次Full预测的全部50个DiT block，所选目标时间bin的全部空间query；当前没有人体空间ROI、学习的层/head选择或反向reference-query屏蔽。[A1,A2]
+算子不原地改Q/K/V；该次attention中未选行沿原计算保留。后续层、全视频与音频可受传播影响，因此“局部执行支持”不表示最终输出影响只在局部。H3时间bin依据实际位置映射，名义跨度重复(1,4,4,4,4)，不能简单按bin×4换算，也不等于精确VAE感受野。[A1,D1]
+
+模块二：参考与当前预测的动作偏差
+参考姿态预先缓存。每个去噪index n=0…19，先用当前实际状态x_n和原条件做一次Native预测，并将其预测干净视频全解码，以CPU DWPose提取姿态。这里的Native是当前受控轨迹上的“本步不加路由”预测；首次Full之后不再等同于独立Native基线。[A2]
+观察器采用COCO左右上臂/前臂二维单位方向（5→7→9、6→8→10），分别评价双臂、左臂、右臂。对全有效视频扫描16/32帧窗口，stride4，并补末端完整窗；比较源t与预测t+lag，lag>0表示预测较晚。置信分数仅用于阈值/权重，不是概率。每个lag的误差为有效骨方向欧氏距离的置信加权平均。[B1–B3]
+固定拒判/选择参数：
+• 两个DWPose阈值0.3和0.5分别计算；lag搜索−24…24帧（24fps下±1秒）。
+• 有效骨槽覆盖≥0.8、至少8个有效帧；低覆盖的无约束最优相位保留UNKNOWN。
+• 最优lag落在±24边界时UNKNOWN；相隔≥4帧的次优盆地相对差须≥0.05；非零移位相对同帧收益须≥0.05；移位后方向残差须≤0.5。躯干尺度无法可靠估计也保留UNKNOWN。
+• 两置信阈值都给出lag且相差≤2帧才分类；两个lag均>2才进入延后候选。提前候选本身不触发当前执行器。
+• 每个置信阈值下，将候选lag分别与null lag∈{−2,−1,0,1,2}比较。在每一候选/null对中，源、候选和null使用相同有效支持及相同min-confidence权重（clip至[0,1]）。全部比较通过覆盖/残差门，且最坏收益G=min[(C_null−C_candidate)/max(C_null,1e−8)]严格>0.5，才成为控制候选。不同null比较的支持可以不同；这不是全49lag的统一支持或校准错误概率。[B1–C1]
+
+模块三：自动物理窗口与去噪开停
+候选物理窗口按重叠连成组，每组选最坏绝对收益最大的一个代表；同分优先短窗、较早位置、固定特征顺序。执行的是代表窗口，不是整个连通跨度。当前代表与上一步代表需共享至少一侧手臂，且交集长度/较短窗口长度≥0.5，才触发Full。窗口数K_window可为0或多组；这是既有离散扫描与分组规则，不是连续边界优化。[C1]
+观察从index0开始；持续性规则使index0本身不触发。当前没有合格持续延后窗口时选Native，之后可再次启动。UNKNOWN会打断该证据链；技术错误则中止任务，不伪装成正常OFF。[A2,C1]
+触发时，保持同一x_n、sigma、条件和RNG，从相同输入再做一次Full预测；只将选中的预测交给原Euler更新。全过程20次Euler更新、20次Native观察、20+K_Full次DiT预测，0≤K_Full≤19。没有在本步比较Full输出的动作分数后再接受/拒绝的反事实质量门。物理视频帧位置与去噪index是两条独立时间轴。[A2]
+
+旧141帧与本轮R50的区别
+旧实验：1312×736、141帧@24fps，全0…140为有效观察域；42个时间bin，23×41空间query网格；全片186个重叠描述行。
+R50预定适配：1152×768、158帧@24fps，原49帧@8fps各重复3次形成前147帧，另加11帧尾填充。模型、解码及原始姿态归档保留完整158帧；尺度、候选、lag/null匹配与共同支持只使用0…146，扫描192个重叠描述行；47时间bin、24×36空间网格。有效尾窗可映射到bin43=[145,148]并连带147/148两帧padding，必须如实记账。完整参考归一化仍含全部条件。[D1–D4]
+公开最终评价另取输出0,3,…144，还原49帧@8fps；不把重复帧或尾填充计入评分，也不把在线24fps重复序列当成125ms以下独立运动真值。R50目前只有CPU组件/合成预测事务证据；真实五例父链、在线158解码、实际GPU与最终公开分数仍须完整执行，不能沿旧141实测预支。[D1,D4]
+
+现有证据可支持什么（开发/筛查案例，非公开五组结果）
+source05主窗50–65双臂lag由Native13改善至Auto2，固定Full为1；source51310主窗64–95左臂由15改善至Auto3，人工参照−1，但Auto双臂仍UNKNOWN，.5三方双臂覆盖0.789不足，不能概括为全部特征达到人工效果。该例全片.5共同方向误差Native/Auto/Manual=.247477/.133188/.140335，支持描述性接近；人工span来自Native观察、去噪6–14沿旧配方，非oracle最优。source40372的R39事后重放Auto实际indices[2,4,5,6]并扩为全片，同为24NFE，主双臂lag为Auto−1/MatchedGlobal0：局部支持必要性尚弱，但这个借用Auto时刻的对照不否定省去逐例标注的价值，也不是等query剂量对照。R45正常例全OFF且最终AV exact支持不误干预，RGB差异仍保留。当前有显著观察成本：source51310 Auto约6334s、人工约2369s，历史时长不构成受控测速或加速结论。[E1–E6]
+
+可直接写入/须等待
+可直接写入：上述实现公式、arms-only观察范围、固定阈值、当前轨迹Native→可选Full→单Euler事务、分组/持续性规则、旧案例的描述性数字及其UNKNOWN。将方法称为training-free自动控制实现，不据模块拼接或单例效果宣布独立架构创新。
+须等待公开五组实测：全部预先固定human配对chest/crouch/fitness/one_leg/rotate的Native/Auto真实配对、原49时刻作者代码motion-fidelity、补充物理时间指标、正常保护/失败、画质与实际成本。五行不自动等于五独立人物；186/192窗口和20去噪端点均不是样本数。成功标准是Auto优于Native并描述性接近同operator人工/固定参照，不要求超过人工；±2帧仅描述性接近约定，不能写成有统计功效的非劣检验。
+
+证据索引（本文件只读核对；SHA256固定此撰写版本）
+[A1] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/extensions/H3TemporalRouter/core.py
+SHA256 ac9a5437f0fa22fda037506d13f09e5f14c63e0c0e5946a5fa6483d6db7de7e0
+[A2] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/extensions/H3AutomaticWindowRouter/core.py
+SHA256 ce8862921c815e11add7ee11e2f556cb9a58ce11d360356d4e973ab57c171e2b
+[B1] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/scripts/timing_metrics.py
+SHA256 eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e
+[B2] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/scripts/pairwise_gain.py
+SHA256 a5d84914149c0c0fe1d7a945512743e68bc5d15c1edc66c2d2ec848a41acf960
+[B3] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/scripts/scan_current_pose.py
+SHA256 db6cb40c30d88ae7b4ce4892a90be16483d903a1aeee2a634f1dedc9cd63c814
+[C1] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/scripts/automatic_window_policy.py
+SHA256 5b91dc9a1ea97c1544a2483911327c93024dad2bca33da5fa488204a532cb3b2
+[D1] /Users/researcher/DevProjects/h3-timing-flexiact-auto-r50-20261017/design/ADAPTATION.json
+SHA256 a31319e0edc4da0ea8460f5c5b204dd712e3279ac4b002f73fdbae7532be912c
+[D2] /Users/researcher/DevProjects/h3-timing-flexiact-auto-r50-20261017/extensions/H3AutomaticWindowRouter/geometry.py
+SHA256 3f70a3adbaa1304c2356af87e3d4ddc9fabcb80544004edb35ae49f65af3ba11
+[D3] /Users/researcher/DevProjects/h3-timing-flexiact-auto-r50-20261017/scripts/pose_domain.py
+SHA256 76048a56750a51e97ab97f6448a4c95a883966dc91702a35fc64d789cf8aad88
+[D4] /Users/researcher/DevProjects/h3-timing-flexiact-auto-r50-20261017/audit/COMPONENT_EVIDENCE_v1.json
+SHA256 1133e0527898cd2eae7509749cd9fdba2f948e6ed0cb59b786348f415c420024
+[E1] /Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/postrun_recovery_v2/captured/r27_s05_bad1311_auto/final/FIXED_WINDOWS.json
+SHA256 2073e3bc5d2b952742dbc494baa3115795649caaede79fe79513290887e6036a
+[E2] /Users/researcher/DevProjects/h3-timing-manual-source51310-r41-20261017/analysis/postrun/captured/r41_source51310_seed2026101701_manual56to127_6to14/analysis/compare/FIXED_WINDOWS.json
+SHA256 f4f638fbe376b9c72e9368f410d5a9ce3243d638acc47fc99b1768ef23bfd5b1
+[E3] /Users/researcher/DevProjects/h3-timing-manual-source51310-r41-20261017/analysis/postrun/independent_review/FINAL_REVIEW.txt
+SHA256 ae5f5203031d9dbdb44b53b3c9be9533d7c295ed73482271e6162e9e2b2fc9aa
+[E4] /Users/researcher/DevProjects/h3-timing-matched-global-r39-20261017/analysis/postrun/captured/r39_source40372_seed2026101701_matched_global/analysis/compare/FIXED_WINDOWS.json
+SHA256 d0deb9a327d87ca6d116c2411db181f270fd42cae8ac1bed7666efe9b6e811b1
+[E5] /Users/researcher/DevProjects/h3-timing-matched-global-r39-20261017/analysis/postrun/independent_review/FINAL_REVIEW.txt
+SHA256 9f0628b90d546e32b6e96b50f6edd559eda0ef120a7cdb00805134dbdff40f5c
+[E6] /Users/researcher/DevProjects/h3-timing-auto-source28289-r45-20261017/analysis/postrun/OWNER_COMPACT.json
+SHA256 ba9861b25faf66e6fff3045f352f6190a34bc6663574159a55e658cbe4a0ba5a

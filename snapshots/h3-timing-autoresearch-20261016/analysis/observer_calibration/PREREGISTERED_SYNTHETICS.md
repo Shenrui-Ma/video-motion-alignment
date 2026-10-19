@@ -1,0 +1,15 @@
+# Frozen observer synthetic stress test
+
+Registered 2026-10-16 before running the following cases. This tests the existing pose-based phase observer, not a new phase algorithm and not a video-generation intervention.
+
+- Frozen `scripts/timing_metrics.py` SHA256: `eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e`. Its `local_diagnostic` thresholds and rejection rules will not change after observing results.
+- Input: selected COCO17 pose coordinates and detector scores from the actual source05 video. All 141 frames, 24 fps. A copied/perturbed pose sequence is a toy signal, not a newly rendered video or an independent DWPose validation.
+- Source windows, inclusive: 50–65 (primary), 69–81, 80–92, 99–111. Search ±24 frames. Confidence thresholds 0.3 and 0.5. Primary feature: `arm_direction`; supplementary right-arm direction, normalized body coordinates, shoulder-relative wrists. Retain every result and every rejection.
+- Shift definition: edited[t] = source[clip(t - d, 0, 140)], including confidence. Positive d means the edited action occurs later. Cases d = 0, ±2, ±7, ±13. Exact recovery and recovery within one/two frames are reported separately.
+- Confidence stress on d = 0 and +7: (a) scores for right elbow/wrist set to zero on edited frames 30–120; (b) all scores set to 0.1; (c) deterministic independent 10% or 35% per-joint zero masking using seed 20261016. Original source confidence is preserved. Low confidence is unknown, never evidence of missing action. The all-low input may fail the frozen normalization guard; record this as abstention rather than altering the observer.
+- Repeated motion: tile original source frames 40–59 to form a period-20 source; compare d = 0 and +7. Multiple phases are indistinguishable within ±24, so rejection is appropriate. Flat motion: repeat original frame55 and compare d = 0 and +7; phase is undefined, so rejection is appropriate.
+- Amplitude confound: for elbow and wrist j relative to its shoulder s, let r(t)=x_j(t)-x_s(t), m=mean_t r(t). Replace x_j(t) with x_s(t)+m+alpha*(r(t)-m), alpha ∈ {0.5, 1.5}. Other joints and confidence remain unchanged. This is a coordinate excursion scaling, not a biomechanical simulation. Evaluate d = 0 and ±7, applying amplitude change before temporal shift. There is no amplitude classifier; these are tests of false phase attribution.
+- An accepted |lag|>2 with true d=0 is a false phase alarm. For identifiable shifted cases, report accepted signed error and wrong-sign estimates. For repeated/flat signals, any accepted unique lag is flagged as unwarranted phase certainty, even if it equals the synthetic index offset. A correct abstention is not accurate lag estimation.
+- No synthetic result establishes that early denoised H3 frames support reliable keypoint detection. Actual decoded-video checkpoint validation remains separate; low-confidence early checkpoints must remain unknown.
+
+No GPU, model training, new dependencies, or edits to the frozen observer are involved.

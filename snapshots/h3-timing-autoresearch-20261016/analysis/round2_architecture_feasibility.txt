@@ -1,0 +1,50 @@
+第二轮 H3 结构可实现性：先做可证伪的 V 时间分解，再考虑共享空间权重差分
+
+结论
+实现可行。最小第一步是将原 full-V 同帧校正精确分成 dynamic_residual 与 static_component 两个分量，在原先相同的0-based调用[6,15)、50个block和输出50–65帧窗口分别注入。它是结构诊断候选，不是已成立的新架构或独立运动表示。第一轮的停止建议不等于整个研究停止；第二轮需要新否证证据，不能把已有背景失败重述为full-V新增泄漏。
+
+一、实际接入位置
+冻结 core snapshot：/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz。
+comfy/ldm/minimax/model.py:173–200 的 Attention.forward：qkv_proj后V直接reshape；Q/K经过RMSNorm与partial split-half RoPE；196–199进入optimized_attention，200再过原out_proj。新支路应接这里，返回原[B,N,H*D]，继承原out_proj及DiT AdaLN gate（291–297），不重写网络层。
+同文件623提供minimax_h3_layout，748–764支持patches_replace['dit'][('double_block',i)]；已冻结 extensions/H3TemporalRouter/core.py:EventBlockPatch 将optimized_attention_override限定在该block，验证单次调用/顺序/窗口；可保留原机制。
+实际full场景QKV=[1,56,87592,128] BF16，参考视频段[7910,47516)，42×943行；输出[47986,87592)，943=23×41空间patch。50–65视频帧映射latent[14,20)，实际覆盖47–67（不是精确VAE receptive field）。参考身份图和Qwen语义段不能混入V分解。layout.py:100–170已经按positive refs与真实packed layout双重验证。
+参考输入latent近干净，时间标签pin见model.py:632–637，但后续参考hidden/QKV在每层全局attention中会混入输出状态/其它条件。因此本支路的V是“参考来源位置的当前层特征”，不是冻结的纯干净运动编码；跨采样步缓存V/P均不合法。
+
+二、第一原型：保持Q/K的时间DC分解
+每个head、空间位置p、通道d，以T=42个latent bin等权平均：
+  M[p,d]=(1/T) Σ_t V[t,p,d]；(PV)[t,p,d]=M[p,d]；D=(I−P)V。
+P沿时间而不跨空间，P²=P。这里是token-bin DC，不是按原视频每bin时长的平均；H3时间bin宽度(1,4,4,4,4)重复不均匀，不能把它解释成均匀物理时刻采样。首原型固定等权，不额外扫描加权版本。
+固定同一Q/K，Aref为在全部参考视频key内的归一化权重，Asame为同一latent bin内的归一化权重，m为native全注意力中该参考视频组总概率。原校正：
+  δfull = m(Asame−Aref)V。
+分量：
+  δdynamic = m(Asame−Aref)(I−P)V；δstatic = m(Asame−Aref)PV。
+逐层同一输入态严格δfull=δdynamic+δstatic。原native输出O保留，分别O'=O+αδdynamic或O+αδstatic。只修改目标query；其他query、Q/K/原V不改。
+“静态扰动不变”只指在Q/K固定时，给参考V加任意时间恒定但空间变化S[p,d]，δdynamic不变。总O本来含V，因此总O不会不变。真实像素改动也会改变Q/K，不能从此代数性质推导真实身份不变性。暂不加依赖native输出范数的bound，否则bound自身随S改变，破坏该校正不变性。
+
+三、为什么有条件地不同于普通mask/bias，为什么不能夸大
+展开后有效权重a_eff = a_native + αm(Asame−Aref)(I−P)。动态分支仍是当前V的线性组合，但系数可有负值，而普通softmax(logits+bias)系数非负。因此存在无法由任何普通QK-logit偏置表示的反例；必须测试构造出负有效系数并让输出超出原V凸包，而非仅以“softmax后加残差”作口头区别。
+反面：某个具体输入若a_eff所有系数都非负且行和为1，仍可代数重写为一组logit偏置。不能声称每次运算都超出bias家族。若P误写成全参考全局单一均值，则(Asame−Aref)PV=0，dynamic与full-V完全等价；该实现应直接判错。
+时间DC分解、静动分支、运动特征使用均有MOFT/DiViD/DeT等近邻，第一轮文献审查已列。结构非等价≠文献新颖性，teacher-free≠新意。
+
+四、最低对照与否证门
+第一轮native、full-V early9可在实际条件/noise/backend/完整图被核验后复用。第二轮至少新增dynamic-only和static-only两个[6,15)臂。CPU先验证分解恒等式、动态分支对S不变、静态反例、时间静止V的dynamic=0、alpha0/native/未选query逐位原生、输入不可变、负系数凸包反例；FP32严格误差和BF16量化容差分开报告。
+如果static-only也达到同样修复，不能说收益来自独立运动残差；如果dynamic不能保留修复，则该分解未支持动机；如果两者各自效果不同，不代表其闭环轨迹输出可以相加，分解等式只成立在同一Q/K输入态。
+本阶段不把seed2原本已有的黑背景当full-V新增静态泄漏，不声称消除身份污染。未来若主张相同动作收益下减少外观代价，还需预先固定的质量问题、正常控制和校正范数控制；两臂诊断本身尚不排除强弱剂量解释。
+
+五、显存与计算
+每次分量路线仍为native full Flash一次、selected query→all ref一次、same-bin batch Flash一次，和原mass同样attention次数。native full不变；替换第二、三次Flash的V为分量V，LSE与m数学上不受V改变。
+Vref BF16额外空间：56×42×943×128×2=约568MB（约542MiB）。均值FP32约27MB（约26MiB）。不可先将整个Vref.float()展开再减均值，避免额外约1.14GB；沿时间帧做FP32局部减法再cast，临时每帧约27MB。static分量也需物化重复均值才能给连续Flash，不用危险的跨T/P零stride假view。实际CUDA allocator/Flash workspace另计，不能承诺该理论下限就是峰值。
+FP32mean缩减可指定dtype，输出小；BF16最终分量会有舍入。恒等式在浮点实现不是bitwise保证；原native/alpha0无计算支路必须bitwise。审计GPU端累计少量RMS/finite，forward结束一次CPU同步，不每层读取标量；记录真实450 routed calls和1000 total block calls。首次GPU只tiny+真实head/stride smoke，实际87k shape需要root确认空卡/内存后独立运行，不能在当前任务中擅自启动。
+
+六、后续共享跨时刻空间权重结构（本次不叠加实现）
+若DC诊断支持继续，可定义以时刻t为锚的W_t=softmax(Qout_t Kref_t^T/sqrt(d))，对邻时刻相同空间网格的V差分使用同一个W_t：
+  R_t = W_t[(V_{t+1}−V_{t−1})/(τ_{t+1}−τ_{t−1})]。
+τ应由H3实际bin的物理中心定义，不能把一个bin当固定4帧。由于同一个W_t作用于正负两项，任何时间恒定的空间场S_p在差分中抵消；两个独立attention结果相减则因W不同仍残留S。该结构可用Flash(Q_t,K_t,D_t)计算，无需保存W矩阵。它是局部导数注入而不是同帧锚定，可能推进/放大已有动作而非对齐时序，符号和单位必须由玩具已知时间场测试，不能从“差分”名字推导效果。边界单侧差分/非对称时间间隔需事前固定。它与当前DC重新路由不是同一式，首轮不混在一起避免解释不清。
+
+七、可否不用光流建立参考内部对应
+可以复用同层参考Q/K做参考帧间patch相似性，但不是已验证点轨迹。保留nativeRoPE直接比邻帧会混入相对时间相位；应先对复制的Q/K用真实rope.inv_freq撤销仅时间坐标差，保留空间坐标（或单独报告是否撤销空间）；绝不可原地改主Q/K。Qref→Kref是模型训练的attention交互，但不保证几何对应；K-K余弦在同projection空间更适于描述子相似性，也未训练为光流。
+可先只读匹配诊断：邻帧局部搜索、互为最近邻/来回一致性、top1–top2间隔与遮挡unknown；不通过就不做轨迹注入。计算P²=943²每head每帧，6个时间锚×56heads全物化BF16约598MB每方向，应分帧/头/查询块流式或只用固定头样本，不建立全87k²矩阵。
+更根本的陷阱：若先将同一移动对象V_{t−1}完美warp到t，再用V_t−warp(V_{t−1})，纯平移但外观不变时残差会接近0，恰好消掉所需运动。对应场应作为运动位移本身或共享采样坐标的一部分保留，不能把warp后的appearance创新残差叫完整运动。最小DC原型完全不需要这一步；新增匹配只能在独立玩具平移/遮挡门通过后提出。
+
+八、实施边界
+仅新root /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016 的H3TemporalRouter副本增加dynamic_residual/static_component；旧轮冻结文件、PhaseRoPE与semantic节点不改。mode接口自动经MODES传到节点；保留conditioning_metadata/validate_layout/flash_attention_lse等已有import。初版不加bound、不加新依赖、不扫层头参数，不借用全片最终结果决定当前引导。保持P0/T0，semantic P/T诊断不是可替代的运动分量来源。

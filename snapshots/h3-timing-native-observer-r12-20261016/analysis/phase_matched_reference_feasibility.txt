@@ -1,0 +1,70 @@
+H3 物理帧延迟的相位匹配参考库：只读可行性审查
+2026-10-16。仅检查本地源码、元数据、已完成结果；未实现算法、未运行新读出/VAE/GPU、未修改R13/R14。本文为必要性验证设计，不宣称创新。
+
+结论与建议
+有实现基础，但尚无可直接部署的细时延观察器。现有17→5分块相位效应已经实测；RGB平移再编码也已经做过，但只有source05的0/4/8帧三种移动和constant0。尚未见同槽位候选库比较、2帧控制、独立编码起点的交叉测试。因此下一步应先做只读CPU必要反例，然后按结果决定是否补少量VAE编码，不直接接控制器。
+关键新核对：现存0/4/8库来自.41 prepared RGB/clean latent；R3和R12的实际.9参考虽然同几何，但prepared RGB和clean latent SHA不同。直接混用只能是跨来源敏感性，不能成为同源phase-bank主检。R7正常例是1024几何，不能拿1312库直接比较。
+
+1. 现有实现和确实成立的编码性质
+R2根=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016。
+analysis/vae_temporal_controls/encode_temporal_source.txt保存真实encode_temporal源码：每17RGB帧单独_adaptive_encode；不足17重复末帧；每块5latent；拼接后删除末3。因此141RGB→9×5−3=42latent。
+analysis/vae_temporal_controls/PROTOCOL.txt与source_audit.json记录vae.py327–355、544–557、41–56、672–689：块内因果padding、无跨块缓存、逐帧归一化、posterior均值编码。实际execution.json核实clip_length17、tokens_chunk_size5、token_drop3、FP16 VAE、tile256/overlap64。
+run1/RESULTS.json的constant0实测：相邻bin RMS=0.3545541970，隔5bin逐位相等、差分RMS=0、五相位解释比例1.0。这个结果证明恒定RGB也带5槽周期的编码响应；不是仅由position标签推测。
+这不构成一般17帧平移等变定理。完整内块移17帧与latent移5槽的复用只在输入块完全对应、算子/形状/tiling一致且排除头尾处理时有结构依据；非17整数移动必须真实重编码，不能线性挪latent冒充。
+
+三个“时间”必须分开：
+- 物理RGB帧t，24fps，2/4帧约83/167ms。
+- 编码块内起点及槽位phase：输入相对17帧块的起点、输出k mod5。17个RGB起点余类与5个latent槽位不是同一索引。
+- DiT的名义position spans [1,4,4,4,4]与RoPE坐标。它们给bin代表中心和时间排布，不等于真实VAE感受野，不证明一个latent只包含该span的像素。
+R12 extensions/H3NativeObserverRouter/observer.py:31–54只接CPU[1,24,42,46,82]，抽取冻结evaluate.py的纯函数；没有VAE或reference bank。
+R2 analysis/vae_phase_calibration/evaluate.py:16–35定义名义中心与gap5=(z[k+5]−z[k])/17，scan:42–65仍对物理整数lag−24…24做线性插值。间隔是17帧，不代表量化分辨率必然17帧；旧4/8帧控制确实能读对。问题是该有限差分跨0.708秒、可能混合短事件；它不是已证明的短动作测量，也不能直接把名义中心当真实时间感受野。
+
+2. 已做和没做的内容
+encode_controls.py ARMS及indices_for固定original/delay4/delay8/constant0；delay_d[t]=R[max(0,t−d)]，重复首帧、不循环。原片重编码与同机缓存逐位相同后，才运行后续三臂。
+本地run1/original.pt、delay4.pt、delay8.pt、constant0.pt均存在，每份15,210,281字节；shape均[1,24,42,46,82]。
+phase_calibration/SUMMARY.txt：raw_adjacent对delay4四窗读1/1/0/0、delay8读−17/8/−17/17；phase_mean和gap5通过该素材必要控制，gap5四窗精确4和8。
+phase_calibration/cross_identity/evaluate_cross.py及SUMMARY只把冻结差分方法应用于source05/07→Sam的既有x0；seed2_controls同样没有新RGB移位或重编码。constant0_template仅扣五槽静态模板，并不是候选shift bank；它在4帧控制未通过。
+检查上述analysis脚本/协议/清单及R12 extension，未找到delay2、独立origin或同槽位B_d打分的已执行实现。此结论只覆盖所查目录，不是全磁盘或文献的“不存在”证明。
+
+3. 最少可信CPU材料：先核来源，再算分
+现有库.41：run1/execution.json
+prepared RGB SHA bc25b919266fb28d3f9cf5d1cf5a949f8e1be31d593201f5f39104032ccaa00d；B0 raw SHA cc5c11db3015fcd8bf1179d346ce1e3743e734b94382e1a77e45a49d79623cc0。
+.9 R3 parent与R12 actual：R12 audit/parent_full_conditioning.json 和 analysis/pose/pilot/r12_s05_native_observer_provenance/conditioning.json，两者逐项同源；prepared SHA 1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42；clean latent SHA 75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734。原input RGB也不同：.41为5fd5681d…，.9为348c7499…。不能把差异只归于VAE浮点误差；本次未定位具体解码/预处理原因。
+四项指定样例逐项结论：
+A. R3 Full：audit/x0/r3_s05_full_6to14/manifest.json明确1312×736×141/24fps、video[1,24,42,46,82]、video_scale1、Euler20。独立pose约+1；相对0/4/8库应偏向0，但0是截断库左边界，不能宣称安全近零。当前R3本地未找到.pt，远端/data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/x0/r3_s05_full_6to14/有已归档路径；取回tensor与manifest核SHA不需GPU。与旧.41库来源不匹配，只能敏感性；可信primary需.9实际prepared源的新B4/B8，B0可复用其clean reference。
+B. R12 index10：analysis/pose/early/records/x0_step010.json绑定video raw SHA d36b301a83a960cdc9dfb7f409dfc4e1cc3a2fe65890d5ce139b1833d0c2c19d，sigma_v0.9230769277、同几何、视频归一化scale1。独立方向/腕均+4/+4，现gap5=2，是最直接的0vs4必要格。远端snapshot在/data5/researcher/h3_runs/timing_native_observer_r12_20261016/audit/x0/r12_s05_native_observer/x0_step010.pt；本地没有.pt，只有绑定元数据及解码MP4，不可把MP4当latent。旧.41 bank仍只能来源敏感性。
+C. R12 final：同几何/同.9参考，方向+3、腕+4。它不应被强标成精确4帧真值；可要求明显不被断言为0，可对4候选作粗分辨必要检查。最终sampler_final不可与step19 x0默认逐位互换，必须拿最终manifest对应tensor。仍需取回现有tensor和同源bank，均不需新DiT。
+D. R7正常：1024×576×141，[1,24,42,36,64]；已知pose−1，本地analysis/observer/inputs已有九快照和独立reference。与1312库空间shape不同；禁止resize latent后声称同编码比较。它只可复核原gap5正常读出；要作bank负控必须为1024实际prepared源另建同几何库。
+最可信的零新GPU集合：旧同身份B0/B4/B8/constant0的管线与拒判自检；R6 analysis/native_observer_precheck/inputs的九份R4同机native快照（原reference raw cc5c…与库一致），用已绑定独立pose大延后13/14作范围外反例。其最后形状/帧率可从预检RESULTS和capture manifest复核。此集合缺跨身份同源近零及精确2帧例，不能因自检通过就声称新观察器可用。
+旧跨身份校准源05的reference_video_vae.pt也是.9 raw75140…，不能把该旧校准通过当.41库跨身份已经验证。
+
+4. 固定CPU必要检查的评分与有限库边界
+仅提出，不在本任务执行。D={0,4,8}，B_d为实际RGB时移重编码tensor。Y为独立Sam目标端点。固定F为evaluate.py的raw_adjacent有符号差分，全部24channel/全空间，保持同一槽位/同一物理查询位置；不再对Y做额外自由lag扫描，不做17帧gap5平均，不换ROI或挑channel。
+对窗口W=50…65，在名义中心插值处计算a_t=F(B_d)[t]、b_t=F(Y)[t]；C(d)=mean_t(1−<a_t,b_t>/(||a_t||||b_t||))。所有候选使用相同有效支持，要求两侧每帧RMS>1e−6、全覆盖、无clamp，否则unknown。保留三个完整score、top2 gap、各向量能量、有效索引和来源SHA。
+单一最小score且top2差>1e−6只是数值非退化条件，不是置信度。旧scan的separated_competitor_frames=4不适用于0/2/4判别：会跳过差2的竞争者。新bank必须检查所有不同候选的第二名。
+- 赢家8：标right_edge/out_of_range_or_boundary，不能将真实13读成“8且修复”；即使真值恰8，当前截断库也不能证明没有更大解。
+- 赢家0：标left_edge/zero_or_advance_unresolved；可记录近零候选排名，但不作±2安全停止证书。
+- 赢家4且可判：最多叫interior_candidate4。若独立真值为13而它接受4，就是范围外假接受反例，不能用“真实超出库”事后替结果免责。
+- 低信号、并列或支持不足必须unknown，不能填0。恒定RGB控制应拒判；原始相邻差分在恒定片仍有编码相位，若bank把它当动作并给出确定lag，固定方案失败。
+同身份B_d查询B_d必然容易得同索引，只验证符号、索引、mask、哈希和排序。跨来源的R3/R12失败可以否决“无差别混用来源”的实现，不能单独否决同源bank机制。匹配来源的native大延后若被接受成内部4，可直接否决该固定score的范围外拒判能力。
+若B0/B4/B8对独立真实+4的R12点比gap5接近，仍只是开发样例的粗0/4区别，不证明2帧分辨率。应同时列gap5原结果、raw相邻原49点scan、单次latent插值基线，不能让bank多看窗口而把收益归因于相位。
+
+5. 最小新增编码验证：lag和origin必须独立交叉
+定义S_d R[t]=R[t−d]，正d为延后。C_o为改变编码起点的已知crop；候选B_(o,d)=E(C_o S_d R)。查询Q_(o,delta)=E(C_o S_delta G)，G是另一个身份的已编辑RGB，必须和R有独立姿态/人工关键事件时间参考。o∈{0,1}与delta∈{0,2,4}交叉六格，不允许令o=delta。
+编码起点改变后，每个bin的全局时间需加o；固定同一个全局W，再转为本地W−o。参考bank也按同一个已知o重编码，比较同槽位，不能把origin0库直接跨槽插值成origin1库。
+如果origin未知，C_o S_d R[t]=R[t+o−d]，仅从内容无法把o与d分别识别。必须把origin元数据作为已知干扰因素，检验不同origin下同一物理delta是否稳定；不能声称解决未知起点和真实延后联合辨识。
+若G自身基准lag不是精确0，则合成delta是真实“增量”，应先报告hatlag(Q_delta)−hatlag(Q_0)是否为0/2/4；绝对lag以独立基准L_G+delta判，不把pose+1强改成0。需要绝对0/2/4任务时先取得可独立确认的对齐跨身份RGB基准；不能用bank自身选对齐帧。
+现成x0或sampler_final不是E(decoded RGB)的保证等价物；三种G移位都需要真实VAE重新编码，不能直接移动其latent或把现成x0充当零移位encode。RGB decode once后在tensor上重排，禁止每臂不同压码。
+概念最小D={0,2,4}×两origin给6个参考编码+6个target编码，但边界都受截断，不能作unknown/安全停止测试。建议至少D={−2,0,2,4,6}，让0/2/4为内部候选，−2/6为删失边界：10个参考编码+6个target编码。复用只限同prepared源/同VAE路径/SHA匹配的缓存；当前.9可复用B0一份，旧.41 B4不可抵扣，且需额外原片重编码缓存一致门。不要把这些调用误报为新DiT生成。
+最窄通过条件：预先冻结score/支持/规则，六个跨身份×origin格的增量排序和0/2/4区分均正确；用精确候选类别或严格<1帧误差，不用旧±2容差使0和2都算对。独立origin改变不得把同delta换类别。constant0、已知大延后范围外及遮挡/幅度不足例同时报告unknown/假接受；拒判增加不能藏在只统计accepted准确率里。任一范围外假近零、跨origin换类，或只能同身份自匹配成功，都阻止进入新闭环。
+只在这些必要门过后，才用R12当前native x0、相应独立解码pose核查端点域是否同样有效；预测latent不必落在真实RGB encoder流形上。不能以重新编码视频通过替代早期native x0通过。
+
+6. 边界、身份和混淆
+共同支持要按完整编码chunk的输入依赖排除填充，不能只删首末一个RGB帧。141帧的最后136…152块有重复填充且丢3token；主检禁用该块。第一块受人为首帧填充/裁切影响也排除。0/2/4且o0/1的内窗50…65远离外部填充，但跨内部chunk边界仍可能有编码相位——这是要测试的对象，不能事后把不利边界都删掉。
+各候选必须同mask、同crop、同分辨率、相同color/preprocessing/FP16-VAE/tiling；对原始序列和输出序列分别记录全局时间与source-frame映射。完整17块挪移/拼接优化先要同块逐位验证、排除token_drop，当前不作为减少新编码量的既定事实。
+身份更换改变体型、衣服、纹理、手臂位置和运动幅度，固定像素latent差分的通道不具身份不变性；相位匹配不自动建立肢体对应。背景或相机运动可以压过短事件；当前Sam的背景质量问题应保留。重复动作产生多个真相似峰，需unknown而不是固定tie-break取0。遮挡、幅度缺失和延后是不同现象，bank只估时间相似性，不能以近零证明动作完整。
+对短窗使用更宽的上下文来凑辨别力，要明确有效支持，并让基线拥有相同范围；否则不能归因于“细动作相位修复”。gap5虽跨17帧仍可估小平移，新bank必须实测更好，不能先把gap5判为必然失败。
+
+7. 与先例的边界
+已读R2 literature/phase_matched_reference_bank_review.txt。AF-LDM已做shift→reencode和编码等变比较，APS已有显式polyphase，PhaseFusion已有多时间起点聚合，FlowMotion已有参考/目标latent运动差分。候选的窄检验对象是冻结H3分块编码器上的物理延迟可辨识性与拒判；模板库argmin和多相位本身均非首创。
+本报告仅建议先完成来源相容的必要检查，再考虑编码补证。没有支持“新架构已成立”或“安全停止已解决”。

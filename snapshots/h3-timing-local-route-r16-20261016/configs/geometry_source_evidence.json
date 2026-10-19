@@ -1,0 +1,1323 @@
+{
+  "files": {
+    "comfy_extras/nodes_minimax_h3.py": {
+      "sha256": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+      "excerpts": {
+        "39-71": "39         n += 1\n40     return n\n41 \n42 \n43 def video_latent_t(frame_count):\n44     return 2 if frame_count <= 5 else ((frame_count - 5) // 17) * 5 + 2\n45 \n46 \n47 def temporal_shape(length):\n48     frame_count = align_frame_count(max(5, length))\n49     duration = frame_count / FPS\n50     return frame_count, video_latent_t(frame_count), round(duration * AUDIO_LATENT_FPS)\n51 \n52 \n53 def adapt_canvas(width, height):\n54     \"\"\"768-short-edge canvas with 768*1344 area cap, per-axis round to 32.\"\"\"\n55     ratio = width / height\n56     if ratio >= 1.0:\n57         nom_w, nom_h = BASE_SHORT_EDGE * ratio, BASE_SHORT_EDGE\n58     else:\n59         nom_w, nom_h = BASE_SHORT_EDGE, BASE_SHORT_EDGE / ratio\n60     if nom_w * nom_h > MAX_PIXELS:\n61         s = math.sqrt(MAX_PIXELS / (nom_w * nom_h))\n62         nom_w, nom_h = nom_w * s, nom_h * s\n63     return (max(CANVAS_MULTIPLE, round(nom_w / CANVAS_MULTIPLE) * CANVAS_MULTIPLE),\n64             max(CANVAS_MULTIPLE, round(nom_h / CANVAS_MULTIPLE) * CANVAS_MULTIPLE))\n65 \n66 \n67 def _resize(image, width, height, crop):\n68     # image [B, H, W, C] -> [B, height, width, 3]\n69     samples = image[..., :3].movedim(-1, 1)\n70     samples = comfy.utils.common_upscale(samples, width, height, \"lanczos\", crop)\n71     return samples.movedim(1, -1)",
+        "314-343": "314         for name, video_frames in (ref_videos or {}).items():\n315             if video_frames is None:\n316                 continue\n317             # index-paired soundtrack: ref_video_audio_N belongs to ref_video_N\n318             soundtrack = ref_video_audios.get(\"ref_video_audio_\" + name.rsplit(\"_\", 1)[-1])\n319             vh, vw = video_frames.shape[1], video_frames.shape[2]\n320             cw, ch = adapt_canvas(vw, vh)\n321             if vw * vh < cw * ch:\n322                 cw = max(CANVAS_MULTIPLE, round(vw / CANVAS_MULTIPLE) * CANVAS_MULTIPLE)\n323                 ch = max(CANVAS_MULTIPLE, round(vh / CANVAS_MULTIPLE) * CANVAS_MULTIPLE)\n324             frames = _resize(video_frames, cw, ch, \"disabled\")\n325             if frames.shape[0] > frame_count:\n326                 frames = frames[:frame_count]\n327             n = frames.shape[0]\n328             if n < 5:\n329                 raise ValueError(\"MiniMax H3 reference videos need at least 5 frames (~0.2s at 24 fps)\")\n330             while n % 17 != 5:\n331                 n -= 1\n332             frames = frames[:n]\n333             if soundtrack is not None:\n334                 # the soundtrack gets its own <Audio j> label, emitted before <Video k>\n335                 ref_items.append({\"type\": \"audio\"})\n336             # Qwen sees the video at 2 fps with timestamps\n337             sample_idx = list(range(0, frames.shape[0], FPS // 2))\n338             qwen_frames = frames[sample_idx]\n339             ref_items.append({\"type\": \"video\", \"data\": qwen_frames,\n340                               \"timestamps\": [i / 2.0 for i in range(len(sample_idx))]})\n341             if vae is None:\n342                 continue\n343             z = vae.encode(frames)"
+      }
+    },
+    "comfy/ldm/minimax/model.py": {
+      "sha256": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+      "excerpts": {
+        "42-56": "42 def patchify_video(latent, patch_size=(1, 2, 2)):\n43     # [B, C, T, H, W] -> [B*t*h*w, C*pt*ph*pw]\n44     b, c, t_full, h_full, w_full = latent.shape\n45     pt, ph, pw = patch_size\n46     t, h, w = t_full // pt, h_full // ph, w_full // pw\n47     x = latent.reshape(b, c, t, pt, h, ph, w, pw)\n48     x = torch.einsum(\"nctrhpwq->nthwcrpq\", x)\n49     return x.reshape(b * t * h * w, c * pt * ph * pw)\n50 \n51 \n52 def unpatchify_video(rows, t, h, w, c=24, patch_size=(1, 2, 2)):\n53     pt, ph, pw = patch_size\n54     x = rows.reshape(-1, t, h, w, c, pt, ph, pw)\n55     x = torch.einsum(\"nthwcrpq->nctrhpwq\", x)\n56     return x.reshape(-1, c, t * pt, h * ph, w * pw)"
+      }
+    },
+    "comfy_api/latest/_input_impl/video_types.py": {
+      "sha256": "ca3ab830c3e71706762b03a7b239ce7a198a15abbf78d75de47fb3fb108449b9",
+      "excerpts": {
+        "461-610": "461     def get_components_internal(self, container: InputContainer) -> VideoComponents:\n462         video_stream = self._get_first_video_stream(container)\n463         video_stream.thread_type = \"AUTO\"\n464         start_time, duration = self.get_active_trim_window()\n465 \n466         # Get video frames\n467         frames = []\n468         audio_frames = []\n469         alphas = None\n470         start_pts = int(start_time / video_stream.time_base)\n471         end_pts = int((start_time + duration) / video_stream.time_base)\n472 \n473         if start_pts != 0:\n474             container.seek(start_pts, stream=video_stream)\n475 \n476         image_format = 'gbrpf32le'\n477         process_image_format = lambda a: a\n478         align_graph = None\n479         audio = None\n480 \n481         streams = [video_stream]\n482         has_first_audio_frame = False\n483         checked_alpha = False\n484         crop_rect = None\n485         crop_resolved = False\n486 \n487         # Default to False so we decode until EOF if duration is 0\n488         video_done = False\n489         audio_done = True\n490 \n491         audio_stream = last_decodable_audio_stream(container)\n492         if audio_stream is not None:\n493             streams += [audio_stream]\n494             resampler = av.audio.resampler.AudioResampler(format='fltp')\n495             audio_done = False\n496 \n497         for packet in container.demux(*streams):\n498             if video_done and audio_done:\n499                 break\n500 \n501             if packet.stream.type == \"video\":\n502                 if video_done:\n503                     continue\n504                 try:\n505                     for frame in packet.decode():\n506                         if frame.pts < start_pts:\n507                             continue\n508                         if duration and frame.pts >= end_pts:\n509                             video_done = True\n510                             break\n511 \n512                         if not checked_alpha:\n513                             alpha_channel = False\n514                             for comp in frame.format.components:\n515                                 if comp.is_alpha or frame.format.name == \"pal8\":\n516                                     alphas = []\n517                                     alpha_channel = True\n518                                     break\n519                             if frame.format.name in (\"yuvj420p\", \"yuvj422p\", \"yuvj444p\", \"rgb24\", \"rgba\", \"pal8\"):\n520                                 process_image_format = lambda a: a.float() / 255.0\n521                                 if alpha_channel:\n522                                     image_format = 'rgba'\n523                                 else:\n524                                     image_format = 'rgb24'\n525                             else:\n526                                 process_image_format = lambda a: a\n527                                 if alpha_channel:\n528                                     image_format = 'gbrapf32le'\n529                                 else:\n530                                     image_format = 'gbrpf32le'\n531 \n532                             checked_alpha = True\n533 \n534                         # Fix non-deterministic video decode when the video width is not a multiple of 32\n535                         # For non-yuvj pixel formats: most H.264/H.265 video and static images (e.g. lossy WebP via LoadImage)\n536                         # Pad both axes to a multiple of 32 and smear the border so the alignment padding never bleeds into the cropped edges\n537                         if image_format in ('gbrpf32le', 'gbrapf32le') and frame.width % 32 != 0:\n538                             if align_graph is None:\n539                                 pad_w = ((frame.width + 31) // 32) * 32\n540                                 pad_h = ((frame.height + 31) // 32) * 32\n541                                 g = av.filter.Graph()\n542                                 g_src = g.add_buffer(width=frame.width, height=frame.height,\n543                                                      format=frame.format.name, time_base=video_stream.time_base)\n544                                 g_pad = g.add('pad', f'{pad_w}:{pad_h}:0:0')\n545                                 g_fill = g.add('fillborders', f'left=0:right={pad_w - frame.width}:top=0:bottom={pad_h - frame.height}:mode=smear')\n546                                 g_sink = g.add('buffersink')\n547                                 g_src.link_to(g_pad)\n548                                 g_pad.link_to(g_fill)\n549                                 g_fill.link_to(g_sink)\n550                                 g.configure()\n551                                 align_graph = (g, g_src, g_sink)\n552                             align_graph[1].push(frame)\n553                             img = np.ascontiguousarray(align_graph[2].pull().to_ndarray(format=image_format)[:frame.height, :frame.width])\n554                         else:\n555                             img = frame.to_ndarray(format=image_format)\n556                         rotation_quadrant = _rotation_quadrant(frame)\n557                         if rotation_quadrant:\n558                             img = np.rot90(img, k=rotation_quadrant, axes=(0, 1)).copy()\n559                         if self.__crop is not None:\n560                             if not crop_resolved:\n561                                 crop_rect = normalize_crop_rect(*self.__crop, img.shape[1], img.shape[0])\n562                                 crop_resolved = True\n563                             if crop_rect is not None:\n564                                 cx, cy, cw, ch = crop_rect\n565                                 img = np.ascontiguousarray(img[cy:cy + ch, cx:cx + cw])\n566                         if alphas is None:\n567                             frames.append(torch.from_numpy(img))\n568                         else:\n569                             frames.append(torch.from_numpy(img[..., :-1]))\n570                             alphas.append(torch.from_numpy(img[..., -1:]))\n571                 except av.error.InvalidDataError:\n572                     logging.info(\"pyav decode error\")\n573 \n574             elif packet.stream.type == \"audio\":\n575                 if audio_done:\n576                     continue\n577 \n578                 aframes = itertools.chain.from_iterable(\n579                     map(resampler.resample, packet.decode())\n580                 )\n581                 for frame in aframes:\n582                     if duration and frame.time > start_time + duration:\n583                         audio_done = True\n584                         break\n585 \n586                     if not has_first_audio_frame:\n587                         offset_seconds = start_time - frame.pts * audio_stream.time_base\n588                         to_skip = max(0, int(offset_seconds * audio_stream.sample_rate))\n589                         if to_skip < frame.samples:\n590                             has_first_audio_frame = True\n591                             audio_frames.append(frame.to_ndarray()[..., to_skip:])\n592                     else:\n593                         audio_frames.append(frame.to_ndarray())\n594 \n595         images = process_image_format(torch.stack(frames)) if len(frames) > 0 else torch.zeros(0, 0, 0, 3)\n596         if alphas is not None:\n597             alphas = process_image_format(torch.stack(alphas)) if len(alphas) > 0 else torch.zeros(0, 0, 0, 1)\n598 \n599         # Get frame rate\n600         frame_rate = Fraction(video_stream.average_rate) if video_stream.average_rate else Fraction(1)\n601 \n602         if len(audio_frames) > 0:\n603             audio_data = np.concatenate(audio_frames, axis=1)  # shape: (channels, total_samples)\n604             if duration:\n605                 audio_data = audio_data[..., :int(duration * audio_stream.sample_rate)]\n606 \n607             audio_tensor = torch.from_numpy(audio_data).unsqueeze(0)  # shape: (1, channels, total_samples)\n608             audio = AudioInput({\n609                 \"waveform\": audio_tensor,\n610                 \"sample_rate\": int(audio_stream.sample_rate) if audio_stream.sample_rate else 1,"
+      }
+    },
+    "comfy_extras/nodes_video.py": {
+      "sha256": "5879633287808ba2dac6753bcbc90acf8d73c72e8df1d0a9755a4ab70e712a0d",
+      "excerpts": {
+        "308-380": "308 class GetVideoComponents(io.ComfyNode):\n309     @classmethod\n310     def define_schema(cls):\n311         return io.Schema(\n312             node_id=\"GetVideoComponents\",\n313             search_aliases=[\"extract frames\", \"split video\", \"video to images\", \"demux\"],\n314             display_name=\"Get Video Components\",\n315             category=\"video\",\n316             description=\"Extracts video frames, audio, frame rate, bit depth, and color space.\",\n317             inputs=[\n318                 io.Video.Input(\"video\", tooltip=\"The video to extract components from.\"),\n319             ],\n320             outputs=[\n321                 io.Image.Output(display_name=\"images\"),\n322                 io.Audio.Output(display_name=\"audio\"),\n323                 io.Float.Output(display_name=\"fps\"),\n324                 io.Combo.Output(display_name=\"bit_depth\"),\n325                 io.Combo.Output(display_name=\"color_space\"),\n326             ],\n327         )\n328 \n329     @classmethod\n330     def execute(cls, video: Input.Video) -> io.NodeOutput:\n331         components = video.get_components()\n332         return io.NodeOutput(\n333             components.images,\n334             components.audio,\n335             float(components.frame_rate),\n336             video.get_bit_depth(),\n337             video.get_color_space(),\n338         )\n339 \n340 \n341 class LoadVideo(io.ComfyNode):\n342     @classmethod\n343     def define_schema(cls):\n344         input_dir = folder_paths.get_input_directory()\n345         files = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]\n346         files = folder_paths.filter_files_content_types(files, [\"video\"])\n347         return io.Schema(\n348             node_id=\"LoadVideo\",\n349             search_aliases=[\"import video\", \"open video\", \"video file\"],\n350             display_name=\"Load Video\",\n351             category=\"video\",\n352             essentials_category=\"Basics\",\n353             has_intermediate_output=True,\n354             inputs=[\n355                 io.Combo.Input(\"file\", options=sorted(files), upload=io.UploadType.video),\n356             ],\n357             outputs=[\n358                 io.Video.Output(),\n359             ],\n360         )\n361 \n362     @classmethod\n363     def execute(cls, file) -> io.NodeOutput:\n364         video_path = folder_paths.get_annotated_filepath(file)\n365         source = InputImpl.VideoFromFile(video_path)\n366         return io.NodeOutput(source, ui=preview_input_video(file, source))\n367 \n368     @classmethod\n369     def fingerprint_inputs(s, file):\n370         video_path = folder_paths.get_annotated_filepath(file)\n371         mod_time = os.path.getmtime(video_path)\n372         # Instead of hashing the file, we can just use the modification time to avoid\n373         # rehashing large files.\n374         return mod_time\n375 \n376     @classmethod\n377     def validate_inputs(s, file):\n378         if not folder_paths.exists_annotated_filepath(file):\n379             return \"Invalid video file: {}\".format(file)\n380 "
+      }
+    },
+    "comfy/utils.py": {
+      "sha256": "f3ee59baf72f6910b7662224854e372c713ba3ad01c89739ba092e5ee22460e6",
+      "excerpts": {
+        "940-1020": "940     return output\n941 \n942 def convert_sd_to(state_dict, dtype):\n943     keys = list(state_dict.keys())\n944     for k in keys:\n945         state_dict[k] = state_dict[k].to(dtype)\n946     return state_dict\n947 \n948 def safetensors_header(safetensors_path, max_size=100*1024*1024):\n949     with open(safetensors_path, \"rb\") as f:\n950         header = f.read(8)\n951         length_of_header = struct.unpack('<Q', header)[0]\n952         if length_of_header > max_size:\n953             return None\n954         return f.read(length_of_header)\n955 \n956 ATTR_UNSET={}\n957 \n958 def resolve_attr(obj, attr):\n959     attrs = attr.split(\".\")\n960     for name in attrs[:-1]:\n961         obj = getattr(obj, name)\n962     return obj, attrs[-1]\n963 \n964 def set_attr(obj, attr, value):\n965     obj, name = resolve_attr(obj, attr)\n966     prev = getattr(obj, name, ATTR_UNSET)\n967     if value is ATTR_UNSET:\n968         delattr(obj, name)\n969     else:\n970         setattr(obj, name, value)\n971     return prev\n972 \n973 def set_attr_param(obj, attr, value):\n974     # Clone inference tensors (created under torch.inference_mode) since\n975     # their version counter is frozen and nn.Parameter() cannot wrap them.\n976     if (not torch.is_inference_mode_enabled()) and value.is_inference():\n977         value = value.clone()\n978     return set_attr(obj, attr, torch.nn.Parameter(value, requires_grad=False))\n979 \n980 def set_attr_buffer(obj, attr, value):\n981     obj, name = resolve_attr(obj, attr)\n982     prev = getattr(obj, name, ATTR_UNSET)\n983     persistent = name not in getattr(obj, \"_non_persistent_buffers_set\", set())\n984     obj.register_buffer(name, value, persistent=persistent)\n985     return prev\n986 \n987 def copy_to_param(obj, attr, value):\n988     # inplace update tensor instead of replacing it\n989     attrs = attr.split(\".\")\n990     for name in attrs[:-1]:\n991         obj = getattr(obj, name)\n992     prev = getattr(obj, attrs[-1])\n993     prev.data.copy_(value)\n994 \n995 def get_attr(obj, attr: str):\n996     \"\"\"Retrieves a nested attribute from an object using dot notation.\n997 \n998     Args:\n999         obj: The object to get the attribute from\n1000         attr (str): The attribute path using dot notation (e.g. \"model.layer.weight\")\n1001 \n1002     Returns:\n1003         The value of the requested attribute\n1004 \n1005     Example:\n1006         model = MyModel()\n1007         weight = get_attr(model, \"layer1.conv.weight\")\n1008         # Equivalent to: model.layer1.conv.weight\n1009 \n1010     Important:\n1011         Always prefer `comfy.model_patcher.ModelPatcher.get_model_object` when\n1012         accessing nested model objects under `ModelPatcher.model`.\n1013     \"\"\"\n1014     attrs = attr.split(\".\")\n1015     for name in attrs:\n1016         obj = getattr(obj, name)\n1017     return obj\n1018 \n1019 def bislerp(samples, width, height):\n1020     def slerp(b1, b2, r):"
+      }
+    }
+  },
+  "video": {
+    "path": "/data5/researcher/h3_runs/timing_spatial_r3_20261016/input/05_real_megumi_v.mp4",
+    "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "rate": "24",
+    "time_base": "1/12288",
+    "metadata": {
+      "language": "und",
+      "handler_name": "ISO Media file produced by Google Inc.",
+      "vendor_id": "[0][0][0][0]",
+      "encoder": "Lavc62.28.100 libx264"
+    }
+  },
+  "frames": [
+    {
+      "index": 0,
+      "pts": 0,
+      "time": 0.0,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 1,
+      "pts": 512,
+      "time": 0.041666666666666664,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 2,
+      "pts": 1024,
+      "time": 0.08333333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 3,
+      "pts": 1536,
+      "time": 0.125,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 4,
+      "pts": 2048,
+      "time": 0.16666666666666666,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 5,
+      "pts": 2560,
+      "time": 0.20833333333333334,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 6,
+      "pts": 3072,
+      "time": 0.25,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 7,
+      "pts": 3584,
+      "time": 0.2916666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 8,
+      "pts": 4096,
+      "time": 0.3333333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 9,
+      "pts": 4608,
+      "time": 0.375,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 10,
+      "pts": 5120,
+      "time": 0.4166666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 11,
+      "pts": 5632,
+      "time": 0.4583333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 12,
+      "pts": 6144,
+      "time": 0.5,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 13,
+      "pts": 6656,
+      "time": 0.5416666666666666,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 14,
+      "pts": 7168,
+      "time": 0.5833333333333334,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 15,
+      "pts": 7680,
+      "time": 0.625,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 16,
+      "pts": 8192,
+      "time": 0.6666666666666666,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 17,
+      "pts": 8704,
+      "time": 0.7083333333333334,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 18,
+      "pts": 9216,
+      "time": 0.75,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 19,
+      "pts": 9728,
+      "time": 0.7916666666666666,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 20,
+      "pts": 10240,
+      "time": 0.8333333333333334,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 21,
+      "pts": 10752,
+      "time": 0.875,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 22,
+      "pts": 11264,
+      "time": 0.9166666666666666,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 23,
+      "pts": 11776,
+      "time": 0.9583333333333334,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 24,
+      "pts": 12288,
+      "time": 1.0,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 25,
+      "pts": 12800,
+      "time": 1.0416666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 26,
+      "pts": 13312,
+      "time": 1.0833333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 27,
+      "pts": 13824,
+      "time": 1.125,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 28,
+      "pts": 14336,
+      "time": 1.1666666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 29,
+      "pts": 14848,
+      "time": 1.2083333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 30,
+      "pts": 15360,
+      "time": 1.25,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 31,
+      "pts": 15872,
+      "time": 1.2916666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 32,
+      "pts": 16384,
+      "time": 1.3333333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 33,
+      "pts": 16896,
+      "time": 1.375,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 34,
+      "pts": 17408,
+      "time": 1.4166666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 35,
+      "pts": 17920,
+      "time": 1.4583333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 36,
+      "pts": 18432,
+      "time": 1.5,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 37,
+      "pts": 18944,
+      "time": 1.5416666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 38,
+      "pts": 19456,
+      "time": 1.5833333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 39,
+      "pts": 19968,
+      "time": 1.625,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 40,
+      "pts": 20480,
+      "time": 1.6666666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 41,
+      "pts": 20992,
+      "time": 1.7083333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 42,
+      "pts": 21504,
+      "time": 1.75,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 43,
+      "pts": 22016,
+      "time": 1.7916666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 44,
+      "pts": 22528,
+      "time": 1.8333333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 45,
+      "pts": 23040,
+      "time": 1.875,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 46,
+      "pts": 23552,
+      "time": 1.9166666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 47,
+      "pts": 24064,
+      "time": 1.9583333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 48,
+      "pts": 24576,
+      "time": 2.0,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 49,
+      "pts": 25088,
+      "time": 2.0416666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 50,
+      "pts": 25600,
+      "time": 2.0833333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 51,
+      "pts": 26112,
+      "time": 2.125,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 52,
+      "pts": 26624,
+      "time": 2.1666666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 53,
+      "pts": 27136,
+      "time": 2.2083333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 54,
+      "pts": 27648,
+      "time": 2.25,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 55,
+      "pts": 28160,
+      "time": 2.2916666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 56,
+      "pts": 28672,
+      "time": 2.3333333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 57,
+      "pts": 29184,
+      "time": 2.375,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 58,
+      "pts": 29696,
+      "time": 2.4166666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 59,
+      "pts": 30208,
+      "time": 2.4583333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 60,
+      "pts": 30720,
+      "time": 2.5,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 61,
+      "pts": 31232,
+      "time": 2.5416666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 62,
+      "pts": 31744,
+      "time": 2.5833333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 63,
+      "pts": 32256,
+      "time": 2.625,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 64,
+      "pts": 32768,
+      "time": 2.6666666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 65,
+      "pts": 33280,
+      "time": 2.7083333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 66,
+      "pts": 33792,
+      "time": 2.75,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 67,
+      "pts": 34304,
+      "time": 2.7916666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 68,
+      "pts": 34816,
+      "time": 2.8333333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 69,
+      "pts": 35328,
+      "time": 2.875,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 70,
+      "pts": 35840,
+      "time": 2.9166666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 71,
+      "pts": 36352,
+      "time": 2.9583333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 72,
+      "pts": 36864,
+      "time": 3.0,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 73,
+      "pts": 37376,
+      "time": 3.0416666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 74,
+      "pts": 37888,
+      "time": 3.0833333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 75,
+      "pts": 38400,
+      "time": 3.125,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 76,
+      "pts": 38912,
+      "time": 3.1666666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 77,
+      "pts": 39424,
+      "time": 3.2083333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 78,
+      "pts": 39936,
+      "time": 3.25,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 79,
+      "pts": 40448,
+      "time": 3.2916666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 80,
+      "pts": 40960,
+      "time": 3.3333333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 81,
+      "pts": 41472,
+      "time": 3.375,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 82,
+      "pts": 41984,
+      "time": 3.4166666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 83,
+      "pts": 42496,
+      "time": 3.4583333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 84,
+      "pts": 43008,
+      "time": 3.5,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 85,
+      "pts": 43520,
+      "time": 3.5416666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 86,
+      "pts": 44032,
+      "time": 3.5833333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 87,
+      "pts": 44544,
+      "time": 3.625,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 88,
+      "pts": 45056,
+      "time": 3.6666666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 89,
+      "pts": 45568,
+      "time": 3.7083333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 90,
+      "pts": 46080,
+      "time": 3.75,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 91,
+      "pts": 46592,
+      "time": 3.7916666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 92,
+      "pts": 47104,
+      "time": 3.8333333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 93,
+      "pts": 47616,
+      "time": 3.875,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 94,
+      "pts": 48128,
+      "time": 3.9166666666666665,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 95,
+      "pts": 48640,
+      "time": 3.9583333333333335,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 96,
+      "pts": 49152,
+      "time": 4.0,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 97,
+      "pts": 49664,
+      "time": 4.041666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 98,
+      "pts": 50176,
+      "time": 4.083333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 99,
+      "pts": 50688,
+      "time": 4.125,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 100,
+      "pts": 51200,
+      "time": 4.166666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 101,
+      "pts": 51712,
+      "time": 4.208333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 102,
+      "pts": 52224,
+      "time": 4.25,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 103,
+      "pts": 52736,
+      "time": 4.291666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 104,
+      "pts": 53248,
+      "time": 4.333333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 105,
+      "pts": 53760,
+      "time": 4.375,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 106,
+      "pts": 54272,
+      "time": 4.416666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 107,
+      "pts": 54784,
+      "time": 4.458333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 108,
+      "pts": 55296,
+      "time": 4.5,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 109,
+      "pts": 55808,
+      "time": 4.541666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 110,
+      "pts": 56320,
+      "time": 4.583333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 111,
+      "pts": 56832,
+      "time": 4.625,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 112,
+      "pts": 57344,
+      "time": 4.666666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 113,
+      "pts": 57856,
+      "time": 4.708333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 114,
+      "pts": 58368,
+      "time": 4.75,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 115,
+      "pts": 58880,
+      "time": 4.791666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 116,
+      "pts": 59392,
+      "time": 4.833333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 117,
+      "pts": 59904,
+      "time": 4.875,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 118,
+      "pts": 60416,
+      "time": 4.916666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 119,
+      "pts": 60928,
+      "time": 4.958333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 120,
+      "pts": 61440,
+      "time": 5.0,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 121,
+      "pts": 61952,
+      "time": 5.041666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 122,
+      "pts": 62464,
+      "time": 5.083333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 123,
+      "pts": 62976,
+      "time": 5.125,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 124,
+      "pts": 63488,
+      "time": 5.166666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 125,
+      "pts": 64000,
+      "time": 5.208333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 126,
+      "pts": 64512,
+      "time": 5.25,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 127,
+      "pts": 65024,
+      "time": 5.291666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 128,
+      "pts": 65536,
+      "time": 5.333333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 129,
+      "pts": 66048,
+      "time": 5.375,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 130,
+      "pts": 66560,
+      "time": 5.416666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 131,
+      "pts": 67072,
+      "time": 5.458333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 132,
+      "pts": 67584,
+      "time": 5.5,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 133,
+      "pts": 68096,
+      "time": 5.541666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 134,
+      "pts": 68608,
+      "time": 5.583333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 135,
+      "pts": 69120,
+      "time": 5.625,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 136,
+      "pts": 69632,
+      "time": 5.666666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 137,
+      "pts": 70144,
+      "time": 5.708333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 138,
+      "pts": 70656,
+      "time": 5.75,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 139,
+      "pts": 71168,
+      "time": 5.791666666666667,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    },
+    {
+      "index": 140,
+      "pts": 71680,
+      "time": 5.833333333333333,
+      "width": 1312,
+      "height": 736,
+      "rotation": 0,
+      "format": "yuv420p"
+    }
+  ],
+  "pyav": "16.0.1",
+  "scope": "CPU decode timestamps/shapes only; no tensor conversion or model; no remote writes"
+}

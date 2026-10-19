@@ -1,0 +1,1223 @@
+{
+  "schema": "flexiact-expanded-selection-fixed8-v1",
+  "created_utc": "2026-10-17T16:52:50.182643+00:00",
+  "dataset_revision": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+  "primary_repository": "https://github.com/shiyi-zh0408/FlexiAct",
+  "primary_dataset": "https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+  "official_original_human_video_inventory": [
+    "benchmark/reference_videos/human/chest.mp4",
+    "benchmark/reference_videos/human/crouch.mp4",
+    "benchmark/reference_videos/human/fitness.mp4",
+    "benchmark/reference_videos/human/human2animal_1.mp4",
+    "benchmark/reference_videos/human/human2animal_2.mp4",
+    "benchmark/reference_videos/human/human2animal_3.mp4",
+    "benchmark/reference_videos/human/one_leg.mp4",
+    "benchmark/reference_videos/human/rotate.mp4"
+  ],
+  "original_human_sources": 8,
+  "development_motion_sources": 5,
+  "new_motion_sources": 3,
+  "selected_pair_count": 8,
+  "official_assets_crosspairs": 6,
+  "original_official_csv_new_identity_pairs": 2,
+  "distinct_motion_sources_in_selected8": 5,
+  "distinct_target_images": 2,
+  "inference_has_not_run": true,
+  "selection_uses_generated_outputs": false,
+  "source_fps": 8,
+  "source_frames": 49,
+  "source_pts_s": [
+    0.0,
+    0.125,
+    0.25,
+    0.375,
+    0.5,
+    0.625,
+    0.75,
+    0.875,
+    1.0,
+    1.125,
+    1.25,
+    1.375,
+    1.5,
+    1.625,
+    1.75,
+    1.875,
+    2.0,
+    2.125,
+    2.25,
+    2.375,
+    2.5,
+    2.625,
+    2.75,
+    2.875,
+    3.0,
+    3.125,
+    3.25,
+    3.375,
+    3.5,
+    3.625,
+    3.75,
+    3.875,
+    4.0,
+    4.125,
+    4.25,
+    4.375,
+    4.5,
+    4.625,
+    4.75,
+    4.875,
+    5.0,
+    5.125,
+    5.25,
+    5.375,
+    5.5,
+    5.625,
+    5.75,
+    5.875,
+    6.0
+  ],
+  "measurement_resolution_ms": 125,
+  "source_review_full49_each_new_source": true,
+  "comparison_to_development5": "review/development5_sources.jpg and SOURCE_REVIEW.json",
+  "pair_count_independence": "Six crosspairs share three new source sequences; the two official CSV pairs reuse development sources. Do not treat eight pairs as eight independent motions. Analyze source-level and identity-level outcomes separately. Crosspair results cannot enter official CSV benchmark aggregate.",
+  "protocol_adaptation": "Original FlexiAct is source-action/target-image animation; H3 uses the same frozen generic R49 prompt and no source-specific corrective text. Original official caption metadata retained exactly.",
+  "pairs": [
+    {
+      "pair_id": "extension/human2animal_1/movie_man_11",
+      "group": "official_assets_crosspair_extension",
+      "original_official_pair": false,
+      "source_is_new_motion_content": true,
+      "source_development_output_seen": false,
+      "action": "human2animal_1",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/human2animal_1.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/human2animal_1.mp4",
+        "bytes": 367874,
+        "sha256": "bed32214852074b5b7cc030e9b731c0e2b01725b511bf4e7fbe9caff9847188d",
+        "official_lfs_sha256": "bed32214852074b5b7cc030e9b731c0e2b01725b511bf4e7fbe9caff9847188d",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/human2animal_1.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/movie_man_11.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_11.jpg",
+        "bytes": 392666,
+        "sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "official_lfs_sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_11.jpg"
+      },
+      "source_review": {
+        "selected": true,
+        "priority": 1,
+        "action": "跪撑俯身下降→胸部前移并抬起、双肘伸展→返回跪撑并弓背",
+        "density": "6秒内多个姿态阶段；中等转换密度，非快速舞蹈",
+        "observable_parts": "肩、肘、手及上身；远侧臂有重叠和头发遮挡",
+        "limitations": "小腿和脚在左边缘外，不能评价完整下肢；最低位脸/肘互相遮挡",
+        "prior5_duplicate": false,
+        "duplicate_review_evidence": "新演员、白色木墙室内地面、跪撑姿态；与原5条的健身房/湖边站姿蹲起/站立瑜伽/暗背景旋转内容不同"
+      },
+      "target_review": {
+        "style": "photographic_human",
+        "visible_parts": "单个西装人体，从头、双臂到双脚完整可见",
+        "limitations": "深色西装对比度和裤装可能影响关节估计；初始站姿与地面瑜伽姿态差别大",
+        "chosen_reason": "完整真实人体；与动漫目标组成同一新源的两种外观测试"
+      },
+      "original_training_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_1__crop.csv",
+        "sha256": "3f6d28d8b071244f0163a11ba18d122503389bcf9bd90e05e2a909f2e61fb3ff",
+        "official_git_blob_sha1": "6c86bee4121a0178850a4781621bc33f41749847",
+        "rows": [
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/0.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/1.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/2.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/3.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/4.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/5.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/6.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/7.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/8.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/9.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/10.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/11.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          }
+        ]
+      },
+      "original_animal_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_1__val_image.csv",
+        "sha256": "1330a826c6f12048fa4f2e4a15c030a943f6df54b9fb710552a2de0c8c2c0db2",
+        "official_git_blob_sha1": "c16b59a60d99381ae9e342b9da648141661b28ea",
+        "rows": [
+          {
+            "path": "benchmark/target_images/animal/animal_mouse1.jpg",
+            "caption": "The video features a mouse performing various yoga poses. Throughout the video, it maintains a focused and calm demeanor, demonstrating different yoga stances with its paws on the mat."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_wolf1.jpg",
+            "caption": "The video features a wolf performing various yoga poses. Throughout the video, it maintains a focused and calm demeanor, demonstrating different yoga stances with its paws on the mat."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": null,
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "extension/human2animal_1/game_man_4",
+      "group": "official_assets_crosspair_extension",
+      "original_official_pair": false,
+      "source_is_new_motion_content": true,
+      "source_development_output_seen": false,
+      "action": "human2animal_1",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/human2animal_1.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/human2animal_1.mp4",
+        "bytes": 367874,
+        "sha256": "bed32214852074b5b7cc030e9b731c0e2b01725b511bf4e7fbe9caff9847188d",
+        "official_lfs_sha256": "bed32214852074b5b7cc030e9b731c0e2b01725b511bf4e7fbe9caff9847188d",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/human2animal_1.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/game_man_4.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_4.jpg",
+        "bytes": 87597,
+        "sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "official_lfs_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_4.jpg"
+      },
+      "source_review": {
+        "selected": true,
+        "priority": 1,
+        "action": "跪撑俯身下降→胸部前移并抬起、双肘伸展→返回跪撑并弓背",
+        "density": "6秒内多个姿态阶段；中等转换密度，非快速舞蹈",
+        "observable_parts": "肩、肘、手及上身；远侧臂有重叠和头发遮挡",
+        "limitations": "小腿和脚在左边缘外，不能评价完整下肢；最低位脸/肘互相遮挡",
+        "prior5_duplicate": false,
+        "duplicate_review_evidence": "新演员、白色木墙室内地面、跪撑姿态；与原5条的健身房/湖边站姿蹲起/站立瑜伽/暗背景旋转内容不同"
+      },
+      "target_review": {
+        "style": "anime_human",
+        "visible_parts": "单个站立动漫人体，从头到双脚可见，两臂可辨认",
+        "limitations": "斗篷、腰部装备和初始手势遮挡部分躯干；风格差异可能影响人体pose估计，保留人工评价",
+        "chosen_reason": "完整人体、常规人类四肢比例；两种画风之一"
+      },
+      "original_training_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_1__crop.csv",
+        "sha256": "3f6d28d8b071244f0163a11ba18d122503389bcf9bd90e05e2a909f2e61fb3ff",
+        "official_git_blob_sha1": "6c86bee4121a0178850a4781621bc33f41749847",
+        "rows": [
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/0.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/1.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/2.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/3.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/4.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/5.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/6.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/7.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/8.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/9.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/10.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_1_crop/11.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman performing various yoga poses on a pink mat in a serene, well-lit room with white wooden paneling. She is dressed in a purple long-sleeved top and black patterned leggings. Throughout the video, she maintains a focused and calm demeanor, demonstrating different yoga stances with her hands and feet on the mat. The room is equipped with a white chair and a small table, and the lighting is soft, creating a tranquil atmosphere. The camera captures her from different angles, emphasizing her form and the peacefulness of the setting."
+          }
+        ]
+      },
+      "original_animal_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_1__val_image.csv",
+        "sha256": "1330a826c6f12048fa4f2e4a15c030a943f6df54b9fb710552a2de0c8c2c0db2",
+        "official_git_blob_sha1": "c16b59a60d99381ae9e342b9da648141661b28ea",
+        "rows": [
+          {
+            "path": "benchmark/target_images/animal/animal_mouse1.jpg",
+            "caption": "The video features a mouse performing various yoga poses. Throughout the video, it maintains a focused and calm demeanor, demonstrating different yoga stances with its paws on the mat."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_wolf1.jpg",
+            "caption": "The video features a wolf performing various yoga poses. Throughout the video, it maintains a focused and calm demeanor, demonstrating different yoga stances with its paws on the mat."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": null,
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "extension/human2animal_3/movie_man_11",
+      "group": "official_assets_crosspair_extension",
+      "original_official_pair": false,
+      "source_is_new_motion_content": true,
+      "source_development_output_seen": false,
+      "action": "human2animal_3",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/human2animal_3.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/human2animal_3.mp4",
+        "bytes": 319889,
+        "sha256": "679208ea9e1bad3d705f6a4077ec0ef3e46339e934b669af0e7e8fe38380260e",
+        "official_lfs_sha256": "679208ea9e1bad3d705f6a4077ec0ef3e46339e934b669af0e7e8fe38380260e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/human2animal_3.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/movie_man_11.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_11.jpg",
+        "bytes": 392666,
+        "sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "official_lfs_sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_11.jpg"
+      },
+      "source_review": {
+        "selected": true,
+        "priority": 2,
+        "action": "蹲撑前倾→双脚离地、膝部收拢→髋膝逐渐伸展抬腿倒立",
+        "density": "多个下肢姿态阶段；前段缓慢、后段抬腿较明显，非快速反复动作",
+        "observable_parts": "髋、膝、踝、脚的收拢与伸展是主要可评价信息",
+        "limitations": "手与头持续贴近/部分超出下边缘，上肢时序评测可能UNKNOWN；避免当成上肢全可见样例",
+        "prior5_duplicate": false,
+        "duplicate_review_evidence": "红色运动服男性、高地草地和远处城市全景、倒立抬腿；与原5条演员/动作/场景均不同"
+      },
+      "target_review": {
+        "style": "photographic_human",
+        "visible_parts": "单个西装人体，从头、双臂到双脚完整可见",
+        "limitations": "深色西装对比度和裤装可能影响关节估计；初始站姿与地面瑜伽姿态差别大",
+        "chosen_reason": "完整真实人体；与动漫目标组成同一新源的两种外观测试"
+      },
+      "original_training_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_3__crop.csv",
+        "sha256": "ea8f94cfd3aaaec807217843d90b3421e29c864383c89b493cbf43b5aa467f90",
+        "official_git_blob_sha1": "689f1d0c0ee666367774841d29601f0e2da6ee0e",
+        "rows": [
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/0.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/1.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/2.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/3.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/4.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/5.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/6.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/7.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/8.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/9.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/10.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/11.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          }
+        ]
+      },
+      "original_animal_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_3__val_image.csv",
+        "sha256": "224fa8784152cabc8616a7642049bf977d9fff19571a4257e2408a49e729642c",
+        "official_git_blob_sha1": "a8aa2693082dc26a004256373fc0488ac5273186",
+        "rows": [
+          {
+            "path": "benchmark/target_images/animal/animal_tiger1.jpg",
+            "caption": "The video features a tiger performing various exercises. It is seen in different positions, including a squatting stance, a handstand, and a push-up position. The tiger's movements are fluid and graceful, suggesting that it is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_wolf1.jpg",
+            "caption": "The video features a wolf performing various exercises. It is seen in different positions, including a squatting stance, a handstand, and a push-up position. The wolf's movements are fluid and graceful, suggesting that it is an experienced athlete or someone who has been practicing these exercises for some time."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": null,
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "extension/human2animal_3/game_man_4",
+      "group": "official_assets_crosspair_extension",
+      "original_official_pair": false,
+      "source_is_new_motion_content": true,
+      "source_development_output_seen": false,
+      "action": "human2animal_3",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/human2animal_3.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/human2animal_3.mp4",
+        "bytes": 319889,
+        "sha256": "679208ea9e1bad3d705f6a4077ec0ef3e46339e934b669af0e7e8fe38380260e",
+        "official_lfs_sha256": "679208ea9e1bad3d705f6a4077ec0ef3e46339e934b669af0e7e8fe38380260e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/human2animal_3.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/game_man_4.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_4.jpg",
+        "bytes": 87597,
+        "sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "official_lfs_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_4.jpg"
+      },
+      "source_review": {
+        "selected": true,
+        "priority": 2,
+        "action": "蹲撑前倾→双脚离地、膝部收拢→髋膝逐渐伸展抬腿倒立",
+        "density": "多个下肢姿态阶段；前段缓慢、后段抬腿较明显，非快速反复动作",
+        "observable_parts": "髋、膝、踝、脚的收拢与伸展是主要可评价信息",
+        "limitations": "手与头持续贴近/部分超出下边缘，上肢时序评测可能UNKNOWN；避免当成上肢全可见样例",
+        "prior5_duplicate": false,
+        "duplicate_review_evidence": "红色运动服男性、高地草地和远处城市全景、倒立抬腿；与原5条演员/动作/场景均不同"
+      },
+      "target_review": {
+        "style": "anime_human",
+        "visible_parts": "单个站立动漫人体，从头到双脚可见，两臂可辨认",
+        "limitations": "斗篷、腰部装备和初始手势遮挡部分躯干；风格差异可能影响人体pose估计，保留人工评价",
+        "chosen_reason": "完整人体、常规人类四肢比例；两种画风之一"
+      },
+      "original_training_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_3__crop.csv",
+        "sha256": "ea8f94cfd3aaaec807217843d90b3421e29c864383c89b493cbf43b5aa467f90",
+        "official_git_blob_sha1": "689f1d0c0ee666367774841d29601f0e2da6ee0e",
+        "rows": [
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/0.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/1.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/2.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/3.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/4.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/5.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/6.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/7.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/8.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/9.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/10.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_3_crop/11.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a man performing various exercises on a grassy hillside. He is seen in different positions, including a squatting stance, a handstand, and a push-up position. The man is dressed in a red tank top, black shorts, and white sneakers. The background consists of a vast landscape with green fields, a river, and a small town. The sky is clear with scattered clouds, and the overall atmosphere is serene and peaceful. The man's movements are fluid and graceful, suggesting that he is an experienced athlete or someone who has been practicing these exercises for some time."
+          }
+        ]
+      },
+      "original_animal_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_3__val_image.csv",
+        "sha256": "224fa8784152cabc8616a7642049bf977d9fff19571a4257e2408a49e729642c",
+        "official_git_blob_sha1": "a8aa2693082dc26a004256373fc0488ac5273186",
+        "rows": [
+          {
+            "path": "benchmark/target_images/animal/animal_tiger1.jpg",
+            "caption": "The video features a tiger performing various exercises. It is seen in different positions, including a squatting stance, a handstand, and a push-up position. The tiger's movements are fluid and graceful, suggesting that it is an experienced athlete or someone who has been practicing these exercises for some time."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_wolf1.jpg",
+            "caption": "The video features a wolf performing various exercises. It is seen in different positions, including a squatting stance, a handstand, and a push-up position. The wolf's movements are fluid and graceful, suggesting that it is an experienced athlete or someone who has been practicing these exercises for some time."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": null,
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "extension/human2animal_2/movie_man_11",
+      "group": "official_assets_crosspair_extension",
+      "original_official_pair": false,
+      "source_is_new_motion_content": true,
+      "source_development_output_seen": false,
+      "action": "human2animal_2",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/human2animal_2.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/human2animal_2.mp4",
+        "bytes": 484276,
+        "sha256": "0efaab13c0a87e5d7e6292dbfdecace8daeabc4fbe0e4fe652776ca3b3d71780",
+        "official_lfs_sha256": "0efaab13c0a87e5d7e6292dbfdecace8daeabc4fbe0e4fe652776ca3b3d71780",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/human2animal_2.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/movie_man_11.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_11.jpg",
+        "bytes": 392666,
+        "sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "official_lfs_sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_11.jpg"
+      },
+      "source_review": {
+        "selected": true,
+        "priority": 3,
+        "action": "盘腿坐姿→双手沿垫子向前移动→躯干前屈→俯身保持",
+        "density": "慢速连续前屈，后段保持；低转换密度，作为低运动量泛化例",
+        "observable_parts": "肩、肘、手和头部在下降前中段清楚；盘腿姿态可见",
+        "limitations": "后段手接近左下边缘；大约4秒后接近静态，不用于证明高密度短动作控制",
+        "prior5_duplicate": false,
+        "duplicate_review_evidence": "女性浅蓝上衣、花纹裤、湖边瑜伽垫坐姿；旧crouch为男性灰外套在另一木平台站立蹲起，旧fitness为夕阳站立抬臂，场景相似不构成同一片段"
+      },
+      "target_review": {
+        "style": "photographic_human",
+        "visible_parts": "单个西装人体，从头、双臂到双脚完整可见",
+        "limitations": "深色西装对比度和裤装可能影响关节估计；初始站姿与地面瑜伽姿态差别大",
+        "chosen_reason": "完整真实人体；与动漫目标组成同一新源的两种外观测试"
+      },
+      "original_training_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_2__crop.csv",
+        "sha256": "cd7423e77b16728a608c9092cd9d8e8f29474c79ee9a2db471897b961da85592",
+        "official_git_blob_sha1": "ef0e45a2d944c0573510707465ec602047e3af6c",
+        "rows": [
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/0.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/1.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/2.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/3.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/4.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/5.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/6.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/7.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/8.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/9.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/10.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/11.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          }
+        ]
+      },
+      "original_animal_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_2__val_image.csv",
+        "sha256": "58bdae0753e01a20e06a97c32b56d117fe8790404f6a28d0070447cc4694c448",
+        "official_git_blob_sha1": "26577be28f187df207c3455ee28f47b11a6c758d",
+        "rows": [
+          {
+            "path": "benchmark/target_images/animal/animal_cat1.jpg",
+            "caption": "The video features a cat practicing yoga. Throughout the video, it maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The cat's movements are fluid and graceful, reflecting its proficiency in the practice."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_wolf1.jpg",
+            "caption": "The video features a wolf practicing yoga. Throughout the video, it maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The wolf's movements are fluid and graceful, reflecting its proficiency in the practice."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_xiong1.jpg",
+            "caption": "The video features a koala practicing yoga. Throughout the video, it maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The koala's movements are fluid and graceful, reflecting its proficiency in the practice."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": null,
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "extension/human2animal_2/game_man_4",
+      "group": "official_assets_crosspair_extension",
+      "original_official_pair": false,
+      "source_is_new_motion_content": true,
+      "source_development_output_seen": false,
+      "action": "human2animal_2",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/human2animal_2.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/human2animal_2.mp4",
+        "bytes": 484276,
+        "sha256": "0efaab13c0a87e5d7e6292dbfdecace8daeabc4fbe0e4fe652776ca3b3d71780",
+        "official_lfs_sha256": "0efaab13c0a87e5d7e6292dbfdecace8daeabc4fbe0e4fe652776ca3b3d71780",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/human2animal_2.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/game_man_4.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_4.jpg",
+        "bytes": 87597,
+        "sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "official_lfs_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_4.jpg"
+      },
+      "source_review": {
+        "selected": true,
+        "priority": 3,
+        "action": "盘腿坐姿→双手沿垫子向前移动→躯干前屈→俯身保持",
+        "density": "慢速连续前屈，后段保持；低转换密度，作为低运动量泛化例",
+        "observable_parts": "肩、肘、手和头部在下降前中段清楚；盘腿姿态可见",
+        "limitations": "后段手接近左下边缘；大约4秒后接近静态，不用于证明高密度短动作控制",
+        "prior5_duplicate": false,
+        "duplicate_review_evidence": "女性浅蓝上衣、花纹裤、湖边瑜伽垫坐姿；旧crouch为男性灰外套在另一木平台站立蹲起，旧fitness为夕阳站立抬臂，场景相似不构成同一片段"
+      },
+      "target_review": {
+        "style": "anime_human",
+        "visible_parts": "单个站立动漫人体，从头到双脚可见，两臂可辨认",
+        "limitations": "斗篷、腰部装备和初始手势遮挡部分躯干；风格差异可能影响人体pose估计，保留人工评价",
+        "chosen_reason": "完整人体、常规人类四肢比例；两种画风之一"
+      },
+      "original_training_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_2__crop.csv",
+        "sha256": "cd7423e77b16728a608c9092cd9d8e8f29474c79ee9a2db471897b961da85592",
+        "official_git_blob_sha1": "ef0e45a2d944c0573510707465ec602047e3af6c",
+        "rows": [
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/0.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/1.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/2.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/3.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/4.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/5.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/6.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/7.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/8.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/9.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/10.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          },
+          {
+            "path": "benchmark/reference_videos/human/human2animal_2_crop/11.mp4",
+            "start_frame": "0",
+            "end_frame": "49",
+            "fps": "8",
+            "mask_id": "2",
+            "caption": "The video features a woman practicing yoga on a purple mat by a serene lake. She is dressed in a light blue sports bra and patterned leggings, and her hair is tied back. Throughout the video, she maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The natural surroundings, including lush greenery and a clear blue sky, contribute to the peaceful atmosphere of the scene. The woman's movements are fluid and graceful, reflecting her proficiency in the practice."
+          }
+        ]
+      },
+      "original_animal_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__human2animal_2__val_image.csv",
+        "sha256": "58bdae0753e01a20e06a97c32b56d117fe8790404f6a28d0070447cc4694c448",
+        "official_git_blob_sha1": "26577be28f187df207c3455ee28f47b11a6c758d",
+        "rows": [
+          {
+            "path": "benchmark/target_images/animal/animal_cat1.jpg",
+            "caption": "The video features a cat practicing yoga. Throughout the video, it maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The cat's movements are fluid and graceful, reflecting its proficiency in the practice."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_wolf1.jpg",
+            "caption": "The video features a wolf practicing yoga. Throughout the video, it maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The wolf's movements are fluid and graceful, reflecting its proficiency in the practice."
+          },
+          {
+            "path": "benchmark/target_images/animal/animal_xiong1.jpg",
+            "caption": "The video features a koala practicing yoga. Throughout the video, it maintains a focused and calm demeanor, demonstrating various yoga poses with a sense of tranquility and balance. The koala's movements are fluid and graceful, reflecting its proficiency in the practice."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": null,
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "human/fitness/004",
+      "group": "official_csv_identity_generalization",
+      "original_official_pair": true,
+      "source_is_new_motion_content": false,
+      "source_development_output_seen": true,
+      "action": "fitness",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/fitness.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/fitness.mp4",
+        "bytes": 196724,
+        "sha256": "58ede2322b33cdb488ad924e94fb55972aa7856aa93dab96fda02edd076526d8",
+        "official_lfs_sha256": "58ede2322b33cdb488ad924e94fb55972aa7856aa93dab96fda02edd076526d8",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/fitness.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/game_man_4.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/game_man_4.jpg",
+        "bytes": 87597,
+        "sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "official_lfs_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/game_man_4.jpg"
+      },
+      "target_review": {
+        "style": "anime_human",
+        "visible_parts": "单个站立动漫人体，从头到双脚可见，两臂可辨认",
+        "limitations": "斗篷、腰部装备和初始手势遮挡部分躯干；风格差异可能影响人体pose估计，保留人工评价",
+        "chosen_reason": "完整人体、常规人类四肢比例；两种画风之一"
+      },
+      "official_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__fitness__val_image.csv",
+        "sha256": "ec1e6b2c7e4c2aba14e9d4f751a209b258c1be029a0d117b9e6418125ac80ce6",
+        "official_git_blob_sha1": "8e3a29b06bafcd05c264645ff36238472110026d",
+        "rows": [
+          {
+            "path": "benchmark/target_images/human/game_girl_1.webp",
+            "caption": "A woman raised her arms above her head, then slowly brought her hands together and lowered them to her chest."
+          },
+          {
+            "path": "benchmark/target_images/human/game_girl_2.webp",
+            "caption": "A woman raised her arms above her head, then slowly brought her hands together and lowered them to her chest."
+          },
+          {
+            "path": "benchmark/target_images/human/game_man_2.jpg",
+            "caption": "A bald cartoon man dressed in tattered clothes, bandages wrapped around his hands, and an axe tucked on the left side of his waist raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/game_man_3.jpeg",
+            "caption": "A man raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/game_man_4.jpg",
+            "caption": "A cartoon man draped in a deep green cape, wearing a brown coat, and black shoes raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_1.jpg",
+            "caption": "A character dressed in a Superman costume raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/game_man_5.jpeg",
+            "caption": "A humanoid cartoon monster raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_girl_1.jpg",
+            "caption": "A woman raised her arms above her head, then slowly brought her hands together and lowered them to her chest."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_2.jpg",
+            "caption": "A man in a suit raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_12.jpg",
+            "caption": "A man raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_3.webp",
+            "caption": "An old man raised his arms above his head, then slowly brought his hands together and lowered them to his chest."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": 4,
+      "official_caption_exact": "A cartoon man draped in a deep green cape, wearing a brown coat, and black shoes raised his arms above his head, then slowly brought his hands together and lowered them to his chest.",
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    },
+    {
+      "pair_id": "human/one_leg/004",
+      "group": "official_csv_identity_generalization",
+      "original_official_pair": true,
+      "source_is_new_motion_content": false,
+      "source_development_output_seen": true,
+      "action": "one_leg",
+      "source": {
+        "official_path": "benchmark/reference_videos/human/one_leg.mp4",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/reference_videos/human/one_leg.mp4",
+        "bytes": 170993,
+        "sha256": "c32897aadc26fff8c251aa269dbbd701e741404a7f84b978ebcfed68f32c549c",
+        "official_lfs_sha256": "c32897aadc26fff8c251aa269dbbd701e741404a7f84b978ebcfed68f32c549c",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human/one_leg.mp4"
+      },
+      "target": {
+        "official_path": "benchmark/target_images/human/movie_man_11.jpg",
+        "local_path": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/target_images/human/movie_man_11.jpg",
+        "bytes": 392666,
+        "sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "official_lfs_sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+        "pinned_url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/resolve/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/target_images/human/movie_man_11.jpg"
+      },
+      "target_review": {
+        "style": "photographic_human",
+        "visible_parts": "单个西装人体，从头、双臂到双脚完整可见",
+        "limitations": "深色西装对比度和裤装可能影响关节估计；初始站姿与地面瑜伽姿态差别大",
+        "chosen_reason": "完整真实人体；与动漫目标组成同一新源的两种外观测试"
+      },
+      "official_validation_metadata": {
+        "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/metadata/flexiact_hf__benchmark__captions__human__one_leg__val_image.csv",
+        "sha256": "d4c51394350efb6c29fbde1875b934937e07a12107d5a258b070ed3e33ef9157",
+        "official_git_blob_sha1": "4be44873cd5c17b45067631d602077e1fda8f505",
+        "rows": [
+          {
+            "path": "benchmark/target_images/human/movie_man_2.jpg",
+            "caption": "A man in a suit raised his hands above his head while placing his right foot against his left knee."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_9.webp",
+            "caption": "An elderly man clad in a suit raised his hands above his head while placing his right foot against his left knee."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_7.jpg",
+            "caption": "A man with his upper body naked raised his hands above his head while placing his right foot against his left knee."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_10.webp",
+            "caption": "A man with his upper body naked raised his hands above his head while placing his right foot against his left knee."
+          },
+          {
+            "path": "benchmark/target_images/human/movie_man_11.jpg",
+            "caption": "An old man raised his hands above his head while placing his right foot against his left knee."
+          }
+        ]
+      },
+      "official_csv_row_zero_based": 4,
+      "official_caption_exact": "An old man raised his hands above his head while placing his right foot against his left knee.",
+      "h3_prompt_exact": "Use the person in the reference image as the subject. Reproduce the complete sequence of body motions shown in the reference video, preserving their timing, direction, and amplitude. Preserve the subject's appearance and the scene shown in the reference image.",
+      "h3_prompt_sha256": "2a224216e282cc639ea7d8c7e4dbcbedcb865d98e60bd26f69ba20119688ec31",
+      "caption_used_for_h3": false,
+      "new_generated_outputs_seen_for_selection": 0
+    }
+  ]
+}

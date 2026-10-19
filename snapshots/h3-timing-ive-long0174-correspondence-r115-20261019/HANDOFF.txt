@@ -1,0 +1,16 @@
+R115 CPU准备。两个新arm均保留，历史R96 Native跨host元数据记录，不新增普通编辑。
+
+Local tests:
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python -m unittest discover -s tests -v
+
+Root review后可CPU上传/验证：audit/remote_cpu_validate.py，CUDA_VISIBLE_DEVICES=''，核对seal/core/input，import-only无模型。
+实际GPU启动当前未授权。待R105完整释放+root协调短MF结束+root审核新seal：
+python3 -u audit/root_run_seedpairs.py --execute --attempt root_long0174_correspondence_attempt1 --predecessor-attempt R105=<实际完整完成attempt>
+如R104仍运行，添加 --peer-root /home/researcher/h3_runs/timing_flexiact_remaining_repair_r104_20261019。
+
+启动前read configs/runtime.json，UID1016 GPU0精确UUID，port8577；configs/predecessor.json和scripts/predecessor.py检查R105精确退出；root审核scope r115-two-arm-host9-gpu-execution。
+所有科学参数由registry固定。第二臂须有本次第一臂相同service generation的成功history。前六步/bank相等在干预前严格核验。全批结束释放PID/NVML后执行analysis/postrun/verify_pair.py。
+
+产物：analysis/postrun/long_0174/PAIR_RUNTIME_GATE.json；audit/<attempt>/COMPLETE.json.runtime_gate_sha256绑定该gate，jobs两条、remaining[]、GPU_released=true；STARTED/ROOT_EXIT_RECEIPT/cleanup沿R113。
+每run audit/correspondence_banks/<run>/block_00..49/{bank.json,indices.npz}。汇总gate.banks按run_id；runs包含native(历史metadata),fixed_one_bin,matched_one_bin。prefix_tensor_comparison是两新arm比较。runs.first.prefix_scope=self_file_integrity，runs.second.prefix_scope=equal_to_first_new_arm。
+原R112/R103/R113包未修改；R113排在R115之后由root调度。

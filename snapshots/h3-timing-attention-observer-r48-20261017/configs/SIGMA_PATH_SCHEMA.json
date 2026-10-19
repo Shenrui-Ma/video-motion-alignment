@@ -1,0 +1,32 @@
+{
+  "addition_to": "r46-single-state-report-v1",
+  "report_path": "audit/probe/<bad|normal>/report.json",
+  "field": "sigma_path",
+  "tensor_records": [
+    "entry_sigma",
+    "actual_timestep",
+    "expected_timestep",
+    "actual_head_sigma",
+    "expected_head_sigma",
+    "actual_grid"
+  ],
+  "each_record": [
+    "tensor",
+    "dtype",
+    "device",
+    "shape",
+    "numel",
+    "values",
+    "nonfinite_indices",
+    "raw_bits_hex"
+  ],
+  "scalar_fields": [
+    "actual_index",
+    "actual_shifts",
+    "exact_official_timestep",
+    "exact_official_head_sigma"
+  ],
+  "failure": "record actual evidence before each mapping/head value guard; no false complete report",
+  "postrun": "bind recorded exact mapped tensors and raw bits, do not recompute CUDA rounding on CPU",
+  "probe_payload": "unchanged R46 attention.pt schema"
+}

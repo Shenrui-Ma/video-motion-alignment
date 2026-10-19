@@ -1,0 +1,31 @@
+R50 resource v4 — CPU verified candidate, 44 tests (36 new +8 existing supervision/release).
+No GPU execution. The target is the existing r50-retry clone, not frozen original R50.
+
+Apply
+1. Verify SOURCE_SNAPSHOTS.json r50 before_sha256 against target. Seven source files.
+2. Apply r50/candidate.patch or copy the seven r50/overlay source files. Copy four configs profile/evidence JSON files listed in R50_READY.json. Add all four to observer_bindings.local_files and deployment manifest. The patch contains source only; the configs are separately supplied.
+3. Administrative protocol.resources: remove legacy decoder_idle_min_free_MiB / decoder_idle_max_used_MiB; set decoder_required_free_MiB=7752; set decoder_memory_profile_sha256=bd1aaefce19d7647b3693e1fc86578193262f02995bc3a761485e9b89290c967. Preserve all scientific fields, parents, seeds, cases, shape, hooks, steps, thresholds. Rebind transport.PROTOCOL_SHA and contract/deploy metadata in the existing explicit engineering revision flow.
+4. Fresh audit/resource_admission_v2.json for the retry run: required_free_before_decoder_mib=7752 and decoder_memory_profile_sha256 as above. Retain original immutable capacity evidence under configs/main_memory_evidence/resource_admission_v2.json. It proves the main capacity arithmetic; it is not the fresh run's admission document.
+5. Recreate actual standalone full158 gate for the new producer/source bindings, or explicitly inherit it under the project's engineering inheritance verifier. Existing prelaunch verifies all scripts in the gate source_sha256, so the old gate cannot be silently relabelled as executed under v4. Standalone gate uses the same VAE arithmetic, tensors and RGB checks and own-child release. A fresh gate directory must not already exist.
+6. Before queue: existing CPU contract/preflight + root capacity/admission approval + exact service identity. Main GPU3, decoder GPU2, own UID maximum2 cards. No numerical module changes.
+
+Runtime semantics
+- Decoder admits with NVML free >=7752 MiB = measured5,981,077,504B reserved +2GiB. Other users, utilization and used memory do not independently veto it. Fresh queries occur in observer and twice in decoder before CUDA. The full158 model/shape/hash is checked.
+- Main startup checks measured Native sampled peak + routing bound +1GiB, total77,968,965,632B. This check is startup-only. job.check_host_admission still rechecks ownership/admitted own PID generations without reapplying whole-model free-space requirements after model residency.
+- GPU cap counts only current UID compute cards, plus planned cards. Foreign users on any number of cards do not count. Foreign command lines are never inspected.
+- Parent identity/data/hash/math failures remain hard. Missing NVML main row, unavailable ownership, low free memory and transient query failures wait within the original resource deadline.
+- Typed torch.cuda.OutOfMemoryError carrying CUDA out-of-memory text (possibly wrapped by the existing tiled-fallback rejection) exits86 with a bound proof. Only that code+proof is retried. Generic errors, text-only fake OOM, timeout, wrong seed/endpoint and identity errors stop.
+- Up to3 fresh decoder processes. Shared600s admission deadline, shared780s decoder stage, execution uses the remaining shared780s stage after marker appears. Own generation is reaped and its NVML tail cleared before retry. Other processes may remain.
+- Attempt logs/process registries remain directly under audit/observations/<request> so service.stop discovers every child. Media/evidence live in decoder_attempt001..003; successful native.mp4/native.json are hard-linked to the established pose input paths. Failed attempt records remain archived.
+- Existing service.stop exact-owner behavior and request/tensor/VAE/RGB math are unchanged; AST regressions cover this.
+
+CPU commands
+python3 .../resource_robustness_candidate_v4_20261017/tests/test_resource_v4.py
+python3 .../resource_robustness_candidate_v4_20261017/tests/test_supervision_regression.py
+R50_READY.json lists all source/config hashes and captured test log hashes.
+
+Limits
+Free-memory admission is a snapshot, not a reservation. A later allocation race can still OOM; retries remain finite. Driver/device failures are hard errors. Main DiT OOM is not automatically retried by this decoder-only change. No GPU outcome claimed by CPU tests.
+Remaining strict foreign/idle guards are legacy offline decode_x0.py and standalone gpu_dynamic_union_smoke.py (not production observer/service path), plus the unused wait_after_child legacy helper. All current full158 gate callers now use wait_own_child_released. Main/controller/job/extension search found no additional live foreign-presence gate.
+
+Root review amendment: removed separate180s decoder cutoff to permit shared-GPU compute contention. Both run_child timeouts use remaining absolute780s stage. Resource wait remains600s, observer total1650s. Timing output now decoder_stage_seconds and outer_admission_wait_seconds (outer wait only); child wait is recorded separately in admission JSONL.

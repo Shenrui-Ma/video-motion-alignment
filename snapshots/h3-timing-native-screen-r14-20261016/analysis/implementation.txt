@@ -1,0 +1,54 @@
+R14 原生样例筛查：本地准备与部署交接
+2026-10-16
+
+已完成
+唯一任务为 r14_s05_seed1313_native：source05、Sam Altman、seed2026101313，1312×736×141、24fps。备用1314只写入协议，未创建任务图或加入队列。未观察新样例结果，所有成功、失败和unknown均保留。
+本机目录：/Users/researcher/DevProjects/h3-timing-native-screen-r14-20261016
+远程计划：/data3/researcher/h3_runs/timing_native_screen_r14_20261016
+机器：.41；预定GPU1，绑定UUID GPU-REDACTED；端口8475。
+此代理仅做本地准备，没有访问服务器、启动GPU、修改共享Core或安装依赖。
+
+复用与改动
+复制R11现有启动链所需的11份脚本、7个扩展包和原始输入。七个包同时受到已有launcher与历史CPU验证的源码约束，因此保留依赖，不新增运行模块。扩展Python相对R11仅重定向本任务audit根路径；反馈core与x0 core逐字节不变。
+节点50采用现成H3FeedbackRouter的off模式，fixed_indices为空。gap5观察器仍被动记录，但任何延迟、提前或unknown都不能开启路由。原来的hold算法虽存在于共享实现，off分支不会用其决定是否干预。
+图相对R11只改seed、pair_id、off/空mask、管理ID与输出路径。模型、完整21值sigma、video/audio shift12/3、Euler20、BasicGuider CFG1、SDPA、Triton线性、无TurboLoRA、语义2fps/phase0、提示词、参考图与视频保持相同。
+种子按历史seed2规则传入：除了初始AV噪声，原生H3参考增强的独立Generator也会使用新seed。因此不能描述为“只改变初始噪声”。
+复用R6已成功warmup和R9真实Comfy CPU的off=native证据，分别通过R11既有warmup_reuse、integration_reuse验证器核验。此处没有增加benchmark，也没有把旧证据称为本轮GPU测试。
+
+离线证据
+35项CPU unittest全部PASS，3.511秒，原日志audit/cpu_unit_tests_attempt1.log。
+38份Python文件静态compile通过，无新增依赖。历史warmup和真实Comfy CPU证据复用门均PASS。
+图测试逐字段验证只有冻结的seed/off/admin变化；与历史seed2的科学输入节点也匹配。
+off压力测试交替给出延后、对齐、提前、unknown，仍得到相同native toy输出、20个forward、20个callback、1000个block、0个route。真实Comfy接口与off/native逐位一致由源码不变的历史测试提供证据，toy测试自身不证明新GPU逐位相等。
+四模型历史SHA索引匹配；运行前的远程size/mtime、Core与实际模块路径仍需launcher检查。
+
+源码SHA256
+feedback core：07ab4b994e6acff8fb9bd4bad139c5e13c8cedb55a0b6e78783244e4bbeca7e5
+x0 core：e6f1442a208d6b00e9d1bf88f4a82b8dbb983b1d9cb87728ff683c883a8b617a
+protocol：a992e6d2a112e084bc42549f040f7ad4a7b2d67dd028263627f1636cb5901e0f
+formal graph：c75b66c76448cd2f35db0e74de373717fe3899cb7d2dadcf0e106d9d571505be
+
+部署与验收清单（主线程执行）
+1. 核对tar和immutable manifest，上传到新远程R14目录；不覆盖已有运行证据。先检查部署后文件SHA、输入SHA、四模型历史绑定与Core哈希。运行现有warmup_reuse.py和integration_reuse.py；源码若改变，停止沿用旧CPU结论。
+2. 确认.41当前自己的视频进程最多一个，选定UUID卡为空、机器健康、可用RAM及端口8475满足条件。别人的其他卡任务照常；不操作他人进程。service.py保留空卡、自己其他任务、PID身份、端口与资源检查。
+3. 主线程审查后通过scripts/launch_remote.py启动隔离服务和单任务队列。不要在Mac本地调用这个入口。queue已sealed且只有1313；不会自动提交1314。
+4. 预期20 Euler更新、20 NFE、20 callbacks、1000 block调用、0路由调用。被动观察为callback5..19的49点扫描；H3X0Readout保存5、6、7、8、9、10、15、19以及sampler_final的video/audio。另保存实际conditions、noise和后台dispatch。
+5. 从success history取真实文件名，核对141帧/24fps/1312×736、实际seed1313及张量SHA。与seed1的噪声和轨迹不同是预期；不要要求这两者相等。提示词、原始参考与清洁编码是否相等需依据实际记录，不凭模型文件名推断。
+6. 使用既有四窗、姿态置信度0.3/0.5及拒判规则；主窗50–65在两阈值下方向和腕部均可靠且lag∈[-2,2]才能满足预定时序正常门。unknown不能算正常。固定55/86/105帧质量与背景、形状、非目标动作另评。最终正常也不代表early-x0观测已验证。
+7. 无论结果如何都保留，1314继续留在协议外的待决后备。新seed属于已知素材/任务上的筛查；不能称盲测或估计自然失败率。后续运行由主线程结合R12证据决定。
+8. 只记录实际NFE、墙钟时间、observer耗时和资源日志，不增加效率诊断或优化。
+9. controller finally会调用service.stop。最终核验自己服务PID身份和消失、GPU计算进程消失、显存状态及watchdog/supervisor/controller退出。保留失败/中断日志，不接触其他用户进程。
+
+主要文件
+configs/protocol.json：事前冻结范围和评价。
+configs/r14_s05_seed1313_native.json：唯一正式图。
+configs/queue.json：单任务sealed队列。
+configs/runtime_copy_manifest.json：R11扩展源码逐字节归一化绑定。
+configs/integration_reuse_manifest.json及audit/parent_r9_*：真实CPU历史证据。
+configs/warmup_reuse_manifest.json及audit/r6_warmup：后端warmup历史证据。
+analysis/graph_diff.json：逐字段图变化。
+audit/reuse_validation.json、static_compile.json、cpu_unit_tests.json：离线结果。
+inputs：R11原始source05视频和Sam图片。
+
+尚待完成
+远程部署/运行前准入、真实GPU生成、独立结果评价、现场进程显存释放确认均由主线程继续。本文件未声明这些步骤已经完成。

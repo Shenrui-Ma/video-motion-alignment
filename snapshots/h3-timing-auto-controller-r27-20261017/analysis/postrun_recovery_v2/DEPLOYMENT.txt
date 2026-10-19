@@ -1,0 +1,12 @@
+R27 recovery v2 handoff. Root starts each phase explicitly.
+
+1. Preserve old analysis/postrun and its failed coordinator evidence. New code goes to analysis/postrun_recovery_v2 only. The old shared unique_consumer.lock must be free. This preparation found no old local or remote R27 consumer. Recheck if execution is delayed.
+2. Root writes BINDING.json from BINDING.template.json and sets approved_for_consumer_start=true after review. It must retain the exact original service owner and old binding SHA, even though that service has exited. No new producer identity is invented.
+3. Run with stdout redirected to a log:
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' python3 one_phase.py --execute
+Optional --run r27_s05_bad1311_auto or --run r27_s05_normal1313_auto. Default selects first unfinished case. Every invocation acquires original and new unique locks, then Mac CPU; the remote numerical phase obtains shared remote lock after online pose priority. Busy returns without starting a phase. Do not run a resident polling loop.
+4. First phase adopts each existing archive with full source/producer checks and validates existing numerical replays. It does not recompute or overwrite them. Later invocations complete exactly one missing observation or final. Logs contain compact results. Final nonPT download and exact localinventory are automatic. Raw PTs remain in original remote captured archive.
+5. Status uses only anchored metadata and size/mtime fingerprints. It is not an integrity certificate; full hash/content mapping checks remain at adoption and final, and actual dependencies are hashed each observation. Code dependencies are bound each observation.
+6. Remote bounded timeout runs in its own GNU timeout process group (180status/900adopt-or-observation/1200final seconds plus15killgrace); local SSH timeout has60seconds margin. On uncertain failure, CONSUMER_FAILURE blocks reuse; preserve evidence and inspect before any root-authorized recovery. No automatic process kill or retry script exists.
+
+Expected initial progress: bad18/20 replays, normal5/20; both RUN_GATE already passed, neither CPU_COMPLETE. No GPU/API/service/queue operations. Numerical evaluator, observer summaries and complete inventory rules remain exact to original. Full14+R27 common support/UNKNOWN/PT/pixel provenance outcomes remain required.

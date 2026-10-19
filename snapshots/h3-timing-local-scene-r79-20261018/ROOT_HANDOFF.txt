@@ -1,0 +1,71 @@
+R79：IVEBench 原场景局部编辑，两源四次科学对照；CPU准备与被动部署，GPU由root启动。
+
+本地：/Users/researcher/DevProjects/h3-timing-local-scene-r79-20261018
+.41：/data3/researcher/h3_runs/timing_local_scene_r79_20261018
+消费者位于上述根的 analysis/evaluation。
+Python：/data3/researcher/ComfyUI/.venv/bin/python
+目标：GPU7 UUID GPU-REDACTED；127.0.0.1:8545；normal reserve8。
+
+官方完整任务
+0144：Replace the computer screen with a large digital billboard。4人在办公室围桌庆祝；只改背景屏幕，保留人物/场景/原动作。原108帧25fps→104有效帧24fps→107生成帧；3个尾部padding。
+0166：Replace the dog with a cat。果园两位女性采苹果；只改狗，保留女性/果园/原动作。原128帧25fps→123有效帧24fps→124生成帧；1个尾部padding。
+完整源片/官方三种prompt/原始PTS、最近帧映射、每帧解码MD5均归档。没有依据新生成结果选片或改词。
+1312x736@24；内容crop16,8,1280,720；mask覆盖与有效物理前缀重叠的bin，纯pad bin原生。
+20 Euler，seed2026101701，强制干预steps6..14、50层、alpha1、mass_preserve。与R73/R76六个数值模块逐字相同，无onlineobserver。
+同source Native/forced使用逐字相同prompt、初噪、条件；actual verifier要求前0..5步x0相同及真实0/450次route。
+
+提示协议 P1-local-v1
+保留R73 P1六节和官方source/edit/target原文。根据MiniMax官方固定commit指南2.3/4/5.1补Subject内容标签、fully_preserved/partially_preserved关系、[Shot 1]。
+这是提示格式适配；两臂完全一致。没有为0144增设碰拳等动作提示，也没有替换官方high-fiving caption。旧R73不变，跨包汇总须标注提示协议差别。
+指南和精确URL见design/OFFICIAL_PROMPT_PROTOCOL_REVIEW.txt。没有参考音频输入。
+评价顺序和分母：design/NEXT_EVALUATION_RULES.txt，绑定root SHA782aef0c…6c495。两条固定分母，逐臂记录编辑完成、未编辑内容保留、动作内容保留；再报告合格配对的时序。正常同步/失败/UNKNOWN保留。新牌合法遮挡和枝叶遮挡不能直接叫丢动作。
+
+执行：每条手动提交，没有自动queue/controller。
+以下命令均在远端R79根执行，ROOT运行前先做freshGPU/显存/端口/peer准入；configs/admission.json的ready_for_launch置true，并登记其他自有服务的精确PID/UID/start/cmdSHA。foreign进程按实际余量共存。ROOT独占这一步。
+
+1. 服务准入及service-only（暂不提交任何job）：
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/execution_gate.py approve-service --root-admitted --free-mib 40960
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/launch_remote.py --service-only
+  返回processes/service.json与processes/cuda_gate_ready.json。新PID仍在CUDA前等待。
+
+2. ROOT将该精确PID登记到其他自有服务admission；核本次supervisor/ready，再执行准确GO：
+  /data3/researcher/ComfyUI/.venv/bin/python -c 'import sys,json;from pathlib import Path;sys.path.insert(0,"scripts");import service; r=service.RUN; owner=json.loads((r/"processes/service.json").read_text());service.assert_owned(owner);ready=json.loads((r/"processes/cuda_gate_ready.json").read_text());assert ready["pid"]==owner["pid"] and ready["identity"]==service.external_identity(owner["pid"]);assert ready["supervisor"]["identity"]==service.external_identity(ready["supervisor"]["pid"]);go=r/"processes/cuda_gate_go.json";assert not go.exists();service.write_json(go,ready)'
+  等 http://127.0.0.1:8545/queue 可读且空队列；不会自动启动controller。
+
+3. 首条Native：
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/execution_gate.py approve-run r79_short_0144_seed2026101701_native --root-admitted
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/job.py submit r79_short_0144_seed2026101701_native
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/job.py status r79_short_0144_seed2026101701_native
+  status需在完成时调用一次，保存实际history/job success。原成片路径由history outputs14给出。ROOT先看完整任务、人物/场景和动作保留；不自动提交forced。
+
+4. 只有ROOT确认已审看该Native，再提交同一服务generation的forced：
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/execution_gate.py approve-run r79_short_0144_seed2026101701_forced --root-admitted --native-reviewed
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/job.py submit r79_short_0144_seed2026101701_forced
+  /data3/researcher/ComfyUI/.venv/bin/python scripts/job.py status r79_short_0144_seed2026101701_forced
+  approval绑定已成功Native的job/history SHA、graph、runtime和相同service generation。
+  第二源0166按相同三命令Native→审看→forced；替换run_id即可。没有approve-rest，四条均需独立批准。若Native失败或任务不合格，保留结果/待提交状态由ROOT决定，不自动重跑或改prompt。
+
+5. 成对完成CPU验证/消费：
+  PYTHONPATH=/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps CUDA_VISIBLE_DEVICES='' /data3/researcher/ComfyUI/.venv/bin/python analysis/postrun/verify_pair.py --source short_0144
+  cd analysis/evaluation
+  CUDA_VISIBLE_DEVICES='' /data3/researcher/ComfyUI/.venv/bin/python scripts/collect_pair.py --source short_0144 --producer-root /data3/researcher/h3_runs/timing_local_scene_r79_20261018
+  CUDA_VISIBLE_DEVICES='' /data3/researcher/ComfyUI/.venv/bin/python scripts/prepare_pair.py --source short_0144
+  READY出现后，source/target tracker仍由ROOT独占GPU启动。按同host41/同GPU型号/相同冻结runtime fresh source与两target。123帧tracker尚待实测，24GiB为bootstrap余量而非已测certificate。
+  CPU score/render/showcase沿consumer scripts；官方MF数值与R76/R63完全相同。三栏原时间、同尺寸、黑底中文caption。只有实际gate通过才能消费。
+
+生命周期
+lease_watchdog按实际HTTP队列，运行job不会被旧controller缺失规则中断；空闲审阅1800秒、单job14400秒、服务43200秒、HTTP不可达900秒。root应及时审看并续交或精确停止。相同配对要求同service generation；超时释放后不可把不同generation强行当通过配对。
+显式结束：在producer根 /data3/researcher/ComfyUI/.venv/bin/python scripts/service.py stop
+stop只处理登记的本次精确service；进程退出后至多30秒等该PID的NVML尾清空。其他用户不受影响；PID重用拒绝、超时原状态完整记录。没有auxCUDAchild。
+
+验证与版本
+本地producer52测试PASS；consumer31测试PASS。实际输入原PTS及映射像素已核；两源crop/prepared source通过。
+Producer seal02081fe12740010e7112942e77b00b0df370514f229fa52ed69ce9613fd29db4（79文件）。
+Consumer freezec8f53155c1629fd8a46ce0259235828f081b4155dcad24a05a3d073244f2e092（93文件）。
+远端实际CPU部署audit/HOST41_CPU_DEPLOYMENT.json已passed：producer52项、consumer31项、两条source check-only及实际9个Comfy核心SHA均通过。没有本agentGPU调用。
+
+初次远端consumer导入因Python3.10不支持原展示f-string引用写法失败，保留HOST41_CONSUMER_TESTS.log；仅make_showcase局部变量表达式修复，数值/runtime无改动。基础201MB包须随后应用audit/CPU_DISPLAY_COMPAT_OVERLAY.tar.gz，远端当前文件已是修正版。
+
+HOST41_CPU_DEPLOYMENT SHA256 ff566917922bec5067fe84993bc9139b88f7e6e1ee1d07da9343204bca301f20。远端admission=false、service_started=false。
+
+行政边界revision2：三处管理修复，原79文件只有job.py/lease_watchdog.py/launch_remote.py变化；graphs及六数值模块逐字不变。新增6项定向测试，其中旧版4项失败；本地58测试PASS。新producer seal 4ce763bb0d4430c9eb99dbd0d4b275a1c697e9da13fa10bfff283c407c7246e4，80文件。旧seal与失败回归保存在audit/admin_boundary_revision2。consumer freeze不变。远端复验见该目录HOST41_TESTS.log。

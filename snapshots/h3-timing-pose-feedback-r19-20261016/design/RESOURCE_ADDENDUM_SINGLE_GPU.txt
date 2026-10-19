@@ -1,0 +1,55 @@
+2026-10-16 root resource amendment after an actual 0-DiT measurement.
+Supersedes only the two-device/idle-decoder-GPU portions of the frozen R19
+design. The scientific inputs, selector, Full schedule prefix, observation
+steps, decoder mathematics, thresholds, G1/G2/G3/G4, NFE and quality gates stay
+as specified. Implementation and launch require independent review.
+
+Evidence
+Root R2/analysis/r19_vae_memory/execution.json records the exact archived R12
+native010 full H3 VAE decode on GPU2, with unchanged decoded-float/preencode
+RGB hashes. Torch max allocated=5778535936 bytes; max reserved=6025117696
+bytes (about5.61 GiB reserved). Decoder PID21520 exited; GPU compute empty.
+R18 main DiT had approximately60100 MiB resident after forwards on this80GiB
+card. These are measured resource prerequisites, not an efficiency claim or
+a guarantee for every endpoint; admission and failure checks remain active.
+
+Execution
+Both DiT parent and its isolated VAE exec child use .9 GPU2 UUID
+GPU-REDACTED. Only one of our physical GPUs is needed.
+DiT forward is paused while observing. The child has its own Comfy model
+manager and receives only immutable CPU files; it cannot unload or mutate
+the parent's Comfy model objects. CPU pose remains CUDA-invisible.
+
+No parent empty_cache, model unload/reload, dtype change, or sampler changes
+are introduced. Observed headroom is already larger than the decoder peak.
+Admission immediately before each child initialization must require:
+  - exact GPU UUID and memory.free >=12288 MiB;
+  - the only existing compute PID on that GPU is the registered DiT parent;
+  - parent UID/start_ticks/command hash and current request identity match;
+  - no foreign compute PID or stale/duplicate decoder child on that GPU;
+  - all user resource limits and timeout/cleanup rules still hold.
+If insufficient headroom, preserve evidence and fail the run according to
+the existing bounded wait/error policy. Do not substitute a different decode,
+coerce a missing measurement to UNKNOWN, or touch another user's workload.
+
+The new adapter must replace both old frozen assert_idle_gpu calls with this
+strict owned-parent admission, leaving the historical decoder file intact.
+The old frozen regular VAE numerical path is unchanged. Explicit OOM/tiled
+fallback rejection remains mandatory. Child memory errors abort the run.
+
+Cleanup
+After VAE child exit, verify its exact PID is absent and the GPU compute set
+contains only the expected live parent. Parent VRAM residency is expected.
+Do not require the GPU to be empty while the parent is sampling. Capture
+child peak/cost and parent state/RNG/condition/grid/residency before/after.
+Final service exit must also clean all registered descendants by their exact
+identities. Keep parent-death/timeout/lock-wait CPU tests and add admission
+negative tests (foreign PID, reused PID, wrong GPU, insufficient free memory,
+duplicate child, missing parent). No killing foreign or unbound processes.
+
+Actual proof remains embedded at index10:
+G2 checks the current native endpoint's new request/response, co-resident
+full decode, float/RGB and original pose values against R12's actual record.
+G3 checks parent state after child work and same-state Full10 equality to R10.
+The standalone memory measurement does not replace either gate. If any exact
+comparison fails, abort, retain the evidence and return to root review.

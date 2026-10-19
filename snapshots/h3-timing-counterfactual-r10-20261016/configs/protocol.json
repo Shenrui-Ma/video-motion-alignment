@@ -1,0 +1,86 @@
+{
+  "schema": "h3-fixed-full-same-state-diagnostic-r10-v1",
+  "created_utc": "2026-10-16T08:10:12.875131+00:00",
+  "diagnostic_only": true,
+  "new_method_claim": false,
+  "adaptive_selection": false,
+  "target_graph_sha256": "83dec6024bdad01a02dd762dbce94fce93b21611d36cceb67df579a6757e57fe",
+  "target_run": "r3_s05_full_6to14",
+  "seed": 2026101311,
+  "geometry": [
+    1312,
+    736,
+    141
+  ],
+  "video_shape": [
+    1,
+    24,
+    42,
+    46,
+    82
+  ],
+  "audio_shape": [
+    1,
+    32,
+    2,
+    235
+  ],
+  "event_frames": [
+    50,
+    65
+  ],
+  "actuator": "unchanged R3 mass_preserve alpha1/radius0/offset0/all50blocks",
+  "full_euler_indices": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "native_probe_before_full_indices": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "pre_forward_state_archive_indices": [
+    6,
+    10,
+    14
+  ],
+  "euler_updates": 20,
+  "callbacks": 20,
+  "expected_model_nfe": 29,
+  "expected_routed_blocks": 450,
+  "observer": "frozen same_phase_gap5 fullframe signed cosine full49lag scan; passive only; no gate",
+  "snapshots": "all20 chosen endpoints; 9active native plus9Full endpoints; raw packed input at6/10/14; CPU copies, raw and normalized signatures; final sampler output",
+  "constraints": [
+    "Same x/sigma/fullgrid/conditions/seed for both branches; original Euler unchanged",
+    "No extra sampling RNG/latent update; native first then Full returned at fixed indices",
+    "Chosen cached R3 endpoints and final output must be bitwise same; report missing R3 intermediate archives honestly",
+    "CPU realComfy old fixedmask singleforward versus29NFE probe compares all20 states",
+    "No thresholds or selected mask changes after outcomes; no one-step forks this round"
+  ],
+  "resources": {
+    "remote_root": "/data5/researcher/h3_runs/timing_counterfactual_r10_20261016",
+    "host": ".9",
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8471,
+    "max_owned_host9_gpus": 2
+  },
+  "warmup": "reuse R3 successful same-model geometry backend warmup with exact evidence binding before launch; added probe overhead separately reported",
+  "limitations": [
+    "diagnostic not proposed new algorithm",
+    "same-model candidate prediction/selection has MotionEcho AG PAG CAG SVDD-PM CoDe prior art",
+    "endpoint improvement does not imply next-state or final-pose improvement"
+  ]
+}

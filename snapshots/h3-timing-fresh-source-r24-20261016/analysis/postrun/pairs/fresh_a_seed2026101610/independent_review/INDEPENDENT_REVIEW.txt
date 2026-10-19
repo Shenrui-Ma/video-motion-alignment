@@ -1,0 +1,59 @@
+fresh_a seed2026101610 Native/Full6..14实际配对独立只读审查
+2026-10-17。结论：实际文件/执行/配对/时间基准PASS；正常近同步样本上的效用应窄述，不是新失败修复或完整外观质量PASS。
+
+1. 配对与实际执行
+PAIR_COMPLETE passed且actual_conditions、actual_noise、prefix005_video_audio_bitwise三门为真。PAIR_FILES顶层精确全集及全部SHA实核通过；两臂inventory SHA与pair绑定相符，本地所有已下载原件逐文件SHA检查一致。大.pt留在远端，未重新下载/torch.load；逐位门由先前实际CPU检查记录支撑，本审查再核两端005视频/音频实际signature相同，不能写成我再次逐元素重算。
+同一source/portrait/prompt、同seed2026101610、实际共享clean conditioning及actual noise两流一致。history success+completed、promptID/实际graph和service PID/identity均吻合；没有混入其他seed或旧source。clean条件审计不等于完整post-augmentation树全部保存，prefix005提供共同轨迹额外证据。
+两臂均20NFE、20callbacks、1000blocks/20forwards；Native0route，Full450route，恰zero-based6..14每次50blocks。注意6..14是one-based调用7..15；后续steps保持native，未把记录次数当采样次数。
+Native job wall 1545.571172s；Full 1485.466135s，仅记录，不据有共享缓存/排队次序的wall差异称加速。运行服务继续驻留，不由这一对完成推断cleanup。
+
+2. 分辨率与时间基准
+两rawMP4实际SHA与CPU_COMPLETE/PLAYBACK_GATE一致。每条1312×736，141帧，r/avg FPS=24，duration5.875s，time_base1/12288；已保存ffprobe逐帧PTS重新逐项核对为i/24（容差1e−6）。没有独立调fps、retiming或不同画布尺寸带来的错位。原参考同几何/fps绑定在实际source与common-support记录。
+
+3. 全部预选窗的方向/腕lag（帧）
+[44, 61], conf0.3: Native方向/腕=-1/-1 ; Full=-1/-1
+[44, 61], conf0.5: Native方向/腕=-1/UNKNOWN ; Full=-1/UNKNOWN
+[17, 34], conf0.3: Native方向/腕=-1/-1 ; Full=-1/-1
+[17, 34], conf0.5: Native方向/腕=-1/-1 ; Full=-1/-1
+[82, 99], conf0.3: Native方向/腕=-2/-2 ; Full=-2/-2
+[82, 99], conf0.5: Native方向/腕=-2/UNKNOWN ; Full=-2/UNKNOWN
+每臂每阈值15个feature×window记录及各49lag曲线均保留。COMPACT_RESULTS内本pair所有30/arm摘要的fileSHA、status和reliable_lag与原timingJSON一致。UNKNOWN保留，没有用unqualified_best替代。
+
+4. 同帧共同支持的姿态差异
+以下数字是原始同帧方向/归一化腕位置误差，不是lag补偿后的误差，也不是图像质量/身份分数。使用source+两臂有效关节交集及共同最小置信度权重；窗口是原三窗和full/pre/post描述段，共30项每阈值。低于.8的共同支持段只描述，不充当已通过的完整质量门。
+conf0.3 [44, 61] arm_direction: common=0.986111, 0.284311 -> 0.233149, delta=-0.051162
+conf0.3 [44, 61] wrist_relative: common=0.972222, 0.145729 -> 0.119530, delta=-0.026199
+conf0.3 [17, 34] arm_direction: common=1.000000, 0.152960 -> 0.153904, delta=+0.000944
+conf0.3 [17, 34] wrist_relative: common=1.000000, 0.081495 -> 0.080486, delta=-0.001010
+conf0.3 [82, 99] arm_direction: common=0.944444, 0.222042 -> 0.210645, delta=-0.011398
+conf0.3 [82, 99] wrist_relative: common=0.833333, 0.146385 -> 0.140479, delta=-0.005906
+conf0.3 [0, 140] arm_direction: common=0.881206, 0.218097 -> 0.205063, delta=-0.013034
+conf0.3 [0, 140] wrist_relative: common=0.865248, 0.140017 -> 0.131232, delta=-0.008785
+conf0.3 [0, 43] arm_direction: common=0.988636, 0.123219 -> 0.123308, delta=+0.000090
+conf0.3 [0, 43] wrist_relative: common=0.977273, 0.075174 -> 0.074453, delta=-0.000721
+conf0.3 [62, 140] arm_direction: common=0.797468, 0.274881 -> 0.262916, delta=-0.011964 [coverage<.8,仅描述]
+conf0.3 [62, 140] wrist_relative: common=0.778481, 0.191390 -> 0.181196, delta=-0.010194 [coverage<.8,仅描述]
+conf0.5 [44, 61] arm_direction: common=0.847222, 0.254770 -> 0.201211, delta=-0.053559
+conf0.5 [44, 61] wrist_relative: common=0.722222, 0.121553 -> 0.102479, delta=-0.019074 [coverage<.8,仅描述]
+conf0.5 [17, 34] arm_direction: common=0.902778, 0.146233 -> 0.147329, delta=+0.001096
+conf0.5 [17, 34] wrist_relative: common=0.944444, 0.080452 -> 0.079605, delta=-0.000847
+conf0.5 [82, 99] arm_direction: common=0.833333, 0.203317 -> 0.192799, delta=-0.010518
+conf0.5 [82, 99] wrist_relative: common=0.750000, 0.139181 -> 0.133057, delta=-0.006123 [coverage<.8,仅描述]
+conf0.5 [0, 140] arm_direction: common=0.726950, 0.193035 -> 0.178892, delta=-0.014144 [coverage<.8,仅描述]
+conf0.5 [0, 140] wrist_relative: common=0.680851, 0.120527 -> 0.112550, delta=-0.007977 [coverage<.8,仅描述]
+conf0.5 [0, 43] arm_direction: common=0.875000, 0.109815 -> 0.109277, delta=-0.000538
+conf0.5 [0, 43] wrist_relative: common=0.852273, 0.068363 -> 0.067756, delta=-0.000607
+conf0.5 [62, 140] arm_direction: common=0.617089, 0.247092 -> 0.233861, delta=-0.013231 [coverage<.8,仅描述]
+conf0.5 [62, 140] wrist_relative: common=0.575949, 0.169502 -> 0.157854, delta=-0.011648 [coverage<.8,仅描述]
+
+5. 允许的解释与不能推论
+A两臂三窗lag完全相同；主窗同帧共同支持方向/腕误差下降，17..34方向略增、腕略降，82..99两者略降。不能把轻微数值变化包装为相位恢复。后段62..140在.3共同支持也低于.8，高阈值全片/后段更低，不能由这些段的均值宣布全片保持。
+两臂主窗.3方向/腕都是−1/−1，.5方向同为−1但腕均UNKNOWN。可以说“已可靠测得的主窗时序未被固定Full破坏，并伴随同帧姿态误差较小”；不能说“双阈值四读数全部确认正常保持”。Native本来近同步，所以本pair不构成延后修复证据；Full也没有令已接受的主lag更近零。若讨论自适应优势，本pair还不能证明固定Full有害、动态开启更优或不干预有因果收益。17帧gap5的005离线读数与本final不是同端点真值，不能混成在线结果。
+本审查未追加目视挑帧、未做新pose；服饰/身份/背景/重影/完整动作质量仍以独立固定媒体审查报告为准，没有从pose均值宣布visual PASS。只是一源一seed两臂，不能泛化到所有正常例或据此估计失败率。
+
+证据
+PAIR_COMPLETE SHA a8b222044bcd440ae5e0a2d22392d3a612f28c1733fc1f9ccc07bd32039139bf
+PAIR_FILES SHA 939bddcf0e7460f469377e3dd3564213a5950611ca909f9187984ba8dd026824
+Native RUN_GATE SHA fa659f1f39cb981c5a42754603cc7d87cf7cdfca261188260eebb5a9723dd51f
+Full RUN_GATE SHA e0ddd32489b5d6c8578095631ad81143f9718d5899815d225fa797023f999eb1
+本报告派生于冻结原件，放independent_review子目录，避免破坏pair顶层精确清单。审查过程中一个本地检查脚本先误设common-support条数24而assert停止，读实际5features×6windows=30后修正只读检查；这是审查脚本计数假设错误，不是producer或科学数据失败。没有修改任何指标/输入/结果。

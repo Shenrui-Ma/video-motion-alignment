@@ -1,0 +1,69 @@
+R15：源姿态局部空间路由与原生端点pose观察器的近邻审查
+2026-10-16。限定只读研究；没有运行GPU、远程操作或实现。检索限DIAL、DiffTrack/CAG、FRESCO、FLATTEN、MotionEcho的原文及已核官方代码，未证明穷尽。
+
+直接结论
+可以先做“局部化是否改善时序—形状权衡”的质量诊断。DIAL已经明确用query空间软图限制参考引导并比较全域增强的画质损伤；FRESCO/FLATTEN已有运动对应与有效区域限制；MotionEcho已有运动误差触发/停止。因此源前臂/腕包络soft mask和pose阈值停止都不能单独包装成新架构。具体执行器并非与这些方法完全同构，有继续实验价值；是否形成方法贡献需要对简单减量、普通前景mask、既有空间引导基线提供独立收益。
+当前没有证据说明Full重影主要来自不必要背景query，也可能发生在主体内部的姿态/身份混合。空间mask不能预先承诺解决重影。
+
+1. DIAL ISGM：最直接的局部引导/质量近邻
+原文 https://arxiv.org/html/2609.11507v1 ，§3.3 Eq.6–7、Algorithm1、§4.3 Table2、Appendix A/C.2。
+DIAL将上一步每主体ISGM按最大值归一化，可选二值化，在video query到该主体reference keys的logits加 log(gamma_k)*S(q,k)。它在最后80%去噪区间启用，并在各步更新ISGM；不是完成80%后才开始。原文的Uni全域增强对照与局部ISGM对照，已把自然度/背景保护作为明确结果。
+本候选改变的是来源为source pose的动作部位包络；执行器为参考组内部同时刻重分配、保原组质量，而DIAL更改主体组相对权重。二者具体不等价，但“空间选择让强参考更少伤画质”已经覆盖。必须承认它为最直接基线，而不是声称首次局部引导。本次未核到完整DIAL作者实现，证据限定论文公式，不把自行写的ISGM-like插件称为完整DIAL复现。
+
+2. DiffTrack/CAG：跨帧注意力的选择性屏蔽与双预测引导
+论文 https://arxiv.org/html/2506.17220v2 ，§5 Eq.10。
+作者固定代码 https://github.com/cvlab-kaist/DiffTrack/tree/670a83c185b26a04fdb83e0f32e3d8e629ba1d41 。本次重读 diffusers/src/diffusers/models/attention_processor.py:1763–1783、1804–1845：构造同帧块允许mask，实际先softmax再乘mask，去掉跨帧项，不对剩余注意力重新归一；其他交互保持该分支原权重。pipeline_cogvideox_pag.py:822–828按固定guidance_step调用PAG-style引导。Eq.10为eps+s(eps−eps_perturbed)。
+覆盖：从部分时间交互构造受损预测、局部屏蔽、分析匹配置信与质量已有。它没有在所读实现中用源前臂包络去限制reference-video同时刻纠正，也没有依据外部pose误差自适应停；但不能把“仅改部分attention，其余原生”称首次。DiffTrack明确指出高置信attention不保证对应正确，不能用softmax尖峰代替pose证据。
+
+3. FRESCO：源运动/遮挡驱动的空间—时间有效对应
+论文 https://arxiv.org/html/2403.12962v1 ，§3.3 Eq.5–6、§3.4 Eq.7–9。
+官方固定代码 https://github.com/williamyang1991/FRESCO/blob/736a7140f30d622ba8b62584445c8f6c2d9d9fe0/src/diffusion_hacked.py 。既有审查已核:266–270源Q/K引导生成query，:293–351沿flow gather并用interattn_mask，:873–885构造遮挡/flow mask。
+Eq.5在非遮挡对应位置约束相邻frame特征；Eq.7按源帧空间自相似聚合query；Eq.9沿flow轨迹聚合特征。它的mask既表示有效对应，也服务稳定时序。候选pose包络只决定哪些query接受现有Full，没有建立源/目标空间对应或flow轨迹；不等同其完整算法，但也不能声称首次运动区域约束注意力。若之后引入flow/遮挡建立位置对应，须正面比较这条核心。
+
+4. FLATTEN：沿动作轨迹限制可读取位置
+论文 https://arxiv.org/html/2310.05922v2 ，§3.2–3.3。
+官方固定代码 https://github.com/yrcong/flatten/blob/ac2d83bf10363c670c911b6857614b9b41ef6eb4/models/attention.py#L507 。已核:520–541按traj时间/空间坐标gather K/V并mask无效成员。
+它用源RAFT轨迹在稠密时空attention之后构建flow-guided attention，采样与inversion均使用，冻结模型参数。源运动范围包络比轨迹对应更弱，只作query门；它允许所选query仍从同一reference帧所有空间读取，所以不是精准肢体对应。只在目标格子上画mask不自动实现FLATTEN那样的路径约束；若效果相当，简单性可以是工程优点，仍需实测，不能仅靠无额外训练证明新颖。
+
+5. MotionEcho：运动误差触发/截断指导，停止观测与本次执行器分离已有
+论文 https://arxiv.org/html/2506.19348v2 ，§3.4及§7.2 Algorithm1。
+Algorithm1:16–17用student近期运动损失均值触发teacher；:23以teacher当前状态运动损失G^m低于delta2或预算上限截断。:11/13明确列不含/含运动指导的端点；G^m测当前状态的特征，不能把它误说为对加完本次梯度的端点直接评价。其实现例可用MotionClone/MOFT/DiTFlow等运动表示。作者代码尚未在本次核查范围内获得，不能虚称运行验证。
+因此原生端点观察、按运动误差继续/停，并非此前没有。候选不同是同一H3的native x0经VAE解码，再以外部pose估计物理帧lag，指导执行器是attention readout。它没有生成教师模型，但仍用了预训练姿态模型；“teacher-free”不等于“无外部模型”。换损失/换传感器可以有实效贡献，不能仅据此宣称新控制原理。
+
+2. 当前软mask操作的准确性质
+对一行q，原参考组质量m_q，条件分布r_q，same-time条件分布r_same。令source-only软mask a_q∈[0,1]，则
+  O_new(q)=O(q)+a_q*m_q*(O_same(q)−O_ref(q))；
+  r_new=(1−a_q)r_q+a_q*r_same。
+它是合法凸组合，保持本行参考组质量。也能写成reference logits的补偿bias，故不应宣称新的attention数学；可改写不意味着算法没有价值。
+Mask=0只保证该次、该层该行增量为0。后续层的attention、FFN、residual及下一去噪步会传播变化，不能写“mask外画面不变”。此外query前臂区仍可读取same-bin背景/其他身体key；mask不分离运动、外观和背景。
+身份替换会改变身体比例、头部位置和衣服。当前动作延后时，target手臂未必在源同帧手臂坐标；过窄mask可能只向应出现的新手位置注入而保留旧手，反而加重双肢。需明确固定相机/近似同构图前提，使用预先冻结source-only运动包络和尺度，不拿生成重影结果调包络宽度。
+完整RGB1312×736→VAE82×46→DiT41×23的空间映射要绑定实际patchify；时间42bins与RGB17→5的槽位同样必须按实际布局聚合。若使用窗内轨迹并集，应写成固定事件包络，不称在线逐query误差定位。遮挡/低置信source姿态不能任意补出手臂；先固定排除或保守包络规则并保存源图覆盖证据。
+
+3. 最小可执行对照建议：先分离局部化与停止问题
+第一阶段只检验mask，把seed、prompt、原参考、采样索引、层范围及Full公式固定。复用同机native和全域Full作为锚：
+A native（既有）；B Full全域（既有）；C source pose包络soft-mask Full；D 均匀弱Full，alpha为同时间bin的source-only mask空间平均，使sum(alpha)相等。
+D排除简单减量解释。其总reference质量/修正范数不一定等于C，须逐层记录sum(alpha*m_ref)和实际增量范数；不能将面积匹配冒称全部剂量匹配。若C胜D且样例可用，再加同面积空间错位mask或一般人物前景mask作为针对性的下一项，而非此时扫宽度/阈值。
+C应维持B的冻结时序容差，并改善预先指定frame55及完整事件窗内的重影/肢体形状，同时检查未干预窗、脸/服饰/背景。只看pose lag=0不足：重复手臂可以给关键点模型一条貌似正确轨迹。保留同帧共同支持的方向/腕误差、低覆盖/多人选择情况，以及无pose覆盖原视频的视觉复核。
+最窄可保留命题是“动作包络局部化比相同面积均匀减量更好地权衡时序与形状”，不是自动检测小动作丢失。若C与D同效，主要证据指向减少干预量；若时序回退或双肢仍在，则不支持所选空间门有独立价值。该结果不否定所有局部mask，也不允许事后挑一个mask冒充预定成功。
+与DIAL真正比较时，应分别比较mask来源和actuator：同Full执行器下pose包络 vs ISGM-like门；同mask下group-gain vs within-group time rerouting。首次粗诊断无需立即完整移植所有论文，但未来不能仅报native vs ours就声称超过DIAL机制。
+
+4. native x0解码pose停机：现在是有价值的观察器诊断
+R12已有证据表明内部gap5=2时独立pose仍4；R13已将n10→11原生分支桥接。因此以pose替换粗latent读出，可以检验失败是否主要来自读出偏差，而不是先发明另一套gain。现有已解码的R12index10/15应优先作为管线/判断检查，无须为这两个点重复采样。
+要做因果闭环，必须在当前真实x/sigma先计算native预测并解码/测pose，再决定同状态是否重算Full；不能用受当步Full直接改过的x0来证明原状态已对齐。若只用上一步pose，必须明确一步延迟，不能拿结果回改同次forward。R13已经证明特定早期Full对下一原生端点有作用，但一次作用不是永久稳定，也不是新反馈原则。
+先保持全域Full不变，只换观察器，才可分离“新pose观察器有效”与“mask减少伤害”；若同时改两项，成功只能归于组合。source50–65窗是手工已知，不能称自动定位。正延后、提前、未知、遮挡/重影的动作规则须先冻结；unknown不算修复，不能默认安全停止。
+VAE解码必须保持实际chunk边界/上下文，不能直接抽取不对相位的latent子段冒充原视频局部。读同一native x0的完整/局部decode是否等价要有门；RGB端pose测量也可能低置信或选错重复肢体。
+重要评价边界：pose一旦进入controller，就不再是相对于controller独立的评价器。同模型同指标的最终改善可能是测量器偏好。保留原冻结全窗口/其他关节、视觉重影检查及独立人工事件/另一测量的验证；不能把用来停止的主窗pose再包装成完全独立成功证据。
+记录新增native/full NFE、解码次数、pose次数及wall，但本轮不以效率决定是否值得。若它能减少可独立识别的提前停止并改善最终时序，这支持实用观察器替换；尚不支持架构首创、统计安全保证或自动细动作识别。
+
+最终建议
+先运行固定schedule的C/D局部化对照，以及保持执行器不变的pose观察器诊断，两条改变分开。当前最可靠的创新空间是有证据的局部误伤控制、编码/传感器误差诊断和可迁移判别协议，与既有引导结合；不能把soft-mask乘法或pose阈值本身当已证实新架构。相似先例是必要对照，并不自动否决进一步探索。
+
+5. LOCAL_ROUTE_DESIGN冻结定义的快速复核（2026-10-16追加）
+已实际读取 LOCAL_ROUTE_DESIGN.txt，SHA256=d31226c64999cd82496c969c1bef202d35034d6dd6d58829e543862a68547f43。第8节明确覆盖第6节旧R11运行建议：采用.9 R3 Full indices6..14，新增ROI与逐bin均值UNIFORM，两臂source/seed/模型/条件/噪声/采样时间/50层相同。这里indices为零起始采样调用索引，不是视频帧。仅核设计，未审尚未完成的实现，未运行GPU。
+科学定义可进入实现，未见阻断项。源左右肘腕线段32px内实心、64px外为0、中间余弦衰减，并对bin完整名义帧span取union；这些都是预定空间定位及容差，不是学习出的异常概率。实际预处理A、patch行列顺序和源pose坐标加0.5的约定必须在mask生成前按设计核验。第8节.9 prepared RGB/clean ref绑定与第1节.41记录用途不同，不得混用。当前只支持该固定构图；若源/目标肢体位置错位导致失败，不能在同一预登记结果里事后扩大mask。
+设mu_k=mean_(r,c) M_k(r,c)，则每bin ROI与UNIFORM的sum_q alpha_q确实相同；它排除了几何平均query增益不同这一简单解释。sum_q alpha_q*m_ref(q)、sum_q ||alpha_q*m_ref(q)*(O_same−O_ref)||及空间向量抵消一般不同，后续轨迹又会进一步分化。因此C胜D只能支持“所选空间位置具有独立价值”，不能单由本对照排除全部实际作用量解释，也不应写严格等剂量。设计已正确承认此点。必要日志可报告已能低成本获得的实际质量/增量统计；没有采集时明确不可测，勿为术语把模型轨迹重新归一化成另一个实验。
+最小肢体联动/躯干副作用检查应在结果前冻结：
+ (a) 原手臂主终点和四窗50–65、69–81、80–92、99–111保持原样。不得因ROI主窗变好而忽略其他窗。
+ (b) 原始同帧RGB固定55、86，加连续42–82片段，source/native/Full/ROI/UNIFORM均采用相同时间起点和缩放；不做lag对齐。看膝/踝是否出现重复、消失或不合理连接，抬腿起落是否与手臂/躯干倾斜脱节，以及mask只补出新手而保留旧手。静帧用于定位形状，连续片段用于区分运动模糊、真实双肢及时间联动，不能互相替代。
+ (c) 复用已有COCO姿态，不增加检测模型：腿部可预先固定左右hip→knee与knee→ankle方向，躯干用肩中点→髋中点方向，保留confidence及共同支持；画同帧辅助曲线。它们是新增的辅助诊断，不替换原冻结手臂评价。若需要估lag，仅在原四窗内用现有搜索范围/支持/退化规则；低变化、重复姿态或不够支持标unknown，不因为有一个相关峰就报告可靠相位。不要把靠近静止的躯干强行变成时间标尺。检测到额外肢体时pose可能选择其中一条“正确”轨迹，原RGB复核仍必须保留。
+这个检查的最低解释要求是：保留主窗手臂时序收益，同时没有新出现的可见下肢/躯干联动损伤。单一开发例不能支持“全身动作无副作用”或跨身份泛化。ROI胜均匀弱Full且保持形状仅使局部化值得下一轮；后续若能证明目标/源空间对应补偿或运动误差驱动的局部选择，较source静态包络和DIAL式空间门有独立、可迁移收益，才可能构成方法贡献的一部分。32/64px包络、soft-mask混合和既有Full算子本身不构成已成立创新。

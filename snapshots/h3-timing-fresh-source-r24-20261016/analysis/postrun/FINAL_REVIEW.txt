@@ -1,0 +1,45 @@
+R24 FINAL — two fresh sources, two seeds, normal controls
+
+All eight actual runs and four same-seed pairs passed. Actual input/condition/noise, all five x0 tensor inventory/metadata/finite/signature checks,20NFE/20callbacks/1000blocks with Native0/Full450routes, prefix005 video/audio equality, and141frame1312×736/24fps/5.875s physical playback gates pass. Cross-seed actual noise differs. Both pairs for both seeds have received independent read-only review.
+
+Primary lag in frames: direction / wrist; positive means the edited motion is later. UNKNOWN remains unreliably observed.
+fresh_a_seed2026101610 conf=0.3: Native -1/-1; Full -1/-1
+fresh_a_seed2026101610 conf=0.5: Native -1/UNKNOWN; Full -1/UNKNOWN
+fresh_a_seed2026101611 conf=0.3: Native -2/-1; Full -1/-1
+fresh_a_seed2026101611 conf=0.5: Native -2/UNKNOWN; Full -1/UNKNOWN
+fresh_b_seed2026101610 conf=0.3: Native -1/-1; Full -1/-1
+fresh_b_seed2026101610 conf=0.5: Native -1/UNKNOWN; Full -1/UNKNOWN
+fresh_b_seed2026101611 conf=0.3: Native -1/-1; Full -1/-1
+fresh_b_seed2026101611 conf=0.5: Native UNKNOWN/UNKNOWN; Full UNKNOWN/UNKNOWN
+
+These four Native outputs are normal near-synchronous controls. User visual inspection agrees. At.3 their primary direction/wrist stay within−2..−1frames; Full stays near−1. This round does not demonstrate repair of a delayed action. At.5 wrists are UNKNOWN in all four primary pairs, and B seed1611 primary direction is also UNKNOWN. These are support limits, not substitute estimates.
+
+Primary same-time shape errors on common support (descriptive):
+fresh_a_seed2026101610 arm_direction: commoncoverage=0.986111, Native=0.284311, Full=0.233149, status=usable_exploratory
+fresh_a_seed2026101610 wrist_relative: commoncoverage=0.972222, Native=0.145729, Full=0.119530, status=usable_exploratory
+fresh_a_seed2026101611 arm_direction: commoncoverage=1.000000, Native=0.298386, Full=0.249866, status=usable_exploratory
+fresh_a_seed2026101611 wrist_relative: commoncoverage=1.000000, Native=0.130784, Full=0.117203, status=usable_exploratory
+fresh_b_seed2026101610 arm_direction: commoncoverage=0.958333, Native=0.248496, Full=0.217096, status=usable_exploratory
+fresh_b_seed2026101610 wrist_relative: commoncoverage=0.944444, Native=0.202022, Full=0.177868, status=usable_exploratory
+fresh_b_seed2026101611 arm_direction: commoncoverage=0.958333, Native=0.285441, Full=0.259877, status=usable_exploratory
+fresh_b_seed2026101611 wrist_relative: commoncoverage=0.944444, Native=0.236846, Full=0.202139, status=usable_exploratory
+
+The primary common-support errors are smaller under Full in these cases. This remains a local auxiliary observation. Outer-window effects are mixed: B seed1611 window23–40 direction is worse at both thresholds; first-seed B early wrist and late direction also worsen. All qualified/unqualified values and complete49lag curves are retained in COMPACT_RESULTS.json. No global quality improvement, population robustness, or architectural novelty is inferred.
+
+Visual review: all five predetermined frames per pair are presented at identical scale in full field. Source gray/green lighting can differ from both edited outputs; scene layout remains recognizable in the inspected frames. Fast hands contain blur; B77 has face occlusion and a hand leaving the frame. Fixed-frame inspection is separate from timing and does not rate continuous flicker or exact real-person identity. The visual-verdict presentation score is only a layout/caption check.
+
+Native sparse observer: four trajectories × captured indices005/010/015/019 × three source-only windows yielded48 correlated observations with lag−1or0 and no>=4flag. Existing005 curves were reused by SHA. Only two source videos are represented; this is not all20steps, no online intervention decision was executed, and there is no intermediate independent pose truth. The full-grid gap5 descriptor includes background/global motion and spans17physicalframes. See ../native_sparse_step_observer/SUMMARY.txt.
+
+Execution costs (seconds; includes actual runtime conditions/caching, descriptive only):
+r24_fresh_a_seed2026101610_full_6to14: job=1485.466, sampler/capturewrapper=1440.016, snapshotcopy=9.640, integrity=22.348, CPUconsume=97.618, NFE=20
+r24_fresh_a_seed2026101610_native: job=1545.571, sampler/capturewrapper=1432.546, snapshotcopy=12.570, integrity=22.003, CPUconsume=96.359, NFE=20
+r24_fresh_a_seed2026101611_full_6to14: job=1485.684, sampler/capturewrapper=1439.654, snapshotcopy=9.637, integrity=22.712, CPUconsume=101.861, NFE=20
+r24_fresh_a_seed2026101611_native: job=1465.456, sampler/capturewrapper=1421.054, snapshotcopy=12.596, integrity=21.800, CPUconsume=97.213, NFE=20
+r24_fresh_b_seed2026101610_full_6to14: job=1465.394, sampler/capturewrapper=1424.812, snapshotcopy=9.513, integrity=21.956, CPUconsume=105.017, NFE=20
+r24_fresh_b_seed2026101610_native: job=1525.906, sampler/capturewrapper=1416.891, snapshotcopy=12.471, integrity=22.506, CPUconsume=104.499, NFE=20
+r24_fresh_b_seed2026101611_full_6to14: job=1465.477, sampler/capturewrapper=1425.566, snapshotcopy=9.533, integrity=20.508, CPUconsume=110.921, NFE=20
+r24_fresh_b_seed2026101611_native: job=1445.422, sampler/capturewrapper=1406.940, snapshotcopy=12.432, integrity=21.973, CPUconsume=101.080, NFE=20
+
+Media entry: media/index.html; each pair has full5.875second video, fixed primary-context24fps and12fps clips, and five fixed screenshots. All columns retain the original physical frame numbers. Media use relative sibling files.
+
+CPU consumer completed and exited. No GPU service cleanup was requested or claimed; resident service lifecycle belongs to root. Large verified tensor archives remain on the remote filesystem with SHA inventories retained locally.

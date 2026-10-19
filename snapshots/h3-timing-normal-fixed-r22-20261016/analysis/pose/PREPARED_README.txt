@@ -1,0 +1,17 @@
+R22 sole final CPU consumer — prepared, not started
+
+Owner: /root/h3_feedback_builder_20261016. No consumer process or network/GPU task was launched during preparation. Only analysis files were added; sealed runtime/config remain unchanged.
+
+Run: r22_s05_seed1313_full6to11. Deployment seal48 files SHA99c4ee01097bd888259fcc690216c5c2460308fc80339f5af116b8dd1f8c111c.
+Default consumer_r22.py prints prepared_only without a connection. Root must supply expected_service_binding.json from the TEMPLATE with approved=true, complete actual service record, exact supervisor/watchdog/controller PID+identity records, and authorized admission SHA(s). Start only after root announces formal launch and authorizes this sole consumer:
+  PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/opt/python@3.13/bin/python3.13 analysis/pose/consumer_r22.py --execute --wait
+
+The coordinator checks actual success/completed history, exact controller one-job completion, archived cleanup bound to the actual service, current identity absence for service/supervisor/watchdog/controller, NVIDIA compute absence for registered task PIDs, and supervisor exit0/SIGTERM. No signal is sent. A reused unrelated PID is recorded as unrelated, not killed. Waiting is at60-second intervals without either shared compute lock. Transport interruption during actual CPU evaluation is fatal pending explicit process inspection; no blind relaunch.
+
+After ready: shared Mac CPU lock then .9 R2 CPU consumer lock, at most4 threads and CUDA_VISIBLE_DEVICES empty. The sealed completion verifier checks actual graph/noise/producer condition/sigma/counts/10+final inventory and only R14 prefix005 exact. Supplemental verification binds48 immutable SHA, actual model/core/runtime source provenance, actual noise/ref tensor files and live cleanup. R14 lacks historical postaugmentation tensors; no equality claim is invented. R18 badseed future endpoints are never loaded.
+
+Frozen source05 DWPose, timing_metrics, evaluate_x0 and existing observer protocol are reused by exact SHA. Windows50..65,69..81,80..92,99..111, confidence0.3/0.5, prior reliability and UNKNOWN unchanged. Fixed overlays/physical frames55/86/105 and original-speed full141-frame+42..82 clip use source/R14native/R22Full. Raw display images preserve complete frame; labels are in a black footer. No time alignment/interpolation or output-selected frame. Frame timestamps and actual141/24fps/geometry are archived. CPU/copy/pose/media/integrity timings recorded separately from generation.
+
+R21 is not silently filled with R14. common_support_after_r21.py defaults to no action and later requires actual R21 history, successful cleanup/completion report, its actual generated MP4 and bound final pose; both R14 and R22 baselines are pinned. Then compute shared support with frozen compare_runs.py for all three real arms and both thresholds. Four main windows remain primary; fullclip/tail segments are descriptive. Run under the existing Mac coordinating lock; remote script also uses shared CPU lock. No final R21 quality result exists at this preparation stage.
+
+Local preparation verification:9 pure metadata tests passed, including success/error/waiting states, wrong registry, live process, driver residue, PID reuse, default no network and five history negative cases. All analysis Python compiled via compile() without bytecode creation. No pose/model/video/GPU test was performed; ffmpeg media and real postrun intake await actual outputs. Review this distinction when reporting completion.

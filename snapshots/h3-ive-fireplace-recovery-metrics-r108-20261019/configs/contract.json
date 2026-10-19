@@ -1,0 +1,72 @@
+{
+  "schema": "r108-native-and-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-fireplace-recovery-r108-20261019",
+  "producer_remote": "/data5/researcher/h3_runs/timing_ive_fireplace_recovery_r108_20261019",
+  "producer_seal_sha256": "69b9c594813b97be6048f3780ee3774a017e396259ebac9ea3fb5667baa56381",
+  "producer_contract_sha256": "fedf4c61106aa6b22d070bc33d08cb0f238061319cf626649f217f0fce00b207",
+  "producer_runtime_sha256": "47732eb0f9a186dfec84612c1b547378daabbe1c173a985ff24a1f939d3de2ef",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0392"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0392",
+      "run_id": "r108_short_0392_seed2026101701_native",
+      "forced_run_id": "r108_short_0392_seed2026101701_forced",
+      "graph_sha256": "7ba2df633607f6af994a8622c6acfe664ebb6b89e2903aa9b57479f54ad1a3b7",
+      "forced_graph_sha256": "84fb85ba3e9c5a5dad83145fadfb03eb630798ee7902c0ba78f08f291dc3d02e",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "valid_frames": 57,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "prompt_version": "P1-local-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, visible action sequence, pacing and duration.\n<Subject 1> is the woman with long dark hair wearing a white suit in <Video 1>. Her face, hair, clothing, position and hand gestures are retained.\n<Subject 2> is the original wood-paneled room in <Video 1>, including the pale carved fireplace and mantel directly behind the woman. The fireplace and its projecting carved surround are the region to remove.\nSource context: A woman in a white suit is standing in front of an ornate fireplace, gesturing with her hands as if she is explaining something.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. The woman continues the original gestures in the same room, with the ornate fireplace removed.\nRequested edit: Remove the ornate fireplace\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the woman's identity, hair, white suit, body position, expressions and complete hand-gesture sequence, including their original timing.\n<Subject 2> (appears in [Shot 1]): partially_preserved - remove the entire ornate fireplace, its pale carved mantel shelf and carved supporting surround behind the woman. Fill that local region with a continuous plain wall consistent with the surrounding room's color, perspective and lighting. Retain the rest of the original room and its composition.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, action order, timing and duration.\n\ndetailed_description:\nThe target video retains the photographic appearance, warm indoor lighting and camera composition of <Video 1>.\n[Shot 1] The same woman in a white suit stands in the same place, moving her hands and speaking with the same expressions as in <Video 1>. Behind her is a continuous plain section of the original room's wall where the ornate fireplace used to be. The carved fireplace, projecting mantel shelf and supporting columns are absent throughout the shot. Her foreground silhouette and gestures remain clear against the repaired background.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "original_task": {
+        "id": 392,
+        "src_video_name": "short_0392.mp4",
+        "category": "subject_editing",
+        "subcategory": "remove existing subject",
+        "source_prompt": "A woman in a white suit is standing in front of an ornate fireplace, gesturing with her hands as if she is explaining something.",
+        "edit_prompt": "Remove the ornate fireplace",
+        "target_prompt": "A woman in a white suit is standing and gesturing with her hands as if she is explaining something",
+        "target_span": "ornate fireplace",
+        "target_phrase": "ornate fireplace"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 55,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "11011/4800",
+        "end_exclusive_rational": "7007/3000",
+        "scope": "full official short source"
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-timing-ive-fireplace-recovery-r108-20261019/inputs/short_0392_original.mp4",
+        "sha256": "7c410085f2fd939d9fe5c56a66abf2b165f7c17eebc4f43db930859f321e9f1f"
+      },
+      "source": {
+        "file": "inputs/short_0392_video.mp4",
+        "sha256": "1e33c78889c4f9107618acf3ab8066056a8631b282c859831b10764eb32ba05d",
+        "bytes": 7255352
+      },
+      "provenance": {
+        "file": "inputs/short_0392_provenance.json",
+        "sha256": "9a3222872a718d615a5c844885760c39d65c52d838e34badf28c040c6511bc89",
+        "bytes": 10502
+      },
+      "display_task": "移除人物身后的雕花壁炉，保留人物、手势和房间其余部分。"
+    }
+  ],
+  "scope": "One-shot CPU collection; actual Native gate then root decides guide or skip; actual paired gate for matched comparison. No verifier, inference, queue submission or watcher.",
+  "method": "固定时序引导（20步Euler中步骤索引6–14，α=1，全部有效参考时间位置）；基础编辑验收通过后配对。"
+}

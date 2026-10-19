@@ -1,0 +1,32 @@
+Full-timeline pose scan feasibility baseline, frozen before scanning
+2026-10-17. CPU only; no model calls, no online-control or novel-method claim.
+
+Reuse the original timing_metrics.py without changing its numerical functions.
+Compare the exact archived source pose with Native pose from R3 source05 bad,
+R20 source07 bad, R14 source05 normal seed, and all four R24 Native outputs.
+All are development observations already inspected; none is a blind test set.
+
+Enumerate all complete physical windows of length16 and32 frames with stride4,
+from frame0, adding the last complete window if the stride misses it. Never
+read an oracle event interval. For each window evaluate the existing arm,
+left-arm and right-arm direction descriptors at confidence0.3 and0.5, scanning
+all lags -24..24 with existing coverage, ambiguity and residual-shape gates.
+
+A positive timing candidate requires both thresholds to return reliable lags
+greater than2 and differing by at most2. A negative candidate uses lags below-2
+under the same agreement rule. Aligned requires both values within[-2,2]. All
+other outcomes are UNKNOWN. These are transparent baseline rules, not calibrated
+error probabilities. Union the time support of candidates for a descriptive
+scan summary; overlapping windows are correlated and not separate samples.
+
+Archive every window, both threshold results and all49 score/coverage rows.
+Report joint/part counts and candidate interval union for all cases. Whole-video
+normality is not established by previously normal primary windows. Any candidate
+outside those old windows needs visual review; do not count it as a confirmed
+false positive or silently remove it.
+
+This baseline tests whether scanning can recover previously visible failures and
+how much ambiguous support it generates. It cannot establish an early denoising
+start point, useful intervention, a novel architecture, or full action omission.
+Inputs and numerical module hashes are frozen before the loop. Run an identity
+pose self-comparison sanity check on each source and preserve any UNKNOWN.

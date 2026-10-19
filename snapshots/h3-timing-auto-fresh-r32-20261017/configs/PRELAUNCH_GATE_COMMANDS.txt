@@ -1,0 +1,44 @@
+R32 replaces unrun R28 by relocating its unchanged source40372 seed1701 experiment.
+Root=/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017
+Main and isolated decoder: GPU3 GPU-REDACTED; port8495.
+Exact permitted peer: GPU2 GPU-REDACTED, only its registered main process.
+Root alone controls deployment and launch. R27 must finish and release GPU3 before R32 starts; two automatic decoders are not admitted concurrently.
+
+Copy the two immutable inputs from existing R28 formal inputs (or the same R26 laneA files):
+/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/inputs/source_40372_video.mp4
+SHA ac122ce85c8d8d1feb27dbe3fa0f80a0c9a83e01b004b2db06dab7f013f1f052
+/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/inputs/source_40372_portrait.jpg
+SHA 4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42
+Copy under the same basenames into R32/inputs. Actual input/ copies are checked on submission.
+
+Inherited gates, not new executions:
+R28/deploy_manifest.json SHA d790180902bdb2593372f99ef1cb6011d1ff869a72f91f0e2fc2dc6a788877ad
+R28/audit/gpu_dynamic_union_gate.json SHA f91a689f5141a1ca415430c2d9ac6b291d55cf1be65bee6a0f0513851a8ac577
+Actual87361 layout [1,56,87361,128]; Rvideo[7679,47285), Tvideo[47755,87361), 943 spatial rows,42bins.
+This tests the same numerical implementation and same source geometry. It does not measure the current resident DiT on GPU3.
+R27 v2/deploy_manifest.json SHA996b14cb6e68e33babf84367cab5c9d027aa5b0f112e956308daf904817332e5
+R27/audit/known_endpoint_bridge.json SHA0fb567b1e70b282569d747106e09298817872890935d08b9c835857c84831dc9
+The older bridge certifies identical decoder/pose/scan code on its stored endpoint, not R32 current endpoint or quality.
+configs/r28_inheritance.json and r27_inheritance.json bind numerical code, source evidence and parent seals.
+
+Root writes audit/resource_admission.json from configs/resource_admission_template.json only after its GPU3 resource review.
+Positive estimates and at least2 real SHA-bound evidence files are required. estimated_combined>=model+routing+decoder and<=total;
+total-model-routing>=12288MiB. Neither CPU PASS nor unmeasured allocator reuse can authorize this record.
+First real model call, every decoder's free>=12288MiB exact-parent-only admission, current conditions/noise/prefix guards remain mandatory.
+
+Root then edits only mutable admission fields to root_live_review_required=false and exact currently permitted GPU2 PID/UID/start_ticks/cmdlineSHA.
+Do not carry R26/R29/R30 identities after those services exit.
+python3 scripts/preflight.py --metadata-only
+python3 scripts/preflight.py
+python3 scripts/launch_remote.py --service-only
+This creates the service and 12h watchdog and returns processes/service.json; it submits no prompt.
+If the peer needs CUDA-before-registration coordination, root uses its already audited same-PID runpy gate; do not spawn an unregistered second CUDA process.
+python3 scripts/start_controller.py --pid ACTUAL_SERVICE_PID --start-ticks ACTUAL_START_TICKS
+Creation is protected by an exclusive lock. The controller binds this exact owner on every submission.
+One graph r32_source40372_seed2026101701_auto; job4h, service12h, residenthold1800s. Root may set queue.finalize=true at completion.
+
+CPU producer verification after success:
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_completed.py --allow-resident --output audit/verified_completed.json
+Omit --allow-resident after exact cleanup. Independent full-clip pose/media remains a later postrun phase.
+
+Terminology: legacy physical_index means zero-based DENOISING index0..19; physical_intervals are RGB VIDEO FRAME indices0..140; NFE counts actual model calls20+K.

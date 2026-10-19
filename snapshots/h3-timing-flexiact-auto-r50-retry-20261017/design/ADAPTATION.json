@@ -1,0 +1,195 @@
+{
+  "schema": "r50-adaptation-design-v1",
+  "status": "CPU_COMPONENT_PREPARATION_AUTHORIZED; NOT_DEPLOYABLE",
+  "all_five_mandatory": true,
+  "selected_by_generated_results": false,
+  "geometry": {
+    "width": 1152,
+    "height": 768,
+    "frames": 158,
+    "fps": 24
+  },
+  "valid_observation_frames_inclusive": [
+    0,
+    146
+  ],
+  "tail_padding_frames_inclusive": [
+    147,
+    157
+  ],
+  "official_score_indices": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    33,
+    36,
+    39,
+    42,
+    45,
+    48,
+    51,
+    54,
+    57,
+    60,
+    63,
+    66,
+    69,
+    72,
+    75,
+    78,
+    81,
+    84,
+    87,
+    90,
+    93,
+    96,
+    99,
+    102,
+    105,
+    108,
+    111,
+    114,
+    117,
+    120,
+    123,
+    126,
+    129,
+    132,
+    135,
+    138,
+    141,
+    144
+  ],
+  "effective_source_fps": 8,
+  "model_fps": 24,
+  "latent_video_shape": [
+    1,
+    24,
+    47,
+    48,
+    72
+  ],
+  "latent_audio_shape": [
+    1,
+    32,
+    2,
+    263
+  ],
+  "query_gain_shape": [
+    47,
+    24,
+    36
+  ],
+  "frame_rows": 864,
+  "text_and_portrait_tokens": "actual per-case conditioning; no fixed packed sequence length",
+  "window_lengths": [
+    16,
+    32
+  ],
+  "stride": 4,
+  "append_last_complete_window": true,
+  "scan_row_count": 192,
+  "features": [
+    "arm_direction",
+    "left_arm_direction",
+    "right_arm_direction"
+  ],
+  "confidence_thresholds": [
+    0.3,
+    0.5
+  ],
+  "lag_frames": [
+    -24,
+    24
+  ],
+  "null_lag_frames": [
+    -2,
+    2
+  ],
+  "gain_strictly_greater_than": 0.5,
+  "existing_reliability_and_persistence": "unchanged byte-exact policy/metric/gain",
+  "padding_excluded_from": [
+    "torso_scale",
+    "candidate_windows",
+    "lag_candidate_matching",
+    "null_matching",
+    "common_support"
+  ],
+  "padding_present_in": [
+    "full_input",
+    "full_158_decode",
+    "full_158_pose_archive",
+    "full_reference_attention_normalization"
+  ],
+  "position_bin_boundary": {
+    "bin": 43,
+    "nominal_frames_inclusive": [
+      145,
+      148
+    ],
+    "observation_valid_part": [
+      145,
+      146
+    ],
+    "padding_spillover": [
+      147,
+      148
+    ],
+    "rule": "unchanged any-overlap interval mapping; do not crop attention K/V",
+    "bins_only_padding": [
+      44,
+      45,
+      46
+    ]
+  },
+  "sampling": {
+    "native_endpoints": 20,
+    "optional_full": "0..19 based on current Native measurement plus consecutive persistence",
+    "NFE": "20+K, K in0..19",
+    "Euler_updates": 20,
+    "chosen_captures": 21,
+    "online_observations": 20,
+    "blocks_per_NFE": 50,
+    "Full_alpha": 1,
+    "Full_radius": 0,
+    "Full_spatial_support": "all spatial query rows in selected temporal bins"
+  },
+  "historical_bridge": "Native(n) is comparable through firstON inclusive; selected Full and all later states permanently N/A; do not postpone firstON to force a bridge",
+  "legacy_regression": {
+    "geometry": {
+      "width": 1312,
+      "height": 736,
+      "frames": 141,
+      "fps": 24
+    },
+    "valid_observation_frames_inclusive": [
+      0,
+      140
+    ],
+    "scan_rows": 186,
+    "require": "same feature arrays, raw numerical scan rows and policy sequence; no padding adaptation change to141"
+  },
+  "pending": [
+    "R49 actual five complete parent archives and per-case source pose",
+    "actual packed layout per case",
+    "R50 actual Comfy integration of changed adapters",
+    "new47-bin/actual-layout GPU numerical gate",
+    "158decoder/co-resident memory evidence and root admission",
+    "final producer bundle and independent review"
+  ],
+  "no_claims": [
+    "all-body motion detector",
+    "24fps independent motion ground truth",
+    "new policy threshold calibration",
+    "original FlexiAct generation protocol replication",
+    "actual GPU passed"
+  ]
+}

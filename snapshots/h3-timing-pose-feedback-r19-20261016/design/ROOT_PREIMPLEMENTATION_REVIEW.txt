@@ -1,0 +1,30 @@
+2026-10-16 root read-only implementation review; frozen PROTOCOL unchanged.
+
+Actual R12 native index10 bridge artifacts are available locally under
+h3-timing-native-observer-r12-20261016/analysis/pose/early:
+records/x0_step010.json, raw/x0_step010.mp4,
+results/x0_step010.pose.json and x0_step010.observer.json.
+The decoder record contains normalized input binding, decoded tensor hash,
+preencode RGB hash and frame hashes; use those for G2 rather than MP4 alone.
+
+The existing R12 decode_x0.py calls VAE.decode. Actual installed Comfy sd.py
+1230–1311 catches OOM and silently changes to tiled decode (decode_tiled_3d or
+_decode_tiled_owned). Existing R15 logs showed the regular path, but the old
+decoder itself does not prohibit a future fallback. R19's already frozen
+full-decode requirement therefore needs an explicit child-process guard on
+all applicable fallback entry points, with a test that raises on attempted
+fallback. Preserve the successful regular code path and original images.
+Scope that guard to the isolated decoder process; keep the installed Comfy
+source and historical scripts untouched. A normal H3 VAE's internal chunked
+I/O mechanism is distinct from Comfy's OOM spatial-tiled fallback.
+
+R12 PredictionProbe after save_endpoint/native and before selection_decision
+is the actual insertion point. Output references, x, timestep, sample_sigmas,
+condition tree, RNG, model/patcher residency and identity require checks after
+the observer; the pre-observer checks already present do not cover a later
+external call. Keep both native and selected AV streams and the one original
+Euler callback. The saved endpoint branch file is CPU-normalized and may be
+passed to the child by an immutable request binding.
+
+This review adds engineering requirements implied by G2/G3; it does not
+authorize an implementation or GPU run before root reviews R18.

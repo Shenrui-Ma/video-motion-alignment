@@ -1,0 +1,7 @@
+Root-owned final steps after independent review and CPU PASS:
+1) Verify sealed runtime/input SHA, exact current resource admission and peer identity. Do not reuse stale PID.
+2) Populate audit/resource_admission.json using r35-root-resource-admission-v1; fields validated in scripts/prelaunch_gates.py. R27 gate is actual87592 and same17 numerical files; no source07 accuracy claim.
+3) CUDA_VISIBLE_DEVICES='' python scripts/preflight.py --metadata-only is metadata only.
+4) Actual full preflight scripts/preflight.py verifies old source/core/GPU evidence and ROOT resource approval without model inference.
+5) Root may call scripts/launch_remote.py --service-only then register exact service peer and scripts/start_controller.py --pid ACTUAL --start-ticks ACTUAL. This owner has not authorized or executed those actions.
+6) Postrun one_phase.py --execute only after root BINDING exact generation; repeat one phase per call until final verified. Parent old schema unavailable early captures stay unavailable.

@@ -1,0 +1,35 @@
+R50：FlexiAct 五个官方人→人配对的自动动作时间控制适配
+2026-10-17；先准备 CPU 组件，尚不具备部署/推理条件。
+
+范围与冻结依据
+五个来源按 R49 顺序 chest/crouch/fitness/one_leg/rotate 全部运行，seed 2026101701，原 target image、统一 H3 prompt、158f/24fps/1152×768、Euler20/CFG1/no LoRA 原样配对。不根据 Native 结果删例或调阈值。SOURCE_BINDING.json 记录 R49/R45 原 manifest、原 source bytes 与数值文件 SHA；R49 实际条件/噪声/端点/源 pose 尚待生产归档，不填假值。
+保留 R45/R40 的 Native 当前状态预测→全 VAE 解码→CPU DWPose→当前测量与跨去噪步 persistence→可选同输入 Full→一次 Euler。共20次观察、20+K NFE、20更新、21 chosen 文件；原 persistence 使 index0 不触发，K最多19。物理视频帧与去噪 index 不同。只响应可靠持续延后；提前/对齐/可见性 UNKNOWN 不触发，技术错误中止。
+
+有效时间域（root 已确认）
+完整158帧进入模型，完整158 pose/视频逐帧验证并归档。前147帧为原49帧各重复3次；147..157为人为末帧填充。
+特征视图仅包含0..146，保留原 frame 编号和 i/24 秒；先裁取姿态 records 再调用原 pose_features，使 torso scale、scan、shift、null 和共同支持均不读 padding。不能只限制候选窗：例如窗131..146、lag+4时，完整pose会错误利用147..150；有效域视图只能匹配131..142，共12/16帧、coverage .75，应由原 .8 门拒判。全158原始记录及SHA仍绑定；不伪写147帧为原视频几何。
+window长度16/32、stride4、最后一个完整窗加入规则不变。147有效帧分别34/30窗，×双臂/左臂/右臂=192行；两置信阈值在同一行。旧141全域仍33/29窗=186行。原所有阈值与 tie-break 不变。49个原时刻的官方评分取 output[0,3,...144]，padding不评分。控制器在24fps重复序列上运行是显式适配，不能把重复帧当独立125ms以下真实运动证据；原≥8有效帧门仍按当前算法计数，不声称≥8独立原帧。
+
+模型位置bin边界
+H3名义跨度重复(1,4,4,4,4)。158→47bins，latent video [1,24,47,48,72]，patch空间24×36，每bin864行；audio [1,32,2,263]。原layout函数已经支持这些尺寸。
+有效域尾端146落于bin43=[145,148]。原任意重叠映射会同时改该bin内147/148所对应部分；必须记录这个连带范围，不能宣称像素级仅0..146执行。44..46仅padding，不由候选窗选中。完整参考归一化仍含所有158帧条件。位置bin不是VAE精确感受野。不得为消除该边界裁K/V或换算子。
+
+已定位的最小修改面（路径相对于 R45，全部只在新 R50 改）
+1. H3AutomaticWindowRouter/core.py:29–38、61、132、362：Config当前锁141；shapes忽略config尺寸；全片plan140和gain默认42。必须从冻结per-case几何传递到读出形状、plan与mask。__init__.py:19当前仅默认Config，应由run registry取geometry，不从随意输入推断。
+2. dynamic_support.py:6–23、selector.py：边界141/42/23×41改为经过验证的geometry/valid-domain参数；原 Policy、gain阈值、分组/persistence原字节复用。query gain类支持显式expected_shape，可原字节复用。
+3. scripts/scan_current_pose.py:10–41：全视频验证参数化；增加独立有效域feature view；原load_pose提取路径的等价性需回归。timing_metrics.py:30–78、81–147，physical_tolerance.py:7–17，pairwise_gain.py:5–28全部原字节保留。通过裁后数组调用原pose_features，不修改评分公式。
+4. live_observer.py:51–52、pose_live_child.py:27–28、decode_live_child.py:59–65：实际158 shape/fullpose验收；每run选择自己的source pose；请求/响应绑定geometry与domain证书。decode_x0通用解码/编码数值路径保持。timeout/锁/父子精确身份机制复用，不新增常驻VAE。
+5. transport.py:79–97、parent_binding.py、r45_contract.py：旧单case闭包和source路径改为严格五case registry；实际R49每run条件/噪声/21端点独立绑定。未知/错run/缺父链必须拒绝；不得把一个case的证明用于其他case。
+6. verify_completed.py：capture/AV/fullRGB尺寸、source字段改为各case合同；20测量、20+K、firstON inclusive历史前缀资格、allOFF最终AV exact、RGB独立结果等门保留。不可从局部测试声称全OFF成片RGB必相同。
+7. gpu_dynamic_union_smoke.py/prelaunch_gates.py：frame_rows864/bins47/gain47×24×36；实际seq与portrait区间从每case真实packed layout读。R49 tiny fixture seq82098不是实际五例长度；不能硬写一个seq或沿87592/87361/87366。对不同实际layout形成绑定门；旧141 kernel结果只作继承依据，不当新shape已通过。
+8. H3X0Readout/core.py:45–69、H3TemporalRouter/layout.py:14–35/100–167、原route_attention/mask数值无需改。snapshot数量仍20中间+final，不把47bin误当去噪步数。
+
+CPU准备与验收顺序
+A. 只用合成pose的精确比较：141旧feature/所有186行去除耗时字段完全相同；新158 view与显式147records的原metric相同；篡改padding所有坐标/置信/人体选择不改变有效域数值，完整raw SHA变化仍记账；错误geometry/时间/越界/缺帧及非有限时间元数据拒绝，低可见性仍UNKNOWN。
+B. 47bin映射首尾/跨bin/重叠去重、bin43连带范围；空mask exactNative、全mask exactFull、非选行exact/input+RNG不变。保留原42bin回归，不重扫旧矩阵。
+C. 官方Comfy CPU接口：141与158实际latent factory/AV pack/Layout + 新Config和cached五run state隔离；不加载模型权重，不将synthetic smoke称GPU生成成功。原policy restart/shared-arm/UNKNOWN行为沿旧测试并核原SHA。
+D. 父链到位再做实际graph/source/condition/noise/snapshot绑定；首ON前当前Native及firstON当步可比，之后永久N/A。五例不共享状态，也不能用旧case签名填表。
+E. GPU由root：47bins模型外数值门、新实际layout/峰值、158decoder与主模型共驻留余量；现有12GiB guard不放宽，旧141显存测量不能自动证明158。先CPU+审查，后root独立准入；当前没有admission/launch授权。
+
+结论边界
+这是既有自动控制方法对官方配对和合法H3网格的适配，不是新阈值或新肢体检测器。arms-only仍可能无法发现下蹲/单腿的核心误差；需保留官方motion指标与UNKNOWN、全部5结果，不用手臂指标替代全身质量。先完成配对benchmark，再决定论文/创新表述。

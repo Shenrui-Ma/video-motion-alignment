@@ -1,0 +1,37 @@
+源事件锚点 / 真实重编码必要性：现有张量 CPU 开发消融
+
+结果：在冻结 gap5、全画布/全通道、候选 0/4/8、源动作窗 50–65 和这三个已看过的开发样例下，真实时移重编码仍未通过近零反例。它不支持用当前评分承担停止判断；该结论不否定所有校准 bank、表征或候选设计。本轮结束，不扫描阈值、候选或表征，不增加 GPU 编码。
+
+统一源锚点 u 后，三臂分别比较：
+1. 真实库 F(E(S_dR))(u+d) 对 F(Y)(u+d)。
+2. B0 先按中心 c_j−d 做 latent 插值，再 gap5，再在 u+d 比较。
+3. 原 gap5 F(B0)(u) 对 F(Y)(u+d)，仅候选 0/4/8。
+全 16 个 u 对所有臂/候选共同有效；144 条完整依赖记录逐项包含插值两侧、gap5 两端和保守完整 17 帧编码块，排除首块、尾部分块、人工填充及所用点的 clamp。未按目标分数选帧。
+
+分数均为越小越好；括号内顺序为 d=0,4,8。
+
+r2_s05_native，独立 pose 主窗 14 帧：
+  real_reencoded: (0.877568834, 0.775016134, 0.671577146); rank [8, 4, 0]; RIGHT_EDGE_OUT_OF_RANGE_OR_BOUNDARY
+  latent_interpolated: (0.877568834, 0.783453328, 0.670578625); rank [8, 4, 0]; RIGHT_EDGE_OUT_OF_RANGE_OR_BOUNDARY
+  original_gap5_restricted: (0.877568834, 0.785104448, 0.685604071); rank [8, 4, 0]; RIGHT_EDGE_OUT_OF_RANGE_OR_BOUNDARY
+
+r2_s05_full_6to14，独立 pose 主窗 2 帧：
+  real_reencoded: (0.610358800, 0.560782964, 0.639529242); rank [4, 0, 8]; INTERIOR_CANDIDATE4_NOT_PRECISE_ESTIMATE
+  latent_interpolated: (0.610358800, 0.590669415, 0.663649288); rank [4, 0, 8]; INTERIOR_CANDIDATE4_NOT_PRECISE_ESTIMATE
+  original_gap5_restricted: (0.610358800, 0.603821605, 0.687549060); rank [4, 0, 8]; INTERIOR_CANDIDATE4_NOT_PRECISE_ESTIMATE
+
+r11_s05_continuous6to19，独立 pose 主窗 0 帧：
+  real_reencoded: (0.626472966, 0.617083548, 0.662850926); rank [4, 0, 8]; INTERIOR_CANDIDATE4_NOT_PRECISE_ESTIMATE
+  latent_interpolated: (0.626472966, 0.632338251, 0.678634410); rank [0, 4, 8]; LEFT_EDGE_ZERO_OR_ADVANCE_UNRESOLVED
+  original_gap5_restricted: (0.626472966, 0.643591705, 0.698556871); rank [0, 4, 8]; LEFT_EDGE_ZERO_OR_ADVANCE_UNRESOLVED
+
+R11 的独立姿态读数为 0，真实重编码仍首选 4；latent 插值和原 gap5 均首选 0。三臂的 0 候选数值完全相同，差别来自非零候选。把旧固定目标窗换成统一源锚点后，真实重编码的错误排序仍存在；锚点变化没有消除此反例。插值/原 gap5 在这一例的近零排名较好，属于开发消融观察，不是正常域或 2 帧精度验证。
+R2 native 的独立读数 14 超出库；三臂首选 8 均标右边界删失，不报告延迟等于 8。R2 Full 的独立读数 2 位于 0 与 4 之间，三臂首选 4 不能当精确估计。所有 0 候选胜出也只标左边界/提前未排除，safe_stop 始终 false。
+constant0 在三臂均因弱运动/不可辨识而 UNKNOWN；保留所有分数、每帧能量、覆盖和拒判原因。真实 0/4/8 控制的自匹配仅检验符号与索引。
+
+输入与范围：三份 .41 目标实际 prepared RGB 与 B0 clean reference 均逐项匹配；所有现有文件及 tensor raw SHA、shape、dtype、finite、scale1 通过。自然正常 R14 属 .9 不同实际 prepared/reference，明确 NOT_EVALUATED_INPUT_MISMATCH，未加载其目标做混合校准。原 49-lag gap5 的 0/4/8 分数与第三臂相同至 1e−12；原完整 scan 的 +13/+2/+1 仅留作已有对照。
+
+这是看过旧失败后冻结的开发消融。没有独立新样例、未知编码起点或0/2/4细边界验证，也没有在线控制成功证据。保留失败，无需继续当前 bank 的 GPU 实验。
+
+执行：Mac→remote 非阻塞共享 CPU 锁，torch 1 线程；0 VAE、0 DiT，CUDA 未初始化；RNG、环境和输入文件不变；耗时 2.898 秒，attempt1 exit0，正常退出锁上下文。
+证据：PROTOCOL.json；SUPPORT.json；RESULTS.json；evaluate.py；attempt1.log；FINAL_AUDIT.json。

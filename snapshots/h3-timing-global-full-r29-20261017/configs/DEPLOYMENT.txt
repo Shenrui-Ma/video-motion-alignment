@@ -1,0 +1,28 @@
+R29 generation is a fixed-control development experiment, not an automatic policy or novelty claim.
+Formal root: /data5/researcher/h3_runs/timing_global_full_r29_20261017
+GPU2 UUID GPU-REDACTED; port8492.
+Native parent: timing_auto_motion_r26_20261017/a; source40372 then51304, seed2026101701.
+Full: all42 temporal bins/all space, sampling indices6..14 inclusive/all50blocks, alpha1/radius0.
+20Euler updates /20NFE /20callbacks /1000blocks /450eligible routes per job. No external observer subprocess during generation.
+The original Comfy VAE decoder executes in the same CUDA process. Comfy's normal model-memory management may offload DiT for VAE; cached service residency is recorded, not inferred.
+
+Root deployment only (builder did not launch):
+1. Extract audit/runtime_bundle_v1.tar.gz into formalroot; preserve initial incoming tar/hash.
+2. Copy the six source_* files named in manifest from R26/a/inputs. Verify EVERY manifest SHA, including copied inputs.
+3. Root updates configs/admission.json ready_for_launch=true with exact live R27 peer service identity, scopeown_user_video_jobs. This is administrative and excluded from seal. No blanketUID exemption.
+4. python3 scripts/preflight.py --live
+5. python3 scripts/launch_remote.py --service-only
+   This returns supervisor/watchdog and service identity at a strict pre-CUDA pause. The actual future CUDA PID is the returned service PID, not the supervisor or gate helper. Its OS cmdline includes service_entry.py, compatibility_bootstrap.py and Comfy/main.py and remains unchanged after runpy.
+6. Independently inspect processes/cuda_gate_ready.json against /proc service PID UID/startticks/cmdSHA and processes/service.json. Register that exact PID in R27 mutable admission BEFORE allowing CUDA. Then atomically write processes/cuda_gate_go.json with exactly the ready JSON (no fields changed). Root must do this within600seconds. No torch import occurs beforego.
+7. Wait for HTTP object_info/H3TemporalRouter and H3X0Readout readiness. Then:
+   python3 scripts/start_controller.py --pid <servicePID> --start-ticks <startTicks>
+   The helper holds an exclusive controller-start lock and validates owner, exact go, HTTP readiness and preflight. It refuses duplicate or stale controllers.
+8. Jobs run serially with same cached service. Before each prompt, strict admission retries only transient unregisteredpeer or foreignselectedGPU conditions for≤600s; everyattempt checks owner and no prompt is submitted until originalstrict guard passes. Waittime is recorded; no new PID is accepted byretry.
+9. After twojobs success and postrunarchive, root may set queue.finalize=true (same jobs, exactboolean) torelease. Otherwise1800s boundedhold. Service12h/watchdog; eachjob2h. Controller-start grace900s includes pre-CUDA600s gate andHTTP init. Only exactowned generation is stopped.
+10. CPU postrun verification:
+    CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_batch.py --output analysis/ACTUAL_RUN_GATE.json
+    Requires actual20callbacks/counters,21finiteAVsnapshots, realconditions/noise/Qwen, and independent oldNative0..5 AV equality. NevercompareoldNativefuture afterfirstFull at6. 141RGB finalpose/fullscan and visiblequality remain separatepostrunwork.
+
+Model/core provenance reuses exact R26/R3 pinnedfiles and actualsize+mtime; no new weights/dependencies. Hardware admission and neural video outcomes are not implied byCPUtoyPASS. Existing R27 full42bin kernel checks and oldR24 Full arithmetic are usefulimplementationevidence; actualR29run still must pass allruntime/finite/prefixgates.
+
+R28 comparison limitation: R29 alters both physical support (global) and schedule (fixed), so differences cannot establish scheduling-only superiority. The two sources were chosen after R26 Native errors and are development cases.

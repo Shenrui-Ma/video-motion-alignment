@@ -1,0 +1,52 @@
+R96 ready for root review and explicit GPU launch. Preparation started no service/CUDA/watcher.
+
+Local: /Users/researcher/DevProjects/h3-timing-ive-native-screen-r96-20261018
+Remote: /data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018
+SSH: direct H3_SERVER_B (no jump through host9)
+GPU2 UUID GPU-REDACTED; port8560; UID1004.
+123 sealed files, deploy_manifest SHA256:
+4a92c38b97bb420ef09816a3c0e90a8d41ada9bfa2a3fd5bec4e9517c800c87a
+
+Evidence:
+audit/TARGET_CPU_VERIFIED.json: actual target seal123/123,input20/20,core9/9, five-source rational PTS, CPU imports and133 tests PASS.
+audit/CPU_TESTS_FINAL.txt: local133tests PASS.
+audit/STATIC_VALIDATION.json:50Python files parsed.
+audit/ACTUAL_CPU_IMPORTS.json: Torch2.11.0,PyAV17.0.0,torchvision0.26.0,NumPy1.26.4,transformers5.5.3,Triton3.6.0,comfy-kitchen0.2.33; CUDA hidden and is_initialized false after importing native H3 plus4extensions. Existing model paths/stat recorded, no fresh huge checkpoint hash/copy/load.
+audit/INHERITED_BYTE_BINDINGS.json:46 source/prompt/provenance bytes and6numerical files exact R92 inheritance; parent seal preserved under source_snapshot/r92_parent.
+audit/CHANGE_MANIFEST.json: exact modified/new sealed files.
+audit/PASSIVE_HOST_SNAPSHOT.json: no own CUDA or service at preparation; GPU2 free48494MiB; data4 free1.315TB.
+audit/target_cgroup.log: effective headroom80874098688bytes (~75.32GiB), /user.slice high100GiB/max112GiB;PSIavg10/60 zero. Refresh at launch.
+
+Resource/lifecycle:
+- Root-approved administrative first-load trial: GPUfree>=40GiB AND every ancestor's finite high/max minimum headroom>=64GiB. Exact parent100/112GiB andUID1004 checked. Actual loading peak not yet measured;64GiB is a conservative capacity margin, not model minimum.
+- Root wrapper initially requires no other own live peer; existing compute-owner guard refuses unregistered own CUDA. First .41 run therefore uses one own card. Root can review memory trajectory before authorizing a later two-card profile. Other users are allowed.
+- Existing max2ownGPU hard guard, exactPID/UID/start/cmd-hash, preCUDA ready/go, HTTPUNKNOWN, no POST retry, total deadlines and bounded CUDA-release wait retained.
+- cgroup baseline saved at audit/CGROUP_STARTUP.json and before GO at attempt/CGROUP_PRE_GO.json. Existing resources.jsonl sampling includes ancestor current/PSI/events delta. Historical high totals are not treated as new failures; shared-ancestor deltas also include other users. Telemetry read failure records UNKNOWN. Final observation in attempt/CGROUP_EXIT_OBSERVATION.json.
+- Models/core/dependencies remain data3; task data/temp/outputs/cache are data4. Same underlying9coreSHAs, different host/runtime; cross-host output equality is not asserted. Both arms freshly generated here.
+
+Single explicit root execution after fresh admission (root may place this under its usual recorded nohup wrapper):
+cd /data4/researcher/h3_runs/timing_ive_native_screen_r96_20261018
+python3 -u audit/root_run_batch.py --execute --attempt root_native_screen_attempt1
+
+No --peer-root for this first single-own-GPU memory trial. The wrapper handles its own exact identity registration, preCUDA GO, controller, root-bound admission and cleanup. It performs no automatic restore/retry if an old process record already exists.
+
+At each actual Native result:
+python3 scripts/execution_gate.py decide --root-reviewed --source long_0047 --choice guide --reason 'actual source/Native review: describe task and measured visible mismatch'
+OR choice skip with an accurate reason. Replace source by the current registered source. Atomic decision is bound to actual Native gate, output SHA, condition/noise evidence and current service identity. Skip archives native_only and creates no forced result/pair.
+
+After first actual guide pair completes and root reviews it:
+python3 scripts/execution_gate.py review-first-guided --root-reviewed
+Then remaining five-source order continues, again Native review per source. All-five skip is allowed.
+
+Hold is1800seconds; expiry releases own service and writes RELEASED_PENDING_REVIEW, not a completed-five claim. Root must explicitly prepare any later resume. Successful all-source outcome writes attempt/COMPLETE.json and exact ROOT_EXIT_RECEIPT.json. On error original exception and exact-owned cleanup retained.
+
+Postrun interfaces:
+analysis/postrun/<source>/NATIVE_RUNTIME_GATE.json schema r96-native-runtime-gate-v1
+analysis/postrun/<source>/PAIR_RUNTIME_GATE.json schema r96-paired-runtime-gate-v1
+run IDs r96_<source>_seed2026101701_<native|forced>.
+Same as R92: service_owner, binding_artifacts, actual6condition blobs/rawAVnoise/20NFE; guided compares first6AVx0 exact and450 routed blocks. Gate persistent semantic identity ignores only regeneration timestamp; existing unchanged gate bytes are retained.
+Consumer owner flex_chest_pair_completion is preparing h3-ive-native-screen-metrics-r96-20261018 independently, no watcher started.
+
+Registered sources/total/valid:
+long_0047 107/97; long_0123 158/144; long_0167 158/144; long_0173 158/145; long_0174 158/145.
+1312x736,24fps,crop16,8,1280,720; no reference image. Scope: IVEBench素材片段探索, no full official benchmark score claim.

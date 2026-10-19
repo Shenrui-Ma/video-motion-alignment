@@ -1,0 +1,29 @@
+Pairwise common-support gain baseline v1, frozen before computation
+
+Motivation observed during development: source-derived +/-2 geometry tolerance
+suppresses delayed source07 proposals during rapid motion. A global intersection
+over all null/shift/source-calibration supports also discards usable comparisons.
+Test a simpler alternative before proposing more elaborate calibration.
+
+Reuse all nine existing development cases and original all-time reliable
+outside[-2,2] lag proposals. For each proposed d, compare its direction error
+against each allowed e in[-2,2] separately. In each pair use identical source
+frames/joints and one minimum confidence weight shared by source(t), edited(t+d)
+and edited(t+e). Require coverage>=0.8, >=8 valid frames and proposal residual
+<=0.5 for every null comparison at both confidence levels. Otherwise UNKNOWN.
+The per-null score is (Cnull-Cproposal)/max(Cnull,1e-8). Take its minimum across
+the five allowed null offsets and both confidence levels. A proposal is retained
+when that minimum exceeds a fixed gain threshold. Evaluate all three declared
+thresholds0,0.25,0.5; report all, not whichever wins. Do not call this statistical
+confidence or a new architecture. It is a transparent strong baseline.
+
+The intersection-union comparison keeps each null comparison internally fair;
+support still differs between null hypotheses and candidates. It does not provide
+a cross-window calibrated utility or multiple-testing error guarantee. Original
+lag reliability/ambiguity gates remain; early temporary delay is not an identified
+false-positive merely because the final becomes normal.
+
+All prior baseline and physical-tolerance results remain immutable. This protocol
+is a data-informed development revision, never a held-out benchmark. Synthetic
+checks cover identity, tolerated/large time shifts, static signals, missingness,
+and a single missing null-frame support that still leaves each comparison valid.

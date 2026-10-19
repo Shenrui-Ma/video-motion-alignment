@@ -1,0 +1,169 @@
+{
+  "schema": "r104-three-task-repair-definitions-v1",
+  "pairs": [
+    {
+      "pair_key": "fitness__game_man_4",
+      "motion_source_id": "fitness",
+      "original_pair_id": "official-assets/fitness/game_man_4",
+      "group": "original_official_pair",
+      "identity": "benchmark/target_images/human/game_man_4.jpg",
+      "source": {
+        "original": "source_fitness_original.mp4",
+        "original_sha256": "58ede2322b33cdb488ad924e94fb55972aa7856aa93dab96fda02edd076526d8",
+        "video": "source_fitness_video.mp4",
+        "video_sha256": "168eca8e9b2ebcfcb4b61ece44730a99889726ee0106078bbd063330eb72a686",
+        "provenance": "source_fitness_provenance.json",
+        "provenance_sha256": "5393952b68d6d2a9b502c8291b6a282173ed576a3194507fcfc0b291bd3fb447"
+      },
+      "portrait": "target_game_man_4.jpg",
+      "portrait_sha256": "4e6ba7513b5e1580e3c713cdaea8df23c71411764e5ead2a59facd07bb50d33e",
+      "reference_image_expected": {
+        "original_width_height": [
+          975,
+          600
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          960,
+          608
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          38,
+          60
+        ],
+        "expected_DiT_visual_patch_tokens": 570,
+        "formula": "pinned native ref_image_size=match: min(1,sqrt(canvas_area/image_area)); each axis round32; actual inference verified by gate"
+      },
+      "prompt_file": "configs/prompts/fitness__game_man_4.txt",
+      "prompt_sha256": "36184b83d24c036638ac794b3dc18787bc4a4f9b476c7e523d22fcf15542fac3",
+      "prompt": "subject_definitions:\n<Subject 1> is the anime man in <Picture 1>, with short parted black hair, a green cloak, a cropped brown jacket, a light shirt and cravat, dark trousers with pale crossing harness straps, dark boots, and paired hip gear. His identity, clothing and visual style come from <Picture 1>.\n<Subject 2> is the plain white backdrop in <Picture 1>.\n<Subject 3> is the complete standing arm-raise and joined-hand lowering sequence performed by the woman in <Video 1>. This label supplies motion only; the source woman's face, long brown hair and lavender sports outfit are replaced by <Subject 1>.\n<Video 1> supplies the continuous shot structure, body orientation, motion order and physical timing for the target sequence.\n\nsummary:\n[reference generation] Generate <Subject 1> performing <Subject 3> in <Subject 2>, following the complete visible motion sequence and timing of <Video 1>. The target image determines the character and environment.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve short parted black hair, the male facial structure, green cloak, cropped brown jacket, light shirt and cravat, dark trousers with pale crossing harness straps, dark boots and paired hip gear from <Picture 1> throughout the visible motion.\n<Subject 2> (appears in [Shot 1]): fully_preserved - retain the environment and visual appearance defined by <Picture 1> throughout the shot.\n<Subject 3> (appears in [Shot 1]): attribute_transfer - transfer the complete visible action to <Subject 1>, including orientation, limb coordination, visible contacts, direction, range, order and timing.\n<Video 1> (continuous shot and motion timing): fully_preserved - follow the reference clip's continuous view and complete temporal progression within the motion role defined above.\n\ndetailed_description:\nThe target video uses the anime drawing style and plain white environment of <Picture 1>. The character retains the target identity and clothing throughout the continuous action.\n[Shot 1] The camera shows <Subject 1> upright in the three-quarter viewing direction of the source, with both arms initially low beside the torso, within <Subject 2>. His appearance is defined by short parted black hair, the male facial structure, green cloak, cropped brown jacket, light shirt and cravat, dark trousers with pale crossing harness straps, dark boots and paired hip gear. The green cloak lies over his shoulders and brown jacket. Its folds follow his body, while the shirt, pale harness straps, boots and hip equipment keep their established appearance and attachment. His short hair and illustrated face remain recognizable as the head turns or tilts. The target portrait supplies his appearance while <Subject 3> supplies the changing posture.\nHe begins with both arms low and then raises them outward in broad arcs. Follow the source progression through shoulder height and upward into the overhead position. The shoulder rotation, elbow extension and changing wrist orientation follow the performer's visible motion. His torso remains upright while the arms rise, and the face keeps the viewing direction shown by the source.\nAs the arms reach overhead, the hands move toward one another and come together. Preserve the brief overhead phase and the transition from separated hands to joined hands. After this phase, the elbows bend outward and the joined hands descend in front of the head. Continue that descent only through the visible endpoint of the source clip, where the hands remain near the face. The hand path, the spacing between the elbows and the small head and upper-body adjustments follow the source sequence. Keep the complete order of outward raising, overhead joining and lowering, with each intermediate phase occurring at its corresponding source time.\nThe plain white backdrop stays visible around the figure throughout the shot, with the target image providing the scene appearance. The body is lit and drawn consistently with the illustrated reference. The framing follows the visible movement, while the target character retains the same costume and proportions as his pose changes. Preserve the reference clip's continuous view, screen-facing direction and overall framing through the action. The duration of each visible preparation, movement, pause and transition follows <Video 1>. Keep the same character recognizable across the sequence as the torso and limbs change pose. The final pose is the joined-hand position near the face visible at the end of the reference clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "prompt_version": "P1-explicit-reference-roles-r104-v1",
+      "historical_failure": {
+        "file": "/Users/researcher/DevProjects/h3-timing-flexiact-expanded-r66-20261018/configs/graphs/r66_fitness__game_man_4_seed2026101701_native.json",
+        "sha256": "15876f6e0a37f4e191d9ed3923ca920764576ce78efe3b01c0bb7b6682077fa4",
+        "bytes": 5409
+      },
+      "source_is_new_motion_content": false,
+      "official_pair_exact": true,
+      "environment_requirement_provenance": {
+        "official_val_caption_explicitly_requires_target_background": false,
+        "official_readme_relation": "Animate the target image; actions transferred from reference video, allowing layout/viewpoint differences.",
+        "previous_actual_task": "Every prior prompt explicitly requests preservation of the target-image scene; retained for this repair.",
+        "scope": "Existing H3 task requirement; not claimed as a verbatim official CSV instruction.",
+        "target_scene_observed": "the plain white backdrop in <Picture 1>"
+      }
+    },
+    {
+      "pair_key": "human2animal_1__movie_man_11",
+      "motion_source_id": "human2animal_1",
+      "original_pair_id": "official-assets/human2animal_1/movie_man_11",
+      "group": "official_assets_crosspair",
+      "identity": "benchmark/target_images/human/movie_man_11.jpg",
+      "source": {
+        "original": "source_human2animal_1_original.mp4",
+        "original_sha256": "bed32214852074b5b7cc030e9b731c0e2b01725b511bf4e7fbe9caff9847188d",
+        "video": "source_human2animal_1_video.mp4",
+        "video_sha256": "53c4f9e3a59a45db87c7f962bb7cea2422cbfbe065713394f630a3399cb9b000",
+        "provenance": "source_human2animal_1_provenance.json",
+        "provenance_sha256": "7973695e89b1151116d8551996170a9af1a5cc7c49b24afe139827ad6f371d5c"
+      },
+      "portrait": "target_movie_man_11.jpg",
+      "portrait_sha256": "08f83a2619e6049f3152b1486823bb99f27b3f58546b0236f6bb52c2fffb6be0",
+      "reference_image_expected": {
+        "original_width_height": [
+          2500,
+          1830
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          1088,
+          800
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          50,
+          68
+        ],
+        "expected_DiT_visual_patch_tokens": 850,
+        "formula": "pinned native ref_image_size=match: min(1,sqrt(canvas_area/image_area)); each axis round32; actual inference verified by gate"
+      },
+      "prompt_file": "configs/prompts/human2animal_1__movie_man_11.txt",
+      "prompt_sha256": "cf029ddeea50ce28f6935de82a74e178798baa24aee7b44f893714a951f218c9",
+      "prompt": "subject_definitions:\n<Subject 1> is the older man in <Picture 1>, with short swept light-blond hair, a broad face, a dark navy suit, white shirt, navy tie with diagonal pale stripes, a small flag-shaped lapel pin, matching dark trousers and black lace-up shoes. His identity, clothing and visual style come from <Picture 1>.\n<Subject 2> is the outdoor paved path in <Picture 1>, bordered by a green lawn and dark leafy shrubs, with a dark lamp post and large tree trunk on the right.\n<Subject 3> is the complete sequence of low floor-supported body motions performed by the woman in <Video 1>. This label supplies motion only; the source woman's face, long braided hair, lavender top and patterned trousers are replaced by <Subject 1>.\n<Video 1> supplies the continuous shot structure, body orientation, motion order and physical timing for the target sequence.\n\nsummary:\n[reference generation] Generate <Subject 1> performing <Subject 3> in <Subject 2>, following the complete visible motion sequence and timing of <Video 1>. The target image determines the character and environment.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the light-blond short hair, broad male face, dark navy suit, white shirt, diagonally striped tie, lapel pin, dark trousers and black shoes from <Picture 1> throughout the visible motion.\n<Subject 2> (appears in [Shot 1]): fully_preserved - retain the environment and visual appearance defined by <Picture 1> throughout the shot.\n<Subject 3> (appears in [Shot 1]): attribute_transfer - transfer the complete visible action to <Subject 1>, including orientation, limb coordination, visible contacts, direction, range, order and timing.\n<Video 1> (continuous shot and motion timing): fully_preserved - follow the reference clip's continuous view and complete temporal progression within the motion role defined above.\n\ndetailed_description:\nThe target video uses the photographic appearance and outdoor daylight of <Picture 1>. The character retains the target identity and clothing throughout the continuous action.\n[Shot 1] The camera shows <Subject 1> in the low kneeling, arm-supported pose and side-facing orientation visible at the beginning of the source clip, within <Subject 2>. His appearance is defined by the light-blond short hair, broad male face, dark navy suit, white shirt, diagonally striped tie, lapel pin, dark trousers and black shoes. The jacket, shirt collar and diagonally striped tie move with his torso while retaining their colors and construction. His trousers and black shoes follow the leg motion. Keep the short light hair and facial features consistent during forward bends and turns; the visible head belongs to the same man as in the target image. The target portrait supplies his appearance while <Subject 3> supplies the changing posture.\nAt the beginning he supports his upper body with the arms while the lower body remains low. Following the source sequence, he bends the elbows, brings the chest and face close to the supporting surface, and moves the upper body forward through the low phase. The hands, elbows, knees and hips follow the visible coordination and changes of contact in the reference. Maintain the low interval and its gradual transition, so the chest stays close to the ground for the corresponding part of the clip.\nHe then pushes through the arms, extends the elbows, lifts the chest and raises the head as the back extends. Preserve the sequence from the lowest chest position to the raised chest, with the shoulders passing through the intermediate poses seen in the source. Later, the head lowers and the back rounds while the arms continue supporting the body. Continue the remaining visible rounding through the final reference frame. The same hands and lower-body supports remain physically connected to the body throughout these changes.\nThe paved ground remains beneath the character. The lawn, dark foliage, right-side lamp post and tree trunk preserve the target image environment around the moving figure. Outdoor daylight gives the suit and surrounding scene a consistent photographic appearance. The background remains stable as the body changes pose. Preserve the reference clip's continuous view, screen-facing direction and overall framing through the action. The duration of each visible preparation, movement, pause and transition follows <Video 1>. Keep the same character recognizable across the sequence as the torso and limbs change pose. The shot ends during the rounded-back, lowered-head phase shown at the end of the source.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "prompt_version": "P1-explicit-reference-roles-r104-v1",
+      "historical_failure": {
+        "file": "/Users/researcher/DevProjects/h3-timing-flexiact-expanded-r66-20261018/configs/graphs/r66_human2animal_1__movie_man_11_seed2026101701_native.json",
+        "sha256": "72ca936f3b7042f515cad9f0f1dfcb20c40da55f7eaefad9bf5809667acc5433",
+        "bytes": 5490
+      },
+      "source_is_new_motion_content": false,
+      "official_pair_exact": false,
+      "environment_requirement_provenance": {
+        "official_val_caption_explicitly_requires_target_background": false,
+        "official_readme_relation": "Animate the target image; actions transferred from reference video, allowing layout/viewpoint differences.",
+        "previous_actual_task": "Every prior prompt explicitly requests preservation of the target-image scene; retained for this repair.",
+        "scope": "Custom human crosspair task requirement; official validation for this source uses animal targets.",
+        "target_scene_observed": "the outdoor paved path in <Picture 1>, bordered by a green lawn and dark leafy shrubs, with a dark lamp post and large tree trunk on the right"
+      }
+    },
+    {
+      "pair_key": "crouch__movie_man_5",
+      "motion_source_id": "crouch",
+      "original_pair_id": "official-assets/crouch/movie_man_5",
+      "group": "original_official_pair",
+      "identity": "benchmark/target_images/human/movie_man_5.jpg",
+      "source": {
+        "original": "source_crouch_original.mp4",
+        "original_sha256": "b7caa67536033c3f968ba26930895e0947916b442ecc276733582b55cd007759",
+        "video": "source_crouch_video.mp4",
+        "video_sha256": "4226cc5364257d1cf4a4f84f30cc3ad06f7168287daf56ea04121f081cb80e40",
+        "provenance": "source_crouch_provenance.json",
+        "provenance_sha256": "bee467d114bd00f753c1c08c00ca84b8e996c1d24c9d409ff70629fdb19e457b"
+      },
+      "portrait": "target_movie_man_5.jpg",
+      "portrait_sha256": "1f3bfe059d5a2b241d9caf589418ada64d36e3f1ea25f67e809f86425f7a6e78",
+      "reference_image_expected": {
+        "original_width_height": [
+          1000,
+          667
+        ],
+        "expected_native_ref_image_size_match_width_height": [
+          992,
+          672
+        ],
+        "expected_clean_reference_latent_shape": [
+          1,
+          24,
+          1,
+          42,
+          62
+        ],
+        "expected_DiT_visual_patch_tokens": 651,
+        "formula": "pinned native ref_image_size=match: min(1,sqrt(canvas_area/image_area)); each axis round32; actual inference verified by gate"
+      },
+      "prompt_file": "configs/prompts/crouch__movie_man_5.txt",
+      "prompt_sha256": "c790c8fa6b51ac0227fd481313fbf5a50f67efcb5a5f5bc529f1ab9df97c027a",
+      "prompt": "subject_definitions:\n<Subject 1> is the man in <Picture 1>, with short side-parted brown hair, a clean-shaven face, a charcoal-gray suit, light blue shirt, narrow dark tie, black belt and dark shoes. His identity, clothing and visual style come from <Picture 1>.\n<Subject 2> is the plain white studio background shown in <Picture 1>.\n<Subject 3> is the complete two-repetition squat sequence performed by the person in <Video 1>. This label supplies motion only; the source performer's tied-back hair, gray jacket and black exercise trousers are replaced by <Subject 1>.\n<Video 1> supplies the continuous shot structure, body orientation, motion order and physical timing for the target sequence.\n\nsummary:\n[reference generation] Generate <Subject 1> performing <Subject 3> in <Subject 2>, following the complete visible motion sequence and timing of <Video 1>. The target image determines the character and environment.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the short side-parted brown hair, clean-shaven male face, charcoal-gray suit, light blue shirt, narrow dark tie, black belt and dark shoes from <Picture 1> throughout the visible motion.\n<Subject 2> (appears in [Shot 1]): fully_preserved - retain the environment and visual appearance defined by <Picture 1> throughout the shot.\n<Subject 3> (appears in [Shot 1]): attribute_transfer - transfer the complete visible action to <Subject 1>, including orientation, limb coordination, visible contacts, direction, range, order and timing.\n<Video 1> (continuous shot and motion timing): fully_preserved - follow the reference clip's continuous view and complete temporal progression within the motion role defined above.\n\ndetailed_description:\nThe target video uses the photographic studio appearance and white background of <Picture 1>. The character retains the target identity and clothing throughout the continuous action.\n[Shot 1] The camera shows <Subject 1> standing in the side-facing orientation of the first source frame, with the arms initially low, within <Subject 2>. His appearance is defined by the short side-parted brown hair, clean-shaven male face, charcoal-gray suit, light blue shirt, narrow dark tie, black belt and dark shoes. The fitted charcoal jacket and trousers keep their appearance as the knees and hips flex. The light blue collar, narrow dark tie and black belt remain attached naturally. His head retains the short side-parted hairstyle and clean-shaven facial features in the side-facing exercise view. The target portrait supplies his appearance while <Subject 3> supplies the changing posture.\nHe begins upright, then brings his hands forward as his hips move back and his knees bend. Continue into the first low squat following the source trajectory. His upper body inclines with the hips, and the elbows bend so the hands remain together in front of the upper chest. Follow the first low hold for the same part of the reference motion, including the small adjustments of the torso and hands visible there.\nHe then extends his knees and hips to rise again. As in the source, the hands remain near the chest during the upright interval. After that interval, he bends into the second squat, follows its low hold, and rises again toward the final pose of the reference clip. Keep the two repetitions and the intervening upright phase in the source order. The feet maintain the reference placement while his weight moves down and up; the body does not change its screen-facing direction between repetitions.\nThe white studio background remains visible around the moving man for the whole shot, with lighting consistent with the target portrait. Keep the same photographic character and costume through both repetitions. The target image defines appearance and environment, while the source clip supplies the moving pose of the hands and the body. Preserve the reference clip's continuous view, screen-facing direction and overall framing through the action. The duration of each visible preparation, movement, pause and transition follows <Video 1>. Keep the same character recognizable across the sequence as the torso and limbs change pose. The final visible rise continues to the pose shown at the end of the source clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "prompt_version": "P1-explicit-reference-roles-r104-v1",
+      "historical_failure": {
+        "file": "/Users/researcher/DevProjects/h3-timing-flexiact-expanded-r85-20261018/configs/graphs/r85_crouch__movie_man_5_seed2026101701_native.json",
+        "sha256": "3f19d36081e6bbb4239eecee2eb89ffe641bbb2303d6e9696477fb33036e5965",
+        "bytes": 6748
+      },
+      "source_is_new_motion_content": false,
+      "official_pair_exact": true,
+      "environment_requirement_provenance": {
+        "official_val_caption_explicitly_requires_target_background": false,
+        "official_readme_relation": "Animate the target image; actions transferred from reference video, allowing layout/viewpoint differences.",
+        "previous_actual_task": "Every prior prompt explicitly requests preservation of the target-image scene; retained for this repair.",
+        "scope": "Existing H3 task requirement; not claimed as a verbatim official CSV instruction.",
+        "target_scene_observed": "the plain white studio background shown in <Picture 1>"
+      }
+    }
+  ],
+  "design_evidence_sha256": "04941d9edabe69e6138933977b3e87a5cd3964d5e85c9ef3d56d59eff7acff24",
+  "acceptance_sha256": "beffe221c0acba0a0244ae9524cd4098acee34d8b87f207d99bd4c075f5089a4"
+}

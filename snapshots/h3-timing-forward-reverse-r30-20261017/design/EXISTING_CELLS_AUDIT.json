@@ -1,0 +1,480 @@
+{
+  "schema": "r30-existing-three-cells-readonly-audit-v1",
+  "created_unix": 1792184256.609501,
+  "passed": true,
+  "checks": {
+    "N_video_hash": true,
+    "N_pose_archived_hash": true,
+    "N_metadata_archive_binding": true,
+    "F_video_hash": true,
+    "F_pose_archived_hash": true,
+    "F_metadata_archive_binding": true,
+    "B_all_original_local_nonPT_hashes": true,
+    "B_historical_actual_tensor_runtime_gate": true,
+    "B_video_pose_hash": true,
+    "B_playback": true,
+    "N_actual_inputs_equal": true,
+    "N_completed_graph": true,
+    "N_grid": true,
+    "N_layout": true,
+    "N_blocks_forwards": true,
+    "N_routing_schedule": true,
+    "N_fixed_scope": true,
+    "F_actual_inputs_equal": true,
+    "F_completed_graph": true,
+    "F_grid": true,
+    "F_layout": true,
+    "F_blocks_forwards": true,
+    "F_routing_schedule": true,
+    "F_fixed_scope": true,
+    "B_actual_inputs_equal": true,
+    "B_completed_graph": true,
+    "B_grid": true,
+    "B_layout": true,
+    "B_blocks_forwards": true,
+    "B_routing_schedule": true,
+    "B_fixed_scope": true,
+    "B_F_same_capture_semantics": true,
+    "N_F_B_actual_prefix005_AV": true,
+    "B_prefix_actual_not_only_manifest": true,
+    "B_backend_bridge": true,
+    "same_model_fingerprints": true,
+    "same_official_core_recorded": true,
+    "local_input_source05_provenance.json": true,
+    "local_input_05_real_megumi_v.mp4": true,
+    "local_input_sam_altman_village_global_20221117_original.jpg": true
+  },
+  "input_fields": {
+    "N": {
+      "prompt": true,
+      "input_video": true,
+      "native_vae_calls": true,
+      "qwen_presentation": true,
+      "tokenization_before_vision_expansion": true,
+      "conditioning_embedding": true,
+      "token_tags": true,
+      "target_latent_shapes": true,
+      "packed_layout": true,
+      "noise_signature": true,
+      "actual_noise_streams": true
+    },
+    "F": {
+      "prompt": true,
+      "input_video": true,
+      "native_vae_calls": true,
+      "qwen_presentation": true,
+      "tokenization_before_vision_expansion": true,
+      "conditioning_embedding": true,
+      "token_tags": true,
+      "target_latent_shapes": true,
+      "packed_layout": true,
+      "noise_signature": true,
+      "actual_noise_streams": true
+    },
+    "B": {
+      "prompt": true,
+      "input_video": true,
+      "native_vae_calls": true,
+      "qwen_presentation": true,
+      "tokenization_before_vision_expansion": true,
+      "conditioning_embedding": true,
+      "token_tags": true,
+      "target_latent_shapes": true,
+      "packed_layout": true,
+      "noise_signature": true,
+      "actual_noise_streams": true
+    }
+  },
+  "cells": {
+    "N": {
+      "run_id": "r3_s05_native",
+      "video": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_native_00001_.mp4",
+      "video_sha256": "11527cd3412e19b436e0e5deca1673d22a99f5f748cb650817c643e9a8fff1f2",
+      "pose": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_00001_.pose.json",
+      "pose_sha256": "45e130c98e8e39e29efaab7f8d0158695170357182525b5e3ef1742867765759",
+      "backend": "aten._scaled_dot_product_flash_attention.default",
+      "NFE": 20,
+      "Euler_updates": 20,
+      "eligible_correction_calls": 0
+    },
+    "F": {
+      "run_id": "r3_s05_full_6to14",
+      "video": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_full_6to14_00001_.mp4",
+      "video_sha256": "1c76ee0edc663652e93596cc38463d6b1bebdb7a01c6c10ab88a84a66a9ac1ab",
+      "pose": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_00001_.pose.json",
+      "pose_sha256": "9ad37e2485618dda8edc6eef75f7ac1e8b5687742ba6e88fad3a317ed4132739",
+      "backend": "aten._scaled_dot_product_flash_attention.default",
+      "NFE": 20,
+      "Euler_updates": 20,
+      "eligible_correction_calls": 450
+    },
+    "B": {
+      "run_id": "r25_s05_reverse_block_6to14",
+      "video": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/output/r25_s05_reverse_block_6to14_00001_.mp4",
+      "video_sha256": "ba86b3e7ce4c53f569f217571638a7eca0b891ec7bf56f661b96e50c501a157a",
+      "pose": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/pose/r25_s05_reverse_block_6to14_00001_.pose.json",
+      "pose_sha256": "94b78bd651ba3275f158d356e00383e928b05232ba49fa4dde5a8ef8a7249cd7",
+      "backend": "original attention_pytorch full output + Flash group outputs/LSE",
+      "NFE": 20,
+      "Euler_updates": 20,
+      "eligible_correction_calls": 450
+    }
+  },
+  "actual_noise": {
+    "schema": "h3-event-noise-v1",
+    "run_id": "r3_s05_native",
+    "pair_id": "05_sam_1312x736_2026101311_v3",
+    "signature": {
+      "seed": 2026101311,
+      "nested": true,
+      "shapes": [
+        [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          235
+        ]
+      ],
+      "dtypes": [
+        "torch.float32",
+        "torch.float32"
+      ],
+      "batch_index": null
+    },
+    "actual_noise_streams": [
+      {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96"
+      },
+      {
+        "shape": [
+          1,
+          32,
+          2,
+          235
+        ],
+        "dtype": "torch.float32",
+        "sha256": "ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3"
+      }
+    ],
+    "cache_file": "/data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/05_sam_1312x736_2026101311_v3_noise.pt"
+  },
+  "source_input_hashes": {
+    "source05_provenance.json": "db47ea64fb8012253833067f035528a1b94374ae79a9037e4e84d328eddde7f2",
+    "05_real_megumi_v.mp4": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+    "sam_altman_village_global_20221117_original.jpg": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42"
+  },
+  "sigma_video": [
+    1.0,
+    0.9956331849098206,
+    0.9908257126808167,
+    0.9855072498321533,
+    0.9795918464660645,
+    0.9729729890823364,
+    0.9655172228813171,
+    0.9570552110671997,
+    0.9473684430122375,
+    0.936170220375061,
+    0.9230769276618958,
+    0.9075630307197571,
+    0.8888888955116272,
+    0.8659793734550476,
+    0.8372092843055725,
+    0.800000011920929,
+    0.75,
+    0.6792452931404114,
+    0.5714285969734192,
+    0.3870967626571655,
+    0.0
+  ],
+  "layout": {
+    "seq_len": 87592,
+    "segments": [
+      [
+        0,
+        6960,
+        "text"
+      ],
+      [
+        6960,
+        7910,
+        "ref_img"
+      ],
+      [
+        7910,
+        47516,
+        "ref_img"
+      ],
+      [
+        47516,
+        47986,
+        "audio"
+      ],
+      [
+        47986,
+        87592,
+        "video"
+      ]
+    ],
+    "signature": [
+      6960,
+      42,
+      46,
+      82,
+      235
+    ],
+    "reference_index": 1,
+    "reference_kind": "video",
+    "reference_video_segment": [
+      7910,
+      47516
+    ],
+    "reference_image_segments": [
+      [
+        6960,
+        7910
+      ]
+    ],
+    "target_video_segment": [
+      47986,
+      87592
+    ],
+    "latent_interval_half_open": [
+      14,
+      20
+    ],
+    "pixel_interval_inclusive": [
+      50,
+      65
+    ],
+    "position_bin_coverage_inclusive": [
+      47,
+      67
+    ],
+    "key_interval_half_open": [
+      21112,
+      26770
+    ],
+    "query_interval_half_open": [
+      61188,
+      66846
+    ],
+    "key_first_time_coordinate": 7039.333333333333,
+    "query_first_time_coordinate": 7274.333333333333,
+    "frame_rows": 943
+  },
+  "prefix005": {
+    "video": {
+      "shape": [
+        1,
+        24,
+        42,
+        46,
+        82
+      ],
+      "dtype": "torch.float32",
+      "bytes": 15208704,
+      "sha256": "751aa84e3d16e6ae12a18ca63fd6a83b1e5724bfd92a48d44136f761ada30924"
+    },
+    "audio": {
+      "shape": [
+        1,
+        32,
+        2,
+        235
+      ],
+      "dtype": "torch.float32",
+      "bytes": 60160,
+      "sha256": "2eb1915214f90be3d137a647190a80241033013ff42ce0c238b8b7a2bb35c1dc"
+    },
+    "source_scope": "historical actual tensor read/torch.equal report plus B actual runtime gate; no new tensor load"
+  },
+  "evidence": {
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/conditioning.json": {
+      "sha256": "8e959e1392d1aa6035b708715701209a7e6f7345ca49582568a228f60d5b23ed",
+      "bytes": 31910
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/noise.json": {
+      "sha256": "48147d0fe46f886618f962c51d0f854a41eff74fef787133c0046a2eba08da34",
+      "bytes": 990
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/config.json": {
+      "sha256": "b9e0f01de81069bbe8760e64b5ba5fda6dea8a48fd474d3661967d252262c758",
+      "bytes": 6367
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/router_audit.json": {
+      "sha256": "81e8d4b57b40fca8120ba04c8b795d99575e7b604567c4ed94e1b9c4d9563899",
+      "bytes": 81109
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/history.json": {
+      "sha256": "1eb569a87c978ae773b850e967299d825704123cf4fae6ae1d3bf9e9ffcc39be",
+      "bytes": 9096
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/archive_manifest.json": {
+      "sha256": "643c68dfd047dcec35ab2c0f2ecaad73e65fd90e0a8d6e77b8d040381a9ed2ab",
+      "bytes": 4836
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_native_00001_.mp4": {
+      "sha256": "11527cd3412e19b436e0e5deca1673d22a99f5f748cb650817c643e9a8fff1f2",
+      "bytes": 2059818
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_00001_.pose.json": {
+      "sha256": "45e130c98e8e39e29efaab7f8d0158695170357182525b5e3ef1742867765759",
+      "bytes": 197639
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/conditioning.json": {
+      "sha256": "12b7164bbde50fb58744239fe818d1f64b1155aa5ef2dbe75760894ada7c0d99",
+      "bytes": 31914
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/noise.json": {
+      "sha256": "61d4aff41cc7028008b7b379b79d93c7937b60b92bb6920c82dc566ba5da9ba0",
+      "bytes": 994
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/config.json": {
+      "sha256": "83dec6024bdad01a02dd762dbce94fce93b21611d36cceb67df579a6757e57fe",
+      "bytes": 6394
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/router_audit.json": {
+      "sha256": "a3ca1c2c8f983e8ea5fa2d933bbf4d072f0d43f2dc53bfa6aa027b2a2fbbb333",
+      "bytes": 190836
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/history.json": {
+      "sha256": "cde43a74b1e5a22f259a02bd07a4db7ff284e2fe638d1d0113ea27742d4a650c",
+      "bytes": 9144
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/archive_manifest.json": {
+      "sha256": "d844a7ca41fff18bc8e61df4ce7f88ca8b5c220e2eb4fc748fae9db717d957d5",
+      "bytes": 4911
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_full_6to14_00001_.mp4": {
+      "sha256": "1c76ee0edc663652e93596cc38463d6b1bebdb7a01c6c10ab88a84a66a9ac1ab",
+      "bytes": 2058104
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_00001_.pose.json": {
+      "sha256": "9ad37e2485618dda8edc6eef75f7ac1e8b5687742ba6e88fad3a317ed4132739",
+      "bytes": 197588
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/r25_s05_reverse_block_6to14_conditioning.json": {
+      "sha256": "d33dc90cc1132c66eca3461d66072fb331544f8c5d3af09c3ce633b045e3c875",
+      "bytes": 32172
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/r25_s05_reverse_block_6to14_noise.json": {
+      "sha256": "6857160c6c1e4ebab4bbe4d4f6d99a7cba35c288cd4c183635ecba4aa4147d12",
+      "bytes": 1062
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/configs/graphs/r25_s05_reverse_block_6to14.json": {
+      "sha256": "d752093e498231dc9b052c792fb7120970494059188627df9d285c2c9a28be9f",
+      "bytes": 6368
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/router/r25_s05_reverse_block_6to14.json": {
+      "sha256": "67c0aee9a10df71d7d5b05e079e7c7e56cab05395d3a282908c460c757415b7d",
+      "bytes": 235709
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/logs/r25_s05_reverse_block_6to14_history.json": {
+      "sha256": "64e9cc538663af9ad7fe34c05569a682b623b3c6674ddf545f3b25953871d8f6",
+      "bytes": 8902
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/RUN_GATE.json": {
+      "sha256": "071130cb11917d710e0ac8016817671b80e5fcf5261b1c3bd2f75a24cb340b00",
+      "bytes": 9283
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/FILE_INVENTORY.json": {
+      "sha256": "30cb6eb769ec8aee18c9fd192e5da3a3f8c57cc478faa333751f90edc5cfb45e",
+      "bytes": 5760
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/CPU_COMPLETE.json": {
+      "sha256": "cba3c661089a5866d90726d0facfc2399582a3f8628a65dcb5da51ba37086d9a",
+      "bytes": 916
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/PLAYBACK_GATE.json": {
+      "sha256": "ed41ac90343000cb9e115ce0530248692c48265ce42c4cda92bab43cb40046a5",
+      "bytes": 10530
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/output/r25_s05_reverse_block_6to14_00001_.mp4": {
+      "sha256": "ba86b3e7ce4c53f569f217571638a7eca0b891ec7bf56f661b96e50c501a157a",
+      "bytes": 2074741
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/pose/r25_s05_reverse_block_6to14_00001_.pose.json": {
+      "sha256": "94b78bd651ba3275f158d356e00383e928b05232ba49fa4dde5a8ef8a7249cd7",
+      "bytes": 197702
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/full_x0_manifest.json": {
+      "sha256": "141eecee4884e8352682621a7706907a38bc3de95f52326230ddd5e308746501",
+      "bytes": 13092
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/x0/r25_s05_reverse_block_6to14/manifest.json": {
+      "sha256": "6e7b342218e2e708386355a15e79f3a3c8972befa259ac31d611ba14d50f8030",
+      "bytes": 13195
+    },
+    "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/replication/native_replay_actual_tensors.json": {
+      "sha256": "dedf87d8b3a30d9f8e9a80f87d3d783bf1526d21af56d521abfbcc944f4d3181",
+      "bytes": 6031
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/audit/reverse_block_gpu_gate.json": {
+      "sha256": "49ce53153dc255653c9247e8289ef7d5bb03f71c9320167facf66b4d88b597e3",
+      "bytes": 8743
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/configs/runtime_provenance.json": {
+      "sha256": "f2c90c7c16ee03f3a7c0074147364c22d26701c9755870e9b1635f4e4694d644",
+      "bytes": 5810
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/configs/parent_runtime_provenance.json": {
+      "sha256": "91db3eaf976bf19c2eaace9d842165804431377a1609b99ff81b56a8f79b2811",
+      "bytes": 6461
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/configs/input_hashes.json": {
+      "sha256": "169a1cb5433f0deeed967f2b9e60d7b58bbfe0ca55c080275917e5035c68c4e4",
+      "bytes": 316
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/inputs/source05_provenance.json": {
+      "sha256": "db47ea64fb8012253833067f035528a1b94374ae79a9037e4e84d328eddde7f2",
+      "bytes": 627
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/inputs/05_real_megumi_v.mp4": {
+      "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+      "bytes": 1470409
+    },
+    "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/inputs/sam_altman_village_global_20221117_original.jpg": {
+      "sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42",
+      "bytes": 11301954
+    }
+  },
+  "B_original_local_nonPT": {
+    "audit/r25_s05_reverse_block_6to14_conditioning.json": true,
+    "audit/r25_s05_reverse_block_6to14_noise.json": true,
+    "audit/r25_source05_sam_shared_conditioning.json": true,
+    "audit/router/r25_s05_reverse_block_6to14.json": true,
+    "audit/x0/r25_s05_reverse_block_6to14/manifest.json": true,
+    "configs/admission.json": true,
+    "configs/graphs/r25_s05_reverse_block_6to14.json": true,
+    "configs/runtime.json": true,
+    "configs/runtime_provenance.json": true,
+    "deploy_manifest.json": true,
+    "logs/r25_s05_reverse_block_6to14_history.json": true,
+    "logs/r25_s05_reverse_block_6to14_job.json": true,
+    "output/r25_s05_reverse_block_6to14_00001_.mp4": true,
+    "processes/service.json": true
+  },
+  "historical_limits": [
+    "R3 clean condition tensor signatures are available; historical processed/postaugmentation full tree is not.",
+    "R25 B sampler_gate.actual_current_condition tree is available for a stronger B-to-FB runtime comparison, excluding only the two exact UUID leaves.",
+    "R3 used explicit Flash; B used native attention_pytorch with Flash groups. Full-size model-free backend equality and actual005 bridge passed; this does not assert all future perturbed trajectories bitwise equal.",
+    "Models are prior full SHA plus size/mtime checks; this review does not reread remote20GB model files.",
+    "Large PT remain remote; this metadata review binds existing actual tensor gates and does not rerun their computation.",
+    "A single selected development case; no population-level factorial inference."
+  ]
+}

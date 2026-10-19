@@ -1,0 +1,28 @@
+IVE后续官方MF：R97已完成，R99/R100输入工具已准备
+
+目录 /Users/researcher/DevProjects/h3-ive-followup-quantitative-r97-r99-r100-20261019
+远端 /data4/researcher/h3_runs/ive_followup_quantitative_r97_r99_r100_20261019
+远端Python /data3/researcher/ComfyUI/.venv/bin/python
+
+R97 actual：source缓存原字节复用，与源SHA/105有效帧/24fps/1280×720/每帧像素/官方checkpoint/grid10/window60/同.41 RTX4090 Torch2.11/CUDA13精确绑定。只新跑extended一条。官方MF Native=0.8497030733038422、原6–14=0.8571153094098591、新6–19=0.8453812514337807。新−Native=−0.004321821870061471，新−原固定=−0.011734057976078405。完整结果见audit/R97_RESULT_VERIFIED.json和actual_host41/cases/r97_short0358/results/extended.json。新轨迹6.523秒，peak reserved 12,931,039,232B。
+GPU7 PID1028293与CUDA已释放，R96 peer移除；R96 GPU2继续。actual_host41/audit/actual_r97_attempt1/RELEASED.json及COMPLETE.json为证。数值结果与原时间事件人工评价分别报告。
+
+R97执行用v1 seal ec6e7863d478bf52f85c9a6978355924ef3dca0a8de01c30ab97070d0b2dd0d5，93文件；v1源与seal保存在audit/r97_completed_revision1。后续v2只扩大行政数据适配，官方runtime原字节未改。local v2为94文件seal f85abb5372b3cf59c0b50bc92ae07564600b4d0527d2d1e981c949f6265f7fae，尚未覆盖远端已执行v1；19 CPU tests PASS。后续病例输入尚未就绪，5/5都pending，无预填分数。
+
+后续仅在既有消费者完成真实pair gate+COLLECTION后，一次CPU收取：
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/intake_followups.py --lane r99 --source short_0210
+R99另外short_0230/short_0352；R100用--lane r100 --source short_0114或short_0392。
+缺真实配对返回PENDING_ACTUAL_PAIRED_INTAKE且不创建case、不启动追踪。R99明确复用实际历史P1 Native，R100明确使用新同机Native/forced。收取后对对应case执行：
+python scripts/prepare.py --case r99_short_0210 --ffmpeg /opt/homebrew/bin/ffmpeg --ffprobe /opt/homebrew/bin/ffprobe
+它会绑定源original/provenance/实际生成SHA和history，crop16,8,1280,720、只取有效前缀，逐帧MD5和原24fps PTS核验。R99共87/86/78有效，全部90总帧；R100共105/57有效、107/73总帧。全部source/native/forced保留。
+
+准备后必须重新封存输入与行政包，并做远端CPU --check-only；源码科学runtime保持继承。新的实际tracking命令模板：
+CUDA_VISIBLE_DEVICES=ROOT_ADMITTED_UUID python scripts/track.py --case CASE --role source|native|forced --gpu-uuid ROOT_ADMITTED_UUID
+该命令先输出exact PID/UID/start/cmd哈希ready，等待root将身份加入当前R96 admission再原样写go.json；超时300秒，未GO不进入CUDA。GPU准入24GiB free、有效cgroup余量至少8GiB、自有总≤2卡，实际启动仍需root对该批授权。各track退出后检查原PID/CUDA释放并只移除该exact peer。当前run_authorized_r97.py仅授权/硬绑定已完成R97一条，不能用于后续三条或复跑R97。
+
+每条source/native/forced同.41环境追踪后，CPU：
+CUDA_VISIBLE_DEVICES='' python scripts/score.py --case CASE --role native
+CUDA_VISIBLE_DEVICES='' python scripts/score.py --case CASE --role forced
+score要求实际输入SHA及source/target tracker、Torch/CUDA、host/GPU型号一致；调用逐字继承的官方matcher。result保留实际生成SHA、gate和INPUTS SHA；已有score拒绝覆盖。不要用同名旧结果替代新生成输出。
+
+2026-10-19 实际R99 short0210追加完成：原三视频及87有效帧已核。111文件执行seal7f8910cb0ccecba447bffae6da9f5af509404ab26b4229385e6a8daf1d6eba69；source/native/forced各fresh同41GPU7 tracker，官方MF Native0.9077106256502422、forced0.8977103165605822，delta−0.010000309089659987。结果actual_host41/cases/r99_short_0210/results，audit/R99_0210_RESULT_VERIFIED.json校验63返回文件。三个exactPID/CUDA已释放，R96peer已撤销，原生成运行未动。本批授权只含0210三项已全部完成；其他后续仍仅CPU准备，GPU待root按实际gate/资源另行授权。

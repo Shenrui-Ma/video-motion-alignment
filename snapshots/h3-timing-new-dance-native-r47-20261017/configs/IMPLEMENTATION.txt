@@ -1,0 +1,4 @@
+R47 derives two Native graphs from actual R43 graph. Model/sampler/sigma/SDPA/INT8 row kernels are byte-identical. Source IDs, prompts, portraits, remote root and job count are explicit changes.
+Both inputs use nearest24fps then141frames and proportional even-width scale1396x736/center crop1312x736. This differs from R43 direct scale.
+Same preCUDA service_entry/runpy lifecycle, exactPID root gate, serialized two-job queue, cache retained between jobs, no online pose observer. Readout is passive with20 intermediate+1final AV snapshots per job.
+LocalCPU tests validate metadata/contracts/lifecycle/tiny snapshot storage. Actual Comfy CPU fixture passed in root-authorized temporary .9 stage attempt2:2states,2recorders,40Euler updates,40callbacks,2000blocks,0routes,42snapshots; CUDA_initialized=false. Linux31unit tests all passed.

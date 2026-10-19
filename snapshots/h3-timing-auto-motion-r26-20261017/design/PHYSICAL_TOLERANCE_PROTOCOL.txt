@@ -1,0 +1,46 @@
+Source-derived physical timing tolerance: development experiment v1
+Frozen before its numerical evaluation, 2026-10-17.
+
+Purpose: rescore the already archived full-time lag proposals using the geometry
+of the reference action over an allowed +/-2 RGB-frame tolerance. This is a
+development calibration experiment, not a learned error probability or a claim
+of a novel control algorithm. All nine final/early005 development cases remain.
+The earlier baseline and its UNKNOWN results remain unchanged.
+
+Input proposals: windows16/32, stride4, bilateral/left/right arm directions,
+lags -24..24, original reliability gates, confidence0.3 and0.5. Only reliable
+outside-tolerance proposals are rescored. The original gates still apply.
+
+For a proposed lag d, construct common frame/joint support across source pose
+at t and t+{-2,-1,1,2}, edited pose at t+{-2,-1,0,1,2,d}. Map by physical time,
+using the existing nearest-frame tolerance. Use a single weight equal to the
+minimum confidence of all participating vectors. Every compared cost uses
+this identical support and weight. Reject if coverage<0.8 or <8 valid frames.
+
+Cnull = min over e in[-2,2] of weighted ||S(t)-E(t+e)||.
+Cd = weighted ||S(t)-E(t+d)||.
+tau = max over e in{-2,-1,1,2} of weighted ||S(t)-S(t+e)||.
+benefit = Cnull-Cd; excess = benefit-tau.
+Retain a candidate only if tau>1e-6, Cd<=0.5 and excess>0 at both confidence
+levels, with the baseline sign/agreement rules still satisfied. Do not divide
+by tau. Near-static or insufficient common support yields UNKNOWN. A rejected
+candidate is below this exploratory geometric threshold, not proven harmless.
+
+This per-proposal common support does not make costs across proposals directly
+comparable. Ranking and window-count selection are deferred until that issue
+has an explicit solution. The max of +/-2 costs is a conservative physical
+scale, not a confidence bound. The +/-2 choice is a declared engineering
+tolerance (83ms at24fps), to be varied in later sensitivity experiments.
+
+Archive original status, each rescore, all support counts, Cnull/Cd/tau, and
+all retained/dropped/unknown windows. Report correlated window counts rather
+than clip-level precision. Early005 candidates cannot be called false alarms
+merely because final output is normal; persistence and spontaneous correction
+require later endpoints, which are unavailable for some old cases.
+
+Sanity tests: identical sequences stay aligned; a known two-frame shift stays
+within tolerance; a distinctive larger shift has positive excess; constant
+motion-free vectors are rejected; target/source missingness cannot change the
+support between competing costs; source and target physical fps may differ.
+No new model inference, no changes to old metric files, no threshold retuning
+after observing the result of this v1 experiment.

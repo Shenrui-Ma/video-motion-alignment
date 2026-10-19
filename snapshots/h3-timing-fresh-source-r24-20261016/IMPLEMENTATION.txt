@@ -1,0 +1,21 @@
+R24 fresh reference paired generalization scaffold
+
+Scope
+Two source-only selected new clips. Each source has native / Full6..14 at seeds2026101610 and2026101611, in that order. Eight total20Euler jobs, no adaptive controller. No paper novelty claim. R20 TemporalRouter core/layout and passive recorder core are byte unchanged. Model/sigma/shift/geometry1312x736x141/24fps frozen. Source-specific window/prompt/portrait/assets are bound before any graph exists.
+
+Binding
+python3 scripts/bind_cases.py configs/cases.APPROVED.json
+Input schema: configs/cases.TEMPLATE.json. Each video must already decode to141 frames at24fps. Binder verifies supplied video/portrait SHA, records provenance SHA, rejects two lanes with identical video SHA and all existing target directories. It creates lanes/a and lanes/b, each four graphs under configs/graphs, an immutable case/job registry, and closed admission. Root reviews source-only selection and window, actual hardware and launch. Approved new batches can be appended only via hash-bound configs/approved_continuations manifest; previous bindings are pinned by the live controller.
+
+Resource and persistence
+Candidate .9 GPU2/3, ports8484/8485, final root admission required. Never more than two owned GPUs. Independent four-job queues. One service stays alive/cache enabled across tasks; no /free or unload call. VRAM samples and execution_cached events recorded. All tensors staying on GPU is not inferred merely from process liveness. After current queue finishes, default1800second hold for approved next batch, explicit queue.finalize=true ends hold, overall service watchdog43200s. Error, timeout, controller death, or final close stops only exact registered service identity. Controller cleanup is bound to the generation it originally owned; it cannot stop a newer replacement. Host other-user jobs are not killed. Root must register exact permitted second-lane process identity before concurrent submissions.
+
+Static/CPU evidence
+13 metadata/lifecycle negative tests: audit/contract_tests_attempt2.log. Actual .9 CPU: audit/real_comfy_cached_queue_cpu_attempt1.log with source snapshot audit/cpu_stage_attempt1_manifest.json. Same real ModelPatcher/meta H3 base executes four task-local patches: distinct state/readout instances; each20forward/1000block calls and20 synthetic callbacks; native0/full450 routed blocks; same-seed AV noise equal and other seed different; cached base unmodified; CUDA not initialized. This proves interface/state isolation, not20 actual Euler updates or GPU numerical equivalence. Mathematical kernels are identical to R20 already run on this backend. The synthetic test uses tinyQKV for dense CPU routing and real-sized meta condition shapes; actual new source token count comes from its runtime PackedLayout.
+
+Root deployment
+After source binding, review each lane, run preflight.py --root LANE, then build_manifest.py LANE. Immutable seal includes all source assets/graphs/math/runtime code; admission and queue are administrative files outside seal, constrained by graph/asset validation and append-only live pins. No source inputs silently overwritten: actual input/ copies are SHA checked before each submission.
+Upload each lane to /data5/researcher/h3_runs/timing_fresh_source_r24_20261016/{a,b}. Root sets live admission, runs scripts/launch_remote.py under official host Python. No GPU/service has been started by this builder.
+
+Actual verification
+CPU-only scripts/verify_batch.py --root RUN --output RUN/analysis/paired_integrity.json verifies actual successful graphs, same service generation, frozen20callback+1000block schedule, all5 snapshots/run including both AV streams/signatures, actual layout length, clean conditioning/source binding, actual saved noise, pair005 exact equality, crossseed noise inequality. It records deliberate resident_hold separately from cleanup; neither implies motion quality. Actual output pose/quality and all seeds remain to be reported. Original underlying same-context reference augmentation is not claimed byte-certified merely by clean reference metadata; pair005 gives a current observed prefix bridge.

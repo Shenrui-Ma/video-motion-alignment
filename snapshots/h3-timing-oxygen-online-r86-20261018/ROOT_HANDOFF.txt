@@ -1,0 +1,30 @@
+R86 local CPU preparation; GPU root only. Do not launch while R85/R87 occupy own GPU slots.
+Local /Users/researcher/DevProjects/h3-timing-oxygen-online-r86-20261018
+Remote /data5/researcher/h3_runs/timing_oxygen_online_r86_20261018
+Host H3_SERVER_A direct SSH. Port8551.
+Main GPU3 GPU-REDACTED
+Decoder GPU1 GPU-REDACTED
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+
+CPU staging sequence after passive rsync, never changing old producer:
+1. python3 scripts/preflight.py
+2. CUDA_VISIBLE_DEVICES='' /home/researcher/miniconda3/envs/comfyui/bin/python scripts/cpu_runtime_smoke.py
+3. CUDA_VISIBLE_DEVICES='' /home/researcher/miniconda3/envs/comfyui/bin/python scripts/materialize_parent.py
+   Reads only exact R73 parent, verifies existing actual gate, all21 x0 SHA, six clean blob SHA and actual noise tensors; copies small metadata and the old noise to new audit. No source/model downloads. Refuses partial materialization instead of silently repairing it.
+4. CUDA_VISIBLE_DEVICES='' /home/researcher/miniconda3/envs/comfyui/bin/python -m unittest discover -s tests -v
+   Pending-gate tests use independent temporary fixtures; they remain valid after materialization. Actual deployment imports are step2.
+5. Root fresh nvidia/proc review: no current own GPU tasks; main>=40GiB,decoder>=16GiB; normal reserve8. Then python3 scripts/execution_gate.py approve-trial.
+   Change only configs/admission.json root_live_review_required=false, ready_for_launch=true; permitted_compute_processes stays[].
+6. Root explicit start, preferably durable wrapper with exact PID recorded:
+   python3 -u scripts/root_run_online.py --execute --attempt root_online_attempt1
+   Single run r86_short_0252_seed2026101701_visible_only. Registers its controller, creates preCUDA service, pins watchdog, writes exact GO, submits once. No automatic second run.
+   Artifacts audit/root_online_attempt1/STARTED.json, SUBMITTED.json, STATUS.jsonl, ACTUAL_SUCCESS.json, ROOT_EXIT_RECEIPT.json, COMPLETE_REVIEW_HOLD.json.
+   Actual CPU postrun gate analysis/postrun/ONLINE_RUNTIME_GATE.json is produced only after exact main+decoder exit.
+
+Hold conditions
+PARENT_CLOSURE is initially pending. ROOT_ONLINE_APPROVAL absent. RUNTIME_IMPORT_SMOKE absent. No remote deploy or actual test performed by preparer. Failure during any preparation/launch keeps evidence; root reviews before retry. No watchdog/producer from old packages is changed.
+
+Code review focus
+New root lifecycle/adult-view/path/parent materialization adaptations. Science sources named in audit/INHERITANCE.json stay exact; core.py/scanner/selector unchanged. Root may seek independent review before deployment. Current-x0 online feedback has no real GPU success yet.
+
+R84 consumer remains prepared and held because attempt root_one_leg_restart_v2_attempt1 ended during archive hashing, before STARTED or CUDA. It must not be started on that failed attempt.

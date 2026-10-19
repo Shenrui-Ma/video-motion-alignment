@@ -1,0 +1,180 @@
+H3 gap5 观测—同帧 Full 路由闭环：最小实验与实施审查
+2026-10-16；只读设计。没有修改当前运行代码、配置或队列，没有启动GPU。
+
+结论
+
+现有接口可以用一个新的统一MODEL节点实现此闭环，不必重写Euler、VAE、主干或attention公式。新节点同时安装50个已有形式的EventBlockPatch与一个SAMPLER_SAMPLE wrapper，使两者引用同一单次运行状态。控制对象仍是已测试的mass_preserve / Full同帧路由；本次新增的是根据当前x0得到的正延后观测，决定下一次forward是否启用它。
+
+这是一项有手动事件窗的探索性反馈实验，不是自动定位动作、不是新backbone，也不能把现有gap5必要性检验写成完整可信传感器证明。全画面gap5在已有可判格表现良好，但跨17物理帧；早期主窗整体pose仍未知，只有左臂等辅助证据。两个seed均来自同一素材，第二seed两臂还存在背景保存失败。
+
+一、冻结最小科学规格
+
+1. 观测：只用已冻结same_phase_gap5方法，原完整参考视频的VAE latent与当前x0视频latent，无新教师、无视频VAE解码、无DWPose在线调用。全画面是主规则；原上身ROI仅作离线敏感性，绝不能按运行中哪一个读出更好而切换。
+   方法：(z[k+5]−z[k])/17，放在两个不等宽latent时间bin中心的中点；名义bin宽按[1,4,4,4,4]重复。扫描参考(t)与当前x0(t+lag)，lag∈整数[−24,24]；正数表示编辑视频更晚。评分、线性插值、退化/歧义/搜索边界/端点clamp拒判，全部复用已冻结evaluate.py，不能缩搜索范围或改RMS/margin。
+   固定源事件窗50–65，明确人工选定。该窗不是自动缺失检测结果。
+
+2. 控制规则（采用root后续修正，覆盖最初|lag|规则）：
+   可接受观测 lag≥4：ON。
+   −2≤lag≤2：OFF，记录near_zero。
+   lag=3：保持上一forward的有效ON/OFF状态。
+   lag≤−3：OFF，单独记录advance_or_overshoot；尚未验证负方向actuator，不能用绝对值继续加同帧路由。
+   unknown：下一forward OFF，记录unknown_pause及具体拒判原因；unknown不是动作已修复。
+   初始状态OFF。0/2/3/4/负方向这些分界来自已有两帧精度容差与4帧阳性控制，不宣称阈值创新；其闭环稳定性尚未证明。
+
+3. 时间索引必须完整标明：
+   第6次模型调用 = forward_index5，Euler callback index5。
+   此callback只能改变下一次forward_index6 = 第7次模型调用。
+   决策callback index5…18，共14个决定，分别用于forward_index6…19 = 第7…20次模型调用。
+   callback index19 = 第20次模型调用之后，没有下一次模型调用；只做终点观测/审计，不能算一次实际控制。
+   从index5开始每个callback都观测，包括index19端点；共15次观测。若为降低开销不观测端点，必须在协议中另行明说，不混入“每次”语义。
+   前六次forward_index0…5全OFF。全程Euler20，总NFE固定20，无churn、无回滚、无重采样。
+   旧R2 Full6to14是零基forward_index[6,15)，即第7–15次调用，共9次；绝不可再简称不带base的“calls6–14”。
+
+4. Actuator固定为Full / mass_preserve，alpha1、radius0、time_offset0、block区间[0,50)，候选控制forward区间[6,20)。
+   O'=O + m_ref (A_same V_ref − A_ref V_ref)，关闭时执行原native显式Flash；不加DC split、空间映射、RoPE phase或其他新操作。
+   物理窗50–65通过原event_latent_range映射为latent半开[14,20)，名义时间覆盖47–67。六个bin内全部空间query受控；不是逐像素、逐关节或完全限于50–65的控制。
+   gap5观察本身还跨17帧并用±24帧搜索的邻域，所以不能描述成“仅抽取这一孤立短动作”。这些额外上下文范围应进入报告。
+
+二、已核对的实际源码接入点
+
+R2 = /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016
+OLD = /Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+冻结Comfy源来自 /Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz。以下Comfy路径均指该tar内真实源码，不是猜测最新版接口。
+
+R2/extensions/H3TemporalRouter/core.py:279–318
+  RouterState保存mode/alpha/step区间和forward_index，初值−1。
+core.py:354–355
+  selected当前只是block和forward两个静态半开区间，最小修改面是新增子类对这里加单次forward的开关；不要动态改attention算子或全局model_options。
+core.py:437–478
+  EventBlockPatch严格按0…49块排序；block0增加forward_index；最后一块调用finish_forward，completed_forward_calls加1。
+core.py:412–416
+  selected为false时mode切native；true时复用原mass_preserve函数。关闭路径无需另造核。
+core.py:418–421
+  已有routed_by_forward、routed_by_block统计，可核对实际调用次数，而不是只记录“计划ON”。
+
+R2/extensions/H3TemporalRouter/__init__.py:34–57
+  当前节点验证条件和模型，创建一个state，model.clone后把同一state交给50个EventBlockPatch。新统一节点应复用此套路，替换为FeedbackState并同时安装sampler wrapper。
+  不要在另一个后接节点里靠扫描patch私有属性找旧state；这会耦合旧节点实例和缓存。
+
+R2/extensions/H3X0Readout/core.py:97–124
+  已验证SAMPLER_SAMPLE wrapper签名：
+  (executor, model_wrap, sigmas, extra_args, callback, noise, latent_image=None, denoise_mask=None, disable_pbar=False)。
+  model_wrap.inner_model是实际MiniMaxH3；其latent_shapes已设置。只接受Euler20无churn，21个递减sigmas到0。
+core.py:150–191
+  record(step,x0,x,total_steps)有严格的连续callback序号校验，原callback参数对象原样传递。
+core.py:194–195
+  调用收到的executor(...)，不调用executor.execute(...)，后者会重复当前wrapper层。
+
+Comfy comfy/samplers.py:1220–1238
+  inner_sample先设置latent_shapes、处理conds，再clone model_options，并经SAMPLER_SAMPLE WrapperExecutor调用采样器。最后才对最终样本process_latent_out。
+comfy/samplers.py:997–1005
+  k_callback把Euler的i/denoised/x变成以上callback签名。
+comfy/k_diffusion/sampling.py:205–211
+  先model(x,sigma)，算d，再callback，随后才x=x+d*dt。因此观察当前x0不能修改本次已经算好的denoised/d，也不能改变本次Euler更新；只能用于下一次模型调用。
+
+三、最少状态实现与因果保证
+
+建议新包内创建FeedbackState，继承或组合冻结RouterState；不修改正在运行的旧包。它至少保存：
+  唯一run_id、单次执行token、started/finished/failed、上一次callback index；
+  pending_decision（observed_index、effective_forward_index、enabled、reason、lag、score/margin/reject信息）；
+  latched_forward_index与latched_enabled；
+  20项实际路由开关记录和全部观测记录。
+
+在采样wrapper入口独占绑定本次run，确认state未被使用。首六次OFF。每个callback：
+  a. 检查router.forward_index==step、next_block==0、completed_forward_calls==step+1，且该forward恰好完成50个block；不匹配立即停实验。
+  b. 对step≥5的当前x0做只读观察。不读取最终视频、旧native的未来snapshot、最终pose、另一条trajectory的x0或事后选出的lag。
+  c. 得到决策，但不能更改刚结束的forward记录或当前x0/x。
+  d. 若step≤18，只发布effective_forward_index=step+1的单步决策；过期、不匹配run_id或缺失决策都不允许沿用旧ON。
+  e. 保持原callback恰好一次且原参数对象/返回值不变；原callback抛异常则整个采样终止，不吞异常。
+
+下一次forward block0进入时，锁存针对本index的决策。该forward的50层都读同一个latched_enabled；不能在层间由异步线程修改。初版同步CPU观察最简单，无需异步队列、外部文件轮询或GPU副进程。
+selected(block)应为原静态范围 AND 本forward已锁存ON。只在block0允许锁存，后续block必须检查latched_forward_index相同。step_start6/end20只是最大允许范围，不等同实际开了14次。
+callback index19可以记录最终lag与建议状态，但必须标no_next_forward，不能计入actual_on_indices。审核以routed_by_forward每项为0或50、总和50×实际ON次数为准。
+
+协议层unknown和实现错误必须分开：低能量/歧义/边界/观测不可判时OFF继续；错误shape、非预期CFG双调用、错序callback、错误reference、异常数值域或共享state冲突是契约失败，应停止这个实验而非默默当unknown掩盖实现问题。
+
+四、参考与x0数值域
+
+R2/extensions/H3TemporalRouter/layout.py:44–89只保留元数据，明确不留条件tensor。observer不能从state.metadata取z。
+新节点从positive[0][1]['minimax_refs']里按kind='video'或'video_audio'选唯一视频条目，先用conditioning_metadata验证，核对latent_shape和实际VAE manifest，再detach到CPU copy。不要假定第一个reference就是视频；第一个通常是身份图。
+comfy_extras/nodes_minimax_h3.py:343–349把vae.encode(frames)的原z放到该视频reference字典；360–362随positive条件传递。
+comfy/model_base.py:2192–2196把minimax_refs原payload带入模型。observer取的是这份原参考z，不是经过DiT混合的reference token或Qwen语义token。
+参考只在启动时复制/哈希一次，并预计算gap5信号与固定源窗插值。引用实际condition rawSHA；禁止从另一个host的同名文件推定相同，之前已实测PyAV转换差异。
+
+callback常是packed普通tensor，不是保证NestedTensor。复用H3X0Readout.split_streams（core.py:72–88），验证video[1,24,42,46,82]与audio[1,32,2,235]、完整packed长度、FP32。不能用DiT seq_len87592切sampler数据。
+按原记录器158–170行仅对CPU副本调用当前model.process_latent_out；断言video不变、audio除audio_scale4。观察只用video；不把音频拼到描述子，也不改原音频状态。固定H3 video scale_factor=1，仍是VAE normalized latent，不要再逆VAE mean/std。
+本阶段不加载VAE，不触发comfy.model_management的模型切换，因此无需为每次callback卸载DiT。FP16 VAE和CPU pose都不属于这个最小在线链。
+
+真实sigma要随index一起记：callback index5第6次时video≈0.972973、audio≈0.9，第一次可控index6第7次时video≈0.965517；index10第11次video≈0.923077；index15第16次video≈0.8。调用次数后半不代表raw-sigma已接近0，观察的是x0估计而非清晰成片。
+
+五、CFG、clone和缓存风险
+
+1. 初版限制BasicGuider cfg1、单positive、无negative实际前向、无附加CFG/pre-CFG/post-CFG修改、无regional/control/keyframe、单GPU、一次采样一个run。
+   comfy/samplers.py:609–620只有cfg1且未禁用优化时跳过uncond。不能为了读出改disable_cfg1_optimization。
+   旧block顺序断言不能充分挡住串行cond→uncond：两个完整0…49序列都可能通过。必须用callback_i与完成forward数双校验，保证20次callback=20次模型forward=1000次block；batch2也应被真实QKV/layout形状门拒绝。
+
+2. ModelPatcher.clone不是所有对象deepcopy。
+   comfy/model_patcher.py:453对model_options调用deepcopy_list_dict；comfy/utils.py:1512–1528只递归list/dict，custom patch类对象原样保留。model_patcher.py:475–479复制wrapper列表但wrapper实例仍共享。
+   这有助于同一模型clone链保持observer与50patch引用同state，也意味着把一个已开始的state复用于另一图会泄漏。
+   每个新run必须创建新state；独占run目录、唯一run_id、重复wrapper key拒绝、single-use guard。即使Comfy缓存复用节点输出，也只能安全拒绝已用state，不能重用计数或沿用上次ON。
+   可以在新节点IS_CHANGED强制重新执行创建状态，但仍须single-use和run_id门，不把缓存行为当唯一隔离。
+
+3. 实际sampler又复制model_options容器，需CPU真实Core WrapperExecutor/ModelPatcher clone测试确认它保留同一个FeedbackState引用。只用stub单测不足。
+   如果包装层还挂着被动H3X0Readout，必须测试wrapper嵌套次序、20次原callback、原对象身份。不得让observer再次调用model或callback两次。
+
+4. 不在callback中修改全局torch线程数、TF32、determinism、attention backend、环境包或任何模型缓存。CPU单线程配置在新进程启动时冻结，所有对照相同。参考特征缓存键需包含rawSHA/shape/dtype、描述子代码SHA、物理时间映射、窗口/ROI，不能只按视频文件名。
+
+六、最小对照与判据
+
+A. 原native参考：使用R2/R4同host同实际condition/noise的native；复用前核验真实preparedRGB/VAE/Qwen/noise/graph。R4被动path probe或新observer不得被当独立样本。跨.9/.41的native不能只按seed相同就合并。
+B. 新observer-only：实际每次执行同样CPU读出/日志/callback链，但actuation强制OFF。与同环境native的最终raw latent以及decoded RGB一致是被动不扰动门；NFE20不变，输入/RNG不变。
+C. 静态Full[6,15)：原R2第7–15次9次干预。复用需实际输入/噪声/attention/backend相同。最好同样执行passive读出，便于公平记录观察成本；不能拿没有observer的walltime直接声称反馈更快。
+D. 闭环：严格冻结上述规则。报告完整lag曲线、unknown/提前/near_zero原因、实际ON index列表、每index实际路由块数、观测时间和总时间。
+E. 完全同位置/同数的固定mask重放：闭环结束后封存其actual_on_indices，再另起同输入/噪声run预先固定该mask，运行同等只读observer但不让它决策。预期结果应相同，这是因果/实现验收；相同不否定反馈，因为该mask本就是这条trajectory的展开结果。
+   如果固定重放不同，先查输入/RNG/backend/观测副作用和state时序，不能先解释为反馈的神秘额外作用。
+
+策略转移是关键：在另一预先选定seed或素材上，冻结发现例得到的固定mask直接应用，与不改阈值的反馈策略配对。若对每条新样本都先跑反馈再重放它自己的mask，仍只检验实现，不构成反馈优于固定时序的证据。最小下一组可用已有seed2，但其背景坏须单独保留；正常误触发还需要预定native近零/质量合格控制。
+所有比较仍用独立原RGB pose时间指标、双置信度/覆盖率、全预定窗和非干预窗、背景/身份等质量门。在线gap5的自报lag不能同时当唯一成功指标，避免优化观察器而不改善动作。
+不要求反馈一定比静态9次更少干预；实际次数是结果。即使减少route forward，NFE仍20，不能称减少去噪步数。单个成功示例不能证明泛化、新架构或论文新颖性。
+
+七、最低CPU测试清单与真实运行验收
+
+1. 精确决策真值表：lag4开、3保持、2/0/−2关、−3关且overshoot、unknown关。序列[5,3,2,3,−4,4,unknown]应[ON,ON,OFF,OFF,OFF,ON,OFF]。把unknown与near_zero不同reason写入审计。
+2. 因果toy Euler：callback index5不改forward5，只使index6生效；index18决定19；index19无下一forward。前0…5全native，全部50层锁存同值，结束actual mask与routed counts一致。
+3. 比较all-OFF输出与native逐元素相同；注入固定mock lag序列得到已知开关mask，其固定重放应逐元素相同。原x0/x/noise/sigmas/condition/RNG/原callback对象与次数均不变。
+4. packed/NestedTensor和真实MiniMax process_latent_out CPU门；视频原值不变、音频除4、wrong shape/order/dtype/额外packed数据拒绝；reference image/video顺序变化仍正确按kind选择唯一video，两个video拒绝。
+5. 直接调用既有冻结gap5/scan：已知0/4/8控制与既有hash结果一致，constant拒判，不改时间坐标；unknown/低能量/边界不会留下ON。像素位置和token/bin坐标不可混用。
+6. 实际Core clone与WrapperExecutor：同run observer/patch state identity；不同run不共享；cache重复执行/同run二次采样拒绝；嵌套被动wrapper仍20次callback，异常能清理状态不污染下一run。
+7. CFG双前向、多步solver、churn、遗漏/重复callback、错误run/pending index、多个并发采样均拒绝。不能仅靠block0…49顺序证明没有CFG。
+8. 准入后由root执行小tensor GPU零扰动门和同环境observer-only端到端重放。CPU测试通过不等于GPU数值或真实闭环效果已验证。
+
+八、成本与必要限制
+
+每次x0视频CPU副本15,208,704字节；音频60,160字节。gap5描述子FP64为37×24×46×82，约26.8MB，参考一份可缓存；临时完整FP64视频约30.4MB，固定窗插值与49个lag逐项比较会产生其他暂存。逐lag计算和及时释放即可，不需要保存full N×N attention或所有去噪状态。
+在线每个callback只计算一个主窗/一个方法；现成两ROI两方法全窗CPU总测试约12秒，但不能直接当在线每步耗时。实际需分别计GPU→CPU同步、特征构建、lagscan、日志耗时；不要预先宣称免费。禁止在线全量pose/图像检查来增加首版复杂度。
+
+更小但必要的规格修正已采纳：只正延后控制；第6次回调后才开第7次；index19只审计；unknown关闭但不算修复。没有证据支持首版加入负向旋转、调学习参数、多候选ROI、自适应margin或复杂分类器。先证明该最小反馈能按冻结规则运行、正常样本不误触发、独立RGB指标得到改善，再决定后续结构设计。
+
+本文件引用本地证据
+
+analysis/vae_phase_calibration/PROTOCOL.json、RESULTS.json：已知0/4/8和constant控制。
+analysis/vae_phase_calibration/cross_identity/PROTOCOL.json、POSE_COMPARISON.json：原两素材/seed1的可判与unknown、phase精度失败保留。
+analysis/vae_phase_calibration/seed2_controls/INPUT_GATE.json、POSE_COMPARISON.json：第二seed真实配对与early标签缺失。
+OLD/analysis/sigma_time_semantics.txt、analysis/x0_readout_design.txt：实际sigma/双流/回调源码审计。
+以上是可实现性设计和实验判据，不是已经完成部署或已经证明闭环成功的记录。
+
+本次只读源码SHA256：
+extensions/H3TemporalRouter/core.py 7a7e9c8067c9c0287659fafed06b775549aaa8cab5141c60220c0536b0eeb650
+extensions/H3TemporalRouter/layout.py bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe
+extensions/H3TemporalRouter/__init__.py a904555ca6ecf32680e4c3b26fdf6af860ec3a0eaf7cbaa8c0b605184a638204
+extensions/H3X0Readout/core.py aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c
+analysis/vae_phase_calibration/evaluate.py c84cca34903c9476adc36fa2af0c9e3507b736031efac5bf361187a2c63de075
+configs/r2_s05_full_6to14.json 911177c6b768ce415d348aee9e059a34e42ed50cd39ce8165e19958d64342c06
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz e49254691b24262fc8bf5c7a2e14bf5d46bb5c252d2605486b254bb8770d6f50
+comfy/samplers.py f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f
+comfy/k_diffusion/sampling.py cfc4221ed0bc1f84a6f5689d3ec440cad3008c2541ab8f5e2599d1a73fac74ce
+comfy/model_base.py 6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68
+comfy/model_patcher.py 26da6710a7d84e8e98ea3e0f0bc07b88cfef3f99a7f7d59daa71e650512c6ed4
+comfy/patcher_extension.py 1c7b3b855278d0b95d1c1a705fa0b3c91a265f320e2f97bdeb9d15469d6d4ac7
+comfy/utils.py f3ee59baf72f6910b7662224854e372c713ba3ad01c89739ba092e5ee22460e6
+comfy_extras/nodes_minimax_h3.py 62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb

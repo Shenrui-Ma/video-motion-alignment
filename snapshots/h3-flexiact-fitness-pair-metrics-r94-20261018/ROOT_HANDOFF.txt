@@ -1,0 +1,25 @@
+R94 fitness/game_man_5：CPU一次性配对收取器
+
+状态：CPU prepared，尚未绑定真实STARTED，尚无实际输出；未启动GPU、watcher、producer verifier。
+生产者：/Users/researcher/DevProjects/h3-timing-flexiact-fitness-pair-r94-20261018
+生产者74文件seal：ce0f3f802bd6a4fd65ddd299cf859b831945e52510f769a40dccdc0d37ed5a09
+消费者freeze：8629a85d62a1762c729ad6d6b73d66e9ca52b65ad873ed6f96259867bb9003b0
+
+Root完成真实STARTED及原生产者PAIR_RUNTIME_GATE后，在Mac运行一次：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/consume_pair.py --attempt root_pair_attempt1
+
+该命令只直接ssh H3_SERVER_A读取、复制CPU媒体：
+1. 绑定实际STARTED、精确service generation、设备/port、runtime、科学配置和seal。
+2. 实际gate未存在返回PENDING_GATE/exit3，停止；不轮询、不提交任务。
+3. gate必须全部通过，含本次两条fresh Native/forced的noise、condition、前6步video/audio端点、history/graph及0/450路由；旧R72输出不能代入。
+4. 保留158帧原视频，三列统一显示前147有效帧@24fps，裁掉11帧纯padding。原素材49帧@8fps、时间精度0.125秒明确展示。
+5. 输出三栏黑底中文底部caption、大画面、六时刻图，及下载目录内嵌HTML和横拼MP4。
+
+预期实际输出：
+showcase/fitness__game_man_5/{full_valid.mp4,first2seconds.mp4,six_times.jpg,PRESENTATION.json}
+/Users/researcher/Downloads/H3_FlexiAct_R94_fitness固定时序引导_20261018.html
+标签：固定采样6..14，mass_preserve alpha1/all50，P1两臂相同。结果显示待人工复核，收取不会声称改进。
+
+验证：28项CPU测试PASS，含actual条件/前6步/错误历史/旧Native拒绝/代际绑定/有效域/原时标/方法标签；158→147帧合成媒体测试PASS；真实输入158@24与原始49@8时间线及SHA核验PASS。所有合成文件限audit/synthetic_media_fixture，未创建实际成片状态。见audit/CPU_TESTS.log、INPUT_TIMEBASE_VALIDATED.json、synthetic_media_fixture/FIXTURE_RESULT.json、VISUAL_VERDICT.json。
+
+风险：当前仅CPU契约和合成媒体测试；实际R94输出及容器时间线仍需真正gate与首轮收取验证。若容器PTS异常会拒绝展示，原始媒体保留。其他producer/consumer及两个现有watcher未修改。

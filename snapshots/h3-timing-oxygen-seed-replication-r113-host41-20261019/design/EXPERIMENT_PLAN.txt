@@ -1,0 +1,38 @@
+R113：机舱氧气面罩案例的独立种子复核
+
+问题
+R73 在 seed 2026101701 上观察到：普通编辑的人物身份替换成立，但三处面罩动作约晚 15 帧；固定时序引导让这三处动作靠近源片时间。R106 已复核相同种子的普通编辑采样器差异。当前缺少新的种子上、重新生成普通编辑与固定引导的一一配对证据。
+
+本轮只有一个科学变量
+每个种子比较 Native 与 fixed6..14。两个新种子预先确定为 2026101702、2026101703；每个种子都重新生成两版。共四条输出，按种子依次运行 Native、fixed，全部归档。原 R73 seed1701 的视频仅作历史参考。
+
+输入与数值路径
+沿用 R73 short_0252 原视频、已有 prepared 视频、P1 六段提示词、模型与参考模态。任务是将机舱男子替换为年长女子，保留男孩、机舱、面罩及原有动作。无角色参考图。
+20 次 Euler 模型预测，CFG=1，原 ManualSigmas，原视频/音频时间映射，无 Turbo LoRA。输出 1312×736、107 帧、24 FPS；只评价前 98 帧，并使用固定 [16,8,1280,720] 裁切对应原内容。后 9 帧为几何支持，不纳入事件评价。
+原数值路由及加速代码哈希保持：H3TemporalRouter/core.py、layout.py、int8_row_chunking.py、compatibility_bootstrap.py、backend_dispatch_audit.py。各配置与历史图的差异在脚本中逐字段校验。
+
+固定干预
+Native 走原注意力输出；fixed 在 zero-based 去噪步 6–14、全部 50 个 DiT block、源片有效帧 0–97 上启用原 mass_preserve 算子，alpha=1、radius=0、time_offset=0。每版共 1000 次 block attention；fixed 有 450 次路由，Native 为 0。
+该算子保留 query 对参考视频组的总注意力质量，将参考组内部的读取改为 query 对应的同时间位置，再替换该组对 Attention 输出的贡献。实际 kernel 完全继承已封存 R73/R106 路径。本轮检验既有固定方案的种子稳定性。
+
+配对与可审查性
+四次运行共用源 RGB、干净参考 latent 与文本条件；每个种子建立独立的初始噪声缓存，同一 seed 的 Native/fixed 共享缓存。实际执行后验证两个 seed 的视频和音频噪声 SHA 均不同；每对的真实噪声相等。
+记录所有 20 步的归一化视频/音频 x0，以及前两步的原始 packed state/prediction。每对的前六步归一化 AV 预测逐张量精确相等，前两步原始 AV state/prediction 同时精确相等。该检查在四次推理结束并释放 GPU 后执行；出现不一致则运行门失败，保留证据。
+同一 seed 两版条件、参考几何、prompt、模型服务身份、采样网格、成片元数据和实际路由次数均需通过实际运行检查。运行门只证明比较条件一致；成片质量另行判断。
+
+预登记事件与报告原则
+冻结 R73 已有的三个源片事件区间：双手离膝并靠近面罩 42–45；双手握黄色面罩 48–51；右手举带到胸/脸侧 69–75。原区间来自历史 stride=3 人工观察，保留接触与模糊造成的区间不确定性。本轮对两种子全部输出检查完整有效帧，并分别保存每个事件的可见性、可判定性和发生区间。末段姿态仅记录是否出现。
+先分别评估两版是否完成年长女子身份、机舱与男孩保留、面罩物体和动作顺序等要求。动作发生稍晚本身不构成任务失败。只有任务成立且事件可判定的对照才解释时序差；任务失败、事件遮挡和中性/负结果都保留。
+在每个可比较事件上报告 Native 与 fixed 相对源区间的有符号帧差和区间不确定性。MF 若追加，作为全片运动指标单列，不能替代上述任务验收和事件时间。两个新种子不足以估计总体成功率；结果只回答该正例是否跨这两个预登记种子重复。
+
+效率与资源
+记录每条任务的总耗时、capture 耗时、实际 NFE、采样日志及资源峰值；首条包含模型冷启动，比较时注明。
+沿用 R106 的 .9 GPU0、normal memory、reserve8、GPU free≥40GiB、host RAM≥20GiB 和精确 PID/start-time/NVML 释放。与当前 R105 使用同一 GPU，必须等其整批 COMPLETE 和 ROOT_EXIT_RECEIPT 验证通过；最多两张本用户 GPU，另一服务通过 peer registration 协调。
+另需 root 对本次 producer seal 的独立审查与本轮调度，短 MF 队列优先安排由 root 决定。当前仅 CPU 准备，没有部署、模型载入或 GPU 推理。R103/R112 队列不受此准备影响。
+
+产物
+analysis/postrun/seed2026101702/PAIR_RUNTIME_GATE.json
+analysis/postrun/seed2026101703/PAIR_RUNTIME_GATE.json
+analysis/postrun/PAIR_RUNTIME_GATE.json（两 seed 汇总）
+audit/<attempt>/STARTED.json、ROOT_EXIT_RECEIPT.json、COMPLETE.json
+每条 MP4、history/job/router/conditioning/noise manifest 归档；大 x0 与条件 tensor 留在远程，只收回小回执、成片及后续事件展示。

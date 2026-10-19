@@ -1,0 +1,214 @@
+{
+  "schema": "r23-cross-source-hybrid-design-draft-v1",
+  "status": "design_only_dependency_gated",
+  "created_unix": 1792165857.835789,
+  "implementation_authorized": false,
+  "GPU_authorized": false,
+  "run_id_proposed": "r23_s07_coarse_pose",
+  "purpose": "Transfer the frozen R21 hybrid observation rule to existing source07/Sam development material, conditional on R20 controllability and an actual early signal check. No new architecture claim.",
+  "case": {
+    "source": "07_real_ary_v.mp4",
+    "identity": "Sam Altman",
+    "seed": 2026101311,
+    "source_sha256": "46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11",
+    "portrait_sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42",
+    "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+    "selection": "Existing inspected development source, not blind/unseen test. Seed governs noise and original reference augmentation."
+  },
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24,
+    "video_latent": [
+      1,
+      24,
+      42,
+      46,
+      82
+    ],
+    "audio_latent": [
+      1,
+      32,
+      2,
+      235
+    ],
+    "attention_expected": [
+      1,
+      56,
+      87592,
+      128
+    ]
+  },
+  "frozen_computation": {
+    "sampler": "original Euler, no algebraic update rewrite",
+    "steps": 20,
+    "CFG": 1,
+    "video_shift": 12,
+    "audio_shift": 3,
+    "Turbo_LoRA": null,
+    "native_first": true,
+    "max_predictions_per_step": 2,
+    "NFE": "20+K, 0<=K<=14",
+    "callbacks": 20,
+    "updates": 20,
+    "blocks_per_NFE": 50,
+    "pose_observations": 10,
+    "current_sigma_and_full_grid_preserved": true
+  },
+  "actuator": {
+    "formula": "O_new = O + m_ref * (O_same - O_ref)",
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "all_spatial_queries": true,
+    "blocks_half_open": [
+      0,
+      50
+    ],
+    "event_RGB_frames_inclusive": [
+      54,
+      69
+    ],
+    "query_bins_inclusive": [
+      16,
+      21
+    ],
+    "query_bins_half_open": [
+      16,
+      22
+    ],
+    "nominal_position_bin_coverage_inclusive": [
+      52,
+      72
+    ]
+  },
+  "policy": {
+    "indices0to5": "native; index5 may be passively recorded but does not initialize previous/HOLD",
+    "indices6to9": {
+      "observation": "current same-state native endpoint only; full-frame signed same_phase_gap5 float64",
+      "window": [
+        54,
+        69
+      ],
+      "search": [
+        -24,
+        24
+      ],
+      "accepted_lag_ge4": "Full",
+      "accepted_minus2_to2": "native OFF_ALIGNED",
+      "accepted_lag3": "previous physical step actual selection",
+      "accepted_le_minus3": "native OFF_ADVANCED",
+      "unknown": "native OFF_UNKNOWN, never count repaired",
+      "previous_initial": false,
+      "previous_update": "after actual branch chosen; unknown/native resets it false"
+    },
+    "indices10to19": {
+      "observation": "current native endpoint full141-frame frozen VAE decode then frozen DWPose CPU and timing diagnostics",
+      "main_key": "54:69",
+      "confidence": [
+        0.3,
+        0.5
+      ],
+      "features": [
+        "arm_direction",
+        "wrist_relative"
+      ],
+      "original_gate": "unchanged missing/coverage/confidence/ambiguity/direction-position guard",
+      "all_four_gt2_and_gate_pass": "Full ON_LATE",
+      "all_four_in_minus2_to2_and_gate_pass": "native OFF_ALIGNED",
+      "all_four_lt_minus2_and_gate_pass": "native OFF_ADVANCED",
+      "other_valid_or_rejected": "native UNKNOWN",
+      "missing_failed_or_mismatched_response": "ABORT",
+      "early_HOLD_not_used": true
+    }
+  },
+  "dependencies": {
+    "R19_actual_integrity_and_final_outcome": "await actual completed evidence; no predicted success",
+    "R21_normal_run": "await actual policy outcome; design can exist before result but transfer launch is root-reviewed",
+    "R20_pair": "actual native and Full6..14 exact same-input pair must pass; native meaningful delay and Full controllability/quality independently reviewed",
+    "R20_early_gap5": "actual native005 same clean source reference, frozen scan/reject; result only necessary early availability evidence, not current006 decision",
+    "failed_R20": "Stop launch plan and discuss observer/actuator control hypothesis with root. Do not tune source window/threshold/steps to force success."
+  },
+  "evaluation": {
+    "primary_window": [
+      54,
+      69
+    ],
+    "secondary_windows": [
+      [
+        75,
+        88
+      ],
+      [
+        98,
+        111
+      ]
+    ],
+    "confidence": [
+      0.3,
+      0.5
+    ],
+    "lag_search": [
+      -24,
+      24
+    ],
+    "strict_primary": "four reliable direction/wrist readings abs<=2, retain UNKNOWN",
+    "comparators": [
+      "actual R20 native",
+      "actual R20 Full6..14",
+      "actual completed R23 hybrid if authorized"
+    ],
+    "common_support": "exact same arm-set joint intersection and shared confidence weights; same-frame shape and residual after best lag both retained",
+    "visual_frames": [
+      60,
+      63,
+      81,
+      105
+    ],
+    "short_clip_frames_inclusive": [
+      42,
+      88
+    ],
+    "normal_speed_full_clip": true,
+    "quality": [
+      "identity/edit present",
+      "limb shape and ghosting",
+      "background/layout",
+      "motion continuity",
+      "torso/lower-body descriptive check"
+    ],
+    "no_future_endpoint_substitution": true,
+    "cost": "Record NFE/VAE/pose/transport/waits/archive and walltime only; no efficiency-selected tuning"
+  },
+  "archive": {
+    "all_20_chosen_and_actual_native_branches": true,
+    "all_Full_branches": true,
+    "requests_responses_and_original49point_curves": true,
+    "passive_x0": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      15,
+      19
+    ],
+    "sampler_final": true,
+    "original_endpoint19_separate_from_final": true,
+    "source_runtime_noiseseed_actual_conditions": "bind source07 actual graph and archives; clean producer SHA is not old postaugmentation certificate"
+  },
+  "resources": {
+    "host_preference": ".9 same frozen backend as R20",
+    "port": "not assigned",
+    "gpu": "root selects admitted exact identity",
+    "maximum_owned_GPUs": 2,
+    "decoder": "same-device isolated exec with exact own-parent residency/admission; no parent unload or empty_cache",
+    "CPU_pose": "existing shared CPU lock, max4threads, noGPU",
+    "cleanup": "exact PID/start/UID/command identity incl child parent-death guards",
+    "no_service_or_remote_action_in_design": true
+  }
+}

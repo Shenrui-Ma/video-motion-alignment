@@ -1,0 +1,27 @@
+同 GPU DiT / VAE 切换：实际源码依据与根执行步骤
+
+已核源码
+实际 .41 comfy/sd.py 的 VAE.decode:1230、encode:1371 在入口调用 load_models_gpu([self.patcher], memory_required=...)；model_management.py:879 的 free_memory 会选择可卸载的其他模型。完整卸载可进入 LoadedModel.model_unload:821→ModelPatcher.detach:1295→unpatch_model:1130，恢复object_patches_backup并清空该备份。
+sampler_helpers.py:181..204 在 prepare_sampling 时加载DiT和additional_models。CFGGuider.outer_sample 在整次采样开始调用它；inner_sample 的模型forward不为每次post-CFG VAE调用自动重复原加载过程。下一forward不能仅依赖旧inner_model Python引用假设全部patch/权重仍在正确设备。
+ModelPatcher.pre_run:1440 设置current_patcher并调用ON_PRE_RUN callbacks。重复调用这些callbacks可能有副作用；不能把“全部再调用一次”当通用修复。
+VAE.decode/encode遇OOM会转用tiled fallback。R77需记录并拒绝未登记fallback，以免同一科学算子在内存压力下悄然改变。
+
+建议的有限生命周期适配设计
+在SAMPLER_SAMPLE wrapper入口捕获本次model_wrap.model_patcher、model_wrap.loaded_models、实际model_options/conds、原memory_required/minimum_memory_required估计、load_device和当前patch签名。额外模型可含Qwen/其他条件模块，按实际prepare_sampling所得对象保留。
+post-CFG暂停时模型forward已经完成；先持有x/z最小必要张量和CPU观测副本。VAE由其原patcher和官方Comfy入口加载。完成D/E后删除多余RGB/临时GPUtensor。
+恢复时调用同一model_management.load_models_gpu([原patcher]+原additional_models,原内存估计)。核查原model实例、object patch函数身份、quant/kernel设置、current_patcher、conditioning cache和目标latent_shapes。根据实际卸载路径有针对性地恢复已审计状态；避免重复尚未证明可重入的pre_run callback。
+本设计尚未写入可自动执行的lifecycle wrapper。root首次试验应将状态快照作为失败边界，恢复不一致就停止该独立新run并释放。
+
+最小 GPU 检查顺序
+1. 同原R65输入/噪声准备一条完整A，首次index6保留x6/z6、noise/condition/prefix；暂不引入φ。
+2. 同一进程调用VAE D(z6)、E(D(z6))。完整保留channel归一化和RGB0..1封装；只存必要float缓冲，source49姿态可提前CPU准备。
+3. 恢复原DiT及其patch状态。hook直接返回旧z6，禁止把e_id写入；继续原Euler，校验实际x7与预测值，执行index7 forward。
+4. 在相同条件的无VAE往返A对照中核index7数值与最终结果。若需避免多跑整条，可先只作同state的before/after forward诊断，但须记录该额外forward是诊断成本，且不能混入正式20NFE结果。
+5. 完成这项identity生命周期检查后，真实provider接入current-x0 pose/DP和两次encode。A/B/C共用实际parentnoise、同条件和同proposal绑定；root决定是否并行，当前建议串行单卡。
+
+资源证据
+R70 standalone完整同形状3encode/6decode实际RESULT峰值allocated7,567,946,752 bytes（7.05GiB），reserved8,482,979,840 bytes（7.90GiB）。单次decode约39–50s，encode约75–76s。
+该峰值来自独立VAE进程，不构成DiT同进程峰值上界。158×768×1152×3 float32 RGB单份约1.56GiB，两个版本约3.12GiB主机内存；DiT常驻/卸载剩余量、CUDAallocator碎片、x/z和condition需另外计量。保留原reserve8配置及根fresh资源门，首次容量未知时仅作单个受监控trial。
+
+尚未验证
+当前R65 quant/object patch在完整detach/reload后是否逐位恢复；该Comfy版本pre_run callbacks的可重入性；VAE执行后实际resident model集合；同GPU总峰值与首条完整运行耗时；首次current-phi masked proposal的实际解码质量。

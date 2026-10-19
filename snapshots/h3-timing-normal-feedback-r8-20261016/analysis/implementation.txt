@@ -1,0 +1,76 @@
+R8 normal1024 feedback pilot implementation / local staging complete
+
+Purpose
+Apply the frozen R6 candidate to the previously selected normal R7 Sam/real05 case.
+This is a same-source false-trigger/control-harm check. new_method_claim=false.
+Protocol was written before reading R7 observer curves and remains SHA256
+ a2378d3af670d220937aa0ecc94314368baefc6094bfd658c1f3ad9aee267e38.
+
+Runtime and only model-side changes
+R7 host9 scaffold, model fingerprints, Comfy core, INT8 backend, Euler20 CFG1,
+seed2026101311, conditioning, video12/audio3 shifts, 1024x576x141 and input files retained.
+Node50 changes from native H3TemporalRouter to H3FeedbackRouter(feedback).
+Node52 remains independent H3X0Readout; node7 uses node52 as in R7.
+The R6 feedback core SHA afd1b6c3cc7892f0188d80490f8404a6a283351d75c70f9874339e1dd246be8a
+is reproduced exactly by reversing the explicit geometry tuple/error string and one
+interpretation metadata sentence. Observer geometry is 1x24x42x36x64; node defaults
+are1024x576. All other candidate files remain byte-identical. A portable regression
+reconstructs and verifies the original file hashes, including Router core/layout.
+The frozen source/protocol bytes for signal/scan and all rejection rules are unchanged.
+
+Controller
+Full-frame gap5 signed-cosine readout; 49 lags[-24,24]; window50..65; lag>=4 ON,
+-2..2 OFF_ALIGNED,3 HOLD,<=-3 OFF_ADVANCED, rejected OFF_UNKNOWN.
+Callbacks5..18 act only on forwards6..19; callback19 audits only. First6forwards native.
+All50blocks use unchanged mass-preserving alpha1/radius0/offset0 operation when active.
+Current-reference extraction, single-run/clone state, official BasicGuider loader alias
+adapter, CFG1/singleconditional/Euler guards, normalization and causal checks unchanged.
+No x/x0/audio/reference/noise/RNG mutation; VAE is not decoded by the observer.
+
+Local verification completed
+68 CPU unit tests PASS in audit/local_cpu_tests.log using existing .venv-current.
+These include20x50 causal calls, normalization, unknown/advance handling, no-op and
+fixed-mask equivalence, state/callback sharing, actual graph differences, path guards,
+model fingerprint bindings, resource admission and cleanup identity checks.
+All Python scripts/extensions/tests parse with ast.parse; no dependencies installed.
+R8 observer evaluated all9 actual R7 snapshots and matched all441 curve points,
+argmins/rejections exactly against R7 frozen offline analysis. CPU tensor signatures,
+file hashes and unchanged environment/Torch RNG checked; CUDA remains uninitialized.
+Only small reports/expected curves copied; the existing R7 tensor files were read in place.
+See analysis/observer_contract/RESULTS.json and expected_main_curves.json.
+
+Before launch / remaining host gate
+Run tests/feedback_wrapper_smoke.py in existing .9 Comfy environment, CPU only:
+ --comfy-root /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+ --compat-bootstrap <R8 remote root>/scripts/compatibility_bootstrap.py
+Smoke uses real nodes.load_custom_node and graph BasicGuider class, real ModelPatcher,
+WrapperExecutor, Euler and MiniMaxH3 normalization. Four cases test off/native bitwise,
+feedback/fixed-mask bitwise, both independent X0 wrapper orders and nested callback.
+It is geometry-adapted from passing R6 actual-Comfy smoke; R8 real-host execution is
+still pending and must be performed by root. No local toy test substitutes for it.
+Root has reported R7 independent early pose gate PASS at indices5/10/15 and final.
+
+Launch preparation
+Remote root /data5/researcher/h3_runs/timing_normal_feedback_r8_20261016; port8469.
+GPU2 UUID GPU-REDACTED. One sealed formal job:
+ r8_s05_normal_feedback. Builder has launched no GPU/service and made no remote edits.
+R7 actual same-host runtime provenance and warmup are hash-bound in
+ audit/parent_provenance_binding.json. Existing warmup timings40.17/33.10/34.16s/it
+pass100s gate; scripts/preflight.py verifies evidence hashes and exact graph equality
+outside the feedback/admin change. These inherited timings exclude feedback overhead.
+launch_remote.py verifies model size/mtime/prior full SHA and actual core SHA before
+service start; readiness requires the feedback node and frozen1024 defaults.
+service.py checks selected GPU idle and ownership; preserves other users' processes.
+run_queue.py uses finally:service.stop(); cleanup checks PID/UID/startticks/cmdline/GPU/
+port before signaling, then writes process and GPU absence evidence. The existing host9
+admission is conservative: an unexpected own-user job on another GPU blocks admission.
+Root can explicitly configure permitted own-user process identity if necessary while
+preserving the user limit of at most2 owned GPUs. Do not silently loosen admission.
+
+Evaluation after inference
+Compare actual reference/conditioning/noise bindings and index5 video+audio with R7
+before any intervention. Retain all active indices, unknown/advance events and curves.
+Evaluate independent pose/quality including any harm; latent alignment alone is not
+success. Gap5 covers17physicalframes; this cannot establish short-action omission
+localization. Only one deliberately selected normal source; no unseen-generalization claim.
+Do not change protocol, thresholds or reference selection after inspecting R8 outputs.

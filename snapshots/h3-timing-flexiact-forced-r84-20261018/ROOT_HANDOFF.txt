@@ -1,0 +1,34 @@
+R84：两条固定时序引导，复用已完成R72 Native作严格实际对照。
+本地 /Users/researcher/DevProjects/h3-timing-flexiact-forced-r84-20261018
+.41 /data3/researcher/h3_runs/timing_flexiact_forced_r84_20261018
+GPU7 GPU-REDACTED，端口8548，normal reserve8。
+63文件seal e3d4a14bc9a57e206c96ea7b321b6b369793d76b276b968a00af3d7357797b27。
+本机与实际.41各20测试通过，9个实际核心SHA全部相同；admission=false，无服务/CUDA启动。
+
+顺序：
+1 r84_one_leg__movie_man_9_seed2026101701_forced：沿R72 P0逐字提示，目标特朗普，原生视频已换人、动作明显延后。
+2 r84_fitness__game_man_5_seed2026101701_forced：沿R72 P1逐字提示，目标红金铠甲，主要动作已迁移，局部阶段/幅度残差。
+两源均1152×768、158总帧/147有效帧、24fps，原片/原生成逐帧PTS均为i/24且首帧0。新旧三栏以后截相同147帧。
+只改变router mode到mass_preserve与step区间6..14；α1、50个block、原始RGB帧0..146覆盖的44个latent bins。47总latent bins中末尾纯padding bins保留原生。
+六个数值模块与R72逐字相同。输入、prompt、seed、sigma、Euler20、原noise pair_id不变。31MB两份原noise缓存已在远端复制并SHA核验。
+旧Native位于原R72根，保持全部证据。新旧服务代次/GPU UUID不同（同host、同GPU型号/数值环境），不假称同代次。
+actual pair gate逐项读取真实21组AV captures、8个条件blobs、实际noise；要求全部条件及每个前6步AV x0严格相同。不同即FAIL，保留原结果，无容差fallback。
+
+30GiB为root授权受控容量试跑，158帧在此余量尚未实证。科学配置和normal reserve8不变。历史40GiB准备快照保留audit/pre30gib_snapshot。失败由root精确清理，不自动降质量/改算法。
+
+root命令（远端根，python=/data3/researcher/ComfyUI/.venv/bin/python）：
+先按实际活跃自有peer更新configs/admission.json，ready_for_launch=true；这一步root独占。
+python scripts/execution_gate.py approve-service --root-admitted --free-mib 30720
+python scripts/launch_remote.py --service-only
+等待exact pre-CUDA ready后，root将准确service登记到peer，核ready/supervisor身份后原样原子写processes/cuda_gate_go.json；等HTTP队列可读且空。
+python scripts/execution_gate.py approve-run r84_one_leg__movie_man_9_seed2026101701_forced --root-admitted --native-reviewed
+python scripts/job.py submit r84_one_leg__movie_man_9_seed2026101701_forced
+python scripts/job.py status r84_one_leg__movie_man_9_seed2026101701_forced
+完成后CPU：CUDA_VISIBLE_DEVICES='' python analysis/postrun/verify_pair.py --source one_leg__movie_man_9
+root看实际gate和画面后，第二条：
+python scripts/execution_gate.py approve-run r84_fitness__game_man_5_seed2026101701_forced --root-admitted --native-reviewed --previous-pair-reviewed
+python scripts/job.py submit r84_fitness__game_man_5_seed2026101701_forced
+完成status后CPU verify_pair.py --source fitness__game_man_5。
+最后python scripts/service.py stop，精确核PID/CUDA释放。无controller/自动队列；idle hold1800秒、单job14400秒、总43200秒，由已有exact-owner watchdog管理。
+
+R74 chest Native未换成铠甲，保留audit/existing_native_review中的失败图/时间线，不纳入这次两条干预队列。

@@ -1,0 +1,74 @@
+R2 (.41) 与 R3 (.9) 实际输入差异核对
+2026-10-16；CPU 只读检查。没有修改远端文件、环境、活动配置或 GPU 进程。
+
+结论
+
+跨机差异确实存在于 tensor 内容，不能用 JSON 内的 run_id、路径或元数据不同解释。两机源 MP4 完全相同；全部 141 帧解码后的原生 YUV420P 字节流也相同。最早可复现的不同发生在 PyAV 的 YUV→RGB 转换路径。
+
+.41 实际服务因 PYTHONPATH 优先导入 runtime_deps 的 PyAV 17.0.0；.9 使用 PyAV 16.0.1。同一 .41 机器改用原有基础环境的 PyAV 16.1.0（仅本次 CPU 子进程，无环境修改）后，全部 141 帧的 float-RGB SHA 精确变为 .9 的实际输入 SHA。这将已观测到的最早输入差异定位到颜色转换的软件路径，而非源片、帧序、H264 解码内容或 GPU 计算。
+
+这不证明 DC 算子跨机效果不同全部由颜色转换造成。身份参考图 prepared RGB 在两机一致，但其 VAE latent 已不同；后续模型运行还存在 Torch/CUDA/设备数值环境差异。现有跨机结果只能描述为不同实际预处理与计算环境下的复现，不是“仅 GPU 不同”的严格因果对照。
+
+一、原始文件与内容层证据
+
+source05 的本地文件、两机 input/ 和 inputs/ 文件均为 1,470,409 bytes，SHA256：
+c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857
+流信息均为 H264 / yuv420p / 1312×736 / 141 frames / 24fps / time_base 1/12288。
+
+141 帧原生 YUV420P 全流 SHA（三个 CPU 环境完全相同）：
+09e21df6304562e89f288b504157c1403c8e1448dde877be1813c04116ee7aa1
+
+141 帧转为 gbrpf32le 的全流 SHA，和真实 H3EventAudit.input_video.sha256 精确匹配：
+.41 实际 PyAV17：5fd5681dba1df618a9d63fedb028586a4ed54407094de8554a8ed943fb766f6a
+.9 实际 PyAV16：348c749921d1dd415293d3a80e61ab9dbe55fd1b092eb8ddaf716e89139dcf3e
+.41 基础 PyAV16.1 同机控制：348c749921d1dd415293d3a80e61ab9dbe55fd1b092eb8ddaf716e89139dcf3e
+
+固定帧 0/55/83/140 的 native YUV 全帧 SHA 均一致，rgb24 与 gbrpf32le 全帧 SHA 均不同。四帧报告的 color_range=1、colorspace=1 也相同。两环境报告的 FFmpeg 各库版本元组完全相同；没有核验所有动态库二进制构建，也没有隔离到 PyAV 某一版本提交，因此不把结论写成某个具体 FFmpeg bug 或特定色彩矩阵错误。
+
+证据：r2_conversion_probe.json、r3_conversion_probe.json、r2_base16_conversion_control.json。readonly_conversion_probe.py 通过 SSH 标准输入运行，只流式计算 CPU 摘要，没有保存任何远端新文件。
+
+二、源码位置与预处理传播
+
+原 frozen core snapshot：
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+
+comfy_api/latest/_input_impl/video_types.py:519–530 对本片实际 yuv420p 使用 gbrpf32le；:555 调用 frame.to_ndarray(format=image_format)；:567 转 torch tensor；:595 堆叠。1312 可被 32 整除，:537 的宽度对齐特殊分支不触发。两机该源码 SHA 相同：
+ca3ab830c3e71706762b03a7b239ce7a198a15abbf78d75de47fb3fb108449b9
+
+comfy/utils.py:1095–1103 的 lanczos 即使目标几何相同，仍先 clip(255×RGB).astype(uint8)，再经 PIL.resize，最后转 float32/255。两机该源码 SHA 相同：
+f3ee59baf72f6910b7662224854e372c713ba3ad01c89739ba092e5ee22460e6
+
+本次检查固定 4 帧、每帧均匀 16×16 空间坐标，共 3072 个 RGB 通道值：每机对 decoded 样本施加上述 uint8 截断再恢复，可逐值精确复现本机 preparedRGB 样本。没有发现这些样点上 resize 额外改变数值的证据。该样点验证不能替代全片 preparedRGB 的全量数值对比。
+
+跨机 fixed-sample float RGB 每帧 RMS 分别约 .005227/.005341/.005171/.005493，最大绝对差 .044541/.041154/.041154/.046891；prepared RGB RMS 约 .005464/.005425/.005340/.005582。这里只是固定采样点统计，不是全片误差。
+
+三、实际 conditioning 差异与配对
+
+RESULTS.json 比较的是 shape/dtype/raw SHA，移除 tensor_file 后进行字段对比，不用 JSON 文件 SHA 代替 tensor 内容。
+
+跨机相同：原 prompt、实际 video/audio noise tensor、seed 2026101311、token_tags、target_latent_shapes、packed_layout、position_ids、视频采样帧索引与时间标签。
+跨机不同：input_video、prepared video RGB、video VAE latent、Qwen 实际 12 张视频采样图、包含视觉 tensor 的 tokenization 输入、conditioning embedding。
+
+身份图 prepared RGB 一致：
+03227732853cbf56ea8a99b6570f085cc521101d6f78539ffebbd264745aa087
+其 VAE latent 不同：
+.41 ed90392ff32cec59607c16883b7fd898c084e80ec7cccccb15db65d5f41e249b
+.9  84bbce189156f16a63c40c7d0cdb501219c52477dc6fb1d89012a44dca195dd5
+这表明视频颜色差异之外，至少还有下游编码数值路径差异，不能把所有下游 SHA 不同都归因于源视频转换。
+
+同机已归档的各臂逐项检查均通过：
+R2 .41：native / full_6to14 / dynamic_6to14 / static_6to14，共四臂。
+R3 .9：native / full_6to14 / dynamic_6to14，共三臂已在当前 local provenance 中可查；spatial 尚未在这份审查读取的归档集合内，不算失败或已核验。
+每个已查臂相对其本机 native 的 prompt、input_video、native_vae_calls、qwen_presentation、完整 tokenization、conditioning_embedding、token_tags、target shapes、packed layout、pair_snapshot.actual、noise signature 和两个 actual noise streams 全相等。
+
+因此每机内部 DC/full/static 等控制的实际输入与噪声配对成立。跨机可以比较结果是否稳健，但应明确预处理及计算环境共同改变。若要隔离设备/内核数值影响，需要之后冻结并交换同一实际 prepared RGB 或完整 conditioning tensors，而不是只保证同 MP4/seed。此建议未实施，不修改当前实验。
+
+四、版本与检查限制
+
+.41 实际：PyAV17.0.0（runtime_deps）、Torch2.11.0+cu130、NumPy1.26.4、Pillow9.5.0。
+.9 实际：PyAV16.0.1、Torch2.5.1+cu121、NumPy1.26.4、Pillow12.0.0。
+.41 基础 PyAV16.1.0 只作为独立 CPU 子进程控制；实际服务依然使用原环境。
+
+先前 r2_small_probe.json/r3_small_probe.json 是未带服务 PYTHONPATH 的初探。它们不能代表实际服务；保留用于说明为何必须重建真实模块搜索路径。正式结论使用 *_actual_runtime_probe.json 和上述三个 conversion probe。
+
+没有下载 1.6GB preparedRGB。preparedRGB 通过远端 CPU mmap 读取固定小样；解码全流哈希按帧计算。本次没有生成新视频、加载模型权重、申请 GPU、改动活动服务或运行队列。

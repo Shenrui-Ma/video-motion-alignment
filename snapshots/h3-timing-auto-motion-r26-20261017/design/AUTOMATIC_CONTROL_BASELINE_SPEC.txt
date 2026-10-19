@@ -1,0 +1,91 @@
+Automatic whole-video timing controller: minimal causal baseline proposal
+2026-10-17. Design only; no GPU admission. Scientific novelty not established.
+
+Why this baseline now
+The physical-tolerance v1 experiment rejected important source07 delays. The
+transparent pairwise gain baseline retained both old failure sources and removed
+the weak normal005 proposals on development data. Use it to establish automatic
+control feasibility before attaching a novelty claim to a more complex rule.
+
+Inputs and observation
+Source video, identity reference and an appearance/identity-only edit instruction.
+Run the frozen source pose once. At every Euler index0..19 evaluate the Native
+clean prediction on the actual current state, decode it through the same frozen
+VAE and obtain pose. Capture time, NFE and source/target confidence. Source pose
+feature extraction can fail: that step is UNKNOWN and uses Native. Observation
+begins at index0; sufficient coverage/reliability determines the first usable
+evidence. No human event interval or fixed denoising eligibility boundary enters.
+
+Detector
+Reuse the frozen baseline timeline scan: complete16/32-frame windows, stride4
+plus last complete start; bilateral/left/right arm descriptors; lags+-24;
+confidence0.3 and0.5; original coverage/ambiguity/residual gates. Rescore reliable
+delayed proposals with pairwise common support at all null offsets[-2,2].
+Require min gain>0.5 across all comparisons and both confidence thresholds.
+This is a declared development hyperparameter, not an estimated probability.
+Retain aligned, advanced and UNKNOWN outcomes in the full decision ledger.
+
+Grouping and window number
+Make connected components of qualifying intervals that overlap in physical
+time. Within each component choose one existing proposal with the largest
+minimum absolute error reduction across its ten common-support comparisons.
+Tie-break by shorter interval, then earlier start, then feature name. This is
+an engineering ranking, not a calibrated risk. Keep all component representatives:
+the number can be0,1,2,... without fixing a count by clip length. Their positions
+and count are derived on each actual endpoint; no future endpoint is accessible.
+
+Activation, stop and restart
+A representative is eligible only if the immediately previous endpoint had a
+representative with compatible sign, at least one shared arm, and overlapping
+interval (intersection over shorter interval>=0.5). Bilateral descriptors share
+both arms; a left-only proposal cannot persist through a right-only one. Thus
+two consecutive usable observations support start;
+missing or incompatible evidence breaks persistence. For this baseline only
+positive delay triggers the known Full actuator; advanced proposals are logged
+as detected/uncontrolled. At the next endpoint, continue only where qualifying
+persistent evidence still exists; aligned/below-gain/UNKNOWN produces zero route
+there, and each reason is reported distinctly. Later repeated delay can restart.
+Two consecutive observations are correlated persistence, not calibrated safety.
+
+Actuator
+Use the existing successful Full output-query to same-time reference-key readout,
+all50blocks/allspatial positions, alpha1/radius0. Convert selected physical
+intervals through the existing H3 tag/position mapping to the union of query bins;
+record every interval, bin and mapping. A selected bin is altered once even when
+windows overlap. Preserve total reference-group mass and all other groups.
+Use current Native endpoint for observation, then compute at most one Full
+prediction on identical x/sigma/conditions/RNG using the selected bin union.
+Make exactly one Euler update with the chosen prediction. NFE=20+active steps.
+The controller changes the existing intervention support/timing, not its algebra.
+
+Initial experiment and comparison
+Begin with old source05 bad seed2026101311 and normal seed2026101313. They are
+development cases, and their previous Native/Full evidence remains controls.
+Confirm all model/input/noise/prefix bridges until the first actual intervention.
+On the normal case, complete OFF means all chosen endpoints/final match Native.
+Evaluate full-timeline lag/pose, original primary/outer windows, edit identity,
+blur/duplicates and observer cost. The old fixed Full comparison changes physical
+support as well as schedule; isolate schedule/window effects only after a useful
+automatic trajectory is observed, with a matched replay of its chosen intervals.
+New source Native outcomes from R26 determine prospective follow-up cases; retain
+the entire screen ledger. Current source07 detection limitations remain public.
+
+Failure interpretation
+If this baseline improves source05 only, it establishes wiring on a development
+case, not generalization. If early endpoints remain UNKNOWN until too late, then
+measurement readiness is a concrete limitation. If many windows activate and
+appearance degrades, investigate support/actuator selection rather than claiming
+that timing-score reduction proves success. No first dynamic guidance claim:
+MotionEcho and other controller precedents remain explicit comparisons.
+
+Implementation clarifications after independent review, before any causal run
+Valid detector/visibility UNKNOWN uses Native and records its reason. Decoder,
+process, model/input hash or archive integrity errors abort the run; they must
+never be silently converted into a scientific UNKNOWN. Persistence compares
+Native observations made on the actual chosen trajectory, including the effect
+of any earlier intervention. A future or original unmodified trajectory cannot
+stand in for that observation. Normalized gain controls acceptance; absolute
+common-support improvement controls representative ranking. Interval chains can
+bridge two actions into one component: retain this baseline limitation, with
+all component members recorded. Later disjoint-window selection improvements
+require a separately frozen ablation.

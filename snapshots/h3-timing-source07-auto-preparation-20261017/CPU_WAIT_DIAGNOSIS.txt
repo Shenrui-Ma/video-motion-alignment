@@ -1,0 +1,11 @@
+轻量CPU等待诊断：R27 / R32 / R33
+
+结论：当前online_pose_pending反映真实R32在线任务，没有发现已退出R27留下的未完成标记。
+
+实测时间1792192795.882：
+• R27 service14216已有1792192056.936的cleanup：process_absent、own_compute_absent、child_compute_absent均true；40个observation目录没有一项满足request+native存在且pose_complete/response同时缺失。其postrun函数另有cleanup直接False分支。
+• R32已从早先所见index0推进至index2。index2请求于1792192764.173产生，native.json在快照前约21.3秒落盘，pose_complete和response尚无。run_observer3165（父42926）和decoder3187（父3165）仍存活，decoder有CPU活动，属于实际进行中的请求。
+• R33 gate扫描R27、R32两个root，按request+native且无pose_complete/response判断在线优先；该时刻由R32 index2触发，不能视为旧R27残留。
+• R27消费者实际存在remote_consume status --run bad1311进程59997，已运行约1分55秒、CPU98.2%。源码status会checked_archive，属于完整性复核。local STATE仍显示上次waiting_CPU_or_online_pose，不是当前子进程的实时状态；normal observation1已于1792192219.663通过。
+
+操作范围：只读源码、ps、目录/文件stat及小JSON。未拿计算锁、未读大PT、未杀进程、未修改consumer或生产文件。主线程已决定按原封存流程继续后台，不展开效率改造。本诊断不评价生成最终结果。

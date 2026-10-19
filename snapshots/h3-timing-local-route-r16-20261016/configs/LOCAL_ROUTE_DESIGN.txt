@@ -1,0 +1,59 @@
+源姿态限定同bin参考路由：最小可实施定义
+2026-10-16；只读设计，未实现、未运行GPU。该操作属于已知的局部条件控制/soft spatial blending；pose mask本身不作为创新。当前目的：检验Full路由的全空间作用是否是肢体重影的一部分来源，同时保留主窗时序改善。
+
+1. 已读实现与可复用数据
+R11 extensions/H3TemporalRouter/core.py:203起route_attention：全量native attention后，选主窗queries，算整段参考O_R、同bin参考O_same、参考组质量m_R=exp(LSE_R−LSE_full)。mass_preserve分支约254行：O_new=O+alpha*m_R*(O_same−O_R)。现alpha是标量，所有943个空间query统一修改。
+_aligned_attention约48行按完整frame_rows分组，当前假设每bin完整空间行；无需为了首个局部pilot重写该Flash计算。
+layout.py validate_layout确认目标/参考同几何，并依据[1,4,4,4,4]span选择主窗50..65→latent bins[14,20)，名义覆盖47..67。1312×736视频→latent W82/H46→2×2patch→41列×23行，每bin943query。该span不是精确VAE感受野。
+已有源pose：/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/old_sam/05_real_megumi_v.pose.json
+SHA e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852；源MP4 SHA c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857；24fps/141frames/1312×736，逐帧COCO17，坐标已由pose postprocess映回原视频像素。joint索引7/8为左/右elbow，9/10为左/右wrist。frames47..67这四点最低raw score0.4959709644，无缺人/多人/歧义。初始门固定score>=0.3，score非概率。
+R2/R11实际condition prepared RGB bc25b919…和clean ref cc5c11db…已相同。源pose来自同MP4字节但此前.9解码；像素差不必造成坐标变换，仍应明确这是复用检测位置而不是对.41prepared tensor重新检测。
+
+2. 坐标链与冻结几何门
+本pilot只支持上述同几何source05：原视频像素(x,y)→prepared图坐标A(x,y)→latent坐标(x/16,y/16)→patch空间坐标(x/32,y/32)。A须从实际预处理链核实；已有图为LoadVideo→GetVideoComponents→H3 conditioning，尺寸均1312×736；没有证据时不得仅凭相同尺寸推定无crop/flip。实施前保存实际节点/原码变换记录；若resize，则sx=Wprepared/Wsource、sy=Hprepared/Hsource，若pad/crop需显式偏移，发现未知变换即拒绝运行。
+采用像素边界连续坐标：token(r,c)矩形[32c,32(c+1))×[32r,32(r+1))，中心(32(c+0.5),32(r+0.5))，r0..22,c0..40。等价从pixel-center convention出发时中心为(32c+15.5,32r+15.5)，必须固定一种，不可混用。首轮采用边界连续坐标并给pose x/y加0.5后计算距离。
+全序列query索引=target_video_start+k*943+r*41+c。layout已有row-major假设，实际patchify/position_ids必须以带r/c标记的合成tensor核查，避免x/y互换。RoPE时间原点不参与像素几何换算。
+
+3. 一份source-only软mask，不读取生成结果决定ROI
+对每个源frame建立左右前臂线段[e_left,w_left]和[e_right,w_right]；无需新检测模型或训练。点坐标p_j(t)在相邻有效RGB帧间线性插值，严禁用生成pose反向选mask。若所需frame任一elbow/wrist低于0.3或selection歧义，则标未知，不跨长缺失插值；首轮直接预检拒绝该mask准备，不自动扩大为全画面。
+设D(x,t)为patch中心x到两条前臂线段距离的最小值（线段端点自动包含腕周围圆盘）。固定r_inner=32RGBpx（一patch）、r_outer=64RGBpx（两patch），两者是几何容差起始值，未经效果调优。软mask：
+ M(x,t)=1, D<=32；
+ M(x,t)=0.5*(1+cos(pi*(D−32)/32)), 32<D<64；
+ M(x,t)=0, D>=64。
+对bin k使用其完整名义RGB span内所有整数frame，加span中心（可能半帧）的M最大值，得到M_k(r,c)。中心坐标用上述线性插值；时间union覆盖该bin内的短腕位移，不把四帧路径压成单个平均点。仅k14..19有效，其余query为0；覆盖47..67和当前Full完全一致，不能宣称只处理精确50..65。
+该mask定义是“预定动作区域”定位；不计算动作幅度、动态时延或异常检测，不把用户编辑允许区混入首轮。首轮左右前臂均纳入，避免事后只挑改善的那侧。保存[6,23,41]FP32 mask、每bin非零个数/均值/最大值、source坐标/插值点、生成脚本与pose SHA、bitmap叠加图，仅用source检查几何。
+
+4. 修改公式与质量守恒
+令q对应(k,r,c)，a_q=alpha*M_k(r,c)，0<=a_q<=1，所有头共享同一空间mask。每层/头沿原native QK得到各自m_R，不缓存旧步mass：
+ O_new(q)=O_native(q)+a_q*m_R(q)*(O_same(q)−O_R(q))。
+等价参考组贡献变成m_R*((1−a_q)*O_R+a_q*O_same)，其余组贡献保持本次原值；参考组总质量仍是m_R，非负凸组合。因此同query/同head参考质量守恒不依赖mask是否均匀。该结论是注意力读出的代数性质，不保证最终画面质量、视觉主体身份或时序。
+mask外M=0时直接保留native full output中的原位数值，不做加零、dtype roundtrip或输出覆写。实现最窄改动是保留现有两次辅助attention与_aligned_attention完整bin计算，只在M>0的query行FP32计算上式再copy回；这样mask外没有新引导算子，native原位逐位不变。辅助attention仍可能为整bin计算，这是首轮复用kernel的计算成本，不能冒称mask外零计算或已加速。
+若要进一步只对非零query做辅助attention，需要改_aligned_attention的变长query分组；这不是首轮必要改动，不和当前功能pilot一起做。全零mask应在辅助attention前早退到native；全一mask必须复用原Full路径，便于逐位回归。
+
+5. 跨身份偏移与后续传播的边界
+源人物与Sam/其它身份的体型、手臂长度、构图可不同，生成动作本身已延后。source wrist ROI可能落在“应该出现手的位置”，而当前生成手在别处；局部引导可能补出另一只手并加重重影。32/64px软扩张只提供有限几何余量，不能声称解决对应关系。
+输出投影是同token线性层，因此初次mask外不直接改变；后续DiT自注意力、FFN和VAE感受野会传播影响，最终mask外视频不能保证逐位相同，也不能保证腿部重影不变。全空间路由与重影目前只是并存，没有证明因果。
+只在源坐标定位有显式用途：检查源动作附近的query是否足以改善时序，以及减少直接改写无关空间行是否降低伪影。失败可能是空间对应错、mask太窄、肢体联动需求、强度/总剂量变化，不能只凭一次失败否定局部控制思想。
+
+6. 最小实现范围、回归与实验定义（均待授权实施）
+建议全新extension复用sealed TemporalRouter，不修改R11；新增source mask离线生成脚本/manifest，节点读已冻结mask路径；RouterState保留CPU immutable mask，按device缓存一次FP32，layout严格核[6,23,41]→[1,1,5658,1]。仅mass_preserve支持此mask，拒绝其它mode混用；不要宽化现有标量alpha校验或给hard_route误加同解释。
+数学单元：M全0=native逐位；M全1=原Full逐位；混合mask正行=dense softmax小张量公式，零行逐位原值；每head参考mass与other组不变；非法shape/NaN/range/错误span拒绝。几何单元：标记patch的r/c顺序、四角/边界/中心坐标、confidence缺失拒绝、半帧插值、source时间union；RNG/noise/condition不变。
+实际Comfy CPU wrapper沿现有20Euler/20NFE/20callback、单CFG、50block状态检查；GPU前仍需实际shape/backend warmup与off/noop门，CPU不能证明Flash不同batch形状数值或速度。
+首个科学pilot优先固定R11 continuous6..19（现独立pose0但有局部重影）同source/seed/model/sigma/环境，alpha1、radius0、all50blocks，仅新增空间M；保留native、原Full、局部版本同窗pose和固定帧原始画面。既有Full只在实际输入/环境轨迹配对门通过时可复用。最少新增一条局部生成即可发现明显失败或可保留信号，不构成独立验证。
+必须预先记录局部版本几何平均a的下降：若质量变好，也可能仅因为总干预变弱。后续必要对照为全空间uniform alpha等于该mask几何平均强度，或逐bin均值匹配；此对照仅匹配几何平均，不等于每head m_R加权剂量完全相同。位置特异性需再加预先固定的等面积错位mask，不应从本次结果倒选。
+评价保持主窗50..65的方向/腕相对轨迹、零时刻质量帧、手臂重影/额外肢体与遮挡保留；不能只报告pose时序。当前source/生成均已看过，明确开发样例。记录每NFE/整段耗时与mask覆盖，不因效率另开调优。
+
+7. 文献边界与交付
+该变体与pose/ROI局部控制、轨迹引导和软mask混合存在显著先例；本设计没有对这种原语提出独占创新。请prior-art代理审查与已有DIAL、MotionEcho、FlowMotion、轨迹/区域注意力控制的具体重合。值得保留的后续问题只能由实验支持，例如质量代价究竟来自哪些query及空间对应是否需要显式补偿；不可预先写“posemask架构创新已成立”。
+本文件是可实施定义，不是实现批准或效果证据。未修改任何已有extension、未启动GPU、未重跑pose。
+
+8. 接到root最新范围更新后的首轮固定方案（覆盖第6节初始R11运行建议）
+科学目的保持局部位置机制诊断；采用已完成.9 R3 Full6..14作为已知基线。新空间router实验归入独立 /Users/researcher/DevProjects/h3-timing-local-route-r16-20261016；R15 analysis/scripts由其他代理负责，本文不修改其内容。当前尚未实施。
+基线来源 /Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/audit/x0/r3_s05_full_6to14/manifest.json；source05/Sam/seed2026101311、1312×736×141、20Euler、固定video12/audio3 sigma、cfg1、50blocks，active physical forward indices6..14。实际prepared RGB=1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42，clean ref=75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734。必须复用R3/.9原输入与已验证runtime、同GPU基线绑定，不能拿.41bc25b/cc5c库冒充配对。
+在同一GPU串行两条新臂，除此空间增益外全部参数冻结：
+- ROI：a_(k,r,c)=M_k(r,c)。
+- UNIFORM：a_(k,r,c)=mu_k，其中mu_k=(1/943)*sum_(r,c)M_k(r,c)。
+二者每个时槽有sum_q a_q相同，所有head共享增益，9个active步和全部50层相同；因此排除几何平均query增益/时槽剂量总和不同，主要比较增益空间位置。它们的sum_q a_q*m_R(q)可能不同（m_R与空间相关，而且后续轨迹会变）；不得叫严格相同注意力质量剂量或在推理中重新匹配mu来偷改问题。每槽mu在source-only预处理时冻结，不看任一生成结果。
+先生成并封存source坐标与mask叠加检查、mask SHA及mu，再生成ROI/UNIFORM；两臂的actual prepared input/reference/Qwen condition/noise与基线完全配对，sigma/模型/sourcehash验收。按可用硬件选用.9既有R3同UUID，最少先确认R3记录GPU UUID；不在设计阶段猜卡号或抢占资源，不启动任何GPU。
+复用R3既有结果需要运行环境/同输入核验；若微小hook改变native计算，必须先off/noop配对门。模型NFE/20callback不变，无自适应选择；mask仅加在原mass_preserve修正系数处，Q/K/V、RoPE、参考key范围均不改变。源pose仍可使用第1节同MP4、同几何的检测结果，.9生成链与pose旧解码来源更接近，但实际prepared空间变换仍必须核查。
+首轮读取两臂全部结果并保留：ROI相对UNIFORM是否在时序和重影上有稳定权衡，不能仅ROI相对Full变好就声称位置机制成立。相同sum alpha的UNIFORM既是最小剂量对照，也是可能更简单的有效替代。任何显著效果仅一开发例，后续换seed/source需独立冻结，不以当前known case做泛化结论。DIAL已覆盖query软mask和局部/全局增强，所以上述两臂仍为机制诊断，非新颖性证据。

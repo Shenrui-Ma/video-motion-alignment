@@ -1,0 +1,211 @@
+R27 automatic controller wiring feasibility — read-only proposal
+2026-10-17. No implementation, service, model or GPU invocation in this review.
+Basis: design/AUTOMATIC_CONTROL_BASELINE_SPEC.txt and the frozen R19 source.
+R26 Native screening is separate and already sealed as v2.
+
+Feasibility conclusion
+The R19 current-state Native-first transaction can support this baseline without
+changing Comfy's sampler core. It needs a new source-bound all-time measurement
+adapter, a deterministic interval selector, and a per-prediction union-bin mask.
+The existing R19 fixed window, fixed early Full prefix and index>=10 observation
+guards cannot simply be reused. The output is a causal engineering baseline;
+current pairwise-gain development results do not establish a novel mechanism or
+source07/bedroom generalization. All-time online sensing remains untested.
+
+1. Exact transaction and source changes
+R19 extensions/H3PoseObserverRouter/core.py:276–365 already runs Native first at
+actual packed x/sigma, verifies unchanged condition tree/RNG/full sigma grid,
+then runs at most one Full prediction at precisely the same state and returns
+only the chosen endpoint. SamplerAudit's callback counts the one physical Euler
+update. Reuse this shape, official BasicGuider CFG1, all50blocks, Euler20/no churn,
+unchanged AV scale, PDD/full-grid metadata and exact process-state guards.
+
+Change the new experiment's eligibility from6..19 to0..19 (core:19), remove the
+forced selector prefix (selector.py:7–10), call LivePoseObserver at every Native
+endpoint (core:343), and replace fixed50..65 in State construction (core:128).
+No observation of a chosen Full endpoint may recursively trigger a third model
+call. Decisions at n use current Native(n) and previous Native(n-1) observations
+on the actual integrated trajectory, not saved future Native-only endpoints.
+NFE=20+number of steps with a nonempty authorized bin union. With two consecutive
+observations and no fabricated prehistory, n=0 cannot activate, hence20..39NFE;
+there are always20 callbacks and20 Euler updates. Multiple windows never add
+multiple Full forwards. Observe n=19 too, before the final update.
+
+transport.py:86–96 binds indices10..19, source05/seed1311 and R19 path/run ID;
+replace those with the new frozen case registry, not wildcard acceptance.
+live_observer.py:45–67 already binds request ID, endpoint bytes, current n/NFE,
+source/reference/conditions/seed and child response hashes. Preserve that chain.
+pose_live_child.py:27–28 hardcodes the old source pose and evaluate_x0.py's fixed
+windows. A new adapter must load the actual case's frozen source pose and invoke
+the all-time scan instead. Early valid video with absent/weak detected pose is
+scientific UNKNOWN, whereas corrupt tensors, timeout, wrong model/provider,
+mutated request or decoder fallback remain ABORT. In particular timing_metrics
+load_pose can raise 'Insufficient reliable torso anchors'; this specific lack of
+observability must be represented as UNKNOWN instead of treating every ValueError
+as harmless. Never blanket-catch all exceptions into UNKNOWN.
+
+Historical pair gates also need new eligibility. R19 live_observer.py:23–35/69
+unconditionally checks old Native010 decode/pose, which ceases to be a common
+state if a new automatic rule intervenes earlier. At the first ON index n, the
+current Native(n) is still eligible for old-native comparison; Full(n) and all
+future predictions permanently lose that historical-native eligibility. Reuse
+available actual AV prefix bridges, label unavailable old full condition trees
+honestly, and retain same-state/RNG guards at every step regardless of history.
+
+2. Detector and persistence: implement the current spec literally
+Reuse R2/scripts/timing_metrics.py, R26/design/run_scan_baseline.py and
+R26/design/pairwise_gain.py:5–28. For141frames there are33 windows of length16 and
+29 of length32 under stride4 plus the last complete start. Each endpoint thus
+has62windows x3current arm descriptors x2confidence thresholds, with all49lags.
+Do not use source selection reversal positions as runtime windows.
+
+Pairwise gain is (null_cost-proposal_cost)/max(null_cost,1e-8), not absolute error
+reduction (pairwise_gain.py:21–24). Each null lag -2..2 has its own common support
+with the proposal; reject if any comparison fails the frozen coverage>=.8,
+>=8frames, weight, residual or original reliability gate. Require min gain>.5
+across the ten comparisons. Ranking inside each overlapping interval component
+uses min(null_cost-proposal_cost), the absolute reduction across those same ten
+comparisons; tie by shorter inclusive interval, earlier start, then feature.
+These two quantities must not be interchanged. Keep full curves and all unknown
+reasons; no new score/threshold fitting is included in this proposal.
+
+Keep every component representative, so0..K regions are possible. For current
+representative [a,b], persistence means a positive-delay representative from the
+immediately preceding endpoint has inclusive overlap/min(inclusive lengths)>=.5.
+The latest frozen spec additionally requires at least one shared arm: bilateral
+shares left/right, but left-only cannot persist through right-only. Equal feature
+names are not required. Reuse the updated reference policy without alteration. UNKNOWN, aligned,
+below-gain or incompatible evidence breaks persistence locally; later two
+consecutive qualifying observations can restart. Store candidate and authorized
+representatives separately: the first observation can be a candidate without
+being authorized. This is evidence persistence, not calibrated confidence.
+
+Body-part scope must be described precisely. The frozen current spec contains
+bilateral/left/right ARM directions. R2 timing_metrics.py:92–95 supports those
+plus wrist/body position descriptors, but does not provide frozen independent
+leg/torso direction diagnostics. The interface may accept a registry of parts;
+claiming all body parts, or adding legs/trunk to the controller, requires explicit
+feature/support definitions and additional frozen measurement checks. This
+proposal can implement all physical windows and all three currently specified
+arm descriptors immediately. It cannot turn the existing arm-only test into
+whole-body coverage by relabeling it. Preserve legs/torso as independent side
+quality measurements where already available.
+
+3. Union-bin actuator and physical support
+Use actual conditioning metadata/PackedLayout, never fixed text length or87592.
+R2/extensions/H3TemporalRouter/layout.py:20–35 maps inclusive RGB intervals to
+half-open overlapping positional bins with repeating spans(1,4,4,4,4).
+For141frames there are42bins. Example [50,65] -> [14,20), whose positional envelope
+is47..67. [66,81] -> [19,25), envelope64..84; their union is bins14..24, each once.
+These are positional supports, not exact VAE receptive fields. Record original
+representatives, bin union, envelopes, and any physical expansion. Full spatial
+coverage is23x41=943query rows per bin at1312x736. Whole-space support does not
+become arm-specific merely because arm measurements selected the interval.
+
+Smallest reuse option: R16/extensions/H3LocalTemporalRouter/mask.py:113–135 has a
+validated QueryGain tensor and device cache; core.py:224–235/291–295 preserves
+zero-gain rows without writing them, and all-one uses the original Full path.
+In a NEW module, construct a binary42x23x41 mask with each selected temporal bin
+filled1 across space, other bins0; use the full-target-video plan. Latch this
+immutable mask once after Native observation and before the optional Full pass;
+all50blocks and all heads use it. Create a fresh mask object/device cache per
+physical decision. Reusing a mutated cached tensor would risk stale masks.
+Do not reuse R16's source forearm mask loader, fixed [14,20] geometry, ROI gains
+or pose-capsule constants. The transferable element is its per-query mixing
+mechanism, not its old scientific input contract.
+
+Mathematically, for selected queries O'=O+m_ref(O_samebin-O_ref); for all other
+queries O'=O exactly. Preserve reference-group mass in this existing real-valued
+formula and use the established Flash numerical boundary, not a claim of
+bitwise recovery of the native probability matrix. Empty union returns Native
+without a Full NFE. Overlapping windows must not multiply alpha. No target-audio,
+text or reference-query rows are overwritten. The local gain path already has
+CPU and actual-shape GPU gates in R16; new dynamic shape/mask latching still needs
+its own tests. An alternative is a shared native-output/LSE helper plus disjoint
+query spans; that changes more operator plumbing and is unnecessary initially.
+A wider masked query batch can change Flash accumulation details, so use exact
+zero-row invariance and predeclared tolerances for changed rows; do not assume
+it is bitwise identical to the old six-bin batch just because formulas agree.
+
+4. Decoder residency, CPU locks and measured cost
+R19 core calls the observer after the Native DiT forward has returned. Preserve
+live_observer.parent_guard:7–21 before/after observation, including actual model
+and sampler sigma tensors, params/buffers addresses/devices, conditions, wrappers,
+RNG and model-patcher residency. Direct same-process VAE.decode risks Comfy model
+management unloading the DiT. R19's isolated exec decoder avoids that boundary.
+
+The verified starting option remains one isolated decoder child per endpoint:
+run_observer.py:20–38 admits exact parent on the same GPU with>=12288MiB free,
+decodes full VAE, waits for decoder exit and checks only parent remains, then runs
+CPU pose. decode_live_child.py:69–79 forbids OOM tiled fallback;215–245 shows FP16
+VAE creation/full decode and child-local unload. Reuse frozen float->RGB->MP4 and
+pose settings. Previous standalone peak~5.61GiB and actual R19 co-resident bridges
+support this geometry, not a promise about a permanently resident decoder's
+future overlap with larger union-bin Full forwards.
+
+A persistent VAE worker could avoid repeated loading, but the present protocol
+requires decoder_released_before_pose=true and admission finds only the parent.
+It is therefore NOT a flag switch. It needs a request server, exact parent/worker
+identity, per-request state reset/hash evidence, new combined peak gate during
+Full, and cleanup of the registered worker on parent death. On a separate GPU it
+also consumes the second of the user's two allowed GPUs. Do not implement this
+resource extension as part of the first causal baseline; keep the main DiT
+resident and retain the already tested isolated decode lifecycle. If later
+requested, consider it as a separately bound resource revision without changing
+science or silently enabling fallback.
+
+Actual R19 pose_live_child acquires only the REMOTE consumer.lock; it does not
+contact the Mac lock. Existing offline consumers acquire Mac then remote. The
+live sampler must never hold the Mac or remote CPU lock while waiting for its
+child. Parent holds neither during decode; CPU pose obtains remote lock after
+decoder cleanup, releases it before responding. An offline wrapper that holds
+remote lock and then waits for a live observation would deadlock; disallow this
+in the consumer protocol. A future persistent child may not keep that lock while
+idle. Retain nonblocking acquisition, finite wait/child timeouts and exact-parent
+lifetime guards; timeout is an operational failure rather than scientific OFF.
+
+Every endpoint requires one full141frame decode and one CPU pose pass. Record
+native/Full model seconds, condition hashing, snapshot copy/write, decoder load
+and decode, RGB/video IO, CPU-lock wait, pose, scan, and total observation time.
+20initial observations instead of R19's10 doubles the number of these requests;
+there are no extra DiT calls for decoding. Do not extrapolate standalone decode
+time into a guaranteed service runtime. Existing per-request maxima could exceed
+a fixed2h job watchdog if repeated; freeze a coherent total safety budget before
+launch rather than increasing it after a timeout. This is cost accounting, not
+an efficiency optimization experiment.
+
+5. Minimum tests and staged acceptance
+CPU-only before any GPU approval:
+- Pure selector: all UNKNOWN, aligned, advanced, gain exactly.5, first observation,
+  two-consecutive onset, overlap exactly.5, disjoint components, deterministic
+  ties, stop on unknown, restart, changing feature names per literal spec.
+- Detector parity against current frozen offline curves/gains using existing
+  pose JSON; do not alter the reliability gates or optimize thresholds.
+- Bin conversion at0/140 and17frame boundaries; union deduplication/expansion;
+  mask zero equals Native, one equals known Full, disjoint support equals dense
+  oracle, all unselected rows/QKV/RNG unchanged; invalid mask/schema rejection.
+- Real Comfy synthetic Euler20 wrapper: no Full ->20NFE, selected msteps ->20+m,
+  exactly20callbacks/updates, no hidden third branch, currentx/sigma/condition
+  equality, physical index distinct from NFE, fresh per-run mask/state, and no
+  model call for observation. Matching fixed mask replay should be equal within
+  this implementation; it is a correctness control, not superiority evidence.
+- Early pose absence is UNKNOWN; malformed/corrupt/transport/timeouts ABORT.
+  Refuse stale endpoint/response, changed sigma grid or source identity, illegal
+  GPU process, fallback, child survival after parent death, and lock inversion.
+
+Then root-controlled integration, without rerunning a passive20NFE just to test
+wiring: bridge known decoded endpoint through the exact new request/scan adapter;
+verify Native prefix only while still shared; check dynamic-mask numerical GPU
+kernel and resource gates; run the proposed bad and normal development cases
+with all observations/choices preserved. Do not require R19's old step10 bridge
+if an earlier intervention legitimately diverged. Matched replay of the actual
+chosen interval trace isolates implementation later. Final full-video quality,
+identity/appearance and normal preservation stay independent of sensor scores.
+
+Minimal future file surface, all in a new R27 directory:
+core.py/State+PredictionProbe+SamplerAudit; selector.py; all-time metric adapter;
+dynamic union-mask construction; live_observer/transport case binding;
+pose_live_child adapter; node and graph schema; verifier/counter bounds; request/
+response and child-lifecycle tests. Reuse unchanged decoder math, timing_metrics,
+pairwise_gain, resource checks and scoped native attention helpers. R19/R26 sealed
+runtime and core files remain untouched. No new dependency is needed.

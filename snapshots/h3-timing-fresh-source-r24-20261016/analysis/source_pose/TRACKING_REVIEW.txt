@@ -1,0 +1,14 @@
+R24 source-only tracking review
+Original selection algorithm retained; no generated video inspected.
+fresh_a: selected-person indices {'0': 141}
+selected bbox centers range x=[591.2843627929688, 985.3117370605469]; y=[363.17016753554344, 481.58641815185547]
+source overlay frames0/64/120 inspected; selected green person is the intended dancer.
+A is an upper-body crop; knees/ankles mostly unobservable. Do not extend arm timing conclusions to legs. Some hands near frame boundary and torso anchors near lower edge remain a limitation.
+fresh_b: selected-person indices {'0': 139, '1': 2}
+selected bbox centers range x=[510.68247985839844, 684.1531982421875]; y=[354.62174797058105, 478.1500244140625]
+source overlay frames0/64/120 inspected; selected green person is the intended dancer.
+B detects mural person(s) in every frame; overlays show these in orange while moving dancer is green. Selected box center stays in dancer region across141 frames, with no jump to left mural. This is a tracking check, not a guarantee of every joint localization. Side views, hair and hands behind head reduce .5 coverage.
+Both primary windows have source wrist coverage below .8 at confidence.5 (A .75, B .7222). Consequently a four-reading high-threshold timing gate cannot be assumed measurable; keep UNKNOWN even if generated skeleton is clear. All windows remain fixed.
+All16-frame source visibility inventories and frozen wrist crossings are descriptive only; not semantic labels or timing errors.
+A initial attempt1 refused busy CPU lock; attempt2 extracted pose then rejected mismatched historical script-provenance comparison; current script binding corrected and exact cached pose reused. Full failed logs preserved; no DWPose model/selection change.
+CPU model/impl SHA matched historical frozen provenance, current script SHA matched current frozen04c6dd...; both devices/providers CPU, CUDA_VISIBLE_DEVICES empty.

@@ -1,0 +1,56 @@
+R24 postrun 独立只读审查
+审查日期：2026-10-17。范围为单次run接收、归档、CPU串行、配对门。未启动第二消费者，未修改运行文件/封包/服务，未占CPU锁，GPU/NFE为0。
+
+结论
+现有核心准入设计可支持在同服务继续推理时，对已经成功完成的单条run进行CPU评测；无需把整服务cleanup作为科学结果准入屏障。它不能据此声称模型已卸载或显存已释放。仍有两个应补齐的接收器边界，以及一个恢复便利性问题。它们不要求停止/重跑GPU，不证明任何生成结果失败。原10项guard测试只能证明mock元数据路径，不能当实际首条结果通过；我读取时STATE processed/pairs均空。
+
+需要修复或明确缩窄的两项
+
+[P2] 异常结束的队列可能永久pending，缺少终端队列分类。
+remote_consume.py:63–67在缺history/job时直接pending，只认status error；job.py:101–105/124以及run_queue.py:52–60允许submission_uncertain/unknown_missing/超时后controller终止并清理。后继尚未提交run没有history，甚至当前unknown_missing也可能没有history，因而消费者永远不计入failures。consume.py:84需processed+failures=8，无法收尾。
+建议由所有者加只读的controller终端状态/保存job异常分类：已有成功run仍消费；已提交失败、状态不确定、因终止未提交分别保留，绝不自动resubmit，也不把未运行记成科学负结果。这是异常路径，不能把目前仍pending直接视为失败。
+
+[P2] “实际源目录恰好5个endpoint文件”的门在复制过滤后才运行。
+remote_consume.py:50 inventory只加入manifest声明的captures/final；96–100按该白名单复制。verify_batch.inspect_capture:59–62对arc目录glob检查，所以源run目录额外存在的*.pt会被白名单排除，检查仍可通过。合法5项的类型/metadata/有限性/SHA已检查，这个问题是完整源inventory声明不够强，而非已发现错tensor。
+建议消费时在原run目录独立列*.pt，强制等于x0_step005/010/015/019.pt和sampler_final.pt各一次，并记录清单；复制后保留既有门。无需修改sealed producer verify_batch或runtime，只改postrun接收附录并明确版本。
+
+[P3，恢复便利性] 远端pair完成后下载中断，重启消费者不能幂等复用该pair。
+consume.py:67–71先创建远端PAIR_COMPLETE，再传输，再登记本地state。若传输失败，重启仍调用pair，而remote_consume.py:150对PAIR_COMPLETE存在直接拒绝。单run已有CPU_COMPLETE幂等检查，pair没有。安全性是fail-closed，没有伪造成功，但恢复需人工处理。
+建议可验证既有pair成员/inputs/输出文件SHA和PAIR_COMPLETE后重下载，或在失败说明中给明确手工恢复方式。不得删除旧成功证据去重算。
+
+核心门逐项结论
+1. 身份：bind核manifestSHA、保存servicePID/identity、若live则核UID/start_ticks/cmdlineSHA。成功job再核同owner/graphSHA；history promptID与实际graph相等。允许旧进程已退出不等于允许换代，保存registry必须仍相同。无producer mutation/ComfyHTTP/process控制路径。
+2. 稳定：两次间隔至少60s的snapshot比较路径/size/mtime及JSONSHA，正式consume再核同token。随后逐文件全SHA、copy/source一致、全部审计后及pose后再核原件与副本。稳定token本身不是完整tensorSHA门，但后续补足。只复制该run+明确共享条件/原输入，不递归抓正在变化的兄弟目录。共享条件若被新任务改写会拒绝而非混入。
+3. sealed源码与graph：消费前逐项核deployment manifest，rc.validate_job核注册顺序/seed/source/完整graph与输入SHA。consumer本地FREEZE五文件实际SHA相符，两个脚本AST解析通过。现场没有执行其torch或pose。
+4. 20步与路由：actual1000block、20forward、50blocks×20、zero-based6..14的450/0route、真实sigma、QKV实际seq_len与packed layout均检查。20Euler是封存实际Euler图+callback/block计数的证据，不是另有独立Euler运算记录。没有把CPU mock20循环当实际采样。
+5. endpoint：inspect_capture核四个索引[5,10,15,19]+final、seed、sampler、geometry、scale/normalization、各实际tensor有限性/shape/dtype/签名，除上面的源目录extra遗漏外内容门充分。索引5是首次引导index6之前，适合作为双臂共同前缀。
+6. 条件/噪声：共享clean conditioning实际tensor blob逐项load+SHA；H3PairAudit在真实当前positive上验证embedding/tags/ref latent/position layout后记录actual，而非只复制旧标签。noise缓存实际两流也逐项load签名。配对检查actual clean conditions与noise相同，prefix005两流torch.equal。未保存完整post-augmentation树，这仍是已有的边界，不能声称所有内部条件逐字节全可见；共同前缀提供额外一致性证据。跨seed核实际已验两流hash差异。
+7. CPU：唯一Mac coordinator锁持全生命期；重活Mac全局锁→remote同一consumer.lock均非阻塞。snapshot和61s等待不持重CPU锁；remote子pose最多4线程且CUDA隐藏。远端subprocess在锁生命周期内同步结束。不会因为兄弟GPU仍跑而擅自等待cleanup或动它。
+8. 测量：原三窗、.3/.5、49点曲线与15feature-window组合保留；source pose绑定hash及实际video；生成pose的模型/代码与source相同。低anchor失败明确UNKNOWN；双臂共同support在配对后计算。墙面人物误检/跟踪与视觉质量仍需按协议人工检查，现有代码不能自动证明它正确。
+9. 下载：rawMP4完整SHA与实际141帧/1312×736/24fps/PTS/5.875秒门清楚。大pt只远端留存且清单SHA已记录，不能把本地目录说成全部原始tensor已下载。verify_download对非MP4 inventory项目只在exists时校验；若宣称本地非pt证据完整，最好另加必需非pt存在清单，但实际rsync失败会抛错，当前没有缺件证据。
+
+无cleanup屏障为什么在这里可接受
+完成history由节点执行结束后产生，run_id唯一且不自动重试；完整capture/router与精准owner/graph门后，文件稳定和复制前后三次SHA让读取的版本固定。后续pose只读归档。服务可继续其他run，资源cleanup属于root另行职责。这个结论依赖上述门全部真实通过，不因mock测试或出现MP4就预支。
+
+修订流程
+已将P2两项报root及postrun所有者；我不修改其代码。若所有者修订正在等待的consumer，应先确认/停止自己的唯一等待进程、记录旧新SHA和评估专用diff，再启动唯一新版本；不改sealed producer科学文件。此报告对应下列版本，后续修订须另作附录，不静默覆盖当前审查事实。
+
+被审文件SHA256
+remote_consume.py 8113d1dcbde23f20c490b938dd23e270b73f4a634c2a696e30e2b616b8d0e6f3
+consume.py 1091388baf646ba14d2b02e2a3eaeb963e986ccf2a402af3c281f5fbedaa012c
+PROTOCOL.txt 82bd3b4261cd7348a339333afc0cd4dc34a70e372ac816ddb85e5e79463232fe
+FREEZE.json a0755f39661bbd4763f713f6cad128a1e0a23ba221993c3f2a4d86c66c7e8b2b
+BINDING.json e659b331946a537d8a223c178bf033c2c2b90b5d136c23c60523b9be1289bc51
+test_consumer_contract.py 3aa7febc624cfa68d954edc77771726e6b6115a6c16730075920ab5ff64011f1
+
+
+V2 独立复审附录（2026-10-17；不撤回上面的v1事实）
+结论：PASS，可由所有者恢复唯一CPU消费者；原P2两项和P3所述“远端pair完成、传输中断”恢复路径已修复。这个PASS仅针对代码/冻结证据，不是任何实际视频的integrity或pose PASS。
+冻结FREEZE SHA c4bddda54a69d53f2567b842cde759e4befd0ca6e36e072bd5757bbf3cbbf9d3；remote_consume a209886f5b6c798f2142b681f4b37984d54c071ba2cf439a33b37f53218e398e；consume 56938c32cabceb8a0017a61de97d6730a257c336a6f9671432df1e6d0e01c225。六个FREEZE文件SHA全部实核相符，两个脚本和测试文件AST均可解析。
+
+P2终端队列：snapshot先读取可用history/job，即使history缺失也能识别unknown_missing/submission_uncertain。controller终端或与当前完整owner相等的cleanup只用于未完成项分类，成功history优先继续允许消费；stale cleanup不终结当前代。reason区分unsubmitted_after_terminal/incomplete_after_terminal/producer_failed_or_uncertain。状态名failed仍是行政未完成分类，报告不得将未提交/不确定当成动作失败。
+P2源PT清单：inventory在复制之前验证源manifest有序文件名恰为005/010/015/019/final，再验证原目录*.pt全集恰好相同。因此额外文件、缺文件、manifest子集不能再被copy白名单掩盖。实际tensor内容门仍由既有inspect_capture运行，没有放宽。
+P3pair恢复：pair重入在复用前重验原文件/归档SHA、实际条件和噪声、两流prefix005；保存身份含case/seed/members/windows/sourceposeSHA及两臂inventorySHA。completed_pair验证已有结果passed、身份相同、PAIR_FILES精确全集与逐文件SHA。local rsync之后另核同一全集/SHA与passed才写state，避免只凭目录存在恢复。若在写PAIR_COMPLETE与PAIR_FILES之间崩溃，仍fail-closed留证，需人工查验；本次修复覆盖已完整产出pair后的传输失败，不声称任意中途故障都可自动恢复。
+
+针对性证据：已读26项stdlib synthetic fixtures测试的代码和完整日志，日志SHA73e2b0657ba0573082a43307e7dcebde310062aadeadc31ee138dd4aed894d3e，26/26通过。包括无history两异常、terminal未提交、精确/过期cleanup、兄弟失败后成功run仍可读；原目录extra/missing及manifest子集拒绝；pair恢复正例、错误members、内容改变、缺件/多件负例；本地下载SHA正/负例。没有重跑实际torch/pose或另起消费者，这些mock测试不能替代真实输入验收。
+旧唯一等待进程PID52140的精确停止记录在archive/consumer_v1_before_review_fix/STOP_NOTE.json；v1源码/状态/测试/绑定已归档。审核时STATE仍processed=[]、pairs=[]，尚无实际首条PASS；新consumer由所有者另行启动和报告PID。我不持计算锁，也未使用GPU。原无全服务cleanup屏障、读取成功run的设计判断保持不变。

@@ -1,0 +1,28 @@
+.41 R4 native：冻结 full-frame gap5 观察器预检
+
+结论：该已知延后样例在 .41 的真实 x0 缓存中，从 index5（第6次模型调用）起能读出正延后；这支持在 R6 上开展有界闭环机制实验。它不是独立新样本，也未证明早期 x0 的准确动作相位。
+
+参考绑定：R2 VAE controls/run1/original.pt 实际 raw tensor SHA = cc5c11db3015fcd8bf1179d346ce1e3743e734b94382e1a77e45a49d79623cc0，与 R4 conditioning.json 的唯一 [1,24,42,46,82] video VAE latent 完全相同。R4 原生回放已通过 R2/R4 同机五份 video/audio 和最终 RGB 精确重放门。
+
+方法完全沿用已冻结 same_phase_gap5：17物理帧跨度差分，原不等宽 H3 bins 的实际名义中心时间；全画面；正负24物理帧整数搜索；原能量、margin、边界、clamp拒判规则。没有重新选ROI、窗口或阈值。
+
+以下四列依次为源视频帧窗 50–65 / 69–81 / 80–92 / 99–111；读数单位是物理视频帧，与去噪调用序号不同。
+x0 index5（第6次模型调用）: +11 / +12 / +10 / +7；sigma_video=0.972972989
+x0 index6（第7次模型调用）: +12 / +12 / +10 / +7；sigma_video=0.965517223
+x0 index7（第8次模型调用）: +13 / +12 / +10 / +7；sigma_video=0.957055211
+x0 index8（第9次模型调用）: +13 / +12 / +10 / +6；sigma_video=0.947368443
+x0 index9（第10次模型调用）: +13 / +12 / +10 / +6；sigma_video=0.936170220
+x0 index10（第11次模型调用）: +13 / +12 / +10 / +6；sigma_video=0.923076928
+x0 index15（第16次模型调用）: +13 / +12 / +10 / +6；sigma_video=0.800000012
+x0 index19（第20次模型调用）: +13 / +12 / +10 / +6；sigma_video=0.387096763
+sampler_final: +13 / +12 / +10 / +6；sigma_video=0.000000000
+
+36/36 读数通过原退化/歧义门，全部无搜索边界或插值clamp；这类门不等价于已校准的统计置信度。所有49点曲线均保留于RESULTS.json。
+
+独立终点姿态（复用已确认逐位相同的 R2 native 视频）：threshold0.3 四窗 +14/+12/+11/+6；threshold0.5 为 +14/unknown/+11/+6。gap5 final +13/+12/+10/+6，7个有标签的阈值×窗口单元均在2帧容差内；主窗13对14/14。第二窗0.5 unknown保留，不当作0。
+
+所有早期 x0 的独立姿态标签均未计算、保留 unknown。不能把最终 +14 作为 index5 的真值，不能据此宣称 index5 +11 的误差为3帧。当前只确认冻结读出在 .41 也呈现稳定正延后方向。index19 endpoint x0与sampler_final不要求逐位相同；二者本观察器读数相同。
+
+执行：本机CPU单线程，4.693秒，CUDA未初始化；仅读取下载的9份既有latent约137MB，没有下载preparedRGB、没有新编码/生成/姿态估计。
+
+记录：首次脚本路径拼接错误与第二次pose unknown项缺flags字段导致报告装配失败，分别保留setup_attempt1.log和pose_schema_attempt2.log；只修路径/缺省字段，不改观察器数学、输入、阈值或已知读数。最终run.log和QA.json为成功结果。

@@ -1,0 +1,15 @@
+R27 postrun recovery_v2 independent review
+Verdict: PASS for root-bound single-phase recovery; no blocking finding.
+
+Verified locally: all27 frozen files, exact28-member tar bytes, original96 producer files and17 original postrun files. evaluate.py remains byte-identical. All13 stdlib tests passed (0.050s, ResourceWarning treated as error). No consumer, remote replay, pose, or GPU work was started for this review.
+
+The historical service14216 record remains an ownership binding, not a live-process requirement. Completed history, submitted graph and original RUN_GATE bind each run; controller administrative shutdown does not invalidate those success records. The recovery code never stops or starts a service. Root still supplies a fresh approved BINDING and confirms no old coordinator/worker remains before execution.
+
+Adoption hashes both original source and archive before and after indexing all20 measurements; existing replay JSON is validated and preserved by hash. Each new replay hashes its actual source/pose/Native endpoint/request/response/decode/observer dependencies plus producer Python, and must reproduce the exact numeric observer/summary. Finalization rereads the original full audit, checks all20 indexed observations/replays, performs complete source/producer hashes before and after the unchanged evaluator, and verifies exact original+derived inventory and downloaded non-PT bytes. The23 old replay count is an expected operational fact to be verified by actual adoption, not newly certified by this static review.
+
+Status uses anchors/stat only, explicitly not a content certificate. An unrelated same-size/restored-mtime change can escape that cheap snapshot but cannot pass final full hashing; changed dependencies are hashed at their numerical phase. The original scientific snapshot remains the authority.
+
+Both legacy/recovery coordinator locks are held, then Mac→remote CPU locks. Online R32/R35 pose priority is checked before and after remote lock acquisition. Each invocation runs at most one phase; CUDA is hidden and numerical work is CPU1. GNU timeout bounds the remote group. Partial adoption/replay receipt/final receipt commits fail closed and require explicit review rather than automatic overwrites. This is a deliberate recovery limitation, not an exactly-once atomic transaction.
+
+Freeze: e04a5dbf4fb2a8a726af77e0e0996e2d49181674c8e4c2020af4adcfc7e173fd
+Bundle: bdb90109269c65dae69ee8d592f7f18c5e6393f1decc9bd984bb1b53718a8fda

@@ -1,0 +1,72 @@
+R10固定Full轨迹上的同状态原生/Full预测诊断
+本地实现；new_method_claim=false；不按observer输出选分支。
+
+冻结协议
+configs/protocol.json SHA256 a0fd7bfe97f50a0efcf7939799544fe7fbe15dc9b5144d5da695a13b21a61465。
+创建协议后才实现，没有根据新输出改mask/threshold/选样。
+主图来自R3 r3_s05_full_6to14，model/input/prompt/seed/geometry/sampler/sigmas/backend冻结。
+唯一科学执行差别：每个Full采样步先额外运行一次native以存档，随后Full返回给Euler。
+Full physical indices6..14，共9次；其余11步native。共29NFE、20Euler更新、20callback、1450层调用、450层路由。
+图比对只允许node50替换为H3CounterfactualRouter及run/root管理字段变化。
+
+实现
+extensions/H3CounterfactualRouter/core.py / __init__.py：统一MODEL节点，一份clone共享state。
+SAMPLER_SAMPLE wrapper验证运行与callback；PREDICT_NOISE wrapper执行每步transaction。
+收到的predict executor重复调用而不递归调用Guider；现有KSAMPLER/sample_euler/Comfy源码不变。
+相同实际x/sigma/model_options/seed/condition内容；先native，再在固定9步Full；返回完整原始packed端点。
+通过NFE、physical step、branch三级映射和每次50层计数核验。已冻结Full数学及原生Flash路径复用R3 Router。
+R3原辅助component/temporal readout以NFE位置触发，记录中补physical/branch映射并修正sigma标签；它们不用于控制。
+官方BasicGuider loader alias识别复用R6已验证代码；拒绝CFG变更、未知forward hooks、区域、多卡、mask、churn/random inpaint。
+H3X0Readout仍独立保存原有8个chosen+final。新节点保存全部20个chosen可引用文件、9对native/Full及final raw。
+
+存档
+每个branch文件 stepNNN_native/full.pt 保存规范化video/audio、原采样坐标流签名、seed/ref/condition绑定、sigma与NFE。
+每步callback将chosen文件和原端点签名绑定到physical index，不重复存Full的相同chosen文件。
+physical[6,10,14]保存stepNNN_input_raw.pt：实际无损CPU packed x，不做process_latent_out；带完整21点sigma grid、sigma/nextsigma、shape/dtype/hash与seed/condition/reference绑定。
+这些存档只作未来一步fork的输入基础，本轮没有fork或额外NFE。
+原生探测位于历史Full已影响的当前轨迹上，不能称为完全无干预的独立native轨迹。
+FrozenGap5Observer仅被动读出n>=5的全部branch，full49点/拒判结果完整保存；unknown/负lag也不会改变固定选择。
+
+数据不变与耗时
+每branch前后对输入与actual original/processed conditioning作内容签名校验，并检查CPU及当前CUDA RNG未变。
+同一完整sample_sigmas传递给两分支；H3 PDD head仍由sigma查本次积分区间。条件局部Generator保持原payload seed，不增加或重置全局seed。
+process_latent_out只用于CPU副本，显式验证video identity/audio÷4；送回Euler的对象没有该归一化操作。
+模型时间使用CUDA同步包围（CPU直接计时）；条件拷贝/哈希和端点归档/readout分别记录，输入归档另记时间。
+这些是重诊断开销，不代表可部署controller开销，也不能宣称29NFE与20NFE同成本。
+原生预测仅在第二branch返回前短暂保留一个端点，没有再加载一份模型权重，没有跨branch hidden/KV复用。
+
+本地验证
+8项unittest PASS，audit/local_cpu_tests.log。
+完整29NFE试验与旧R3 Router单forward基线全20chosen及final逐位相等。
+覆盖native/Full相同input/sigma、Nested callback、20callback/1450blocks/450routed、全部branch规范化文件、3个raw输入存档、全grid。
+零修正no-op也与native轨迹逐位相同。
+负例覆盖错误sigma、重复forward、全局RNG消费、input/condition就地修改、重复callback、callback异常及重复run_id。
+配置测试验证exact graph差异、父warmup证据、端口/GPU/queue、路径guard与资源准入。
+所有Python文件经ast.parse。
+
+真实Comfy CPU集成检查
+准备tests/counterfactual_wrapper_smoke.py，由root在现有 .9 环境的隔离CPU临时目录运行，CUDA不可见，不加载模型权重。
+使用真实nodes.load_custom_node/BasicGuider、ModelPatcher.clone、WrapperExecutor、KSAMPLER/sample_euler和H3归一化；DiT仅tinyCPU QKV替代权重。
+真实H3.extra_conds构造CONDRegular/CONDConstant/PackedLayout，签名覆盖处理后cond树；两种独立X0wrapper顺序、一种Nestedcallback。
+调用真实H3条件视频/音频noise augmentation方法验证局部Generator；调用真实FinalLayer PDD sigma-grid分支，替换最终head权重算子记录区间，以避免加载权重。
+root在真实 .9 Comfy环境执行attempt2通过，日志audit/real_comfy_cpu_smoke_attempt2.log；核心SHA与本地一致01b94e4fcda7ab387fc10a952c9c4276df30ebbbba7f02aeae2de755057678b9。两种wrapper顺序均29NFE/20callback，全20chosen及final与20NFE固定Full参考逐位相等，真实processed H3条件、局部Generator与PDD检查均通过，CUDA_initialized=false。attempt1因临时分发漏observer_protocol.json而失败；补齐同一源文件后通过，没有改源码。
+CPU条件签名累计耗时4.753/4.806秒，存档与读出4.699/4.761秒，属于本次CPU检查记录，不据此推断GPU运行成本。后续GPU沿用现有耗时字段，只记录，不追加效率诊断或优化。
+命令参数：
+ --comfy-root /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI
+ --compat-bootstrap <临时或正式R10 root>/scripts/compatibility_bootstrap.py
+
+R3证据与上线门
+父实际runtime、Full graph/noise/condition/router/X0manifest及warmup均在audit/parent_binding.json绑定SHA。
+R3原warmup为spatial_bench2，86.53/80.25/81.19s/it。它只证明同模型、同画布、同后端负载曾可用；不验证新增wrapper或Full诊断速度。
+启动preflight检验父证据和graph；launch脚本再次核模型size/mtime/prior full SHA与核心实际SHA，包括新增依赖sampler/executor/nodes_custom_sampler/conds。
+.9 GPU2 UUID GPU-REDACTED，port8471。
+remote /data5/researcher/h3_runs/timing_counterfactual_r10_20261016。
+单任务封口队列 r10_s05_fixed_full_probe。只在GPU空闲且own-process准入通过后启动；既有finally停止+PID/UID/startticks/cmdline身份核验和显存释放检查。
+Builder未启动GPU、服务或远程写入，root负责上载/真实CPU与GPU执行。
+
+真实配对验收边界
+scripts/compare_parent.py核对R3真正存下的8个chosen indices[5,6,7,8,9,10,15,19]+final的video/audio SHA，以及实际condition、noise、sigmas、seed。
+旧R3缺少另外12个chosen缓存；R10即使存全20，也不能宣称对旧GPU轨迹逐点验证20次。CPU合成参考可全20验证，范围不同。
+每branch文件/hash、规范化到原采样坐标重建及raw输入存档也核对。
+另外需要root独立比对最终141RGB；任何已有端点或实际输入不相等，都不能把差异解释为原R3轨迹的同状态counterfactual。
+匹配后才可读native/Full的分离；没有由此建立新算法成功、动作自动定位或稳定性结论。

@@ -1,0 +1,19 @@
+R54 scientific differences from R49 Native
+
+1. The benchmark inputs and instructions are the five fixed IVEBench original tasks.
+2. There is one video reference and zero image references. The PackedLayout validator
+   accepts zero or one image segment; all source-video/query segment reconstruction
+   and attention math are inherited. Current tests exercise the zero-image case.
+3. The geometry is90x1312x736: video latent[1,24,27,46,82], audio[1,32,2,150].
+4. GPU/runtime moves from host9 A800/Torch2.5 to host41 4090/Torch2.11. Core9file hashes
+   and four checkpoint hashes match prior evidence; current host model checks reuse
+   the prior full SHA with current size/mtime/resolved-path equality. A cross-host
+   bitwise inference equivalence result is not available.
+5. Native attention core, AV readout, Torch/PyAV adapters, INT8 row chunking and
+   backend observation are byte-exact R49 kernels except the explicit reference
+   count check in layout.py. No same-seed quality or GPU-runtime claim is inferred
+   from CPU fixtures.
+
+The R54 Native and later paired Auto must use the same host41 profile, source bytes,
+prompt, seed, sigma grid, model checkpoint and prepared geometry. Retain all five
+outcomes and separately report official Motion Fidelity and supplementary timing.

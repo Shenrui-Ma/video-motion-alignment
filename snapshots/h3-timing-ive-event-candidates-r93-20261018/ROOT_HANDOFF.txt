@@ -1,0 +1,35 @@
+R93 CPU准备 / 被动部署交接
+
+本地 /Users/researcher/DevProjects/h3-timing-ive-event-candidates-r93-20261018
+远端 /data5/researcher/h3_runs/timing_ive_event_candidates_r93_20261018
+112文件 producer seal SHA fb44148bbe169b82cb226d936c85bb00bcbccf6f3a42c87980f74280cd14c6f9
+原root8份design文件及R92六份数值文件逐字保持。原始设计清单见audit/ROOT_DESIGN_BINDINGS.json；文件变化见audit/CHANGE_MANIFEST.json。
+
+固定顺序及24fps有效/总帧
+short_0370 89/90；long_0163 144/158；long_0059 144/158；long_0081 120/124；short_0203 91/107。
+0370与0203原fps是24000/1001，因此有效目标帧数89和91；原完整视频分别88和90帧。两个6秒clip原帧[52,202)、[175,325)，仅按IVEBench素材片段探索报告。0203独立style extension；其他四条主体/物体编辑。输入1312×736、crop16,8,1280,720；padding排除。inputs共20文件201,279,590字节，逐帧lossless回读MD5通过。
+
+执行条件与入口（仅root执行）
+.9 GPU0 UUID GPU-REDACTED，port8558；normal/reserve8/free>=40960MiB，磁盘>=20GiB。先核实际旧进程精确释放。--peer-root可重复传入当时实际仍活的己方任务根，fresh身份核验后最多两张自有卡；无其他己方GPU任务则省略。以下命令尚未执行：
+cd /data5/researcher/h3_runs/timing_ive_event_candidates_r93_20261018
+nohup python3 -u audit/root_run_batch.py --execute --attempt root_native_screen_attempt1 > audit/root_native_screen_attempt1_wrapper.log 2>&1 < /dev/null &
+有实际peer时在重定向前追加 --peer-root /data5/researcher/h3_runs/<实际运行任务根>。
+wrapper负责root准入、preCUDA身份登记/peer互认/GO、启动controller和精确收尾。GPU容量/结果尚待实际运行。
+
+逐条Native审核
+状态awaiting_native_review；门analysis/postrun/<source>/NATIVE_RUNTIME_GATE.json，20NFE/0routing/20x0/实际rawnoise和conditions/输出。root看完整任务和动作后，在当前等待source选一个：
+python3 scripts/execution_gate.py decide --root-reviewed --source short_0370 --choice guide --reason '实际审核理由'
+python3 scripts/execution_gate.py decide --root-reviewed --source short_0370 --choice skip --reason '实际审核理由'
+决定原子写入且只允许一次，绑定actualgate/video/rawnoise/conditions/graph/history与servicePID/UID/start/cmd。未实际完成的Native不能预选。skip写native_only，不产生forced job或pair gate。
+
+首次实际guided审核
+首个被root选guide的case完成且PAIR_RUNTIME_GATE通过后状态awaiting_first_guided_review。20+20NFE、0/450路由、sameconditions/rawnoise、前6步AVx0逐位相等。root查看效果与实际容量后执行：
+python3 scripts/execution_gate.py review-first-guided --root-reviewed
+首例也可skip。五例全skip则guided容量/质量标未验证。
+
+有界等待与归档
+每次审核等1800秒，单任务10800秒，服务57600秒。UNKNOWN观察不重置期限，POST不自动重发。正常终态或超时精确释放，回执audit/<attempt>/ROOT_EXIT_RECEIPT.json；完成为COMPLETE.json，待审退出为RELEASED_PENDING_REVIEW.json。SCREEN_LEDGER逐源保留paired/native_only与理由。跨服务续跑须另行root恢复，现包阻止已有service/job/ledger重复首次启动。
+行政SHA核验仅rawnoise PT、Native视频和JSON；不遍历20份x0/final/cleancondition大PT。审核/收据时间与推理时间分别记录。
+
+验证
+本机122项CPU回归通过，8root原件/6数值文件exact。实际目标CPU核验已通过，另见audit/TARGET_CPU_VERIFIED.json（seal、20inputSHA、9actualcoreSHA、原始有理PTS/24fps准备时基、preflight、122tests）。没有新增依赖、模型下载或长期daemon；GPU/producer/watcher均未启动。

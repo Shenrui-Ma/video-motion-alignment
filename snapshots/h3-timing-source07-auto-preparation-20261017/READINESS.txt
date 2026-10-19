@@ -1,0 +1,64 @@
+source07/Sam .9 自动控制迁移准备核对（只读）
+
+结论
+具备继续由主线程准备迁移实验的父对照。建议绑定实际 R20 .9 Native/Full pair，而不是 .41 草案：
+本地 /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016
+远端 /data5/researcher/h3_runs/timing_cross_source_r20_20261016
+Native r20_s07_native；Full r20_s07_full_6to14。
+这是此前已观察的床边舞第二开发案例，不能称盲新源。此文档没有授权或启动下一轮。
+
+一、此次实际核验
+本地输入、原片、姿态、图、条件/噪声/端点清单和审计的小文件SHA已重算。19项绑定检查全通过。远端通过H3_SERVER_A只读访问，两个历史root仍在；输入、两条graph/history/conditioning/noise/output、每臂5个PT均存在。R20 completed_pair_gate当次24项全通过，当前远端gate与本地SHA一致。
+当前PT只stat，不torch.load、不重哈希、不扫描大张量。其历史文件SHA/有限性/形状依据已归档gate；再次实际绑定须核当前字节/签名。没有GPU、模型、依赖、生产配置或消费者修改。
+当前 remote_inventory.json SHA d3b409cb8cac6d97aadc70b85975df60208d85b064f7401059cde7ee51392d93
+
+二、应冻结的真实源与科学配置
+源输入 /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016/inputs/07_real_ary_v.mp4
+SHA 46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11
+Sam图 /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016/inputs/sam_altman_village_global_20221117_original.jpg
+SHA 4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42
+seed2026101311；1312×736、141帧、24fps、5.875秒；Euler20、CFG1、video shift12/audio3、原21项ManualSigmas；没有Turbo。
+原提示词SHA d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546，全文在JSON。它与当前R27 source05 graph提示词逐字相同，仍应以source07实际图为来源而不是重新改写。
+稀疏语义参考2fps、phase0、采样0/12/…/132；原paired时间标签格式保留。dense参考[1,24,42,46,82]；音频[1,32,2,235]。
+实际attention56×128，87592tokens；42是视频latent时间bins。视频网格42×23×41，943空间query/bin。原手动54–69映射16..21仅用于已有Full比较，下一轮自动控制不得把这个窗作为输入。
+prepared reference SHA 8ca1262bdc1972241623868d517380343a44f51e3b3b60c9a6b15188f828afc8
+clean reference SHA 82d1e8f70a38ee0c5d7e447c3c9919ed5288e49f82677d3d3835bd7b7a1c4db3
+Qwen embedding SHA 31e1b8a5444c94fc0b1bc2a646f9f4bdd8f9ca0e735b5de303d0b97fbff164d3
+noise video SHA 94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96
+noise audio SHA ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3
+noise实体 /data5/researcher/h3_runs/timing_cross_source_r20_20261016/audit/07_sam_1312x736_2026101311_r20_noise.pt
+
+三、已有对照及可复用材料
+R20 Native本地原片 /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016/analysis/pose/raw/r20_s07_native_00001_.mp4
+SHA 00e16e53c75e1c2499aa4e28e47cd62d7eef0b9c4f90f36bb158d01f1b6fbd91
+R20 Full原片 /Users/researcher/DevProjects/h3-timing-cross-source-r20-host9-20261016/analysis/pose/raw/r20_s07_full_6to14_00001_.mp4
+SHA 8051c3f79034863f2cfa638ad7230c5d55d9a592a3e8e50c014417dd378ace7b
+Full为零起始indices6..14，all50blocks，alpha1/radius0/offset0、手动54–69窗；20NFE/1000blocks/450route。Native20NFE/0route。实际005双流前缀逐位相同。
+两臂各005/010/015/019+sampler_final共5个档，远端路径、当前size及历史SHA均在JSON。manifest明确019与final存在约1e-7级算术舍入差，不能互换。
+R20实际完整输入条件、noise、静态graph、同service、两history成功、端点唯一库存和历史cleanup均已通过。source/current target pose均141帧。
+源姿态 /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/old_sam/07_real_ary_v.pose.json
+SHA 962d87b14a569515c01424e1b074dc8a827f02ee2b8cd8ca3fc7b23a534760bc
+源有2帧多person候选但选人无歧义记录；左腕可见性不足导致部分双臂高阈值UNKNOWN。源码版本来源不同已记录，pose模型/提取规则同链；本次未重新测量。
+
+四、结果边界
+R20主窗54–69：.3双臂/腕/左臂/右臂Native全部+15，Full全部−1；.5 Native只有右臂+15可判，双臂/腕/左臂UNKNOWN。Full .5双臂/腕/右臂−1，左臂UNKNOWN。
+75–88 Native方向拒判，不能拿腕+15推广为可靠双臂延后；Full约−2。98–111仍约−5→−4且高阈值大量UNKNOWN。片头共同支持误差增加，不能说全片无损。
+既有真实Native005 gap5三窗+15/+17/−4，原门接受，但005未独立解码pose，不能作为2帧精度或在线启动正确性的真值。相关证据留原文件，不把它换成R27控制器。
+
+五、旧档关系
+旧实际host9 root /data5/researcher/h3_runs/timing_autoresearch_20261016_transfer0
+旧Native s07_full_seed1_native_x0、旧Full s07_full_seed1_mass_x0均完整存在。旧Full启用[0,20)全部20步，不能混称R20的[6,15)9步基线。
+.41草案configs/source07_*五项与旧host9实际证据逐字节一致，是合法历史来源，.41草案本身没有执行；后续实际执行在R20 host9。
+旧Native MP4 SHA a4b0f8bdefa545638904ae027e50e9a00c494fce6586a1077851da944f56a32c，与R20 Native字节不同；旧20261015版本也不同。已有输入/noise一致不等于这些成片逐位一致。
+
+六、R27迁移最重要的缺口
+1) 没有历史native0..4等共16个步骤，仅005/010/015/019。若自动首次ON在0–4，所有旧保存点已经位于分叉后，不能声称共同前缀逐位通过。R27现有HistoricalPairGate会给unavailable_historical_capture；保持此诚实边界，不为等005而推迟干预。若全OFF则比较现有4点+final即可，不能声称20旧点都比过。
+2) Qwen embedding只归档SHA没有tensor_file，完整processed condition tree也没存。dense参考、标签、position_ids、噪声实体存在。可同设置重编码并逐签名验收；不能描述成全条件实体缓存可直接重放。
+3) R20与R27四模型pins完全相同，R20九个核心源码pins都与R27一致；R27另外多四个pin，属于新增覆盖。两者Native计算路径都显式Flash-LSE，但wrapper非逐字相同，仍需真实条件/端点门，不能由权重相同替代数值验证。
+4) R27自动发现0..K局部窗和原阈值/持久规则保持。source07旧三个窗只做结果评估，不能作为控制输入。旧Full始终是手动窗口固定调度比较，不能冒称自动对照。
+5) 没有检查当前GPU资源；历史cleanup不是新准入。下一轮资源、实现、启动由root决定。
+
+最小建议
+绑定R20为唯一Native父记录及已有9步Full对照；源input/pose/actual graph/condition/noise/capture的SHA全部固定，换源与行政路径而不调R27控制规则；真实新run核条件/噪声/布局，按因果历史限定可比较的旧快照，全部20个当前native观测另存。呈现全片自动扫描以及原三窗、UNKNOWN和画质代价。已有材料足以准备迁移，不足以承诺控制器成功或完整旧20步精确重放。
+
+文件SHA及完整证据对象见READINESS.json。本次只读元数据与轻量文件，未占重CPU锁。

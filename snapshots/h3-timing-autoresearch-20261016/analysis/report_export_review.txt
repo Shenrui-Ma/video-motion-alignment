@@ -1,0 +1,69 @@
+报告与便携导出的独立本地审查
+审查时间：2026-10-15T21:45:37.452929+00:00
+性质：过程报告工程与科学表述完整性 QA，不对尚未完成实验给最终结论。没有修改报告/导出脚本，没有启动GPU、pose或任何远程任务；仅写本文。期间root正在修改报告，以下区分已修复问题与待最终同步事项。
+
+一、已修复并复查通过
+
+1. Source07主指标混淆已修复。
+初版transfer_section把两个源都硬编码为arm_direction。原source07主54–69窗口右臂为+15/+15，combined为+15/unknown（0.5 coverage=.78125<.8），若不标feature会把辅助门误当主结论。
+当前代码明确列 right_arm_direction「预定主指标」与 arm_direction「辅助；保留未知」，生成6条transfer行。没有删除combined unknown，没有把它写成双阈值combined成功。
+
+2. 缺文件默默略过造成的任务遗漏已用execution_section补充。
+初版diagnostics/video仅在文件存在时展示，未执行/执行错误/待测都可能从可见表消失。当前execution_inventory有28条：失败bench和成功bench分别列出；未提交±4明确「不是失败实验」；A0标注条件编码、不生成视频；未有history的任务标等待完成或等待归档，不以视频存在充当成功。
+执行成功也明确不等于效果成功。复现、零扰动、同种子重放、历史x3复用、后处理均明确不计独立泛化样本。28条是运行登记条目数，不是28个独立效果样本。
+
+3. Unknown保留正确。
+现有数值记录的reliable_lag_frames=None显示无法可靠判定/未知，不填零。x0主门unknown也保留，明确不等于动作丢失；较早左臂/身体可用但主门拒判的区别已写出。低分辨率正常例也保留，未冒充修复证据。
+
+二、待root在最终结果齐后完成的内容
+
+P1 内容覆盖：semantic B/C/D缺少实际结果汇总入口。
+当前diagnostics()的names和build()的videos列表不含 s05_semantic_b_p6_t6/c_p0_t6/d_p6_t0。execution_section列这些任务只表示程序状态；即使评估文件后来落盘，它们也不会自动进入数值表或视频卡片。
+建议完成后显式添加一个P/T诊断小表，标四组共享同一source05/seed1；A复用native、A0仅编码门；B/C/D均为探索性变量消融而非三个新样本。若有unknown、质量失败或未执行，就原样列状态，不能只呈现有利组。尚无结果时保持待测。
+
+P2 不利副作用可见性：Source07目标之前的代价。
+TRANSFER07_PAIR_REVIEW.md明确共同支持0–51区间方向误差变差（.16372→.20389，0.3；.14709→.18961，0.5）。现主页只在链接文档内保存，视频卡片仅说相关舞蹈，建议主表旁一句话提示「目标前区间有退化，详见共同支持分析」。不要只靠全片平均收益覆盖局部损害；这不否定主窗改善，也不需要更改原指标。
+
+P2 失败尝试与状态同步。
+root已告知将补transfer attempt1显式记录/链接；需保留它是采样前路径guard失败、不是效果失败，重试成功不是第二次独立样本。最终history和清理同步后重新构建execution_inventory；当前A0 history尚未归档时显示等待归档是正确的保守状态。
+progress.json仍有较早的phase_plus12.status「signed pair incomplete」与后来的minus12完成并存，以及updated_local与updated_at_client两个时间。最终统一过时字段，避免折叠机器记录与正文冲突。不得在当前尚有任务排队时提前标实验全部完成或服务全部清理。
+
+三、导出实测结果
+
+对真实当前目录调用原export()到系统临时目录，逐项核验所有PACKAGE_MANIFEST哈希，并解析打包内全部HTML的href/src；临时副本检查后自动删除。测试结果：
+{
+  "destination": "/private/var/folders/f7/z_ys892j23j1lb5sh_pjf3580000gn/T/h3-report-export-recheck-vr_nkl3f/export",
+  "files": 1582,
+  "bytes": 311045612,
+  "pages": [
+    "index.html",
+    "analysis/visual/native_review.html"
+  ],
+  "links_checked": 128,
+  "broken_links": [],
+  "absolute_html_links": [],
+  "manifest_bad_hashes": [],
+  "temp_removed": true
+}
+
+当前着陆页绝对路径均重写为包内相对路径，review/index.html被提升为根index.html后仍正确；另一个analysis/visual/native_review.html的相对图像链接保持正确。未发现现有实际HTML的断链或绝对本地路径依赖。
+另外最小用例验证：../outputs相对路径在提升页面后正确，带锚点保留；外部本地路径、缺失链接和file://localhost权限域均按预期拒绝。未改变这些策略。
+
+导出范围包含review/analysis/audit/configs/literature/inputs/outputs/scripts/tests/冻结扩展及日志、进程与staging目录；明确不打包.pt/.pth/.safetensors等大张量/权重，READ_ME有说明。因此它是可观看/审查资料包，不是独立自包含模型执行环境或完整服务器备份。
+
+仍需区别「可搬走」与「去标识化」：README、清单和实验配置保留原项目/服务器绝对路径作为provenance。这些文字不导致当前展示失效，也不是可供对方直接运行的路径；打包器没有承诺去除机器信息或匿名化。未读取任何私密凭证。
+
+四、非阻断实现边界
+
+export_review.py portable_links约第45行仅匹配双引号href/src，且正式export只重写主着陆页。当前受检查的所有HTML都符合这套约定，实际全部通过。独立小用例中的单引号绝对src不会被重写；未来新增页面/单引号/CSS url/srcset应扩展解析或在导出后做全HTML检查，不能无条件把presentation_links_checked当作任意页面安全保证。
+
+manifest哈希证明包内文件与清单相符，不证明整个研究目录是同一时刻原子快照。最终交付应先同步结果/history/cleanup，再构建主页、导出并核验链接；不要在后台不断写结果时把一次中途包称为完整最终记录。
+
+五、已审版本指纹
+{
+  "scripts/build_research_report.py": "5229546aab740871866274312a9a54475792cba29c7787ec167ad56a4afec907",
+  "scripts/export_review.py": "eb088f8a26e3fb6fa95d92c7f981090e58673e4f53b311685c4ae251c4fbed0c",
+  "review/index.html": "bd7e91a7ea04ddba17fe8ed1171710cfd7f8532b8d75ae46d8afa375eb4837ef"
+}
+
+结论：截至上述版本，当前可见状态分类、unknown保留和实际便携HTML链路未见阻断问题；后续semantic汇总、局部代价及失败尝试的主页面记录仍待root补齐。本文不评价未结束实验的成功率、创新或最终课题结论。

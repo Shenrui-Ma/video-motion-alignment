@@ -1,0 +1,38 @@
+R30 CPU 后验完成与四格结果提炼
+2026-10-17；本摘要不改封存清单或实验代码。
+
+结论：联合 F+B 保留主窗的相位修复，但没有优于单独 F。后续固定窗出现更大延后，同支持姿态误差也全面高于 F。当前不支持将反向 BLOCK 作为 Full 的增益组件。这个结论限于已知 source05/Sam/seed1311 的固定干预开发例，不推广为所有反向操作无效。
+
+完成证据：case 与 finalize 均 exit0/phase_complete，CPU_COMPLETE passed；83项原始文件、45项派生产物经现有 exact inventory/SHA 门；非PT完整下载，PT留远端并已验证。ADMIN_RELEASE_ACCEPTANCE接受root精确owner的queue.finalize行政释放。没有技术失败或自动重试GPU，所有本代理CPU调用已退出，已通知builder可取得下一CPU空档。
+
+四格定义：N=Native；F=原同帧参考Full；B=原reverse BLOCK；FB=R30联合。启用零起始6..14、相同固定物理窗/几何/seed。runtime门：20NFE、20Euler、20callback、F450/B450；初次联合分量严格核验，实际input/noise/condition与prefix0..5完整AV门通过。历史R3全后增强树未留存，以R10真实prefix与R3实际005作桥接；R25条件树仅两UUID差异被明示。详见RUNTIME_GATE限制。
+
+固定窗口结果（顺序50–65、69–81、80–92、99–111；U=按原规则UNKNOWN）：
+conf.3 双臂方向 N=[13,10,8,4]，F=[1,0,1,1]，B=[8,9,8,4]，FB=[1,3,4,2]。
+conf.3 腕部位置 N=[13,10,8,4]，F=[1,0,1,1]，B=[7,9,8,4]，FB=[2,3,4,2]。
+conf.5 双臂方向 N=[13,U,U,4]，F=[1,U,1,1]，B=[8,U,7,4]，FB=[1,U,4,2]。
+conf.5 腕部位置 N=[12,U,U,4]，F=[1,U,1,1]，B=[7,U,U,4]，FB=[2,U,4,2]。
+FB主窗左/右臂方向均1/1（两阈值）；69–81在.3右臂因shift后残差仍大而UNKNOWN，.5双臂/腕/左右臂coverage不足。所有body/left/right原读数、flags均在OWNER_SUMMARY.json与封存FIXED_WINDOWS中保留；UNKNOWN未当作0。
+
+F 对 FB 的共同支持比较：
+主窗双臂方向 .3：F .132520 → FB .167988，coverage1；.5：.133262 → .169231，coverage.984375。
+主窗腕部 .3：.148083 → .186572，coverage1；.5：.149484 → .186791，coverage.96875。
+全片方向 .3：.123045 → .210607，coverage.989362；.5：.113099 → .198497，coverage.964539。
+预定9区域×5特征=45行/阈值：.3有44行可用、44行FB误差更高；.5有41行可用、41行FB更高。剩余1/4行按不足支持保留，不用其数值下结论。区域与特征重叠，不能当作85次独立胜负。
+
+四格交互：主窗方向 E_FB−E_F−E_B+E_N 为+.404874(.3)、+.399424(.5)；腕部+.295826、+.293997。它们是同支持描述性交互，不是统计显著性。主窗F本已接近误差底部，正交互不单独证明一般“拮抗机制”；更直接证据是该案FB比F误差更高及外窗延后。
+
+全片186重叠扫描行的baseline描述计数（delayed/aligned/UNKNOWN）：
+N 102/59/25；F 0/157/29；B 96/67/23；FB 37/127/22；四者advanced均0。该计数不是过gain的controller-qualified窗口数，也不是独立动作事件/视频样本数。
+
+质量意见：已把仅匿名VIDEO A/B的固定55/86/105及视频发给critic，先不发key/指标。其已冻结三帧盲评：无可靠画质偏好、减轻ghost为UNKNOWN，86主要是姿态差异；连续MP4播放未由该意见完成。故本摘要不声称FB画质改善/恶化已全面证实。root另一独立视觉意见单独记录。
+
+成本（仅实际记录，不跨轮推断硬件或算法速度）：
+job墙时2167.998s；采样2024.943s；chosen20 capture合计18.370s；CPU case115.213s；20模型NFE另含450 extra full Flash调用。共享锁等待及下载不混入case计算时间。
+
+匿名媒体目录：/Users/researcher/DevProjects/h3-timing-forward-reverse-r30-20261017/analysis/postrun/captured/batch/final/r30_s05_forward_full_reverse_block_6to14/blinded_F_FB
+四格指标：/Users/researcher/DevProjects/h3-timing-forward-reverse-r30-20261017/analysis/postrun/captured/batch/final/r30_s05_forward_full_reverse_block_6to14/FIXED_WINDOWS.json
+完整摘要JSON：/Users/researcher/DevProjects/h3-timing-forward-reverse-r30-20261017/analysis/postrun/OWNER_SUMMARY.json
+CPU_COMPLETE SHA256 9c649a89e9f9826b5a8ebf601328a3dee789f2185d0c4cdbb6e6f7349664f8bd
+DERIVED_FILES SHA256 a6274e66fdd06b7de6a150696d4975eefec045bd6e9e55312ad7eb69a59563f1
+OWNER_SUMMARY.json SHA256 c414cc5032ce1f56013e27954f28036c95829cd77b350fe06ca14f44040ec7e9

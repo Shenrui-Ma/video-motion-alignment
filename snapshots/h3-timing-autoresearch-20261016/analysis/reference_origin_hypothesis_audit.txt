@@ -1,0 +1,102 @@
+H3 reference-bank temporal origin hypothesis — bounded independent audit
+Date: 2026-10-16. Scope: primary papers + selected public implementation + existing local H3 snapshot. No GPU, inference, deployment, or source changes were performed. This is not evidence of literature completeness.
+
+DECISION
+“参考视频和输出视频复用局部时间原点，避免参考长度改变源—目标位置对应”已有非常直接的先例：UNIC、VideoCoF，另有 OmniTransfer 和 Wan-Animate-2。把它称为 reference-bank-local relative time 或 gauge invariance 不会消除这个碰撞。当前值得保留的是冻结 H3 的机制诊断：在参考内容、token 数和外部条件固定时，参考—输出的相对时间原点是否影响物理动作对齐，以及该效应能否解释特定失败。即使校正有效，也首先是已有位置对齐原理的 H3 推理适配证据，尚非新的架构贡献。
+
+1. WHAT IS ACTUALLY OBSERVED IN H3
+
+Read-only sources:
+- /Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz :: comfy/ldm/minimax/model.py, lines 30–31, 95–113, PackedLayout lines 350 onward.
+- /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/extensions/H3TemporalRouter/layout.py
+- /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/s05_full_seed1_phase_zero_x0_provenance/phase_rope_audit.json
+
+Native code creates video time coordinates as origin + exclusive cumulative spans, with FRAME_PER_TOKEN=(1,4,4,4,4) and FRAME_RESCALE=5/3. A reference image occupies 1 time unit. A reference video's allocated span is max(reference audio length, sum(video spans)); target streams begin after reference spans. This is explicit packing logic, not an inferred missing subtraction.
+
+Current audited sample has text length 6960, then one portrait, then a 42-bin video covering 141 positional pixel frames. The reference origin is 6961 and target origin 7196. Corresponding selected bins begin at 7039.333333333333 and 7274.333333333333 respectively. Their difference D=235 RoPE units = 141 positional physical-frame units. It does NOT mean the output is delayed by 141 actual video frames. The observed output delay is a different, empirical quantity. The native model may deliberately use the offset to distinguish a reference bank from generated content; the intended checkpoint behavior cannot be deduced from packing code alone.
+
+The current single image precedes BOTH source and target, so its +1 contribution cancels in their difference. Removing that image would nevertheless change content and interactions. Multiple references, reference ordering, and audio length can alter other relative offsets. Do not generalize this sample's D formula to all H3 modes without inspecting those layouts.
+
+2. PRIMARY COLLISIONS, WITH EXACT MECHANISMS
+
+A. VideoCoF — strongest direct collision with the LENGTH-DEPENDENT ORIGIN story
+Paper: https://arxiv.org/html/2512.07469v2 , §3.3, §4.4, appendix §6.
+It identifies continuous source/target temporal indices as a length-dependent correspondence that can overfit training length. Its remedy assigns source and target the same 1…F positions and reasoning tokens position 0. Ablations connect the coordinate design to length extrapolation, motion alignment, and a failed clothing-lift action. This is already the proposed structural problem and a direct alignment remedy, not merely a generic RoPE discussion. The system is trained; this does not establish that resetting coordinates in frozen H3 will work.
+Official code checked at fixed commit:
+https://github.com/knightyxp/VideoCoF/blob/f45b8009616b3ef8e2024a7da585249b4c74fc2b/videox_fun/models/wan_transformer3d.py#L137
+rope_apply lines 169–179 uses frequency rows 1:f_src+1 and 1:f_tgt+1 independently, with ground/reasoning at 0. Without ground frames, lines 183–188 independently use 0:f_src and 0:f_tgt. Hence the reset is implemented, not only described. Full-model reimplementation was not run.
+
+B. UNIC — direct reference-bank-local temporal correspondence
+Paper: https://arxiv.org/html/2506.04216v1 , §3.2.2, Task-aware RoPE Index.
+It explicitly contrasts consecutive noisy/reference/camera ranges with variable-length editing, then reuses noisy-video indices 0…N−1 for frame-corresponding reference video, camera, and audio. Identity/style conditions instead occupy task-specific slots. Condition Bias supplies trainable task distinctions separately. Thus separating physical frame correspondence from condition-bank identity is already explicit prior art. The reviewed evidence is the primary paper; no full official implementation was verified for this item in this audit.
+Project: https://zixuan-ye.github.io/UNIC/
+
+C. OmniTransfer — task-dependent temporal alignment versus appearance separation
+Paper: https://arxiv.org/html/2601.14250v1 , §4.2 Eq.(2), §4.3 Eq.(3–4).
+For motion/camera/effect transfer, it moves reference RoPE along width, Δ=(0,w_target,0), retaining temporal alignment. For appearance transfer, it uses temporal offset Δ=(f,0,0). Reference self-attention and target-to-reference attention use the modified coordinates. This is a particularly important counterexample to “all reference origins should coincide”: the intended task determines which coordinate relation is helpful. It is a trained framework. Only paper-level mechanism, not official code execution, was checked here.
+Project: https://pangzecheung.github.io/OmniTransfer/
+
+D. Untwisting RoPE + third-party H3 port — offset effects are known; no direct H3 origin reset found in inspected paths
+Paper: https://arxiv.org/html/2602.05013v1 , discussion on shifted RoPE, §6.
+The paper studies reference-only positional separation, weakened reference interaction, high-frequency periodic copying, and out-of-distribution positional offsets in image style transfer. Its actual intervention modulates reference-key frequency components. These results make “relative offset changes reference behavior” unsurprising; they do not demonstrate H3 video temporal-origin alignment or physical timing correction.
+Third-party source checked:
+https://github.com/xmarre/ComfyUI-Untwisting-RoPE/blob/63c8d8df5e08dfdad4b397480d966b90f9b5a6c6/flux_untwist/patches.py#L89
+H3 scale-vector construction leaves the temporal axis at 1 by default; optional temporal scaling is frequency-channel amplitude scaling. Lines 412–433 clone selected post-RoPE K ranges, multiply by a scale vector, then invoke attention. The inspected H3 path does not reset reference time origins. This is a third-party implementation, not evidence that the paper validated temporal H3 behavior.
+
+E. Temporal Context Routing (TCR) — nearby physical-time conditioning, different interface
+Paper: https://arxiv.org/html/2609.02367v1 , §3.1–3.3, Eq.(1–4).
+For script token j assigned interval [s_j,e_j], define center c_j and radius r_j, then add B_ij=-β(t_i-c_j)^2/(2r_j^2) to video/text and audio/text logits. Both query grids use seconds on the same clip timeline. It uses LoRA adaptation with routing at training and inference. Its Gaussian Interval RoPE baseline also rotates query time and text interval centers. This is not an identified source-video bank-origin reset; nevertheless physical-time routing independent of serialized text position is already established.
+
+F. Additional direct baselines already checked in prior audit
+Wan-Animate-2 combines Time-Align RoPE with same-time Sparse-Ref Attention:
+https://arxiv.org/html/2608.06009v2
+https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L566
+Sync-LoRA shares source/target physical-time 3D RoPE while separating their denoising conditions:
+https://arxiv.org/html/2512.03013v1
+These are additional reasons not to claim first source-target temporal alignment. They were covered by literature/timing_prior_art.md; this bounded pass focused on the five sources above rather than repeating those full reviews.
+
+3. GAUGE INVARIANCE: THE EXACT DISTINCTION
+
+Suppress spatial coordinates and write Q=R(o_Q+cτ)q, K=R(o_R+cρ)k, c=5/3. Standard orthogonal RoPE gives
+  QᵀK = qᵀ R((o_R-o_Q)+c(ρ-τ)) k.
+This shows why the bank-origin difference can matter. It does not imply attention is a monotone function of time distance: q/k content and multiple frequency phases matter.
+
+A common temporal translation a of BOTH Q and K in the evaluated attention pair preserves the dot product in exact arithmetic. That is the ordinary RoPE relative-position symmetry. Shifting only the reference origin by g changes the relative phase by g and generally changes cross-attention. It is NOT a symmetry of the existing model. Likewise, shifting just reference Q/K together preserves reference self-attention at that input, but changes interactions with unshifted target/text/other banks.
+
+A bank-local rule p_Q=cτ, p_R=cρ removes bank offsets by design. It therefore imposes a NEW desired invariance relative to the native model, rather than exploiting an invariance that the native cross-bank operator already has. This is mathematically close to UNIC/VideoCoF's reset rule. Calling it a gauge quotient is only justified after explicitly assuming that the serialized bank offset is nuisance for this task. That assumption needs evidence and may fail for appearance references.
+
+Implementation distinction: changing a reference origin normally changes its post-RoPE K values while retaining pre-RoPE content and V. If K/V tensors must literally remain byte-identical, clone ONLY target Q for the target→reference branch and rotate it by -g. This produces the same cross-bank relative phase as rotating reference K by +g, with original K/V untouched. It does not reproduce every interaction of a global reference-coordinate reset. State this narrower intervention honestly.
+
+Preserving original reference-group mass through O_new=O+m_ref*(A_ref_new V_ref−A_ref_old V_ref) removes instantaneous global gain as one explanation. It is elementary attention decomposition, not a new architecture. m_ref is from the same layer input, not fixed throughout two diverging denoising trajectories. Other block interactions are unchanged only at that immediate input; later Q/K/V can differ because the hidden trajectory changes.
+
+4. MINIMUM FALSIFIABLE CONTROL — NO NEW INFERENCE PERFORMED HERE
+
+Stage A, cheap tensor-level mechanism control on one recorded layer/input:
+Keep the identical content Q/K/V, token count/order, masks, spatial RoPE, dtype, backend, and selected rows. Use the actual loaded temporal frequency buffer; do not reconstruct assumed frequencies. Native zero-delta must take the exact native fast path.
+
+A0: native relative gap D=235.
+A1: branch-local common shift +g of both cloned Q and reference K. Logits/conditional attention/output should match A0 within a predeclared numeric tolerance; this verifies the true symmetry and operator plumbing. Use an FP32 reference because BF16 re-rotation is not bit-exact.
+A2: retain original K/V, rotate the branch-only cloned target Q by -235 RoPE units. Effective origin gap becomes 0. This is the direct shared-time-coordinate baseline.
+A3: rotate the same Q by +235. Effective gap becomes 470. This is an equal-size opposite-direction perturbation, not a prediction that physical lag must double or reverse.
+
+Full-bank temporal-origin diagnosis should apply the origin change consistently to the chosen output→reference bank interaction across all output times. If only an event ROI/window is modified, call it a local coordinate intervention; it no longer tests global bank-origin invariance cleanly. Do not conflate the two scopes. Large ±235 rotation is a substantial phase intervention; it is not simply “a little more” than the earlier ±12-frame trial.
+
+Stage B only if Stage A behaves as specified:
+Use the same frozen input video/portrait/prompt/noise/geometry/sampler/LoRA/kernels; predeclare layers and denoising interval. Existing zero baseline may be reused only with exactly matched graph/backend/provenance. Minimal additional renders are effective D=0 and D=470; pair with original D=235. Start with the known failure and include an existing successful clip/seed before claiming improvement. This is a mechanism test, not a complete benchmark. Compare at least signed event lag, event order/completeness, local pose amplitude/shape, identity/edit compliance, and unrelated temporal sections. Repeating a visually selected positive sample alone is insufficient.
+
+A result specific to D=0 that restores timing while preserving editing supports relevance of bank-origin correspondence in that sample. Similar benefit from both signs or many arbitrary offsets supports a nonspecific perturbation/gain/locality explanation instead. A matched native good case damaged by D=0 refutes a universal “remove the offset” rule. No monotone dependence on the size/sign of the gap should be assumed from RoPE algebra.
+
+For a fair mechanism conclusion, compare the shared-origin baseline to existing hard same-time routing. If both fix the same cases equally, the simplest account is temporal correspondence enforcement using known methods. The current hard≈mass discovery already prevents claiming mass preservation as the unique cause.
+
+5. LENGTH CONFOUND AND REJECTION CRITERIA
+
+Appending/cropping reference frames simultaneously changes information, token count, softmax competition, sequence boundaries, VAE context, possibly audio span, and the coordinate gap. A quality change in that experiment cannot be attributed to origin alone. First vary the VIRTUAL origin while keeping reference contents and token layout identical. That establishes sensitivity to origin, not a full real-world length-generalization result. If later varying actual length, use paired content interventions with/without coordinate normalization and acknowledge remaining information effects.
+
+Reject the proposed architecture claim even with metric gains if:
+- The entire mechanism is source/target shared time indices, equivalent to the UNIC/VideoCoF baseline.
+- The gain is explained equally well by same-time hard masking or arbitrary positional perturbations.
+- Only overall reference reliance changes, and timing benefit disappears after matched editing/identity quality or instantaneous mass control.
+- The claimed invariant involves single-bank shifting; the actual native operator is not invariant under it.
+- The only evidence for length dependence changes the reference contents or token count simultaneously.
+
+A more defensible possible paper outcome, if broad controlled evidence supports it, is an empirical mechanism finding about a frozen general-purpose model's origin-dependent timing failure and task-conditional correction. That is still a high novelty bar given VideoCoF's explicit length-mapping analysis. “Training-free H3 adaptation” alone is not sufficient to promise a mainstream top-conference architecture contribution. This audit found direct prior mechanisms; it did not prove that every possible selective, learned, or closed-loop extension has already been done, nor did it establish any such extension as new.

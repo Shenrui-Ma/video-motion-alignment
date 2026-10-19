@@ -1,0 +1,12 @@
+Primary sources checked before v3 execution, 2026-10-17
+
+1. Zhou & de la Torre, Canonical Time Warping for Alignment of Human Behavior, NeurIPS 2009. https://proceedings.neurips.cc/paper/2009/file/2ca65f58e35d9ad45bf7f3ae5cfd08f1-Paper.pdf
+Read section 2.2: DTW constrains a temporal correspondence path by boundaries, continuity and monotonicity, solved with DP. Section 3 combines CCA feature transforms with DTW, and section 4 adds local spatial transforms. Thus temporal order and nuisance-adjusted alignment have clear prior art. Our sparse interval chain does not implement CTW's learned CCA projection or its full correspondence path.
+
+2. Su & Hua, Order-Preserving Wasserstein Distance for Sequence Matching, CVPR 2017. https://openaccess.thecvf.com/content_cvpr_2017/html/Su_Order-Preserving_Wasserstein_Distance_CVPR_2017_paper.html
+Official abstract retrieved through search; direct page/PDF fetch returned 403. It uses inverse-difference-moment and KL-to-temporal-prior regularizers in OT, optimized by matrix scaling. This is soft temporal regularization, not the hard all-phase interval edge of v3. The broad claim of preserving order is already established. No uninspected theorem is attributed.
+
+3. Liu et al., Learning to Align Sequential Actions in the Wild (VAVA), CVPR 2022. https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Learning_To_Align_Sequential_Actions_in_the_Wild_CVPR_2022_paper.pdf
+Official indexed full text section 3.2/3.3 retrieved: consistency and optimality priors form a mixture; virtual frames absorb unmatched/background frames. It learns sequential representations and supports nonmonotonic order. V3 instead assumes the edit is intended to preserve action order. VAVA demonstrates why this assumption is task-specific and cannot be imposed on arbitrary pairs or user-requested action reordering.
+
+Attribution: SO(2) profiling, set-valued decisions, DTW monotonicity and max-weight chaining are mature mathematics. This finite test evaluates their combination with the already frozen observer. It establishes neither a new theory nor a publication-level contribution.

@@ -1,0 +1,24 @@
+孤立误判：只读机制审查与一个后备单变量候选（未实现）
+2026-10-17
+
+已知反例
+冻结local_separate_arms_occluded在v3只选右臂96..116，D={−17,−16}，两阈值的profile RMS均约0.0479336，逐骨旋转约0.157834/0.165603rad；实际方向符合率0。共同支持仅24..35与90..116：target60..65缺测经完整49lag共同支持传播，使source36..89全部UNKNOWN。正确活动区间被遮蔽，末段错误局部配对仍能拟合。这里profile的D是相对于局部常量lag/SO2模型的可接受集合，模型失配时它会集中在错误方向；集中和高J均不提供真值保证。
+
+顺序和相邻null锚点为什么可能仍不够
+单一所选窗没有相邻顺序边，故顺序约束真空成立。进一步只读已有EVIDENCE检查：右臂24..35附近有14个满足既有support/rotation/residual/single-component/boundary门、且D完全位于null±2的区间；右臂90..116没有这种null区间。早期null对应target约24..35，错误尾窗对应target约79..100，二者仍然按同样顺序排列。只把这些null窗加入“顺序锚点”无法否证这个特定尾窗；需要增加相位以外的跨窗证据。左臂的末段null不能当作右臂强锚点，因为原协议允许左右臂异步。这项只读统计见ISOLATED_SYNTHETIC_READ_ONLY.json，没有新pose或新真实target评分。
+
+可检验原因
+每个候选窗、每根骨都独立profile一个常量SO2偏置。它允许同一条视频在早期null区间和末期错误时间配对各用不同的姿态偏置。当前错窗约0.16rad的旋转吸收了一部分匹配差异；源、目标在早期右臂null区间按合成定义本来一致。局部profile取消偏置的收益与跨窗姿态解释一致性存在冲突。该观察是机制线索，不证明锁定偏置后必然选对。
+
+最小后备候选：只改变nuisance旋转的独立性
+如继续下一版，可仅把每窗独立的逐骨beta，改为受同部位可靠null区间支持的旋转集合B约束：L_A(I,d)=min_{beta_b∈B_b} Σ_{t,b∈I}w||x_tb−R(beta_b)y_(t+d,b)||² / Σw。候选D、最终v3顺序规则和既有阈值结构均先保持。B来自自动null候选D_A⊆[−2,2]的允许相位和角度容忍区间；必须保留anchor相位不确定性，并记录无锚点、集合冲突和时变形状编辑导致的UNKNOWN。不能把某个点beta当作无误真值。
+
+这还不是可执行协议：采用哪个null候选、多个重叠候选如何聚合、无锚点时降级策略，均需事前冻结。建议只选择一个固定规则再测试原43、已知遮挡反例及新增“跨窗真实形状变化但零时移”的反例。全局恒定lag可能没有null锚点，拒判代价要单独报告；不能为救孤立反例而把全局时移能力默默删除。当前只给一项后备方向，不同时添加平滑、新pose、窗口阈值或第四版代码。
+
+直接文献归属
+1. CTW/LCTW（Zhou/de la Torre, NeurIPS2009），https://proceedings.neurips.cc/paper/2009/file/2ca65f58e35d9ad45bf7f3ae5cfd08f1-Paper.pdf 。CTW联合空间特征变换与DTW时间路径；LCTW允许局部空间变换并对其时间变化加入正则。共享/约束空间nuisance再做对齐已有明确先例，不能作为新数学理论。
+2. Drop-DTW（Dvornik等, NeurIPS2021），https://proceedings.neurips.cc/paper/2021/file/729c68884bd359ade15d5f163166738a-Paper.pdf 。§3和Algorithm1联合优化匹配与丢弃，§3.4讨论drop cost，§4.5仍假设有效信号单调。增加drop自由度能容纳异常，但代价决定丢弃范围，并不保证识别重复片段中的真实相位。直接替换成Drop-DTW会同时改目标函数和匹配粒度，超过当前单变量候选。
+3. VAVA（Liu等, CVPR2022），https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Learning_To_Align_Sequential_Actions_in_the_Wild_CVPR_2022_paper.pdf 。时间先验和virtual frames允许重排与未匹配区间。它说明未匹配处理和全序假设都需明确任务边界；虚拟帧也不是对孤立错误phase的正确性保证。
+
+结论限度
+根节点可先完成v3真实63描述性重评分，观察此类孤立/缺测现象是否普遍。后备候选只在新协议封存后做合成证伪。现阶段自动控制安全性仍FAIL，未主张新的理论、准确率或泛化成功。

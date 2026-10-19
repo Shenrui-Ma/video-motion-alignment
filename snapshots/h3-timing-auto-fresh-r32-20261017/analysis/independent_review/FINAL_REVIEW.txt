@@ -1,0 +1,15 @@
+R32 final independent review — v2 PASS
+
+The v1 numerical/source/postrun review remains applicable. The narrow lifecycle repair is correct and closes the identified duplicate-launch cleanup issue. This is approval of the reviewed package for root-controlled deployment/preflight, not evidence of an actual successful H3 run or authorization to share GPU3 with the still-running R27.
+
+Verified v2 manifest178ac75c49bcae9a37a56ebb5e4760758d6d51b8d788c75c4cfe6c6c8ba74bf7 and bundleae0e7659545aeade150638c8fa8b7c03ea31ef0f4c8986a3eef328153f569ec1;97 actual files and tar bytes/exact members pass. Relative to v1, only launch_remote.py and supervise_service.py changed, with two new lifecycle evidence/test files. All17 numerical files and protocol remain exact. V1 remains preserved.
+
+created_owner and cleanup_created_owner are exact function text from reviewed R31. Cleanup reads this launch's exact supervisor_<pid>.json, requires the recorded supervisor identity and consistent full child record, requires the current registry to identify that same child, then calls service.stop(expected_record=owner), whose generation and live process identity checks remain intact. A failed duplicate launch with no created child, reused supervisor PID, new registry generation or reused child PID does not stop the old/new service. Readiness now binds the owner created by this launcher before starting its watchdog/controller. Module import is side-effect free.
+
+Independently reran five narrow lifecycle/fresh-import tests in a CPU-only process: all passed. No model, pose, decoder, CUDA or remote service was invoked. This supplement does not rerun or expand the inherited Comfy numerical matrix.
+
+The root resource certificate scope now matches the sealed required string. Its current SHA is ba468d5317dce054b85310a666ad8d8cac5cdb4a1225a6bd9baff0308da458d3. Scientific protocol and inheritance hashes are unchanged. The engineering12.4043GiB predicted headroom and actual runtime12288MiB exact-parent guard remain distinct. Full remote preflight and live free-GPU/exact-owner admission still belong to root. R27 must fully release GPU3 first; root may use R32 service-only then promptly register its exact owner into R31 before controller start. R31's600-second strict peer wait was verified in the v1 report.
+
+Postrun15 entries pass new FREEZE f904f40369c1dd62e7a1f41a78f46b1257e72cef5c96cdba22875639f2224356. Only PROTOCOL.json and BINDING.template.json changed to the v2 producer manifest; all evaluator/consumer/metric code and parent pose remain exact. Old three administrative snapshots are preserved. Consumer is still separately root-bound and unstarted by this reviewer. It reports Native comparison, full186 descriptors, UNKNOWN and exploratory40..55; it does not by itself compare R29 fixedFull or certify adaptive superiority.
+
+Machine check details: FINAL_REVIEW_V2.json. Earlier numerical/evidence boundary details: FINAL_REVIEW_V1.txt. Both v1 findings are resolved; no further blocking issue found within this bounded migration and postrun scope.

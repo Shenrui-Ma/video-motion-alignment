@@ -1,0 +1,37 @@
+Online native-endpoint pose observer: bounded engineering feasibility
+Read-only review, 2026-10-16. No implementation/GPU work. Root will decide after R18.
+
+Conclusion
+The existing same-state native-first wrapper provides the required decision point. A complete native endpoint can be decoded and measured before optionally evaluating Full on exactly the same packed x and sigma. This changes the observer and decision policy, preserves 20 Euler updates, and uses 20+K DiT NFE. The proposed index10..19 observation schedule needs a separately frozen prefix policy (e.g. Full6..9) and explicit unknown/overshoot/stop rules. Frozen offline pose observability currently says automatic_intervention_authorized=false; it cannot silently become an approved controller rule.
+
+Reusable interfaces
+R12 extensions/H3NativeObserverRouter/core.py:
+- PredictionProbe.__call__ has current physical index callback_count, saved native output, exact x/sigma/condition/full-grid/RNG checks, optional same-state Full, and exactly one chosen return.
+- State.raw/save_endpoint split complete video/audio, copy CPU, process_latent_out, verify video identity/audio /4 and preserve the returned packed endpoint. Insert observer after native save, before selection_decision. Do not decode raw noisy x or branch output audio; do not modify x, sigma or sample_sigmas.
+- SamplerAudit checks each chosen callback, 20 Euler updates and 20+K NFE; keep all these gates. The callback observes the chosen endpoint after selection and is too late for current-step selection.
+R12 scripts/decode_x0.py (frozen SHA799e64e1d2e1dab3582fe4600fea810c388facbab447fd0887dc51f4a1494014): full VAE.decode, FP16 H3 VAE, exact geometry141x736x1312, RGB clamp/truncate and H264 CRF16, metadata/hash and cleanup.
+R15 scripts/decode_endpoint.py: already validates native counterfactual endpoint metadata without changing tensor bytes. Its frozen case whitelist requires a new bounded adapter for future live endpoint records; do not bypass completed-archive validation accidentally.
+Existing timing_autoresearch scripts/pose_probe.py, timing_metrics.py and analysis/pose/evaluate_x0.py + R15 analysis/intermediate_observer_protocol.txt provide CPU DWPose, four windows, .3/.5 thresholds, wrist/direction and unknown gate. Keep the calibrated MP4 decode/quantization route; feeding direct floating RGB instead would need a separate exact bridge test. Person tracking resets per clip as before.
+
+Same-process VAE: genuine residency obstacle
+Actual installed Comfy inspected read-only at /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI:
+- comfy/sd.py:1230-1309 VAE.decode calls load_models_gpu([vae.patcher], memory_required=...) at1241; it may fall back to tiled decode after OOM (1265-1306).
+- comfy/model_management.py:881-910 free_memory considers any same-device model not in keep_loaded; currently_used does not protect DiT. load_models_gpu:985-997 invokes free_memory without a retained DiT list. A native forward having returned does not make later DiT execution automatically safe after decode.
+- comfy/samplers.py:1240-1262 prepares/loads the model once around the whole inner sampler. predict_noise:1217-1218 directly calls sampling_function(self.inner_model,...); it does not repeat prepare_sampling on every branch. Thus a subsequent Full/native branch cannot be assumed to reload an evicted DiT. Actual disable_dynamic_vram/manual/mixed operations make automatic recovery an unverified assumption.
+- sampler_helpers.py:181-204 prepare_sampling loads [model]+additional models. A controlled reload could reuse the same patcher and processed condition tree, but must avoid rerunning extra_conds/UUID generation, changing patches, dtype or INT8 dispatch. It requires real same-trajectory replay validation; no such combined residency test has been run.
+Calling offline decoder main inside the service is invalid: it assumes an idle GPU, resets CUDA_VISIBLE_DEVICES/import configuration, and finally unload_all_models(). Loading a VAE object once in a new node only solves object access, not memory management.
+
+Preferred root-requested alternative if R18 justifies online work
+Run DiT on .9 GPU2 and a separate admitted VAE-only subprocess on GPU3 at each eligible readout. Reuse the existing independent R15 full-latent decoder protocol, preserving the native packed endpoint CPU copy/metadata binding. Decoder process loads the frozen VAE, decodes all141 frames, writes immutable result, verifies cleanup and exits before CPU pose. DiT model remains resident in its own process. No sampler core or model_manager monkeypatch is required. At most two of our physical GPUs are used; GPU3 must be idle and owned process accounting/admission verified before each acquisition. Another user's GPU workload is never stopped. If the second GPU is unavailable, this observer must wait or fail according to the frozen run protocol; do not silently move VAE to the DiT GPU or tiled decode.
+The existing standalone decoder idle gate/UUID and cleanup already match this design. A fresh per-index adapter and return record are still needed because existing scripts accept only registered completed endpoints. VAE loading/decoding and CPU time are recorded separately; no new efficiency investigation is proposed.
+
+RNG and locking
+Service snapshots CPU/CUDA RNG around native forward, endpoint observer and optional Full; check native output, packed input, sigma, condition tree and grid before and after the observer. CPU pose runs in an exec subprocess with CUDA_VISIBLE_DEVICES='' and <=4threads, not by calling pose_probe.main inside the live Comfy process (it mutates environment/thread settings).
+Current R16/R17 consumers wait for successful history without CPU locks. During work their order is Mac cpu_evaluation_global.lock then .9 timing_architecture_r2/analysis/pose/consumer.lock. The live observer CPU child can acquire only the shared remote lock; it must not then request the Mac lock. If a future coordinator uses both, preserve Mac->remote order. Never hold either CPU lock while waiting for a GPU or for this same run's final history. This avoids a consumer holding CPU while awaiting the sampler that is awaiting CPU. Existing extraction's process-conflict guard and exclusive run output paths remain useful.
+
+Minimum gates before allowing decisions (not executed here)
+1. CPU real wrapper tests: decode request belongs to current native physical index; current x/sigma fixed; choose one output; 20 callbacks; 20+K NFE; unknown is explicit; subprocess failure cannot default to success.
+2. Passive online observer with forced R3 fixedFull6..14: exact initial noise/condition/sigma; all common x0 endpoints and final141RGB match the archived trajectory, proving observation has no DiT side effect. This is necessary even with isolated GPU decoder.
+3. A saved native endpoint decoded through online child and frozen R15 path must match VAE float tensor/RGB hashes and frozen pose metrics. Do not accept container byte equality as sole evidence or bypass VAE geometry/tiling checks.
+4. GPU2/GPU3 process ownership, decoder exit/VRAM release, <=2 ownGPUs, no service RNG/environment changes, and lock-order smoke. No requirement to keep a VAE process resident between observations.
+5. Pre-register index10..19 decision rule and prefix before seeing the new rollout. Counterfactual pose improvement on Full history is not evidence that stopping produces a stable continuation; R18's fixed stop arm addresses that premise first.
