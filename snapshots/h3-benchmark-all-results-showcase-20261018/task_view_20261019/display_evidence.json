@@ -1084,16 +1084,16 @@
       "alignment_guided": null,
       "still_frame": 48,
       "still_reason": "同帧动作概览",
-      "summary": "已换成目标动漫男子并保留降低、撑起、低头的动作顺序；视角偏高，低位动作幅度偏小，部分帧头顶被裁切。引导版正在生成。",
+      "summary": "两版均换成目标动漫男子，降低、撑起、低头的动作阶段接近；视角偏高、低位动作幅度偏小，部分帧头顶被裁切。引导的新增时序收益不明显。",
       "selection_type": "overview_only",
       "review_evidence": [
         {
-          "file": "/Users/researcher/DevProjects/h3-flexiact-h2a1-game4-repair-metrics-r116-20261019/audit/full_frame_review/human2animal_1__game_man_4/native/REVIEW.json",
-          "sha256": "96861fe49f5ed57caf365fa9916f631b0b02483cd72fc90c2c83791164623489"
+          "file": "/Users/researcher/DevProjects/h3-flexiact-h2a1-game4-repair-metrics-r116-20261019/audit/full_frame_review/human2animal_1__game_man_4/paired/REVIEW.json",
+          "sha256": "2b5ca4178c4bc7a2be5e81523f37c9bec35945d6e5e16da32f35576c936eb369"
         }
       ],
-      "guided_presence": false,
-      "mode": "native_only"
+      "guided_presence": true,
+      "mode": "guided_pair"
     },
     "r118_long_0047_fixed": {
       "alignment_native": true,
@@ -1136,13 +1136,29 @@
           "sha256": "ec091a5b6b8e2d6a5965ddaa9f4e18990c5b089b94f9f406107a230d6374b845"
         }
       ]
+    },
+    "r117_short_0114_framing_prompt": {
+      "alignment_native": null,
+      "alignment_guided": null,
+      "still_frame": 18,
+      "still_reason": "同帧查看构图偏移与鞋子附加发光",
+      "summary": "篮球已改为霓虹外观；镜头更朝地面、人物上移，中段头部裁出，前段鞋子额外发绿光。基础编辑仍有偏差，本版归档普通编辑。",
+      "selection_type": "task_failure_overview",
+      "review_evidence": [
+        {
+          "file": "/Users/researcher/DevProjects/h3-ive-basketball-framing-repair-metrics-r117-20261019/audit/full_frame_review/short_0114/native/REVIEW.json",
+          "sha256": "6d13a7edf2032bcc41767bcee23b344cc08e5dccdf94ac7422a2aae67b24a142"
+        }
+      ],
+      "guided_presence": false,
+      "mode": "native_only"
     }
   },
   "policy": "True/false derives from existing visual or event timing evidence only. Unknown remains null; no benefit claim from MF or image difference. The 50/24/70 examples illustrate documented local changes; neutral cases receive overview frames.",
   "reviewer": "continue_metrics",
   "created_unix": 1792414524.5468569,
   "root_presentation_edit": {
-    "unix": 1792421394.412749,
-    "reason": "Clarify ordinary prompt-control variants and add reviewed R118 interview pair."
+    "updated_unix": 1792424655.971602,
+    "scope": "R116 actual pair review and R117 task-failure Native overview"
   }
 }

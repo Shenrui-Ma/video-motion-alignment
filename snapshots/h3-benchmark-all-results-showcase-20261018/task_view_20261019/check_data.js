@@ -22,7 +22,7 @@ for (const [id, expected] of [
 const samplerHTML = context.metricHTML(data.versions.r106_short_0252_sampler_control, {bench: 'IVEBench'});
 assert.equal((samplerHTML.match(/class="event-row"/g) || []).length, 3); checks++;
 const defaults = data.tasks.filter(t => t.priority).sort((a,b)=>a.priority-b.priority).map(t => t.current);
-assert.deepEqual(defaults, ['flex_r116_human2animal_1__game_man_4_fixed','r99_short_0210','r99_short_0230','r99_short_0352','r110_short_0114_promptcontrol','r108_short_0392']); checks++;
+assert.deepEqual(defaults, ['flex_r116_human2animal_1__game_man_4_fixed','r99_short_0210','r99_short_0230','r99_short_0352','r117_short_0114_framing_prompt','r108_short_0392']); checks++;
 for (const t of data.tasks) {
   assert(t.versions.includes(t.current));
   for (const id of t.versions) assert(data.versions[id]);

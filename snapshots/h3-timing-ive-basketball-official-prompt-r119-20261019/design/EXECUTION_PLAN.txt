@@ -1,0 +1,12 @@
+R119：IVEBench 篮球外观编辑，官方提示词复核
+
+唯一文本输入逐字使用 benchmark 的 edit_prompt：
+Replace the basketball with a neon-lit ball
+
+参考视频、预处理、seed2026101701、Euler20/CFG1/原sigma、H3权重、加速kernel、1312×736画布、105有效/107生成帧均沿用R117。Native完成后审核原人物/场景、球外观、相机朝向和构图、运球动作；任务成立后同prompt生成固定6..14引导版。两版使用相同初始AV噪声，前6步预测必须逐值一致。所有实际输出保留。
+
+源片开头本来裁切头部；按原视频逐帧可见内容验收。比较输出统一去除模型补边(x16,y8,w1280,h720)，全部105有效帧参与审阅和评分。遮挡/画外动作单独记录。Native失败时root可决定跳过guided。
+
+当前数学实现逐字复用R117：alpha1、50层、去噪zero-based6..14、保留reference总注意力质量并改为同时间reference读出。本轮检验官方原文下基本编辑任务与配对效果。
+
+执行于.9 GPU0/port8583，继承已验证的R117生命周期和精确PID释放。R117实际complete+release是前置；root批准本包和当前peer登记后启动。至多两张自有GPU。原始x0张量保留远端，小JSON/MP4由独立consumer收取。
