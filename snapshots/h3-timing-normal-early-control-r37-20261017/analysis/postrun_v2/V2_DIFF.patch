@@ -1,0 +1,141 @@
+--- v1/BINDING.template.json
++++ v2/BINDING.template.json
+@@ -1,7 +1,7 @@
+ {
+   "approved_for_consumer_start": false,
+   "remote_root": "/data5/researcher/h3_runs/timing_normal_early_control_r37_20261017",
+-  "protocol_sha256": "1b200acebc02bf7973b51f97d067891839ac77f774aafa3dd9fa7e9aa1d49504",
++  "protocol_sha256": "10161ebc95c1a90c9fd13f2a63388cf37bc080aaac85ae789e804bf47748ba33",
+   "producer_manifest_sha256": "930f12b110355f093c200dbb2b582b4a8527fcfa40e68d68912f1afa3006525d",
+   "service_record": null,
+   "external_identity": {
+--- v1/PROTOCOL.json
++++ v2/PROTOCOL.json
+@@ -330,5 +330,16 @@
+     "audit/r27_s05_normal1313_auto_noise.json": "51d3d2ccbe3528938089ec1133b11e0516a728c2416ad3cdb8fa30a8267130fe",
+     "audit/x0/r27_s05_normal1313_auto/manifest.json": "8a109004d62f18889e871929cf6966b74e31bd1777ec7c6f01596e2678a70bef"
+   },
+-  "parent_anchor_inventory_sha256": "04c58ed53a3a4004eeb1360f379322d86b573628d1d3cd1c0b1b37b88de4d7f5"
++  "parent_anchor_inventory_sha256": "04c58ed53a3a4004eeb1360f379322d86b573628d1d3cd1c0b1b37b88de4d7f5",
++  "recovery": {
++    "scope": "Reuse only the exact failed v1 pose; no numerical rerun. Source opening-mode exception is pinned to an existing141RGB bridge.",
++    "archive_root": "/data5/researcher/h3_runs/timing_normal_early_control_r37_20261017/analysis/postrun/captured/r37_s05_normal1313_global_full_index4",
++    "legacy_remote": "/data5/researcher/h3_runs/timing_normal_early_control_r37_20261017/analysis/postrun",
++    "legacy_local": "/Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/analysis/postrun",
++    "legacy_freeze_sha256": "557fbbef0d4239126b35a820e36f7f9080af40b89c5a907ab1ac06f267a99fa2",
++    "legacy_binding_sha256": "69a8d729a8b26c802028965b524a8e9d07798f24581aaaeba19201d53948d6f1",
++    "legacy_failure_sha256": "887be8c61c8131a6a177a640e4baa164123f4dfcb801bd5fe2f732ac4246563c",
++    "evidence_sha256": "07e413cfe884fa28178397c48bf701eadf043d142b376d323b9609dc5ea6994b",
++    "opening_mode_bridge_sha256": "b863e1edf9b05e668411d4b23483914780882f82031ed938b70e89dbfb99234d"
++  }
+ }
+--- v1/consume.py
++++ v2/consume.py
+@@ -1,7 +1,7 @@
+ """Transport helpers only; no resident consumer or GPU/service management."""
+ import os,shlex,subprocess,time
+ from contract import *
+-P=read(HERE/'PROTOCOL.json');REMOTE=P['root_remote']+'/analysis/postrun';HOST='H3_SERVER_A';PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
++P=read(HERE/'PROTOCOL.json');REMOTE=P['root_remote']+'/analysis/postrun_v2';HOST='H3_SERVER_A';PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
+ CPU=Path('/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/cpu_evaluation_global.lock')
+ SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=15','-o','ServerAliveInterval=20','-o','ServerAliveCountMax=3']
+ def remote(args,timeout=900):
+@@ -10,5 +10,5 @@
+  require(proc.returncode==0,'remote phase failed; explicit review before retry');return json.loads([s for s in proc.stdout.splitlines() if s.strip()][-1])
+ def sync_download():
+  run=P['cases'][0]['run_id'];target=HERE/'captured'/run;target.mkdir(parents=True,exist_ok=True)
+- subprocess.run(['rsync','-a','-e',shlex.join(SSH),'--exclude=*.pt',HOST+':'+REMOTE+'/captured/'+run+'/',str(target)+'/'],check=True,timeout=600)
++ subprocess.run(['rsync','-a','-e',shlex.join(SSH),'--exclude=*.pt',HOST+':'+P['recovery']['archive_root']+'/',str(target)+'/'],check=True,timeout=600)
+  result=validate_delivery(target,local=True);save(HERE/'DOWNLOAD.json',{'run':run,'observed_unix':time.time(),'inventory_sha256':sha(target/'FILE_INVENTORY.json'),'validation':result,'all_large_PT_remain_verified_remote':True});return result
+--- v1/one_phase.py
++++ v2/one_phase.py
+@@ -19,7 +19,7 @@
+  subprocess.run(['rsync','-a','-e',shlex.join(base.SSH),*files,base.HOST+':'+base.REMOTE+'/'],check=True,timeout=60)
+ 
+ def execute_one():
+- with (HERE/'unique_consumer.lock').open('a') as unique:
++ with Path(base.P['recovery']['legacy_local']).joinpath('unique_consumer.lock').open('a') as unique:
+   try:fcntl.flock(unique,fcntl.LOCK_EX|fcntl.LOCK_NB)
+   except BlockingIOError:return {'status':'busy','scope':'R37 phase driver'}
+   prepare();(HERE/'logs').mkdir(exist_ok=True);stamp=str(time.time_ns())
+@@ -39,7 +39,7 @@
+     if new is not None:save(path,new)
+     if mode!='ready':return {'status':mode,'no_phase_started':True}
+     args+=['--token',snap['token']]
+-   else:require(phase in (*PHASES,'finalize'),'invalid next phase')
++   else:require(phase in ('recover_pose',*PHASES,'finalize'),'invalid next phase')
+    proc=call(args)
+    if proc.returncode==75:return {'status':'busy','scope':'remote CPU or online pose'}
+    result=base.parse_result(proc);base.sync_download();return {'status':'phase_complete','phase':phase,'pid':os.getpid(),'time':time.time(),'more_requires_explicit_invocation':True}
+--- v1/outcome.py
++++ v2/outcome.py
+@@ -2,6 +2,7 @@
+ import os,sys,time,subprocess,random
+ from pathlib import Path
+ from contract import *
++from recovery import check_pose_provenance
+ from evaluate_helpers import fixed_metrics,common_regions,media_and_pixels
+ import timing_metrics as metrics
+ from scan_current_pose import observe,valid_pose
+@@ -18,7 +19,7 @@
+ 
+ def checked_poses(root,arc,p):
+  run,video,sourcevideo,source,deps=current(root,arc,p);r=validate_phase(arc,'pose');pose=phase_folder(arc,'pose')/r['metadata']['pose_relative'];require(sha(pose)==r['metadata']['pose_sha256'] and read(pose)['video']['sha256']==sha(video),'final current pose binding')
+- poses={'EarlyGlobalPulse':pose};videos={'SOURCE':sourcevideo};provenance=read(source)['provenance'];require(read(pose)['provenance']==provenance,'current source/generated pose provenance differs')
++ poses={'EarlyGlobalPulse':pose};videos={'SOURCE':sourcevideo};provenance=read(pose)['provenance'];check_pose_provenance(read(source)['provenance'],provenance,sha(sourcevideo))
+  for name,row in p['parents'].items():
+   fp=HERE/row['pose'];vp=Path(row['video']);require(sha(fp)==row['pose_sha256'] and sha(vp)==row['video_sha256'],'historical parent changed');raw=valid_pose(fp);require(raw['video']['sha256']==row['video_sha256'] and raw['provenance']==provenance,'historical parent provenance differs');poses[name]=fp;videos[name]=vp
+  auto=validate_auto_parent(read(HERE/'AUTO_PARENT_BINDING.json'),p);araw=valid_pose(auto['pose']);require(araw['provenance']==provenance,'R27 normal pose provenance differs');poses['NativeAutoOFF']=auto['pose'];videos['NativeAutoOFF']=auto['video'];videos['EarlyGlobalPulse']=video
+@@ -44,7 +45,7 @@
+  return regions
+ 
+ def execute(phase,root,arc,p):
+- start=time.monotonic();folder=phase_folder(arc,phase);require(not folder.exists(),'partial phase requires reviewed recovery');folder.mkdir(parents=True)
++ require(phase!='pose','v2 only adopts registered existing pose; no extractor rerun');start=time.monotonic();folder=phase_folder(arc,phase);require(not folder.exists(),'partial phase requires reviewed recovery');folder.mkdir(parents=True)
+  if phase=='pose':
+   run,video,sourcevideo,source,deps=current(root,arc,p);checked_external(p)
+   cmd=[sys.executable,str(OLD/'scripts/pose_probe.py'),'--video',str(video),'--output-dir',str(folder/'pose'),'--threads','4','--stride','1']
+--- v1/remote_consume.py
++++ v2/remote_consume.py
+@@ -2,7 +2,7 @@
+ import argparse,fcntl,os,shutil,subprocess,sys,time
+ from pathlib import Path
+ from contract import *
+-P=read(HERE/'PROTOCOL.json');ROOT=Path(P['root_remote']);RUN=P['cases'][0]['run_id'];ARC=HERE/'captured'/RUN
++P=read(HERE/'PROTOCOL.json');ROOT=Path(P['root_remote']);RUN=P['cases'][0]['run_id'];ARC=Path(P['recovery']['archive_root'])
+ 
+ def bound():
+  b=read(HERE/'BINDING.json');owner=check_binding(ROOT,b,P);proc=Path('/proc')/str(owner['pid'])
+@@ -78,13 +78,14 @@
+  return owner
+ 
+ def status():
+- if not ARC.exists():return {'phase':'archive'}
++ require(ARC.is_dir(),'registered original archive missing; never rerun archive');from recovery import check_legacy;check_legacy(P)
+  checked()
+  if (ARC/'CPU_COMPLETE.json').exists():
+   receipt=read(HERE/'final_receipts'/f'{RUN}.json');require(receipt['completion_sha256']==sha(ARC/'CPU_COMPLETE.json') and receipt['derived_sha256']==sha(ARC/'DERIVED_FILES.json'),'final receipt changed');return {'phase':'complete'}
+  for phase in PHASES:
+   folder=phase_folder(ARC,phase)
+   if folder.exists():
++   if phase=='pose' and not (folder/'COMPLETE.json').exists():return {'phase':'recover_pose'}
+    receipt=read(HERE/'phase_receipts'/f'{RUN}_{phase}.json');require(receipt['result_sha256']==sha(folder/'COMPLETE.json') and receipt['inventory_sha256']==sha(ARC/'FILE_INVENTORY.json'),'phase anchor changed');continue
+   if phase=='compare' and not (HERE/'AUTO_PARENT_BINDING.json').exists():return {'phase':'waiting_parent','reason':'actual R27 normal final binding pending'}
+   return {'phase':phase}
+@@ -103,13 +104,15 @@
+  done={'passed':True,'run_id':RUN,'phases':list(PHASES),'no_GPU':True,'owner':owner,'derived_outputs':paths,'manual_quality_review':'pending blinded fixed frames/full141 comparison','scope':P['scope']};save(ARC/'CPU_COMPLETE.json',done);save(ARC/'DERIVED_FILES.json',{rel:sha(ARC/rel) for rel in paths+['CPU_COMPLETE.json']});validate_delivery(ARC);verify_source_archive(ROOT,ARC,owner,RUN);verify_producer_sources(ROOT,P['producer_manifest_sha256'],all_files=True);save(HERE/'final_receipts'/f'{RUN}.json',{'completion_sha256':sha(ARC/'CPU_COMPLETE.json'),'derived_sha256':sha(ARC/'DERIVED_FILES.json')});return done
+ 
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('mode',choices=['snapshot','status','archive',*PHASES,'finalize']);p.add_argument('--token');a=p.parse_args();check_seal()
++ p=argparse.ArgumentParser();p.add_argument('mode',choices=['snapshot','status','archive','recover_pose',*PHASES,'finalize']);p.add_argument('--token');a=p.parse_args();check_seal()
+  if a.mode=='snapshot':result=snapshot()
+  else:
+   with locked():
+    if a.mode=='status':result=status()
+    elif a.mode=='archive':result=archive(a.token)
+    elif a.mode=='finalize':result=finalize()
++   elif a.mode=='recover_pose':
++    require(status()['phase']=='recover_pose','wrong recovery stage');from recovery import recover_pose;result=recover_pose(ROOT,ARC,P,checked(full=True))
+    else:require(status()['phase']==a.mode,'wrong next phase');result=analyse(a.mode)
+  print(json.dumps(result,allow_nan=False))
+ if __name__=='__main__':

@@ -1,0 +1,83 @@
+{
+  "step_zero_based": 6,
+  "actual_manifest": "/Users/researcher/DevProjects/h3-vae-temporal-operator-r70-20261018/inputs/manifest.json",
+  "manifest_sha256": "64865a08525b94ab635f55a2878fcbba448610ae479c0e32306dc9906a2f545b",
+  "sigma_video": 0.9655172228813171,
+  "sigma_next_video": 0.9570552110671997,
+  "sigma_audio": 0.8749999392312051,
+  "c_float64": 0.00876422668967511,
+  "c_float32": 0.008764226920902729,
+  "endpoint_lambda1_state_delta_percent": 0.8764226689675111,
+  "endpoint_gain_for_unit_state_delta": 114.10019793053412,
+  "formula": "x_next_prime-x_next=lambda*(sigma_video-sigma_next_video)/sigma_video*(z_corr-z0)",
+  "graph_cfg_and_sampler": [
+    {
+      "node": "41",
+      "class_type": "MiniMaxH3SigmaShift",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "shift_video": 12.0,
+        "shift_audio": 3.0
+      }
+    },
+    {
+      "node": "7",
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "52",
+          0
+        ],
+        "conditioning": [
+          "51",
+          0
+        ]
+      }
+    },
+    {
+      "node": "8",
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    {
+      "node": "9",
+      "class_type": "ManualSigmas",
+      "inputs": {
+        "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+      }
+    },
+    {
+      "node": "10",
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "6",
+          0
+        ],
+        "guider": [
+          "7",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "9",
+          0
+        ],
+        "latent_image": [
+          "51",
+          1
+        ]
+      }
+    }
+  ],
+  "graph_sha256": "7026ead88c40cf862c6277f9885d969c87c1dd5a24277c5d35e580840f014a7e",
+  "computation_scope": "CPU scalar arithmetic only; no intervention code or model execution"
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "r86-online-single-job-v1",
+  "cases": [
+    {
+      "run_id": "r144_long_0059_seed2026101701_visible_only",
+      "source_id": "long_0059",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.\n<Subject 1> is the hand of the bald man in the black shirt in <Video 1>.\n<Subject 2> is the bald man, including his face and black shirt, in <Video 1>.\n<Subject 3> is the remaining source scene and objects in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a white handkerchief in the man's hand\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "inventory_id": "r126_long_0059_full_context",
+      "arm": "visible_only",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 158,
+        "fps": 24
+      },
+      "valid_frame_count": 144,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "video": "long_0059_video.mp4",
+      "video_sha256": "d8d60f728e4d4e7a8d06566689a12f7816383765f610b467476a5fe955056c79",
+      "provenance": "long_0059_provenance.json",
+      "provenance_sha256": "f224cb70b32641822406be5b4deeaa951be73ece4d41e6a30d96bf12ac63f872",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "parent_graph": "configs/PARENT_GRAPH.json",
+      "parent_graph_sha256": "fc469517b61a87f724bba83c58505dc00208294cfde957125839f7f0d9a89213",
+      "parent_run": "r126_long_0059_seed2026101701_native",
+      "parent_root": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/original_condition_cache/long_0059",
+      "parent_conditioning": "prepared_parent/conditioning.json",
+      "parent_noise": "prepared_parent/noise.json",
+      "parent_captures": "configs/PARENT_CAPTURES.json",
+      "parent_file_inventory": "prepared_parent/FILE_INVENTORY.json",
+      "source_pose_path": "configs/source.pose.json",
+      "source_pose_sha256": "b9a36ecfbfa3c8be9b936f7d03117f64a4538e10ef40a70e96053cdb078a4f77",
+      "source_pose_status": "ACTUAL_SOURCE_FULL_FRAME_CPU_POSE_BOUND",
+      "historical_original_root": "/home/researcher/h3_runs/timing_ive_handkerchief_full_context_r126_20261020",
+      "historical_prefix_comparison": "cross_host_signature_audit"
+    }
+  ],
+  "case_order": [
+    "r144_long_0059_seed2026101701_visible_only"
+  ],
+  "arms": [
+    "visible_only"
+  ],
+  "online_observer": true,
+  "NFE": "20+actual_ON",
+  "Euler_updates": 20,
+  "continuous": {
+    "job_timeout_seconds": 14400,
+    "max_service_seconds": 18000,
+    "idle_hold_seconds": 1800
+  },
+  "parent_gate_sha256": "00e21a6c73654be1eafaafc08a278a3f1c7a3827ac08b9938e1603a6e1daa55b"
+}

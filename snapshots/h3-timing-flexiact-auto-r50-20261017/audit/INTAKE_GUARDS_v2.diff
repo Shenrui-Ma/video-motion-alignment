@@ -1,0 +1,108 @@
+--- v1/scripts/pose_domain.py
++++ v2/scripts/pose_domain.py
+@@ -5,6 +5,25 @@
+ 
+ import numpy as np
+ import timing_metrics as m
++
++
++def _finite_number(value):
++    if type(value) not in (int, float):
++        return False
++    try:
++        return math.isfinite(value)
++    except OverflowError:
++        return False
++
++
++def _validate_joints(person):
++    xy, scores = person['coco17_xy'], person['coco17_score']
++    if (not isinstance(xy, list) or len(xy) != 17 or
++            any(not isinstance(point, list) or len(point) != 2 for point in xy) or
++            not isinstance(scores, list) or len(scores) != 17):
++        raise ValueError('malformed pose joints')
++    if not all(_finite_number(x) for point in xy for x in point) or not all(_finite_number(x) for x in scores):
++        raise ValueError('nonfinite or nonnumeric pose coordinate/score')
+ 
+ 
+ def validate_pose(path, geometry):
+@@ -24,12 +43,12 @@
+         if type(time) not in (int, float) or not math.isfinite(time) or abs(time - i / geometry.fps) > 1e-8:
+             raise ValueError('pose physical time mismatch')
+         selected = row['selected_person']
++        # Validate the complete intake, including unselected people and padded frames.
++        for person in row['persons']:
++            _validate_joints(person)
+         if selected is not None:
+             if type(selected) is not int or not 0 <= selected < len(row['persons']):
+                 raise ValueError('pose person index mismatch')
+-            person = row['persons'][selected]
+-            if len(person['coco17_xy']) != 17 or any(len(x) != 2 for x in person['coco17_xy']) or len(person['coco17_score']) != 17:
+-                raise ValueError('malformed pose joints')
+     return raw
+ 
+ 
+--- v1/extensions/H3AutomaticWindowRouter/selector.py
++++ v2/extensions/H3AutomaticWindowRouter/selector.py
+@@ -1,6 +1,6 @@
+ """Frozen policy adapter. Technical failure aborts; reliable absence remains visible."""
+ from .automatic_window_policy import Policy
+-from .dynamic_support import bins_for
++from .dynamic_support import bins_for, bin_coverage
+ from .geometry import LEGACY
+ 
+ class Controller:
+@@ -25,6 +25,7 @@
+         decision=self.policy.update(index,rows)
+         bins,mapping=bins_for(decision['physical_intervals'],self.geometry)
+         decision.update(chosen_full=bool(bins),latent_bins=bins,mapping=mapping,
++                        bin_coverage=bin_coverage(bins,self.geometry),
+                         measurement_status=observer['status'],measurement_reasons=observer.get('reasons',[]),
+                         response_sha256=measurement.get('response_sha256'),request_sha256=measurement.get('request_sha256'))
+         if observer['status']=='unknown_visibility':decision['reason']='unknown_visibility'
+--- v1/tests/test_geometry_domain.py
++++ v2/tests/test_geometry_domain.py
+@@ -234,8 +234,43 @@
+         bad = copy.deepcopy(raw); bad['frames'].pop()
+         with self.assertRaises(ValueError): validate_pose(self.save('short.json', bad), FLEXIACT)
+ 
++    def test_overflow_joint_values_rejected_in_full_intake(self):
++        for frame, selected in ((0, 0), (157, 0), (0, None)):
++            for field in ('coco17_xy', 'coco17_score'):
++                for literal in ('1e400', '-1e400', 'NaN', 'Infinity', '-Infinity'):
++                    bad = pose(FLEXIACT)
++                    bad['frames'][frame]['selected_person'] = selected
++                    values = bad['frames'][frame]['persons'][0][field]
++                    if field == 'coco17_xy': values[0][0] = '__OVERFLOW__'
++                    else: values[0] = '__OVERFLOW__'
++                    path = self.directory/'overflow.json'
++                    path.write_text(json.dumps(bad).replace('"__OVERFLOW__"', literal))
++                    with self.subTest(frame=frame, selected=selected, field=field, literal=literal):
++                        with self.assertRaises(ValueError): validate_pose(path, FLEXIACT)
++
++    def test_nonnumeric_joint_values_rejected(self):
++        for value in (True, False, None, '1.0'):
++            for field in ('coco17_xy', 'coco17_score'):
++                bad = pose(LEGACY)
++                values = bad['frames'][0]['persons'][0][field]
++                if field == 'coco17_xy': values[0][0] = value
++                else: values[0] = value
++                with self.subTest(value=value, field=field):
++                    with self.assertRaises(ValueError): validate_pose(self.save('bad.json', bad), LEGACY)
++
+ 
+ class PolicyAndKernelTests(unittest.TestCase):
++    def test_selected_decision_records_exact_bin_coverage(self):
++        for geometry, interval in ((FLEXIACT, (145, 146)), (LEGACY, (50, 65))):
++            controller = Controller(geometry)
++            first = controller.select(0, measurement(0, geometry, (interval,)))
++            self.assertEqual(first['bin_coverage'], [])
++            active = controller.select(1, measurement(1, geometry, (interval,)))
++            self.assertTrue(active['chosen_full'])
++            self.assertEqual(active['bin_coverage'], bin_coverage(active['latent_bins'], geometry))
++            if geometry == FLEXIACT:
++                self.assertEqual(active['bin_coverage'][0]['padding_spillover_frames'], [147, 148])
++
+     def test_five_cases_reset_persistence_and_unknown_breaks(self):
+         for _ in range(5):
+             c = Controller(FLEXIACT)

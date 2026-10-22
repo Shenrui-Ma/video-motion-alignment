@@ -1,0 +1,14 @@
+Sam same-host four-job batch verification
+Status: pass
+Formal jobs: 05_sam_s1_baseline, 05_sam_s1_weight3, 07_sam_s1_baseline, 07_sam_s1_weight3
+Errors: 0
+Pending evidence: 0
+
+Controls-only verification; no visual review, extra inference or efficacy claim. Four sequential formal jobs and no technical benchmark.
+Every case baseline computes its own shared node5; only that case's weighted run may reuse it. Actual snapshot hashes must match within each pair.
+Case05 and07 noise tensor storages happen to match at the same seed/shape, but their ZIP container hashes differ and are verified independently.
+Predecessor ordering requires archived successful Musk07 histories, completed controller state, process23421 cleanup/release and Sam service start time.
+Shared manifest creation is bracketed by each baseline using rsync-preserved filesystem mtime, not an embedded timestamp.
+Dispatch counts demonstrate successful backend exports in the shared process, including nested delegation; they do not identify individual arms or disjoint layers.
+Saved ZIP storages are independently hashed without pickle execution. Unsaved embeddings use runtime and snapshot hash records; target content uses cached object reuse plus shape/dtype.
+This single seed for each of two related choreography cases does not establish general attention-weighting efficacy.

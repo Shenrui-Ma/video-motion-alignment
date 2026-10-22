@@ -1,0 +1,87 @@
+{
+  "schema": "r125-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-board-edit-r125-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_board_edit_r125_20261020",
+  "producer_seal_sha256": "2edacff202d168253042ebb743a1a560a8b9903f8a46a136b8ab405400ae1760",
+  "producer_contract_sha256": "8c140d470857b73ab3933963bd3a35d645d3bfcd272d685d9687b39414098dec",
+  "producer_runtime_sha256": "1f54df1efac0acad4e50667d8b7b3cdcf4dcf32a1fcbd325aca76b1fcacacdca",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "long_0031"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0031",
+      "run_id": "r125_long_0031_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-official-fields-full-Context-IR-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A person is cutting a yellow bell pepper on a wooden cutting board with a knife. The scene is set in a kitchen with various ingredients and utensils in the background.\n<Subject 1> is the wooden cutting board in <Video 1>.\n<Subject 2> is the person, yellow bell pepper, and knife in <Video 1>.\n<Subject 3> is the kitchen scene and other ingredients and utensils in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the wooden cutting board with a marble cutting board\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A person is cutting a yellow bell pepper on a marble cutting board with a knife. The scene is set in a kitchen with various ingredients and utensils in the background.\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 31,
+        "src_video_name": "long_0031.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A person is cutting a yellow bell pepper on a wooden cutting board with a knife. The scene is set in a kitchen with various ingredients and utensils in the background.",
+        "edit_prompt": "Replace the wooden cutting board with a marble cutting board",
+        "target_prompt": "A person is cutting a yellow bell pepper on a marble cutting board with a knife. The scene is set in a kitchen with various ingredients and utensils in the background.",
+        "target_span": "marble cutting board",
+        "target_phrase": "marble cutting board"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 109,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "109/25",
+        "end_exclusive_rational": "22/5",
+        "duration_rational": "22/5"
+      },
+      "task_scope": "manipulated_object_material",
+      "evaluation_scope": "IVEBench素材片段探索",
+      "forced_run_id": "r125_long_0031_seed2026101701_forced",
+      "valid_frames": 106,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/long_0031_video.mp4",
+        "sha256": "04f67218cba2110b6ac96c5e24ec26cf564ab50aa9a8d5630a398332d360c782",
+        "bytes": 19455698
+      },
+      "provenance": {
+        "file": "inputs/long_0031_provenance.json",
+        "sha256": "9eeb241d891c4b7a00509f66bd41a139e04a9f63301209220f1991bd2b4fc32c",
+        "bytes": 38391
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-board-edit-metrics-r125-20261020/inputs/long_0031_original.mp4",
+        "sha256": "f4f90dbb7886b892e95502f8ab8c82315ab8c115452b298777717970ae56192f"
+      },
+      "graph_sha256": "e8a08860e1437cf0188b4034e0d54bedadd7eb2b88efe6927cfbef7591e7cae0",
+      "forced_graph_sha256": "c8374ed06ac4b5df636963323bbf9cf4d15def55ae741d08051e9d50fc870c88"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

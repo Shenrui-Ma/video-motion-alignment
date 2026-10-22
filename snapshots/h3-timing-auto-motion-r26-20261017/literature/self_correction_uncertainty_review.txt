@@ -1,0 +1,54 @@
+R26 bounded primary-source review: VideoRepair and UAPG
+2026-10-17 CST. Independent reviewer: h3_guidance_critic_20261016.
+No model run, installation, experiment mutation or new consumer. Evidence is separated into published method, inspected implementation, and unavailable details.
+
+Decision for the research claim
+“Training-free automatic local feedback that preserves correct content” is already occupied. Neither source reviewed here establishes the exact R26 target: observing reference-relative physical action timing at the current Native endpoint, selecting physical windows and intervention start/stop within the same actual denoising trajectory. That is a bounded distinction, not proof of novelty. UAPG's unavailable full method prevents an exhaustive non-overlap claim.
+
+1. Self-Correcting Text-to-Video Generation with Misalignment Detection and Localized Refinement = VIDEOREPAIR
+Primary: ACL Findings2026, pp36464–36489, official26-page PDF, SHA125c11a76cdfb462edf1d669323688bc6370f62f969eb2d68e90e70fe61f4c35.
+https://aclanthology.org/2026.findings-acl.1817.pdf
+Matching author-hosted version: https://arxiv.org/html/2411.15115v3
+Do not substitute older v2 section numbering/title for the published method.
+
+Published-method reading (PDF pp3–5,13,18; §§2.1–2.3, A.2–A.4, F):
+First generate V0. Prompt-derived questions and MLLM binary answers diagnose semantic errors. Planning identifies correctly rendered entities, segments preservation regions and builds refinement prompts. Noise is retained inside the preservation mask and resampled elsewhere. Refinement combines separately prompted diffusion paths, followed by candidate ranking; further refinement rounds are possible. The backbone is frozen: this is training-free, not detector-free. A perfect question score stops the outer repair process; this is not a learned per-denoising-step stopping condition. The presented local mask/planning is determined from an already generated video, not repeatedly inferred from current Native predictions. Appendix F explicitly places confidence-gated skipping of uncertain refinements in future work. Thus it cannot be reported as an implemented, calibrated confidence controller. The paper includes moving-object masks and Wan experiments; it does not evaluate signed reference-to-output action delays in physical frames. Reading equations2–3 and the actual code below is necessary: “joint optimization” here does not imply training model weights.
+
+2. What the released code actually does
+Official repository linked by the authors: https://github.com/daeunni/VideoRepair
+Pinned commit: a0a261f55e771403de44accded15c7c5eb0b1370. No code was executed.
+
+(a) main.py: outer loop over --round (default1), --k candidates (default5). It creates/saves an initial MP4, extracts its first frame, calls video_evaluation on that frame, and breaks at dsg_score==1.0. Molmo pointing and Semantic-SAM operate on first_frame.jpg; prompts and a mask are then passed to refinement. This inspected path is a final-video/outer-loop repair workflow, not in-trajectory misalignment monitoring. It cannot substantiate the published frame-wise moving-mask extension by itself.
+https://github.com/daeunni/VideoRepair/blob/a0a261f55e771403de44accded15c7c5eb0b1370/main.py#L103
+Anchors in raw file: first-frame extraction157; perfect-score break168; segmentation221.
+
+(b) t2vturbo/pipeline/multidiffusion.py: loads a2D mask before denoising, repeats it across16 frames (288–289), constructs prompt branches, reinitializes local noise on the first iteration, and executes the fixed timestep loop (341). Each step combines scheduler results by masked sums/count normalization (379–383). There is no MLLM/pose misalignment evaluator, automatic mask discovery or feedback-based break inside that loop. The method is decorated torch.no_grad. For complementary binary masks, the corresponding least-squares fusion reduces algebraically to selecting/combining branch outputs; this is our mathematical interpretation, consistent with the implementation, not parameter training.
+https://github.com/daeunni/VideoRepair/blob/a0a261f55e771403de44accded15c7c5eb0b1370/t2vturbo/pipeline/multidiffusion.py#L288
+
+(c) utils_t2v.py passes4 inference steps for the inspected initial/refinement T2V-Turbo calls. README requires pretrained components and GPT API access, and still lists release TODOs; tree inspection found T2V-Turbo/VideoCrafter paths but no complete released Wan path. Do not conflate paper evaluation on Wan with an already audited runnable Wan baseline. An H3/reference-action transplant would be an adaptation, not the unchanged authors' setup.
+https://github.com/daeunni/VideoRepair/blob/a0a261f55e771403de44accded15c7c5eb0b1370/utils_t2v.py#L119
+https://github.com/daeunni/VideoRepair/blob/a0a261f55e771403de44accded15c7c5eb0b1370/README.md
+
+3. UAPG: accessible original material and exact access limit
+Title: Multimodal human video generation with uncertainty-aware pose guidance.
+Jingyi Wu et al.; Pattern Recognition179,113495; DOI10.1016/j.patcog.2026.113495.
+Publisher: https://www.sciencedirect.com/science/article/pii/S0031320326004619
+
+The publisher's indexed original Introduction, beyond the abstract, describes confidence from the pose estimator controlling joint influence, reducing unreliable pose contributions. It also describes confidence-based regional loss upscaling, overlapping-latent progressive fusion, and adapting a pretrained generation backbone using5000 external samples. This is positive evidence of model adaptation: treating the reported complete system as training-free would be wrong. Its uncertainty concerns the reliability of supplied pose measurements; that is not automatically uncertainty of a signed temporal-lag estimate or whether a current endpoint will self-correct. The original preview does not give sufficient equations to verify precisely how confidence enters attention/loss, which weights are trained, or whether it contains an additional per-step feedback/stopping policy. No such policy can be claimed or conclusively excluded from this partial text.
+
+Access audit: direct publisher open repeatedly failed; search-indexed publisher preview exposed Introduction and snippets, not the complete methods section. Exact-title/DOI/code searches did not locate an accessible author manuscript or official implementation. A ResearchGate record said full text unavailable, but no technical conclusion here relies on that secondary record. We did not purchase access, use institutional credentials or bypass access control. Therefore the numerical UAPG formula, thresholds, schedule, architecture and full training setup remain UNVERIFIED. Do not fill these gaps with guessed equations or confuse it with unrelated “UAPG” policy-gradient papers.
+
+4. Precise collision map for R26 (reviewer's assessment)
+- Automatic localization, keeping correct areas and correcting bad ones: direct high-level collision with VideoRepair. Avoid any “first automatic local video repair” claim.
+- Confidence-dependent treatment of unreliable joints: direct conceptual collision with UAPG; likewise, a pose-confidence weight alone is not a contribution.
+- Re-evaluating completed generations and trying another seed: VideoRepair already provides that outer loop. Our archived final scan belongs to diagnosis, not online proof.
+- Repeated operations inside a diffusion sampler: insufficient distinction. R26 must show the actual decision depends on the current trajectory's newly observed error, not just that a fixed mask is applied at each step.
+- Distinction still testable: current-Native physical-time correspondence, an explicit tolerated-lag/null alternative, source-local geometric error scale, UNKNOWN handling, and decisions tied to the resulting actual trajectory. No inspected source establishes that exact interface. It is not yet evidence that those components are novel or useful together.
+- Confidence is not one variable: input-keypoint reliability, matching ambiguity, calibrated error bounds and expected intervention benefit are different. UAPG-style confidence weighting does not by itself supply the latter three. R26 must preserve normal outputs and temporary deviations that recover naturally.
+
+5. Minimum implications for experiments, without adding a run now
+Use source-only salience to prioritize inspection, not as failure probability. Compare the current transparent scan against the frozen physical-tolerance/null alternative with identical support. Keep normal early1313 candidates, ambiguous windows, and all new-source screen results. If adopting confidence, ablate only that decision term while keeping the actuator fixed; show it changes useful decisions beyond simple detector-confidence weighting. If claiming online benefit, record every selected physical interval and denoising index, including UNKNOWN and OFF, and evaluate actual closed-loop outputs against Native/fixed guidance. Never borrow future archived Native states after a hypothetical ON.
+
+For later Wan comparisons, VideoRepair is a meaningful self-correction conceptual comparator, but its source/task/code coverage requires a separate reproducibility audit. UAPG is presently a training-based near neighbor with an access gap, not one of the two promised unchanged training-free baselines. Neither result licenses omitting close motion-guidance methods already in the ledger.
+
+Bottom-line evidence status: VideoRepair full published method plus concrete released path inspected; UAPG original publisher Introduction inspected, full method unavailable. No full-overlap or no-overlap guarantee. Source hashes, locators and retrieval failures are in sources.json.

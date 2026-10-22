@@ -1,0 +1,105 @@
+{
+  "status": "prepared_only_not_queued",
+  "execution_authority": "Root agent must separately evaluate the registered trigger; this factory never queues or uploads.",
+  "conditional_plan_sha256": "ff911c6c5d2903ad1c09787f76b3d1df91b265850f26acd56857b7fe47d289f1",
+  "source_metadata_sha256": "e01c2afa8268840b6f1cdfd4cdc6b77934b7b45eaa72dd826a0475e3c210e692",
+  "primary_graphs": {
+    "02_celebrate_thumbs_a_s1": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/02_celebrate_thumbs_a_s1.json",
+      "sha256": "fc9f0bca41c095bd7e7513e20db0485d1f255fcd968e956c42082c05857e93db"
+    },
+    "02_celebrate_thumbs_b_s1": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/02_celebrate_thumbs_b_s1.json",
+      "sha256": "bc793e894b868c1dfc11844d4bed4d2791781ccab3ea2aab40bdb530d536c780"
+    },
+    "02_celebrate_thumbs_a_s2": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/02_celebrate_thumbs_a_s2.json",
+      "sha256": "9c500a68cb7b119dea242a05f5eb6adb35ba3878df857ea7da9d49fce9f42107"
+    },
+    "02_celebrate_thumbs_b_s2": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/02_celebrate_thumbs_b_s2.json",
+      "sha256": "abcb22dc7f817bab3e4ab52703c3050681e2ff5d77ea203197649bedda7229a5"
+    }
+  },
+  "edit_instruction": "Edit the source video by replacing only the man's mustard yellow hoodie with a charcoal tailored blazer with notched lapels over a plain white collared dress shirt. Keep both hands uncovered.",
+  "explicit_event_addition": "In particular, preserve his original single brief double thumbs-up gesture near the middle: both hands rise, both thumbs point up clearly at about 2.2–2.5 seconds, and then both hands lower again. Keep the surrounding single-arm celebratory movements at their original times; do not add or repeat the thumbs-up gesture.",
+  "static_checks": [
+    {
+      "run_id": "02_celebrate_thumbs_c_s1",
+      "primary_template": "02_celebrate_thumbs_a_s1",
+      "main_graph_matches_primary_except_prompt_and_labels": true,
+      "removed_diagnostic_nodes": [
+        "30",
+        "31",
+        "32",
+        "33",
+        "34"
+      ],
+      "seed": 2026101301,
+      "paired_noise_id": "02_celebrate_thumbs_s1",
+      "steps": 20,
+      "cd_exact_changed_paths": [
+        "14.inputs.filename_prefix",
+        "5.inputs.prompt",
+        "5.inputs.run_id",
+        "6.inputs.run_id"
+      ]
+    },
+    {
+      "run_id": "02_celebrate_thumbs_d_s1",
+      "primary_template": "02_celebrate_thumbs_b_s1",
+      "main_graph_matches_primary_except_prompt_and_labels": true,
+      "removed_diagnostic_nodes": [],
+      "seed": 2026101301,
+      "paired_noise_id": "02_celebrate_thumbs_s1",
+      "steps": 20,
+      "cd_exact_changed_paths": [
+        "14.inputs.filename_prefix",
+        "5.inputs.prompt",
+        "5.inputs.run_id",
+        "6.inputs.run_id"
+      ]
+    },
+    {
+      "run_id": "02_celebrate_thumbs_c_s2",
+      "primary_template": "02_celebrate_thumbs_a_s2",
+      "main_graph_matches_primary_except_prompt_and_labels": true,
+      "removed_diagnostic_nodes": [],
+      "seed": 2026101302,
+      "paired_noise_id": "02_celebrate_thumbs_s2",
+      "steps": 20,
+      "cd_exact_changed_paths": [
+        "14.inputs.filename_prefix",
+        "5.inputs.prompt",
+        "5.inputs.run_id",
+        "6.inputs.run_id"
+      ]
+    },
+    {
+      "run_id": "02_celebrate_thumbs_d_s2",
+      "primary_template": "02_celebrate_thumbs_b_s2",
+      "main_graph_matches_primary_except_prompt_and_labels": true,
+      "removed_diagnostic_nodes": [],
+      "seed": 2026101302,
+      "paired_noise_id": "02_celebrate_thumbs_s2",
+      "steps": 20,
+      "cd_exact_changed_paths": [
+        "14.inputs.filename_prefix",
+        "5.inputs.prompt",
+        "5.inputs.run_id",
+        "6.inputs.run_id"
+      ]
+    }
+  ],
+  "graph_sha256": {
+    "02_celebrate_thumbs_c_s1.json": "e7de1efd4467fe883e40730e893f31aa44fabe4fdd88600d8ea09ffefb95c26c",
+    "02_celebrate_thumbs_d_s1.json": "43cb55e8b8926d893cfc679a122544a68ac9343c0b444d41aea014c8edf8336e",
+    "02_celebrate_thumbs_c_s2.json": "f9b6618e829b950f396603e4440f127a5eb73cb748d80fcc7954dca64437676b",
+    "02_celebrate_thumbs_d_s2.json": "ae8fc56c1978b536d17291b884ea1279dd3e89b205ad46b12f74d7f86575c28a"
+  },
+  "inference_backend": "Existing service native PyTorch SDPA with Triton enabled; same model wiring as primary graphs.",
+  "limitations": [
+    "These are same-source, same-noise exploratory controls, not independent new samples.",
+    "No generated output or mechanism claim exists merely because preparation passed."
+  ]
+}

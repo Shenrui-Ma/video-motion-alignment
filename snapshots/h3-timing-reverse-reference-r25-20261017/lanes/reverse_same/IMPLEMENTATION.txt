@@ -1,0 +1,77 @@
+R25 implementation — two reverse-reference causal diagnostics, not an autonomous controller
+
+Scope: old R3 source05/Sam seed2026101311, fixed reference-query window50–65
+(bins14–19, positional envelope47–67), physical forwards6–14, all50blocks,
+20 Euler updates /20 NFE /20 callbacks. Two new arms only, independent lanes.
+BLOCK removes target-video keys and renormalizes the complement, retaining audio.
+SAME keeps the ideal original target-video group mass and moves that group to
+same-bin target keys. All nonselected query rows come from original native output.
+Original full attention is called once per block; auxiliary group attention is
+not additional model NFE. No sampler/core/model changes or weights are introduced.
+
+Current architecture validates all50 actual attention modules:56heads×128,
+QKV5376→21504, output7168→5376. The unique video reference is derived by kind and
+actual PackedLayout, not the generic ref_img segment label. For this exact parent
+layout Rvideo7910:47516, target47986:87592, selected reference queries21112:26770.
+
+First modified call6/block0 snapshots full QKV and original full output, verifies
+all unselected rows including target video/audio bitwise, then drops snapshots.
+Inference tensors have no version counter: their audit records null plus complete
+first-call value equality. The copies add5,022,875,648 bytes at actual BF16 shape;
+first-call wall/allocated/global-peak observations are distinct from pure kernel
+cost. Zero correction is legal. Group reconstruction samples8heads/128queries/
+16channels and measures native SDPA versus explicit Flash group algebra, with
+frozen BF16 relativeRMS≤.025 and scaled maxabs≤.035. This is not a bitwise original
+attention-probability certificate. Optional model-free GPU gate is provided but
+has not been executed by the builder; root must admit an idle device explicitly.
+
+Safety/identity: one run per lane, no unreviewed continuation. Queue retains the
+service for1800seconds after completion unless root sets finalize=true; total
+watchdog43200s, per-job7200s. Every stop is bound to PID+UID+startticks+command and
+controller generation. Selected GPU must be idle; other own compute requires
+exact permitted identities and total cards≤2. Default launch permission is false.
+GPU2/8486 and GPU3/8487 are proposed; root owns actual R24 release/handoff.
+No live R24 service or sealed file has been modified.
+
+Input evidence: exact original R3 graph scientific fields, seed, sigma grid,
+clean refs, Qwen embeddings/tags, prepared VAE RGB and CPU-generated AV noise.
+Current processed/original conditioning trees are saved and checked unchanged.
+Historical postaugmentation tree was not retained: no equality claim for that
+missing historical object. Runtime callback005 compares both normalized AV raw
+SHAs to actual R3 Full005 and aborts before any modification on mismatch. Existing
+R3 native_replay_actual_tensors.json independently establishes Full005=Native005.
+The postrun verifier loads current and parent actual005 tensors independently.
+
+Eight x0 snapshots5/6/7/8/9/10/15/19 plus sampler_final are passive. Three passive
+postattention/pre-W_O snapshots at block25/steps6/10/14 contain four predetermined
+heads, labeled with the actual reverse arm. They are contextual outputs, not
+isolated reference-hidden drift or a matched next-layer native replay.
+
+CPU evidence: local operator/contract/cleanup/verifier regression logs in audit.
+Real .9 stage uses official node loader, official meta H3 architecture, actual
+H3 extra_conds carriers/Guider/ModelPatcher/WrapperExecutor and actual Euler20;
+small synthetic attention replaces heavyweight DiT execution. Both wrapper orders
+must match; native equals unwrapped baseline; bad005 stops after6calls and0routes.
+The auxiliary CPU gate uses the current official Noise node and compares generated
+CPU noise against archived R3 actual AV hashes. Historical embedding bytes were
+not retained (raw SHA exists), so that numeric Pair path is a formal-run gate. Neither gate loads model weights, decodes VAE, or initializes CUDA.
+Native cold noise preparation calls torch.manual_seed and advances CPU RNG exactly
+as the parent; cached reads and the subsequently entered sampler preserve RNG.
+All attempts, including the missing-embedding and overly broad cold-noise RNG
+test assumptions, remain archived. Runtime was unchanged by those test fixes.
+
+Deployment (root only): extract each lane's sealed tar into its exact runtime
+remote_root, verify deploy_manifest.json files SHA, create empty audit/logs/processes
+folders as needed, and run scripts/preflight.py. Record exact live admission and
+ready_for_launch only after R24 archival/handoff. Optional gpu_reverse_smoke.py
+uses one separately admitted device and0modelNFE; it checks actual Comfy native vs
+archived explicit Flash, dense BF16 oracle, full87592×56 geometry and row invariance.
+Only root then invokes python3 scripts/launch_remote.py for each admitted lane.
+
+Postrun: existing Comfy Python with CUDA_VISIBLE_DEVICES='' and shared CPU lock:
+python scripts/verify_completed.py --root <lane-root> --parent-root
+/data5/researcher/h3_runs/timing_spatial_r3_20261016 --output analysis/integrity.json
+This verifies success history exact graph, actual condition blobs/noise, prefix005,
+all20callback/1000block/450modified counts, full snapshot inventory and semantics,
+feature files, runtime/core/model provenance, and bounded hold or exact cleanup.
+Motion/identity/quality assessment remains an independent frozen-pose review.

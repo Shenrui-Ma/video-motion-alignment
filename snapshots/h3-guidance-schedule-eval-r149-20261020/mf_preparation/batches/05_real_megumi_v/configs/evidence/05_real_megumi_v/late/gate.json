@@ -1,0 +1,558 @@
+{
+  "schema": "r149-schedule-job-gate-v1",
+  "passed": true,
+  "run_id": "r149_05_real_megumi_v_seed2026101311_late",
+  "role": "late",
+  "service_owner": {
+    "pid": 33378,
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8641,
+    "started_unix": 1792502740.491022,
+    "root_attempt_token": "ac462d0cb493419e85349381bc05ad36",
+    "command": [
+      "/home/researcher/miniconda3/envs/comfyui/bin/python",
+      "-u",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py",
+      "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py",
+      "--listen",
+      "127.0.0.1",
+      "--port",
+      "8641",
+      "--base-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v",
+      "--models-directory",
+      "/data5/researcher/ComfyUI/models",
+      "--disable-auto-launch",
+      "--disable-dynamic-vram",
+      "--disable-cuda-malloc",
+      "--use-pytorch-cross-attention",
+      "--reserve-vram",
+      "8",
+      "--enable-triton-backend",
+      "--preview-method",
+      "none",
+      "--disable-all-custom-nodes",
+      "--whitelist-custom-nodes",
+      "ComfyUI-KJNodes",
+      "H3EventAudit",
+      "H3PairAudit",
+      "H3TemporalRouter",
+      "H3X0Readout",
+      "H3CachedCondition",
+      "--input-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input",
+      "--output-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output",
+      "--temp-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp",
+      "--user-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user",
+      "--database-url",
+      "sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db"
+    ],
+    "identity": {
+      "uid": 1016,
+      "start_ticks": "2653165461",
+      "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8641 --base-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input --output-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output --temp-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp --user-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user --database-url sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db "
+    },
+    "cache_none": false,
+    "host_available_kib": 238642084,
+    "cgroup_startup": {
+      "schema": "r149-host9-cgroup-v1-v1",
+      "uid": 1016,
+      "membership": "/user.slice",
+      "ancestors": [
+        {
+          "path": "/user.slice",
+          "current_bytes": 219538296832,
+          "max_bytes": null,
+          "events": {
+            "oom_kill_disable": 0,
+            "under_oom": 0,
+            "failcnt": 0
+          }
+        },
+        {
+          "path": "/",
+          "current_bytes": 222336471040,
+          "max_bytes": null,
+          "events": {
+            "oom_kill_disable": 0,
+            "under_oom": 0,
+            "failcnt": 0
+          }
+        }
+      ],
+      "host_available_bytes": 244369494016,
+      "observed_unix": 1792502740.4901407,
+      "admitted": true,
+      "working_set_admission": {
+        "passed": true,
+        "stage": "entry",
+        "reasons": [],
+        "pressure_streak": 0,
+        "host_available_bytes": 244369494016,
+        "ancestors": [
+          {
+            "path": "/user.slice",
+            "current_bytes": 219538296832,
+            "max_bytes": null,
+            "events": {
+              "oom_kill_disable": 0,
+              "under_oom": 0,
+              "failcnt": 0
+            },
+            "raw_max_headroom_bytes": null,
+            "events_delta": {}
+          },
+          {
+            "path": "/",
+            "current_bytes": 222336471040,
+            "max_bytes": null,
+            "events": {
+              "oom_kill_disable": 0,
+              "under_oom": 0,
+              "failcnt": 0
+            },
+            "raw_max_headroom_bytes": null,
+            "events_delta": {}
+          }
+        ],
+        "policy": "host9 v1; host entry64/running40GiB; finite ancestor raw entry46/running20GiB; event changes stop"
+      }
+    },
+    "admission": {
+      "ready_for_launch": true,
+      "scope": "own_user_video_jobs",
+      "existing_comfy_port": null,
+      "permitted_compute_processes": []
+    },
+    "gpu_readiness": {
+      "observed_unix": 1792502740.3197155,
+      "memory_profile_sha256": "bff7e83620e6af58eed81884310c696a5a8dcaf4d4efee3ab429a4a9fb2c4ece",
+      "required_free_bytes": 21474836480,
+      "processes": [
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 46202,
+          "used_memory_mib": 26554
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 13015,
+          "used_memory_mib": 31214
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 7230,
+          "used_memory_mib": 31268
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 46202,
+          "used_memory_mib": 26554
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 7231,
+          "used_memory_mib": 31466
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 17073,
+          "used_memory_mib": 26496
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 13016,
+          "used_memory_mib": 31214
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 19439,
+          "used_memory_mib": 40374
+        }
+      ],
+      "gpu_raw": "1, GPU-REDACTED, 57841, 23209, 99, 64\n",
+      "gpu_stderr": "",
+      "memory_free_mib": 23209.0,
+      "memory_used_mib": 57841.0,
+      "utilization_percent": 99.0,
+      "temperature_c": 64.0,
+      "status": "admitted"
+    },
+    "preexisting_compute_processes": [
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 46202,
+        "used_memory_mib": 26554
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 13015,
+        "used_memory_mib": 31214
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 7230,
+        "used_memory_mib": 31268
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 46202,
+        "used_memory_mib": 26554
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 7231,
+        "used_memory_mib": 31466
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 17073,
+        "used_memory_mib": 26496
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 13016,
+        "used_memory_mib": 31214
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 19439,
+        "used_memory_mib": 40374
+      }
+    ],
+    "existing_comfy_queue": {
+      "queue_running": [],
+      "queue_pending": []
+    },
+    "state": "started_readiness_unverified"
+  },
+  "producer_seal_sha256": "67d18977e76fe8c42578bf1145801f02d120b9f76ce06a0c570843fcfc16b0be",
+  "video": {
+    "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output/r149_05_real_megumi_v_seed2026101311_late_00001_.mp4",
+    "sha256": "c2df33251bacf89d42ade4d3e298398ff64d736644ce2441870dfecf8cc2cd56",
+    "properties": {
+      "width": 1312,
+      "height": 736,
+      "avg_frame_rate": "24/1",
+      "nb_read_frames": "141"
+    }
+  },
+  "valid_frames": 141,
+  "evaluation_crop_xywh": [
+    0,
+    0,
+    1312,
+    736
+  ],
+  "NFE": 20,
+  "Euler_updates": 20,
+  "routed_blocks": 450,
+  "alpha": 1.0,
+  "phase_displacement": 0,
+  "actual_routed_steps_zero_based": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "physical_query_window": [
+    50,
+    65
+  ],
+  "sigma_selected": [
+    {
+      "step": 11,
+      "sigma": 0.90756302521,
+      "sigma_next": 0.888888888889
+    },
+    {
+      "step": 12,
+      "sigma": 0.888888888889,
+      "sigma_next": 0.865979381443
+    },
+    {
+      "step": 13,
+      "sigma": 0.865979381443,
+      "sigma_next": 0.837209302326
+    },
+    {
+      "step": 14,
+      "sigma": 0.837209302326,
+      "sigma_next": 0.8
+    },
+    {
+      "step": 15,
+      "sigma": 0.8,
+      "sigma_next": 0.75
+    },
+    {
+      "step": 16,
+      "sigma": 0.75,
+      "sigma_next": 0.679245283019
+    },
+    {
+      "step": 17,
+      "sigma": 0.679245283019,
+      "sigma_next": 0.571428571429
+    },
+    {
+      "step": 18,
+      "sigma": 0.571428571429,
+      "sigma_next": 0.387096774194
+    },
+    {
+      "step": 19,
+      "sigma": 0.387096774194,
+      "sigma_next": 0.0
+    }
+  ],
+  "sum_abs_delta_sigma": 0.90756302521,
+  "job_wall_seconds": 3686.051171541214,
+  "sampler_timing": {
+    "schema": "r149-sampler-wall-v1",
+    "run_id": "r149_05_real_megumi_v_seed2026101311_late",
+    "passed": true,
+    "sampler_wall_seconds": 3619.3615107275546,
+    "callback_steps": [
+      {
+        "step_zero_based": 0,
+        "callback_interval_seconds": 179.20406064763665
+      },
+      {
+        "step_zero_based": 1,
+        "callback_interval_seconds": 178.85502153635025
+      },
+      {
+        "step_zero_based": 2,
+        "callback_interval_seconds": 178.67240574210882
+      },
+      {
+        "step_zero_based": 3,
+        "callback_interval_seconds": 178.69079081341624
+      },
+      {
+        "step_zero_based": 4,
+        "callback_interval_seconds": 178.36678347364068
+      },
+      {
+        "step_zero_based": 5,
+        "callback_interval_seconds": 178.45890672132373
+      },
+      {
+        "step_zero_based": 6,
+        "callback_interval_seconds": 178.69652076810598
+      },
+      {
+        "step_zero_based": 7,
+        "callback_interval_seconds": 178.71414069458842
+      },
+      {
+        "step_zero_based": 8,
+        "callback_interval_seconds": 178.7538368292153
+      },
+      {
+        "step_zero_based": 9,
+        "callback_interval_seconds": 178.5490984581411
+      },
+      {
+        "step_zero_based": 10,
+        "callback_interval_seconds": 178.86517794430256
+      },
+      {
+        "step_zero_based": 11,
+        "callback_interval_seconds": 183.97279335558414
+      },
+      {
+        "step_zero_based": 12,
+        "callback_interval_seconds": 183.65656320750713
+      },
+      {
+        "step_zero_based": 13,
+        "callback_interval_seconds": 183.77376890555024
+      },
+      {
+        "step_zero_based": 14,
+        "callback_interval_seconds": 183.81960694119334
+      },
+      {
+        "step_zero_based": 15,
+        "callback_interval_seconds": 183.68227630481124
+      },
+      {
+        "step_zero_based": 16,
+        "callback_interval_seconds": 183.56790291890502
+      },
+      {
+        "step_zero_based": 17,
+        "callback_interval_seconds": 183.3920014537871
+      },
+      {
+        "step_zero_based": 18,
+        "callback_interval_seconds": 183.81348234415054
+      },
+      {
+        "step_zero_based": 19,
+        "callback_interval_seconds": 183.7666961438954
+      }
+    ],
+    "after_last_callback_seconds": 0.08967552334070206,
+    "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+    "no_extra_forward": true
+  },
+  "main_dit_blocks_dispatch_wall_seconds": [
+    175.30042827874422,
+    175.24851946532726,
+    175.05003183335066,
+    175.07459907978773,
+    174.77098460868,
+    174.82696483284235,
+    175.117959510535,
+    175.11320217698812,
+    175.09131460636854,
+    174.93523245677352,
+    175.19507094472647,
+    183.345392242074,
+    183.0289974734187,
+    183.14757313206792,
+    183.20665726810694,
+    183.04120897501707,
+    182.98110220953822,
+    182.71536512300372,
+    183.18532885611057,
+    183.15258642286062
+  ],
+  "dispatch_timing_scope": "main DiT blocks0..49 Python dispatch wall; excludes final layer/Euler and samples before audit CPU synchronization; full synchronized callback intervals are in x0/timing.json",
+  "final_latent": {
+    "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/sampler_final.pt",
+    "bytes": 15271128,
+    "sha256": "d019015913428849f68d7d208082d1196e3edb8298e645a8f914f3e78878b027"
+  },
+  "all_latent_snapshots": [
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step000.pt",
+      "bytes": 15271128,
+      "sha256": "9ffd8b0fb9e058d1aa9124eed88fa4dad450acedadd4ca4c301b415d0007201a"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step001.pt",
+      "bytes": 15271128,
+      "sha256": "f527e17a2b4576578fbb976dbb317e5b1edb9780ce85f81a594b7dbd3797c236"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step002.pt",
+      "bytes": 15271128,
+      "sha256": "832ad58526bce7d99241bd35beb1d681045f79dd4f4c8842220d000575db5e09"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step003.pt",
+      "bytes": 15271128,
+      "sha256": "1e935cba4bd816d83782bde06ac532a7d93b498d4fff278cecabfb432e310fc5"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step004.pt",
+      "bytes": 15271128,
+      "sha256": "1db0e1b0dbf867f79280e39449ea458ed133ac4b01714e6fafe3447fed965af1"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step005.pt",
+      "bytes": 15271128,
+      "sha256": "ad00d524bff494cac45253feab867ef7cd704058529319b1f705dcac05c1065f"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step006.pt",
+      "bytes": 15271128,
+      "sha256": "1614245db3c483b7ff3e023dcc0c85aeb53f0e10dd57e76c6d0a7cb46c292b39"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step007.pt",
+      "bytes": 15271128,
+      "sha256": "58831e949b42cf2a05a781fb4c449af48b317a6f4ac5a4848eb0a48e2caf5b3d"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step008.pt",
+      "bytes": 15271128,
+      "sha256": "c825509124bc7d63854cc6de435dbb1b0bc54d8392125747498af2989303e1bd"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step009.pt",
+      "bytes": 15271128,
+      "sha256": "a7919b00cbaed967234504790fc6e48eca537ede4a47a842f5faf0c4b815e1b8"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step010.pt",
+      "bytes": 15271128,
+      "sha256": "d556bf62a7b4e898111308ea893913664218f793d8508e48a95f65b5da74d19a"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step011.pt",
+      "bytes": 15271128,
+      "sha256": "aab0f67862159e1ad7ee80808758b76f41d610b831a31ed28fe7d57971c53bc4"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step012.pt",
+      "bytes": 15271128,
+      "sha256": "d30040d73e3896c9a29d3e4fcfde1d2b71d0301ad5515d86682c6feb8faa6524"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step013.pt",
+      "bytes": 15271128,
+      "sha256": "4c6d22a7f709afc8c64ba42c5c85a9593c70c51cbddf16a9571dbee1e300f8f2"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step014.pt",
+      "bytes": 15271128,
+      "sha256": "4a5a41694e6f730ca6f73f6805eefe28a3172345c64d78ee02e542e69aa4f61b"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step015.pt",
+      "bytes": 15271128,
+      "sha256": "962b6e842275847df3ff146d084002e5a358e552471a00259f32a3749e405a9e"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step016.pt",
+      "bytes": 15271128,
+      "sha256": "43e0b05f61e625f0017a43c894a0f52bc4bfdfcd1dc2091d381f8445463d4c5a"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step017.pt",
+      "bytes": 15271128,
+      "sha256": "46716adb874611b49d2933a32a0ff1ce35606c742c322bf3c3d678debc6647d4"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step018.pt",
+      "bytes": 15271128,
+      "sha256": "8b0d08ae96075e3a4448e5956571501ede120b3d795d95a2667599eae90b777f"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/x0_step019.pt",
+      "bytes": 15271128,
+      "sha256": "77eca960636c8def18adf4752f51dee88e3862f3566ef3e70f11250060d0a964"
+    },
+    {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0/r149_05_real_megumi_v_seed2026101311_late/sampler_final.pt",
+      "bytes": 15271128,
+      "sha256": "d019015913428849f68d7d208082d1196e3edb8298e645a8f914f3e78878b027"
+    }
+  ],
+  "noise_sha256": "09d0f352a7a1729abeecf5cbcb401dfe6a0b25b956302b02ccebfa2196107a04",
+  "binding_artifacts": {
+    "configs/graphs/r149_05_real_megumi_v_seed2026101311_late.json": "806fa81c73462341f8ccb51279cf1bc9f566bbf7bc6cc103f11f2b910d6623c2",
+    "logs/r149_05_real_megumi_v_seed2026101311_late_history.json": "d1ee572fdcb3653b48146466cf1a165c96684dceabfca02d31ce79fe10fb5270",
+    "logs/r149_05_real_megumi_v_seed2026101311_late_job.json": "019654c91abaea771b24aa5af0989c48ee3654bd35539284d8499f32d254d2d8",
+    "audit/router/r149_05_real_megumi_v_seed2026101311_late.json": "1b8570863bcf2f7936cba3a92bebe19a421fa1383cd7190ff1e67a55266e8632",
+    "audit/r149_05_real_megumi_v_seed2026101311_late_conditioning.json": "6f69d101991f6a4a2289acc79f2af5e21f4632aebf859f1d5ba80f6848af69f7",
+    "audit/r149_05_real_megumi_v_seed2026101311_late_noise.json": "9d7da7a422ef51de7c861c3b8e48432d748c4d7bc1189aef1ca4d89bfa26d5e5",
+    "audit/x0/r149_05_real_megumi_v_seed2026101311_late/manifest.json": "64fe249de1e2282fa456ba59163fb25b1c00c4859df4864a88a9b0c2fe35ff2b",
+    "audit/x0/r149_05_real_megumi_v_seed2026101311_late/timing.json": "0918713de812330bf757ff717ee7a8d43de9593083e2d20a4b96ee83217d404c"
+  },
+  "created_unix": 1792510169.414916
+}

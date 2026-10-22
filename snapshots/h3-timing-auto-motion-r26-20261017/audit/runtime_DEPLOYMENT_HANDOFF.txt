@@ -1,0 +1,59 @@
+R26 Native screen ready for root deployment; no GPU/service launched by builder.
+
+Local root /Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017
+Bundles lanes/a_runtime_bundle_v2.tar.gz and lanes/b_runtime_bundle_v2.tar.gz include
+immutable inputs, scripts, extensions, tests, per-source graphs, source selection
+manifest/protocol/freeze and current CPU evidence. Seal records:
+audit/runtime_seal_a_v2.json (52 files), audit/runtime_seal_b_v2.json (47 files).
+Final actual .9 CPU log audit/runtime_real_comfy_cpu_attempt3.log, passed; current
+lane runtime source equals its stage SHA. Local22 tests passed.
+
+Run roots:
+/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a
+/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/b
+A: GPU2 UUID GPU-REDACTED, port8488,
+   r26_source_40372_seed2026101701_native then r26_source_51304_seed2026101701_native
+B: GPU3 UUID GPU-REDACTED, port8489,
+   r26_source_51317_seed2026101701_native
+
+Root sequence only after R25 handoff and exact-owned resource admission:
+1. Create fresh exact remote lane directories; rsync matching local bundle to a
+   staging location, verify bundle SHA from runtime_seal_<lane>_v2.json, then
+   tar -xzf <matching_bundle> -C <exact_remote_lane>.
+2. Run python3 <lane>/scripts/preflight.py --root <lane>. This checks each actual
+   source/portrait/provenance SHA, frozen Native graph, registry, kernel and seal.
+3. Root independently populates configs/admission.json: ready_for_launch=true,
+   exact permitted_compute_processes for any concurrent own lane, no stale PID.
+   At most2 own GPUs; selected GPU must be empty before service starts. R25 may
+   not remain on those GPUs. The other user's tasks are not modified.
+4. Run python3 <lane>/scripts/launch_remote.py. It rechecks admission, copies and
+   hashes actual input/ loader files, checks actual model/core provenance, then
+   starts the bounded supervisor/watchdog/serial controller. Record its identities.
+   The script, not this handoff, performs those operations; builder has not run it.
+5. After the first lane starts, register its exact process identity before the
+   other lane's live admission. No broad same-UID exemption. Queue retains cache
+   through its jobs and holds1800 seconds, bounded12h total. Root can set queue
+   finalize=true for normal exact cleanup. Old-controller/new-generation kill is
+   rejected. Any failure triggers exact-owned cleanup with preserved logs.
+
+Actual integrity gate (CPU lock, CUDA disabled, no service/model launch):
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+ /home/researcher/miniconda3/envs/comfyui/bin/python \
+ <lane>/scripts/verify_batch.py --root <lane> --output <lane>/analysis/native_integrity.json
+Acquire the established Mac->remote consumer locks through the sole consumer.
+Verify all21 archives per case and final successful graph,20NFE/20callbacks/
+1000blocks/zero routed calls, actual conditioning tensors/noise, actual source
+layout and identity. Resident_hold is distinct from cleanup. Do not claim GPU
+quality or exact neural trajectory solely from CPU interface tests.
+
+Postrun: audit/runtime_postrun_plan.txt. Final MP4 CPU pose first; retain every
+normal/error/UNKNOWN screen. No automatic21x VAE decoding. Source51317 is arms-only
+and high-confidence arm support is limited; preserve that evidence. The fixed
+fullclip [0,140] bounds are unused Native API metadata, not an oracle event input.
+
+Archive limits: actual clean reference/Qwen embedding/tags/positions/noise saved;
+no new processed post-augmentation tree capture. All20 normalized x0 and separate
+sampler_final are stored. Final write cost is in job time, not separately timed;
+20 intermediate durations and16 added vsR24 durations are recorded independently.
+
+V2 preserves all v1 path-mismatch evidence in lanes/v1_root_mismatch and *_v1_path_mismatch archives. Old v1 packages must not be launched.

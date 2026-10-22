@@ -1,0 +1,32 @@
+R80 strict host9 decoder recovery v2
+
+原NATIVE_RUNTIME_GATE.json继续保留false。新实际收据写NATIVE_RUNTIME_GATE_HOST9_v2.json。
+0230独立CPU复验期望，0352在job不存在时预冻结；不需要重跑0230 DiT。
+新61seal e2b2904e032c6a210693a75a4e6e3b268a8990ff0f0a50d33ba1307c6b971616。
+只改两处验证/行政文件，增加三个验证文件；所有graph、prompt、seed、core/kernel、reference文件原字节。
+
+实际复验（CPU）：
+cd /data5/researcher/h3_runs/timing_local_edit_repair_r80_20261018
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps /home/researcher/miniconda3/envs/comfyui/bin/python analysis/postrun/verify_native_host9_v2.py --source short_0230
+现有v2收据会拒绝覆盖；完成后按实际输出判断。
+
+0352恢复顺序（GPU全部由root）：
+1. 核所有旧processes记录对应原进程/代次已退出、CUDA已释放。把完整旧processes目录移到独立audit恢复attempt下保留，创建新的processes目录。保存旧controller状态及错误；保留原job/history文件。
+2. Root按同.9 GPU0 normal/reserve8、free>=30720MiB准入并更新实际peer（如R73）。调用原scripts/launch_remote.py --service-only，按原preCUDA ready/go与peer exact identity流程放行；等待HTTP ready。
+3. Root查看已通过0230 v2成片、确认任务完成后：
+   python3 scripts/execution_gate.py approve-second-native --root-admitted --task-fidelity-reviewed
+   该审批会绑定strict v2首条receipt SHA和新host9期望SHA，旧false gate SHA也必须保持。
+4. 本次只直接提交0352：
+   python3 scripts/job.py submit r80_short_0352_seed2026101701_native
+   用scripts/job.py status同run名持续记录。不要启动原run_queue/controller：其completed默认空，会碰到已存在0230 job并拒绝重复。
+5. 完成后原service.stop(expected_record=本次owner)精确收尾，核PID/CUDA释放，移除peer中的本代次记录；保留新service记录用于actual核验。
+6. CPU执行verify_native_host9_v2.py --source short_0352，单独生成第二条v2实际收据。
+7. 可用audit/input_decode_recovery_v2/collect_v2.py --source short_0230或short_0352收集视频/小JSON，写独立v2 incoming目录。原consumer仍指向旧canonical gate，保持历史语义。
+
+原root_run_pair.py和run_queue均不适合直接从旧first Native已完成状态重开，本说明采用其service/peer与job原接口的单次0352运行。当前没有新增/启动任何GPU任务。
+
+单次恢复入口（root审查后执行；要求0230 v2已通过）：
+python3 -u audit/input_decode_recovery_v2/root_resume_0352.py --execute --task-fidelity-reviewed --attempt root_0352_recovery_attempt1 --peer-root /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018
+脚本自身作为精确登记的CPU controller维持watchdog；全程只提交0352。请核实际R73 remote_root名称后传入；不存在的service记录会被忽略，存在但身份不同会拒绝。
+
+维护限制：当前61seal已完整包含新增host9_v2期望文件；旧execution_gate.seal()的枚举未增加该配置，禁止无审查再次调用旧seal()重封。此次恢复脚本/消费者/说明位于独立audit目录，科学生产者61seal保持不变。

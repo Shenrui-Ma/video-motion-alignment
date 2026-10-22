@@ -1,0 +1,63 @@
+公开 benchmark 选择与原作者评分核查（2026-10-17）
+状态：仅资料/小素材准备；没有运行 H3、CoTracker、VAE、pose 或任何评分模型。
+
+建议
+优先采用 FlexiAct 官方发布的五个人→人动作全集：chest、crouch、fitness、one_leg、rotate，保留其全部 39 个原始 reference/image/caption 配对。它与 H3 的“参考动作视频+目标身份图”最接近。5 个源动作不能写成 39 个独立动作；先每个动作按 CSV 原顺序第一个 target 做 5 对接口试跑，随后无条件完成其余 34 对。每个结果均保留失败与 UNKNOWN，不能按 H3 效果替换样例。H3 合法时间网格/重采样尚未决定，不为固定 141 帧截掉动作结尾。
+MTBench 作为补充：完整 100 源先做 source-only 人体/连续镜头/上肢可见资格登记，再按稳定 source ID 排序取前 6 个合格源；未闭合全体资格清单前不声称“稳定首六”。IVEBench 适合补充编辑合规性/画面质量，优先级低于这两套动作保持材料。此排序依据任务与可执行性，不依据引用量。
+
+一、集合与任务边界
+名称 | 原任务与实际发布 | H3 匹配 | 时间标签/原评分 | 下载/许可
+FlexiAct (SIGGRAPH 2025) | reference video→任意 target image；论文 25 动作×10 图=250 对；本次 HF 固定 revision 实际 15 原参考视频、207 空间训练 crop、15 val CSV 共 89 行、42 张被配对目标图。人→人 5 源39对、人→动物7对、动物11对、camera32对。 | 最接近；应使用原图而非改成 Sam。保留原 caption；H3 若保留源背景而非目标图布局，应另记任务适配。 | 未发现逐事件/逐帧动作时间真值；crop.csv 的 start/end 是采样范围而非事件标签。MF、CLIP text、temporal、appearance 有官方代码。 | HF shiyi0408/FlexiAct 公开免登录，card MIT；repo Apache-2.0。原图含电影/游戏人物，card 不等于逐媒体权利链证明，传播素材仍需注明来源。
+DeT/MTBench (ICCV 2025) | motion transfer/source+target prompt，100 源×5 prompt=500；source_anchor_impl 已核完整 ZIP 与 100/500 清单。 | 参考运动匹配；多数任务是对象/场景替换，原协议没有指定身份图。新增身份图/改 prompt 属 H3 适配，不能称原排行榜分数。 | 无事件时间标签；作者 CoTracker motion fidelity + CLIP。实际代码与论文所称 Fréchet 存在差异（见下）。 | HF QingyuShi/MTBench 三 ZIP 公开；源 ZIP 232,573,066 B 已由另一代理校官方 LFS。repo/HF/ZIP 未见明确整体 license。DAVIS/YouTube-VOS 上游条款需分来源遵守，不能把 code license 推给媒体。
+IVEBench (ICLR 2026) | instruction-guided editing，400 short+200 long=600 个源，每源一个编辑请求；HF 索引确有600 MP4。8大类/35细类，实际JSON另有1条 style editing 拼写变体，未静默修复。 | 43条 replace-existing-subject 元数据（30短+13长）可筛；不限于人物。原角色替换也未给目标身份图。换成统一身份指令属新适配。 | target_span 是文本编辑短语，不是时间段。无动作事件真值。12项质量/合规/保真评分，MF不适合精确物理帧延迟。 | HF Coraxor/IVEBench 公开，card MIT且限定研究/教育并要求原来源条款；card又称仅元数据，与实际600MP4和README不一致，应保留该事实；repo无顶层license。
+
+二、作者评分是否偷偷“对齐时间”
+1) FlexiAct commit de9fe1d536732c4d1a384577b5ae54f8fc1730d7：
+   eval/motion_fidelity/motion_fidelity.py:13–29 对同索引位移单位向量求时间平均余弦，再每条生成轨迹选最相似源轨迹；无 lag search/DTW，未读 FPS。长度不同时 einsum 不能正常比较。代码还减去单位矩阵，含同编号轨迹惩罚，不应私改后仍叫作者原分数。
+   :34–39 用 grid_size=55，visibility 输出未用于评分；零位移除范数无 epsilon，静止可能 NaN。默认不加前景 mask，因此背景/镜头运动可能占据分数。必须另报 finite/有效轨迹数，不能把失败悄悄丢出分母。
+   scripts/inference.py:106/229 为49帧、8fps；发布crop.csv也是[0,49)、8fps。每原帧125ms；转24fps不增加时间信息。49个采样点的首末间隔6s，容器名义时长6.125s，勿混淆。
+   Appearance Consistency 是输出首帧与其余输出帧的 CLIP 相似度，不能单独证明目标身份图保持；需另做固定身份/质量复核。
+2) MTBench commit 2a2f4dd（完整 commit/SHA见并行实施审查）：
+   默认 cosine 是同索引速度比较，带初始位置向量；长度不等用 linspace 整数下采样较长轨迹，不读 FPS，无显式 lag search。
+   名为 compute_frechet_distance 的分支实际上 cdist(traj1,traj2).mean()，不保持点的时间排列；similarity=1/(1+d)，与论文所述离散 Fréchet/exp(-d) 不同。默认未启用此分支。应同时标“论文定义”和“该commit原代码”，不把未运行论文公式的代码成绩称公式复现。
+   源库存实计90×49f@8fps、5×32f@10fps、5×128f@14fps。默认cosine也不是带毫秒真值的时间准确率。
+3) IVEBench commit 2dcf8900ee65197f43854c76f61c66a32bb8dbfc：
+   metrics/fidelity/motion_fidelity.py:182–203 先取 visibility>0.5 的点，再把“剩余有效点序号”均匀映射到[0,1]；:245–263 对两片都插值到 min(T1,T2)，即使原始帧数相同也执行。这样会压缩遮挡间隔，失去原时间。
+   例：原有效帧[0,1,4]被放在归一位置[0,.5,1]，而正确原时间位置是[0,.25,1]。这不是 DTW，但足以改变局部相位，不能把高 MF 当小动作时间差已消除。
+   :205–243 是0.7位置+0.3速度相似度；:293–347 做Hungarian轨迹匹配并只平均>0.3的匹配项。拒绝匹配/零分与真正时序差必须另计。
+   :351起主动跳过 subject_motion_editing/camera_motion_editing/event effect；保留运动不该用于要求改变运动的样例。官方总榜中不同指标分母也应遵循此门并披露。
+   data_process/resize_batch.py:53–57 可均匀选帧并重编号；mp42frames_batch.py抽帧不带PTS sidecar。使用时必须自己保留原PTS映射，否则不能补充物理时间结论。
+
+三、可执行性与最小新增依赖
+FlexiAct MF 的官方入口为 python eval/motion_fidelity/motion_fidelity.py --config_path ...，配置绑定 cotracker_stride_4_wind_8.pth；脚本强制.cuda()。其他三项还需 CLIP。只跑评分无需训练 FlexiAct 本身；复现其生成方法另需 CogVideoX-I2V、RefAdapter、每动作 FAE，不能与当前训练free H3费用混为一谈。
+MTBench evaluation.py 使用作者自己的 CoTracker 加载/默认评分，详见 benchmark_implementation_audit_20261017 的实际入口与依赖表；不能用已有 DWPose 替代它又称官方 MF。
+IVEBench --metric motion_fidelity 可单项运行，仅需 CoTracker3 baseline_offline.pth；完整12指标另需 Qwen2.5-VL-72B、VideoCLIP-XL-v2、AMT、GroundingDINO、Koala及CLIP/DINO等。H3已装的Qwen版本不等于72B评分器。完整总榜不应在只算MF时宣称已完成。
+并行实施审查只读发现 .9 现环境 cv2/scipy 可用，但 cotracker/decord/omegaconf 未安装，常规cache/Comfy models未找到CoTracker权重；此检查范围有限，不能推断全磁盘不存在。本任务没有安装或下载权重。后续最小准备是隔离官方MF环境/固定checkpoint SHA；现DWPose可复用做另列的物理时间补充，非原评分替代。
+
+四、固定小集合与完整集合流程（尚非推理授权）
+A. FlexiAct：固定全部5个人动作、39原配对。先5个CSV第一行作接口pilot；其余34仍在预登记分母中，不能因pilot正常/失败剔除。源聚类统计按5个动作等权，另报39对均值和每对结果。首批原目标图有game/movie人物，保留原图，不临时替换成Sam。全发布89对扩展时另列animal/camera任务；当前人动作观察器不适用的条目记不适用，不能伪造低分。250论文全集及Motion4Motion所称123human/33animal未找到与此release一一对应清单，属于缺口。
+B. MTBench：100源/500prompt作为完整已发布母集合。先按 source-only 判定单一主体、连续镜头、所需关节可见与时基可读；完整 eligible/exclusion/unknown 均落表。稳定 source ID 首6合格作补充；来源/时长不合不能事后隐藏。若全部5原prompt都跑，则6源×5=30任务；只第1原prompt为6任务，须明说缩减。若增加身份图则另列 adaptation 任务，不混入原prompt榜。当前 source-only 三帧粗网格尚不能证明全片资格，候选8清单不等于已锁定首6。
+C. IVEBench：保留600原JSON及43主体替换子集合；可先稳定ID取6个源可见/运动保持要求的人物替换案例，但此资格尚未目视闭合。短集32–128帧不应强行尾帧复制为141并当原协议；长集也不可随意截掉动作尾部。原任务比分、H3身份适配比、时间精度补充分别报。
+共通：在任何H3输出之前冻结 source SHA、target image SHA、原caption与适配diff、seed、原PTS、输入frame map、geometry和作者评分commit/weights。H3长度/画布适配由root确认合法网格后追加冻结；当前 protocol 不规定141。source/output只做同一预声明空间预处理，物理时间指标不先做DTW/lag补偿。
+官方MF是运动保真辅助结果。补充动作时间差必须同时报ms、原片帧、输出帧、confidence/support/UNKNOWN；不可用8fps源证明±2个24fps帧精度。报同帧形状/身份质量，避免简单复制静态或相似循环获得好分。全部运行失败、评分NaN和UNKNOWN保留原分母，不只报成功均值。公开小集合结果只能称可行性/开发验证，扩至全资格集合后才给该集合结论。
+
+五、时间真值补充候选
+FineGym提供动作和子动作毫秒时间边界，官方识别分数是Top-1/mean-class accuracy，非编辑延迟。其官方站明确动态体育姿态难估计，可用作后续短动作边界压力测试；annotation CC-BY-NC4.0，部分YouTube失效视频需作者表单申请。使用源事件标签并独立标编辑输出边界是新适配评分，不能叫原FineGym榜。
+FineDiving有3000视频、frame_labels/steps_transit_frames/start/end，时间标签更明确，但视频需签release agreement发邮件申请；本任务未联系作者。原任务AQA/动作分数不是角色编辑运动保持，不能作为最快首跑路线。
+Z.ai MotionBench 是VLM视频问答，EffiVMT的同名MotionBench是另一套motion-transfer数据；名称不可混用。Motion4Motion论文复用FlexiAct，但当前project“Code(cs)”指向GitHub根，没有可核完整原实现，本任务不把它当已可运行评分。
+
+主来源（原文/官方代码/数据）：
+https://arxiv.org/html/2505.03730v1
+https://github.com/shiyi-zh0408/FlexiAct/tree/de9fe1d536732c4d1a384577b5ae54f8fc1730d7
+https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4
+https://github.com/Shi-qingyu/DeT
+https://huggingface.co/datasets/QingyuShi/MTBench
+https://arxiv.org/html/2510.11647v2
+https://github.com/RyanChenYN/IVEBench/tree/2dcf8900ee65197f43854c76f61c66a32bb8dbfc
+https://huggingface.co/datasets/Coraxor/IVEBench/tree/1e6cb655c0a537f6093edcf18e2607fb03e76734
+https://sdolivia.github.io/FineGym/
+https://github.com/xujinglin/FineDiving
+https://lhchen.top/Motion4Motion/
+
+实物核验：25个资产（5原MP4+20唯一目标图）共3,303,236字节，先HEAD核大小、再逐个与官方LFS SHA相等。五原视频均720×480、49帧、8/1fps、容器6.125秒；ffprobe逐帧PTS严格为0,0.125,…,6.0，未重编码/裁剪。原图、原caption不改。
+精确原件/下载SHA：source_inventory*.json、FLEXIACT_RELEASE_INVENTORY.json、FLEXIACT_ALL_89_PAIRS.json、FLEXIACT_HUMAN_39_PAIRS.json、FLEXIACT_ASSET_HEAD.json、FLEXIACT_ASSET_RECEIPT.json、FLEXIACT_SOURCE_TIMEBASE.json。PROTOCOL.json固定母集合与pilot顺序，H3时间网格仍待root。MTBench证据由同级 benchmark_implementation_audit_20261017 独立维护，本报告只引用，不改写其下载/审查结果。

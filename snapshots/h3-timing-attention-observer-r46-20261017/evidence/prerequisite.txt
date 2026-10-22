@@ -1,0 +1,107 @@
+Attention 时间读出：一次两状态前置检查的建议
+2026-10-17；只读审查。本文不是执行授权、门控实现或冻结的运行协议。
+
+结论
+
+已有 R2 query_time_posterior_gate_review 对数学、先例和反例的审查足够，本轮不再扩大文献搜索。唯一值得保留的机会成本提案是：在同一 source05、同几何的困难 seed1311 与正常 seed1313 上，各重放一次实际 index4 的 Native forward，固定 block25、四个头和规则空间网格，采样参考视频时间分布。共 2 个额外 DiT NFE、0 Euler 更新、0 VAE、新 pose 为 0；不是从现有 x0 文件直接做免费的 CPU 分析，也不是全模型扫描。
+
+这次只回答“数据能否无干扰取到，以及最朴素时间分布解释是否又被正常对照直接否证”。两状态同源开发对照不足以训练/校准阈值、估计误触率，或证明 anime 领域有效。若 root 不接受两次额外 forward 的机会成本，可直接停留在原 review 的证据不足结论。当前未实现、未运行、未申请或占用 GPU。
+
+1. 现有证据与问题边界
+
+原 review 路径：
+/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/query_time_posterior_gate_review.txt
+SHA256 87a0fd8238932f7d317c0729baade32ef69290f74fa618e6dedbbb59d636fecd。
+它已经区分 DIAL 的 attention 空间引导、HALO 的熵/头选择、DiffTrack 的高置信错误匹配，以及 Wan-Animate-2 的对应帧条件 mask。本文继承这些重合边界，不声称内部 attention、熵门或同时刻选择首次出现。具体论文结论仍以该 review 的原文与代码依据为限。
+
+原数学：a_qk 为完整 joint attention 权重，R 为唯一 reference-video 段，m_q=sum_{k in R} a_qk，p_q(u)=sum_{k in R_u} a_qk/m_q。p 是 reference-time readout distribution，不是经过校准的动作 lag 后验。m 很小时尖锐的 p 可能几乎不影响输出；不同 reference 时间的 V 若近似相同，读错时间也不必造成动作错误；双峰可有零均值；头也可能主要读取身份、纹理或背景。reference K 也是该层当前联合轨迹的隐状态，并非固定的源 VAE 编码；它可能已经受前面层的 target 反馈影响。真正落后 delta 的当前 target 状态可能读取 source(t-delta)，因此 attention 偏移符号不能直接套用 pose lag 的正号约定。
+
+已有正常 1024 粗 attention 平均偏移很大而视频约对齐，是朴素 attention-mean=lag 的本地反例。其几何与困难大分辨率案例不同，所以这次仅用同几何两 seed 检查该反例是否仍存在，不把旧反例外推到所有逐行统计。
+
+root 提供的 anime50 可见性统计（141帧中18帧 person missing，.5 完整左右臂约44.7%/30.5%）说明该 RGB pose 观察器存在领域限制；本轮未重新核算。它不证明 attention 更准确，也不能给 attention 统计提供 anime 动作真值。本提案不增加 anime 第三状态。
+
+2. 精确两个状态：使用已存 raw input，避免从 endpoint 逆推
+
+R27 原 observer 运行只在 index6/10/14 存 raw input；bad 的 index6 已受 Full4 影响，不能称未经干预 Native 对照。另存的 x0 是预测端点，不是当前 noisy sample。现有更轻的精确入口来自 R33/R37 已归档的 index4 输入，它们都在该次 Full 之前，与 R27 各自 index4 Native 对应。
+
+A. 困难 seed2026101311：
+producer run r33_s05_index4_bins23to27
+remote root /data5/researcher/h3_runs/timing_window_location_r33_20261017
+raw input audit/counterfactual/r33_s05_index4_bins23to27_snapshots/step004_input_raw.pt
+file SHA ef3b61a53e3bcfd273132a84e352f6da989f565189e5eecb4e14e2a47c53e965，15,270,876 bytes。
+packed tensor SHA 2c5fabc58151f7f7355d001ff26f03253bdb7df71bb9414795c289776eb937db。
+Native4 endpoint 同目录 step004_native.pt，file SHA 720d842dd9f396fecb0435232a5e678d90386f90c48883c798c43d565feb4d2d。
+raw video SHA e554adac98ed2f98d7845d4a13dd8c258da2b98f1f75bbfc2f37416deb6957e2；raw audio SHA b909d2c8e0830b87b19cf00a8bf82bcd2288e7e1ae43eb8213a332373a3be713。
+
+B. 正常 seed2026101313：
+producer run r37_s05_normal1313_global_full_index4
+remote root /data5/researcher/h3_runs/timing_normal_early_control_r37_20261017
+raw input audit/counterfactual/r37_s05_normal1313_global_full_index4_snapshots/step004_input_raw.pt
+file SHA 57cee946e2dfc9d17c321adef0e197e0b36c0830466f3fe8d8c9d5fda23eb59e，15,270,876 bytes。
+packed tensor SHA 169222f84d5dcdf5cf663b99033c153748e4cfab8779b780b027b6378e59d054。
+Native4 endpoint 同目录 step004_native.pt，file SHA 17c864b136d47025b8d32ae8e79808b34b13003d72fd8b2450d70785bd23df75。
+raw video SHA 5ff5799cde42acaeb15c45162d0cdd04edac4a380af21fefc8cb98a99ef85c7b；raw audio SHA f5ba2e54cad2380eb29a94be6757c36409704c4260f01876cf8df0cf0721a5b6。
+
+两者 packed shape=[1,1,3817216]、FP32；video sigma4=0.9795918464660645、next=0.9729729890823364。恢复时必须用完整实际 sigma grid 和模型内部 audio/video timestep 规则，不能把这一标量代替全部 sampler/conditioning metadata。各 seed 的实际条件、noise、augmentation、模型/core pins 各自恢复；跨 seed 的噪声本来不同，不要求两 seed 条件全树相等。
+
+本轮读取本地 FILE_INVENTORY、RUN_GATE、counterfactual 与 R27 DECISION_LEDGER：R33/R37 input4 signatures 分别等 R27 bad/normal input4，Native4 两流 raw signatures 也相等；此前两条轨迹 Full indices<4 均为空。既有 gate 包含 Native0..4 actual PT 对照。R37 对 R27 旧 processed 条件为完整签名树及仅两 UUID canonical 例外，并非历史所有 processed 实体都存在；R27 input4 实体未存，input4 桥为签名而非重读该旧实体。本轮没有重新读取远端大 PT 或声称完成新重放。
+
+未来若准入，先重核所用 PT/条件文件 SHA、实际 layout/seed/grid，再用同 Native 路径重放，每个 endpoint 必须与上述该 run 原始 AV 逐位相等。normalized audio 是 raw audio×0.25，不能混着比。任一来源缺失/不等应停止并报告；不改用 x0 近似逆推、不重跑20步补证、不追加新状态。
+
+3. 采样位置与固定选择
+
+R40 H3TemporalRouter/core.py 的 TemporalAttentionOverride 接收实际 attention_pytorch 入口、无 mask 的 preshaped Q/K/V。route_attention 的 native 路径直接调用 flash_attention_lse，再返回其原 output；显式 aten Flash 输出同时有 LSE。Q/K 位于实际模型 attention 入口，已含模型所施加的位置处理。最小未来探针位置是该入口和原 full Flash 返回之后、W_O 之前，透传原 output，只读取选定 Q/K 和原 full LSE。R40 当前三个被动采集分支均禁用，不能误称它已经保存这些统计。
+
+既有 native_features 保存的是 SDPA 后、W_O 前的 contextual output，不是 Q/K；旧 temporal_readout 又先平均头和空间。两者都不能反推出这里的逐行 p 和完整 reference mass。原封存文件保持不变，未来实现须使用独立版本的只读适配器，并单独验证输出/RNG/条件/cache 不变。
+
+预先固定：零基 block25；heads=[0,14,28,42]（沿旧 capture 协议，不依据新读数挑层/头）；所有42个 target 时间 bins；23×41 patch 网格的 rows=[2,6,11,16,20]、cols=[4,12,20,28,36] 的25点笛卡尔积。每头1050个 queries，共4200个 head-query 行。query 局部索引由实际 position_ids/packed ordering 校验，不仅假定 flatten 次序。几何不符则拒绝，不能自动换网格。固定网格可叠在原图上说明它采到了什么；若未覆盖有关肢体，解释为采样无信息，不按效果重选点。
+
+本次两状态实际表：text[0,6960)，portrait[6960,7910)，reference video[7910,47516)，target audio[47516,47986)，target video[47986,87592)。参考视频与目标视频各39606=42×943 tokens；56 heads×128维，BF16。portrait 与 reference-video 段都可标 ref_img，须以已验证 reference_index=1/kind=video/segment 区分，不能合并所有 ref_img。
+
+时间坐标使用实际42个覆盖段：(1,4,4,4,4)周期，总141帧。保存每 bin 的起止帧与中心；不得用 bin×4，也不得将 query/ref RoPE 起点7196/6961的235差当作动作延迟。这是 position-bin 覆盖，不是 VAE 精确感受野或帧级可辨分辨率。
+
+4. 固定统计与数值门
+
+令 z_qk=Q_q·K_k/sqrt(128)，l_qu=logsumexp_{k in R_u} z_qk，l_qR=logsumexp_u l_qu，l_qall 为原完整 Flash 的 LSE。计算 p_qu=exp(l_qu-l_qR)、m_q=exp(l_qR-l_qall)。只统计 target-query→reference-video-key；不混入反向 reference query 或 target audio。
+
+建议未来复用相同 Flash backend，对固定 Q 和42个参考 bin 分别取得 LSE（42次小调用，V 只为接口所需，输出丢弃）；再用一次全部 reference keys 的小调用核对 logsumexp(bin LSE) 与 reference-group LSE。总额外43次 attention 调用/状态，不是43个 DiT NFE。保留 raw LSE 差、p 和质量检查；按 bin 分调用的浮点归约不等于原 full softmax 逐字节拆分，不能伪称旧模型真正显式存过全部概率。
+
+在任何 GPU 采集之前需冻结小型数学/backend 门：同 QK 正确分组、分段和整组 LSE 一致到预声明工程误差、有限性、p 和为1、reference subset LSE 不超过 full LSE 的误差范围，以及 exact Native endpoint。本文不借两状态数据拟定数值容差或 motion 阈值。发生可能影响排名/偏移解释的数值差异时保留 UNKNOWN，不用悄悄裁剪掩盖；如展示 clamp(m,0,1)，raw excess 也必须保存。
+
+每个 head/query 完整保留42项分布与各组 LSE、m；派生仅包括 same-bin mass、相邻bin mass、条件熵、最大bin与多峰、物理中心偏移和区间距离。以 head×time×space 保留结果，再另给不加权和按 m 加权的描述，不能先平均后声称每条 query 一致。低 m、峰相近、未覆盖身体的行明确保留；不从这些两状态生成自动 ON/OFF 阈值。
+
+选定 BF16 Q 和参考 K 的小副本可落盘以便独立重算；无需保存全 QKV 或全 attention matrix。保存探针/code/model/condition/position/sigma/输入/输出 SHA、原始分布、全固定行清单、CPU/GPU RNG 前后与调用计数。capture不得写 QKV、重置模型缓存、替换 Native output 或追加 Full。检查前后输出等值及原始张量未改；不能以只看版本号替代 inference_mode 下的真实不变验证。
+
+5. 最低观察目的及否证规则
+
+先验已知比较区域只作二级定位：R27 bad index4 的旧策略曾因左臂44..59持续候选触发；两 confidence 的 lag 为15/13；normal同窗三part均约−1。这些是同一开发数据的既有 pose 读数，不是新的 attention 真值或独立标签。主描述仍是固定全42bin网格。不能把该二级窗扩大成“所有 sampled rows 应显示同一 bad lag”。
+
+本次最低价值是同时报告：(a)正常状态是否也普遍远时刻/尖峰读取；(b)异常与正常差别能否在固定同一头/位置上看见，而非靠挑头、忽略低 m 或取平均符号；(c)方向解释是否与“读取过去姿态可能是负 offset”的反例相容；(d)分布是否主要是固定 RoPE/时间端点、背景/身份模式，而非随可见动作关系变化。两状态差别也可能来自 seed/形状/texture，不是 lag 的因果识别。
+
+若正常也出现同样显著的远时刻读取、m接近0、主要只有平均量变化、结果全靠事后选头/网格、或当前位姿与采样对应无法判断，这个最小版本即 NO-GO/无信息。保留全部分布，不扩层扫头寻阳性。若数据无扰动可复现，且固定读数对上述正常反例显示有意义的区分，只能 conditional GO 到以后独立来源/已知时间扰动的预注册验证；尚不足以构建 pose-independent gate、替代现有观察器或证明自动方法有效。
+
+当前同源两 seed 是两个相关开发轨迹，4200行、42bins不是独立样本；不估计置信区间、错误概率或 Conformal 覆盖。对 anime、source07、新素材的适用性全部 pending。本提案也没有把 attention readout 当成动作真值；后续即使不用 RGB pose 做在线观测，评价仍需独立的可见动作/时间依据。
+
+6. 机会成本与停止边界
+
+已有两个 Native4 forward 的记录耗时分别71.3382s、71.3687s，仅历史参考；2NFE合计约142.7s，不包含模型加载、conditioning恢复、采样统计、落盘和校验。新机器/并发下不能据此承诺时长。模型驻留本身约60GB级，当前本轮没有资源准入，也不会搭便车插入 live service。
+
+每状态固定 Q 副本1,075,200 bytes；四头 reference K 副本40,556,544 bytes；p 的FP32阵列705,600 bytes，bin LSE同量级。磁盘约43MB级加少量元数据/标量，两个状态约86MB级；Flash V 工作选择另约40.6MB，不必落盘。完整三份 QKV 是3,767,156,736 bytes，禁止为此探针整体复制。
+
+仅参考 logits 的 QK 乘加约42.58G浮点操作/状态；Flash还计算AV，整reference复核又重复一次，粗略约170G操作/状态，不能用这数字替代wall/peak实测。42个小kernel有调度开销，GPU峰值还取决于索引副本和backend工作区。将原Native forward、统计、transfer/hash、加载费用分列。完整 dense [allQ,allK] 不分配。
+
+因此这不是无成本观察模块；它是一次明确的前置机会成本。任何新 gate 的每步成本、准确性与正常保护均未验证。若原 review 的反例已经足以使项目暂不投入这2NFE，停止此支路完全合理。
+
+7. 本次核对文件与证据范围
+
+R2 native_feature_capture_protocol.txt SHA 9c7ad0b7831005f1babb4d6b35a0643053046ac44da4d48003a79dc00dfc313c。
+R40 extensions/H3TemporalRouter/core.py SHA ac9a5437f0fa22fda037506d13f09e5f14c63e0c0e5946a5fa6483d6db7de7e0。
+R40 extensions/H3TemporalRouter/layout.py SHA bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe。
+R40 extensions/H3TemporalRouter/native_features.py SHA b607634a71cf146241cf08b6ddb8db2a5fbce27d1c89d7d3ce247f1615ab7025。
+R40 extensions/H3AutomaticWindowRouter/core.py SHA ce8862921c815e11add7ee11e2f556cb9a58ce11d360356d4e973ab57c171e2b。
+R33 本地 archived counterfactual SHA b4f805e09389206462a48b7b4fcf1802e1aabdbfe63752c46c0087726b777c84。
+R37 本地 archived counterfactual SHA 2a41f25fa5de8ca5f40c4b7a97d8084c14696da2017d142e63ba24e5606082b7。
+R27 bad DECISION_LEDGER SHA 7b1b69b2c601930d922eea57e9940800e03bd84e2246ab7c66010df66b8ca31c。
+R27 normal DECISION_LEDGER SHA 048fe8ada012010e1c171afa0fd963995b8e293cb50be9ac9ef4e8e01dc5cc3a。
+
+所有所述新统计均尚未采集。此次只读本地文字、源码及已有metadata，不重新加载大tensor、不跑模型、pose或GPU；唯一新文件是本文。v4候选代码seal002的独立审查已另行完成，不受本提案影响。

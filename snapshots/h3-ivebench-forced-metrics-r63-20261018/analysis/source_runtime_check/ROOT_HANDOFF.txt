@@ -1,0 +1,31 @@
+R63 short_0210 fresh .9 source cache
+
+This independent extension leaves the original source cache and frozen runtime unchanged.
+Run after prepared/short_0210/METRIC_INPUTS.json exists. The original source_score
+SHA, original prepared source SHA, 87 frames at i/24, official CoTracker3 grid10,
+query frame0, window60, checkpoint and numerical implementation are identical.
+
+CPU preparation:
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /home/researcher/miniconda3/envs/comfyui/bin/python analysis/source_runtime_check/track_source.py --gpu-uuid GPU-REDACTED --check-only
+
+Root actual source launch (GPU3 is a candidate; fresh free >=16 GiB, healthy,
+own union selected <=2 cards must be checked when launching):
+CUDA_VISIBLE_DEVICES=GPU-REDACTED PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 /home/researcher/miniconda3/envs/comfyui/bin/python -u analysis/source_runtime_check/track_source.py --gpu-uuid GPU-REDACTED --control analysis/source_runtime_check/controls/short0210_source_attempt1
+
+The stable process writes ready.json and waits before importing torch/CUDA. Root
+registers its exact identity, checks resources, and writes identical go.json.
+Each original pre-CUDA check uses the already-tested shared-GPU 16-GiB gate.
+Fresh source result: analysis/source_runtime_check/tracks/attempt1/REPORT.json,
+tracks.npz and SOURCE_BINDING.json. Reports contain actual wall/peak memory.
+
+After the original Native/forced target tracking completes, main same-runtime scores:
+CUDA_VISIBLE_DEVICES='' /home/researcher/miniconda3/envs/comfyui/bin/python analysis/source_runtime_check/score_fresh_source.py --method native
+CUDA_VISIBLE_DEVICES='' /home/researcher/miniconda3/envs/comfyui/bin/python analysis/source_runtime_check/score_fresh_source.py --method forced
+
+Output: analysis/source_runtime_check/results/native_source1_target1.json and
+forced_source1_target1.json. Score code is the original official matching formula.
+Source/target Torch/CUDA, numerical protocol and real report/input bindings are
+checked. The original scripts/score_one.py can retain cross-runtime old-source
+scores in their original results folder; those remain historical comparisons.
+
+CPU prep does not start GPU tracking. All GPU launches remain with root.

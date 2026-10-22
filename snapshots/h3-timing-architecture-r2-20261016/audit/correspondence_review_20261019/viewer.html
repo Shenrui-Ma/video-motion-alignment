@@ -1,0 +1,37 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>参考视频跨时刻对应检查</title>
+<style>
+body{margin:0;background:#0e1115;color:#eee;font:16px/1.6 system-ui,sans-serif}main{max-width:1400px;padding:28px;margin:auto}h1{font-size:25px;margin:0 0 8px}p{max-width:1100px;color:#b8c2ce}label{display:inline-flex;gap:10px;align-items:center;margin:8px 24px 8px 0}select,input,button{font:inherit}input{width:300px}button,select{background:#222c37;color:#fff;border:1px solid #66788c;padding:4px 10px;border-radius:4px}svg{width:100%;height:auto;display:block;background:#000;touch-action:manipulation}.cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px;color:#d3dce6}.status{min-height:55px;padding:12px 0;font-variant-numeric:tabular-nums}.small{font-size:13px}#pick{cursor:crosshair}.orange{color:#ffb44b}.green{color:#50dfae}
+</style><main><h1>参考视频内部的跨时刻对应</h1>
+<p>在左图点击人物、手、书或背景，查看该 token 在下一个时间 bin 中的匹配位置。对应关系取自实际推理第 6 次预测中保存的 Value 特征。下图采用每个位置 bin 的中间帧展示；RGB 帧与特征感受野的关系以模型的 VAE 为准。</p>
+<label>DiT block<select id="layer"><option>0</option><option selected>25</option><option>49</option></select></label>
+<label>时间 bin<input id="time" type="range" min="0" max="41" value="20"><span id="bin"></span></label>
+<button id="prev" aria-label="上一个时间区间">←</button> <button id="next" aria-label="下一个时间区间">→</button>
+<div class="cols"><span id="leftLabel"></span><span id="rightLabel"></span></div>
+<svg id="view" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1336 368" role="img" aria-label="相邻时间的参考视频帧与所选对应位置">
+<image id="left" width="656" height="368"/><image id="right" x="680" width="656" height="368"/>
+<line id="join" stroke="#50dfae" stroke-width="2" stroke-dasharray="6 4"/>
+<circle id="sourceDot" r="8" fill="none" stroke="#ffb44b" stroke-width="3"/>
+<circle id="targetDot" r="8" fill="none" stroke="#50dfae" stroke-width="3"/>
+<rect id="pick" width="656" height="368" fill="transparent"/>
+</svg><div id="status" class="status"></div>
+<p class="small"><span class="orange">橙圈：所选 token。</span> <span class="green">绿圈：通过互惠筛选的相邻时刻匹配。</span> 未通过筛选的位置保留原特征。匹配通过仅表示满足当前算法条件；是否对应同一人物部位，需要结合画面检查。</p>
+</main><script type="application/json" id="data">@@DATA@@</script><script>
+const data=JSON.parse(document.getElementById('data').textContent);
+const el=id=>document.getElementById(id);let selected=11*41+20;
+function center(s,offset=0){return [offset+(s%41+.5)*16,(Math.floor(s/41)+.5)*16]}
+function draw(){const t=+el('time').value,layer=el('layer').value,map=data.banks[layer][t],match=map[selected];
+el('bin').textContent=t+' → '+(t+1);el('left').setAttribute('href',data.images[t]);el('right').setAttribute('href',data.images[t+1]);
+el('leftLabel').textContent=`参考 bin ${t} · 帧区间 ${data.spans[t].join('–')} · 展示帧 ${data.frames[t]}`;
+el('rightLabel').textContent=`参考 bin ${t+1} · 帧区间 ${data.spans[t+1].join('–')} · 展示帧 ${data.frames[t+1]}`;
+const [x,y]=center(selected),[u,v]=center(Math.max(0,match),680);el('sourceDot').setAttribute('cx',x);el('sourceDot').setAttribute('cy',y);
+for(const [k,z] of Object.entries({cx:u,cy:v}))el('targetDot').setAttribute(k,z);
+for(const [k,z] of Object.entries({x1:x,y1:y,x2:u,y2:v}))el('join').setAttribute(k,z);
+el('targetDot').style.display=el('join').style.display=match<0?'none':'';
+const accepted=map.filter(v=>v>=0).length;
+el('status').textContent=`block ${layer}：${accepted}/943 个 token 通过筛选。所选行 ${Math.floor(selected/41)}、列 ${selected%41}；`+(match<0?'此处保持原 Value。':`匹配到下一 bin 的行 ${Math.floor(match/41)}、列 ${match%41}。`);
+}
+el('pick').addEventListener('pointerdown',e=>{const p=el('view').createSVGPoint();p.x=e.clientX;p.y=e.clientY;const z=p.matrixTransform(el('view').getScreenCTM().inverse());if(z.x>=0&&z.x<656&&z.y>=0&&z.y<368){selected=Math.floor(z.y/16)*41+Math.floor(z.x/16);draw();}});
+el('time').addEventListener('input',draw);el('layer').addEventListener('change',draw);
+for(const [id,d] of [['prev',-1],['next',1]])el(id).addEventListener('click',()=>{el('time').value=Math.max(0,Math.min(41,+el('time').value+d));draw();});draw();
+</script></html>

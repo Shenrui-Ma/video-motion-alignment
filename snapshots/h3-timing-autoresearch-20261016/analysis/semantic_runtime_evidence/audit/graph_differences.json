@@ -1,0 +1,680 @@
+{
+  "s05_semantic_a0_encode_gate.json": [
+    {
+      "path": "/1",
+      "before": {
+        "class_type": "UNETLoader",
+        "inputs": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/10",
+      "before": {
+        "class_type": "SamplerCustomAdvanced",
+        "inputs": {
+          "noise": [
+            "6",
+            0
+          ],
+          "guider": [
+            "7",
+            0
+          ],
+          "sampler": [
+            "8",
+            0
+          ],
+          "sigmas": [
+            "9",
+            0
+          ],
+          "latent_image": [
+            "51",
+            1
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/11",
+      "before": {
+        "class_type": "VAEDecode",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/12",
+      "before": {
+        "class_type": "VAEDecodeAudio",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "4",
+            0
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/13",
+      "before": {
+        "class_type": "CreateVideo",
+        "inputs": {
+          "images": [
+            "11",
+            0
+          ],
+          "audio": [
+            "12",
+            0
+          ],
+          "fps": 24.0,
+          "bit_depth": 8
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/14",
+      "before": {
+        "class_type": "SaveVideo",
+        "inputs": {
+          "video": [
+            "13",
+            0
+          ],
+          "filename_prefix": "s05_full_seed1_native",
+          "format": "mp4",
+          "codec": "h264",
+          "codec.encoding": "re-encode",
+          "codec.encoding.crf": 16.0
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/4",
+      "before": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/41",
+      "before": {
+        "class_type": "MiniMaxH3SigmaShift",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "shift_video": 12.0,
+          "shift_audio": 3.0
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/5/class_type",
+      "before": "H3EventAuditReference",
+      "after": "H3SemanticClockReference"
+    },
+    {
+      "path": "/5/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/5/inputs/label_phase_frames",
+      "before": null,
+      "after": 0
+    },
+    {
+      "path": "/5/inputs/phase_frames",
+      "before": 0,
+      "after": null
+    },
+    {
+      "path": "/5/inputs/pixel_phase_frames",
+      "before": null,
+      "after": 0
+    },
+    {
+      "path": "/5/inputs/run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_a0_p0_t0_condition"
+    },
+    {
+      "path": "/5/inputs/semantic_fps",
+      "before": 2,
+      "after": null
+    },
+    {
+      "path": "/50",
+      "before": {
+        "class_type": "H3TemporalRouter",
+        "inputs": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "51",
+            0
+          ],
+          "mode": "native",
+          "alpha": 1.0,
+          "radius": 0,
+          "time_offset": 0,
+          "start_frame": 50,
+          "end_frame": 65,
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 0,
+          "step_end": 20,
+          "run_id": "s05_full_seed1_native",
+          "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router"
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/51",
+      "before": {
+        "class_type": "H3PairConditionSnapshot",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "source_audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+          "source_run_id": "05_sam_1312x736_shared_v3",
+          "run_id": "s05_full_seed1_native"
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/6/class_type",
+      "before": "H3EventAuditNoise",
+      "after": "H3SemanticClockNoise"
+    },
+    {
+      "path": "/6/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/6/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_a0_p0_t0"
+    },
+    {
+      "path": "/7",
+      "before": {
+        "class_type": "BasicGuider",
+        "inputs": {
+          "model": [
+            "50",
+            0
+          ],
+          "conditioning": [
+            "51",
+            0
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/8",
+      "before": {
+        "class_type": "KSamplerSelect",
+        "inputs": {
+          "sampler_name": "euler"
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/9",
+      "before": {
+        "class_type": "ManualSigmas",
+        "inputs": {
+          "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+        }
+      },
+      "after": null
+    },
+    {
+      "path": "/99",
+      "before": null,
+      "after": {
+        "class_type": "H3SemanticClockGate",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "noise": [
+            "6",
+            0
+          ],
+          "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+          "condition_run_id": "s05_semantic_a0_p0_t0_condition"
+        }
+      }
+    }
+  ],
+  "s05_semantic_b_p6_t6.json": [
+    {
+      "path": "/14/inputs/filename_prefix",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_b_p6_t6"
+    },
+    {
+      "path": "/5/class_type",
+      "before": "H3EventAuditReference",
+      "after": "H3SemanticClockReference"
+    },
+    {
+      "path": "/5/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/5/inputs/label_phase_frames",
+      "before": null,
+      "after": 6
+    },
+    {
+      "path": "/5/inputs/phase_frames",
+      "before": 0,
+      "after": null
+    },
+    {
+      "path": "/5/inputs/pixel_phase_frames",
+      "before": null,
+      "after": 6
+    },
+    {
+      "path": "/5/inputs/run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_b_p6_t6_condition"
+    },
+    {
+      "path": "/5/inputs/semantic_fps",
+      "before": 2,
+      "after": null
+    },
+    {
+      "path": "/50/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit/router"
+    },
+    {
+      "path": "/50/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_b_p6_t6"
+    },
+    {
+      "path": "/51/inputs/positive",
+      "before": [
+        "5",
+        0
+      ],
+      "after": [
+        "99",
+        0
+      ]
+    },
+    {
+      "path": "/51/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_b_p6_t6"
+    },
+    {
+      "path": "/51/inputs/source_audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/51/inputs/source_run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_b_p6_t6_condition"
+    },
+    {
+      "path": "/51/inputs/target",
+      "before": [
+        "5",
+        1
+      ],
+      "after": [
+        "99",
+        1
+      ]
+    },
+    {
+      "path": "/6/class_type",
+      "before": "H3EventAuditNoise",
+      "after": "H3SemanticClockNoise"
+    },
+    {
+      "path": "/6/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/6/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_b_p6_t6"
+    },
+    {
+      "path": "/99",
+      "before": null,
+      "after": {
+        "class_type": "H3SemanticClockGate",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "noise": [
+            "6",
+            0
+          ],
+          "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+          "condition_run_id": "s05_semantic_b_p6_t6_condition"
+        }
+      }
+    }
+  ],
+  "s05_semantic_c_p0_t6.json": [
+    {
+      "path": "/14/inputs/filename_prefix",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_c_p0_t6"
+    },
+    {
+      "path": "/5/class_type",
+      "before": "H3EventAuditReference",
+      "after": "H3SemanticClockReference"
+    },
+    {
+      "path": "/5/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/5/inputs/label_phase_frames",
+      "before": null,
+      "after": 6
+    },
+    {
+      "path": "/5/inputs/phase_frames",
+      "before": 0,
+      "after": null
+    },
+    {
+      "path": "/5/inputs/pixel_phase_frames",
+      "before": null,
+      "after": 0
+    },
+    {
+      "path": "/5/inputs/run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_c_p0_t6_condition"
+    },
+    {
+      "path": "/5/inputs/semantic_fps",
+      "before": 2,
+      "after": null
+    },
+    {
+      "path": "/50/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit/router"
+    },
+    {
+      "path": "/50/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_c_p0_t6"
+    },
+    {
+      "path": "/51/inputs/positive",
+      "before": [
+        "5",
+        0
+      ],
+      "after": [
+        "99",
+        0
+      ]
+    },
+    {
+      "path": "/51/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_c_p0_t6"
+    },
+    {
+      "path": "/51/inputs/source_audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/51/inputs/source_run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_c_p0_t6_condition"
+    },
+    {
+      "path": "/51/inputs/target",
+      "before": [
+        "5",
+        1
+      ],
+      "after": [
+        "99",
+        1
+      ]
+    },
+    {
+      "path": "/6/class_type",
+      "before": "H3EventAuditNoise",
+      "after": "H3SemanticClockNoise"
+    },
+    {
+      "path": "/6/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/6/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_c_p0_t6"
+    },
+    {
+      "path": "/99",
+      "before": null,
+      "after": {
+        "class_type": "H3SemanticClockGate",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "noise": [
+            "6",
+            0
+          ],
+          "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+          "condition_run_id": "s05_semantic_c_p0_t6_condition"
+        }
+      }
+    }
+  ],
+  "s05_semantic_d_p6_t0.json": [
+    {
+      "path": "/14/inputs/filename_prefix",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_d_p6_t0"
+    },
+    {
+      "path": "/5/class_type",
+      "before": "H3EventAuditReference",
+      "after": "H3SemanticClockReference"
+    },
+    {
+      "path": "/5/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/5/inputs/label_phase_frames",
+      "before": null,
+      "after": 0
+    },
+    {
+      "path": "/5/inputs/phase_frames",
+      "before": 0,
+      "after": null
+    },
+    {
+      "path": "/5/inputs/pixel_phase_frames",
+      "before": null,
+      "after": 6
+    },
+    {
+      "path": "/5/inputs/run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_d_p6_t0_condition"
+    },
+    {
+      "path": "/5/inputs/semantic_fps",
+      "before": 2,
+      "after": null
+    },
+    {
+      "path": "/50/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit/router"
+    },
+    {
+      "path": "/50/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_d_p6_t0"
+    },
+    {
+      "path": "/51/inputs/positive",
+      "before": [
+        "5",
+        0
+      ],
+      "after": [
+        "99",
+        0
+      ]
+    },
+    {
+      "path": "/51/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_d_p6_t0"
+    },
+    {
+      "path": "/51/inputs/source_audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/51/inputs/source_run_id",
+      "before": "05_sam_1312x736_shared_v3",
+      "after": "s05_semantic_d_p6_t0_condition"
+    },
+    {
+      "path": "/51/inputs/target",
+      "before": [
+        "5",
+        1
+      ],
+      "after": [
+        "99",
+        1
+      ]
+    },
+    {
+      "path": "/6/class_type",
+      "before": "H3EventAuditNoise",
+      "after": "H3SemanticClockNoise"
+    },
+    {
+      "path": "/6/inputs/audit_dir",
+      "before": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit",
+      "after": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit"
+    },
+    {
+      "path": "/6/inputs/run_id",
+      "before": "s05_full_seed1_native",
+      "after": "s05_semantic_d_p6_t0"
+    },
+    {
+      "path": "/99",
+      "before": null,
+      "after": {
+        "class_type": "H3SemanticClockGate",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "noise": [
+            "6",
+            0
+          ],
+          "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+          "condition_run_id": "s05_semantic_d_p6_t0_condition"
+        }
+      }
+    }
+  ]
+}

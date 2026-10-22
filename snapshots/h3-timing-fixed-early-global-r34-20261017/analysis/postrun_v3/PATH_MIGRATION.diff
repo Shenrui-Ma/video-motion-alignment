@@ -1,0 +1,86 @@
+--- v2/BINDING.template.json
++++ v3/BINDING.template.json
+@@ -1,7 +1,7 @@
+ {
+   "approved_for_consumer_start": false,
+   "remote_root": "/data5/researcher/h3_runs/timing_fixed_early_global_r34_20261017",
+-  "protocol_sha256": "b2a39cea7d9e38a8b3047ad50d188f06f4a884be5c5cb83b21d66b40e8bec9ea",
++  "protocol_sha256": "21900a59b14c4f35ad5fc74ba32306fd087d029ff7c24d616d2a4d189bcdb8f5",
+   "producer_manifest_sha256": "4b3b418d08b2dbae6e3d1929388709777403531246513ea994c1490ce73c422f",
+   "service_record": null,
+   "external_identity": {
+--- v2/bind_auto_parent.py
++++ v3/bind_auto_parent.py
+@@ -13,5 +13,5 @@
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('--execute',action='store_true');a=p.parse_args()
+  if not a.execute:print('Preparation only: --execute binds completed actual local R32 final after all archive gates.');return
+- protocol=read(HERE/'PROTOCOL.json');local=Path('/Users/researcher/DevProjects/h3-timing-auto-fresh-r32-20261017/analysis/postrun/captured')/protocol['auto_parent_run'];out=HERE/'AUTO_PARENT_BINDING.json';require(not out.exists(),'parent binding already exists; explicit review to replace');result=build(local,protocol);save(out,result);print(json.dumps({'passed':True,'binding_sha256':sha(out),'run_id':result['run_id']}))
++ protocol=read(HERE/'PROTOCOL.json');local=Path('/Users/researcher/DevProjects/h3-timing-auto-fresh-r32-20261017/analysis/postrun_bounded_v2/captured')/protocol['auto_parent_run'];out=HERE/'AUTO_PARENT_BINDING.json';require(not out.exists(),'parent binding already exists; explicit review to replace');result=build(local,protocol);save(out,result);print(json.dumps({'passed':True,'binding_sha256':sha(out),'run_id':result['run_id']}))
+ if __name__=='__main__':main()
+--- v2/PROTOCOL.json
++++ v3/PROTOCOL.json
+@@ -32,7 +32,7 @@
+       "video_sha256": "a2a85678b233565a48f88d48224d44e6f23ac6ad25572b7c3cced2a1f5dd8064"
+     }
+   },
+-  "auto_parent_root": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/analysis/postrun/captured/r32_source40372_seed2026101701_auto",
++  "auto_parent_root": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/analysis/postrun_bounded_v2/captured/r32_source40372_seed2026101701_auto",
+   "auto_parent_run": "r32_source40372_seed2026101701_auto",
+   "thresholds": [
+     0.3,
+@@ -129,7 +129,7 @@
+       "body_xy"
+     ],
+     "gates": "Same frozen coverage>=.8, ambiguity/residual/boundary/normalization and49lag rules; keep UNKNOWN and failures.",
+-    "complete_timing": "All four primary direction/wrist \u00d7 confidence cells accepted and abs(lag)<=2.",
++    "complete_timing": "All four primary direction/wrist × confidence cells accepted and abs(lag)<=2.",
+     "whole_scan": {
+       "lengths": [
+         16,
+--- v2/one_phase.py
++++ v3/one_phase.py
+@@ -19,7 +19,7 @@
+  subprocess.run(['rsync','-a','-e',shlex.join(base.SSH),*files,base.HOST+':'+base.REMOTE+'/'],check=True,timeout=60)
+ 
+ def execute_one():
+- with (HERE/'unique_consumer.lock').open('a') as unique:
++ with (Path(base.P['root_local'])/'analysis/postrun/unique_consumer.lock').open('a') as unique:
+   try:fcntl.flock(unique,fcntl.LOCK_EX|fcntl.LOCK_NB)
+   except BlockingIOError:return {'status':'busy','scope':'R34 phase driver'}
+   prepare();(HERE/'logs').mkdir(exist_ok=True);stamp=str(time.time_ns())
+--- v2/HANDOFF.txt
++++ v3/HANDOFF.txt
+@@ -3,7 +3,7 @@
+ Owner write scope: this analysis/postrun directory only. Producer, root-level four design files and runtime remain unchanged.
+ 
+ Invocation after root fills actual service BINDING.json:
+-  python3 analysis/postrun/one_phase.py --execute
++  python3 analysis/postrun_v3/one_phase.py --execute
+ Each invocation performs at most one phase, then exits. Without --execute it only describes preparation. No resident loop is created. Root may invoke again after reporting busy/stabilizing. A technical failure writes CONSUMER_FAILURE.json and blocks automatic retry until evidence is reviewed. No producer or queue mutation is possible through this consumer.
+ 
+ Phases: archive -> pose -> compare -> media -> finalize.
+@@ -16,9 +16,11 @@
+ Status uses small gate/inventory/phase receipt hashes only. It does not repeatedly scan PT. Each numeric/media phase verifies only actual dependencies and sealed Python imports; archive/finalize are the full inventory boundaries. Mac CPU lock -> remote consumer.lock, nonblocking; R32 and R35 online-pose markers have priority. No lock held while waiting for GPU completion.
+ 
+ R32 is pending in this preparation. AUTO_PARENT_BINDING.template.json has nulls and approved=false. Once actual R32 postrun archive is complete and downloaded, run:
+-  python3 analysis/postrun/bind_auto_parent.py --execute
++  python3 analysis/postrun_v3/bind_auto_parent.py --execute
+ It derives paths from actual final/FINAL_SUMMARY.json and verifies RUN_GATE, CPU_COMPLETE, both inventories, actual final video/pose hashes, source SHA and parent noise/condition checks. It writes AUTO_PARENT_BINDING.json with exact real values; no Native or provisional endpoint substitution. The root invocation syncs it. An absent binding returns waiting_parent after R34 pose; root can archive/release the producer first.
+ 
+ Existing parents are pinned source40372/Sam/seed2026101701: R26 Native and R29 globalFull6..14. R34 is index4 globalFull, a fixed-pulse control. It is not automatic control or a new operator. R26 actual Native0..4 normalized AV bridge exists; historical rawinput4 and full processed-condition tree were not archived. Current state/tree checks do not repair that historical gap.
+ 
+ Tests:22 lightweight local synthetic/contract tests, no actual result consumed, no model import/inference. Four numerical modules are byte-identical to frozen R32 scripts. Reused fixed/common/media helpers are source-extracted verbatim from R35. Actual Linux remote consumer/pose execution remains to be verified at root-run phases. Current tests cannot assert that unseen R34/R32 output already passes.
++
++Version 3 is an administrative path migration only. The old 20 payload files and actual BINDING remain unchanged. Both old/new drivers share the original unique_consumer.lock. Root must approve a NEW BINDING with this protocol SHA; no old authorization is copied. R32 parent is its actual analysis/postrun_bounded_v2/captured path; all original final result and inventory bytes remain unchanged. AUTO_PARENT_BINDING is created only after actual R32 final completion.
+--- v2/consume.py
++++ v3/consume.py
+@@ -1,7 +1,7 @@
+ """Transport helpers only; no resident consumer or GPU/service management."""
+ import os,shlex,subprocess,time
+ from contract import *
+-P=read(HERE/'PROTOCOL.json');REMOTE=P['root_remote']+'/analysis/postrun';HOST='H3_SERVER_A';PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
++P=read(HERE/'PROTOCOL.json');REMOTE=P['root_remote']+'/analysis/postrun_v3';HOST='H3_SERVER_A';PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
+ CPU=Path('/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/cpu_evaluation_global.lock')
+ SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=15','-o','ServerAliveInterval=20','-o','ServerAliveCountMax=3']
+ def remote(args,timeout=900):

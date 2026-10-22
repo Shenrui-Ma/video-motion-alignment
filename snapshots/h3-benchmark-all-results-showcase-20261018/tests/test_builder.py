@@ -2,6 +2,25 @@ import importlib.util,io,json,tempfile,unittest
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('builder',Path(__file__).resolve().parents[1]/'scripts/build_showcase.py');b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
 class BuilderTests(unittest.TestCase):
+ def test_reference_origin_control_keeps_intervention_and_separate_scores(self):
+  item={'id':'reference','comparison_kind':'reference_origin_control','ordinary_video_path':'a','guided_video_path':'b','comparison_video_path':'c','actual_routed_blocks':450,'quantitative_metrics':{'motion_fidelity':{'native':.8,'reference_origin':.7,'guided':None}}}
+  self.assertEqual(b.classify(item),'reference_origin');self.assertEqual(b.activation(item),'active')
+  self.assertNotEqual(b.classify(item),'guided')
+  out=io.StringIO();b.render_motion_fidelity(out,item)
+  self.assertIn('参考分支相位引导',out.getvalue());self.assertIn('0.700000',out.getvalue());self.assertNotIn('时序引导',out.getvalue())
+  self.assertEqual(b.classify({**item,'guided_video_path':None}),'pending')
+  item['valid_frames']=106;item['quantitative_metrics']['event_timing']={'fps':24,'events':[{'name':'event','source_frames':[20,23],'native_frames':[24,27],'reference_origin_frames':[21,24]}]}
+  out=io.StringIO();b.render_event_timing(out,item);self.assertIn('参考分支相位引导',out.getvalue());self.assertIn('-0.083–0.167',out.getvalue())
+  item['quantitative_metrics']['motion_fidelity']['reference_origin']=float('nan')
+  with self.assertRaises(ValueError):b.render_motion_fidelity(io.StringIO(),item)
+ def test_positional_control_roles_and_scores(self):
+  item={'id':'aligned','comparison_kind':'positional_control','ordinary_video_path':'a','alternative_video_path':'b','comparison_video_path':'c','guidance_activation':'active','quantitative_metrics':{'motion_fidelity':{'native':.8,'aligned':.9,'guided':None}}}
+  self.assertEqual(b.classify(item),'positional');self.assertEqual(b.activation(item),'not_applicable')
+  out=io.StringIO();b.render_motion_fidelity(out,item)
+  self.assertIn('RoPE 时间坐标对齐',out.getvalue());self.assertIn('0.900000',out.getvalue());self.assertNotIn('时序引导',out.getvalue())
+  with self.assertRaises(ValueError):b.classify({**item,'guided_video_path':'d'})
+  item['quantitative_metrics']['motion_fidelity']['aligned']=float('nan')
+  with self.assertRaises(ValueError):b.render_motion_fidelity(io.StringIO(),item)
  def test_sampler_is_not_guidance_or_prompt(self):
   item={'id':'sampler','comparison_kind':'sampler_control','ordinary_video_path':'a','alternative_video_path':'b','comparison_video_path':'c','guidance_activation':'active'}
   self.assertEqual(b.classify(item),'sampler');self.assertEqual(b.activation(item),'not_applicable')

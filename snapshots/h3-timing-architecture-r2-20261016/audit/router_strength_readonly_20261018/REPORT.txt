@@ -1,0 +1,65 @@
+R85 / R89 参考注意力占比与修正幅度：只读审查
+
+结论
+现有日志可以判断路由是否执行，以及每步、每层 Attention 输出中实际写入修正的采样相对幅度。当前记录无法确定“动作没有改善是否因为干预太弱”。m_ref 中的 mass 是注意力概率质量，不是参考内容的语义质量。
+
+R89 short0131 的固定引导已完成：20次forward；indices6–14，每步50层，共450次路由。全部已记录采样有限值。9步×50层均值：m_ref=0.1955799832；修正RMS比=0.2195439469。逐步m_ref平均0.205018→0.186141；修正RMS比0.234614→0.204122。最大单层采样RMS比约0.747。该结果确认写入了可测的Attention特征变化，动作变化的方向和大小还需由成片/姿态判断。
+R85 one_leg 最近本次快照完成5次forward（indices0–4），固定引导从index6开始，当前routed_calls=0符合配置。Native已20次forward，其mode=native不记录m_ref或修正RMS。待固定引导经过index6后，同一套字段会在每步50层完成时写出。快照时间详见SUMMARY.json，不能把此快照视作当前最终运行状态。
+
+1. 实际实现和字段含义
+
+共同数值文件：R85/extensions/H3TemporalRouter/core.py 与R89同路径逐字相同。
+SHA256 7a7e9c8067c9c0287659fafed06b775549aaa8cab5141c60220c0536b0eeb650
+
+core.py:222–249：
+  O = Attention(Q, K_all, V_all)
+  O_ref = Attention(Q_selected, K_ref_video, V_ref_video)
+  m_ref = exp(min(0, LSE_ref_video - LSE_all))
+  O_aligned = Attention(Q_t, K_ref_at_same_positional_bin, V_ref_at_same_positional_bin)
+  O' = cast_dtype(O + alpha * m_ref * (O_aligned - O_ref))
+  alpha=1，radius=0，time_offset=0。
+
+原始m_ref是每个head、query的概率质量：全参考视频key的softmax分子与全部key分母的比值。全参考视频包含其参考latent序列；同时间分组只限制O_aligned。O_ref单独在参考视频key内重新归一化。干预保持参考组概率预算，重新分配其时间来源。BF16写回带来舍入。
+
+core.py:136–150、357–390：
+  layer_stats[].ref_mass_mean / ref_mass_max：固定采样head/query上的m_ref均值/最大值。
+  layer_stats[].correction_ratio：RMS(O'_sample - O_sample) / max(RMS(O_sample),1e-8)。O'在转回原dtype之后测量，所以包含最终写回舍入。它是相对Attention输出的幅度；日志没有单独存绝对RMS。
+  layer_stats[].finite：采样O/O'/m_ref有限值检查，覆盖范围为采样点。
+  layer_stats[].log_mass_max：采样log_mass最大值，用来检查子集LSE是否异常超过全体。正常可为负数；summary名称含positive_excess，但代码保存的是原最大值。
+  forward_summaries[].sampled_ref_mass_mean：本步各路由层的采样均值再作等权平均。
+  sampled_ref_mass_max：各层采样最大值的最大值。
+  sampled_correction_ratio_mean/max：各层RMS比的等权平均/最大值。
+  routed_calls / routed_by_forward / routed_by_block：执行数量。
+
+采样上限为8个head×128个query×16个channel，使用固定stride。R89实际56heads，每7个head取一个；query沿展平后的目标时空token序列均匀stride，未根据人体或手臂筛选。跨层均值是各层比值的平均，不能解释为整个网络输出的RMS比，也不能将50层比值相加为最终效果。
+
+2. 已有时间分布读数
+
+core.py:153–200、408–411的temporal_readouts，在block25、forward indices0/5/10/15/19记录：
+  p_ref_frame、same_bin_mass、within_one_bin_mass、reference_time_mean_bins、mean_minus_query_bins、entropy_nats。
+每个query时间组只读中心附近8个空间位置和最多8个head，概率在全部参考视频key内条件归一化。它可显示参考内部时间分布是否分散，不能直接解释成身体动作相位；未给参考组在所有key中的概率预算。
+该读数取当前层干预前Q/K。fixed在index10的Q/K已受到前面步骤及本步前25层影响；它与Native index10属于不同轨迹，不能当同状态反事实。
+只有index6入口及第一层之前可由已验证共同前缀认作相同初始状态；同一步后续层会随前层干预分叉。
+
+3. 为什么现有数值不足以归因“太弱”
+
+a) m_ref均值偏小可能是背景/文本/图像等分组竞争；它不说明动作对应的query上m_ref偏小。当前没有动作ROI分布，也没有完整每bin/head分布。
+b) 修正大小同时由m_ref、O_aligned−O_ref、alpha、O的尺度决定。当前只存m_ref和归一化结果，无法分开确认是m_ref受限，还是两种参考读出的差别小，或分母尺度大。
+c) 注意力特征改变可能反映外观、背景或错误姿态。较大RMS比不保证方向有利于时间对齐；较小RMS比也没有经验证的失败阈值。
+d) 这里测的是多头attention拼接输出。实际H3随后经过out_proj和gate_msa，再加回hidden residual stream，之后还有MLP及后续DiT层/采样步。当前日志没有测量这些环节对修正的衰减、旋转或抵消。
+e) R89样本与one_leg时长、模态条件和内容均不同，不能用R89约22%比值判断one_leg应有同样效果。
+
+下游源码实读：host9 ComfyUI/comfy/ldm/minimax/model.py
+SHA256 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+  199–200: optimized_attention(...) 后 self.out_proj(...)
+  242–246: residual x += gate * other
+  291–297: gate_msa来自AdaLN；attention投影后加回x，再执行MLP residual。
+
+4. 最小未来instrumentation建议（本次未实施）
+
+第一项：保留现有采样，额外存每层RMS(O)、RMS(O_aligned−O_ref)、RMS(alpha*m_ref*(O_aligned−O_ref))、cast后RMS(O'−O)及cast后零变化比例。用这些量区分参考预算、读出差别、数值舍入和分母尺度。
+第二项：按query时间bin汇总m_ref和修正RMS，并给固定采样分位数；如已有可信源主体空间区域，另外报告该区域覆盖情况。无需保存完整注意力矩阵。时间bin与动作窗口仍须按实际布局对应。
+第三项：仅在预先指定少数层，对同一层输入、选定query的完整channel向量计算out_proj与gate后的delta RMS，并相对hidden stream报告。分清Attention内可测修正与真正进入残差流的修正。抽取完整channel避免把少数channel采样误当线性投影后的结果。
+若最终需要因果解释，最有价值的是首次干预同状态的输出/x0动作响应及后续保留情况；现有强度日志用于定位候选原因，单凭它不能证明增强alpha即可解决延迟。
+
+本次读取范围：两包router源码、当前已有小JSON、H3 attention/DiT残差相关源码行。保留只读快照与摘要；未读大tensor，未运行GPU，未修改冻结生产文件或进程。

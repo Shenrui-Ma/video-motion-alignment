@@ -1,0 +1,40 @@
+0252 氧气罩：现有 R59 观察器的最小在线闭环试验设计
+2026-10-18。CPU 只读准备；当前未增加 GPU 任务。R83/R84/R73/R80 成片队列优先。
+
+结论
+可复用 R59 的观察、判断与同状态 Native/Full 分支执行器。需要一个独立单样例注册包，把实际父对照换成 R73 short_0252，并将 R81 已冻结的成年人筛选接到 pose 输出之后。旧 R59 执行包仍限定五条 R57 父数据，不能直接启动旧队列。
+
+已有依据
+R81 用真实 R73 Native 的完整 20 个 x0 解码和 CPU pose，原 R55 与 R59 完整手臂观察器均在 index1 首次给出合格候选、index2 首次连续触发。index2 选中物理帧44–59、右臂、两置信门限均 lag +15帧，min_gain .919478；对应 H3 bins[13,18)，名义物理帧43–59。R59 实际 Controller 已 CPU 回放全部20步，并与原策略逐项对齐。R81_PARITY 的9个数值文件 SHA完全相同。
+R81 是旧 Native 轨迹上的离线观测。新的在线轨迹在首次干预后会变化，后续 ON/OFF 必须用新轨迹重新计算。index2与窗口44–59只作验证参照，不能写成运行参数。
+
+最小试验
+只新增一个 visible_only 闭环成片；对照复用 R73 已完成的普通编辑和固定引导成片。两份旧对照的实际门和输出保留。原任务为“Replace the man with an elderly woman”，使用原 R73 P1 文本逐字内容，视频、seed2026101701、模型、量化/kernel、sigma网格、20 Euler、CFG1、1312×736×107@24、98个有效帧均相同。此轮不改提示协议。
+观测按物理去噪 index0…19 每步执行。先计算该步未引导 endpoint x0；隔离 VAE 解码完整107帧；CPU DWPose 提取；按 R81 的成人筛选保留人物；仅原有效帧0…97进入扫描。16/32帧窗口、stride4、最后完整窗口、左右/双臂完整特征、.3/.5置信门、coverage≥.8、至少8帧、lag±24、gain>.5、|lag|>2及原残差/歧义/persistence判断全部原值。
+成人筛选是原 largest/IoU 已选人物的 bbox 中心x∈[.40W,.75W]；不符合则该帧 selected_person=None。保留全部原始检测与过滤记录。它只绑定被编辑的人物，扫描的动作时间窗仍由算法决定。
+有合格且持续候选时，在完全相同 x/sigma/条件/RNG 上再做一次 Full forward，在所选时间 bins 的全部空间 query、50层用现有 alpha1 mass-preserving same-time route；返回 Full endpoint 给原 Euler 进行一次更新。无合格候选或科学 UNKNOWN 时返回本步 Native endpoint。此次只有 visible_only；不加入 weak fallback，避免扩大问题。
+O' = O + alpha * m_ref * (O_same_time_ref - O_ref)。运算与旧固定引导相同，变化在实际选择的去噪时刻及视频时间范围。当前执行器没有人体空间 mask。
+
+实际核验
+复用 HistoricalPairGate：首个实际 ON 之前和该 ON 步的 Native 预测，都必须与 R73 原 Native 的对应 AV x0 精确相等；初始 AV noise、6个干净条件实体、prompt、参考RGB/latent和sigma同样逐项核。首次 ON 后旧轨迹逐步比较永久记为不适用，后续 OFF 也不恢复旧轨迹可比性。
+每个触发步保存同状态 Native与Full、选中endpoint、x/sigma/条件/RNG签名、窗口→bin映射、Euler输入/输出和路由调用数。20次 Euler；NFE=20+实际ON次数，范围20…39。20份真实观察响应必须齐全。技术错误单独报失败，不能补成 UNKNOWN。
+先用离线 R81 的实际20份 observations 做新注册模块 CPU重放，要求原阈值、选择、bins、alpha、全部20决策与已验证 Controller一致；再用冻结张量测试同状态分支/单次Euler/UNKNOWN返回Native/首次ON后历史门失效。GPU首轮保持严格前缀门；若相同条件下前缀不等，保留失败交root处理，不放宽比较。
+
+复用位置
+R59 execution/extensions/H3AutomaticWindowRouter/core.py：PredictionProbe与SamplerAudit，现有真实Native/Full事务。
+R59 execution/extensions/H3AutomaticWindowRouter/selector.py：Controller.select与全窗口枚举校验。
+R59 execution/extensions/H3AutomaticWindowRouter/{automatic_window_policy,delayed_window_policy,dynamic_support,geometry,pair_gate}.py：原策略、时间映射、父轨迹核验。
+R59 execution/scripts/{run_observer,decode_live_child,pose_live_child,scan_current_pose,arm_features,timing_metrics,pairwise_gain}.py：隔离解码、CPU姿态与扫描。
+R81/scripts/contract.py:adult_only：新增包逐字复用；pose_live_child当前直接扫描raw，需要在新副本接上该过滤，并将返回pose/observer SHA明确绑定到filtered文件。原raw永久保留。
+R73实际父根 /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018，run r73_short_0252_seed2026101701_native。父manifest字段已确认兼容R59所需noise/sigmas_video/seed/captures/final_sampler_result；完整条件及noise实体仍需正式materialization逐SHA核验。
+行政层应继承近期修复：完整argv身份绑定、wrapper/控制器精确登记、读取HTTP超时记UNKNOWN继续而POST不重试、有限CUDA释放等待。上述只改新独立包，旧包封存不动。
+
+资源和开销
+推荐沿现有隔离decoder设计：.9一张主DiT卡＋一张VAE decoder卡，CPU pose4线程并走共享锁。总共两张己方GPU；因此等主成片任务腾出这两个位置后，由root调度。单GPU同时驻留/卸载会涉及R59 parent_guard的模型驻留状态，目前没有该路径实测，首轮不引入它。
+R81的107帧VAE实测在.41：峰allocated5.377GiB、reserved5.613GiB，20次纯decode合计323.37秒，总batch769.13秒（含两次准入/载入/编码写盘等）。20次CPU pose合计1845.17秒，pose+scan单步最大101.54秒。在线每步重新起decoder，模型载入、准入与进程开销更大；这些数值不能直接当在线总耗时。
+decoder建议继续16GiB试跑余量；.9同shape decoder实测尚需首步记录。主DiT沿R73实际normal/reserve8 profile，R59双分支会同时保留Native endpoint与额外审计状态，未实测在线峰值，不能把旧Native峰值当新容量证书。保留实际free/allocated/reserved/NFE/各阶段耗时。
+R81当前x0来自.9、解码在.41、pose在.9。最小在线推荐全部在.9同Torch2.5.1/原模型文件进行，复用已有隔离进程接口；decoder跨host数值边界因此变化，不能要求首次观察一定复现index2。前缀模型张量仍须相同；解码/pose/策略实际输出逐步记录。首次ON发生时机以在线事实为准。
+
+评价与判定
+先看目标人替换和场景/孩子/氧气罩保留，然后看全有效时域及原固定6时刻的动作阶段与幅度，最后报告官方 MF、原成人完整手臂物理时差与覆盖。R73旧Native MF=.802677786，fixed=.802412404；全局MF当前接近，六帧曾见fixed的部分持罩/举带姿态更接近。新闭环若只触发而成片无改善，应报告执行有效、效果无改善；若改变目标身份/姿态结构，也必须计入副作用。
+本试验验证既有观察器与执行器能否在这个明确可测的病例真实闭环工作，不能直接视为新算法或独立泛化证明。十组普通编辑/固定引导成片仍是当前主线。

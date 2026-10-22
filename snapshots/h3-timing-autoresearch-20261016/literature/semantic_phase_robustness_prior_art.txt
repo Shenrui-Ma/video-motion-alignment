@@ -1,0 +1,89 @@
+稀疏语义抽样相位鲁棒性：一次有边界的 primary 文献与机制审查
+2026-10-16；仅写本文件及已获授权的final_claim_review更新，未运行GPU、未实现新算子。
+
+一、结论
+
+本次定向检索没有找到可确认“完整dense视频参考固定、仅改变MLLM稀疏抽样起点并按真实时间重标注、显式保证输出保留动作时刻不变”的完全同构视频编辑方法。但这只是限定检索未找到，不是空白证明。尤其不能将“多phase条件融合/交替采样减少选择敏感性”本身称为新思想：TokenFlow明确每步重选关键帧来减轻对特定选择的依赖，NOVA明确训练并评估稀疏关键帧指导的稳健性，Gen-L-Video已有时间重叠条件融合。
+
+目前可保留一个窄诊断问题：对于明确要求保留运动的编辑，当完整运动参考完全不变时，稀疏语义呈现方式是否引入不应有的、可重复的事件时间敏感性？当前结果还不足以证明其纯粹由sampling phase引起，更不足以提出已成立的新架构。此轮不建议追加多phase融合GPU实验。
+
+二、当前四格不支持单因素故事，且A/B不是纯phase控制
+
+主窗lag在两个阈值均为A/B/C/D=13/5/13/13：
+C−A=0，B−D=−8，D−A=0，B−C=−8，interaction=−8。
+两个预登记“跨另一factor一致作用”的门均失败。可以描述为该四格的条件交互，不能说单独标签或者单独采样普遍起效。B仍有5帧残差；第二窗口shape拒判必须保留。GPU0实际native重放尚待验收，跨runtime的A锚点仍有准入条件。
+
+A/P0的paired真实时间均值是.25、1.25…，原生一位小数显示为.2、1.2…；B/P6的均值.5、1.5…可精确显示。因而A/B都使用由真实帧时间生成的原生标签，但量化误差由−.05s变为0。这不是两个完全等误差的“物理时间正确条件”。同时P变了姿态、可见性和稀疏事件覆盖，T变了Qwen文字及上下文化。物理采样位移.25s，显示标签差.3s；不应混同。
+
+当前现象可称“有效但不同的语义呈现方式伴随不同输出动作时间”。不能称原接口有已证明的时间bug，也不能凭.05s很小就排除其影响。若要定位phase本身，未来需要处理标签精度/舍入因素并保留真实token及packed layout审计；格式改动又会改变分词，不能声称简单多写一位小数就绝对只改量化误差。
+
+三、最直接的primary近邻及精确边界
+
+1. TokenFlow：关键帧选择敏感性已有明确方法与消融
+原文：https://arxiv.org/html/2307.10373v2 ，§4.2、§5.3、附录hyper-parameters。
+短原话：“sampling random keyframes at each generation step increases the robustness to a particular selection”。
+方法每步抽关键帧、联合编辑，再按源视频特征对应传播；固定均匀关键帧的消融显示更差时间一致性。官方代码已核实commit：
+https://github.com/omerbt/TokenFlow/blob/5dd6a696277e9d18c23adc034dc4c052ccd64cb5/run_tokenflow_pnp.py#L224
+torch.randint在各batch内重选pivotal_idx，先pivotal pass再普通batch；sdedit实现181行也如此。它是training-free的视频编辑方法，非纯理解模型。
+边界：重选的是被编辑/传播的diffusion关键帧，不是固定dense VAE外另一个Qwen稀疏观察分支；指标是跨帧一致性，并未在上述段落建立本问题的有符号动作lag不变性。尽管不同，“每步换phase，避免绑定某组抽样”作为方法核心已有强先例。
+
+2. NOVA：稀疏语义指导+dense源视频，以及稀疏间隔鲁棒性已有直接近邻
+原文：https://arxiv.org/html/2603.02802v1 ，§3.2–3.4、§4.3/Fig11。
+稀疏分支接编辑关键帧及其插值，dense分支接源运动/纹理；以退化模拟训练新cross-attention。论文训练关键帧间隔10，推理比较8/16/20，明确检查对稀疏频率的稳健性。不是保证固定密度不同起点的事件时间不变；输入关键帧也代表实际编辑意图，不能任意抹去。
+官方仓库：https://github.com/WeChatCV/NovaEdit/tree/a4d9e10c095ccd859c40f6e4237fb6e617973337
+README Architecture Note明确当前代码已改为source/cue/target时间拼接及RoPE角色区分，与论文三分支设计不同。已核实仓库说明，不把现在的代码冒称论文原结构复现。它既不提供本轮training-free相位不变保证，也使“稀疏语义负责编辑、dense负责保留运动”的架构叙事不新。
+
+3. Gen-L-Video：多时间窗口共同去噪是旧的融合家族
+原文：https://arxiv.org/html/2305.18264v1 ，§3.2及AppendixIII。
+作者项目：https://g-u-n.github.io/projects/gen-long-video/index.html
+官方代码入口：https://github.com/G-U-N/Gen-L-Video 。本次核实全文公式和官方入口，没有执行或完整逐函数复核仓库。
+它将长视频分成时间重叠短段，在共享位置融合局部去噪路径/条件，支持多文本长视频生成及编辑且不再训练。其对象是生成latent的时间窗口，非同一个全视频在不同Qwen采样phase下的条件扰动；不应说它已经解决当前精确问题。但若新方法只重复不同条件预测后平均，必须说明除了既有co-denoising/ensemble究竟增加了什么可验证原则。
+
+4. SAMA：semantic–motion分工及时间扰动恢复已有训练式例子
+原文：https://arxiv.org/html/2603.19228v1 ，§3.2–3.4。
+稀疏target锚点的SigLIP语义token与target latent联合去噪；source侧做缺块、速度扰动、tube shuffle恢复训练。它不是对Qwen稀疏来源相位的推理融合，也不是严格不变性证明。却说明“通过语义与运动分工，使运动不随不可靠语义条件漂移”这一概念已有明确机制近邻，不能仅以新的扰动名称建立结构贡献。本轮以全文为证，未核实其可执行方法源码。
+
+5. Baton / Kiwi-Edit / Bernini：直接语义—生成接口已有，未检出本题保证
+Baton：https://arxiv.org/html/2605.25195v1 ，§3.2 Eq5–7，语义网格到latent网格的相对坐标映射。已有坐标对齐，不意味着对缺失观察内容不敏感。
+Kiwi-Edit：https://arxiv.org/html/2603.02175v1 ，§4.1，Qwen视频语义及dense source VAE注入，训练可学习queries/connectors和DiT；上述节未提供抽样相位不变损失或保证。
+Bernini：https://arxiv.org/html/2605.22344v2 ，§2及§4，MLLM语义planner+source VAE renderer，含masked semantic训练；上述节未提供本实验这种固定dense的phase不变约束。
+这里的“未检出”限于所查相关节、此前可得官方实现；不是对全部附录/所有版本和未来代码的全称否定。Baton坐标方法的先例意义另见semantic_address_prior_art.txt。
+
+6. 与视频理解的sampling consensus、以及reward ensemble区分
+TSN原文：https://arxiv.org/abs/1608.00859 ；作者poster：https://wanglimin.github.io/papers/WangXWQLTV_ECCV16_Poster.pdf 。随机segment片段+consensus是动作分类的经典方法；不提供编辑后动作逐帧时刻保持。
+Free2Guide原文：https://openaccess.thecvf.com/content/ICCV2025/papers/Kim_Free2Guide_Training-Free_Text-to-Video_Alignment_using_Image_LVLM_ICCV_2025_paper.pdf ，§4.2/Algorithms1–2。融合LVLM、CLIP等reward选择候选采样；它是video generation但ensemble对象是reward，不是Qwen多phase条件表示。因此不能以这些方法直接判定本问题已解决，也不能忽略“ensemble能提高鲁棒性”本来就很通用。
+
+四、必须区分的四种性质
+
+(a) 全视频像素逐位不变：换一组稀疏观察会改变信息，通常没有理由要求最终生成所有细节完全相等；它也可能损害编辑所需的细节。
+(b) 保留运动的功能稳定：dense源参考和用户运动约束相同，则受保护事件时刻在容差内稳定，同时人物/服饰编辑成功。这是本问题更实用的目标。用户明确要求修改动作的部分不应强行不变。
+(c) 对条件排列不变：对固定两组phase平均，只保证交换这两组输入的计算顺序不影响平均；不保证换成其他phase也一样，更不保证真实动作时间正确。
+(d) 对采样起点的群不变：若完整phase集合在起点变换下恰好只发生置换，且边界、timestamp量化和所有权重也一起保持，则对整集合做对称聚合可构成数学不变性。这是群平均的通用事实，不是新架构；有限非循环视频、paired-frame分组、裁剪边界和舍入容易破坏前提。只融合0/6两phase不能声称对任意起点不变。
+
+此外，抽样phase并不只是同一信息的可逆坐标变换：某phase确实可能看不到一个短动作。完整dense分支理论上含有动作信息，不代表冻结模型已可靠提取或让它主导。模型若将语义分支置零，也能消除该分支phase敏感性，但可能失去编辑/身份能力；这是必须排除的退化解。
+
+五、多phase融合为什么还不是已经找到的机制
+
+令c_phi=Qwen(sample_phi(V), formatted_times_phi, instruction)，D=固定dense VAE，f_theta(z,s;c_phi,D)为当前去噪/flow预测。
+候选均值f_bar=mean_phi f_theta(...)是朴素多条件ensemble；代价是多份Qwen编码和/或多个DiT前向。若只平均hidden states，再一次前向，f(mean c)一般不等于mean f(c)，更没有物理时间正确的保证。
+H3同索引视觉块在不同phase对应不同物理时刻，Qwen又已跨token混合。直接逐token平均并非在同一物理位置融合；它会混合姿态/身份/背景语义，可能以动作幅度降低换来lag变小。
+两个phase的union增加观察量；0/6合并相当于更密集的若干观察，但两次paired编码与一次4fps编码的配对结构不同。因此即使成功，也必须与等观察量/等计算预算的更密采样、单phase重复编码、简单条件平均和现有hard同帧基线区分，不能只与2fps原生比较。
+按每步轮换phase则是调度式条件扰动，与TokenFlow重选关键帧有直接思想重合；phase顺序、每种条件出现的σ区间又成为混杂。
+若谈“边缘化未知phase”，还要区分平均预测与概率边缘化：理想score的等权平均对应条件分布几何合成，而混合分布的score通常需要依赖当前样本的后验权重。不能凭一个均值公式就声称精确消除了nuisance。对flow velocity也不能未经证明沿用概率边缘化保证。
+
+六、最多保留的一个可证伪问题与最小门槛
+
+保留问题，不保留新架构承诺：在dense源运动信息和编辑意图固定时，输出保留动作的相位对有效稀疏语义呈现的依赖，能否在控制timestamp量化/边界/条件信息量后稳定复现？
+
+最低前提：真实native replay通过；所有P/T实际编码、dense latent、noise和物理fps受控；主动作相位可靠且不以形状/遮挡退化换分数；明确量化误差变动。现在只是单clip/seed的交互和一个有效呈现对，不足以过这个门。
+若未来另立小实验，应冻结phase/endpoint，在一个新seed与一个正常例检验“成对正确来源呈现”的差异，并设计量化精度/匹配文字扰动控制。不能扫描多phase后只展示最好者。若去掉舍入差后效应消失，应把问题归为文字量化/语义接口敏感性，不能保住phase故事；若不复现或只是换种抽卡，停止结构性解释。
+
+若诊断先复现，潜在结构区别的最低要求才是：在明确保留dense物理时间约束下，仅消除稀疏观察选择引入的时间偏差，同时保留semantic对用户编辑的必要作用，并优于等预算的普通ensemble/更密采样/hard。它必须有比“多跑几phase取平均”更具体、可反驳的运算和必要性证据。当前没有这样一个已经建立、值得马上实现的新结构；本审查不给新方法命名。
+
+明确拒绝创新的条件：普通多phase平均或更密采样足以解释全部收益；同帧hard已给出相同保留质量；关闭/减弱语义条件即产生同等稳定但编辑失败；效果由时间文字格式、token布局、增算力或事件可见性解释；只提升单例平均lag而跨phase方差/最差情况不改善。以上结果并不让因果诊断失去价值，但不支持另造一个架构贡献。
+
+七、检索范围与停止点
+
+本次使用arXiv全文、CVF原论文和官方GitHub，定向词包括 video editing sampling phase/invariance、frame selection robustness、semantic conditioning ensemble、temporal sampling、multi-keyframe sparse/dense。实际深入核实TokenFlow论文+随机选帧源码，NOVA论文interval消融+官方实现变更说明，Gen-L-Video全文，以及所列语义接口/训练式近邻。检索中的二手摘要、社交媒体、复制检测和视频分类没有充当video-editing相位保证证据。
+
+有限检索没有找到精确同构的不变保证，不能得出“这个空白已经确定”。本次最强新增近邻是TokenFlow与NOVA；它们足以要求任何后续方案正面回答为何不是已有选帧鲁棒化/稀疏控制的适配。结论为：诊断问题可记录，纯phase根因未定位；新架构NO-GO，等待已封闭队列结果后结束本轮，不继续临时GPU试参数。

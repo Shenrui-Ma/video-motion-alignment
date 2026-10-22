@@ -1,0 +1,43 @@
+short_0252 机舱面罩任务跨 seed 复现：只读盘点
+
+结论：当前可查 inventory 和各 H3 顶层项目的 configs/scientific_contract.json、configs/graphs 中，该源仅登记 seed 2026101701。实际完成且编辑任务有效的 Native + 去噪步骤6–14固定引导配对，仅 R73 这一 seed。尚未找到不同 seed 的已完成有效配对。这是已归档项目范围的结论，不声称覆盖未登记或不可访问的远端产物。
+
+现有完成证据：
+R73 seed2026101701：输入/提示词/初噪及实际前6步配对 gate passed；native SHA 2ddf90b7e6935b6bf191d271c4a2d9bfa227a749145d48e67d3b2ba852404dac，fixed SHA 0bacd73fea5c586c00341f793d849de5e0e50ce467297ba76911d225317892fc。固定引导为 mass_preserve、alpha=1、radius=0、time_offset=0、物理帧0–97、block0–49、zero-based step6–14；实际450次路由。
+R73人物换成年长女子，保留机舱、孩子和面罩。初次任务验收6个固定点，后续查看全片每3帧的34个时刻：抬手源42–45/普通57–60/引导42–45；握面罩源48–51/普通63–66/引导48–51；举带到胸/脸侧源69–75/普通81–87/引导69–75。以上是探索性视觉区间，包含模糊和遮挡不确定性。末端三版均举带至额前，不等于到达时间一致。当前没有新的跨seed重复。
+R106：同一个2026101701，Euler与res_multistep两条普通编辑都完成身份替换；均无引导，不能增加引导配对或seed计数。全98帧复核初段约晚15帧，支持该seed的延迟在这两种20步采样中都存在。
+R86：登记的online observer case同为2026101701；consumer当前无incoming目录，未列为实际完成配对。
+R81：观察器诊断包，未发现不同seed生成graph，不计新的推理复现。
+
+后续两seed最小设计建议（本次仅建议，没有构造producer、没有新增队列或GPU操作）：
+复用 R73 已封存producer的 short_0252 输入、P1文本和原graph；其deploy seal为e0f05d7808eed8976020005e36eca1226b2f4a71e347600527ef9fe2377aeb75。新建独立实验时，预定2026101702和2026101703两个seed，每seed新鲜运行Native与同6–14固定引导，共4条。组内在同一主机、软件、kernel、进程配置中执行，Euler20、原sigma/CFG1、1312×736、107总帧/98有效、alpha1/radius0/50blocks及物理帧0–97固定。每seed生成独立初噪，组内共享实际noise并验证前6步x0一致。生命周期可复用R106已验证host9运行壳；不能将历史R73视频直接充当新环境中的配对结果。
+预先沿用已有三个面罩事件及边界定义，检查全部98有效帧。先确认身份、机舱、孩子、面罩和动作可比性，再报告事件误差区间、官方MF与运行效率。两个新seed全部保留，包括普通编辑无明显延后、干预无收益或任务失败；不按输出挑选seed。当前仍保持R103/R112计划顺序。
+
+证据文件与本次读取时SHA256：
+
+/Users/researcher/DevProjects/h3-benchmark-all-results-showcase-20261018/inventory/ivebench.json
+d39ba863e56343511617806b08e21dcb960630b41edcdb4c80bdd31a5f71ac92
+
+/Users/researcher/DevProjects/h3-timing-ivebench-expanded-r73-20261018/deploy_manifest.json
+e0f05d7808eed8976020005e36eca1226b2f4a71e347600527ef9fe2377aeb75
+
+/Users/researcher/DevProjects/h3-timing-ivebench-expanded-r73-20261018/configs/scientific_contract.json
+eb69281facc7500891fa1afb5ce8b631aad876b1c99e55cbeb1c8a9b0ac6060a
+
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/incoming/short_0252/PAIR_RUNTIME_GATE.json
+fb298bfda1e2d94f5d5de881d26db833a0d6fdee9203bf0363eddd02bfecbe05
+
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/results/short_0252/HUMAN_REVIEW.json
+958ffc38ff886ef8078e1ec48edda34328c5d1dad62a31c24009759f6005d218
+
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/audit/physical_time_short0252/VISUAL_EVENT_INTERVALS_EXPLORATORY.json
+a3a1046081bb80ade78cecf583e01e2b700814d8ca501ef658f4a57cf112352a
+
+/Users/researcher/DevProjects/h3-sampler-control-metrics-r106-20261019/audit/root_full_frame_review/REVIEW.json
+82e75c580f8c278094580ef5f8279878b0b6a1cc8f78cc95c4e394cee5273d16
+
+/Users/researcher/DevProjects/h3-timing-sampler-control-r106-20261019/configs/scientific_contract.json
+314555affb2f1422b57d18c50832beed8cc3ce3f30da13350fed534a23f85570
+
+/Users/researcher/DevProjects/h3-timing-oxygen-online-r86-20261018/configs/scientific_contract.json
+62cf97d300ed12e0e8f78db7ec1eb4e56c7b15db8a2550a5c387e8838e7f5d2d

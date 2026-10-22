@@ -1,0 +1,68 @@
+VAE 分块相位与动作时延观测：近邻工作及必要验证门
+核查：2026-10-16。只读论文、作者代码和本地实际控制；没有运行新推理。下面“未见”仅限列出的来源及定向检索，不证明无人做过。
+
+1. 本轮实测支持的需求
+
+实际证据：analysis/vae_temporal_controls/run1/RESULTS.json，SHA256 9f8a3d42459653ef2da7a721a969e1d6b3a3d5a70b23bca3d79d7389c06bf719。
+同一 RGB 帧重复 141 次后，latent 相邻 bin RMS=.354554，但相隔 5 bin 逐位相等，差分 RMS=0；五相位可解释全部时间方差。原片该解释比例为 .365986。这是编码表示中的确定性相位结构，不能直接当成人体运动，也不是“生成模型把静止视频变成运动”的证据。
+同片真正延迟 4 帧的四个固定窗口，朴素 signed-adjacent latent observer 读出 [1,1,0,0]；延迟 8 帧读出 [-17,8,-17,17]。这直接否定当前 observer 可无校准地承担物理时延反馈。它不否定 latent 内所有运动信息，也不证明别人的完整方法失效。
+
+2. 必须区分的三篇运动工作
+
+FlowMotion（2026）：https://arxiv.org/html/2603.06289v2
+作者代码：https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+原文 §3.3–3.4：比较源/目标预测的干净 latent，组合直接 latent 对齐与时间差分对齐，再约束 flow 更新方向。官方当前 run.py:107–127 实际同时拼接相邻帧绝对差和每一帧对所有其他帧的绝对差；并非只有 signed adjacent derivative。:163–168 用 Wan VAE 编码，:215–250 用预测端点及两项 MSE。该实现没有按 H3 的 5-bin 相位标定，也没有给出静止输入/已知物理延迟的 observer 校准。但它优化整体运动迁移，不能用我们的单例 signed-derivative 失败冒充完整 FlowMotion 失败。可继续区别是可信物理时延读出及拒判，不是首次用端点 latent 差分。
+
+MOFT（NeurIPS 2024）：https://arxiv.org/html/2405.14864v1
+作者代码固定版本：https://github.com/xizaoqu/MOFT/blob/44ec33d5eafb99a0dd18bc620dd7d5d5eed3d544/process.ipynb
+§3.1 Eq.1 减全时间均值，§3.2–3.3 通过 PCA 选择运动通道，§4 用特征损失引导 noisy latent。官方 notebook 的 cell7/11/15 明确执行逐时间均值去除；文件 SHA d79f34be6bc6e591f2045718cfa6f9fdaad985a8f85f4135230cab4bddd7704e。对象是扩散中间特征，不是把 H3 VAE 42 个 bin 当等间隔物理帧。本轮不应把“减均值提运动”或“内部特征 training-free 读出”称新；按编码阶段标定、处理真实非等宽时间覆盖并校验时延是不同问题，尚待证实有效。
+
+MotionEcho（ECCV 2026）：https://arxiv.org/html/2506.19348v2
+作者页：https://euminds.github.io/motionecho/
+§3.3–3.5 用教师修正蒸馏学生的轨迹，按运动损失触发/截断指导；DiT 实验复用 MOFT、DMT、DiTFlow。没有在本次核查的原文中看到独立的 encoder chunk-phase nuisance 标定。作者页当前仍标代码即将公开，不能声称审过完整官方实现。与我们可能的区别是先校验不依赖教师的局部时延观测，而不是“动态决定何时指导”本身。
+
+3. VAE 边界/相位先例已经存在
+
+FastVideo 官方实现文档：
+https://haoailab.com/FastVideo/api/fastvideo/models/vaes/minimax_h3_parallel/
+明确 H3 encoder 把 clip_length 帧独立编码，没有跨 clip 依赖；parallel 实现复现串行拼接和 token trimming。我们的实际冻结源码 comfy/ldm/minimax/vae.py:327–355、544–557 给出 17→5、末端 token_drop=3；constant0 精确周期由这一结构和相同输入支持。独立分块本身不新。
+
+Wan 官方 VAE：
+https://github.com/Wan-Video/Wan2.1/blob/main/wan/modules/vae.py
+encode:473–499 将第一帧与后续每四帧分别前向，但跨段传递 _enc_feat_map，结束后才 clear_cache。因此不能把 H3 每17帧重置的效应直接外推为所有 Wan/FlowMotion VAE 的重复周期。MAGVIT-v2 也明确因果卷积和独立第一帧处理：https://arxiv.org/html/2310.05737v2 。
+
+LTX-2 官方 VAE：
+https://github.com/Lightricks/LTX-2/blob/main/packages/ltx-core/src/ltx_core/model/video_vae/video_vae.py
+encode tiling 明确要求足够 overlap 丢弃 symmetric-padding 边缘，最少16物理帧。它处理编码分块边缘，不是在恒定视频上标定动作时延 observer。
+
+H3 社区工程代码（不是 MiniMax 官方论文/代码）：
+https://github.com/seitanism/ComfyUI-H3-Motion-Context-MultiRef/blob/main/h3_masked_bridge.py
+公开实现显式检查 suffix_video_step % 5 == 0，避免独立编码的 suffix 放到不一致的 temporal VAE phase。它已表明 H3 latent 槽位相位不能随意混用。该先例不等于已解决由局部参考/生成 latent 估计动作延迟的问题，但“首次发现 H3 要考虑 VAE phase”不可宣称。
+
+Free-GVC（arXiv 2602.09868），§IV-D：
+https://arxiv.org/html/2602.09868v1
+先让相邻 GOP 输入重叠，再在解码前融合对应 latent，减轻边界闪烁。它与本问题相邻但目标为视频压缩重建连续性，不估计局部动作物理时延。不能把已有 overlap/latent fusion 改名为本轮新机制。
+
+4. 简单周期均值去除不是新公式
+
+一般形式为 z'_k = z_k − mean_{j: j mod P = k mod P} z_j。P=5 只是在已知周期上去季节项/投影掉 phase indicator 的子空间。
+statsmodels 官方 seasonal_decompose 的 seasonal_mean + period_averages + residual 路径已经是这种周期平均思想：
+https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.seasonal_decompose.html
+固定源码 https://github.com/statsmodels/statsmodels/blob/283253007bde6dd60b48420c47c64d635e96be34/statsmodels/tsa/seasonal/_seasonal.py ，:78 开始 seasonal_mean、:256–268 取周期均值并扣除。不同代码细节不使线性去周期投影本身成为新机制。
+
+更一般的平移不等变与 padding/stride 影响也已系统研究：
+Kayhan & van Gemert, CVPR 2020，https://openaccess.thecvf.com/content_CVPR_2020/papers/Kayhan_On_Translation_Invariance_in_CNNs_Convolutional_Layers_Can_Exploit_Absolute_CVPR_2020_paper.pdf
+Chaman & Dokmanic, CVPR 2021 APS，https://openaccess.thecvf.com/content/CVPR2021/html/Chaman_Truly_Shift-Invariant_Convolutional_Neural_Networks_CVPR_2021_paper.html
+二者针对空间 CNN；这里仅作为边界/采样相位影响的一般先例，不将其移植结论当 H3 时延读出的现成证明。
+
+5. 可继续的具体问题与控制门
+
+可研究的问题：在不改生成 backbone 的条件下，能否识别并排除编码槽位造成的伪时间变化，得到能够报告物理帧时延、在不可识别时拒判的早期 observer。若有稳定效果，可与既有 motion guidance 组合，分别验证读出准确率、触发质量、额外算量和最终编辑质量。文献相近不自动否定这些改进；目前仍没有方法效果证据。
+
+已有 original/delay4/delay8/constant0 可以且应该作为必要门：同一个 RGB/source identity、相同编码器、真实像素域先延迟再编码，避免把 latent 平移当真实视频延迟。先固定时间坐标、窗口、搜索与拒判，要求有运动的0/4/8读出符合预定容差；恒定片应判为无运动/不可识别，而非因为搜索 argmin 恰为0就算通过。边界 padding 和所有 ±17 alias 结果完整报告。
+
+这是必要性测试，不是独立 held-out 结果：控制和窗口现已被看见，任何改法属于探索性设计。通过后还需保持同一规则，在新起始 phase、独立视频、外观替换、真实周期动作、幅度变化、遮挡和中间 x0 噪声上测试。不能用最终视频的真实 lag 来选通道、模板、阈值或符号。
+
+固定相位均值会同时去掉与5-bin节律相关的真实动作；constant0 模板取决于本图外观，不可假定可迁移到另一个主体；间隔5-bin差分跨17帧，可能抑制短动作并降低时间定位；H3名义 1/4/4/4/4 覆盖中心也不等于神经网络真实感受野。应将这些代价放进方法及 ablation，而非只展示校正后的一个好例。
+
+本次定向查询包括 video VAE temporal chunk boundary、encoder temporal phase calibration、VAE phase nuisance、video tokenizer causal padding、motion feature latent shift；核查以上原文及作者/维护者代码。没有找到在这些已读材料中与“恒定视频槽位模板＋已知物理延迟门＋拒判的局部动作 observer”完全相同的验证组合；这个有限检索结果不是新颖性保证。下一步应先让必要门决定是否继续，而不是先写新架构故事。

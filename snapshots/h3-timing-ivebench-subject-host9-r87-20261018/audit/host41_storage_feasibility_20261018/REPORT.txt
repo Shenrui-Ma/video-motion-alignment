@@ -1,0 +1,46 @@
+.41 推理恢复可行性：受限只读检查
+时间：2026-10-18T10:51:20.278089+00:00
+
+结论
+当前存在明确的共同父 cgroup 内存节流，先解决这项资源约束再重试推理更有依据。/data4有独立盘和足够空间，可作为后续迁移候选；目前只能确认容量与权限，尚未验证其模型读取性能。把模型复制到tmpfs也会计入相同cgroup，不能依据整机空闲内存直接启动。
+
+1. 共同父内存上限
+SSH会话和旧R83 CPU watcher均属于 /user.slice/user-1004.slice 下的会话。共同祖先 /sys/fs/cgroup/user.slice：
+  memory.high = 107374182400 bytes = 100 GiB
+  memory.max  = 120259084288 bytes = 112 GiB
+  memory.current ≈ 107408207872 bytes = 100.032 GiB
+  memory.events high = 29336850；几次紧邻读取后增加到29336868
+  max/oom/oom_kill = 0
+当前用户自身slice仅约50.7MiB。共同父级占用决定了本会话仍受到节流；没有读取其他用户的命令或修改他们的进程。
+user.slice memory PSI full avg10≈40.22%。新SSH会话自己的memory PSI full也出现23.83%，说明这次短小读取实际受到该层级的停顿。整机MemAvailable约139.85GiB，两个NUMA节点均有大量空闲；物理内存不足不能解释这个表面矛盾，父cgroup限制提供了具体机制。
+限制可以使分配/缓存回收频繁发生。它与之前大量内核读取的现象相容；本次没有复跑旧大文件读取，无法将历史每一字节读放大直接归因于它。也没有证据据此判定data3硬盘损坏。
+
+2. I/O与存储
+整机I/O PSI full avg10≈27.60%，memory full≈38.11%，swap约2GiB基本已用满。
+3秒只读diskstats差分：根盘sda读849.85MiB，data6对应sdg读1255.65MiB，data对应sdh读1309.72MiB；data2/sdc、data3/sdd、data4/sde、data5/sdf在这3秒无块读取。该采样说明当时的活动分布，不代表任何盘已通过健康/吞吐测试。
+各盘均为独立ext4（dev/shm为tmpfs），statvfs正常返回：
+/              824.80 GiB  mount可写=False  已有个人目录可写=False
+/dev/shm       125.88 GiB  mount可写=True  已有个人目录可写=False
+/data        12890.87 GiB  mount可写=True  已有个人目录可写=False
+/data1        1206.33 GiB  mount可写=True  已有个人目录可写=False
+/data2        1690.96 GiB  mount可写=True  已有个人目录可写=False
+/data3         163.80 GiB  mount可写=True  已有个人目录可写=True
+/data4        1224.88 GiB  mount可写=True  已有个人目录可写=True
+/data5          71.21 GiB  mount可写=True  已有个人目录可写=True
+/data6        1600.95 GiB  mount可写=True  已有个人目录可写=False
+/data4/researcher已存在、uid1004、模式775、当前可写；该盘/dev/sde1可用约1224.88GiB。/data2容量更大且根可写，但个人目录尚不存在。此次没有创建目录、复制模型或写远程测试文件。
+/dev/shm可用125.87GiB，但tmpfs页面计入相同内存控制层级。已有固定官方元数据中本任务4个权重合计约39.55GiB，还未计运行时和加载期内存；共享父级离112GiB硬上限仅约12GiB，当前不适合新增这么大的RAM缓存。
+
+3. 旧进程
+/proc/857566（旧R84 service）和/proc/866346（旧R83 service）均不存在。
+仍发现R83旧CPU watcher PID871498/start8771525，状态S，实际cmdline已存PROC_SNAPSHOT.json。没有终止它或任何服务。本轮没有启动CUDA，也没有运行GPU任务或大文件hash。
+
+4. 后续可行性
+恢复RTX吞吐的前提是管理员确认/调整这一级共享内存限额，或其占用降到足够余量。此后可独立在/data4/researcher下建立新runtime，从.9网络复制经绑定的模型与依赖，做短输入容量试验；仅移动权重而仍从data3加载Python/torch/模型缓存不能保证完整绕开旧路径。
+该建议只是资源可行性判断。未调整cgroup、安装依赖、迁移25GB以上资源或启动推理。
+
+证据
+PROC_SNAPSHOT.json：内存、压力、挂载、精确PID、3秒diskstats。
+VOLUMES.json：逐盘可用空间/权限、共同cgroup层级、NUMA信息。
+CGROUP_SUMMARY.json / DISK_DELTA.json：可读摘要。
+SSH使用H3_SERVER_A跳板，原本给定的本地mux路径已不存在；每次SSH读取上限55秒，各盘statvfs子过程上限4秒。读取成功后进程自然退出。

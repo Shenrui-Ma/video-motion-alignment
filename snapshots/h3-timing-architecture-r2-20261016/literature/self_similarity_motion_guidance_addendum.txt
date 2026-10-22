@@ -1,0 +1,14 @@
+时间自相似测量及运动引导：原始文献补充核查 2026-10-17
+
+动机：检验用序列内部相似性取代源/目标绝对外观匹配，是否属于新候选。旧 autoresearch/literature/observability_control_gap_candidates.txt 已登记该诊断，并引用 Dexter 2009 自相似视频同步。因此不重复以新思想登记，也不排GPU。
+
+DreamMotion，arxiv2403.12002v1，2024-03-18，§3.3–3.4 Eq11–15。对原始和编辑视频添加相同噪声与时间，用扩散U-Net注意力K构造空间自相似；把K做空间均值得N×C，再计算N×N时间cosine矩阵，两支矩阵L2约束视频DDS编辑优化。它直接覆盖扩散特征关系、外观编辑时的时间关系保真。当前只读测量局部lag与其优化器不同，但时间SSM本身已有明确公式。
+https://arxiv.org/html/2403.12002v1
+
+SimulateMotion，Training-Free Motion-Guided Video Generation with Enhanced Temporal Consistency Using Motion Consistency Loss，arxiv2501.07563v1，2025-01-13，§3.3–3.4 Eq3–4/Algorithm1。先用参考视频低噪声前向提取temporal模块特征；稀疏点对后续各帧空间特征形成温度softmax相关分布；推理时匹配当前与参考分布的L2，并用latent梯度调整预测。沿用反演噪声/轨迹噪声初始化。直接涵盖training-free参考运动相关图引导，读出和反传成本均须比较。
+https://arxiv.org/html/2501.07563v1
+
+Tempered Self-Similarity Alignment，arxiv2605.24962v1，2026-05-24，§4.1–4.2 Eq10–13。把视觉基础模型和VDM的时空自相似变成温度分布，KL对齐；用输入像素tubulet时间L1差分选择每帧top20%动态区域，损失用于微调VDM。关系表示、温度锐化、局部动态mask均有先例；其训练与额外视觉模型不同于只读H3 latent观察，但这不足以单独成立新贡献。
+https://arxiv.org/html/2605.24962v1
+
+本次读取原文方法段，未运行上述作者代码或复现指标。DreamMotion v3 HTML返回404，改用实际可访问v1。结果限定为概念和公式的近邻核对；不能声称穷尽文献。若继续，应先在已有tensor做冻结测量反证，保留静止/周期/幅度/跨身份及UNKNOWN；新公式的价值须超过现有gap5与姿态测量。

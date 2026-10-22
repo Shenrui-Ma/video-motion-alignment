@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,hashlib,time,copy
+R=Path(__file__).parent.parent;A=R/'audit';H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+old=A/'progress_protocol_snapshot_20261020_v3.json';x=json.loads(old.read_text());x['created_unix']=time.time();oldexamples=copy.deepcopy(x['examples'])
+inv={k:json.loads((R/'inventory'/f'{k}.json').read_text()) for k in ['flexiact','ivebench']}
+for b in inv:x['inventory_bindings'][b]={'path':str(R/'inventory'/f'{b}.json'),'sha256':H(R/'inventory'/f'{b}.json')}
+i=inv['ivebench']['items'];f=inv['flexiact']['items'];active=lambda r:r.get('comparison_kind')=='guided_pair' and (r.get('guidance_activation') in ('active','positive','fixed_active') or (r.get('actual_routed_blocks') or r.get('routed_block_calls') or 0)>0)
+c=x['counts']['IVEBench'];c.update(independent_source_videos=len({r['source_id'] for r in i}),unique_official_edit_tasks=len({r['source_id'] for r in i}),result_versions=len(i),paired_versions=sum(r.get('comparison_kind')=='guided_pair' for r in i),actual_guidance_versions=sum(active(r) for r in i),actual_guidance_unique_sources=len({r['source_id'] for r in i if active(r)}),zero_guidance_versions=sum(r.get('comparison_kind')=='guided_pair' and not active(r) for r in i))
+c['short_source_ids']=sorted({r['source_id'] for r in i if r['source_id'].startswith('short_')});c['full_duration_long_source_ids']=['long_0081'];c['derived_long_source_ids']=sorted({r['source_id'] for r in i if r['source_id'].startswith('long_') and r['source_id']!='long_0081'})
+c['temporal_scope']='21 official short source videos, 1 full-duration source named long_0081, and 7 excerpts from official long source videos; prepared 24fps with recorded crop/padding. Counts refer to the studied subset. Original edit targets are retained; input-format variants are separate versions.'
+assert x['counts']['FlexiAct']['result_versions']==len(f)==31
+summary=A/'latest_task_pairs_20261020_v3/SUMMARY.json';s=json.loads(summary.read_text());assert s['inventory_bindings']['ivebench']['sha256']==x['inventory_bindings']['ivebench']['sha256']
+x['previous_snapshot']={'path':str(old),'sha256':H(old)};x['latest_task_pair_audit']={'path':str(summary),'sha256':H(summary),'scope':'94 versions, 46 task combinations, 37 original source videos, 38 tasks with an actual nonzero guidance pair; latest comparable pair per task and same-run variant ties retained.'};x['latest_task_pair_summary']=s['summary']
+x['totals']={'independent_source_videos':37,'unique_task_combinations':46,'result_versions':94,'paired_versions':62,'actual_guidance_versions':56,'actual_guidance_unique_tasks':38}
+x['in_progress_excluded_from_counts']=[{'run':'R124','source':'long_0163','status':'Native sampling','host':'.9','gpu':2,'service_pid':24143,'start_ticks':'2646703630'},{'run':'R125','source':'long_0031','status':'Native sampling','host':'.9','gpu':3,'service_pid':48869,'start_ticks':'2646872192'}]
+x.pop('change_from_v2',None);x['change_from_v3']='Added eight completed result versions: R114 Native, R120 Native, R121 two Natives, R122 pair, R123 three input-format trials including one pair. R122 adds a third source with local timing benefit; reach duration increased and remaining delays are recorded. R122/R123 official MF proof has been merged. R114 interrupted guided run has no completed guided video and is retained as Native-only.'
+assert x['examples']==oldexamples;assert c['actual_guidance_versions']==38;assert c['paired_versions']==43;assert c['independent_source_videos']==29
+out=A/'progress_protocol_snapshot_20261020_v4.json';out.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n');print(json.dumps({'path':str(out),'sha256':H(out),'counts':x['counts'],'totals':x['totals']},ensure_ascii=False,indent=2))

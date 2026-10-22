@@ -1,0 +1,35 @@
+R95 本地 CPU 交付
+
+根目录：/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018
+入口：r95_kernel.mass.route_attention；接口/数学/数值边界见 README.txt。
+
+已实现
+1. reference_group_gain：选中画布 query 到完整参考视频组的统一 gain r。
+2. samebin_group_gain：原 mass_preserve 同时间读取加同一组 gain。
+3. r=1 / alpha=0 直接调用原 R85 对应路径，逐位验证。
+4. r>1 稳定 log-coefficient；r<1 显式 complement attention 避免近 m=1 相消。
+5. bounded m/m_r/alpha混合质量与实际 dtype 写回改变量统计；其他 query 逐位不动。
+
+验证
+audit/CPU_TESTS_inplace_revision.txt：22 tests PASS，现有 Torch 2.14.0 CPU。
+root 审查后沿原 R85 原位写回选中区间，先完成审计统计，省去完整 full.clone()。
+Q/K/V 不变、其他 query 不变、r=1 / alpha=0 精确回退均继续通过。
+48 场景数值审计 JSON 与修订前逐字节相同；旧清单保留 PACKAGE_MANIFEST_before_inplace.json。
+audit/NUMERICAL_AUDIT.json：48 个固定场景、全部有限；内含相消与 BF16 零写回见证。
+audit/PROVENANCE.json：原 R85 core/layout 与本包快照逐字节相同。
+audit/R85_SIGMA_WINDOW_EVIDENCE.json：原实际非均匀 Euler schedule 证据。
+audit/PACKAGE_MANIFEST.json：本次交付文件 SHA，不含自身和 __pycache__。
+
+与真实推理的边界
+本包没有 Comfy 节点/队列/消费者/服务注册。实际 CUDA Flash、目标 Torch runtime、
+真实序列容量、实际输出和性能尚未测试。集成时须复用实际 layout、核对 r=1 等价，
+确认 scalar r/alpha 与 schedule 独立记录，再由 root 决定目标 GPU 数值/容量门。
+audit.additional_attention_calls 仅计 r<1 complement 额外调用；完整计算量说明见 README。
+不把参考 mass 增加直接解释为动作时序改善。固定 schedule 下才能比较增权与组内读取；
+6…19 相对 6…14 还改变积分暴露，非线性响应使它不能单独证明干预时机选择有效。
+
+科学定位
+这是已知机制诊断内核。没有新颖性或完整 DIAL 复现主张。
+下一步取决于 R90/R94 的任务完成和剩余时序偏移，当前没有启动任何实验。
+
+所有修改只在本目录；未改旧封存文件，未远程部署，未安装依赖，未启动 GPU。

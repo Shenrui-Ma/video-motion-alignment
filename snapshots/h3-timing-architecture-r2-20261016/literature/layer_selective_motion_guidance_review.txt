@@ -1,0 +1,75 @@
+按 DiT 深度选择同时间参考读出的先例与最小诊断边界
+核查：2026-10-17。只读已有 R2 文献、原论文和作者代码；没有执行模型、实验或修改封存运行。具体 commit、代码 SHA 与旧档案 SHA 见同名 JSON。
+
+判断
+固定相同去噪区间、同一参考时间路由、相同参与层数，比较早/中/晚层，值得作为时序收益与外观代价的组件诊断。普通选层、层消融、运动/结构头分工、自动寻找重要层都有明确先例，不能据“中层最好”就声称新架构。相似思路不意味着不能继续：若找到稳定的局部事件控制差异，可作为后续机制与评测工作的依据，但必须说明选择依据、跨样例有效性和代价。
+
+一、先区分四件容易混淆的事
+(1) 读取哪层特征，(2) 在哪层直接改 attention/feature，(3) 用哪层 loss 对输入 latent 反传，(4) 何时启用模型/教师。第三类的 loss 即使只在一个 block 计算，也会改变输入并影响其他层；第四类的采样时间开关不是深度选择。自动PCA/选通道也不是自动选层。
+同时区分 DiT depth、视频物理时间、去噪 index。以下论文的第N层与代码零基索引不能口头混算；H3 的正式方案应只使用明确的零基 block 编号。U-Net 的低/中/高分辨率层也不直接等价于等分辨率 H3 的浅/中/深层。
+
+二、六篇指定工作的实际位置与自动性
+
+DIAL — 预先选择读出层，偏置施加到全层
+§3.2/C.1 使用主体前景/背景 attention 质量比评估各 block，C.2明确从一个预先识别的 privileged block 逐步提取ISGM。§3.3则把上一采样步ISGM构造的bias施加到所有 self-attention 模块。选层是预分析所得，不是每次forward自动挑干预层；前一步空间反馈也不等于层门控。原文的final80%是跳过开头约20%，并非最后20%。论文与定向检索未定位可核实的完整作者实现，本项精确层号/代码实现记未核实，不能把第三方伪代码当作者实现。Phase I无需训练，Phase II另有训练。
+原文 https://arxiv.org/html/2609.11507v1 （§3.2–3.3，C.1–C.2）
+
+MotionEcho — 固定运动读出位置，自动的是教师调度
+v2 Appendix7.1：TurboV2缓存教师U-Net decoder output blocks6–8的temporal attention概率；Wan/Video-Blade使用第15个DiT block的K/V作为运动先验。教师是否介入及何时停止是误差/阈值调度，没有在所读方法中据当前状态自动选层。作者项目页目前仍标Code(Coming soon)，因此不能核定第15块的零基代码索引，亦不能声称已核实际代码。它直接覆盖“运动误差控制引导何时发生”，不是本轮层预算消融的同一操作。
+原文 https://arxiv.org/html/2506.19348v2 （§3及Appendix7.1）
+作者页 https://euminds.github.io/motionecho/
+
+MOFT — 已有层/分辨率消融，固定 upper block1；自动通道不等于自动层
+§3.3 Fig4(e–h)比较U-Net不同block，选择相对中等分辨率的upper block1。作者代码 pipeline.py:527–540按索引读中间特征，实际指导路径687/744/754固定layer_idx=[2]；my_unet.py:486–517的列表先存mid，再逐up block追加，所以feature index2对应up_blocks[1]之后。时间去均值和运动通道选择发生在该固定特征上。此机制是从选定层的loss引导latent，不能称只修改该层。
+原文 https://arxiv.org/html/2405.14864v1
+代码 https://github.com/xizaoqu/MOFT/blob/44ec33d5eafb99a0dd18bc620dd7d5d5eed3d544/animatediff/pipelines/pipeline.py
+映射 https://github.com/xizaoqu/MOFT/blob/44ec33d5eafb99a0dd18bc620dd7d5d5eed3d544/animatediff/models/my_unet.py
+
+DiTFlow — 固定中间层运动loss，另在首层注入KV，已有深度消融
+§5.1/5.3报告不同block的AMF指导消融。作者配置实际零基 guidance_blocks_5b=[20]、2b=[15]；injection_blocks=[0]。motion_guidance.py:235–253直接用此列表索引模型；guidance与injection是独立路径。优化latent或位置embedding，不是每次自动选层。其同类MOFT/SMM比较也使用这些选定层。论文“20th/15th”和代码数值照各自原义记录，不额外宣称索引换算一致。
+原文 https://arxiv.org/html/2412.07776v2
+配置 https://github.com/ditflow/ditflow/blob/d6f740a29bdcfc40dbead78fdbf75689af766e2e/configs/guidance_config.yaml
+实现 https://github.com/ditflow/ditflow/blob/d6f740a29bdcfc40dbead78fdbf75689af766e2e/motion_guidance.py
+
+Ctrl-X — 结构与外观用不同固定层集合/调度
+§4.1–4.2分别定义结构conv、结构self-attention与外观层集合和时间区间。作者SDXL get_control_config:12–37把结构conv设在decoder0的首resnet、结构Q/K注入设在decoder0三个attention模块；外观在encoder1/2、decoder0后两个和decoder1启用，具体按配置列表映射。实现逐模块登记schedule，没有输入驱动的自动层选择。它已明确把不同目标分配到不同层/操作；H3中新选层不是首次结构/外观分工。官方例程的U-Net固定配置不能未经验证搬成H3深度定律。
+原文 https://arxiv.org/html/2406.07540v1
+实际映射 https://github.com/genforce/ctrl-x/blob/ce68011fc74223f70222e161de5bbfa62f85ae5a/ctrl_x/utils/sdxl.py
+
+FreeControl（2312.07536，非2025同名论文）— 固定key层，结构/外观子空间指导
+论文§5.3比较decoder up_block1/2及Q/K/V/conv，优选up_block1的key；作者SD1.5 config/base.yaml为up_blocks.1，SDXL config/sdxl_base.yaml为up_blocks.0，select_feature=key。pipeline以配置名称匹配模块并计算PCA指导，没有自动重新选层。配置的adaptive.apply默认false；不能仅凭“adaptive”字段把它称为自动层门控。结构与appearance guidance并存，PCA空间大小也影响外观泄漏，所以“选运动/结构子空间减少外观干扰”同样非空白。
+原文 https://arxiv.org/html/2312.07536v1
+SD配置 https://github.com/genforce/freecontrol/blob/5ac495f0bb5d2f55b6b7d117ed1e9d2e0c795ee4/config/base.yaml
+SDXL配置 https://github.com/genforce/freecontrol/blob/5ac495f0bb5d2f55b6b7d117ed1e9d2e0c795ee4/config/sdxl_base.yaml
+调用 https://github.com/genforce/freecontrol/blob/5ac495f0bb5d2f55b6b7d117ed1e9d2e0c795ee4/libs/model/sd_pipeline.py
+
+三、两个更直接的必要近邻
+HALO — 运动头/结构头及按熵选头，不能遗漏
+原文§3–4.2研究时空attention头分工，以运动头构造运动loss、低熵结构头注入reference V。已读作者配置的guidance=[20]/[15]，injection固定零基15…26；代码inference_ourmethod_final.py:768调用mask_head_byentropy，utils.py:107–130用实际参考Q/K的128采样行计算每头熵、阈值7得到mask；custom_modules_inject_final.py:95–106只替换被选头的视频V。故有数据驱动选头，但深度候选集仍固定；不是任意每层自动分工。论文补充称结构层14–27，与已读配置15–26不完全同写法，复现须保留版本差异，不能静默统一。
+原文 https://arxiv.org/html/2607.11081v1
+配置 https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/configs/guidance_config_inject12.yaml
+选头 https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/utils.py
+写入 https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/custom_modules_inject_final.py
+
+Stable Flow — 自动找重要DiT层已是明确工作
+§3.1绕过每层，用生成结果DINO相似度测重要性，离线得到vital layers；并不假设重要层只集中在早中晚某段。AppendixA.1还说明经验移除layer2。作者run_stable_flow.py固定多模态层[0,1,17,18]及全局编号[28,53,54,56,25]对应的单模态层，用于attention特征注入。自动离线识别与推理时逐样本动态选层不同，但“先做层敏感性再选择层”的完整路线已有先例。没有重新运行其识别实验；已读公开运行脚本是固定清单。
+原文 https://arxiv.org/html/2411.14430v2
+代码 https://github.com/snap-research/stable-flow/blob/c99ac0eba297e7884bf2118be79734b63543ee45/run_stable_flow.py
+
+四、现在只值得诊断的部分
+一个可判问题是：在同样的H3同时间路由操作、同去噪indices6…14、相同query事件bin/全部heads、相同层数和实际输入条件下，控制的深度位置能否改变局部lag与外观损伤的权衡？这是执行器位置诊断，不是自动算法。
+可事前冻结三个同宽深度集合，例如零基0…9、20…29、40…49，三者每条均10层×9次=90 correction calls；已有全50层Full=450次和Native=0只作效用参照，不作为相同计算预算主对照。这里是示例设计，不代替root正式协议，也不启动任务。若已有同机同输入的中层结果，先核actual evidence再复用，不能把旧计划当已跑结果。
+所有模型block仍正常前向，只跳过路由修正；这是90次额外修正而非90NFE，更不是把DiT只运行10层。正式记录零基索引、active调用、NFE、wall与实际sigma，不为效率高低另扩试验。
+同调用数只控制粗计算预算，不控制有效扰动量：m_ref、delta输出范数、下游残差增益随层而变。记录现成可得的每层/步修正RMS与relative RMS/参考mass；不要临时把不同层强行归一成等强度，后者会改变科学操作。若中层较好，只能先说位置与收益相关，不能把弱干预造成低损伤直接解释为“纯运动层”。
+保持源视频、seed、实际噪声/后增广条件、采样器/步数/内核一致。保留已冻结主窗及其他窗、双阈值方向/腕lag、common support、shape、未知、正常样例；固定帧及短片检查服装/身份存在、背景、重影/双肢，而非仅看骨骼。不得自由DTW后宣称时间恢复，也不得因检测失败删掉坏视频。
+值得继续的诊断结果：某深度组在已规定时序门与外观门上出现清楚的改善，并在至少另一个不同源上保持方向；最初单病例只算发现。若只是三组都无效、或越强越同步但越重影，则保留这项失败，不逐层扫到一个漂亮输出。
+
+五、还需要提出并验证的具体机制
+(1) 把“可读出运动的层”与“在此写入能纠正运动且少损伤的层”分离。DIAL/DiTFlow已说明两者可以不同。高时序相关或低熵不等于因果控制性；若提出预测选层准则，必须在未参与挑层的新source上预测哪组有用，再以实际干预验证。
+(2) 若论点是运动/外观分离，需定义可测作用量或支持限制：例如对动作时刻响应大而对目标外观/背景响应小。单次层消融最多支持局部权衡，不能证明语义解耦；普通HALO熵选头、固定最优深度、随机/均匀同预算选择应成为必要简化对照。
+(3) 若最终提出状态依赖层门控，必须明确当前可观测信号、选择函数、拒判、预算与因果时序；不能用已生成视频真值回填同次决策，也不能把MotionEcho的时间开关换名字当新贡献。选择准则删掉/换固定组后应有可测退化，否则自动模块不必要。
+(4) 方法组合贡献仍可成立：局部事件时间保真评测、可靠观察器、深度选择和质量保护可以互补，但分别记录组件效用及组合增益，不能把多个已有技巧相加当创新认证。相似先例属于novelty风险；是否改善实际任务属于效用问题，两者单独报告。
+
+现有档案范围与完成边界
+先读R2 round2_architecture_candidates、next_computation_path_candidates、native_feature_capture_protocol、next_quality_actuator与CANDIDATE_LEDGER，继承其中HALO/MOFT/Ctrl-X/FreeControl碰撞和单block25捕获的范围限制。未在这批文献/ledger定位到已经完成的等预算早中晚三组结论；本次不对所有历史运行作穷尽否定。随后针对六篇补核原文及能找到的作者实现，额外只补两个直接近邻HALO、Stable Flow。
+未找到DIAL完整官方代码，MotionEcho官方页仍待发布，精确实现未知已保留。所读材料没有提供可直接移用的H3深度分工定律，也不能证明不存在未检索的同类方法。此次输出仅审查文件及证据JSON，GPU/NFE/新pose均为0；R24运行和封存文件未改。

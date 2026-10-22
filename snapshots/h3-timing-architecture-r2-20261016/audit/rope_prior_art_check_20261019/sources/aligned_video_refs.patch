@@ -1,0 +1,674 @@
+diff --git a/extensions_built_in/diffusion_models/minimax_h3/minimax_h3.py b/extensions_built_in/diffusion_models/minimax_h3/minimax_h3.py
+index 4c21927..2509789 100644
+--- a/extensions_built_in/diffusion_models/minimax_h3/minimax_h3.py
++++ b/extensions_built_in/diffusion_models/minimax_h3/minimax_h3.py
+@@ -537,44 +537,56 @@ class MinimaxH3Model(BaseModel):
+         # control tensors arrive in [0, 1]; the Qwen3-VL processor wants PIL
+         keyframes_per_prompt = [None] * len(prompt)
+         if control_images is not None:
+-            if isinstance(control_images, torch.Tensor):
+-                images = [control_images[i] for i in range(control_images.shape[0])]
+-            elif isinstance(control_images, list):
+-                images = [
+-                    c[0] if isinstance(c, torch.Tensor) and c.ndim == 4 else c
+-                    for c in control_images
+-                ]
+-            else:
+-                images = [control_images]
+-            pil_images = []
+-            for img in images:
++
++            def _to_keyframe(img):
+                 if isinstance(img, torch.Tensor):
+                     if img.ndim == 4:
+                         img = img[0]
+                     arr = (img.float().clamp(0, 1) * 255).round().to(torch.uint8)
+-                    pil_images.append(
+-                        self._present_image_control(
+-                            Image.fromarray(arr.permute(1, 2, 0).cpu().numpy())
+-                        )
++                    return self._present_image_control(
++                        Image.fromarray(arr.permute(1, 2, 0).cpu().numpy())
+                     )
+-                elif isinstance(img, str):
++                if isinstance(img, str):
+                     # a control VIDEO path: 2 fps timestamped presentation over
+                     # the SAME frames the latent rows use (dataset treatment
+                     # when caching training embeds, sample-length at sampling)
+                     ds_cfg = getattr(self, "_ref_video_dataset_config", None)
+-                    pil_images.append(
+-                        load_video_ref_for_te(
+-                            self, img, ds_cfg, max_frames=self._sample_ref_max_frames
+-                        )
++                    return load_video_ref_for_te(
++                        self, img, ds_cfg, max_frames=self._sample_ref_max_frames
+                     )
+-                else:
+-                    pil_images.append(img)
+-            if len(pil_images) == 1:
+-                keyframes_per_prompt = [pil_images] * len(prompt)
+-            elif len(pil_images) == len(prompt):
+-                keyframes_per_prompt = [[img] for img in pil_images]
++                return img
++
++            # batch.control_tensor_list is [item][ref]: several references per
++            # batch item. It must stay nested per item -- collapsing it emits a
++            # single <Picture> block while the image processor flattens the
++            # inner list into N images ("image features and image tokens do not
++            # match", tokens counted from image_grid_thw[0] only).
++            if (
++                isinstance(control_images, list)
++                and len(control_images) > 0
++                and all(isinstance(c, (list, tuple)) for c in control_images)
++            ):
++                per_item = [[_to_keyframe(r) for r in refs] for refs in control_images]
++                if len(per_item) == 1 and len(prompt) > 1:
++                    per_item = per_item * len(prompt)
++                keyframes_per_prompt = per_item
+             else:
+-                keyframes_per_prompt = [pil_images] * len(prompt)
++                if isinstance(control_images, torch.Tensor):
++                    images = [control_images[i] for i in range(control_images.shape[0])]
++                elif isinstance(control_images, list):
++                    images = [
++                        c[0] if isinstance(c, torch.Tensor) and c.ndim == 4 else c
++                        for c in control_images
++                    ]
++                else:
++                    images = [control_images]
++                pil_images = [_to_keyframe(img) for img in images]
++                if len(pil_images) == 1:
++                    keyframes_per_prompt = [pil_images] * len(prompt)
++                elif len(pil_images) == len(prompt):
++                    keyframes_per_prompt = [[img] for img in pil_images]
++                else:
++                    keyframes_per_prompt = [pil_images] * len(prompt)
+ 
+         embeds_list, tags_list = [], []
+         for p, keyframes in zip(prompt, keyframes_per_prompt):
+@@ -721,6 +733,23 @@ class MinimaxH3Model(BaseModel):
+     # ------------------------------------------------------------------
+     # Training forward
+     # ------------------------------------------------------------------
++    def _aligned_ref_flags(self, ref_blocks):
++        """Which reference blocks share the target's coordinates.
++
++        With ``align_video_refs`` a *video* reference stops being a loose reference and
++        becomes a v2v guide: same rotary clock, same spatial grid as the target, so guide
++        frame ``i`` drives output frame ``i`` without the model having to search for the
++        correspondence. Image references are never aligned — an identity photo has no
++        spatial correspondence with the output and should not claim one.
++
++        A head-swap pack is exactly this pair: aligned driving video, unaligned identity.
++        """
++        if not ref_blocks or not self.model_config.model_kwargs.get(
++            "align_video_refs", False
++        ):
++            return ()
++        return tuple(block[0] > 1 for block in ref_blocks)
++
+     def _build_condition(
+         self, batch: "DataLoaderBatchDTO", latent_shape, device, dtype
+     ):
+@@ -890,6 +919,7 @@ class MinimaxH3Model(BaseModel):
+             text_tag_list = [t for _, t in trimmed]
+ 
+             # --- packed layout (per item: text lengths differ) --------------
++            aligned_refs = self._aligned_ref_flags(ref_blocks)
+             layouts = []
+             for i in range(batch_size):
+                 layouts.append(
+@@ -901,6 +931,7 @@ class MinimaxH3Model(BaseModel):
+                         num_audio_latents=a_lat,
+                         keyframe_anchors=keyframe_anchors,
+                         ref_blocks=ref_blocks,
++                        aligned_refs=aligned_refs,
+                     )
+                 )
+             (
+@@ -1128,9 +1159,11 @@ class MinimaxH3Ref2VAModel(MinimaxH3Model):
+     def text_embedding_space_version(self):
+         # the presentation of image references changes the embeds -> new cache key
+         n = self._image_ref_video_frames()
+-        if n:
+-            return f"{self.arch}:img_as_vid{n}"
+-        return self.arch
++        base = f"{self.arch}:img_as_vid{n}" if n else self.arch
++        if getattr(self, "control_latent_only", False):
++            # embeds drop the control media entirely -> different space
++            return f"{base}:ctrl_latent_only"
++        return base
+ 
+     def _present_image_control(self, image: Image.Image):
+         n = self._image_ref_video_frames()
+@@ -1150,6 +1183,22 @@ class MinimaxH3Ref2VAModel(MinimaxH3Model):
+         # D-OPSD: a no-grad teacher pass with the target as its own reference
+         # becomes the training target for the reference-free student pass
+         self.dopsd = bool(self.model_config.model_kwargs.get("dopsd", False))
++        # VLM-gap variant of D-OPSD: teacher and student share the SAME condition
++        # (the aligned guide); the information gap is the VLM's reading of that
++        # guide, which only the teacher's text embeds carry. The student's
++        # sequence loses the vision tokens -- here ~8.2k of ~14.6k -- so it is
++        # cheaper to train and to sample, and it matches ComfyUI's AddGuide path,
++        # where the guide reaches the DiT as latents but never reaches the VLM.
++        # Control media reaches the DiT as latents only -- it is never presented
++        # to the VLM. For a v2v guide that is usually what you want: the guide
++        # already lands on the target's rotary grid via align_video_refs, the
++        # vision tokens are pure cost (~8.2k of a ~14.6k sequence on a 73-frame
++        # 512x288 clip), and inference paths that inject the guide as a keyframe
++        # (ComfyUI's Add Guide) never show it to the VLM either -- so training
++        # with the presentation creates a train/inference gap.
++        self.control_latent_only = bool(
++            self.model_config.model_kwargs.get("control_latent_only", False)
++        )
+         if self.dopsd:
+             self.dopsd_self_ref = True
+             self.require_pixel_tensor_cache = True
+@@ -1336,10 +1385,16 @@ class MinimaxH3Ref2VAModel(MinimaxH3Model):
+         ]
+         cap.release()
+         h0, w0 = frames[0].shape[:2]
+-        # match the sample canvas's pixel area, own aspect kept
+-        ph, pw = packing.reference_video_pixel_size(
+-            w0, h0, gen_config.height, gen_config.width
+-        )
++        if bool(self.model_config.model_kwargs.get("align_video_refs", False)):
++            # aligned guide: the sample canvas exactly, same rule the training path uses.
++            # Area-matching the guide's own aspect here would hand build_packed_sequence a
++            # grid the target does not have and fail the sample, not the step.
++            ph, pw = int(gen_config.height), int(gen_config.width)
++        else:
++            # match the sample canvas's pixel area, own aspect kept
++            ph, pw = packing.reference_video_pixel_size(
++                w0, h0, gen_config.height, gen_config.width
++            )
+         pixels = torch.from_numpy(np.stack(frames)).float() / 255.0 * 2.0 - 1.0
+         pixels = pixels.permute(3, 0, 1, 2)[None]  # (1, 3, T, H, W)
+         pixels = (
+@@ -1422,12 +1477,18 @@ class MinimaxH3Ref2VAModel(MinimaxH3Model):
+                 "ref2va: every item in a batch must have the same number of "
+                 "reference videos"
+             )
++        # with align_video_refs a control VIDEO is a v2v guide, not a loose reference:
++        # it has to sit on the target's exact latent grid (build_packed_sequence enforces
++        # it), so it is encoded at the target's size instead of area-matched to its own
++        # aspect. Identity images never take this path.
++        align = bool(self.model_config.model_kwargs.get("align_video_refs", False))
+         for ref_idx in range(vid_count):
+             lats = []
+             auds = []
+             for per_item in paths_per_item:
+                 entry = load_ref_video_latent(
+-                    self, per_item[ref_idx], batch.dataset_config, target_h, target_w
++                    self, per_item[ref_idx], batch.dataset_config, target_h, target_w,
++                    align=align,
+                 )
+                 lats.append(entry["latent"].to(device, torch.float32))
+                 auds.append(entry.get("audio_rows"))
+diff --git a/extensions_built_in/diffusion_models/minimax_h3/src/packing.py b/extensions_built_in/diffusion_models/minimax_h3/src/packing.py
+index 6e77429..39c1c72 100644
+--- a/extensions_built_in/diffusion_models/minimax_h3/src/packing.py
++++ b/extensions_built_in/diffusion_models/minimax_h3/src/packing.py
+@@ -297,6 +297,7 @@ def build_packed_sequence(
+     patch_size=(1, 2, 2),
+     keyframe_anchors: Tuple[str, ...] = (),
+     ref_blocks: Tuple[Tuple[int, int, int], ...] = (),
++    aligned_refs: Tuple[bool, ...] = (),
+ ) -> PackedLayout:
+     """Build the [text | conditions | target audio | target video] layout.
+ 
+@@ -307,7 +308,22 @@ def build_packed_sequence(
+     for images. References keep their OWN aspect on their own
+     aspect-normalized grid; an image block advances the shared media clock by
+     1.0, a video block by its temporal span, and the target streams start
+-    after the cumulative advance)."""
++    after the cumulative advance).
++
++    ``aligned_refs`` marks blocks that should be *aligned* to the target rather
++    than placed beside it: an aligned block reuses the target's rotary clock and
++    the target's spatial grid, so its latent frame ``i`` and pixel ``(h, w)``
++    land on exactly the coordinates of the target's, and it does not advance the
++    media clock. That is the v2v/IC-LoRA arrangement — attention between a guide
++    row and the target row at the same position costs nothing positionally, which
++    is what makes frame-accurate control (pose, depth, a driving performance)
++    learnable. Ordinary references stay unaligned: an identity reference has no
++    spatial correspondence with the output and should not claim one.
++
++    A head-swap pack therefore uses both — an aligned guide video plus an
++    unaligned identity reference. Aligned blocks must match the target's latent
++    height and width; their frame count may be shorter (they align from the
++    target's first frame)."""
+     if keyframe_anchors and ref_blocks:
+         raise ValueError("keyframe_anchors and ref_blocks are mutually exclusive")
+     _, ph, pw = patch_size
+@@ -317,6 +333,17 @@ def build_packed_sequence(
+     # reference's soundtrack packs as clean audio rows immediately BEFORE its
+     # own video rows
+     ref_blocks = tuple(tuple(b) + (0,) * (4 - len(b)) for b in ref_blocks)
++    aligned_flags = tuple(aligned_refs) + (False,) * (len(ref_blocks) - len(aligned_refs))
++    if len(aligned_flags) != len(ref_blocks):
++        raise ValueError(
++            f"aligned_refs has {len(aligned_refs)} entries for {len(ref_blocks)} ref blocks"
++        )
++    for (_, b_h, b_w, _), aligned in zip(ref_blocks, aligned_flags):
++        if aligned and (b_h, b_w) != (latent_height, latent_width):
++            raise ValueError(
++                "an aligned reference must share the target's latent resolution "
++                f"({latent_height}x{latent_width}), got {b_h}x{b_w}"
++            )
+     ref_vid_rows = [t * (h // ph) * (w // pw) for t, h, w, _ in ref_blocks]
+     ref_aud_rows = [a * AUDIO_CHANNELS for _, _, _, a in ref_blocks]
+     num_cond = (
+@@ -337,7 +364,12 @@ def build_packed_sequence(
+     # text rows sit on the time axis at their row index; the media clock
+     # continues from there past the reference blocks, so prompt length (and
+     # reference count/length) shifts the whole media clock
+-    media_advance = sum(_block_advance(t, a) for t, _, _, a in ref_blocks)
++    # Aligned blocks sit ON the target's clock, so they must not push it forward.
++    media_advance = sum(
++        _block_advance(t, a)
++        for (t, _, _, a), aligned in zip(ref_blocks, aligned_flags)
++        if not aligned
++    )
+     media_origin = float(num_text) + media_advance
+     position_ids = torch.zeros(seq_len, 3, dtype=torch.float64)
+     position_ids[:num_text, 0] = torch.arange(num_text, dtype=torch.float64)
+@@ -377,25 +409,34 @@ def build_packed_sequence(
+         cond_video_idx.append(torch.arange(cond_start, audio_start))
+         ref_cursor = audio_start
+     for i, (ref_t, ref_h, ref_w, ref_a) in enumerate(ref_blocks):
+-        # each reference on its own aspect-normalized grid (area-matched to
+-        # the target, so the grids span comparable ranges)
+-        ref_sqrt_area = math.sqrt(ref_h * ref_w)
+-        w_grid = _spatial_position_grid(ref_w, pw, ref_sqrt_area)
+-        ref_grid = torch.stack(
+-            [
+-                g.reshape(-1)
+-                for g in torch.meshgrid(
+-                    _spatial_position_grid(ref_h, ph, ref_sqrt_area),
+-                    w_grid,
+-                    indexing="ij",
+-                )
+-            ],
+-            dim=-1,
+-        )
++        aligned = aligned_flags[i]
++        if aligned:
++            # the target's own grid and clock: row (i, h, w) of the guide lands on
++            # the coordinate of row (i, h, w) of the output
++            w_grid = width_grid
++            ref_grid = frame_grid
++            block_clock = media_origin
++        else:
++            # each reference on its own aspect-normalized grid (area-matched to
++            # the target, so the grids span comparable ranges)
++            ref_sqrt_area = math.sqrt(ref_h * ref_w)
++            w_grid = _spatial_position_grid(ref_w, pw, ref_sqrt_area)
++            ref_grid = torch.stack(
++                [
++                    g.reshape(-1)
++                    for g in torch.meshgrid(
++                        _spatial_position_grid(ref_h, ph, ref_sqrt_area),
++                        w_grid,
++                        indexing="ij",
++                    )
++                ],
++                dim=-1,
++            )
++            block_clock = ref_clock
+         if ref_a:
+             # soundtrack rows first: channel-major, shared 40/s clock from the
+             # block origin, width pinned to the ref grid's extremes
+-            a_time = ref_clock + torch.arange(ref_a, dtype=torch.float64)
++            a_time = block_clock + torch.arange(ref_a, dtype=torch.float64)
+             rows = slice(ref_cursor, ref_cursor + ref_aud_rows[i])
+             position_ids[rows, 0] = a_time.repeat(AUDIO_CHANNELS)
+             position_ids[rows, 2] = torch.cat(
+@@ -408,12 +449,13 @@ def build_packed_sequence(
+             ref_cursor += ref_aud_rows[i]
+         rows_per_ref_frame = ref_grid.shape[0]
+         block = torch.empty(ref_t, rows_per_ref_frame, 3, dtype=torch.float64)
+-        block[:, :, 0] = _temporal_position_grid(ref_t, ref_clock)[:, None]
++        block[:, :, 0] = _temporal_position_grid(ref_t, block_clock)[:, None]
+         block[:, :, 1:] = ref_grid[None]
+         position_ids[ref_cursor : ref_cursor + ref_vid_rows[i]] = block.reshape(-1, 3)
+         cond_video_idx.append(torch.arange(ref_cursor, ref_cursor + ref_vid_rows[i]))
+         ref_cursor += ref_vid_rows[i]
+-        ref_clock += _block_advance(ref_t, ref_a)
++        if not aligned:
++            ref_clock += _block_advance(ref_t, ref_a)
+ 
+     # audio rows: channel-major, one rotary unit per latent (40/s = 24fps*5/3),
+     # no height coordinate, width pinned to the grid extremes per channel
+diff --git a/extensions_built_in/diffusion_models/minimax_h3/src/pipeline.py b/extensions_built_in/diffusion_models/minimax_h3/src/pipeline.py
+index 6e08cd3..7a65747 100644
+--- a/extensions_built_in/diffusion_models/minimax_h3/src/pipeline.py
++++ b/extensions_built_in/diffusion_models/minimax_h3/src/pipeline.py
+@@ -136,6 +136,9 @@ class MiniMaxH3Pipeline:
+             num_audio_latents=a_lat,
+             keyframe_anchors=anchors,
+             ref_blocks=ref_blocks,
++            # same rule as training, from the same helper: a layout mismatch between the
++            # two is silent — sampling just quietly stops matching what was trained
++            aligned_refs=model._aligned_ref_flags(ref_blocks),
+         )
+         num_cond = layout.num_condition_video_rows
+ 
+diff --git a/extensions_built_in/diffusion_models/minimax_h3/src/ref_video_cache.py b/extensions_built_in/diffusion_models/minimax_h3/src/ref_video_cache.py
+index c54c263..a320cbc 100644
+--- a/extensions_built_in/diffusion_models/minimax_h3/src/ref_video_cache.py
++++ b/extensions_built_in/diffusion_models/minimax_h3/src/ref_video_cache.py
+@@ -164,7 +164,8 @@ def _cache_path(path: str, hash_dict: dict) -> str:
+ 
+ @torch.no_grad()
+ def load_ref_video_latent(
+-    model, path: str, dataset_config, target_height: int, target_width: int
++    model, path: str, dataset_config, target_height: int, target_width: int,
++    align: bool = False,
+ ) -> dict:
+     """Returns {"latent": (C, T, h, w) cpu tensor, "num_frames": int},
+     encoding + disk-caching on first use. ``model`` is the MinimaxH3 model
+@@ -173,8 +174,14 @@ def load_ref_video_latent(
+     if mem_cache is None:
+         mem_cache = {}
+         model._ref_video_cache = mem_cache
+-    if path in mem_cache:
+-        return mem_cache[path]
++    # The entry depends on the TARGET the ref was sized against, not just the file: with
++    # multi-resolution buckets the same guide is requested at several target sizes in one
++    # run, and a path-only key handed back whatever size happened to be encoded first.
++    # Unaligned that passed silently (the guide just sat on a wrong grid, and cost whatever
++    # its own size cost); aligned it raises "must share the target's latent resolution".
++    mem_key = (path, int(target_height), int(target_width), bool(align))
++    if mem_key in mem_cache:
++        return mem_cache[mem_key]
+ 
+     cap = cv2.VideoCapture(path)
+     if not cap.isOpened():
+@@ -198,10 +205,14 @@ def load_ref_video_latent(
+     )
+     hash_dict = {
+         "signature": get_quick_signature_string(path),
+-        "ref_sizing": "match_target_area",
++        # an aligned guide is resized to the target's EXACT grid, so the cache key
++        # needs the dimensions, not just the area -- two buckets with the same area
++        # and different aspects are different tensors here
++        "ref_sizing": "match_target_exact" if align else "match_target_area",
+         "target_area": int(target_height * target_width)
+         if target_height and target_width
+         else 0,
++        "target_hw": (int(target_height), int(target_width)) if align else 0,
+         "num_frames": num_frames,
+         "fps": dataset_config.fps,
+         "trim_tail": trim_tail,
+@@ -217,13 +228,22 @@ def load_ref_video_latent(
+             "num_frames": int(sd["num_frames"].item()),
+             "audio_rows": sd.get("audio_latent"),
+         }
+-        mem_cache[path] = entry
++        mem_cache[mem_key] = entry
+         return entry
+ 
+-    # match the target's pixel area (the dataset bucket the target trains at)
+-    # with the ref's own aspect: same aspect -> identical size; aspect-
+-    # preserving resize, no crop
+-    out_h, out_w = reference_video_pixel_size(src_w, src_h, target_height, target_width)
++    if align:
++        # An aligned guide shares the target's rotary clock AND its spatial grid, so it
++        # must land on the target's exact latent resolution -- build_packed_sequence
++        # rejects anything else. Area-matching the guide's own aspect would leave 25% of
++        # a real head-swap set a few percent off and crash the pack, so the guide is
++        # resized to the target outright; the small anisotropy is the price of frame-
++        # accurate correspondence, and it only applies to guides, never to identity refs.
++        out_h, out_w = int(target_height), int(target_width)
++    else:
++        # match the target's pixel area (the dataset bucket the target trains at)
++        # with the ref's own aspect: same aspect -> identical size; aspect-
++        # preserving resize, no crop
++        out_h, out_w = reference_video_pixel_size(src_w, src_h, target_height, target_width)
+ 
+     indices = ref_frame_indices(
+         total, src_fps, num_frames, dataset_config.fps, trim_tail
+@@ -274,5 +294,5 @@ def load_ref_video_latent(
+     os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+     save_file(state_dict, cache_file)
+     entry = {"latent": latent, "num_frames": num_frames, "audio_rows": audio_rows}
+-    mem_cache[path] = entry
++    mem_cache[mem_key] = entry
+     return entry
+diff --git a/extensions_built_in/diffusion_models/minimax_h3/src/text_encoder.py b/extensions_built_in/diffusion_models/minimax_h3/src/text_encoder.py
+index f58863d..a9680e4 100644
+--- a/extensions_built_in/diffusion_models/minimax_h3/src/text_encoder.py
++++ b/extensions_built_in/diffusion_models/minimax_h3/src/text_encoder.py
+@@ -120,6 +120,8 @@ def encode_minimax_h3_prompt(
+     processor,  # Qwen3VLProcessor (needed only when keyframes are present)
+     prompt: str,
+     keyframes: Optional[List] = None,  # PIL images already on the target canvas
++    reference_videos: Optional[List] = None,  # videos sampled to 2 fps, each TCHW/THWC
++    reference_video_timestamps: Optional[List[List[float]]] = None,
+     device: Optional[torch.device] = None,
+     dtype: Optional[torch.dtype] = None,
+     max_length: Optional[
+@@ -220,6 +222,41 @@ def encode_minimax_h3_prompt(
+                 )
+                 pic_idx += 1
+ 
++    if reference_videos:
++        vision = processor.video_processor(
++            videos=reference_videos, do_sample_frames=False, return_tensors="pt"
++        )
++        pixel_values_videos = vision["pixel_values_videos"]
++        video_grid_thw = vision["video_grid_thw"]
++        merge = processor.video_processor.merge_size**2
++        vision_start = tokenizer.convert_tokens_to_ids("<|vision_start|>")
++        vision_end = tokenizer.convert_tokens_to_ids("<|vision_end|>")
++        video_pad = tokenizer.convert_tokens_to_ids("<|video_pad|>")
++        for i in range(len(reference_videos)):
++            label_ids = tokenizer(f"<Video {i + 1}>: ", add_special_tokens=False)[
++                "input_ids"
++            ]
++            token_ids += label_ids
++            token_tags += [TEXT_TAG] * len(label_ids)
++            grid_t, grid_h, grid_w = (int(x) for x in video_grid_thw[i])
++            tokens_per_block = (grid_h * grid_w) // merge
++            timestamps = (
++                reference_video_timestamps[i]
++                if reference_video_timestamps is not None
++                else [j / 2.0 for j in range(grid_t * 2)]
++            )
++            if len(timestamps) % 2:
++                timestamps = list(timestamps) + [timestamps[-1]]
++            for block in range(grid_t):
++                ts_idx = min(block * 2, len(timestamps) - 2)
++                block_ts = (timestamps[ts_idx] + timestamps[ts_idx + 1]) / 2.0
++                time_ids = tokenizer(
++                    f"<{block_ts:.1f} seconds>", add_special_tokens=False
++                )["input_ids"]
++                vision_ids = [vision_start] + [video_pad] * tokens_per_block + [vision_end]
++                token_ids += time_ids + vision_ids
++                token_tags += [TEXT_TAG] * len(time_ids) + [VIDEO_TAG] * len(vision_ids)
++
+     prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
+     if max_length is not None and max_length > 0:
+         # the cap applies to the caption only; a keyframe's vision block is
+diff --git a/tests/test_minimax_h3_aligned_refs.py b/tests/test_minimax_h3_aligned_refs.py
+new file mode 100644
+index 0000000..8c565d3
+--- /dev/null
++++ b/tests/test_minimax_h3_aligned_refs.py
+@@ -0,0 +1,129 @@
++"""An aligned reference must land on the target's coordinates exactly.
++
++That is the whole point of the flag: a guide row and the target row it drives share a rotary
++position, so attention between them costs nothing positionally. If the clock or the spatial grid
++drifts by even one unit the guide stops being frame-accurate, and the failure is invisible —
++training still runs, the model just never learns tight control.
++"""
++
++import pytest
++import torch
++
++from extensions_built_in.diffusion_models.minimax_h3.src.packing import build_packed_sequence
++
++TEXT = torch.ones(4, dtype=torch.long)
++FRAMES, H, W = 7, 8, 8
++
++
++def _layout(ref_blocks=(), aligned_refs=()):
++    return build_packed_sequence(
++        text_token_tags=TEXT,
++        num_latent_frames=FRAMES,
++        latent_height=H,
++        latent_width=W,
++        num_audio_latents=0,
++        ref_blocks=ref_blocks,
++        aligned_refs=aligned_refs,
++    )
++
++
++def _rows(layout, start, count):
++    return layout.position_ids[start : start + count]
++
++
++def test_aligned_reference_matches_the_target_coordinates_row_for_row() -> None:
++    layout = _layout(ref_blocks=((FRAMES, H, W),), aligned_refs=(True,))
++
++    rows_per_ref = FRAMES * (H // 2) * (W // 2)
++    guide = _rows(layout, layout.video_indices[0].item(), rows_per_ref)
++    target = layout.position_ids[-rows_per_ref:]
++
++    assert torch.equal(guide, target)
++
++
++def test_aligned_reference_does_not_shift_the_target_clock() -> None:
++    """The target must sit where it would with no reference at all."""
++    bare = _layout()
++    aligned = _layout(ref_blocks=((FRAMES, H, W),), aligned_refs=(True,))
++
++    rows = FRAMES * (H // 2) * (W // 2)
++    assert torch.equal(bare.position_ids[-rows:], aligned.position_ids[-rows:])
++
++
++def test_unaligned_reference_still_sits_beside_the_target() -> None:
++    """The default path is untouched: an ordinary reference keeps its own clock."""
++    layout = _layout(ref_blocks=((1, H, W),), aligned_refs=(False,))
++
++    rows_per_ref = (H // 2) * (W // 2)
++    ref = _rows(layout, layout.video_indices[0].item(), rows_per_ref)
++    target = layout.position_ids[-FRAMES * rows_per_ref :]
++
++    assert ref[:, 0].max() < target[:, 0].min()
++
++
++def test_omitting_the_flag_keeps_upstream_behaviour() -> None:
++    explicit = _layout(ref_blocks=((1, H, W),), aligned_refs=(False,))
++    implicit = _layout(ref_blocks=((1, H, W),))
++
++    assert torch.equal(explicit.position_ids, implicit.position_ids)
++
++
++def test_head_swap_pack_aligns_only_the_guide() -> None:
++    """Guide aligned to the target, identity reference parked beside it."""
++    layout = _layout(ref_blocks=((FRAMES, H, W), (1, H, W)), aligned_refs=(True, False))
++
++    rows_per_frame = (H // 2) * (W // 2)
++    guide_rows = FRAMES * rows_per_frame
++    start = layout.video_indices[0].item()
++
++    guide = _rows(layout, start, guide_rows)
++    identity = _rows(layout, start + guide_rows, rows_per_frame)
++    target = layout.position_ids[-guide_rows:]
++
++    assert torch.equal(guide, target)
++    assert identity[:, 0].max() < target[:, 0].min()
++
++
++def test_shorter_aligned_guide_starts_at_the_targets_first_frame() -> None:
++    short = 3
++    layout = _layout(ref_blocks=((short, H, W),), aligned_refs=(True,))
++
++    rows_per_frame = (H // 2) * (W // 2)
++    guide = _rows(layout, layout.video_indices[0].item(), short * rows_per_frame)
++    target = layout.position_ids[-FRAMES * rows_per_frame :]
++
++    assert torch.equal(guide, target[: short * rows_per_frame])
++
++
++def test_aligned_reference_must_match_the_target_resolution() -> None:
++    """A different grid cannot be aligned, and silently misaligning is the worst outcome."""
++    with pytest.raises(ValueError, match="aligned reference"):
++        _layout(ref_blocks=((FRAMES, H // 2, W),), aligned_refs=(True,))
++
++
++class _FakeModel:
++    """Just enough of the model to exercise the flag's plumbing."""
++
++    def __init__(self, enabled):
++        self.model_config = type("C", (), {"model_kwargs": {"align_video_refs": enabled}})()
++
++    _aligned_ref_flags = None  # bound below
++
++
++def _flags(enabled, ref_blocks):
++    from extensions_built_in.diffusion_models.minimax_h3.minimax_h3 import MinimaxH3Model
++
++    return MinimaxH3Model._aligned_ref_flags(_FakeModel(enabled), ref_blocks)
++
++
++def test_flag_off_aligns_nothing() -> None:
++    assert _flags(False, ((7, 8, 8, 0), (1, 8, 8, 0))) == ()
++
++
++def test_flag_on_aligns_video_blocks_only() -> None:
++    """Video reference becomes the guide; the image reference stays a reference."""
++    assert _flags(True, ((7, 8, 8, 0), (1, 8, 8, 0))) == (True, False)
++
++
++def test_no_references_needs_no_flags() -> None:
++    assert _flags(True, ()) == ()
+diff --git a/toolkit/data_loader.py b/toolkit/data_loader.py
+index 38b7ad4..a94e369 100644
+--- a/toolkit/data_loader.py
++++ b/toolkit/data_loader.py
+@@ -540,6 +540,7 @@ class AiToolkitDataset(LatentCachingMixin, ControlCachingMixin, CLIPCachingMixin
+                     encode_control_in_text_embeddings=self.sd.encode_control_in_text_embeddings if self.sd else False,
+                     encode_first_frame_in_text_embeddings=getattr(self.sd, 'encode_first_frame_in_text_embeddings', False) if self.sd else False,
+                     dopsd_self_ref=getattr(self.sd, 'dopsd_self_ref', False) if self.sd else False,
++                    control_latent_only=getattr(self.sd, 'control_latent_only', False) if self.sd else False,
+                     text_embedding_space_version=self.sd.text_embedding_space_version if self.sd else "sd1",
+                     te_padding_side=self.sd.te_padding_side if self.sd else "right",
+                     latent_space_version=latent_space_version,
+diff --git a/toolkit/data_transfer_object/data_loader.py b/toolkit/data_transfer_object/data_loader.py
+index 8c7dfc6..2c9b615 100644
+--- a/toolkit/data_transfer_object/data_loader.py
++++ b/toolkit/data_transfer_object/data_loader.py
+@@ -85,6 +85,8 @@ class FileItemDTO(
+         )
+         # D-OPSD: also cache teacher embeds with the item's own media as reference 1
+         self.dopsd_self_ref = kwargs.get("dopsd_self_ref", False)
++        # control media rides as latents only, never into the text encoder
++        self.control_latent_only = kwargs.get("control_latent_only", False)
+         self.te_padding_side = kwargs.get("te_padding_side", "right")
+         self.latent_space_version = kwargs.get("latent_space_version", "sd1")
+         self.text_embedding_space_version = kwargs.get("text_embedding_space_version", "sd1")
+diff --git a/toolkit/dataloader_mixins.py b/toolkit/dataloader_mixins.py
+index 60e0a9e..ae6a1e5 100644
+--- a/toolkit/dataloader_mixins.py
++++ b/toolkit/dataloader_mixins.py
+@@ -2414,8 +2414,15 @@ class TextEmbeddingCachingMixin:
+                             ctrl_img = ctrl_img_list[0]
+                         else:
+                             ctrl_img = ctrl_img_list
++                        if getattr(file_item, 'control_latent_only', False):
++                            # caption-only embeds. The control
++                            # media still reaches the DiT as aligned latents; what the
++                            # student loses is the VLM's reading of it, which is exactly
++                            # the information the teacher distills down. Also matches
++                            # ComfyUI's AddGuide path, where the guide never hits the VLM.
++                            ctrl_img = None
+                         for path, caption in encode_targets:
+-                            if path in dropout_target_paths:
++                            if path in dropout_target_paths or ctrl_img is None:
+                                 # dropout embeds are plain text. Only fall back to the
+                                 # control images if the model cannot encode without them
+                                 try:

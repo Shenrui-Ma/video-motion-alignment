@@ -1,0 +1,64 @@
+IVEBench official MF runtime: execution and reporting
+
+Remote host41:
+/data3/researcher/h3_runs/ivebench_official_metric_20261017
+Python: /data3/researcher/ComfyUI/.venv/bin/python
+FFmpeg/ffprobe: /usr/bin/ffmpeg, /usr/bin/ffprobe (FFmpeg4.4.2)
+Frozen runtime: RUNTIME_FREEZE_HOST41.json
+SHA256 d46b5c807c56aeb39e219e71271c7e5f050873ee74c5fe342988a3c1cb63dd45
+
+Fixed five sources:
+/data3/researcher/h3_runs/timing_ivebench_native_r54_20261017/analysis/postrun/SOURCE_METRIC_MANIFEST.json
+SHA256169056e0fb4616e076f7a6c7b35d57d115eed3541971d00d0213e2a6bac0b472
+Every score video is the actual prepared H3 input cropped to1280x720 with its
+complete effective24fps prefix. CPU preflight verifies official source SHA,
+R54 provenance, exact frame map, prepared pixels, score pixels and timestamps.
+
+GPU tracking:
+metric_runtime/launch_tracking_gate.py --control NEW_DIRECTORY --   --input-manifest RELEASED_SOURCE_MANIFEST_OR_PAIR_JSON   --selection /data3/researcher/h3_runs/ivebench_official_metric_20261017/PILOT_5_MANIFEST.json   --pair short_0210 --method source --gpu-uuid ROOT_ADMITTED_GPU_UUID   --output NEW_TRACK_DIRECTORY
+Set CUDA_VISIBLE_DEVICES to that same UUID before launching the gate. The gate
+writes ready.json containing exact PID, UID, start ticks, command hash and code/
+input hashes. Root records resource admission then writes an identical go.json.
+The same PID runs official CoTracker3. It checks the selected GPU is empty and
+fewer than two own GPU cards are already occupied immediately before CUDA.
+Current root delegation covers only four remaining source cases onGPU2;
+generated/native/auto tracking requires another root resource review.
+
+Source caches: tracks/source/{pair_id}/tracks.npz and REPORT.json.
+The cache comes from the unchanged official class: offline window_len60,
+grid_size10, query_frame0, backward_trackingFalse, all effective frames.
+Native/Auto each use their released pair METRIC_INPUTS.json, the matching method
+name, and a fresh cache directory. All source bindings must match the source
+cache. Keep official grid size and visibility; no subject mask is introduced.
+
+CPU score from two completed caches:
+CUDA_VISIBLE_DEVICES='' python metric_runtime/score_cached_tracks.py   --source tracks/source/short_0210 --target tracks/native/short_0210   --output scores/short_0210_native.json
+This calls the unchanged official _compute_similarity_from_tracks, preserving
+its visibility interpolation,0.7position+0.3velocity and Hungarian matching.
+It rechecks cache SHA, fixed tracker settings, input source and physical sample
+identity. Root should use its shared CPU lock and online-observer priority.
+
+Direct full-five alternate path:
+metric_runtime/ive_mf_adapter.py --manifest REAL_FULL_FIVE.json   --selection PILOT_5_MANIFEST.json --output CHECK.json --check-only
+After GPU admission, the same entry with --device cuda computes official MF
+through its original compute_motion_similarity method, without caching.
+This uncached entry does not implement the exact-PID gate; the staged source/
+generated tracking entry above is the scheduled shared-GPU route.
+
+R54 completed full-five manifest is published at:
+/data3/researcher/h3_runs/timing_ivebench_native_r54_20261017/analysis/postrun/captured/batch/batch_summary/METRIC_MANIFEST.json
+R55 will publish its corresponding released manifest. merge_mf_manifests.py
+combines completed methods only if all original/prepared/score/provenance SHA
+bindings and time maps agree. It preserves five fixed tasks and refuses duplicate
+method names or incomplete task sets. Source_score bytes are reused across runs.
+
+Reporting:
+Call results a paired test on five adapted IVEBench tasks using official MF.
+These sources use the fixed24fps H3 mapping and padding/cropping protocol; they
+are a source-selected pilot of5, from12 reviewed source clips,60 short eligible
+replacement/color tasks,88 replacement/color tasks and600 released tasks.
+Official MF source visibility interpolation compresses invisible intervals and
+full-frame background tracks can dominate. Report physical pose timing and
+successful requested editing alongside MF. Source-only caches carry no editing
+quality score. Five-pair/all-method averages require all five valid scores;
+retain failures/UNKNOWN in the fixed denominator rather than quietly dropping.

@@ -1,0 +1,87 @@
+{
+  "schema": "r134-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-scrubs-color-r134-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_scrubs_color_r134_20261020",
+  "producer_seal_sha256": "28a425b94a495e229eb9735c6dde833fb770ff6a3ed2c5a71aa7a8114d083669",
+  "producer_contract_sha256": "66aa6902b85a332bf54f1c9b7abf787b7b436a4b5953159f76cbd3ca03c45e07",
+  "producer_runtime_sha256": "fa805798812839294cda6d76b14c139b42c61609d3a678b8ac32b0b59e3da672",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0353"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0353",
+      "run_id": "r134_short_0353_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 56,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nChange the blue scrubs to green.\n\nretention_analysis:\n<Video 1>: partially_preserved - Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.\n",
+      "original_task": {
+        "id": 353,
+        "src_video_name": "short_0353.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "The video depicts a medical team wearing blue scrubs performing surgery in an operating room. One surgeon is prominently in the foreground, leaning over the patient.",
+        "edit_prompt": "Change the blue scrubs to green.",
+        "target_prompt": "The video depicts a medical team wearing green scrubs performing surgery in an operating room. One surgeon is prominently in the foreground, leaning over the patient.",
+        "target_span": "green",
+        "target_phrase": "medical team wearing green scrubs"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 48,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "1001/500",
+        "end_exclusive_rational": "49049/24000",
+        "duration_rational": "49049/24000"
+      },
+      "task_scope": "subject_clothing_color",
+      "evaluation_scope": "IVEBench完整短片探索",
+      "forced_run_id": "r134_short_0353_seed2026101701_forced",
+      "valid_frames": 50,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/short_0353_video.mp4",
+        "sha256": "ea99e535400cd51753bf6364077a7817fa074f82e96e61da2314a49f3b7d6b9b",
+        "bytes": 10092256
+      },
+      "provenance": {
+        "file": "inputs/short_0353_provenance.json",
+        "sha256": "ee8440a097b06a696bd1950c9d433521632d4c451dcb11b4f4d1dac8303a21a1",
+        "bytes": 10278
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-scrubs-color-metrics-r134-20261020/inputs/short_0353_original.mp4",
+        "sha256": "0cbadb3992e905be874c99111c641b58694f2788c63ec4fe9771b8776e0487c4"
+      },
+      "graph_sha256": "7f2ef45bfd7f4b0cb1a828b3586191aae50db8af7b929350746a512b3c6cddce",
+      "forced_graph_sha256": "a1012759ad793f489a13626c99df9a7f588b0d9a7f7d2a703145981afcfcacbe"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

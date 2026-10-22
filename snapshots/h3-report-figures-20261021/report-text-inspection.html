@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>视频编辑中动作时间对齐-研究进展v1</title>
+<style>
+:root{--ink:#192633;--muted:#5d6975;--green:#17785d;--line:#d9e0e5;--paper:#fff;--bg:#f3f3ef;--amber:#8b551f}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.85 "Songti SC","Noto Serif CJK SC",Georgia,serif}a{color:#1c6b87;text-decoration:none}a:hover{text-decoration:underline}nav{position:sticky;top:0;background:#ffffffed;border-bottom:1px solid var(--line);padding:10px 20px;z-index:10;display:flex;justify-content:center;gap:28px;font:14px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;backdrop-filter:blur(8px)}main{max-width:1450px;margin:24px auto 70px;background:var(--paper);padding:48px 60px 65px;box-shadow:0 3px 24px #1527370a}header{text-align:center;max-width:1000px;margin:auto auto 38px}h1{font-size:39px;line-height:1.45;letter-spacing:1px;margin:15px 0 12px}.subtitle{font:19px/1.6 -apple-system,"PingFang SC",sans-serif;color:var(--muted)}.meta,.eyebrow{font:13px/1.7 -apple-system,"PingFang SC",sans-serif;color:var(--muted);letter-spacing:1px}.meta{margin:18px 0}h2{font-size:27px;line-height:1.5;margin:48px 0 20px;border-bottom:1px solid var(--line);padding-bottom:10px;scroll-margin-top:65px}h3{font-size:21px;margin:28px 0 10px;line-height:1.6}p{margin:12px 0}.prose{max-width:1000px;margin-left:auto;margin-right:auto}.abstract{max-width:1000px;margin:auto;padding:22px 32px;background:#f8faf9;border-top:2px solid #365f54;border-bottom:1px solid #d4ded9}.abstract h2{font-size:21px;text-align:center;margin:0 0 10px;padding:0;border:0}.abstract p{margin:0}.status{font:16px/1.8 -apple-system,"PingFang SC",sans-serif;border-left:3px solid var(--green);padding:10px 18px;background:#f4f8f6;margin:20px 0}.fig{margin:26px 0;border:1px solid var(--line);border-radius:5px;padding:18px;background:#fff}.fig svg{display:block;width:100%;height:auto}figcaption,figcaption.imagecaption{font:700 15px/1.75 "Heiti SC","STHeiti","SimHei","Noto Sans CJK SC",sans-serif;color:#000;text-align:center;margin:12px 0 0}.eq{font:21px/1.9 "Times New Roman",Georgia,serif;background:#f7f8fa;border-left:3px solid #9eacb9;padding:13px 24px;margin:20px 0;overflow:auto;text-align:center}.eq small{font:15px/1.6 -apple-system,"PingFang SC",sans-serif;display:block;color:var(--muted);margin-top:6px}.eq .row{display:block}.math{font-family:"Times New Roman",serif;font-style:italic}table{border-collapse:collapse;width:100%;font:16px/1.65 -apple-system,"PingFang SC",sans-serif;margin:18px 0}th{text-align:left;font-weight:600;border-top:2px solid #596c7b;border-bottom:1px solid #a6b4bf;padding:13px 12px;background:#f7f9fa}td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}tbody tr:last-child td{border-bottom:2px solid #a6b4bf}.note{font:15px/1.8 -apple-system,"PingFang SC",sans-serif;color:var(--muted)}.tag{display:inline-block;font:13px/1.5 -apple-system,"PingFang SC",sans-serif;background:#e7f2ed;color:var(--green);padding:3px 8px;border-radius:4px;margin-right:8px}.pending{background:#fbf0df;color:var(--amber)}.examples{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:20px}.example{padding:24px;border:1px solid var(--line);border-radius:6px;background:#fafbf9}.example h3{margin:0 0 12px}.example .inputs{display:flex;gap:12px;align-items:center;background:#080808;border-radius:3px;min-height:260px}.example img{width:31%;height:260px;object-fit:contain}.example video{width:67%;max-height:290px}.example .single{width:100%;max-height:290px}.prompt{font:16px/1.7 -apple-system,"PingFang SC",sans-serif;background:#f0f3f5;padding:12px 15px;border-left:3px solid #a5b8c5;overflow-wrap:anywhere}.result{margin:34px 0 40px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:white}.resulthead{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:15px 20px;background:#f7f9fa}.resulthead h3{font-size:21px;margin:0}.resulthead span{font:14px/1.5 -apple-system,"PingFang SC",sans-serif;color:var(--muted)}.result img,.result video{display:block;width:100%;height:auto;background:black}.result img{margin-bottom:10px}.result figcaption{padding:0 20px 18px;margin:0}.labelnote{display:block;font-size:13px;margin-top:4px}.controls{display:flex;gap:8px;padding:10px 20px}button{background:white;border:1px solid #becbd3;border-radius:5px;padding:6px 12px;color:#31485b;font:14px/1.5 -apple-system,sans-serif;cursor:pointer}button:hover{background:#edf6f1}details{margin:16px 0;font:15px/1.8 -apple-system,"PingFang SC",sans-serif}summary{cursor:pointer;color:#31566c}code{font:14px/1.5 ui-monospace,Menlo,monospace;background:#eef1f4;padding:1px 4px;border-radius:3px}.refs{font:15px/1.8 -apple-system,"PingFang SC",sans-serif}.refs p{margin:9px 0}footer{margin-top:45px;padding-top:18px;border-top:1px solid var(--line);font:13px/1.7 -apple-system,"PingFang SC",sans-serif;color:var(--muted)}.scroll{overflow:auto}
+@media(max-width:900px){main{padding:28px 20px;margin:0}h1{font-size:30px}body{font-size:17px}.examples{grid-template-columns:1fr}.abstract{padding:18px}.resulthead{display:block}nav{gap:16px;font-size:12px}.fig{padding:5px}table{font-size:14px}}
+@media print{nav,.controls{display:none}main{box-shadow:none;margin:0;padding:0}body{background:white;font-size:12pt}h2{break-after:avoid}figure,table,.example{break-inside:avoid}video{display:none}a{color:inherit}.result img{margin:0}.fig svg{max-height:170mm}.examples{grid-template-columns:1fr 1fr}.abstract{background:white}.resulthead h3{font-size:14pt}}
+.inputnote{font:15px/1.8 -apple-system,"PingFang SC",sans-serif;padding:12px 20px;border-bottom:1px solid var(--line)}.inputnote p{margin:3px 0}.inputnote pre{white-space:pre-wrap;font:14px/1.7 -apple-system,"PingFang SC",sans-serif;overflow-wrap:anywhere}.imagecaption{padding:9px 20px 14px;font:15px/1.7 -apple-system,"PingFang SC",sans-serif;color:var(--muted)}.mfcase{border:1px solid var(--line);border-radius:5px;padding:22px;margin:24px 0}.mfcase img{display:block;width:100%;height:auto}.mfcase h3{margin-top:0}.scores{display:flex;gap:28px;flex-wrap:wrap;font:18px/1.8 -apple-system,"PingFang SC",sans-serif;margin:14px 0}.scores b{font-size:24px;color:#294b62}.result figure{margin:0}.result img{margin:0}.result video{max-height:78vh;object-fit:contain}.dual-figure{overflow-x:auto}
+</style></head><body>
+<nav aria-label="章节导航"><a href="#abstract">摘要</a><a href="#related">相关工作</a><a href="#method">方法</a><a href="#experiments">实验</a><a href="#discussion">结论与后续工作</a></nav>
+<main>
+<header><div class="eyebrow">RESEARCH PROGRESS · 2026.10.21</div><h1>视频编辑中动作时间对齐-研究进展v1</h1></header>
+<section id="abstract" class="abstract"><h2>摘要</h2><p>角色替换与外观编辑可能改变源视频中局部动作的发生时间，导致编辑结果与源动作在时间上错位。针对这一问题，我们在 MiniMax H3 上研究一种 training-free 的路由方法。在 DiT 的 MM Self-Attention 中限制目标视频 query 只能关注对应 VAE 时间 bin 内的参考视频token，从而直接加强源视频特定时间的特征。最新十组对照实验中，引导幅度为α = 0.25 的全程弱引导优于 α = 1 在固定去噪区间的强引导；同时进一步测试双向时间 Attention。实验基于 FlexiAct 和 IVEBench 公开数据进行视频编辑任务，可以减小部分样例的局部动作时间误差，但改善主要提现在常规编辑后出现动作错误的任务结果。</p></section>
+
+<section id="related"><div class="prose"><h2>1　相关工作</h2>
+<p><b>动作迁移。</b><a href="https://arxiv.org/html/2505.03730v1">FlexiAct</a> 在 CogVideoX 上训练 RefAdapter，并为参考动作学习 embedding；推理时按去噪阶段调节相应 Attention。其 benchmark 提供动作视频、目标角色图及 caption。我们使用这些公开输入测试 H3 的动作保持能力。</p>
+<p><b>源与目标的时间同步。</b><a href="https://arxiv.org/html/2609.11638v1#S3.SS2">Vidu S2-Editing</a> 的 frame-aligned attention 让目标帧读取同一时刻的源帧；<a href="https://arxiv.org/html/2608.06009v2">Wan-Animate-2</a> 将 Sparse-Ref Attention 与时间对齐的 RoPE 用于角色动画。两者都在训练中加入对应结构。我们在冻结的 H3 上测试这一时间约束，同时保留每个 query 原有的参考视频概率总和。</p>
+<p><b>Attention 与特征控制。</b><a href="https://arxiv.org/html/2609.11507v1">DIAL</a> 依据主体空间注意力图，在视频 query 到参考图 key 的 logits 上加偏置，控制主体参考强度。<a href="https://arxiv.org/html/2609.35708v1">RefGAP</a> 根据编辑区域和保留区域的参考 Attention 概率总和，动态计算正、负 logit 偏置。<a href="https://arxiv.org/html/2405.17661v1">RefDrop</a> 将参考与自身 Attention 输出线性组合，控制外观一致性。我们的方案沿用分组 Attention 运算，保留参考视频的概率总和，按物理时间重分配其内部权重。</p>
+
+
+</div></section>
+
+<section id="method"><div class="prose"><h2>2　方法</h2><h3>2.1　输入表征与干预接口</h3>
+<p>参考视频与可选的角色参考图经 VAE 编码，得到 <span class="math">T′×H′×W′</span> 的 latent 网格，patchify 后展开为视觉 tokens。文本条件经过投影和 Token Refiner。参考 tokens、文本 tokens、带噪音频与带噪视频 tokens 进入同一序列，在 50 个 DiT Block 中计算多模态 self-attention。</p>
+<p><b>每个 Block 中，Q/K 经过归一化和 RoPE，再计算 softmax Attention 与加权 Value 和。我们的补丁位于这个加权和 O 之后、Attention 输出投影 W<sub>O</sub> 之前。</b>正向引导修改输出视频 query 对参考视频 tokens 的加权特征；双向变体还修改参考视频 query 对输出视频 tokens 的加权特征。更新后的 O 继续进入残差、FFN 和后续 Block，最终改变本步预测的 flow velocity。</p></div>
+<figure class="fig">[SVG]<figcaption>图 1．H3 Ref2VA 的单次去噪流程与 Attention 干预位置。</figcaption></figure>
+<div class="prose"><p><b>Temporal bin 表示 latent 的时间索引。</b>它决定输出 query 应与参考视频的哪个时间位置对应。物理帧映射为 bin 后，当前执行器处理该 bin 中的全部空间 patch tokens。采样步则决定在哪次去噪前向启用补丁；两种时间坐标分别记录。</p></div>
+<figure class="fig">[SVG]<figcaption>图 2．视频物理时间、latent temporal bin 与去噪步的关系。</figcaption></figure>
+
+<div class="prose"><h3>2.2　参考视频时间对齐引导</h3>
+<p>对某个输出视频 query，普通 self-attention 会给参考视频中不同时间、不同空间位置的 key 分配权重。记 softmax 后的权重为 <span class="math">A</span>，参考视频 tokens 为 <span class="math">R</span>，与该 query 具有相同相对 temporal bin 的参考 tokens 为 <span class="math">Rτ</span>。</p>
+<p><span class="math">m<sub>q</sub></span> 是该 query 在一个 Attention head 中分配给全部参考视频 tokens 的概率总和；<span class="math">z<sub>q</sub></span> 是参考视频内部归一化权重对 Value 的加权和。重新对 <span class="math">Rτ</span> 内的 QK logits 做 softmax，得到同一时间位置的加权特征 <span class="math">z<sub>q,τ</sub></span>。</p></div>
+<figure class="fig">[SVG]<figcaption>图 3．参考视频 Attention 时间权重的重分配。</figcaption></figure>
+<div class="prose"><div class="eq"><span class="row">A = softmax(QKᵀ / √d)　，　O = AV</span><span class="row">m<sub>q</sub> = ∑<sub>j∈R</sub> A<sub>qj</sub>　，　z<sub>q</sub> = ∑<sub>j∈R</sub> (A<sub>qj</sub> / m<sub>q</sub>) V<sub>j</sub></span><span class="row">z<sub>q,τ</sub> = softmax(qK<sub>Rτ</sub>ᵀ / √d) V<sub>Rτ</sub></span><span class="row"><b>O′<sub>q</sub> = O<sub>q</sub> + αm<sub>q</sub>(z<sub>q,τ</sub> − z<sub>q</sub>)</b></span><small>α 为替换比例。区间强引导取 α = 1，全程弱引导取 α = 0.25；实现计算 m = exp(LSE<sub>R</sub> − LSE<sub>all</sub>)，其中 LSE 是对应 QK logits 的 log-sum-exp。</small></div>
+<p>这相当于把参考视频内部的概率分布改为 <span class="math">(1−α)p<sub>R</sub>+αp<sub>Rτ</sub></span>。当 α=1 时，该 query 的参考视频权重全部分配到对应 temporal bin；同一 bin 内的空间匹配仍由 QK 相似度决定。代码通过加权 Value 和的差值实现这个变换。</p><p>参考视频的 Value 同时包含外观与动作信息，并在后续 Block 中持续参与多模态交互。保持 m 约束当前 Attention head 的参考概率总和；时间权重的重分配仍会改变加权后的 Value 特征，并经残差与后续层影响最终编辑。因此，实验同时检查编辑完成度与动作时间。</p></div>
+<details class="prose"><summary>与 logit 操作的数学关系</summary><p>令参考 logits 的指数和为 Z<sub>R</sub>，目标组内分布为 p′。将参考 logits 设为 log Z<sub>R</sub>+log p′，即可保持参考概率总和，并得到与上述输出公式相同的结果。两种写法属于同一概率变换。当前实验比较同时间参考约束的引导区间、强度，以及正向与双向结构。</p></details>
+<figure class="fig">[SVG]<figcaption>图 4．参考视频 Attention 的时间概率分布。左：普通 Attention 的实测分布；右：相同 Q/K/V 在 α = 1 时的重分配结果。横轴为参考视频时间 bin，纵轴为输出视频时间 bin。</figcaption></figure>
+<div class="prose"><p>本方法在采样过程中直接应用。区间实验比较第 1–9、7–15、12–20、1–4＋16–20 步的 α=1 引导，以及第 1–20 步的 α=0.25 弱引导，均作用于全部 50 个 Block。强引导沿用各样例原定的视频时间窗口，全程弱引导覆盖全部有效视频时间。每组普通编辑与引导编辑使用相同输入、提示词、初始噪声及采样器。</p>
+
+</div><div class="prose"><h3>2.3　双向时间 Attention</h3>
+<p>正向引导约束<strong>生成 query → 参考视频 K/V</strong>。双向变体进一步约束<strong>参考 query → 生成视频 K/V</strong>：两组 query 分别从对方视频的同时间 bin 提取特征，并在 Attention 输出投影前更新各自的 head 输出。</p>
+<p>在同一个 DiT Block 中，两向计算共用原始 Q、K、V 和 Joint Attention 输出。参考 tokens 的 hidden states 经输出投影、残差与 FFN 更新后，进入后续 Block；后续层的生成 query 再读取这些参考特征。每个采样步仍从固定的参考 latent 构建条件序列。</p></div>
+<figure class="fig">[SVG]<figcaption>图 5．双向时间 Attention：同时修正生成与参考两组 query 的 Attention 输出，更新后的参考 hidden states 传入后续 DiT Block。</figcaption></figure>
+<div class="prose"><p>记生成视频 token 集合为 T、参考视频集合为 R。沿用 2.2 节的组内归一化 Value 加权和，正向与反向修正分别为：</p>
+<div class="eq"><span class="row">O′<sub>T</sub> = O<sub>T</sub> + α m<sub>R</sub>(μ<sub>R,same</sub> − μ<sub>R,all</sub>)</span><span class="row">O′<sub>R</sub> = O<sub>R</sub> + β m<sub>T</sub>(μ<sub>T,same</sub> − μ<sub>T,all</sub>)</span><small>m<sub>R</sub>、m<sub>T</sub> 为当前 query 在原 Joint Attention 中分给对方视频组的概率总和；same 表示同时间 bin，all 表示对方视频全部 tokens。</small></div>
+<p>α 控制正向引导，β 控制反向引导。β=0 对应已有正向方法；α=0、β=1 用于单独检查反向作用。已完成的三组结构实验在第 1–9 步取 α=β=1，结果见 3.4 节。</p></div>
+<div class="prose"><h3>2.4　参考分支的时间相位对齐（已暂停）</h3>
+<p>这项尝试在辅助参考 Attention 分支调整 query 的 RoPE 时间相位：保留原始多模态 Attention 的 Q、K 和输出 O，只在额外计算“输出视频 query → 参考视频 keys”时，将 query 的 RoPE 时间相位减去 Δ。该分支仍可读取参考视频的所有时间位置。随后沿用 2.2 节的替换公式，并保持原参考视频概率总和 m。</p>
+<div class="eq"><span class="row">q′ = R<sub>time</sub>(−Δ)q　，　z<sub>q,Δ</sub> = softmax(q′K<sub>R</sub>ᵀ / √d)V<sub>R</sub></span><span class="row">O′<sub>q</sub> = O<sub>q</sub> + αm<sub>q</sub>(z<sub>q,Δ</sub> − z<sub>q</sub>)</span><small>q 已施加原始 RoPE；R<sub>time</sub> 只旋转时间维度，空间维度沿用原值。Δ = t<sub>生成,0</sub> − t<sub>参考,0</sub>，为序列打包产生的 RoPE 时间原点差，单位为模型的位置坐标。</small></div>
+<p>组合配置进一步将上式的参考 K/V 限定为同时间 bin 的 R<sub>τ</sub>，同时保留原参考视频概率总和 m。两种配置均在第 7–15 个去噪步启用，覆盖全部 50 个 Block，α=1。相位单独配置先测试书封改色，组合配置随后测试五组已有样例；结果见 3.4 节。当前固定 Δ 相位配置已暂停。</p></div>
+<figure class="fig">[SVG]<figcaption>图 6．相位单独配置的计算流程：在辅助 Attention 分支旋转视频 query 的时间相位，并将参考特征替换量加入输出。</figcaption></figure>
+</section>
+
+<section id="experiments"><div class="prose"><h2>3　实验</h2><h3>3.1　数据与任务</h3>
+<p><b>FlexiAct</b> 是动作迁移方法及其 benchmark。公开评测集包含 25 类动作、250 个参考视频—目标图像对，图像涵盖真人、动物、动画和游戏角色；每个任务还提供目标 caption，部分 caption 包含动作顺序。任务要求目标图中的角色执行参考视频的动作。<a href="https://arxiv.org/html/2505.03730v1">[论文]</a></p>
+<p><b>IVEBench</b> 是指令式视频编辑 benchmark，包含 400 条短视频和 200 条长视频、8 个编辑类别。主要输入是原视频与 edit_prompt，数据另提供源／目标描述和编辑短语。我们优先选择主体替换、外观或交互物体编辑，并检查原有场景和动作是否保留。<a href="https://arxiv.org/html/2510.11647v1">[论文]</a></p></div>
+<div class="prose"><h3>3.2　引导区间与强度</h3>
+<p>本轮比较 <b>10 项已完成基础编辑的任务，来自 9 条独立参考视频</b>：6 项使用 IVEBench，4 项使用已有舞蹈素材。对每项任务固定提示词、输入、初始噪声与 20 步采样，只改变引导配置。强引导在 7 项任务覆盖全片、3 项舞蹈任务覆盖已有动作窗口；全程弱引导在全部 10 项覆盖全片。新增 45 条区间对照视频，沿用已有普通编辑与第 7–15 步结果。</p>
+<p>平均时间误差统计其中 7 项动作延后的任务：先计算每项任务的绝对时间偏移，再对任务等权平均。六项使用动作转折标注区间的中点差，一项舞蹈沿用手臂动作序列时差。另两项用于检查原本同步的动作保持，一项用于检查短动作恢复。<b>编辑完成率统计全部 10 项任务。</b></p>
+<div class="scroll"><table><thead><tr><th>设置</th><th>引导采样步</th><th>α</th><th>平均绝对时差 ↓（帧）</th><th>编辑完成</th></tr></thead><tbody><tr><td>普通编辑</td><td>—</td><td>0</td><td>11.40</td><td>10/10</td></tr><tr><td>全程弱引导</td><td>1–20</td><td>0.25</td><td><b>0.33</b></td><td>10/10</td></tr><tr><td>早期引导</td><td>1–9</td><td>1</td><td><b>0.86</b></td><td>9/10</td></tr><tr><td>前后分段引导</td><td>1–4＋16–20</td><td>1</td><td><b>2.18</b></td><td>9/10</td></tr><tr><td>原固定区间引导</td><td>7–15</td><td>1</td><td><b>4.22</b></td><td>10/10</td></tr><tr><td>后期引导</td><td>12–20</td><td>1</td><td><b>11.31</b></td><td>10/10</td></tr></tbody></table></div>
+<p><b>全程弱引导配置的平均时差最低，并完成全部十项编辑。</b>固定区间中，第 1–9 步效果最好；早期和前后分段强引导各有一项构图发生改变。当前优先使用 α=0.25 的全程引导。</p>
+<h3>3.3　代表性区间对照</h3>
+<p>下列三组来自 IVEBench，输入均为源视频与编辑文本，无角色参考图。组内完整提示词一致。视频第一行为参考，第二行为普通编辑、1–9 步、7–15 步，第三行为 12–20 步、前后分段、全程弱引导。</p></div>
+<article class="result" id="schedule-short_0252"><div class="resulthead"><h3>角色替换 — 机舱男性替换年长女性</h3><span>IVEBench · short_0252</span></div>
+<div class="inputnote"><p><b>编辑指令：</b>Replace the man with an elderly woman</p><details><summary>完整提示词：参考定义、原编辑句与通用保留要求</summary><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this edit.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;.
+Replace the man with an elderly woman
+
+retention_analysis:
+&lt;Video 1&gt;: Preserve the source video&#x27;s people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.</pre></details></div>
+<figure><img loading="lazy" src="[MEDIA]" alt="角色替换 — 机舱男性替换年长女性七版本同帧对照"><figcaption class="imagecaption">同帧截图：参考、普通编辑、1–9 步、7–15 步、12–20 步、前后分段、全程弱引导。</figcaption></figure>
+<video controls playsinline preload="none" src="[MEDIA]"></video><div class="controls"><button type="button" data-rate="1">1×</button><button type="button" data-rate="0.5">0.5×</button><button type="button" data-restart>从头播放</button></div>
+<div class="imagecaption">早期、中期、分段和全程弱引导都已接近参考动作时间；后期引导仍明显延后。平均绝对时差：普通编辑 15.00 帧，全程弱引导 0.00 帧。</div></article><article class="result" id="schedule-long_0039"><div class="resulthead"><h3>物体改色 — 书本封面改蓝</h3><span>IVEBench · long_0039</span></div>
+<div class="inputnote"><p><b>编辑指令：</b>Adjust the color of book to blue</p><details><summary>完整提示词：参考定义、原编辑句与通用保留要求</summary><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this edit.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;.
+Adjust the color of book to blue
+
+retention_analysis:
+&lt;Video 1&gt;: Preserve the source video&#x27;s people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.</pre></details></div>
+<figure><img loading="lazy" src="[MEDIA]" alt="物体改色 — 书本封面改蓝七版本同帧对照"><figcaption class="imagecaption">同帧截图：参考、普通编辑、1–9 步、7–15 步、12–20 步、前后分段、全程弱引导。</figcaption></figure>
+<video controls playsinline preload="none" src="[MEDIA]"></video><div class="controls"><button type="button" data-rate="1">1×</button><button type="button" data-rate="0.5">0.5×</button><button type="button" data-restart>从头播放</button></div>
+<div class="imagecaption">早期与全程弱引导对齐了已检查的动作；分段和中期部分改善，后期仍有明显延后。平均绝对时差：普通编辑 15.80 帧，全程弱引导 0.00 帧。</div></article><article class="result" id="schedule-short_0358"><div class="resulthead"><h3>外观编辑 — 给饮酒男子戴眼镜</h3><span>IVEBench · short_0358</span></div>
+<div class="inputnote"><p><b>编辑指令：</b>Add a pair of glasses to the man.</p><details><summary>完整提示词：历史 Context-IR 输入适配，包含目标人物和保留内容描述</summary><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for the target video edit and supplies its composition, camera, and temporal structure.
+Source caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.
+&lt;Subject 1&gt; is the man drinking a beer in &lt;Video 1&gt;.
+&lt;Subject 2&gt; is the other man listening attentively in &lt;Video 1&gt;.
+&lt;Subject 3&gt; is the diner scene and table in &lt;Video 1&gt;.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;.
+Add a pair of glasses to the man.
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person&#x27;s other appearance and actions.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.
+&lt;Subject 3&gt; (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.
+&lt;Video 1&gt; (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.
+
+detailed_description:
+[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.
+The two men are &lt;Subject 1&gt; and &lt;Subject 2&gt;, and the setting is &lt;Subject 3&gt;, as shown in &lt;Video 1&gt;.
+
+overall_soundscape:
+The benchmark specifies no audio edit.
+
+non_diegetic_music:
+The benchmark specifies no music edit.</pre></details></div>
+<figure><img loading="lazy" src="[MEDIA]" alt="外观编辑 — 给饮酒男子戴眼镜七版本同帧对照"><figcaption class="imagecaption">同帧截图：参考、普通编辑、1–9 步、7–15 步、12–20 步、前后分段、全程弱引导。</figcaption></figure>
+<video controls playsinline preload="none" src="[MEDIA]"></video><div class="controls"><button type="button" data-rate="1">1×</button><button type="button" data-rate="0.5">0.5×</button><button type="button" data-restart>从头播放</button></div>
+<div class="imagecaption">全程弱引导的时间偏移最小。早期与分段引导改变了构图和旁边人物的姿态。平均绝对时差：普通编辑 6.67 帧，全程弱引导 1.33 帧。</div></article><div class="prose"><h3 id="dual-comparison">3.4　双向结构与全程弱引导对照</h3>
+<p>在同一源视频、提示词与初始噪声下，比较三种已有配置：<b>单向第 1–9 步</b>取 α=1、β=0；<b>单向全程弱引导</b>取 α=0.25、β=0；<b>双向第 1–9 步</b>取 α=β=1。</p>
+<div class="scroll"><table><thead><tr><th rowspan="2">任务</th><th colspan="2">单向第 1–9 步</th><th colspan="2">单向全程弱引导</th><th colspan="2">双向第 1–9 步</th></tr><tr><th>时差 ↓（帧）</th><th>MF ↑</th><th>时差 ↓（帧）</th><th>MF ↑</th><th>时差 ↓（帧）</th><th>MF ↑</th></tr></thead><tbody><tr><td>机舱人物替换</td><td>1.00</td><td>0.8059</td><td>0.00</td><td>0.8203</td><td>0.33</td><td>0.8274</td></tr><tr><td>饮酒男子加眼镜</td><td>3.00</td><td>0.8121</td><td>1.33</td><td>0.8952</td><td>2.00</td><td>0.9143</td></tr><tr><td>Sam 真人舞蹈</td><td>0.00</td><td>0.8527</td><td>0.00</td><td>0.8528</td><td>0.00</td><td>0.8567</td></tr></tbody></table></div>
+<p>前两组统计三个动作的平均绝对时差，舞蹈组使用手臂动作序列时差。Sam 的早期引导作用于原定动作窗口，全程弱引导覆盖全片；前两组均覆盖全片。这张表比较各配置的最终效果。</p>
+<p><b>动作对齐优先采用单向全程弱引导：</b>两组时差更小，一组持平。双向版本的 MF 在三组均较高。全程弱引导与双向引导都完成了三项编辑，并保持了饮酒样例的构图。</p>
+<p>双向结构继续作为候选。下一项结构对照应统一为全程弱引导及相同视频覆盖范围，仅增加反向约束，检查它能否在保持动作对齐的同时改善运动保真度。</p></div>
+<article class="result" id="dual-weak-drink"><div class="resulthead"><h3>外观编辑 — 给饮酒男子戴眼镜</h3><span>IVEBench · short_0358</span></div>
+<div class="inputnote"><p><b>编辑指令：</b>Add a pair of glasses to the man.　<b>输入：</b>源视频与文本，无角色参考图。</p><p>五列依次为参考、普通编辑、单向第 1–9 步、单向全程弱引导、双向第 1–9 步；完整提示词与 3.3 节同一样例一致。</p></div>
+<figure><img loading="lazy" src="[MEDIA]" alt="饮酒样例五版本同帧对比"><figcaption class="imagecaption">同帧对比：参考、普通编辑、单向早期引导、单向全程弱引导、双向早期引导。</figcaption></figure>
+<video controls playsinline preload="none" src="[MEDIA]"></video><div class="controls"><button type="button" data-rate="1">1×</button><button type="button" data-rate="0.5">0.5×</button><button type="button" data-restart>从头播放</button></div>
+<div class="imagecaption">视频上排：参考、普通编辑、单向第 1–9 步；下排：单向全程弱引导、双向第 1–9 步。两种下排配置都保住了构图；全程弱引导时差为 1.33 帧，双向为 2.00 帧。</div></article>
+<div class="prose"><p><b>参考分支相位实验。</b>首轮单独相位测试完成了书封改蓝，五个动作时刻与历史普通版相同；该轮参考输入像素存在差异，保留为探索记录。后续五组配对实验在已有时间对齐引导上增加相位变换，均完成核心编辑：机舱、饮酒和手帕任务的时差持平，书本由 9.20 变为 9.50 帧，Sam 舞蹈由 1 变为 12 帧。当前固定 Δ 配置已暂停。</p>
+<p><b>评价指标。</b>FlexiAct 与 IVEBench 各沿用其官方 Motion Fidelity；本轮 IVEBench 与自有舞蹈的区间、双向对照统一使用 IVEBench MF。MF 汇总跟踪轨迹的一致性，动作时间另外记录。机舱固定引导曾使动作更对齐而全图 MF 下降；同一组轨迹的区域分解显示，目标人物改善被背景与邻座区域的下降抵消。因此同时报告编辑完成度、动作时间和 MF。</p>
+</div></section>
+
+<section id="discussion"><div class="prose"><h2>4　结论与后续工作</h2>
+<p><b>当前优先方案是参考视频时间对齐引导，覆盖全程去噪并取 α=0.25。</b>在七项延后任务中，平均绝对时差由普通编辑的 11.40 帧降至 0.33 帧，十项任务均完成基础编辑。固定区间中，第 1–9 步优于原先沿用的第 7–15 步。</p>
+<p><b>双向时间 Attention 作为候选结构继续检查。</b>与单向全程弱引导相比，双向早期引导的三组 MF 较高，动作时差在两组更大、一组持平。后续统一采样区间、正向强度和视频覆盖范围，测试增加反向约束的收益。</p>
+<p><b>后续测试。</b>优先选择 IVEBench 的主体替换、外观与交互物体编辑，保持官方编辑指令，并固定必要的 H3 输入适配。继续在基础编辑成功且动作延后明显的任务上做同条件配对，同时保留原本同步的样本。每次方法修改先复测已确认有效的案例，联合记录编辑完成、动作时刻、动作持续时间和 MF。</p>
+</div></section>
+<section class="prose refs"><h2>参考资料与实验记录</h2><p><a href="https://arxiv.org/html/2505.03730v1">FlexiAct</a> · <a href="https://arxiv.org/html/2510.11647v1">IVEBench</a> · <a href="https://arxiv.org/html/2609.11507v1">DIAL</a> · <a href="https://arxiv.org/html/2609.04190v1">EditVid</a> · <a href="https://arxiv.org/html/2506.19348v2">MotionEcho</a> · <a href="https://arxiv.org/html/2610.13369v1">Information Bottleneck CFG</a> · <a href="https://arxiv.org/html/2610.13072v1">AV-FlowEdit</a></p>
+<details><summary>实验版本与证据范围</summary><p>区间对照：R149／R150，10 项任务、9 条独立源视频，新增 45 条视频；双向结构：R151，三项任务新增 6 条视频；相位组合复测：R148，五组。视频、截图与对应评分均取自已有完成记录。</p></details></section>
+<footer>结构图、截图和视频均已内嵌，可整体复制离线打开。外部论文链接需要网络。<br>更新日期：2026-10-21。</footer>
+</main><script>
+document.querySelectorAll('.result').forEach(function(panel){var v=panel.querySelector('video');panel.querySelectorAll('[data-rate]').forEach(function(b){b.addEventListener('click',function(){v.playbackRate=Number(b.dataset.rate);});});panel.querySelector('[data-restart]').addEventListener('click',function(){v.currentTime=0;v.play().catch(function(){});});});
+document.querySelectorAll('video').forEach(function(v){v.addEventListener('play',function(){document.querySelectorAll('video').forEach(function(other){if(other!==v)other.pause();});});});
+</script></body></html>

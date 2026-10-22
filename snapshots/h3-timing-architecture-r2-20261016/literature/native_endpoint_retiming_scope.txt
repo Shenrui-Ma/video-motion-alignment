@@ -1,0 +1,80 @@
+Native clean endpoint 局部重计时：边界与前置证据审查
+日期：2026-10-16；只读审查，无实现、GPU、远程操作。
+
+结论
+可以保留一个受限的可行性诊断：当前 native clean 端点是否已经包含正确、但晚出现的目标动作，且可以在 H3 编码相位约束下搬到正确物理时刻。暂不值得直接启动完整闭环重计时实验。R4 已否定旧的“Full 单块提议可由目标自身邻时刻特征逼近”路径；它没有否定所有表示上的时间搬运。但本候选不是全新技术类别，去噪中搬运目标 latent、处理预测 clean endpoint、以测得进度修正生成时间均有明确先例。真正剩下的是 H3 非均匀分块编码下，如何让时间修正既有正确物理含义，又不因插值/状态不一致破坏动作形状；这仍需证据，不能凭组合命名声称架构创新。
+
+一、旧 R4 到底否定了什么
+已读：R2/literature/next_after_mapping_gate.txt；R4/analysis/target_path_feasibility/COMPACT_RESULT.json、RESULTS.json。这里 R2=/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016，R4=/Users/researcher/DevProjects/h3-timing-target-path-r4-20261016。
+
+旧算子在 block25 的 post-SDPA/pre-W_O 表示中，令 Y_t 为 native target feature，C_t 为同 forward 的 Full 修正提议，求单调路径 pi 以最小化 sum_t ||Y_pi(t)-C_t||²，然后打算用目标自身 Y_pi(t) 替代 Y_t。事件 bins14..19、缓冲10..25、|pi(t)-t|≤4，源图预选空间和固定四头。zero-based indices6/10/14 都选恒等，held-out gain=0、advance=0；放掉单调约束后的 free nearest-neighbor cost ratio 也为1。这是实际失败，不是没捕获到数据。保持旧 NO-GO：不要只换名称再做同一个 C/Y 最近邻投影。
+
+本候选改为最终 clean endpoint y_n，并由独立物理 lag 决定 pi，不再以 C 拟合 Y，不在 block25 输出做投影，因此不与 R4 完全等价。共同假设仍然是“目标已经有正确动作，只需搬时间”。R4 没有为此假设提供正证据；当前 gap5 lag 也只给粗时间线索，不能证明待搬区域具有正确动作、幅度和形状。
+
+二、必须先明确的算子
+物理视频时间记 t；去噪调用索引记 n，不能混用。以实际 H3 wrapper 的 clean endpoint 定义为准：
+  y_n = D_native(x_n, sigma_n, conditions)。
+正 lag 表示目标晚了 delta 帧，则目标 t 需要读未来 pi_n(t)=t+delta_n(t)。建议只讨论一个共享、单调的时间映射，固定事件50..65、足够宽且预先规定的过渡缓冲；窗外为恒等。不同时引入未经验证的部位 mask、每像素不同时间或自动事件检测。
+  y'_n = y_n + M * (W_pi(y_n)-y_n)。
+M 若仅为时间窗仍会移动该帧的背景和镜头；M 若为身体空间 mask，则 mask 和时间变换的边界一致性也是额外问题。native y 已受参考条件影响，“来自目标”不保证没有源身份/背景残留。
+
+实际 Euler 在相同 x_n 下使用 y'_n：
+  x_{n+1}' = (sigma_{n+1}/sigma_n) x_n
+           + (1-sigma_{n+1}/sigma_n) y'_n。
+因此 delta x_{n+1}=beta_n M(W_pi(y_n)-y_n)，beta_n=1-sigma_{n+1}/sigma_n。这是修改去噪方向，并非整个 noisy state/ODE 的精确坐标重参数化；不能把 beta 乘以帧数解释成实现了多少帧动作提前。单步端点好看，也可能下一次 native 预测回弹，需沿 R13 的同状态、下一 native 端点检验，而非仅评价被直接搬动的 y'_n。
+
+三、H3 相位不是可以略过的插值细节
+本地编码控制见 R2/analysis/vae_phase_calibration/SUMMARY.txt 与 protocol.json：独立17 RGB帧编码为5槽位，名义覆盖宽度1/4/4/4/4；恒定 RGB 的 latent 有五相位结构。名义中心 c_(5j+p)=17j+a_p，a=(0,2.5,6.5,10.5,14.5)，最终 trimming 另按实际布局处理。这些中心是覆盖区间中点，不是完整神经感受野。FastVideo 实现文档可核对分块/拼接结构，它是第三方实现，不能替代本地实际 VAE 证据：https://haoailab.com/FastVideo/api/fastvideo/models/vaes/minimax_h3_parallel/ 。
+
+禁止把 y[k+3] 当作统一的提前10或12帧：它混了不同槽位。仅在同 p 内取样可定义
+  [W_phase y]_(j,p) = sum_q w_(j,p,q) y_(q,p),
+  sum_q w=1, w≥0，q由 pi(c_(j,p)) 在同相位中心序列中定位。
+这避免直接跨相位混合，却不保证语义正确：同 p 样本间隔17帧，10–14帧的修正通常需混合不同 chunk 的姿态，可能自己制造重影；每相位独立插值还可能使一个5槽位块不再是某个真实17帧片段的编码。gap5 观察器通过延迟控制，不证明这个生成算子安全。
+
+更严格的诊断参照是像素域 retiming 后重新编码：E(W_RGB(D(y)))。它是参照而非默认线上实现：E(D(y))一般不等于y，重编码本身是混淆，并新增VAE开销；恒等映射必须原值返回，另报告单独重编码控制。也不能把 D(W_phase(y)) 与 W_RGB(D(y)) 的不一致全部归为错误，相反需要量化它能否保持动作时刻/幅度/清晰度。若采用连续像素插值，像素基线也会有重影，应明确使用最近帧、线性插值哪一种，不能拿模糊基线掩盖模糊算子。
+
+四、最直接先例：已核对原文/官方代码的精确范围
+
+1. ReTime / Semantic Progress Function（SIGGRAPH 2026）
+原文 https://arxiv.org/html/2604.22554v1 ，§4.1 Eq7、9、12–13：由语义进度 S 的逆函数得到时间映射，再修改 temporal RoPE，按频带和去噪步控制强度；生成后重测并迭代。其 Latent-Space Mapping 已显式按 Wan 压缩帧覆盖中心插值时间坐标。官方代码 retime.py 114–146、160–183 确实替换 temporal RoPE frequencies，没有在这些位置 gather 当前 clean latent：
+https://github.com/SagiPolaczek/semantic-progress-function/blob/bf5a388378d5153a9b25ae4a64c2de377e62f48f/spf/retime.py#L114
+所以“测时间误差→重计时”“考虑VAE物理中心”都已知。当前差异是参考相对动作时间、当前端点值搬运、H3五相位；不能只靠换成 H3/局部 lag 建立充分创新。
+
+2. Upscale-A-Video（CVPR 2024）：比笼统的 latent warp 更直接
+原论文 https://arxiv.org/abs/2312.06640 ；本次 PDF 入口读取失败，以下关键判定直接来自作者实现，不从二手摘要补公式。官方 commit 10ca1d751cad25b8ac0b9b0cab415a82d9df1ac6：
+https://github.com/sczhou/Upscale-A-Video/blob/10ca1d751cad25b8ac0b9b0cab415a82d9df1ac6/models_video/pipeline_upscale_a_video.py#L647
+647–659 先 step_v0 产生 x0，选定步对 x0 做 propagator，再 step_vt 用修改后的 x0 更新 noisy latent。propagation_module.py 234–254 使用光流可靠性 mask：
+  h_i = M_i[beta W_flow(h_prev)+(1-beta)y_i]+(1-M_i)y_i。
+https://github.com/sczhou/Upscale-A-Video/blob/10ca1d751cad25b8ac0b9b0cab415a82d9df1ac6/models_video/propagation_module.py#L234
+推理设置 learnable=False，nearest warp、beta=.5；完整超分模型另有训练。此实现直接覆盖“目标自身 clean endpoint 搬运/融合后进入下一步”的计算原语。它按源空间光流传播以减闪烁，本候选按跨身份物理时间误差做局部时轴重参数化；这可作为实际不同目标和算子约束，不能主张首次端点 warp 或首次无训练目标值路径。
+
+3. LatentWarp（2023）
+https://arxiv.org/html/2311.00353v1 ，§4.1–4.3。保存前帧各去噪步 latent，以原视频双向光流和遮挡/残差 mask 对当前帧 latent 对齐。这里是沿空间对应传播前帧的 noisy latent，不是仅修改本次全视频 clean endpoint 的物理时间。不过“参考提供对应关系、外观值来自已生成目标、无训练搬运”已明确存在。
+
+4. FLATTEN / FRESCO / TokenFlow
+FLATTEN §3.2–3.3 Eq7–9 用源光流轨迹，从 dense attention 输出 H 中 gather 目标 K/V，再以 H 作 Q 做注意力；不加训练参数。https://arxiv.org/html/2310.05922v2 。
+FRESCO §3.3 Eq4–6 优化目标中间特征的光流对应和空间自相似，§3.4 再做对应约束 attention。特别 §4.2 图13 报告在其 SD 架构直接优化 compact clean latent 会出现模糊/过饱和；这是反对“换到x0必然更安全”的实证先例，并不直接证明 H3 会失败。https://arxiv.org/html/2403.12962v1 。
+TokenFlow 官方代码以源特征 cosine 最近邻获得 index，再 gather/融合编辑后关键帧 attention output，已经实现对应和值来源分离；位置是 feature 而非 H3 clean endpoint。https://github.com/omerbt/TokenFlow/blob/5dd6a696277e9d18c23adc034dc4c052ccd64cb5/tokenflow_utils.py#L335 （335–343、354–364、372–390）。
+这三者都是必需近邻，不因表示不同而忽略；当前候选应证明独立的动作时间校正，而非仅重新实现时空特征传播。
+
+5. FlowMotion
+https://arxiv.org/html/2603.06289v2 ，§3.2 Eq2–3、§3.3 Eq4–5、§3.4 Eq6以后：从源/目标 predicted clean latent 提取并匹配整体与跨帧差分，加速度方向约束；源需另做加噪预测。它不是按估计 pi 从目标端点自取值。当前可区分的假设是“目标已存在的动作只换时间，无源外观值对齐/无端点梯度优化”。这些限定需与实际 FlowMotion adaptation 对照，不能主张首次用 x0 运动信息或首次无需教师。
+
+6. Warped Diffusion（ICLR 2025）给状态一致性反例
+https://arxiv.org/html/2410.16152v2 ，§3.2、附录A.3讨论对空间 warp 的 denoiser equivariance；推导中 noisy state 与预测必须按同一变换处理，才把一步性质传至整条采样。它处理空间形变并采用相关噪声机制，不是本候选的局部时间延迟修复，但说明不能仅 warp 一个预测就声称完整采样具有时间重参数化等变性。
+
+本次在这些具体方法/实现中未看到同时满足“当前 H3 native clean端点、跨身份参考物理lag、五相位不混合、局部时间warp、下一native保持”的完整实现。这是限定检索结果，不是空白证明；已有覆盖足以否定‘单独换时间/值来源就是全新架构’的说法。
+
+五、最小必要前置证据；先不跑完整生成
+A. 动作确实存在：只用已存 native 端点，预先固定一个较早检查点（建议 zero-based index6，第7次模型调用），事件50..65和缓冲；不要看到结果再挑checkpoint/手/相位。检查其解码视频在 t+delta 是否有正确姿态和幅度，沿既有 pose support/shape 规则保留 unknown；晚时刻/最终视频的动作存在不替代早期端点证据。没有匹配姿态，retime不能创造它，直接拒绝该动作上的候选。
+
+B. 先做便宜的像素上界：在现成端点解码上，采用同一预注册 pi 做普通帧重采样，比较lag、shape/support、相邻速度、过渡缓冲和外观。delta只能来自冻结observer（另报告oracle上界），不能用最终目标人工挑映射。若这一步都无法修动作且保持形状，先别进行 latent warp。它通过只说明素材里有可搬内容，不证明latent算子或在线控制成立。
+
+C. 相位传递门：至少包含恒等、已知RGB平移±4/±8、恒定视频；要比较“RGB先warp再编码”与“同相位latent取样再解码”，同时保留无重计时重编码控制。现有shift控制数据可复用编码端，但若还需新解码由root单独安排；本审查未运行。若同相位方案只对17整倍数有效，或短动作形状损伤与普通跨相位插值相当，则当前算子不适合10–14帧修复，不用继续扫增益。
+
+D. 只有A/B/C过门后才值得最小同状态单步分叉：native更新 vs retimed-endpoint更新，下一状态各用未改动 native 模型预测；验下一native端点而非直接被warp的图。之后才考虑完整轨迹。固定Full、native、最终视频同样pi的纯后处理是必须对照：若在线方案没有超过后处理的边界连续性/形状保真，贡献应定位普通retiming工具，不能靠20步再执行装成模型机制。
+
+六、判断与可能贡献
+目前保留“端点时间搬运的相位安全性”作为一个有明确失败门的前置诊断；不重复 R4 GPU、不直接实现完整闭环。目标值路径有潜力减少源外观混入，但重影也可能由目标插值/过渡和非等变采样导致，不能预支结论。若能证明 H3 多相位约束是必要的、动作确实在端点中可恢复、下一native能保留修正，并在正常样例和第二身份/片段上避免破坏，才有机会形成可用的结构改进加评估贡献。单一样例延后降低、换模型、换信号、无教师、训练自由和模块拼接都不足以独立建立新颖性。
+
+本报告只写入此文件；未修改旧失败结论、协议或任何运行文件。未读取尚未通知的 R12/R13 结果，未以它们预支是否值得上线。

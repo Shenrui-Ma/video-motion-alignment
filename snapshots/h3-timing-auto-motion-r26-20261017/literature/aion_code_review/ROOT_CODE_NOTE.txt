@@ -1,0 +1,26 @@
+AION fixed-code follow-up, read-only, 2026-10-17
+Commit 8aa38b848d7cdd4ca38898e1c178c9a65f7ab13e.
+https://github.com/shahriar0651/AION/blob/8aa38b848d7cdd4ca38898e1c178c9a65f7ab13e/eval_util/thresholding.py
+https://github.com/shahriar0651/AION/blob/8aa38b848d7cdd4ca38898e1c178c9a65f7ab13e/evaluate_defense.py
+
+The inspected code contains benign-score percentile, mean/std, median/IQR and
+maximum-margin global thresholds. get_benign_scores selects data labeled Benign.
+The sliding-window percentile uses a centered window, including future indices.
+The smoothing variant also uses centered neighborhoods and initializes from the
+first full window. CUSUM initializes from the first baseline window. The inspected
+evaluation entry point averages each adaptive threshold array before evaluation.
+These paths therefore do not directly supply a causally available per-denoising
+step threshold for our controller. This does not establish absence of all other
+AION online implementations. No project code was executed or installed.
+
+The official paper identifies trained cross-modal representations plus DTW for
+sensor timing attacks. Its abstract/full-body opening was read at the ICLR venue;
+web fetches of Appendix H failed. A search-index excerpt describes benign-only
+global percentile calibration, but this note does not treat the unread appendix
+as fully audited. The fixed source above directly confirms the listed code paths.
+
+Implication: global/adaptive score thresholds and time-alignment anomaly detection
+are existing ideas. Source-video perturbation calibration for cross-identity
+intermediate predictions still needs its own validation; causal availability and
+calibration distribution must be explicit. Do not use future denoising outcomes
+in a threshold advertised as an online decision.

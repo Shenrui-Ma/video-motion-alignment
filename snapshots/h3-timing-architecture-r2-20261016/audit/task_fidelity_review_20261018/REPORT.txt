@@ -1,0 +1,87 @@
+原视频局部编辑任务忠实度审计
+2026-10-18；只读实际部署、运行记录和源码。未运行 GPU、未改队列。
+
+结论
+
+1. R64/R69 的完整准备视频进入了 Qwen 语义分支和 VAE→DiT 稠密参考分支。实际运行记录没有显示视频漏接、只输入首帧、或把 2 fps 语义抽帧误用于稠密参考的情况。
+2. 这些实验从独立随机 target latent 生成整段视频，源视频提供条件约束。当前工作流没有未编辑区域的硬拷贝、mask 锁定、源视频 inversion 或局部合成。因而条件接通与背景逐像素保留是两项不同的性质。
+3. R64/R69 P0 只传入官方短句编辑指令；R73 P1 明确写出 video editing、source video 和未编辑场景/相机/动作保留。R64/R69 与 R73 的输入样例不同，运行主机也不同，跨批观察无法单独归因到提示词。
+4. 已有 R71 提供一条更直接的对照：同源、同实际 VAE/Qwen 输入、同初始 AV noise、同主机/采样的两条普通编辑，仅提示协议组合改变。P1 在六个预定同帧检查点保留蓝幕、站姿、白衣黑结和相近手势；P0 变成暖色房间中的坐姿男性。它支持该样例的任务偏离可由提示适配缓解。它没有证明所有失败都来自提示，也没有分离格式、源/目标描述和保留语句各自的贡献。
+5. Flex 现有任务要求把动作迁移到目标图片人物及场景。其背景改变符合当时使用的 P0/P1 指令。它适合测跨人物动作迁移，对用户当前“原场景内仅修改主体/局部”的要求属于另一种任务设置。
+
+一、实际记录覆盖
+
+ACTUAL_EVIDENCE_MANIFEST.json 保存只读 SSH 收集时间、远端路径和 166 项小文件 SHA。
+CHECKS.json 可由 audit_actual.py 重算。此次快照覆盖 26 个计划 graph、20 个已提交 run、19 个成功 history、9 个完成 Native/forced 对。
+R64：0092/0114/0126/0392 各两条，共 8 个成功。
+R69：0230/0263/0352/0370 各两条，共 8 个成功。
+R73：0252 两条及 0344 Native 成功；0344 forced 在快照时运行；其余 6 条尚无实际执行证据。
+所有成功 history 的实际 graph 与部署 graph 完全相同，job 记录的 graph SHA 也一致。13 个计划对的两臂 prompt、视频文件和长度相同；已有两臂 conditioning 的对，其实际 source RGB 和 clean reference latent 相同。
+
+所有成功 run 均有 20 次 forward 和实际 reference layout；Native 为 0 次路由干预，forced 为 450 次。参考 token 数来自实际 VAE 时长和分辨率，而非两帧缩略图。ref_img 是源码中视觉参考段的通用名称，实际 metadata.kind=video，包含多个时间 bin。
+
+二、真实输入路径与完整性
+
+各实际 graph：
+LoadVideo(22) → GetVideoComponents(23).IMAGE → H3EventAuditReference(5).ref_video
+VAELoader(3) → 节点 5.vae
+节点 5.CONDITIONING → H3PairConditionSnapshot(51) → BasicGuider(7)
+节点 5.empty target → 节点 51.target → SamplerCustomAdvanced(10)
+
+本地审计源码保存在 actual/{host41,host9}/core。五个检查的核心源码 SHA 在两主机一致。H3EventAudit 的 wrapper 调用 MiniMaxH3ReferenceToVideo.execute，给 ref_videos={ref_video_0: 全部 IMAGE tensor}，并传入实际 VAE。
+
+nodes_minimax_h3.py:320–348：先按画布规格 resize，必要时匹配目标长度和 17k+5 帧约束。Qwen 单独取每 12 帧一张，时间戳按 24 fps；VAE.encode 接收整个 prepared frames。此次所有已有 conditioning 的 prepared frames 长度与 graph 请求长度一致，未在节点内再次截掉尾部。
+model_base.py:2192–2216：minimax_refs 内 clean latent 加入 minimax_payload.cond_video_latents，构造实际 PackedLayout。
+model.py:532–546、696–732：参考视频 patchify、0.999 参考噪声增强、投影，并与 target 视频、音频和文本一起进入 DiT 序列。
+
+例子：R64 0092 实际 [73,736,1312,3] → VAE [1,24,22,46,82]；R69 0370 为 90 帧；R73 0252 为 107 帧。语义分支分别只看 7/8/9 个采样帧，但稠密参考保留全部准备帧。有效原视频前缀、尾部 padding 和原文件的区别保留在各 source manifest；“完整”在此指既定准备视频张量完整传入，并非声称无任何 resize/padding。
+
+nodes_minimax_h3.py:84–91、291：target 由零视频/音频 latent 创建。
+model_sampling.py:94–97：flow noise_scaling = sigma*s*noise + (1-sigma)*latent_image；本配置首 sigma=1。
+因此源视频位于 reference 条件中，target 起点独立采样。官方 Ref2VA 支持这种基于参考的编辑表达；该事实不提供未编辑像素的硬约束。
+
+源码还存在 MiniMaxH3FunControlNetApply（nodes_minimax_h3.py:573–615），其 schema 要求额外 model_patch，并描述为向 text-to-video 模型添加控制网络。它属于另一套带附加权重的控制路径；当前 Ref2VA 未使用它，不能据此判定漏接必需节点。
+
+三、P0/P1 与官方协议的差异
+
+R64 四条和 R69 四条 P0 均逐字等于 original_task.edit_prompt。例如：
+0092：Remove the plants in the room
+0370：Change the blue clothes to white
+P0 没有 [video editing]、<Video 1> 角色声明、源/目标完整描述、保留未编辑内容的文字。
+
+R73 P1 将官方 source_prompt、edit_prompt、target_prompt 放入六段结构，summary 声明编辑 <Video 1>，retention_analysis 要求保留原动作次序/时刻/持续时间、姿态、相机及未编辑场景。五条均只有一个参考视频，没有额外人物图片或目标背景图。
+P1 加入的动作时刻与幅度限制属于我们为了研究任务添加的约束。其模板没有逐对象列 Subject，也未对全部局部编辑逐项列出可变/不变区域，因此它是可核验的格式适配，不能等同于托管 Context-IR 的完整输出。
+
+MiniMax 官方 ref-en.txt §3 区分 video editing 和仅提供动作/镜头参考的 reference generation；video editing 的 summary 要标明目标是源视频的编辑版本。官方 README 的 Ref2VA 示例保留草地、照明、背景羊群和构图，只修改主体说话行为。官方 README 同时说明 Context-IR 是未开源的托管流程，可自行按指南做适配。
+这些一手资料支持在当前局部编辑任务中明确源视频角色与保留范围。它们没有承诺特定短句、模板或单个 seed 必定保持原场景。
+
+官方来源（固定 commit，可与 official/ 本地副本核对）：
+https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/skills/h3-prompt-writing/references/ref-en.txt
+https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/README.md
+https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/scripts/readme/reproducible-768p-ref2va-request.sh
+本次再次读取官方网页，未采用第三方说明替代源码。
+
+四、Flex 任务范围
+
+官方 FlexiAct 的任务是将参考视频动作转移到任意目标图片，允许人物布局、视角和骨架结构变化：
+https://github.com/shiyi-zh0408/FlexiAct#%EF%B8%8F-method-overview
+
+现有 P0 文件 flex/P0_prompt.txt 明确要求保留参考图片的场景；R74 P1 进一步把 Picture 1 的背景定义为 Subject 2，并要求 fully_preserved。原视频的场景因此不在保留合同内。当前用户要在原视频场景中换人，则应单独定义：Video 1 提供场景、镜头、动作；Picture 1 只提供替换人物外观。把这一新版任务跑在 Flex 素材上可作补充实验，但要标记自定义编辑协议，不能直接视为原 Flex 官方任务结果。
+
+五、已有 R71 证据与最小补充实验
+
+r71/PAIR_RUNTIME_GATE.json：22 项通过，两条都是 20 Euler/20 NFE、routed_blocks=0；source RGB、VAE、Qwen presentation、shape 和实际初始 AV noise 相同，文本条件分别计算。
+r71/HUMAN_REVIEW.json：六点预先固定同帧检查，P1 场景/动作保持明显改善。此次独立复看 six_times.png 与记录一致。物理诊断中 P0 缺足够躯干支持，不能把 P0→P1 报成一个可靠的“延迟减少多少毫秒”。
+R71 已证明一条提示组合适配的作用，后续可用一条更局部的颜色编辑复核任务适配范围。
+
+建议 R78：沿 R69 short_0370，蓝衣→白衣。两条均 Native，同主机 .41、同原视频 SHA/90 帧/89 有效帧/1312×736/24 fps/seed/实际初始 AV noise/20 Euler/相同模型与内核。P0 原句；P1 使用现有 R73 结构，原 edit_prompt 逐字保留，明确保留同一人物、原房间、木质家具、杯子、喝水动作及镜头。不添加路由/时间窗口干预。
+允许变化的是文本及其自然派生的 embedding、token 长度、序列绝对坐标和去噪轨迹。P0/P1 不能要求文本条件或前 6 步输出一致；它们本来就在比较条件理解。
+执行前固定源时间点和未编辑场景对象，分别审核编辑是否完成、原场景/物体是否保留、动作内容是否仍可对应，再分析可测的动作时间。以全部有效帧供肉眼复核，保留失败输出。
+
+结果解释：
+P1 在完成换色的同时改善场景与动作保持，支持提示协议组合有作用；这一对无法辨别哪一句是必要成分。
+两版都完成任务且动作相近，说明该样例没有暴露协议敏感性。
+P1 保留背景但未换色，属于任务未完成，不能计为编辑成功。
+两版均整体改变场景，在已核完整输入路径下，应继续检查模型配置、量化/运行实现差异和该任务的条件遵循能力；该结果本身不能唯一归因到 H3 的能力上限。按需增加无编辑重建控制或官方实现一致性复核，每次只新增一个可解释因素。
+
+补充边界：当前若干短片长度小于官方 README 列出的 4–15 秒输出规格，Comfy 节点本身接受更短的合法 17k+5 序列。此次审计不把短时长判为失败原因；在最小 P0/P1 中保持时长不变。后续声称官方质量一致性时需另行核验这一运行范围。

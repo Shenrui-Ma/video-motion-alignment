@@ -1,0 +1,58 @@
+同状态双分支的几何—外观搬运：有界先例与必要条件审查
+2026-10-16；只读调研，未实施、未申请或运行 GPU。
+
+结论
+可以保留为一次质量修复的必要条件检查，当前不值得直接增加在线干预。最接近且不能回避的是 FreeControl 的 sibling appearance 与 Ctrl-X 的结构—外观对应迁移；MotionEcho 已有同状态指导/非指导端点组合，Upscale-A-Video 已在 clean endpoint warp/fuse 后继续采样。因此“native 提供外观，guided 提供动作”不是新原理。仍可能有实际价值的区别是：在同一个真实 x_n、sigma_n 上用同一身份的两次预测构造可靠的空间解剖对应，在不恢复旧姿态的情况下，把 native 中可见而干净的局部外观放到 Full 的正确物理时间位置。该区别目前既无可靠对应证据，也无质量收益证据。
+
+一个候选的精确定义
+N_n=f_theta(x_n,sigma_n,c)，F_n=f_theta^Full(x_n,sigma_n,c)。两者须共享实际状态、条件、模型、noise/RNG；不能用分别完成的两条轨迹冒充同状态。
+固定物理帧 t，g_nt 将 Full 的目标位置映射到 Native 的对应解剖位置，不在不同视频时刻之间检索。
+  C_n = F_n + beta M_n * (W_g(N_n) - F_n)
+  x_(n+1) = a_n x_n + (1-a_n) C_n,  a_n=sigma_(n+1)/sigma_n。
+这里是候选的像素/端点示意式；若插入 feature，必须明确具体块、投影与尺度，不能直接把 RGB warp 当作合法 H3 latent warp。H3 的17RGB→5latent编码相位使逐RGB warp 后直接写 latent 不成立。M 必须表达对应可见性和可修复区域，而非只用两组 pose 的并集。beta/warp/fusion 都不是新数学。首次实验应先是离线上界，不修改本轮 R20。
+
+已核对的最直接先例
+1. FreeControl，CVPR 2024。原文 §4.2 Eq.5–7：同初始噪声的无结构指导 sibling 提供外观，在语义主成分支持上匹配加权特征均值，配合结构梯度；§5.3 讨论后期外观控制。它覆盖了从未受结构指导的分支取得外观这一核心。其两条轨迹会分化，不保证当前实际 x 相同；外观统计对齐也不是逐部位空间搬运。作者 pipeline 的 batch 包含 control/appearance 两支，不能把它描述成无 sibling 的方法。
+原文 https://arxiv.org/html/2312.07536v1
+官方代码（本轮读 pipeline，未执行） https://github.com/genforce/freecontrol/blob/5ac495f0bb5d2f55b6b7d117ed1e9d2e0c795ee4/libs/model/sd_pipeline.py
+
+2. Ctrl-X，NeurIPS 2024。§4.1 注入结构 feature/attention；§4.2 Eq.6–7 用归一化目标/外观特征计算对应 A，再由 A h_a 和 A(h_a^2) 得到逐位置外观均值/方差并迁移。没有训练/梯度优化，§5.2 已有视频扩展。若我们的 g 只实现 Q_F K_N 的软匹配和外观统计注入，核心计算直接落在 Ctrl-X 家族，不能只因两支来自同状态而宣称全新架构。
+原文 https://arxiv.org/html/2406.07540v1
+官方代码 https://github.com/genforce/ctrl-x/blob/ce68011fc74223f70222e161de5bbfa62f85ae5a/ctrl_x/pipelines/pipeline_sdxl.py
+本轮读原文与 pipeline 的 structure/appearance 条件和 batch；未逐行审完全部底层注入 helper，未执行作者方法。
+
+3. MotionEcho。§3.2–3.4/Algorithm1 已有同一状态下指导和非指导预测，随后组合教师修正端点与学生端点。其停止变量功能上读取被先前修正的状态，不能虚构“从不看非干预预测”的区别。此处尚未在已读算法中见到从 Native 向 Full 的逐帧解剖空间 warp；但端点组合和条件计算已有直接先例。若 g 为恒等而只是调 beta，区别很弱。
+原文 https://arxiv.org/html/2506.19348v2
+作者页 https://euminds.github.io/motionecho/ （本轮未获得可核验的完整官方实现，不冒称实现审查）
+
+4. Upscale-A-Video。官方 pipeline 先求 x0，再依据双向 flow 做 propagator，最后 step_vt；propagator 以遮挡一致性 mask 融合 warped 邻帧 latent 与当前值。已经覆盖“warp clean endpoint，fuse，然后继续扩散更新”。差别是其跨帧 VSR 传播，而本候选要求同帧两种干预分支之间的对应；整体 VSR 模型需要训练，传播模块可独立无训练。
+原文 https://arxiv.org/abs/2312.06640
+官方实现 https://github.com/sczhou/Upscale-A-Video/blob/10ca1d751cad25b8ac0b9b0cab415a82d9df1ac6/models_video/pipeline_upscale_a_video.py （本轮核 step_v0/propagator/step_vt 顺序）
+同 commit 的 models_video/propagation_module.py 给出 warp/fuse 与遮挡处理。
+
+5. FRESCO。§3.3 Eq.4–6 光流 warp 后优化特征时间一致性及空间关系；§3.4 同时有 reference attention 对 query 的结构约束、跨帧 KV 共享及光流轨迹 attention。它早已把外观编辑特征按原视频对应传播。当前两分支空间几何差异不是直接跨帧光流，但不应称首次空间对应保外观。
+原文 https://arxiv.org/html/2403.12962v1
+已核官方源码 https://github.com/williamyang1991/FRESCO/blob/736a7140f30d622ba8b62584445c8f6c2d9d9fe0/src/diffusion_hacked.py （KV共享/flow gather；本轮重读原文，代码沿用已有固定版审查）
+
+6. Motion4Motion。§3.2–3.3、Algorithm1 用源轨迹和跨图对应构造目标轨迹，将目标生成/I2V首帧的 K/V 保存；复制 K/V 并按目标运动作 RoPE，再拼接进 attention。已经有“目标自身外观值放到指定运动位置”。本候选不是首帧缓存而是同状态 Native→Full，不过仅替换 appearance donor 的时机不足以证明贡献。
+原文 https://arxiv.org/html/2607.11644v1
+作者页 https://lhchen.top/Motion4Motion/ （核论文算法，未定位到可核验完整官方运行代码）
+
+7. TeleMorpher。§4.3 Eq.3–12 使用主体/部位对应、样条或分段几何 warp 将外观变换到目标姿态，处理孔洞并裁到目标 mask，§4.4 再注入。故 pose-conditioned appearance warp、mask差集和部位修复均有直接近邻。当前 Native donor 与 Full pose 来自同状态，区别不是“使用姿态把外观搬过去”本身。
+原文 https://arxiv.org/html/2606.19676v1
+本轮核正文公式，未找到并验证完整作者仓库，不用非官方复刻替代原实现证据。
+
+与已经失败的实验的关系
+R4 的 C/Y 是用 Full 的单块反事实提议 C 在目标自身 Y 的时间轨迹中找近邻，重点是同空间槽跨时刻；当前设想是同物理帧跨空间部位对应。二者不完全同构，R4 失败不能直接否决空间对应。但是它已否决“只要取目标自己的值就能找到正确运动”的无证据假设。
+旧质量修复必要条件在固定32px保守规则下，没有发现可靠可执行 query，包括晚期现有 pose。这支持暂缓直接在线修复，不证明所有更密集语义对应都不可能。旧手臂覆盖胸前时，其旧位置不等于背景，需恢复躯干/衣服；不能用 old-arm minus desired-arm 当背景 mask。
+同状态 Native 并非天然干净：其状态已受历史 Full 影响，可能与 Full 同时有重影；此外 Full 几何自身也可能有两条手臂，常规 pose 只选择其中一条，不能当已知正确解剖支持。
+
+最小必要门（仅建议，未实施）
+先固定已登记的 source05 主窗50–65、异常可视帧55，以及86/105副作用检查。在旧 Native/Full 成片上只做可见内容盘点/理想对应上界：所需手/衣服纹理在 Native 是否存在且可辨，Full 的正确目标部位是否可确定，被替换区域与残留旧肢体是否有合法 donor。人工标签仅用于这一上界，不据此声称自动算法。保持完整视野，不靠模糊/裁剪隐藏重影。
+若 donor 本身缺失、遮挡或重影，或旧肢体区域需要 Native 也不存在的躯干/背景内容，则当前单一 warp+fuse 原语不能完成修复；应保留失败，不立即添加新分割/补全大模型。
+若上界过门，也只说明像素素材存在。成片 Native/Full 来自不同状态历史，不能证明在线同状态可行；下一步须对实际同状态存档端点建立对应和局部可见性证据。当前本地可见 R10 final 和 R15 native11–14 解码视频，不等于具备全部匹配 Full clean-endpoint 视频，不能直接冒充 paired online 数据。
+后续最低必要对照：Full；同 beta 无 warp 融合；Ctrl-X-style 外观统计迁移适配；候选对应 warp（保持同样可见 mask/预算）。还要比较同状态 donor 与独立轨迹 donor，才能检验同状态条件是否有独立必要性。复用冻结2帧时序容差、shape/common-support和固定帧视觉检查；收益必须同时包含重影减轻且不恢复 Native 的旧姿态，不能只优化外观相似分数。
+
+可争取与不可主张
+可能的贡献是有实证的同状态空间对应构造、可见性拒判、保持时间校正的局部外观恢复，以及与感知反馈/跨源评测形成的完整贡献组合。当前没有任何一项已被证明。不能主张首创 sibling appearance、首次 endpoint warp、首次 training-free motion/appearance解耦，或仅因未找到完全同名论文便宣布空白。
+本次检索限定上述直接机制，读原文/作者代码到标注范围，未穷尽所有 self-distillation/counterfactual warp；没查到完整同构实现不等于不存在。R20 paired cross-source验收优先，未修改其运行。

@@ -1,0 +1,54 @@
+Extension2: 10 IVE Bench tasks / 20 paired graphs, prepared 2026-10-22
+
+Delivery root:
+/Users/researcher/DevProjects/video-motion-alignment/execution-20261022/inference/extension2
+Remote root:
+/home/researcher/h3_runs/benchmark_schedule_20261022_host9a
+
+Task order: short_0166, long_0174, short_0039, short_0185, short_0220,
+short_0308, short_0309, short_0318, short_0394, short_0395.
+Selection uses availability and official subject/clothing editing metadata only.
+All primary and expanded catalog IDs excluded. No visual inspection performed.
+
+Artifacts:
+- catalog.json: full official edit/source/target prompts, temporal mapping, geometry,
+  valid frames, crop, source asset hashes, source/graph provenance.
+- graphs/: 20 graphs; place directly in host9a/graphs/.
+- jobs_append_ready.json: first 4 jobs using two previously prepared input videos.
+- jobs_append.json: all 20 jobs; deduplicate by id if the ready subset was appended.
+- assets_to_transfer.json: exact local source -> remote target paths, sizes and hashes.
+  119138392 bytes total. No video duplicated locally.
+- prepare_remote_inputs.py: CPU preprocessing for 8 uploaded official originals;
+  preserves full clips, uses the inherited 1280x720 -> 1312x736 spatial transform,
+  nearest rational PTS at 24fps with earlier-frame tie breaking, terminal padding
+  to 17k+5. Lossless H264; compares every decoded pixel-frame MD5 after encoding.
+- validation.json / verify_package.py: graph/prompt/seed/method invariants.
+
+Deployment:
+1. Copy graphs to remote graphs/; copy catalog.json, assets_to_transfer.json and
+   prepare_remote_inputs.py into remote extension2/.
+2. Transfer files following assets_to_transfer.json, creating target parents.
+   First two prepared inputs may be used immediately; append ready subset only
+   after remote input SHA256 checks succeed.
+3. On host9a run:
+   python3 extension2/prepare_remote_inputs.py --root /home/researcher/h3_runs/benchmark_schedule_20261022_host9a
+4. Require extension2/input_ready.json ready=true with 10 inputs before appending
+   the other 16 jobs. The preparation script never changes the queue or service.
+5. Parent owns upload, queue append, lifecycle and evaluator integration.
+
+Validation completed locally:
+- 10 unique tasks / 20 unique graphs, disjoint from prior catalogs.
+- Official edit prompts retained byte-for-byte in each graph and pair.
+- Pair graphs identical except mode, alpha, schedule and output prefix.
+- Model nodes, seed2026101701, Euler20 sigma schedule, timing and conditioning
+  equal current host9a expand_short_0353_native template.
+- All 8 original source SHA256 values equal official inventory LFS OIDs.
+- Remote preparation self-test verifies exact frame duplication, lossless encoding,
+  and 24fps output timestamps. All Python scripts compile.
+
+Pending remote validation:
+The eight new preprocessed input files have not been rendered locally. Their
+prepared hashes and exact pixel-map receipts will be written on host9a. Catalog
+reference_video for these eight is the future remote prepared path; local raw
+source is reference_original. Job metadata.source_video always points to the
+prepared remote input used by inference and evaluation.

@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DynaEdit: Versatile Editing of Video Content, Actions, and Dynamics without Training.">
+  <meta name="keywords" content="video editing, inversion-free, flow models, DynaEdit">
+  <title>Versatile Editing of Video Content, Actions, and Dynamics without Training</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro|Caveat:wght@400;700" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+
+    :root {
+      --prompt-stack: 'American Typewriter', 'Times New Roman', serif;
+    }
+
+body {
+  font-family: 'Google Sans', 'Noto Sans', sans-serif;
+}
+
+.publication-title,
+.publication-authors,
+.publication-venue,
+.results-section .title {
+      font-family: 'Google Sans', 'Noto Sans', sans-serif;
+}
+
+    .noteworthy-text,
+    .prompt-label {
+      font-family: var(--prompt-stack);
+    }
+
+    .carousel-counter,
+    .results-note {
+      font-family: 'Google Sans', 'Noto Sans', sans-serif;
+    }
+
+.publication-links {
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.publication-affiliations {
+  margin-top: 0.4rem;
+}
+
+.publication-footnote {
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+  color: #4f4f4f;
+}
+
+.hero .hero-body {
+  padding-bottom: 1.25rem;
+}
+
+.results-note {
+  color: #4a4a4a;
+  margin-top: 0.5rem;
+}
+
+.section-title {
+  border-bottom: 1px solid #dbdbdb;
+  padding-bottom: 0.5rem;
+}
+
+.result-card {
+  margin-bottom: 1.5rem;
+}
+
+.stacked-pair {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.video-wrap {
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-wrap video {
+  width: 100%;
+  height: auto;
+  display: block;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.prompt-label {
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.prompt-box {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 0.7rem;
+  background: #fafafa;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.prompt-box hr {
+  border: 0;
+  border-top: 1px solid #e8e8e8;
+  margin: 0.5rem 0;
+}
+
+.missing-video {
+  padding: 2rem 1rem;
+  color: #888;
+  text-align: center;
+  background: #f5f5f5;
+}
+
+.carousel-shell {
+  border: 1px solid #e7e7e7;
+  border-radius: 14px;
+  padding: 1.2rem;
+  background: linear-gradient(180deg, #fcfcff 0%, #f8fbff 100%);
+  overflow: visible;
+}
+
+.carousel-header {
+  margin-bottom: 0.8rem;
+}
+
+.carousel-header .title {
+  font-size: 2.4rem;
+  font-family: 'Calibri Light', 'Calibri', 'Segoe UI', sans-serif;
+  font-weight: 300;
+}
+
+.carousel-panel .title.is-6 {
+  font-size: 1.5rem;
+  font-family: 'Calibri Light', 'Calibri', 'Segoe UI', sans-serif;
+  font-weight: 300;
+}
+
+.carousel-panel .title.is-6,
+.comparison-card .title.is-6,
+.motivation-card .title.is-6 {
+  margin-bottom: 0.35rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.carousel-slides {
+  position: relative;
+  overflow: visible;
+  margin: 0;
+}
+
+.carousel-viewport {
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 1000ms ease;
+  width: 100%;
+}
+
+.carousel-slide {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 100%;
+  max-width: 100%;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.carousel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.4rem;
+  align-items: start;
+}
+
+.carousel-panel {
+  min-width: 0;
+}
+
+.carousel-panel .video-wrap {
+  aspect-ratio: 832 / 480;
+  --carousel-video-height: clamp(220px, 27vw, 360px);
+  height: var(--carousel-video-height);
+  width: min(100%, calc(var(--carousel-video-height) * 832 / 480));
+  margin: 0 auto;
+}
+
+.carousel-panel .video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  height: auto;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.7rem;
+  line-height: 1;
+  color: #3895e8;
+  background: transparent;
+  text-shadow: 0 4px 10px rgba(21, 58, 107, 0.45);
+  cursor: pointer;
+  z-index: 8;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.carousel-arrow:hover {
+  color: #5caef3;
+}
+
+.carousel-arrow:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.carousel-arrow-left {
+  left: -2.05rem;
+}
+
+.carousel-arrow-right {
+  right: -2.05rem;
+}
+
+.carousel-delta {
+  margin-top: 0.55rem;
+  border: 1px solid #dbe6ff;
+  border-radius: 10px;
+  background: #f5f8ff;
+  color: #1e3a78;
+  padding: 0.55rem 0.7rem;
+  text-align: center;
+  line-height: 1.35;
+  font-size: 1.34rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content.has-text-justified p {
+  font-size: 1.28rem;
+  line-height: 1.55;
+}
+
+.method-copy,
+.method-copy p,
+.method-copy li {
+  font-size: 1.28rem;
+  line-height: 1.55;
+}
+
+.comparison-section-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.comparison-carousel-shell {
+  overflow: visible;
+}
+
+.comparison-carousel-slides {
+  position: relative;
+  overflow: visible;
+}
+
+.comparison-carousel-viewport {
+  overflow: hidden;
+}
+
+.comparison-carousel-track {
+  display: flex;
+  transition: transform 1000ms ease;
+  width: 100%;
+}
+
+.comparison-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  max-width: 100%;
+}
+
+.comparison-grid-2x3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.comparison-card {
+  background: #fff;
+  border: 1px solid #e9e9e9;
+  border-radius: 10px;
+  padding: 0.55rem;
+}
+
+.comparison-card .title.is-6 {
+  font-size: 1.3rem;
+  font-family: 'Calibri Light', 'Calibri', 'Segoe UI', sans-serif;
+  font-weight: 300;
+}
+
+.comparison-card video {
+  width: 100%;
+  aspect-ratio: 832 / 480;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  background: #111;
+}
+
+.comparison-delta {
+  margin-top: 0.8rem;
+  font-size: 1.34rem;
+  line-height: 1.35;
+}
+
+.comparison-warning-note {
+  margin-top: 0.7rem;
+  margin-bottom: 0.55rem;
+  color: #c31919;
+  font-size: 1rem;
+  line-height: 1.35;
+  font-style: italic;
+}
+
+.ff-suffix {
+  color: #1f5fbf;
+  font-weight: 600;
+}
+
+.comparison-carousel-slides .carousel-arrow {
+  top: 50%;
+}
+
+.comparison-carousel-slides .carousel-arrow-left {
+  left: -2.05rem;
+}
+
+.comparison-carousel-slides .carousel-arrow-right {
+  right: -2.05rem;
+}
+
+.motivation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.motivation-card {
+  background: #fff;
+  border: 1px solid #e9e9e9;
+  border-radius: 10px;
+  padding: 0.55rem;
+}
+
+.motivation-card .title.is-6 {
+  font-size: 1.3rem;
+  font-family: 'Calibri Light', 'Calibri', 'Segoe UI', sans-serif;
+  font-weight: 300;
+}
+
+.motivation-card .title.is-6 .dynaedit-strong {
+  font-weight: 700;
+}
+
+.comparison-card .title.is-6 .dynaedit-strong {
+  font-weight: 700;
+}
+
+.motivation-grid .motivation-card:nth-child(4) {
+  grid-column: 2;
+}
+
+.motivation-grid .motivation-card:nth-child(5) {
+  grid-column: 3;
+}
+
+.motivation-grid .motivation-card:first-child {
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+.versatile-carousel-shell {
+  overflow: visible;
+}
+
+.versatile-category-carousel {
+  position: relative;
+  overflow: visible;
+  margin-bottom: 1.9rem;
+}
+
+.versatile-carousel-viewport {
+  overflow: hidden;
+}
+
+.versatile-track {
+  display: flex;
+  transition: transform 1000ms ease;
+  width: 100%;
+}
+
+.versatile-example-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  max-width: 100%;
+}
+
+.versatile-category-title {
+  margin-bottom: 0.75rem;
+}
+
+.versatile-category-note {
+  font-size: 1.08rem;
+  line-height: 1.45;
+  color: #4b4b4b;
+  margin-bottom: 0.8rem;
+}
+
+.versatile-category-carousel .carousel-arrow {
+  top: 45%;
+}
+
+.versatile-category-carousel .carousel-arrow-left {
+  left: -2.05rem;
+}
+
+.versatile-category-carousel .carousel-arrow-right {
+  right: -2.05rem;
+}
+
+.site-credit {
+  border-top: 1px solid #e6e6e6;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1.25rem;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.site-credit a {
+  color: #1f5fbf;
+}
+
+.method-refs {
+  font-size: 0.98rem;
+  color: #4b4b4b;
+}
+
+.method-refs li {
+  margin-bottom: 0.3rem;
+}
+
+@media (max-width: 960px) {
+  .carousel-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .carousel-arrow {
+    font-size: 2.1rem;
+  }
+
+  .carousel-arrow-left {
+    left: -1.45rem;
+  }
+
+  .carousel-arrow-right {
+    right: -1.45rem;
+  }
+
+  .carousel-panel .video-wrap {
+    aspect-ratio: 832 / 480;
+    --carousel-video-height: clamp(190px, 45vw, 300px);
+    height: var(--carousel-video-height);
+    width: min(100%, calc(var(--carousel-video-height) * 832 / 480));
+  }
+
+  .comparison-grid-2x3 {
+    grid-template-columns: 1fr;
+  }
+
+  .motivation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .motivation-grid .motivation-card:nth-child(4),
+  .motivation-grid .motivation-card:nth-child(5) {
+    grid-column: auto;
+  }
+
+  .motivation-grid .motivation-card:first-child {
+    grid-row: auto;
+    align-self: stretch;
+  }
+
+  .comparison-carousel-slides .carousel-arrow-left {
+    left: -1.45rem;
+  }
+
+  .comparison-carousel-slides .carousel-arrow-right {
+    right: -1.45rem;
+  }
+
+}
+
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Versatile Editing of Video Content, Actions, and Dynamics without Training</h1>
+
+            <div class="is-size-5 publication-authors">
+              <a href="https://www.linkedin.com/in/vladimir-kulikov/" target="_blank" rel="noopener noreferrer">Vladimir Kulikov</a><sup>*1,2</sup>, <a href="https://scholar.google.com/citations?user=-KSDNZQAAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">Roni Paiss</a><sup>1</sup>, <a href="https://anvoynov.github.io/anvoynov/" target="_blank" rel="noopener noreferrer">Andrey Voynov</a><sup>1</sup>, <a href="https://inbar-mosseri.github.io" target="_blank" rel="noopener noreferrer">Inbar Mosseri</a><sup>1</sup>, <a href="https://www.weizmann.ac.il/math/dekel/home" target="_blank" rel="noopener noreferrer">Tali Dekel</a><sup>1,3</sup>, <a href="https://tomer.net.technion.ac.il" target="_blank" rel="noopener noreferrer">Tomer Michaeli</a><sup>2</sup>
+            </div>
+
+            <div class="is-size-6 publication-affiliations">
+              <sup>1</sup> Google DeepMind | <sup>2</sup> Technion - Israel Institute of Technology | <sup>3</sup> The Weizmann Institute of Science
+            </div>
+
+            <div class="publication-footnote">
+              <sup>*</sup> Work done during an internship at Google DeepMind.
+            </div>
+
+            <div class="is-size-5 publication-venue">
+              
+            </div>
+
+            <div class="column has-text-centered publication-links">
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2603.17989" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2603.17989" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-book-open"></i></span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+<section class="section">
+  <div class="container is-max-widescreen">
+    <div class="carousel-shell">
+      <div class="carousel-slides">
+        <button id="carousel-prev" class="carousel-arrow carousel-arrow-left" type="button" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+        <div class="carousel-viewport">
+          <div class="carousel-track" id="carousel-track">
+            
+<div class="carousel-slide sync-pair" data-slide-index="0">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_004_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_004.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_004_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_004.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A large bucket of yellow paint is in front of the train, the train smashes the bucket and the paint is smeared all over the train.</div>
+</div>
+
+<div class="carousel-slide sync-pair" data-slide-index="1">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_071_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_071.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_071.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_071_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_071.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_071.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">The white ball enters the pocket.</div>
+</div>
+
+<div class="carousel-slide sync-pair" data-slide-index="2">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_000_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_000.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_000_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_000.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">The astronaut on the right approaches a flag spelling MARS and picks it up mid walk. The other astronaut is unaware of the flag.</div>
+</div>
+
+<div class="carousel-slide sync-pair" data-slide-index="3">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_047_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_047.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_047.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_047_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_047.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_047.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A woman sitting at the beach during night with very strong wind, a campfire is burning in front of her.</div>
+</div>
+
+<div class="carousel-slide sync-pair" data-slide-index="4">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_064_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_064.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_064.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_064_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_064.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_064.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A cat under the couch, playing with a burning marshmallow on a stick. Suddenly, the cat runs away.</div>
+</div>
+
+          </div>
+        </div>
+        <button id="carousel-next" class="carousel-arrow carousel-arrow-right" type="button" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>Controlled video generation has seen drastic improvements in recent years. However, editing actions and dynamic events, or inserting contents that should affect the behaviors of other objects in real-world videos, remains a major challenge. Existing trained models struggle with complex edits, likely due to the difficulty of collecting relevant training data. Similarly, existing training-free methods are inherently restricted to structure- and motion-preserving edits and do not support modification of motion or interactions. Here, we introduce DynaEdit, a training-free editing method that unlocks versatile video editing capabilities with pretrained text-to-video flow models. Our method relies on the recently introduced inversion-free approach, which does not intervene in the model internals, and is thus model-agnostic. We show that naively attempting to adapt this approach to general unconstrained editing results in  severe low-frequency misalignment and high-frequency jitter. We explain the sources for these phenomena and introduce novel mechanisms for overcoming them. Through extensive experiments, we show that DynaEdit achieves state-of-the-art results on complex text-based video editing tasks, including modifying actions, inserting objects that interact with the scene, and introducing global effects.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+<section class="section">
+  <div class="container is-max-widescreen">
+    <h2 class="title is-3">Method</h2>
+    <div class="content has-text-justified method-copy">
+      Current inversion-free approaches struggle to perform general non-structure-preserving edits. In particular, when tuning their hyperparameters to allow significant modifications, they generate videos whose low frequencies are unnecessarily misaligned with the source video and whose high-frequencies suffer from jitter. We introduce two novel mechanisms to counter these phenomena: <strong>S</strong>imilarity <strong>G</strong>uided <strong>A</strong>ggregation (<strong>SGA</strong>) and <strong>A</strong>nnealed <strong>N</strong>oise <strong>C</strong>orrelation (<strong>ANC</strong>). The SGA mechanism improves low-frequency global alignment to the source video, so that edited dynamics stay consistent with the scene layout. The ANC mechanism suppresses high-frequency jitter and stabilizes local appearance across frames.
+    </div>
+    <div class="motivation-grid motivation-sync-row">
+      
+<div class="motivation-card">
+  <h4 class="title is-6">Input Video</h4>
+  <div class="video-wrap"><video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_004_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_004.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video></div>
+  <div class="carousel-delta noteworthy-text">A large bucket of yellow paint is in front of the train, the train smashes the bucket and paint is smeared all over it.</div>
+</div>
+
+<div class="motivation-card">
+  <h4 class="title is-6">FlowEdit [1] (No SGA and ANC)</h4>
+  <div class="video-wrap"><video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/ablation_fe_sga_anc_ours/fe_out_004_mobile.mp4#t=0.001"><source src="source_videos_enum/ablation_fe_sga_anc_ours/fe_out_004.mp4#t=0.001" data-original-src="source_videos_enum/ablation_fe_sga_anc_ours/fe_out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video></div>
+</div>
+
+<div class="motivation-card">
+  <h4 class="title is-6">+ SGA</h4>
+  <div class="video-wrap"><video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/ablation_fe_sga_anc_ours/4_wo_ANC_mobile.mp4#t=0.001"><source src="source_videos_enum/ablation_fe_sga_anc_ours/4_wo_ANC.mp4#t=0.001" data-original-src="source_videos_enum/ablation_fe_sga_anc_ours/4_wo_ANC.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video></div>
+</div>
+
+<div class="motivation-card">
+  <h4 class="title is-6">+ ANC</h4>
+  <div class="video-wrap"><video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/ablation_fe_sga_anc_ours/4_wo_SGA_mobile.mp4#t=0.001"><source src="source_videos_enum/ablation_fe_sga_anc_ours/4_wo_SGA.mp4#t=0.001" data-original-src="source_videos_enum/ablation_fe_sga_anc_ours/4_wo_SGA.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video></div>
+</div>
+
+<div class="motivation-card">
+  <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit</span> (With SGA and ANC)</h4>
+  <div class="video-wrap"><video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_004_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_004.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video></div>
+</div>
+
+    </div>
+  </div>
+</section>
+
+
+  
+<section class="section">
+  <div class="container is-max-widescreen versatile-carousel-shell">
+    <h2 class="title is-3">Versatile Inversion-Free Editing with DynaEdit</h2>
+    
+<div class="versatile-category-block">
+  <h3 class="title is-4 versatile-category-title">Dynamic Object Insertion</h3>
+  <p class="versatile-category-note">Our method allows for dynamic object insertion, where a new object is added to the scene and interacts with the existing elements.</p>
+  <div class="versatile-category-carousel" data-vcat="dynamic-object-insertion">
+    <button class="carousel-arrow carousel-arrow-left versatile-prev" type="button" aria-label="Previous Dynamic Object Insertion example"><i class="fas fa-chevron-left"></i></button>
+    <div class="versatile-carousel-viewport">
+      <div class="versatile-track">
+        
+<div class="versatile-example-slide sync-pair" data-slide-index="0">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_001_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_001.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_001.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_001_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_001.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_001.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A woman holding a kite at the beach with very strong wind, colorful umbrella in the sand. The camera is slowly moving to the right.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="1">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_008_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_008.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_008.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_008_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_008.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_008.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A side-on tracking shot follows a woman riding a dark horse as it canters across the sandy paddock.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="2">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_009_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_009.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_009.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_009_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_009.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_009.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A big mirror is in the middle of the forest.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="3">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_016_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_016.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_016_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_016.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A cat is jumping on the couch.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="4">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_061_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_061.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_061.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_061_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_061.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_061.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A helicopter is in the sky, shining a bright light in the middle of the town, lighting up the rooftops.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="5">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_066_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_066.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_066.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_066_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_066.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_066.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A giant meteor is in the sky, crashing down into the lagoon, creating a huge splash and big waves.</div>
+</div>
+
+      </div>
+    </div>
+    <button class="carousel-arrow carousel-arrow-right versatile-next" type="button" aria-label="Next Dynamic Object Insertion example"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+<div class="versatile-category-block">
+  <h3 class="title is-4 versatile-category-title">Interactive Swap</h3>
+  <p class="versatile-category-note">Our method allows for swapping of objects within the scene, such that the scene is adapted or interacting with the new object.</p>
+  <div class="versatile-category-carousel" data-vcat="interactive-swap">
+    <button class="carousel-arrow carousel-arrow-left versatile-prev" type="button" aria-label="Previous Interactive Swap example"><i class="fas fa-chevron-left"></i></button>
+    <div class="versatile-carousel-viewport">
+      <div class="versatile-track">
+        
+<div class="versatile-example-slide sync-pair" data-slide-index="0">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_018_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_018.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_018_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_018.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A strawberry and a feather are falling into a container with water. The strawberry is sinking very fast. The feather stays on the surface.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="1">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_022_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_022.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_022.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_022_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_022.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_022.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A static camera shot of yellow tulips and a dandelion swaying in the wind. Close-up shot. The strong wind causes the dandelion seeds to detach and fly away.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="2">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_024_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_024.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_024.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_024_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_024.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_024.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A giant snail is crossing the bridge from left to right, leaving a trail of ooze.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="3">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_027_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_027.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_027.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_027_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_027.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_027.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A bird made of lava is sitting on a branch. The branch starts to burn under the lava bird.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="4">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_028_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_028.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_028.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_028_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_028.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_028.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A person is squeezing a lemon into the green liquid. Suddenly, a chemical reaction occurs and the green liquid bursts out of the pitcher.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="5">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_031_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_031.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_031.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_031_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_031.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_031.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">An orange stand in the supermarket with a red apple on top. Suddenly, a person grabs the red apple.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="6">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_070_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_070.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_070.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_070_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_070.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_070.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A woman in a pink headscarf sitting in front of a fluffy gray cat. The woman is petting the cat.</div>
+</div>
+
+      </div>
+    </div>
+    <button class="carousel-arrow carousel-arrow-right versatile-next" type="button" aria-label="Next Interactive Swap example"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+<div class="versatile-category-block">
+  <h3 class="title is-4 versatile-category-title">Action Change</h3>
+  <p class="versatile-category-note">Our method enables the modification of actions performed by entities in the scene.</p>
+  <div class="versatile-category-carousel" data-vcat="action-change">
+    <button class="carousel-arrow carousel-arrow-left versatile-prev" type="button" aria-label="Previous Action Change example"><i class="fas fa-chevron-left"></i></button>
+    <div class="versatile-carousel-viewport">
+      <div class="versatile-track">
+        
+<div class="versatile-example-slide sync-pair" data-slide-index="0">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_032_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_032.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_032.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_032_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_032.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_032.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">Three swans in a pond. Suddenly, the leftmost swan dives underwater. The others remain calm.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="1">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_034_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_034.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_034_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_034.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">Midway through it&#x27;s run, the horse approaches a barrier and leaps over it.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="2">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_035_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_035.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_035_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_035.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">Three horses in a pasture.Suddenly, the horse closest to the camera leaves.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="3">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_036_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_036.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_036.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_036_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_036.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_036.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">The pizza catches fire and starts to burn, causing a flame to burst out of the oven.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="4">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_037_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_037.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_037.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_037_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_037.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_037.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A person uses a pizza shovel to pull out the pizza.</div>
+</div>
+
+      </div>
+    </div>
+    <button class="carousel-arrow carousel-arrow-right versatile-next" type="button" aria-label="Next Action Change example"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+<div class="versatile-category-block">
+  <h3 class="title is-4 versatile-category-title">Global Effects</h3>
+  <p class="versatile-category-note">Our method can apply global effects to the entire scene, such as lighting or atmospheric changes.</p>
+  <div class="versatile-category-carousel" data-vcat="global-effects">
+    <button class="carousel-arrow carousel-arrow-left versatile-prev" type="button" aria-label="Previous Global Effects example"><i class="fas fa-chevron-left"></i></button>
+    <div class="versatile-carousel-viewport">
+      <div class="versatile-track">
+        
+<div class="versatile-example-slide sync-pair" data-slide-index="0">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_048_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_048.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_048.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_048_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_048.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_048.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A magmatic waterfall. The lava at the brink of the magmatic waterfall is a striking orange color.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="1">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_049_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_049.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_049_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_049.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A steam train is running through a forest at nighttime. Suddenly, lightning strikes the train, setting it on fire.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="2">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_050_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_050.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_050.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_050_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_050.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_050.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">Medieval Manga style.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="3">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_057_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_057.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_057.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_057_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_057.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_057.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">A man hiking up a hill. Suddenly, a heavy sandstorm begins, causing the man to grab his hat.</div>
+</div>
+
+<div class="versatile-example-slide sync-pair" data-slide-index="4">
+  <div class="carousel-grid">
+    <div class="carousel-panel">
+      <h4 class="title is-6">Input Video</h4>
+      <div class="video-wrap">
+        <video data-role="src" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_062_mobile.mp4#t=0.001"><source src="source_videos_enum/orig_vids/orig_062.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_062.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+    <div class="carousel-panel">
+      <h4 class="title is-6">Edited by DynaEdit</h4>
+      <div class="video-wrap">
+        <video data-role="tar" controls preload="auto" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_062_mobile.mp4#t=0.001"><source src="source_videos_enum/edit_enum/out_062.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_062.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-delta noteworthy-text">Fireworks are exploding above the river, reflecting off the water and across the river.</div>
+</div>
+
+      </div>
+    </div>
+    <button class="carousel-arrow carousel-arrow-right versatile-next" type="button" aria-label="Next Global Effects example"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+  </div>
+</section>
+
+
+  
+<section class="section">
+  <div class="container is-max-widescreen comparison-carousel-shell">
+    <h2 class="title is-3">Comparisons to Competing Methods</h2>
+    <div class="comparison-carousel-slides">
+      <button id="comparison-prev" class="carousel-arrow carousel-arrow-left" type="button" aria-label="Previous comparison"><i class="fas fa-chevron-left"></i></button>
+      <div class="comparison-carousel-viewport">
+        <div class="comparison-carousel-track" id="comparison-carousel-track">
+          
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Interactive Swap">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_018_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_018.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_018_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_018.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/18_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/18_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/18_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_018_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_018.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_018_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_018.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_018_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_018.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_018.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  
+  <div class="prompt-box noteworthy-text comparison-delta">A strawberry and a feather are falling into a container with water. The strawberry is sinking very fast. The feather stays on the surface. <span class="ff-suffix">(first frame edited)</span></div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Dynamic Object Insertion">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_016_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_016.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_016_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_016.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/16_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/16_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/16_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_016_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_016.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_016_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_016.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_016_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_016.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_016.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  
+  <div class="prompt-box noteworthy-text comparison-delta">A cat is jumping on the couch. <span class="ff-suffix">(first frame edited)</span></div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Dynamic Object Insertion">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_004_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_004.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_004_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_004.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/4_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/4_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/4_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_004_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_004.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_004_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_004.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_004_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_004.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_004.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  <div class="comparison-warning-note">* Note that FlowAlign and FlowEdit&#x27;s results are misaligned with the source in terms of camera and object motion.</div>
+  <div class="prompt-box noteworthy-text comparison-delta">A large bucket of yellow paint is in front of the train, the train smashes the bucket and the paint is smeared all over the train. <span class="ff-suffix">(first frame edited)</span></div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Dynamic Object Insertion">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_000_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_000.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_000_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_000.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/0_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/0_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/0_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_000_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_000.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_000_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_000.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_000_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_000.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_000.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  
+  <div class="prompt-box noteworthy-text comparison-delta">The astronaut on the right approaches a flag spelling MARS and picks it up mid walk. The other astronaut is unaware of the flag. <span class="ff-suffix">(first frame edited)</span></div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Interactive Swap">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_023_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_023.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_023.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_023_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_023.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_023.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/23_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/23_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/23_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_023_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_023.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_023.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_023_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_023.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_023.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_023_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_023.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_023.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  
+  <div class="prompt-box noteworthy-text comparison-delta">A person is dropping ice cubes into the red juice, creating a splash <span class="ff-suffix">(first frame edited)</span></div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Global Effects">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_049_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_049.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_049_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_049.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/49_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/49_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/49_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_049_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_049.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_049_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_049.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_049_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_049.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_049.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  <div class="comparison-warning-note">* Note that FlowAlign and FlowEdit&#x27;s results are misaligned with the source in terms of camera and object motion.</div>
+  <div class="prompt-box noteworthy-text comparison-delta">A steam train is running through a forest at nighttime. Suddenly, lightning strikes the train, setting it on fire. <span class="ff-suffix">(first frame edited)</span></div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Action Change">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_034_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_034.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_034_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_034.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/34_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/34_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/34_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_034_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_034.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_034_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_034.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_034_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_034.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_034.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  
+  <div class="prompt-box noteworthy-text comparison-delta">Midway through it&#x27;s run, the horse approaches a barrier and leaps over it.</div>
+</div>
+
+<div class="comparison-carousel-slide comparison-sync-row" data-comp-cat="Action Change">
+  <div class="comparison-grid-2x3">
+    <div class="comparison-card">
+      <h4 class="title is-6">Input Video</h4>
+      <video data-role="src" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/orig_vids/orig_035_mobile.mp4#t=0.001"><source data-src="source_videos_enum/orig_vids/orig_035.mp4#t=0.001" data-original-src="source_videos_enum/orig_vids/orig_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    <div class="comparison-card">
+      <h4 class="title is-6"><span class="dynaedit-strong">DynaEdit (Ours)</span></h4>
+      <video data-role="ours" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/edit_enum/out_035_mobile.mp4#t=0.001"><source data-src="source_videos_enum/edit_enum/out_035.mp4#t=0.001" data-original-src="source_videos_enum/edit_enum/out_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+    </div>
+    
+<div class="comparison-card">
+  <h4 class="title is-6">Aleph [2]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_runway/35_out_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_runway/35_out.mp4#t=0.001" data-original-src="source_videos_enum/results_runway/35_out.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowAlign [3]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowalign/out_035_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowalign/out_035.mp4#t=0.001" data-original-src="source_videos_enum/results_flowalign/out_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">Editing-by-Inversion [4]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_ode_inv/out_035_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_ode_inv/out_035.mp4#t=0.001" data-original-src="source_videos_enum/results_ode_inv/out_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+<div class="comparison-card">
+  <h4 class="title is-6">FlowEdit [1]</h4>
+  <video data-role="baseline" class="comparison-video" preload="none" playsinline muted data-mobile-src="source_videos_enum/results_flowedit/out_035_mobile.mp4#t=0.001"><source data-src="source_videos_enum/results_flowedit/out_035.mp4#t=0.001" data-original-src="source_videos_enum/results_flowedit/out_035.mp4#t=0.001" type="video/mp4">Your browser does not support the video tag.</video>
+</div>
+
+  </div>
+  
+  <div class="prompt-box noteworthy-text comparison-delta">Three horses in a pasture.Suddenly, the horse closest to the camera leaves.</div>
+</div>
+
+        </div>
+      </div>
+      <button id="comparison-next" class="carousel-arrow carousel-arrow-right" type="button" aria-label="Next comparison"><i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>
+</section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">BibTeX</h2>
+          <pre><code>@misc{kulikov2026versatileeditingvideocontent,
+      title={Versatile Editing of Video Content, Actions, and Dynamics without Training}, 
+      author={Vladimir Kulikov and Roni Paiss and Andrey Voynov and Inbar Mosseri and Tali Dekel and Tomer Michaeli},
+      year={2026},
+      eprint={2603.17989},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2603.17989}, 
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section method-refs">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-4">Competing Methods References</h2>
+          <ul>
+            <li>[1] FlowEdit: Inversion-Free Text-Based Editing Using Pre-Trained Flow Models. <a href="https://arxiv.org/abs/2412.08629" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2412.08629</a></li>
+            <li>[2] Runway Aleph: <a href="https://runwayml.com/research/introducing-runway-aleph" target="_blank" rel="noopener noreferrer">https://runwayml.com/research/introducing-runway-aleph</a></li>
+            <li>[3] FlowAlign: Trajectory-Regularized, Inversion-Free Flow-based Image Editing. <a href="https://arxiv.org/abs/2505.23145" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2505.23145</a></li>
+            <li>[4] Editing-by-Inversion: Denoising Diffusion Implicit Models. <a href="https://arxiv.org/abs/2010.02502" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2010.02502</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="section site-credit">
+    <div class="container is-max-desktop has-text-centered">
+      This website template is inspired by
+      <a href="https://nerfies.github.io/" target="_blank" rel="noopener noreferrer">Nerfies</a>.
+    </div>
+  </footer>
+
+  <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+  const playbackRate = 0.8000000000;
+  const syncThreshold = 0.15;
+  const enableMobileLowRes = true;
+  const mobileLowResMaxWidth = 960;
+
+  const applyPlaybackRate = (video) => {
+    if (!video) return;
+    if (video.playbackRate !== playbackRate) {
+      video.playbackRate = playbackRate;
+    }
+  };
+
+  const enforceMobilePlaybackFlags = (video) => {
+    if (!video) return;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted', '');
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+  };
+
+  const safePlay = (video) => {
+    if (!video) return;
+    enforceMobilePlaybackFlags(video);
+    maybeApplyMobileSource(video);
+    const p = video.play();
+    if (p !== undefined) p.catch(() => {});
+  };
+
+  const shouldUseMobileLowRes = () =>
+    enableMobileLowRes && window.matchMedia(`(max-width: ${mobileLowResMaxWidth}px)`).matches;
+
+  const maybeApplyMobileSource = (video) => {
+    if (!video || !shouldUseMobileLowRes()) return;
+    if (video.dataset.mobileApplied === '1') return;
+
+    const source = video.querySelector('source');
+    if (!source) return;
+
+    const mobileSrc = video.dataset.mobileSrc || '';
+    if (!mobileSrc) return;
+
+    const currentSrc = source.getAttribute('src');
+    const currentLazySrc = source.dataset.src || '';
+    const originalSrc = currentSrc || currentLazySrc || source.dataset.originalSrc || '';
+    if (!originalSrc) return;
+
+    source.dataset.originalSrc = originalSrc;
+    video.dataset.mobileApplied = '1';
+
+    const fallbackToOriginal = () => {
+      const sourceNode = video.querySelector('source');
+      if (!sourceNode) return;
+      const original = sourceNode.dataset.originalSrc || '';
+      if (!original) return;
+
+      if (sourceNode.getAttribute('src')) {
+        sourceNode.setAttribute('src', original);
+      } else {
+        sourceNode.dataset.src = original;
+      }
+      video.load();
+    };
+
+    video.addEventListener('error', fallbackToOriginal, { once: true });
+
+    if (source.getAttribute('src')) {
+      source.setAttribute('src', mobileSrc);
+    } else {
+      source.dataset.src = mobileSrc;
+    }
+    video.load();
+  };
+
+  const ensureVideoLoaded = (video) => {
+    if (!video) return;
+    maybeApplyMobileSource(video);
+    const source = video.querySelector('source');
+    if (!source) return;
+    if (source.getAttribute('src')) return;
+
+    const savedSrc = source.dataset.savedSrc || '';
+    const lazySrc = source.dataset.src || '';
+    const originalSrc = source.dataset.originalSrc || '';
+    const nextSrc = savedSrc || lazySrc || originalSrc;
+    if (!nextSrc) return;
+
+    source.setAttribute('src', nextSrc);
+    video.load();
+  };
+
+  const unloadVideoElement = (video) => {
+    if (!video) return;
+    const source = video.querySelector('source');
+    if (!source) return;
+
+    const currentSrc = source.getAttribute('src');
+    if (!currentSrc) return;
+
+    source.dataset.savedSrc = currentSrc;
+    source.removeAttribute('src');
+    video.load();
+  };
+
+  const setupSyncedPair = (container) => {
+    const srcVideo = container.querySelector('video[data-role="src"]');
+    const tarVideo = container.querySelector('video[data-role="tar"]');
+    const isMainCarouselSlide = container.classList.contains('carousel-slide');
+    const isVersatileSlide = container.classList.contains('versatile-example-slide');
+    if (!srcVideo || !tarVideo) return;
+
+    if (isMainCarouselSlide) {
+      srcVideo.controls = false;
+      tarVideo.controls = false;
+      srcVideo.style.pointerEvents = 'auto';
+      srcVideo.style.cursor = 'pointer';
+      srcVideo.tabIndex = 0;
+      tarVideo.style.pointerEvents = 'none';
+      tarVideo.tabIndex = -1;
+    }
+
+    if (isVersatileSlide) {
+      srcVideo.controls = false;
+      tarVideo.controls = false;
+      srcVideo.loop = true;
+      tarVideo.loop = false;
+      srcVideo.style.pointerEvents = 'auto';
+      tarVideo.style.pointerEvents = 'none';
+      srcVideo.style.cursor = 'pointer';
+      srcVideo.tabIndex = 0;
+      tarVideo.tabIndex = -1;
+    }
+
+    let seekingSrc = false;
+
+    const ensureTarPlaying = () => {
+      if (!srcVideo.paused && tarVideo.paused) {
+        safePlay(tarVideo);
+      }
+    };
+
+    const syncTime = () => {
+      if (!seekingSrc && srcVideo.readyState >= 1 && tarVideo.readyState >= 1) {
+        const diff = srcVideo.currentTime - tarVideo.currentTime;
+        if (Math.abs(diff) > syncThreshold) tarVideo.currentTime = srcVideo.currentTime;
+      }
+    };
+
+    srcVideo.addEventListener('loadedmetadata', () => applyPlaybackRate(srcVideo));
+    tarVideo.addEventListener('loadedmetadata', () => applyPlaybackRate(tarVideo));
+
+    // Force browsers to render an initial frame before user presses play.
+    const showInitialFrame = (video) => {
+      if (!video) return;
+      if (video.currentTime <= 0.001) {
+        try {
+          video.currentTime = 0.001;
+        } catch (_err) {}
+      }
+    };
+
+    srcVideo.addEventListener('loadeddata', () => showInitialFrame(srcVideo));
+    tarVideo.addEventListener('loadeddata', () => showInitialFrame(tarVideo));
+
+    srcVideo.addEventListener('play', ensureTarPlaying);
+    srcVideo.addEventListener('pause', () => tarVideo.pause());
+    srcVideo.addEventListener('waiting', () => tarVideo.pause());
+    srcVideo.addEventListener('playing', ensureTarPlaying);
+
+    srcVideo.addEventListener('seeking', () => {
+      seekingSrc = true;
+      tarVideo.currentTime = srcVideo.currentTime;
+    });
+
+    srcVideo.addEventListener('seeked', () => {
+      seekingSrc = false;
+      if (Math.abs(srcVideo.currentTime - tarVideo.currentTime) > 0.05) tarVideo.currentTime = srcVideo.currentTime;
+      ensureTarPlaying();
+    });
+
+    if (isMainCarouselSlide) {
+      const togglePlay = () => {
+        if (srcVideo.paused) {
+          safePlay(srcVideo);
+        } else {
+          srcVideo.pause();
+        }
+      };
+      srcVideo.addEventListener('click', togglePlay);
+      srcVideo.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          togglePlay();
+        }
+      });
+    }
+
+    if (isVersatileSlide) {
+      const togglePlay = () => {
+        if (srcVideo.paused) {
+          safePlay(srcVideo);
+        } else {
+          srcVideo.pause();
+        }
+      };
+      srcVideo.addEventListener('click', togglePlay);
+      srcVideo.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          togglePlay();
+        }
+      });
+    }
+
+    srcVideo.addEventListener('ended', () => {
+      if (isMainCarouselSlide) {
+        const loopCount = Number(container.dataset.loopCount || '0');
+        if (loopCount < 1) {
+          container.dataset.loopCount = String(loopCount + 1);
+          srcVideo.currentTime = 0;
+          tarVideo.currentTime = 0;
+          safePlay(srcVideo);
+          return;
+        }
+
+        container.dataset.loopCount = '0';
+        srcVideo.pause();
+        tarVideo.pause();
+        container.dispatchEvent(new CustomEvent('syncpairended'));
+        return;
+      }
+
+      tarVideo.currentTime = srcVideo.currentTime;
+      srcVideo.pause();
+      tarVideo.pause();
+    });
+
+    applyPlaybackRate(srcVideo);
+    applyPlaybackRate(tarVideo);
+  };
+
+  document.querySelectorAll('.sync-pair').forEach((container) => setupSyncedPair(container));
+
+  const slides = Array.from(document.querySelectorAll('.carousel-slide'));
+  if (!slides.length) return;
+  const track = document.getElementById('carousel-track');
+
+  const prevBtn = document.getElementById('carousel-prev');
+  const nextBtn = document.getElementById('carousel-next');
+  let activeIndex = 0;
+
+  const showSlide = (index) => {
+    const nextIndex = (index + slides.length) % slides.length;
+    if (track) {
+      track.style.transform = `translateX(-${nextIndex * 100}%)`;
+    }
+
+    slides.forEach((slide, idx) => {
+      const srcVideo = slide.querySelector('video[data-role="src"]');
+      const tarVideo = slide.querySelector('video[data-role="tar"]');
+      if (!srcVideo || !tarVideo) return;
+      if (idx !== nextIndex) {
+        slide.dataset.loopCount = '0';
+        srcVideo.pause();
+        tarVideo.pause();
+        srcVideo.currentTime = 0;
+        tarVideo.currentTime = 0;
+      }
+    });
+
+    const activeSlide = slides[nextIndex];
+    const activeSource = activeSlide.querySelector('video[data-role="src"]');
+    if (activeSource) {
+      activeSource.currentTime = 0;
+      safePlay(activeSource);
+    }
+
+    activeIndex = nextIndex;
+  };
+
+  if (prevBtn) prevBtn.addEventListener('click', () => showSlide(activeIndex - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => showSlide(activeIndex + 1));
+
+  slides.forEach((slide) => {
+    slide.addEventListener('syncpairended', () => {
+      const idx = slides.indexOf(slide);
+      if (idx === activeIndex) showSlide(activeIndex + 1);
+    });
+  });
+
+  const compSlides = Array.from(document.querySelectorAll('.comparison-carousel-slide'));
+  const compTrack = document.getElementById('comparison-carousel-track');
+  const compPrevBtn = document.getElementById('comparison-prev');
+  const compNextBtn = document.getElementById('comparison-next');
+  let compIndex = 0;
+  const ua = navigator.userAgent || '';
+  const isSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua);
+  let cleanupActiveCompSync = null;
+
+  const ensureComparisonVideoLoaded = (video) => {
+    ensureVideoLoaded(video);
+  };
+
+  const unloadComparisonVideo = (video) => {
+    unloadVideoElement(video);
+  };
+
+  if (isSafari) {
+    compSlides.forEach((slide) => {
+      const vids = Array.from(slide.querySelectorAll('video'));
+      vids.forEach((v) => {
+        ensureComparisonVideoLoaded(v);
+        v.preload = 'auto';
+      });
+    });
+  }
+
+  const showCompSlide = (index) => {
+    if (!compSlides.length) return;
+    const nextIndex = (index + compSlides.length) % compSlides.length;
+    const prevIndex = compIndex;
+
+    if (cleanupActiveCompSync) {
+      cleanupActiveCompSync();
+      cleanupActiveCompSync = null;
+    }
+
+    if (compTrack) {
+      compTrack.style.transform = `translateX(-${nextIndex * 100}%)`;
+    }
+
+    const nextSlide = compSlides[nextIndex];
+    const nextVideos = Array.from(nextSlide.querySelectorAll('video'));
+    nextVideos.forEach((v) => {
+      ensureComparisonVideoLoaded(v);
+    });
+
+    if (prevIndex !== nextIndex) {
+      const prevSlide = compSlides[prevIndex];
+      const prevVideos = Array.from(prevSlide.querySelectorAll('video'));
+      prevVideos.forEach((v) => {
+        v.pause();
+        v.currentTime = 0;
+        if (!isSafari) {
+          unloadComparisonVideo(v);
+        }
+      });
+    }
+
+    compIndex = nextIndex;
+
+    const activeRow = compSlides[nextIndex];
+    const videos = Array.from(activeRow.querySelectorAll('video'));
+    if (videos.length) {
+      cleanupActiveCompSync = setupComparisonRowSync(videos);
+    }
+  };
+
+  if (compPrevBtn) compPrevBtn.addEventListener('click', () => showCompSlide(compIndex - 1));
+  if (compNextBtn) compNextBtn.addEventListener('click', () => showCompSlide(compIndex + 1));
+
+  const setupMotivationRowSync = (videos) => {
+    if (!videos.length) return null;
+
+    const listeners = [];
+    const addListener = (video, eventName, handler) => {
+      video.addEventListener(eventName, handler);
+      listeners.push([video, eventName, handler]);
+    };
+
+    const leader = videos[0];
+    const followers = videos.slice(1);
+    let applyingSync = false;
+
+    const syncFollowersToLeader = (shouldPlayFollowers) => {
+      if (applyingSync) return;
+      applyingSync = true;
+      followers.forEach((v) => {
+        if (Math.abs(leader.currentTime - v.currentTime) > 0.03) {
+          v.currentTime = leader.currentTime;
+        }
+        if (shouldPlayFollowers) {
+          safePlay(v);
+        } else {
+          v.pause();
+        }
+      });
+      applyingSync = false;
+    };
+
+    videos.forEach((video, idx) => {
+      video.controls = false;
+      video.loop = idx === 0;
+      video.style.pointerEvents = idx === 0 ? 'auto' : 'none';
+      video.style.cursor = idx === 0 ? 'pointer' : 'default';
+      video.tabIndex = idx === 0 ? 0 : -1;
+      applyPlaybackRate(video);
+    });
+
+    addListener(leader, 'play', () => syncFollowersToLeader(true));
+    addListener(leader, 'pause', () => syncFollowersToLeader(false));
+    addListener(leader, 'seeking', () => syncFollowersToLeader(false));
+    addListener(leader, 'seeked', () => syncFollowersToLeader(!leader.paused));
+
+    const togglePlay = () => {
+      if (leader.paused) {
+        safePlay(leader);
+      } else {
+        leader.pause();
+      }
+    };
+    addListener(leader, 'click', togglePlay);
+    addListener(leader, 'keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        togglePlay();
+      }
+    });
+
+    return () => {
+      listeners.forEach(([video, eventName, handler]) => {
+        video.removeEventListener(eventName, handler);
+      });
+    };
+  };
+
+  const setupComparisonRowSync = (videos) => {
+    if (!videos.length) return null;
+
+    const listeners = [];
+    const addListener = (video, eventName, handler) => {
+      video.addEventListener(eventName, handler);
+      listeners.push([video, eventName, handler]);
+    };
+
+    const leader = videos[0];
+    const followers = videos.slice(1);
+    let applyingSync = false;
+
+    const syncFollowersToLeader = (shouldPlayFollowers) => {
+      if (applyingSync) return;
+      applyingSync = true;
+      followers.forEach((v) => {
+        ensureComparisonVideoLoaded(v);
+        if (Math.abs(leader.currentTime - v.currentTime) > 0.03) {
+          v.currentTime = leader.currentTime;
+        }
+        if (shouldPlayFollowers) {
+          safePlay(v);
+        } else {
+          v.pause();
+        }
+      });
+      applyingSync = false;
+    };
+
+    videos.forEach((video) => {
+      video.controls = false;
+      video.loop = false;
+      video.style.pointerEvents = 'none';
+      video.style.cursor = 'default';
+      video.tabIndex = -1;
+
+      video.addEventListener('loadedmetadata', () => applyPlaybackRate(video));
+      video.addEventListener('loadeddata', () => {
+        if (video.currentTime <= 0.001) {
+          try {
+            video.currentTime = 0.001;
+          } catch (_err) {}
+        }
+      });
+    });
+
+    leader.loop = true;
+    leader.style.pointerEvents = 'auto';
+    leader.style.cursor = 'pointer';
+    leader.tabIndex = 0;
+
+    addListener(leader, 'play', () => syncFollowersToLeader(true));
+    addListener(leader, 'pause', () => syncFollowersToLeader(false));
+    addListener(leader, 'seeking', () => syncFollowersToLeader(false));
+    addListener(leader, 'seeked', () => syncFollowersToLeader(!leader.paused));
+
+    const togglePlay = () => {
+      ensureComparisonVideoLoaded(leader);
+      if (leader.paused) {
+        safePlay(leader);
+      } else {
+        leader.pause();
+      }
+    };
+    addListener(leader, 'click', togglePlay);
+    addListener(leader, 'keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        togglePlay();
+      }
+    });
+
+    return () => {
+      listeners.forEach(([video, eventName, handler]) => {
+        video.removeEventListener(eventName, handler);
+      });
+    };
+  };
+
+  showCompSlide(0);
+
+  document.querySelectorAll('.motivation-sync-row').forEach((row) => {
+    const videos = Array.from(row.querySelectorAll('video'));
+    if (videos.length) setupMotivationRowSync(videos);
+  });
+
+  const versatileCarousels = Array.from(document.querySelectorAll('.versatile-category-carousel'));
+  versatileCarousels.forEach((carousel) => {
+    const slides = Array.from(carousel.querySelectorAll('.versatile-example-slide'));
+    const track = carousel.querySelector('.versatile-track');
+    const prevBtn = carousel.querySelector('.versatile-prev');
+    const nextBtn = carousel.querySelector('.versatile-next');
+    let activeIndex = 0;
+
+    const showSlide = (index) => {
+      if (!slides.length) return;
+      const nextIndex = (index + slides.length) % slides.length;
+      if (track) {
+        track.style.transform = `translateX(-${nextIndex * 100}%)`;
+      }
+
+      slides.forEach((slide, idx) => {
+        const srcVideo = slide.querySelector('video[data-role="src"]');
+        const tarVideo = slide.querySelector('video[data-role="tar"]');
+        if (!srcVideo || !tarVideo) return;
+        if (idx !== nextIndex) {
+          slide.dataset.loopCount = '0';
+          srcVideo.pause();
+          tarVideo.pause();
+          srcVideo.currentTime = 0;
+          tarVideo.currentTime = 0;
+        }
+      });
+
+      const activeSlide = slides[nextIndex];
+      const activeSource = activeSlide.querySelector('video[data-role="src"]');
+      if (activeSource) {
+        activeSource.currentTime = 0.001;
+      }
+
+      activeIndex = nextIndex;
+    };
+
+    if (prevBtn) prevBtn.addEventListener('click', () => showSlide(activeIndex - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => showSlide(activeIndex + 1));
+
+    slides.forEach((slide) => {
+    });
+
+    showSlide(0);
+  });
+
+  if ('IntersectionObserver' in window) {
+    const groupVisibleCount = new Map();
+    const targetVisible = new Map();
+
+    const getGroupRoot = (video) => {
+      const comparisonRoot = video.closest('.comparison-carousel-slide');
+      if (comparisonRoot) return comparisonRoot;
+      const motivationRoot = video.closest('.motivation-sync-row');
+      if (motivationRoot) return motivationRoot;
+      const syncRoot = video.closest('.sync-pair');
+      if (syncRoot) return syncRoot;
+      return null;
+    };
+
+    const getGroupLeader = (groupRoot) => {
+      if (!groupRoot) return null;
+      if (groupRoot.classList.contains('comparison-carousel-slide')) return groupRoot.querySelector('video');
+      if (groupRoot.classList.contains('motivation-sync-row')) return groupRoot.querySelector('video');
+      return groupRoot.querySelector('video[data-role="src"]');
+    };
+
+    const updateGroupPlayback = (groupRoot) => {
+      const leader = getGroupLeader(groupRoot);
+      if (!leader) return;
+      const groupVideos = Array.from(groupRoot.querySelectorAll('video'));
+      const visibleCount = groupVisibleCount.get(groupRoot) || 0;
+      if (visibleCount > 0) {
+        groupVideos.forEach((video) => ensureVideoLoaded(video));
+        safePlay(leader);
+      } else {
+        groupVideos.forEach((video) => {
+          video.pause();
+          video.currentTime = 0;
+          unloadVideoElement(video);
+        });
+      }
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target;
+        const groupRoot = getGroupRoot(video);
+        if (!groupRoot) return;
+
+        const prevVisible = targetVisible.get(video) || false;
+        const isVisibleNow = entry.isIntersecting && entry.intersectionRatio >= 0.08;
+        if (prevVisible === isVisibleNow) return;
+
+        targetVisible.set(video, isVisibleNow);
+        const prevCount = groupVisibleCount.get(groupRoot) || 0;
+        const nextCount = isVisibleNow ? prevCount + 1 : Math.max(0, prevCount - 1);
+        groupVisibleCount.set(groupRoot, nextCount);
+        updateGroupPlayback(groupRoot);
+      });
+    }, { threshold: [0.0, 0.08, 0.2, 0.4], rootMargin: '0px 0px -8% 0px' });
+
+    document.querySelectorAll('.sync-pair video, .comparison-carousel-slide video, .motivation-sync-row video').forEach((video) => observer.observe(video));
+  }
+
+  showSlide(0);
+});
+
+  </script>
+</body>
+</html>

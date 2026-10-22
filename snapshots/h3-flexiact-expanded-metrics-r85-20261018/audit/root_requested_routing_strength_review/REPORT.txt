@@ -1,0 +1,24 @@
+R85 one_leg/movie9 与 R73 short0252：已有路由强度记录
+
+现有记录支持：氧气罩样例中的参考视频注意力总质量和实际 attention 输出相对改变量都更大。它们不能确定两例效果差异的原因。
+
+两例实际门均 PASS：20 次 forward；Native 0 次、固定版 450 次路由（9 步 × 50 层）；相同 core.py SHA 7a7e9c8067c9c0287659fafed06b775549aaa8cab5141c60220c0536b0eeb650。
+实际公式 O' = O + alpha m_ref (O_same − O_ref)，alpha=1，采样 index6..14。
+
+统计                         R85 one_leg9          R73 oxygen0252
+m_ref 样本均值                0.0839093              0.1642259
+RMS(O'−O)/RMS(O) 样本比值均值 0.1150989              0.2018333
+单层样本比值最大值             0.4158211              0.6745982
+
+均值为 450 个 step×layer 记录的等权均值；每层实际只抽最多8个head、128个query、16个channel。m_ref 是所有参考视频 key 占全部 key 的 softmax 质量；比值使用写回 bfloat16 前后 attention 输出之差。未记录该模式的独立绝对纠正项 RMS，也未记录动作身体区域专用统计。代码依据：core.py _bounded_stats（第135–153行）、route_attention（第205–277行）、finish_forward（第356–390行）。完整逐步数值和文件SHA见 EVIDENCE.json。
+
+还存在时间分布读数：block25，index0/5/10/15/19，8个head和画幅中心附近8个固定空间位置，记录每个query bin对全部参考视频时刻的条件概率。它是在该层干预前的QK读数，不包含本层随后通过输出替换施加的same-bin约束，不是动作匹配正确率，也没有跟踪右侧成人。
+
+index19 条件概率均值：
+                      R85 Native / fixed       R73 Native / fixed
+同一bin质量            .01994 / .01949          .06415 / .06594
+相邻±1bin质量          .04950 / .04866          .11682 / .12578
+
+这只能描述固定空间样本的内部参考分布。R85有47个参考bin/44个被干预querybin、另含角色参考图；R73有32个参考bin/29个被干预querybin、视频参考单独输入。视频长度、几何、任务、人物、prompt、额外图片条件均不同，原始同bin概率也受bin数影响。没有以同一例只改变参考质量的控制，不能据此断言低m_ref导致R85失败，或提高m_ref即可修复。R73“positive”来自已有局部同帧动作观察，也不扩展为整片所有动作已修复。
+
+router JSON 状态字符串仍为 sampling，这是冻结日志生命周期；完成性以20个已提交forward、实际history和PAIR_RUNTIME_GATE的PASS为证。本次未读取大型PT、启动模型或修改任何采样。

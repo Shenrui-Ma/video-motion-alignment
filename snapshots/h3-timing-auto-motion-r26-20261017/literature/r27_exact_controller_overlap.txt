@@ -1,0 +1,80 @@
+R27 实际自动局部控制器：窄范围原文与代码复查
+2026-10-17。仅文献/数学审查；未改变冻结阈值、运行代码或GPU任务。R26唯一消费者已正常结束，归档/媒体已交付。本报告不预支R27效果。
+
+结论
+最直接的控制先例是MotionEcho：它明确采用W=2的去噪历史运动损失平均，触发按需教师修正并在损失达标时停止。R27不能以“两步确认、当前状态复测、动态启停、training-free”单独主张创新。当前可以检验的具体组合差异是：把误差信号表示为有物理帧单位、部位和拒判状态的局部延后假设，跨端点关联这些区间，再选择参考注意力执行器的0..K时间支持。是否有实际价值需独立消融和新案例证据；本次没有核实完全同构的已有实现，也不由此证明空白。
+
+1. 先绑定实际算法，而非宽泛设想
+逐步取实际当前x/sigma的Native clean端点，经冻结VAE和现成DWPose；全片16/32帧窗、stride4及末窗、左右/双臂方向、.3/.5置信、49个lag。该观测仍是估计，不能把候选叫真实丢动作。
+每个候选lag l，对允许同步偏差e∈[-2,2]分别计算共同支持距离：
+ C_l(e)=sum(w_e*||s(t)-y(t+l)||)/sum(w_e)
+ C_e(l)=sum(w_e*||s(t)-y(t+e)||)/sum(w_e)
+ g=min_{两置信阈值,e}(C_e(l)-C_l(e))/max(C_e(l),1e-8)。
+实际代码每个null comparison的支持相同；不同e之间并非强制同一全局支持。原可靠性门、coverage>=.8、>=8帧、正权重及proposal残差<=.5同时满足，且g>.5，才入候选。
+重叠候选连通成组，每组取最小绝对收益最大的代表，按短窗/早起点/feature打破平局。当前代表与上一个去噪端点代表共享至少一侧手臂、交集/较短窗长度>=.5才启用；UNKNOWN打断持续。连通链可把多个事件连成一组，代表不等于整组所有事件。
+重要边界：persistent()没有比较两步lag数值！当前只能称“同一区域的连续正延后候选”，不能称稳定时延轨迹已被跟踪。同窗两步+3与+23也可能通过。
+选中区间映射为latent bin并集；这些时间bin内所有空间query、50层执行已知Full：O'=O+m_ref*(O_same-O_ref)，原参考组质量保留。检测区分手臂，执行器没有肢体空间mask。
+若启用，则同实际x/sigma/条件/RNG再算Full，选择一次Euler更新；否则使用已算Native。20次Native观测、20次Euler，NFE=20+K（双步门使K<=19）。外部预训练VAE/pose及扫描成本另计。无需新增训练不等于没有额外模型，也不等于无额外NFE。
+
+2. 五个最直接近邻
+
+MotionEcho — When Distillation Breaks Motion Control: Restoring Generative Trajectories for Fast Video Generators
+原文：https://arxiv.org/html/2506.19348v2
+项目：https://euminds.github.io/motionecho/
+§3.4、§7.1、Algorithm1明确：mean_W(G_motion)>delta1触发教师；教师当前state的G_motion<delta2截断。W=2写入实验设置。算法同时写出有/无motion guidance的clean预测；教师在已修正latent上复测，功能上已有观测/本次修正分离。不能靠Native命名或去掉教师声称首次。
+其W对应去噪历史，运动目标是特征/attention损失；本次未在该算法发现物理局部lag区间的兼容匹配。R27的“相容区间合取”与“标量均值”数学不同，但需证明这种差别能抑制误触或保持局部动作。项目仍Code(Coming soon)，本次核论文伪代码，未核官方运行实现。
+
+FlowMotion — Training-Free Flow Guidance for Video Motion Transfer
+原文：https://arxiv.org/html/2603.06289v2
+作者代码：https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+§3及Algorithm1比较预测clean latent：zhat=z_t-t*v；目标速度分解/正交分量调节，再以端点和帧差分损失优化目标latent。run.py compute_motion_difference含相邻绝对差及frame-to-all差；process实际是i<guidance_step才执行_apply_guidance_step，然后常规去噪。
+已覆盖无需生成教师的端点运动误差指导。所读代码未实现R27的有符号物理lag、自动0..K误差窗口和连续两步区间关联。不能用我们一项lag阈值与其完整损失不对称比较；main链接可变，未运行作者程序。
+
+DIAL — Harnessing Intrinsic Subject-Aware Attention for Controllable Multi-Subject Video Generation
+原文：https://arxiv.org/html/2609.11507v1
+§3.3 Eq6–7/Algorithm1：参考主体key的logit加log(gamma)*上一去噪步的ISGM空间guide，再softmax。倒序i=N..1中i<=.8N，含义是跳过最初20%、作用于最后80%，不是80%之后才开始。
+自动局部支持、跨步观测、参考attention调节已有；R27的物理时间误差窗口不同于身份空间guide。Full组内同时间读出且保m_ref也不是DIAL整体参考增权的同一公式，但都在注意力重加权家族，公式差别本身不构成论文贡献。Phase I无需训练；Phase II另有训练。未核到官方代码，依据公开公式。
+
+TempoControl — Temporal Attention Guidance for Text-to-Video Models
+原文：https://arxiv.org/html/2510.02226v3
+作者固定代码：https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/wan/text2video.py
+§4/Algorithm1：用户时间曲线与video-to-text attention曲线的相关损失，加幅度与空间熵项优化latent；相关达到阈值提前结束内循环。已覆盖时间目标满足后自适应停止。目标来自用户曲线，非源/当前输出视觉lag的自动区间。代码优化前跳过分支在write_output条件内，内循环停条件另行存在，移植时应区分。复用此前固定commit细读，并再次打开原文/代码；未运行方法。
+
+TSPVE — Temporal Structure Preservation Video Editing
+论文题名：Beyond Consistency: Preserving Temporal Structure in Zero-Shot Video Editing
+作者：Deyin Liu, Yisheng Ding, Zhe Jin, Xiatian Zhu, Anjan Dutta, Lin Wu。
+原文：https://arxiv.org/html/2606.08780v1
+出版页面：https://www.sciencedirect.com/science/article/abs/pii/S0031320326010460
+§4.2/Algorithm1用source DIFT帧间余弦相似热图低于阈值来分可变长clip，每段选余弦行和最大的anchor；§4.3做clip-adaptive token merge，后期交替组合邻段。已有自动物理视频分段，不能泛称我们首次自动找窗口。
+差异是它由源语义转折预分段；R27由当前生成相对源的错误反复定位控制支持，二者输入依赖不同。本次正文、标题/TSPVE定向检索未找到可核实作者实现，code URL=未确认；HTML页的GitHub链接是arXiv反馈工具。不能补造仓库或称代码已审。
+
+补充边界：Time-to-Move (TTM)
+原文：https://arxiv.org/html/2511.08633v1
+题名：Time-to-Move: Training-Free Motion Controlled Video Generation via Dual-Clock Denoising。
+§3.3在t_strong<=t<t_weak以用户/几何构造的M覆写noised warped reference：x_(t-1)=(1-M)*denoiser(x_t)+M*x^w_(t-1)，达到t_strong后停止覆写。区域不同约束强度和固定停止时钟已有；其输入是图像、粗略运动参考和mask，支持SVD/CogVideoX/Wan I2V。所读公式不依据当前pose误差自动发现区间或决定停止。R27不能把局部不同强度/时钟本身称新；本次仅核论文§3.3，未审作者实现。
+
+补充分类纠正
+Controllable Text-to-Motion Generation via Modular Body-Part Phase Control（https://arxiv.org/html/2603.19795v1）§4.4 Eq11用运动VAE预测clean motion经body-phase网络与参考做masked phase loss；训练PhaseEncoder/ControlNet。任务是HumanML3D骨架运动生成，不是RGB视频x0→DWPose在线控制。它说明部位相位条件已有，不是本轮直接同构的RGB停止策略。
+
+3. 最便宜的决策差异检查：只重放已有观测，不改生成
+待R27完整归档后，冻结同一实际受控轨迹的20份Native observer JSON与SHA；复现当前policy逐步输出并exact对上归档。另比较一个明确标为“MotionEcho式标量W2消融、不是完整MotionEcho”的规则：
+对每个step，将全部186个预先定义窗/部位中measured的非负min_gain等权平均为q_n；完整记录measured数。若无measured则q_n=UNKNOWN。相邻两步均可测且(q_n+q_{n-1})/2>.5则打开，并沿用当前步g>.5候选的代表区间作为支持；否则关闭。另记录纯one-step g>.5规则。
+此定义会改变稀疏错误的稀释程度；它是透明的全局聚合基线，不是MotionEcho特征loss的复现。不要将其弱表现当战胜MotionEcho。若需更强标量控制，可另预注册全局max而非事后挑最好聚合；本轮先不实施。
+报告逐步ON/OFF、选择区间、bin并集、UNKNOWN、首次触发、连续区间与对原policy的支持差异。所有输入仍来自实际R27轨迹；替代决定没有改变后续latent，因此仅能说明决策差异，不能证明替代策略的最终视频或NFE收益。真正因果价值仍需独立跑同检测/执行器的局部兼容vs标量W2，及回放实际支持的固定策略。不能用时间平滑本身作为主要贡献。
+
+4. pose高UNKNOWN与重复动作歧义：已有可靠性工具及一个下一候选
+Drop-DTW（NeurIPS2021）原文：https://papers.nips.cc/paper_files/paper/2021/file/729c68884bd359ade15d5f163166738a-Paper.pdf
+官方代码：https://github.com/SamsungLabs/Drop-DTW/blob/main/dp/exact_dp.py
+§3 Eq2以匹配成本+未匹配元素drop成本联合优化单调路径；Algorithm1同时维护match/drop状态。代码drop_dtw/double_drop_dtw确有未匹配输出。它允许跨过内部无对应部分，避免普通DTW强配所有点；常数/分位数drop成本已是先例，并非概率保证。
+
+VAOT/VASOT（ICCV2025）原文：https://arxiv.org/html/2503.16832v1
+题名：Joint Self-Supervised Video Alignment and Action Segmentation。§3.1 Eq3–4以FGW邻域结构成本耦合帧对应，避免相邻源帧映射到相距很远的目标；另加virtual frame处理不匹配。论文明确讨论重复动作、背景帧和pose估计缺上下文。它训练视觉表征，不可把直接套入冻结pose说成复现全文；本次未确认其官方代码，仅核原文公式。
+
+可保留一个小改进假说：用完整序列上的“有未匹配状态的上下文一致对应”审核局部lag，而不是继续降低.5/coverage门。当前单窗只挑49lag中的最小值；周期动作可有多个低谷，连续两去噪步甚至能重复选同一错误周期。保留候选低谷与缺测状态，由前后相邻物理片段的顺序/邻域约束检查它属于哪个动作实例。已知DP/FGW原语不能重新命名为创新；潜在价值是针对中间x0的可拒判对应，而非得到更平滑的一条路径。
+最小CPU必要门可复用现有source/endpoint姿态，无新解码：冻结完整cost与可见性；检查现有可靠局部候选能否组成上下文一致路径，记录因周期切换/无对应/边界被拒绝的条目。用已知±4/±8时移、局部缺测、重复动作的输入控制校验；不能把同源自匹配当跨身份泛化。只有上下文能排除错误周期且不把“无可见信息”补成假动作，才值得接控制器。若多个周期在同一特征上完全相同且邻域也相同，则不可辨识，必须UNKNOWN；drop机制也不能补回低置信缺失的肢体。
+当前R26 UNKNOWN计数并未在此重新逐项分类，不能都归因于周期歧义。首先按已有reason拆成coverage、边界、歧义、残差形变、低运动，再判断哪类上述机制有作用。保留现有冻结结果，新增观察器报告不能回写原主指标。
+
+5. 本轮可主张与最小独立证据
+目前能称一个自动局部时间控制的工程基线/可行性试验：完整物理时域搜索、明确UNKNOWN、当前state观测与执行器分离、透明成本。这些组合可能有实用贡献，思想相近不等于必须否决。
+要形成有实验证据的贡献，至少需要：正常例可免干预且输出精确Native；不同源坏例的自动窗口与独立人工/另一度量一致；误检/漏检和全片质量代价；对固定Full、无跨步匹配/标量W2、固定支持回放的因果对照。冻结pose既作controller又作唯一endpoint指标会形成测量循环，应加独立可见动作/重影评价。单个lag变小不证明动作被恢复，也不能将重叠186窗当186独立样本。
+本报告未发现已读5篇的完整同构操作，不构成穷尽证明。MotionEcho W2、DIAL空间guide、TSPVE自动分段、FlowMotion端点运动匹配和TempoControl满意阈值停止均必须明确引用。没有现成证据支持“首次无训练自动动作反馈架构”或风险/概率保证；当前.5和相邻匹配门保持冻结。

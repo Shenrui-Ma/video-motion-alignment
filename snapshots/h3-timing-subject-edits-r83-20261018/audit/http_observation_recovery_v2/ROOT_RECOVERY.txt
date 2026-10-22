@@ -1,0 +1,27 @@
+R83 HTTP 状态读取恢复（仅行政变更）
+
+新 producer seal:
+df7e77df54f0197f4f7b29a6ce6432729aa4c3dda861b43a4c87a3120433a6cb
+旧 producer seal:
+1c875d1a82110a362975e1c31454250f0ae1f6e3dbc8634c5bcf55a34671bddc
+
+仅 scripts/job.py 与 scripts/run_queue.py 修改。GET 的连接/HTTP 短暂不可读成为 observation_unknown；已提交 job 保留，继续同一 job 的状态读取。总运行期限、单 job 期限持续计算。真实 job 错误、身份变化、提交结果不确定仍终止。POST 没有重试。
+
+旧 108 个 seal 文件完整保存在本目录 producer_before_restart。原首轮日志、partial tensor、noise、conditioning、x0、router、process registry 尚待执行以下归档；原 root attempt 的失败收据保留原路径。
+
+1. 先核新 seal 的全部 108 文件及旧快照；确认 CPU 测试通过。实际归档需要 root 持有原失败 service 的准确 PID/start_ticks。服务登记预期 PID 866346；start_ticks 必须来自该次 STARTED.json / service.json 的实际值。
+
+2. dry-run（此脚本完全不发 signal / 不初始化 CUDA / 不提交任务）：
+CUDA_VISIBLE_DEVICES='' /data3/researcher/ComfyUI/.venv/bin/python audit/http_observation_recovery_v2/archive_failed_attempt.py --expected-service-pid 866346 --expected-start-ticks <实际旧值> --archive-name first_attempt_http_timeout
+
+3. 检查 dry-run 后，带完全相同参数加 --execute。归档器使用 audit/root_execution.lock，要求所有旧登记 PID 的 /proc 均不存在且不在 nvidia-smi CUDA 列表；复用 PID、活动 PID、未知进程记录、后续 job 证据均拒绝。先建立逐文件 SHA/mtime/owner 清单，再同盘 rename，并重新核验清单。若中途失败，停止并保留 ARCHIVE_PROGRESS / FAILURE；不自动重试同一个 archive-name。
+
+归档路径：audit/http_observation_recovery_v2/attempts/first_attempt_http_timeout/payload。
+完整收据：同目录 COMPLETE.json。
+科学输入、图、模型、脚本、全部旧 root attempt 收据保持原路径。只清理运行命名冲突：processes/logs/output/temp、audit 的本轮 noise/conditioning 缓存、tensor_blobs/router/x0、旧审批、实际 case gate目录。这里的“清理”全部为可核验移档，无删除。
+
+4. 原首轮 incomplete Native 将从原 seed/图重新执行，并与新的 forced 共用新生成的 noise cache。两次新结果仍由原实际 gate 验证 conditions/noise/Native prefix；旧 partial 不混入新 pair。原7个 sources/14个 jobs 顺序、prompt、几何、步数、路由不变。
+
+5. 等 root 确认 .41 稳定且先行 R84 首例完成后，可用原 audit/root_run_batch.py 启动新 attempt 名称。使用实际活跃 peer root，勿复用旧 peer PID。仍先首对 gate+视觉审核，再人工 approve-rest。root 独占 GPU 启动，此包不自动启动。
+
+验证：producer 61项 CPU测试；HTTP等待边界10项；归档器12项。数值/图/输入文件与旧 seal 逐项一致。远端部署状态以 REMOTE_DEPLOYMENT.json 为准。

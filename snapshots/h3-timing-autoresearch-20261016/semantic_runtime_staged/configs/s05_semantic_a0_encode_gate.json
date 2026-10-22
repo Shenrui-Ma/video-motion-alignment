@@ -1,0 +1,94 @@
+{
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "H3SemanticClockReference",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "ref_video": [
+        "23",
+        0
+      ],
+      "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "width": 1312,
+      "height": 736,
+      "length": 141,
+      "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+      "run_id": "s05_semantic_a0_p0_t0_condition",
+      "ref_image": [
+        "21",
+        0
+      ],
+      "pixel_phase_frames": 0,
+      "label_phase_frames": 0
+    }
+  },
+  "6": {
+    "class_type": "H3SemanticClockNoise",
+    "inputs": {
+      "noise_seed": 2026101311,
+      "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+      "run_id": "s05_semantic_a0_p0_t0",
+      "pair_id": "05_sam_1312x736_2026101311_v3"
+    }
+  },
+  "21": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "sam_altman_village_global_20221117_original.jpg"
+    }
+  },
+  "22": {
+    "class_type": "LoadVideo",
+    "inputs": {
+      "file": "05_real_megumi_v.mp4"
+    }
+  },
+  "23": {
+    "class_type": "GetVideoComponents",
+    "inputs": {
+      "video": [
+        "22",
+        0
+      ]
+    }
+  },
+  "99": {
+    "class_type": "H3SemanticClockGate",
+    "inputs": {
+      "positive": [
+        "5",
+        0
+      ],
+      "target": [
+        "5",
+        1
+      ],
+      "noise": [
+        "6",
+        0
+      ],
+      "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016_semantic0/audit",
+      "condition_run_id": "s05_semantic_a0_p0_t0_condition"
+    }
+  }
+}

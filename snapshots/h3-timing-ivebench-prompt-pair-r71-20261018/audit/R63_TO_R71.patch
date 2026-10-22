@@ -1,0 +1,410 @@
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/execution_gate.py
++++ scripts/execution_gate.py
+@@ -1,53 +1,43 @@
+ """Explicit root-approved first-pair capacity trial, followed by measured-pair review."""
+ import argparse,json,os,time
+ from pathlib import Path
+-from r63_contract import ROOT,read,sha,registry,require
++from r71_contract import ROOT,read,sha,registry,require
+ 
+ def atomic(path,value):
+  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(value,indent=2)+'\n');os.replace(tmp,path)
+ 
+ def approval(root=ROOT):
+  root=Path(root);p=root/'audit/ROOT_FIRST_PAIR_APPROVAL.json';a=read(p);runtime=read(root/'configs/runtime.json');_,order=registry(root)
+- require(a.get('schema')=='r63-first-pair-capacity-trial-v1' and a.get('root_approved') is True,'root first-pair trial approval pending')
++ require(a.get('schema')=='r71-first-pair-capacity-trial-v1' and a.get('root_approved') is True,'root first-pair trial approval pending')
+  require(a['runtime_profile_sha256']==sha(root/'configs/runtime.json') and a['main_gpu_uuid']==runtime['gpu_uuid'],'first-pair runtime/device changed')
+- require(a['allowed_runs']==order[:2] and a['required_free_bytes']>=20*1024**3 and a['reserve_vram_gib']==8,'first-pair scope/headroom differs')
++ require(a['allowed_runs']==order[:2] and a['required_free_bytes']>=40*1024**3 and a['reserve_vram_gib']==8,'first-pair scope/headroom differs')
+  require(a['capacity_status']=='ACTUAL_FULL_TRAJECTORY_PENDING','trial status falsely claims measured capacity')
+  return a
+ 
+ def admitted_job(run,root=ROOT):
+  root=Path(root);a=approval(root);_,order=registry(root);require(run in order,'unregistered job')
+- if run in a['allowed_runs']:return True
+- p=root/'audit/CONTINUE_AFTER_FIRST_PAIR.json'
+- if not p.exists():return False
+- c=read(p);gate=root/'analysis/postrun/short_0210/PAIR_RUNTIME_GATE.json'
+- require(c.get('root_approved') is True and c.get('schema')=='r63-continue-after-first-pair-v1','continuation approval invalid')
+- require(c['runtime_profile_sha256']==a['runtime_profile_sha256'] and c['pair_gate_sha256']==sha(gate),'continuation runtime/evidence changed')
+- report=read(gate);require(report['passed'] is True and report['runtime_profile_sha256']==a['runtime_profile_sha256'] and report['source_id']=='short_0210','first pair evidence incomplete')
+- require(c['allowed_runs']==order[2:],'remaining fixed queue changed')
+- return True
++ require(run in a['allowed_runs'],'outside the fixed prompt pair');return True
+ 
+ def seal(root=ROOT):
+  root=Path(root);require(not(root/'processes/service.json').exists(),'service registry exists; producer seal locked')
+  files={}
+  paths=[]
+- for folder in ('scripts','extensions','configs/graphs','configs/parent_graphs','configs/R54_evidence'):
++ for folder in ('scripts','extensions','configs/graphs','configs/parent_graphs','configs/ancestors','configs/prompts','design','analysis/postrun','tests'):
+   paths.extend(p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
+- paths.extend(root/'configs'/n for n in ('runtime.json','scientific_contract.json','input_hashes.json','runtime_kernel_hashes.json','parent_core_hashes.json'))
++ paths.extend(root/'configs'/n for n in ('runtime.json','scientific_contract.json','input_hashes.json','runtime_kernel_hashes.json','parent_core_hashes.json','prompt_ancestry.json','expected_checkpoint_hashes.json'))
+  for p in sorted(paths):files[str(p.relative_to(root))]={'sha256':sha(p),'bytes':p.stat().st_size}
+- value={'schema':'r63-producer-seal-v1','files':files,'mutable_root_owned':['configs/admission.json','audit/ROOT_FIRST_PAIR_APPROVAL.json','audit/CONTINUE_AFTER_FIRST_PAIR.json','configs/queue.json'],'created_unix':time.time()};atomic(root/'deploy_manifest.json',value);return value
++ value={'schema':'r71-producer-seal-v1','files':files,'mutable_root_owned':['configs/admission.json','audit/ROOT_FIRST_PAIR_APPROVAL.json','configs/queue.json'],'created_unix':time.time()};atomic(root/'deploy_manifest.json',value);return value
+ 
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('action',choices=['seal','approve-first-pair','approve-rest']);p.add_argument('--root-admitted',action='store_true');p.add_argument('--free-mib',type=int,default=20480);a=p.parse_args();root=ROOT
++ p=argparse.ArgumentParser();p.add_argument('action',choices=['seal','approve-first-pair']);p.add_argument('--root-admitted',action='store_true');p.add_argument('--free-mib',type=int,default=40960);a=p.parse_args();root=ROOT
+  if a.action=='seal':v=seal(root)
+  else:
+   require(a.root_admitted,'root must explicitly admit actual hardware/process resources')
+   require(root==Path(read(root/'configs/runtime.json')['remote_root']),'actual remote root required')
+   _,order=registry(root)
+   if a.action=='approve-first-pair':
+-   require(a.free_mib>=20480,'first capacity trial requires >=20GiB free')
+-   v={'schema':'r63-first-pair-capacity-trial-v1','root_approved':True,'runtime_profile_sha256':sha(root/'configs/runtime.json'),'main_gpu_uuid':read(root/'configs/runtime.json')['gpu_uuid'],'allowed_runs':order[:2],'required_free_bytes':a.free_mib*1024**2,'reserve_vram_gib':8,'capacity_status':'ACTUAL_FULL_TRAJECTORY_PENDING','created_unix':time.time()};atomic(root/'audit/ROOT_FIRST_PAIR_APPROVAL.json',v)
+-  else:
+-   approval(root);gate=root/'analysis/postrun/short_0210/PAIR_RUNTIME_GATE.json';require(read(gate)['passed'] is True,'first pair evidence pending')
+-   v={'schema':'r63-continue-after-first-pair-v1','root_approved':True,'runtime_profile_sha256':sha(root/'configs/runtime.json'),'pair_gate_sha256':sha(gate),'allowed_runs':order[2:],'created_unix':time.time()};atomic(root/'audit/CONTINUE_AFTER_FIRST_PAIR.json',v)
++   require(a.free_mib>=40960,'first capacity trial requires >=40GiB free')
++   v={'schema':'r71-first-pair-capacity-trial-v1','root_approved':True,'runtime_profile_sha256':sha(root/'configs/runtime.json'),'main_gpu_uuid':read(root/'configs/runtime.json')['gpu_uuid'],'allowed_runs':order[:2],'required_free_bytes':a.free_mib*1024**2,'reserve_vram_gib':8,'capacity_status':'ACTUAL_FULL_TRAJECTORY_PENDING','created_unix':time.time()};atomic(root/'audit/ROOT_FIRST_PAIR_APPROVAL.json',v)
++
+  print(json.dumps({'action':a.action,'files':len(v.get('files',{})),'allowed_runs':v.get('allowed_runs')},indent=2))
+ if __name__=='__main__':main()
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/job.py
++++ scripts/job.py
+@@ -65,7 +65,7 @@
+     validate_name(name)
+     from execution_gate import admitted_job
+     if not admitted_job(name,RUN):raise RuntimeError('first pair review pending; no submission')
+-    from r63_contract import validate_job, prepare_loader_inputs
++    from r71_contract import validate_job, prepare_loader_inputs
+     binding = validate_job(name)
+     prepare_loader_inputs(name)
+     graph_path = RUN / 'configs/graphs' / (name + '.json')
+@@ -94,7 +94,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-ivebench-forced-r63-20261018'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-ivebench-prompt-pair-r71-20261018'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/launch_remote.py
++++ scripts/launch_remote.py
+@@ -83,7 +83,7 @@
+         if not link.exists():link.symlink_to(target,target_is_directory=True)
+     kj=r/'custom_nodes/ComfyUI-KJNodes'
+     if not kj.exists():kj.symlink_to(service.RUNTIME['kj_nodes'],target_is_directory=True)
+-    from r63_contract import registry,prepare_loader_inputs
++    from r71_contract import registry,prepare_loader_inputs
+     for name in registry(r)[1]:prepare_loader_inputs(name,r)
+ 
+     prov={'runtime':service.RUNTIME,'observed_unix':time.time(),'core_matches':{}}
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/lease_watchdog.py
++++ scripts/lease_watchdog.py
+@@ -1,7 +1,7 @@
+ """Hard lifetime and controller-loss guard; never touches an unregistered PID."""
+ import json,time
+ import service
+-from r63_contract import read
++from r71_contract import read
+ if __name__=='__main__':
+     record=read(service.RUN/'processes/service.json')
+     deadline=time.monotonic()+read(service.RUN/'configs/scientific_contract.json')['continuous']['max_service_seconds']
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/preflight.py
++++ scripts/preflight.py
+@@ -1,12 +1,12 @@
+ """CPU contracts; production requires new actual same-profile capacity evidence."""
+ import argparse,json
+ from pathlib import Path
+-from r63_contract import ROOT,read,sha,require,registry,validate_job,GEOMETRY
++from r71_contract import ROOT,read,sha,require,registry,validate_job,GEOMETRY
+ 
+ def check(root=ROOT,live=False):
+  root=Path(root);s=read(root/'configs/scientific_contract.json');jobs,order=registry(root);runtime=read(root/'configs/runtime.json')
+  require(s['geometry']==GEOMETRY and s['NFE_per_job']==s['callback_count']==20 and s['online_observer'] is False,'geometry/count/observer contract changed')
+- require(s['router']=={'mode':'mass_preserve','alpha':1.0,'blocks':[0,50],'steps':[6,15],'physical_frames':[0,89],'query_support':'all27 temporal bins and all spatial queries'},'fixed scientific route changed')
++ require(s['router']=={'mode':'native','alpha':1.0,'blocks':[0,50],'steps':[0,20],'physical_frames':[0,89],'query_support':'all27 temporal bins and all spatial queries'},'fixed scientific route changed')
+  for run in order:validate_job(run,root)
+  for path,digest in read(root/'configs/input_hashes.json').items():require(sha(root/'inputs'/path)==digest,'original input bytes changed')
+  for path,row in read(root/'configs/runtime_kernel_hashes.json').items():require(sha(root/path)==row['current_sha256'],'R54 numerical kernel changed')
+@@ -19,6 +19,6 @@
+   require((root/'deploy_manifest.json').is_file(),'formal producer seal pending')
+   for path,row in read(root/'deploy_manifest.json')['files'].items():require(sha(root/path)==row['sha256'],'sealed file changed: '+path)
+   for path,digest in read(root/'configs/parent_core_hashes.json').items():require(sha(Path(runtime['core'])/path)==digest,'actual Comfy core differs')
+- return {'passed':True,'jobs':order,'first_pair':order[:2],'sources':5,'NFE_per_job':20,'Euler_updates':20,'online_observations':0,'route_steps':list(range(6,15)),'launch_admitted':live}
++ return {'passed':True,'jobs':order,'first_pair':order[:2],'sources':1,'NFE_per_job':20,'Euler_updates':20,'online_observations':0,'route_steps':[],'launch_admitted':live}
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--live',action='store_true');a=p.parse_args();print(json.dumps(check(live=a.live),indent=2))
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/r63_contract.py
++++ scripts/r71_contract.py
+@@ -1,9 +1,9 @@
+-"""Five P0 tasks, same-host Native followed by fixed-ON; twenty Euler predictions."""
+-import copy,hashlib,json,re
++"""One frozen source, fresh P0/P1 Native prompt comparison on the same service."""
++import copy,hashlib,json
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-SOURCES=('short_0210','short_0230','short_0263','short_0352','short_0370')
+-ARMS=('native','forced');GEOMETRY={'width':1312,'height':736,'frames':90,'fps':24}
++SOURCES=('short_0210',);ARMS=('p0','p1')
++GEOMETRY={'width':1312,'height':736,'frames':90,'fps':24}
+ SHAPES={'video':(1,24,27,46,82),'audio':(1,32,2,150)}
+ def read(path):return json.loads(Path(path).read_text())
+ def sha(path):
+@@ -14,27 +14,44 @@
+ REMOTE=Path(read(ROOT/'configs/runtime.json')['remote_root'])
+ def require(ok,message):
+  if not ok:raise ValueError(message)
++def prompt_values(root=ROOT):
++ root=Path(root);binding=read(root/'configs/prompt_ancestry.json');values={}
++ for arm in ARMS:
++  b=binding[arm];p=root/b['file'];require(sha(p)==b['sha256'],'ancestor graph changed')
++  value=read(p)['5']['inputs']['prompt'];file=root/'configs/prompts'/(arm+'.txt')
++  require(file.read_text()==value and sha(file)==b['prompt_sha256'],'frozen prompt changed')
++  values[arm]=value
++ for key in ('template','metadata'):
++  b=binding[key];require(sha(root/b['file'])==b['sha256'],'R57 preregistration binding changed')
++ template=(root/binding['template']['file']).read_text();metadata=read(root/binding['metadata']['file'])
++ row=next(x for x in metadata['pairs'] if x['pair_id']=='short_0210')
++ require(template.format(**row)==values['p1'] and row['edit_prompt']==values['p0'],'original R57 template/P0 relation changed')
++ return values
++
+ def expected_graph(root,case):
+- root=Path(root);remote=Path(read(root/'configs/runtime.json')['remote_root']);g=copy.deepcopy(read(root/case['parent_graph']));run=case['run_id'];source=case['source_id']
++ root=Path(root);remote=Path(read(root/'configs/runtime.json')['remote_root']);g=copy.deepcopy(read(root/case['parent_graph']));run=case['run_id']
+  for node,key,suffix in [('5','audit_dir','audit'),('6','audit_dir','audit'),('50','audit_dir','audit/router'),('51','source_audit_dir','audit'),('52','output_dir','audit/x0')]:g[node]['inputs'][key]=str(remote/suffix)
+- shared='r63_'+source+'_shared';g['5']['inputs']['run_id']=shared;g['51']['inputs']['source_run_id']=shared
++ g['5']['inputs'].update(run_id=case['reference_cache_id'],prompt=case['prompt']);g['51']['inputs']['source_run_id']=case['reference_cache_id']
+  for node in ('6','50','51','52'):g[node]['inputs']['run_id']=run
+- g['6']['inputs']['pair_id']='r63_'+source+'_seed2026101701'
++ g['6']['inputs']['pair_id']='r71_short_0210_seed2026101701'
+  g['14']['inputs']['filename_prefix']=run
+- g['50']['inputs'].update(mode='native' if case['arm']=='native' else 'mass_preserve',alpha=1.,radius=0,time_offset=0,start_frame=0,end_frame=89,block_start=0,block_end=50,step_start=0 if case['arm']=='native' else 6,step_end=20 if case['arm']=='native' else 15)
++ g['50']['inputs'].update(mode='native',alpha=1.,radius=0,time_offset=0,start_frame=0,end_frame=89,block_start=0,block_end=50,step_start=0,step_end=20)
+  return g
+ 
+ def registry(root=ROOT):
+- root=Path(root);s=read(root/'configs/scientific_contract.json');order=['r63_'+source+'_seed2026101701_'+arm for source in SOURCES for arm in ARMS]
+- require(s['case_order']==order and len(s['cases'])==10 and s['arms']==list(ARMS) and s['source_ids']==list(SOURCES),'fixed five paired case registry changed')
+- q=read(root/'configs/queue.json');require(set(q)=={'jobs','finalize'} and q['jobs']==order and type(q['finalize']) is bool,'fixed paired queue changed')
++ root=Path(root);s=read(root/'configs/scientific_contract.json');order=['r71_short_0210_seed2026101701_'+arm for arm in ARMS];prompts=prompt_values(root)
++ require(s['case_order']==order and len(s['cases'])==2 and s['arms']==list(ARMS) and s['source_ids']==list(SOURCES),'fixed prompt pair changed')
++ q=read(root/'configs/queue.json');require(set(q)=={'jobs','finalize'} and q['jobs']==order and type(q['finalize']) is bool,'paired queue changed')
+  jobs={}
+- for case,run in zip(s['cases'],order):
+-  require(case['run_id']==run and case['prompt_version']=='P0' and case['seed']==2026101701 and case['geometry']==GEOMETRY,'source/seed/P0/geometry changed')
+-  parent=root/case['parent_graph'];require(sha(parent)==case['parent_graph_sha256'],'R54 P0 graph changed')
+-  require(read(parent)['5']['inputs']['prompt']==case['prompt']==case['original_task']['edit_prompt'],'original P0 edit prompt changed')
++ for case,arm,run in zip(s['cases'],ARMS,order):
++  require(case['run_id']==run and case['source_id']=='short_0210' and case['arm']==arm and case['prompt_version']==arm.upper() and case['seed']==2026101701 and case['geometry']==GEOMETRY,'source/seed/arm/geometry changed')
++  require(case['reference_cache_id']=='r71_short_0210_'+arm+'_shared','independent text cache identity changed')
++  require(case['prompt']==prompts[arm] and case['prompt_sha256']==sha(root/case['prompt_file']),'prompt changed')
++  require(case['reference_video_count']==1 and case['reference_image_count']==0 and case['valid_frame_count']==87,'input scope changed')
++  parent=root/case['parent_graph'];require(sha(parent)==case['parent_graph_sha256'],'original parent graph changed')
++  require(read(parent)['5']['inputs']['prompt']==prompts['p0']==case['original_task']['edit_prompt'],'original edit task changed')
+   graph=root/'configs/graphs'/(run+'.json');require(read(graph)==expected_graph(root,case),'graph numerical inputs changed')
+-  jobs[run]={'case':case,'source_id':case['source_id'],'seed':case['seed'],'arm':case['arm'],'graph_sha256':sha(graph)}
++  jobs[run]={'case':case,'source_id':case['source_id'],'seed':case['seed'],'arm':arm,'graph_sha256':sha(graph)}
+  return jobs,order
+ 
+ def validate_job(run,root=ROOT):
+@@ -48,9 +65,9 @@
+  p=Path(value);require(p.is_absolute() and p.resolve()==REMOTE/'audit','audit root differs');return p
+ 
+ def validate_router(mode,alpha,radius,time_offset,start_frame,end_frame,block_start,block_end,step_start,step_end,run_id,audit_dir):
+- row=validate_job(run_id);forced=row['arm']=='forced'
++ validate_job(run_id)
+  require(Path(audit_dir)==REMOTE/'audit/router','router audit differs')
+- require((mode,alpha,radius,time_offset,start_frame,end_frame,block_start,block_end,step_start,step_end)==('mass_preserve' if forced else 'native',1.,0,0,0,89,0,50,6 if forced else 0,15 if forced else 20),'fixed route parameters differ')
++ require((mode,alpha,radius,time_offset,start_frame,end_frame,block_start,block_end,step_start,step_end)==('native',1.,0,0,0,89,0,50,0,20),'Native route parameters differ')
+ 
+ def prepare_loader_inputs(run,root=ROOT):
+  import shutil
+@@ -58,3 +75,8 @@
+  if not path.exists():
+   with (root/'inputs'/case['video']).open('rb') as before,path.open('xb') as after:shutil.copyfileobj(before,after)
+  require(not path.is_symlink() and sha(path)==case['video_sha256'],'loader source changed');return row
++
++def prompt_pair_condition_checks(p0,p1):
++ # qwen_presentation is pre-encoder sampled RGB + timestamp metadata, not joint embeddings.
++ keys=('input_video','native_vae_calls','qwen_presentation','target_latent_shapes')
++ return {key+'_equal':p0[key]==p1[key] for key in keys}
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/resource_gate.py
++++ scripts/resource_gate.py
+@@ -1,7 +1,7 @@
+ """Single-GPU resource admission; process caps apply to this UID, not other users."""
+ from pathlib import Path
+ import json
+-from r63_contract import ROOT,read as read_json,sha,require
++from r71_contract import ROOT,read as read_json,sha,require
+ class ResourceUnavailable(RuntimeError):
+  def __init__(self,message,snapshot):super().__init__(message);self.snapshot=snapshot
+ 
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/run_queue.py
++++ scripts/run_queue.py
+@@ -1,7 +1,7 @@
+ """One persistent Comfy service per source lane; bounded hold, exact cleanup."""
+ import json,os,subprocess,sys,time
+ import service,job,preflight
+-from r63_contract import registry,read,sha
++from r71_contract import registry,read,sha
+ 
+ def state(**value):service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**value))
+ def remaining(order,completed):
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/scripts/service.py
++++ scripts/service.py
+@@ -119,7 +119,7 @@
+     import resource_gate as t
+     from execution_gate import approval
+     a=approval(RUN)
+-    return {'schema':'r63-main-capacity-trial-v1','status':'ROOT_APPROVED_FIRST_PAIR_TRIAL',
++    return {'schema':'r71-main-capacity-trial-v1','status':'ROOT_APPROVED_FIRST_PAIR_TRIAL',
+             'required_free_bytes':a['required_free_bytes'],'profile_sha256':t.sha(RUN/'audit/ROOT_FIRST_PAIR_APPROVAL.json')}
+ 
+ 
+@@ -165,7 +165,7 @@
+     if RUNTIME['memory_mode'] in ('lowvram','novram'):
+         args.append('--'+RUNTIME['memory_mode'])
+     if cache_none:
+-        raise ValueError('R63 Native job requires the existing default model/node cache')
++        raise ValueError('R71 Native job requires the existing default model/node cache')
+     return args
+ 
+ 
+@@ -187,7 +187,7 @@
+             raise RuntimeError('Runtime Python is not executable')
+         admission = json.loads((RUN / 'configs/admission.json').read_text())
+         if admission.get('ready_for_launch') is not True:
+-            raise RuntimeError('R63 root has not completed live hardware/resource admission')
++            raise RuntimeError('R71 root has not completed live hardware/resource admission')
+         hardware = gpu_readiness(admission,queue_at(admission.get('existing_comfy_port',8189)))
+         processes = compute_processes()
+         queue = queue_at(admission.get('existing_comfy_port', 8189))
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/extensions/H3EventAudit/__init__.py
++++ extensions/H3EventAudit/__init__.py
+@@ -21,7 +21,7 @@
+ 
+ 
+ def audit_root(value):
+-    from r63_contract import audit_dir
++    from r71_contract import audit_dir
+     root = audit_dir(value)
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/extensions/H3PairAudit/__init__.py
++++ extensions/H3PairAudit/__init__.py
+@@ -53,11 +53,11 @@
+         _safe_id(run_id)
+         if source_run_id == run_id:
+             raise ValueError("a snapshot must not overwrite the shared source manifest")
+-        from r63_contract import validate_job, audit_dir
++        from r71_contract import validate_job, audit_dir
+         row=validate_job(run_id)
+         root=audit_dir(source_audit_dir)
+-        if source_run_id != 'r63_'+row['case']['source_id']+'_shared':
+-            raise ValueError('R63 source-conditioning identity mismatch')
++        if source_run_id != row['case']['reference_cache_id']:
++            raise ValueError('R71 source-conditioning identity mismatch')
+         source_path = root / (source_run_id + "_conditioning.json")
+         source_bytes = source_path.read_bytes()
+         common = json.loads(source_bytes)
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/extensions/H3TemporalRouter/__init__.py
++++ extensions/H3TemporalRouter/__init__.py
+@@ -4,7 +4,7 @@
+ from .layout import conditioning_metadata, event_latent_range
+ 
+ 
+-from r63_contract import validate_router as validate_run_contract
++from r71_contract import validate_router as validate_run_contract
+ 
+ 
+ class H3TemporalRouter:
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/extensions/H3X0Readout/__init__.py
++++ extensions/H3X0Readout/__init__.py
+@@ -28,7 +28,7 @@
+         key = "H3X0Readout/passive-v1"
+         if model.get_wrappers(WrappersMP.SAMPLER_SAMPLE, key):
+             raise ValueError("H3X0Readout already registered on this model")
+-        from r63_contract import validate_job, ROOT, read, GEOMETRY
++        from r71_contract import validate_job, ROOT, read, GEOMETRY
+         from pathlib import Path
+         validate_job(run_id)
+         allowed = Path(read(ROOT/'configs/runtime.json')['remote_root'])/'audit/x0'
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/analysis/postrun/verify_pair.py
++++ analysis/postrun/verify_pair.py
+@@ -1,4 +1,4 @@
+-"""CPU actual-output verifier, one fresh Native/ON pair. Quality is assessed separately."""
++"""CPU actual-output verifier, one fresh P0/P1 Native pair. Quality is assessed separately."""
+ import argparse,copy,json,os,subprocess,sys,time
+ from pathlib import Path
+ os.environ['CUDA_VISIBLE_DEVICES']=''
+@@ -6,7 +6,7 @@
+ sys.path.insert(0,str(ROOT/'scripts'))
+ import torch
+ from capture_checks import inspect_capture,checked_snapshot,inspect_blob,condition_files,signature,expected_routing
+-from r63_contract import read,sha,require,registry,validate_job,SOURCES,GEOMETRY
++from r71_contract import read,sha,require,registry,validate_job,SOURCES,GEOMETRY,prompt_pair_condition_checks
+ from execution_gate import atomic
+ 
+ def semantic_condition(c):
+@@ -38,16 +38,16 @@
+  checks={};checks['producer_seal']=all(sha(root/p)==v['sha256'] for p,v in seal['files'].items())
+  owner=read(root/'processes/service.json');checks['actual_runtime_device']=(owner['gpu_uuid']==runtime['gpu_uuid'] and owner['port']==runtime['port'])
+  pair=[run for run in order if jobs[run]['source_id']==source];require(len(pair)==2,'paired registry differs')
+- result={'schema':'r63-paired-runtime-gate-v1','source_id':source,'prompt_version':'P0','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'separate official MF and human edit/motion assessment','condition_tensor_files':[]}
++ result={'schema':'r71-paired-runtime-gate-v1','source_id':source,'prompt_versions':['P0','P1'],'runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'separate official MF and human edit/motion assessment','condition_tensor_files':[]}
+  conditions={};noises={};manifests={};seen=set()
+  for run in pair:
+-  row=validate_job(run,root);arm=row['arm'];case=row['case'];forced=arm=='forced';graph=read(root/'configs/graphs'/f'{run}.json');grid=torch.tensor([float(x) for x in graph['9']['inputs']['sigmas'].split(',')],dtype=torch.float32).tolist()
++  row=validate_job(run,root);arm=row['arm'];case=row['case'];forced=False;graph=read(root/'configs/graphs'/f'{run}.json');grid=torch.tensor([float(x) for x in graph['9']['inputs']['sigmas'].split(',')],dtype=torch.float32).tolist()
+   hist=read(root/'logs'/f'{run}_history.json');job=read(root/'logs'/f'{run}_job.json')
+   checks[arm+'_history']=(hist['status']['completed'] is True and hist['status']['status_str']=='success' and hist['prompt'][2]==graph and hist['prompt'][1]==job['prompt_id'] and job['status']=='success' and job['name']==run)
+   checks[arm+'_service']=(job['service_pid']==owner['pid'] and job['service_identity']==owner['identity'] and job['graph_sha256']==row['graph_sha256'])
+   c=read(root/'audit'/f'{run}_conditioning.json');n=read(root/'audit'/f'{run}_noise.json');conditions[arm]=c;noises[arm]=n
+-  shared=root/'audit'/f'r63_{source}_shared_conditioning.json';shared_value=read(shared)
+-  checks[arm+'_shared_conditions']=(c['run_id']==run and c['pair_snapshot']['verified'] is True and c['pair_snapshot']['source_run_id']==f'r63_{source}_shared' and c['pair_snapshot']['source_manifest_sha256']==sha(shared) and c['prompt']==case['prompt'])
++  shared=root/'audit'/(case['reference_cache_id']+'_conditioning.json');shared_value=read(shared)
++  checks[arm+'_shared_conditions']=(c['run_id']==run and c['pair_snapshot']['verified'] is True and c['pair_snapshot']['source_run_id']==case['reference_cache_id'] and c['pair_snapshot']['source_manifest_sha256']==sha(shared) and c['prompt']==case['prompt'])
+   require(len(condition_files(c))==6,'expected six condition tensor blobs')
+   for record in walk_blobs(shared_value):
+    if record['tensor_file'] not in seen:
+@@ -58,25 +58,23 @@
+   checks[arm+'_actual_layout']=(router['first_attention']['qkv_shape']==[1,56,seq,128] and plan['frame_rows']==943 and plan['latent_interval_half_open']==[0,27] and plan['query_interval_half_open']==plan['target_video_segment'] and plan['key_interval_half_open']==plan['reference_video_segment'])
+   checks[arm+'_sampled_finite']=all(x.get('sampled_finite',True) for x in router['forward_summaries'])
+   m,files,prefix=inspect_capture(root/'audit/x0'/run,run,grid,row['seed']);manifests[arm]=m
+-  pair_id=f'r63_{source}_seed2026101701';cache=root/'audit'/f'{pair_id}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True)
++  pair_id=f'r71_{source}_seed2026101701';cache=root/'audit'/f'{pair_id}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True)
+   hashes=[{k:signature(t)[k] for k in ('shape','dtype','sha256')} for t in saved['tensors']]
+   checks[arm+'_actual_noise_cache']=(n['run_id']==run and n['pair_id']==pair_id and n['signature']['seed']==row['seed'] and len(hashes)==2 and saved['signature']==n['signature'] and saved['hashes']==hashes==n['actual_noise_streams'])
+   video=output_file(root,hist);properties=video_properties(video)
+   result['runs'][arm]={'run_id':run,'video':{'file':str(video),'sha256':sha(video),'properties':properties},'valid_frames':case['valid_frame_count'],'evaluation_crop_xywh':case['evaluation_crop_xywh'],'NFE':20,'Euler_updates':20,'routed_blocks':router['routed_calls'],'job_wall_seconds':job['observed_unix']-job['submitted_unix'],'snapshots':files,'capture_seconds':sum(x['capture_seconds'] for x in m['captures']),'router_file_sha256':sha(root/'audit/router'/f'{run}.json'),'history_sha256':sha(root/'logs'/f'{run}_history.json'),'job_sha256':sha(root/'logs'/f'{run}_job.json')}
+   del prefix,saved
+- checks['actual_clean_conditions_equal']=semantic_condition(conditions['native'])==semantic_condition(conditions['forced'])
+- checks['actual_initial_AV_noise_equal']=(noises['native']['signature']==noises['forced']['signature'] and noises['native']['actual_noise_streams']==noises['forced']['actual_noise_streams'] and checks['native_actual_noise_cache'] and checks['forced_actual_noise_cache'])
+- prefix_results=[]
+- for i in range(6):
+-  a,_=checked_snapshot(root/'audit/x0'/pair[0],manifests['native']['captures'][i],pair[0]);b,_=checked_snapshot(root/'audit/x0'/pair[1],manifests['forced']['captures'][i],pair[1]);prefix_results.append({'step_zero_based':i,**{k:torch.equal(a[k],b[k]) for k in ('video','audio')}})
+- checks['Native_prefix_0_5_equal']=all(row[k] for row in prefix_results for k in ('video','audio'));result['prefix_tensor_comparison']=prefix_results
++ checks.update(prompt_pair_condition_checks(conditions['p0'],conditions['p1']))
++ checks['actual_initial_AV_noise_equal']=(noises['p0']['signature']==noises['p1']['signature'] and noises['p0']['actual_noise_streams']==noises['p1']['actual_noise_streams'] and checks['p0_actual_noise_cache'] and checks['p1_actual_noise_cache'])
++ checks['independent_prompt_conditioning']=(conditions['p0']['prompt']!=conditions['p1']['prompt'] and conditions['p0']['pair_snapshot']['source_run_id']!=conditions['p1']['pair_snapshot']['source_run_id'] and conditions['p0']['conditioning_embedding']['sha256']!=conditions['p1']['conditioning_embedding']['sha256'])
++ result['between_arm_comparison']={'equal_required':['input_video','native_vae_calls','qwen_presentation RGB/timestamps before encoding','target_latent_shapes','actual AV noise'], 'may_differ':['joint Qwen text/visual conditioning_embedding','tokenization_before_vision_expansion','token_tags','packed positions and sequence length','all x0 predictions'], 'x0_prefix_equality_required':False}
+  result['passed']=all(checks.values());return result
+ 
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('--source',choices=SOURCES,required=True);p.add_argument('--root',type=Path,default=ROOT);a=p.parse_args();dest=a.root/'analysis/postrun'/a.source/'PAIR_RUNTIME_GATE.json'
+  try:result=verify(a.root,a.source)
+  except BaseException as e:
+-  atomic(dest.with_name('PAIR_RUNTIME_GATE_FAILURE.json'),{'schema':'r63-pair-verifier-error-v1','passed':False,'source_id':a.source,'error':repr(e),'unix':time.time()});raise
++  atomic(dest.with_name('PAIR_RUNTIME_GATE_FAILURE.json'),{'schema':'r71-pair-verifier-error-v1','passed':False,'source_id':a.source,'error':repr(e),'unix':time.time()});raise
+  atomic(dest,result);print(json.dumps({'receipt':str(dest),'sha256':sha(dest),'passed':result['passed'],'checks':result['checks']},indent=2))
+  if not result['passed']:raise SystemExit(2)
+ if __name__=='__main__':main()
+--- /Users/researcher/DevProjects/h3-timing-ivebench-forced-r63-20261018/analysis/postrun/capture_checks.py
++++ analysis/postrun/capture_checks.py
+@@ -6,7 +6,7 @@
+ ROOT=Path(__file__).resolve().parents[2]
+ sys.path.insert(0,str(ROOT/'scripts'));sys.path.insert(0,str(ROOT/'extensions'))
+ from H3X0Readout.core import tensor_signature,SCHEMA
+-from r63_contract import read,sha as digest,registry,validate_job,SOURCES,GEOMETRY,SHAPES
++from r71_contract import read,sha as digest,registry,validate_job,SOURCES,GEOMETRY,SHAPES
+ from preflight import check
+ CAPTURES=tuple(range(20))
+ 

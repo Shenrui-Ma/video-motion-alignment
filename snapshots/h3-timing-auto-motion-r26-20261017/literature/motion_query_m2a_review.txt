@@ -1,0 +1,45 @@
+Motion by Queries / Motion-to-Attention: bounded mechanism audit
+2026-10-17. Read-only literature/code review; no models, dependencies, or GPU work.
+
+1. Motion by Queries (MBQ)
+Primary: https://arxiv.org/html/2412.07750v3 (22 May2025), especially §3–5, A.1, B.10–B.14.
+Official project: https://research.nvidia.com/labs/par/projects/motionbyqueries/
+Accepted BMVC page: https://bmvc2025.bmva.org/proceedings/159/
+
+The paper finds video Q features carry both motion and identity. Source Q replaces target Q during chosen denoising stages; duration controls a motion/identity trade-off. For Wan2.1, AppendixA.1 records one low-noise source Q and injects in layers20–30 for58–60% of its50-step schedule. This is source-feature injection, not an online physical-lag estimate.
+
+Two closer mechanisms must not be omitted:
+B.10 estimates clean x0 each step, obtains subject masks through pretrained segmentation/Otsu, and limits cross-shot K/V sharing to the matching frame. Equation(1): K_f^+=concat_i K_if, V_f^+=concat_i V_if;
+A_if^+=softmax(Q_if K_f^{+T}/sqrt(d)+log M_if^+), h_if=A_if^+V_f^+.
+The joint softmax includes own-frame and other-shot keys; it does not freeze each original external-reference group mass.
+B.11 obtains correspondences from vanilla Q to neighboring keyframes, then interpolates the consistent branch's Q at those locations. Thus geometry from one branch and feature content from another is already explicit prior art. B.14 uses fixed sampling intervals, not pose-error-driven start/stop.
+
+Access: arXiv main text and relevant appendices read; official BMVC PDF is accessible. No author implementation linked from the inspected project pages, paper, or bounded exact-title GitHub search was located. Code-level equivalence remains unverified; this is not proof that no code exists.
+
+2. Motion-to-Attention (M2A)
+Published DOI: https://doi.org/10.1145/3816727 (ACM TOMM,8June2026).
+Official project: https://currycurry915.github.io/Motion-to-Attention/
+Author manuscript: https://currycurry915.github.io/Motion-to-Attention/static/pdfs/IEEE_TCSVT_Attention.pdf
+Official repository: https://github.com/cvsp-lab/ACMTOMM_M2A
+
+Author manuscript pp4–7, Alg1/Eqs2,6,7: optical-flow magnitude produces M, resized and divided by its spatial maximum. For motion-word column j, A*_j=lambda*M; for other word columns k, A*_k=A_k+lambda*F_k*M/t. F measures map association. This edits image-query/text-key cross-attention probabilities. The source flow is not an online discrepancy between source and current generated pose; t is an increasing denoising iteration index in this formula. Optional direction filtering uses user-specified optical-flow direction, not positive/negative temporal lag.
+
+Full-text boundary: publisher direct full-page/PDF access returned403, although indexed publisher sections/metadata were accessible. The author-linked12-page PDF was read in memory (20,103,332bytes; SHA745beaab0515de72bdad173a659330f76fd21d9e6fcced7e8ffe6368ca256836). It is an IEEE-formatted author version; it must not be represented as the final23-page ACM layout. Relevant formulas above were read from that manuscript and checked against official code.
+
+Code pin c265a12d9b009e95852da41c19a37c6528d926d6:
+https://github.com/cvsp-lab/ACMTOMM_M2A/blob/c265a12d9b009e95852da41c19a37c6528d926d6/run_motion_to_attention.py#L291-L343
+The cross-attention branch normalizes motion magnitude, applies fusion, then replaces selected word columns. Exposed example hardcodes start4/end5 and x=.31; it is not general automatic action-window selection.
+https://github.com/cvsp-lab/ACMTOMM_M2A/blob/c265a12d9b009e95852da41c19a37c6528d926d6/motion_pre_process.py#L276-L344
+Active fusion uses normalized cross-correlation; MI is commented. Updates add F*M*x/cur_step only when cur_step>0. The formula does not renormalize the attention row or preserve its original group mass.
+
+Reproducibility gaps: both main and8-frame entrypoints import motion_pre_process_24f, absent from the pinned recursive repository tree (only motion_pre_process.py exists). README's PDF target is missing; project manuscript works. README prescribes a tuning initialization stage before attention control. Do not describe the entire released pipeline as immediately runnable or wholly training-free. This was a source audit, not execution; no silent fixes were attempted.
+
+3. Consequences for our actual operations (analysis, not a novelty proof)
+Our forward Full: for selected output-video queries,
+O'=O+alpha*m_ref*(O_same_ref−O_ref), retaining the native reference-video group mass and same-bin internal readout. Matching-frame K/V restriction is already clearly represented by MBQ B.10. Our group decomposition is a normalization constraint, not by itself a novel attention principle. MBQ's joint softmax can alter own/shared proportions; ours explicitly fixes m_ref at that block. That is a testable local distinction, not a claim of new architecture.
+
+R25 reverse BLOCK deletes output-video K/V from selected reference-video queries and renormalizes the complement; reverse SAME preserves that target-group mass while restricting its keys to matching time. Neither audited paper presents this exact directed H3 packed-reference update. However, selective/asymmetric feature sharing, mask-based attention restriction and motion/identity coupling are established; reverse direction alone is insufficient novelty. Its causal role requires matched reference-state/target-state evidence and forward/reverse interaction controls. We did not audit all asymmetric-reference papers here.
+
+R27 native clean endpoint→pose→local signed lag/common-support gain→adjacent-step-compatible 0..K physical windows is not the concrete algorithm read in these two sources. MBQ does establish per-step x0 external-model masks; M2A establishes motion-derived attention modulation and iteration-dependent strength. The remaining claim would need measured value of error-conditioned local temporal selection and persistence, beyond fixed masks/timing and generic motion guidance. MotionEcho's feedback/persistence remains a separate close prior already documented; this two-paper audit does not erase it or certify originality.
+
+Consequent controls: keep Full as an existing-primitive baseline; isolate reverse BLOCK and its interaction with Full; compare local persistent selection with fixed/global/one-step decisions at matched inputs. The frozen offline policy replay can establish decision differences only. Actual causality and identity/ghosting improvements require paired generated outputs. No extra GPU experiment is authorized by this report.

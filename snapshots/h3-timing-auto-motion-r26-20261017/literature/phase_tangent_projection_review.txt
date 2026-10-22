@@ -1,0 +1,110 @@
+物理时间切向投影：先例、可辨识性与最小否证审查
+2026-10-17；仅文献及公式分析。没有实现、模型调用、GPU、依赖安装或生产控制器变更。
+
+结论
+
+本候选一般不等于旧 DC，也不等于 FlowMotion 的实际速度正则，所以可以提出一个限定的可测算子差异。但现在不能据此进入“相位与幅度/外观正交分离”的架构叙事。新增直接先例 SWIFT 已用连续视频 value-cache 差分定义运动切向，并投影语义更新到其正交补；保留平行分量只是同一个已知投影分解的另一侧。相近不自动否决具体改进，然而这里首先缺的是正确切向，不是新公式。
+
+建议暂不实现 Full→时间切向的整条推理。先问一个必要问题：在实际相同状态、相同表示里，Full 修正有没有可分辨、方向正确的时间重计时分量，且其余分量确实主要对应不需要的形状/外观变化？旧 R4 的同块 C/Y 最近邻失败、H3 五相位 latent、现有幅度/肢体差异都使答案不能默认为是。若没有这项表示证据，投影可能只是任意缩弱 Full，或者投向错误动作。
+
+1. 必须分清两个时间与三个表示
+
+n / sigma_n 是采样进度，tau 是视频物理时间。FM velocity v_n=dx/dsigma 不是人体在视频中 dY/dtau 的运动速度。设当前实际状态 x_n 上原生预测 y_N=x_n−sigma_n v_N，完整引导预测 y_F=x_n−sigma_n v_F。两预测必须来自同 x、sigma、条件；不同成片轨迹的差不能替代这个反事实差。
+
+可严格定义一个端点候选：
+  d_y = y_F−y_N；g = d y_N / d tau（在相同表示、固定区域上）；
+  P_g(d_y) = g <g,d_y>_W / <g,g>_W；
+  y_P = y_N + P_g(d_y)。
+W须预先指定为非负固定度量；g近零、缺测或相位导数不可信时拒判。分母加epsilon给的是收缩的ridge解，不再是严格幂等正交投影。把epsilon改大本身会改变强度。
+
+同状态 FM 修正形式等价为 d_v=v_F−v_N，v_P=v_N+P_g(d_v)，因为 d_y=−sigma_n d_v、投影线性。必须保留 v_N，不能把完整 v_F 投影后当唯一去噪速度，否则连必要的原生去噪分量也被删掉。Euler实际状态改变量为
+  x_next,P−x_next,N = (1−sigma_next/sigma_n) P_g(d_y)。
+这个系数只描述 latent 积分剂量，不是可实现的动作帧数，也不保证下一次 native 端点保持修复。
+
+attention版本则是固定块/head上的 d_O=m_ref(O_same−O_ref)，g_O=d O_native/dtau，再写 O_P=O_native+P_gO(d_O)。不能直接用RGB/pose的g去点乘这个head向量；维度相符不等于语义相符。若用参考V导数，它与目标O来自不同条件/空间位置，不能冒称目标自己的时间切向。要把pose切向转为O或latent修正，需要明确的Jacobian/对应算子，这里没有现成已验证逆映射。
+
+保持原m_ref乘子与“新的输出仍是同质量非负参考attention平均”也不同。例如参考V均在e1轴，d_O=e1，但target导数g=e1+e2，投影得(e1+e2)/2，已经超出原参考value张成空间。可以说原生其他输出没有直接覆写；不能把新输出保证为原参考概率分布的重新加权。
+
+2. 它何时只是重计时，何时不保证相位
+
+对光滑曲线Y，Y(tau+delta)−Y(tau)=delta Y'(tau)+O(delta²)。在一个固定区域内共享delta时，投影系数正是线性化时间warp的最小二乘估计：
+  delta*=argmin_delta ||d_y−delta g||_W²。
+因此“只保留沿时间的变化”本质是局部一阶retiming假设，不是独立的新几何原理。若每token/head各算一个delta，变成很多不一致局部时间，不能仍声称一个单调、连贯的动作相位；需要跨位置/时刻约束，但那是额外组件。
+
+投影P_g=P_(-g)，本身完全不识别提前/延后。正负系数来自d_y和g的内积。要保证只提前，需可信signed lag及系数符号/单调性规则；把g翻个符号不会改变投影。大约13帧的修复也未必落在线性近似有效范围，尤其动作转折处导数接近0或曲率很大。已有动作缺失而非单纯晚出现时，目标曲线上可能根本没有正确姿态，沿切向不能创造缺失分支。
+
+“时间导数与幅度/外观正交”一般为假。若Y=A q(phi)，则J_phi=A q'，J_A=q，内积为A q'·q；只有额外的定范数/等距等假设才可能为0。反例q(phi)=(1,phi)，内积=A phi，通常非零。更简单的单通道A sin(phi)在非退化位置，幅度与相位方向都落同一维，完全不可分。真实Y还含照明、相机、遮挡、服装摆动，所以
+  dY/dtau=J_phi phi'+J_A A'+J_camera camera'+J_light light'+...。
+单位骨方向在理想2D圆上有径向/切向关系，但只去掉骨长度，不会解决关节协同、投影缩短、遮挡与衣服外观，也不能直接替代DiT表示。
+
+即使O空间有欧氏正交，后续模型Jacobian J通常不保内积：<g,h>=0不推出<Jg,Jh>=0；非正交通道重标定也会改变投影。可主张的只是所选度量下的代数性质，不能升级为解码图像或动作语义解耦。
+
+3. 五个最接近primary来源与明确重合边界
+
+[P1] SWIFT: Prompt-Adaptive Memory for Efficient Interactive Long Video Generation
+https://arxiv.org/html/2605.09442v1 ，§3.2/Theorem1、附录D Eq16–36。
+已核全文：相邻value-cache摘要之差m作为运动切向，更新为Delta_p−m<Delta_p,m>/(||m||²+epsilon)。作者定理是在其一阶cache响应假设下的最小距离正交投影，不是从视频语义推导出的身份/动作分离定理。
+已核官方commit b508166e6b5d804c3fa91515ae2020b0540a8785：
+https://github.com/ShanwenTan/SWIFT/blob/b508166e6b5d804c3fa91515ae2020b0540a8785/pipeline/interactive_causal_inference.py#L101
+101–118取最近两帧cache空间均值差，逐head投影，低运动时返回原语义差；140实际调用。文件SHA6ee3f0d7a9ddd2e24aa7a67a5d0ad17b4c9a6b237cd6935fd752a11cb4f30690。switch_causal_inference.py含同一实现。
+碰撞：运动差分+投影+静动态分离动机已有直接实现。区别：它保留正交分量做AR prompt切换；本案保留平行分量校正参考相对物理相位，操作于同状态Full差。区别可测，但不能只凭“保留另一半”称新架构。
+
+[P2] FlowMotion: Training-Free Flow Guidance for Video Motion Transfer
+https://arxiv.org/html/2603.06289v2 ，§3.2–3.4 Eq2–8。
+源/目标clean预测及绝对帧差MSE用于latent优化；速度正则投影到从初始noise到当前状态的平均采样速度，并缩小正交分量。该方向是去噪轨迹方向，不是物理视频时间导数。
+官方commit f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d：
+https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py#L118
+118–139为绝对帧差，233–268平均速度与投影，271–283损失及Adam；SHA47671d72232a61ebac1cb3b4cc538e51c844af6eb3ab28db620cf6d30794dc21。
+区别是投影对象与方向，不是首次velocity正交分解。若把g选成v_avg，当前主张就直接退回其投影原语。论文消融也报告完全去除正交更新不一定最好，不能预设“只留切向”更保真。
+
+[P3] ReTime / Video Analysis and Generation via a Semantic Progress Function
+https://arxiv.org/html/2604.22554v1 ，§3、§4.1 Eq7–13。
+从帧语义变化拟合进度，逆映射出时间位置，以分频带/采样步RoPE重计时。官方retime.py 114–183实际替换时间频率：
+https://github.com/SagiPolaczek/semantic-progress-function/blob/bf5a388378d5153a9b25ae4a64c2de377e62f48f/spf/retime.py#L114
+SHA bc045876cd6dc33ae9d6d990a07de9eec6fdf3a590b740afda5e0f3069afbf7e。
+它没有在此代码中投影Full输出差，但“按测得进度只改时间”已有。当前端点切向是值域的一阶warp近似；不能因为没有改RoPE就把retiming原理说成新。
+
+[P4] TempoControl: Temporal Attention Guidance for Text-to-Video Models
+https://arxiv.org/html/2510.02226v1 ，§4 Eq3–4、算法1。
+视频到词的时序attention与指定激活mask做Pearson/能量/熵等损失，通过AdamW改latent，达到相关阈值可停。
+https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/wan/text2video.py#L669
+669–734核到实际latent优化和correlation stop；SHA f05d6478c843411174f75a0d8701766302471a4935723c04a89595762d21dc5a。
+当前物理动作导数投影不等于该文本时序能量优化；但时间约束、冻结模型、误差阈值停引导均非独有。
+
+[P5] MOFT / Video Diffusion Models are Training-free Motion Interpreter and Controller
+https://arxiv.org/html/2405.14864v1 ，§3.1–3.3 Eq1–2、§4。
+已重读全文：跨帧减均值并筛运动通道，再以特征匹配引导latent。这里沿用已核论文，不在本轮声称重新核过官方实现。
+覆盖“去静态、提运动”的动机和已知分解。时间导数投影一般与减均值不同，但二者都不自动等同纯phase。可作为强近邻和消融，不应因名字不同忽略。
+
+检索精度：以上五篇是本次有界核查的实际primary；另做两条temporal-tangent精准检索后定位SWIFT，未拿二手文章作证据。没有在这五篇中确认完整的“Full同状态差→经验证的目标物理相位切向→局部相位专用修正”实现，不等于证明没有同类工作。
+
+4. 与本地DC/R4证据的关系
+
+旧DC为O_DC=O+m_ref(A_same−A_ref)(V−mean_time V)。它是对参考value按时间轴去均值后读出，既不是通道向量上的rank1投影，也不要求导数；一般与P_g(d_O)不同。若选的g张成整个DC修正，投影等于DC只是定义性退化，不是新的实验。只有g实际由同状态独立物理导数取得且投影保留比率/方向与DC不同，才有算子区别。
+
+既有R2 dynamic12/UNKNOWN与Full2；R3 DC1/1、Full1/1、SP2/2，但DC/SP未建立质量优势。应保留全部结果，不能解释成动态特征已证明更好。详见 temporal_residual_operator_review.txt。
+
+R4 COMPACT_RESULT：block25、heads0/14/28/42、indices6/10/14的Full提议C对native目标时序Y，即使自由NN也选同帧，gain0、advance0。它没有严格否定连续局部切向（离散步长/表示/代价不同），但明确反对默认“Full本来就是目标曲线上的时间移动”。复用该域继续做大范围target-retiming必须拿出新表示证据，不能只换投影符号重跑。
+
+H3名义17RGB→5latent分块五相位使普通Y[k+1]−Y[k]含编码相位；同相位gap5又跨17帧，可能抹平短动作。这是当前架构上的实测混淆。source/reference导数跨身份还混纹理与人体比例。不存在“diff都是motion”的保证。R27被可靠pose判定的局部lag也只给一个时间统计，不提供对应的latent/attention相位切向。
+
+5. 最便宜、能否决该切入的前置检验（只提出，未执行）
+
+先冻结一种表示和一个作用域，不能在看结果后从latent/O/pose中挑能成功的一种。优先从已有同状态Native/Full端点和已经解码的pose做相位可辨识性上界；它只问该方向有没有意义，不能把pose投影结果当latent注入可行。
+
+(a) 在同一个native轨迹的可靠局部窗，用实际物理帧相邻导数g；对已知时间移位±2/±4、幅度缩放0.5、恒定序列、动作转折、遮挡缺测和周期同姿态做对照。源与目标必须分开记：同视频自扰动仅测试代数辨识，跨身份还要真实共同支持。若幅度扰动与时移同样投到g，不能主张phase专用；若g近零则UNKNOWN，不调epsilon救分数。
+
+(b) 用已有同状态完整y_N/y_F或实际C/Y，算rho=||P_g d||²/||d||²、系数符号、物理窗间一致性及有限差分尺度稳定性。必须有对应域的真实张量，不能把最终Native/Full成片差或reference V冒充该d。若旧档只存摘要/缺少正确物理导数，记录无法判断，不暗中补GPU。
+
+(c) 用固定纯重计时的上界判断当前目标是否拥有正确姿态及幅度：若晚时刻仍是错误/残缺动作，沿目标时间曲线修phase不足以解决问题。观察到接近源phase但仍形变，正是需要这一分解检查的原因，不是投影已经可行的证据。
+
+只有上述过门，才由root另行决定一个实际单状态分叉。最少需要 Native、Full、P_g Full 和等范数缩弱Full；后者区分方向选择与简单减小剂量。正交余量(I−P_g)Full是机制对照，非默认另起一整批。只在下一次未改动native预测及最终真实视频上评价时序/幅度/肢体质量，直接被投影的端点好看不算保持。
+
+如果时间切向未知、跨身份对应失败、投影只剩极小Full或收益被等范数Full解释，当前切入应停止；不要叠新的教师/映射/阈值掩盖前提失败。如果能够在正常/延后多个预选源上证明同等时序修复更少形变，才可把它表述为有实验价值的受限纠正模块，并与SWIFT/FlowMotion/ReTime等已有原语明确对照。不能据投影闭式解单独声称架构创新。
+
+本地证据
+- R26/literature/temporal_residual_operator_review.txt
+- R2/literature/native_endpoint_retiming_scope.txt
+- R2/literature/next_after_mapping_gate.txt
+- /Users/researcher/DevProjects/h3-timing-target-path-r4-20261016/analysis/target_path_feasibility/COMPACT_RESULT.json
+本轮只新增这份文本及对应JSON；没有实际计算候选指标或修改实验。

@@ -1,0 +1,17 @@
+只读审查 audit/root_finish_metrics.py；未改 root 脚本。
+
+正常路径接口一致：
+- tracking_plan 的 reference key 使用 chest/crouch/rotate；target key 使用完整pair。
+- argv 中 --control 和 --output 可被该脚本准确解析。
+- track_shared.ready 的顶层pid、identity(uid/start_ticks/cmdline_sha256)、input_manifest{file,sha256}、freeze SHA 与 root 核对逻辑一致。
+- service.external_identity 使用原始cmdline字节哈希，与 track_shared.identity 相同。
+- go.json 整体复制满足 track_shared 的逐字段一致检查。
+- 官方REPORT有 wall_seconds、peak_reserved_bytes、tracks_shape、nonfinite_track_values、tracks_sha256。
+- score_one --pair/--method 和 summarize --output 正确；score_one还会核R74_BINDING与输入来源。
+- 3源12目标 fresh41、grid55/no mask、原49@8 输入契约与本消费包一致。
+
+具体恢复风险：
+1. ready等待超时或ready解析失败时，identity可能仍为None，except不会回收本次Popen。这个阶段虽未允许CUDA，仍会留下等待中的子进程。建议仅基于本次持有的Popen执行terminate/wait/必要时kill，保留原异常。既有child.wait(timeout=30)超时也可能覆盖原错误。
+2. score_one和summarize使用非阻塞公共CPU锁。若消费watcher仍在同锁下做pose，会产生BlockingIOError，使root批次在tracking均完成后中断。建议等待锁或仅对此明确繁忙错误重试；无需更改数值评分。
+
+此文件核对的是脚本当时读取版本。root后续行政修复需重新记录脚本SHA。

@@ -1,0 +1,150 @@
+候选参考时间残差／边缘约束算子审查
+2026-10-17；只读理论、既有实验与 primary sources 审查。未实现新算子，未运行 GPU、模型或 toy；不改运行协议。
+
+结论先行
+
+A 在“每次当前 attention 的 V 沿参考时间取均值”这一通常定义下，精确对应已执行 R2 dynamic_residual／R3 DC。B 如果要求参考时间边缘是严格同时间 delta，同时保持原生空间边缘且权重非负，唯一可行分布就是已执行 R3 SP，KL 目标没有留下自由度，也无需 Sinkhorn。两者都应继续作为已有对照，而不能重新包装成尚未测试的新候选。
+
+保留这些方法的效用证据：R3 同轮 Full/DC/SP 主窗分别达到 1/1、1/1、2/2 帧（.3/.5 两检测阈值），均优于 Native13/13；但 DC 没有明确优于 Full，SP 的同支持误差更大，均未建立外观或重影优势。R2 的 dynamic-only 主窗 .3 为12、.5 UNKNOWN，仍是必须保留的负结果。跨 R2/R3 实际输入解码/VAE/条件有差异，不能把结果差异全归 GPU，也不能取一轮结论覆盖另一轮。
+
+B 只有采用非退化软时间目标时才有不同于 SP 的数学内容。它是标准约束 KL/IPF；最小必要对照是与其具有完全相同两种边缘分布的 Native/SP 凸混合。值得先做小矩阵契约验证，再决定是否值得一个固定实际 attention 状态的数值诊断。当前没有支持立即增加整条视频推理的证据。
+
+1. 固定状态的定义与边界
+
+固定一个层、head、目标 query q 以及本次 forward 的 Q/K/V；R 只含参考视频 token，不含肖像、文本、目标视频或目标音频。参考 token 以 (t,p) 标记；t 是参考 latent 时间 bin，p 是同一空间格点。
+
+  a_tp = exp(l_tp) / sum_R exp(l)              [参考组内归一化权重]
+  m = sum_R exp(l) / sum_all_keys exp(l)       [原生参考组总质量]
+  c_p = sum_t a_tp                            [原生空间边缘]
+  h_t = sum_p a_tp                            [原生时间边缘]
+  c_tau,p = a_tau,p / h_tau
+  s_tp = 1[t=tau] c_tau,p
+  O = O_other + m sum_tp a_tp V_tp
+  O_Full = O + m sum_tp (s_tp-a_tp) V_tp.
+
+下文假定 h_tau>0。tau 必须来自实际物理时间与 H3 bin 映射，不能把 latent 下标差直接视作恒定4帧；本地编码分块映射已有 [1,4,4,4,4] 周期。固定状态结论不意味着后续层、整个去噪轨迹、背景或人物身份不变。
+
+2. A：残差路由的精确等价、无效与风险
+
+令 w_t>=0，sum_t w_t=1，且所有空间位置共用 w；mu_p=sum_t w_t V_tp。当前旧实现是等 latent-bin 权重 w=1/T，不是按物理时长加权。
+
+  O_A = O + m (s-a)(V-mu)
+      = O_other + m sum_tp b_DC,tp V_tp,
+  b_DC,tp = s_tp + w_t(c_p-c_tau,p).
+
+因此 b_DC 的空间边缘恰为 c，时间边缘恰为 delta_tau，总和为1；但它一般有负项。时间边缘为0的非目标时刻，仍可能通过正负空间权重相消而参与 value 输出，不能声称它严格只取 tau 时刻的特征。
+
+已执行代码：
+- R2 extensions/H3TemporalRouter/core.py reference_value_component：grouped.mean(dim=2)，dynamic_residual 使用 V-mean；输出保留原 O 再加同 m 的修正。
+- R3 extensions/H3SpatialMarginalRouter/component_probe.py：dynamic=full-static；同 QKV 稀疏探针已记录四分量 RMS/cosine 与负权量。
+
+精确关系：
+  O_A - O_Full = m sum_p(c_p-c_tau,p) mu_p.
+故 c=c_tau、mu 对所有空间 p 相同，或该向量和恰为0时，A 与 Full 相同。若 V_tp 完全不随 t 变化，则 V-mu=0，A 完全无修正。更一般地，(s-a)(V-mu)=0 就是无效条件；“动作存在”不保证这个差非零。
+
+负权总质量及放大量（alpha=1）：
+  negative_mass = (1-w_tau)/2 * ||c-c_tau||_1,
+  ||b_DC||_1 = 1 + (1-w_tau)||c-c_tau||_1 <= 3-2w_tau.
+这说明 A 不是一般概率平均，可能超出当前时间 value 的凸包；“只放动态特征”不等于没有额外放大。一个2时间×2空间反例：a=[[.8,.1],[.05,.05]]，tau=0，w=[.5,.5]，V=[[0,0],[100,0]]。Full/SP读出均0，A读出为 -35/18（m=1）。负号并非错误，而是该残差算子的真实性质。
+
+A 对任意逐空间、跨时间恒定的加性场 C_p，满足 correction(V+C)=correction(V)，前提是 Q/K/m 固定且 mu 使用相同当前 V 计算。它保证的是“修正对这类加性分量不敏感”，不是生成图像的外观解耦：移动人物在固定像素 p 上既进入均值也进入残差；衣服纹理、光照、遮挡、镜头运动都进入残差；V 自身已包含上游时空混合。
+
+如果“固定 mu”是指跨层/跨去噪步缓存的一份旧均值，则不再等同已测试 DC，也不再自动具有上述静态加性不变性。必须先定义缓存时刻、层、归一化和条件依赖，不能仅借用旧证明。换成物理时长加权均值仍属相同分解家族，首先是设计消融，而不是新的机制证明。
+
+3. B：KL 投影何时是 SP、何时是 IPF、何时无需迭代
+
+这里把“joint”严格解释为每个固定 query/head 的参考组 T×P 分布，而不是对所有 target-query×reference-key 一起规定列容量。后一种是另一个问题，会引入跨 query 耦合，本提案尚未定义它。
+
+指定目标时间边缘 g>=0、sum g=1，解：
+  minimize_b KL(b||a)=sum_tp b_tp log(b_tp/a_tp)
+  subject to b>=0, sum_t b_tp=c_p, sum_p b_tp=g_t.
+
+当 a 为正且支持可行，目标严格凸、可行解唯一，KKT 给出 b_tp=u_t a_tp v_p。交替缩放 u=g/(a v)、v=c/(a^T u) 是标准 IPF/Sinkhorn。这里边缘 c、g 通常非均匀，不应统称“行列都归一到1”的普通双随机注意力。
+
+三个必须先排除的退化情形：
+- g=delta_tau：非负性强制 t!=tau 全为0，空间约束强制 b_tau,p=c_p。唯一解 b_SP=delta_tau c，完全等于 R3 SP；任何 KL/熵权重都不改变这个唯一可行点。
+- g=h：原 a 已可行且 KL=0，投影就是原 a，不产生修正。
+- a_tp=h_t c_p（时间与空间可分离）：解是 b_tp=g_t c_p，直接外积即可。
+
+已有 SP 的实现保持原 Q/K，把 V(t,p) 替换为每个 query 对应的 V(tau,p) 并沿参考 key 时间重复，得到 sum_p c_p V(tau,p)。该实现不需要显式存大 attention 矩阵。DC 与 SP 的差：
+  z_DC-z_SP = sum_p(c_tau,p-c_p)(V_tau,p-mu_p).
+故 DC 与 SP 具有相同空间/时间边缘，但耦合结构、负权和实际 value 读出不同；“保空间边缘”并不是 SP 相对 DC 独有的性质。
+
+若只想“偏向同时间”而不指定完整 g，还有更简单的明确目标：
+  minimize_b KL(b||a)+beta sum_tp b_tp d(t,tau),
+  subject to b>=0, sum_t b_tp=c_p.
+其闭式解是：
+  b_tp = c_p a_tp exp(-beta d(t,tau)) /
+              sum_u a_up exp(-beta d(u,tau)).
+这只是每个空间位置内的时间条件分布重加权，不需要 Sinkhorn。beta=0 为原生，beta趋无穷且 tau 是唯一最小代价/有正支持时趋 SP。d 应在真实物理时间坐标定义；不建议现在扫 beta 来寻找好视频。
+
+软 g 的最小强对照：若 g_lambda=(1-lambda)h+lambda delta_tau，则
+  b_mix=(1-lambda)a+lambda b_SP
+已同时具有目标 g_lambda、原空间 c、非负性和原参考质量 m。对应输出就是 Native/SP 简单线性混合。IPF相对它的唯一额外主张是按 KL 保留了更多原联合耦合，不能把边缘保持、软时间或质量守恒本身当独有优势。需要检验这种联合结构差异是否在 V readout 上可辨、是否有实际质量收益。
+
+支持与数值边界：masked a=0 的位置，有限 KL 解不能新增质量；若 c_p>0 而 a_tau,p=0，硬同时间方案可能没有有限 KL 解。低精度下溢不应被误当结构性 mask。零目标边缘应显式处理，迭代要记录边缘残差、迭代数、有限性并用稳定 log-domain 运算。KL(a||b) 是另一个目标；当硬置零而 a>0 时会发散，不能互换两种 KL。
+
+固定 Q/K 下，任何非负归一化 b 都可表达成参考子块 logit 偏置 log(b/a)，零项为负无穷；因 sum exp(l')_R=sum exp(l)_R，其他 key 贡献与原组质量保持。这意味着 B 本质仍是有约束的注意力重分配；应用位置和约束可形成具体研究对象，但“超越所有 logit guidance”的说法不成立。
+
+4. 为什么上述不变量不保证不重影
+
+空间边缘 c 跨整个参考时间聚合，可能覆盖人物移动轨迹上的多个位置。在 tau 帧这些旧位置已是背景；固定 c 再读 tau 会把质量分给当前无人的位置。简单反例：a=[[.4,.1],[.05,.45]]，tau=0，V=[[1,0],[0,1]]。Full/DC读出 .8，SP读出 .45；保空间边缘可能削弱正确前景，而非保护它。
+
+A 的均值含前景残影，负权可能抵消/放大；B 软时间分布可能混合多个姿态。两者只改参考贡献，target/self/text/portrait/audio 等其他路径仍可表达旧姿态。多头拼接、输出投影、残差和后续层传播也未被这些不变量约束。因此 ghosting 应当作为需测输出，而非从 convexity、残差名字或 KL 最小性质推得的结论。SP 非负只保证固定 attention 的 value 凸组合，不保证像素没有双影。
+
+5. 已核 primary 先例与精确边界
+
+MOFT：正文§3.1/3.3直接以跨帧均值消除内容相关项，并筛选运动通道；§4用特征损失优化 latent。无需训练。它已覆盖“时间去均值提运动”这个基本想法；A的具体组内质量守恒读出不同，但这种位置差别本身不足以保证新贡献。 [MOFT全文](https://arxiv.org/html/2405.14864v1)
+
+FlowMotion：使用预测干净 latent 的绝对对齐及跨帧差异对齐，并进行目标 latent 优化和 flow velocity 正交分量抑制。官方 run.py 的 compute_motion_difference 取绝对帧差，_apply_guidance_step 合并两类 MSE；它没有实现这里固定空间边缘的参考 V 读出。训练免费运动差分引导已有直接先例，生成 flow 速度与光流须区分。 [论文](https://arxiv.org/html/2603.06289v2) [官方代码](https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py)
+
+HALO：训练免费地分辨运动/结构 attention heads，运动对应驱动 latent 引导，结构头替换参考 value。固定官方 commit 的 custom_modules_inject_final.py 实际只在所选 heads 写入参考 value。它已经提出选择性 value 注入以减少不必要内容干扰；本次 A/B 的固定边缘证明并非其公开公式，但同类动机不能算新的。 [论文](https://arxiv.org/html/2607.11081v1) [固定代码](https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/custom_modules_inject_final.py)
+
+QWERTY：训练免费 PCA/SVD 语义—时间通道分解，按用户运动 warp 第一帧 query 的语义通道，空间 RoPE 随之变换、时间 RoPE 后施加，K/V保持原生；另有自引导 latent 优化和源位置补洞。它直接处理语义/运动混合与克隆残影，但不是时间均值 V 残差或 KL 边缘投影。官方仓库本次仅 README/LICENSE，标记代码即将发布，不能声称已核实现。 [正文§4](https://arxiv.org/html/2607.01869v1) [官方仓库](https://github.com/MICV-yonsei/QWERTY)
+
+ASAG：完整方法与算法1/2已读。它用与相似度同号的 OT cost 刻意削弱 self-attention，构造退化预测，再以正常减退化的差做训练免费 diffusion guidance；不是沿真实时间对参考组作保真投影。它足以否定“把 Sinkhorn 放进推理 attention 就新”的说法。此次未核得官方实现；论文伪码不能替代后续运行验证。 [全文与算法](https://arxiv.org/html/2511.07499v1)
+
+Sinkformers：已有把 softmax 替换为 Sinkhorn 双随机 attention 的架构及理论；其主要实验通过训练该架构完成。它约束 query/key 轴，本案按单 query 的时间/空间轴规定非均匀边缘，应用轴不同；标准矩阵缩放、KL投影本身仍属既有数学。 [AISTATS2022主文献](https://proceedings.mlr.press/v151/sander22a.html)
+
+本次是有边界的近邻核查，不是证明世界上不存在同样视频实现。A/B精确形式首先已与本项目自有 DC/SP 重合；软B即使在这些文献中没有逐式匹配，也仍须证明具体收益，不能用“没有同一句公式”断言新颖。
+
+6. 最小可证伪建议（尚未执行）
+
+阶段0：沿用既有 R2/R3 结果和算子测试；A与硬B不再增加重复整视频。只有明确决定研究软B，才新增标准库/现有CPU的小矩阵契约：原生g回原a；硬g回SP；可分离a回外积；static-addition correction不变；masked不可能约束拒绝；两个边缘误差和KL目标；与 b_mix 相同边缘而联合分布不同；移动前景反例不能被错误标为保证保护外观。必须报告 DC 负权，不把它强制归一/裁零后仍叫同一算法。
+
+阶段1：如root批准，可在一个预先指定实际模型状态、固定少量 query/head 上比较 Full/DC/SP/软IPF/b_mix，保持 Q/K/V/m、时间窗、head与层一致。先用 float64/FP32小规模 oracle，报告边缘误差、输出RMS/cosine、相对Full差、KL、迭代成本及当前dtype误差。固定一个软目标定义，不能观察输出后逐个调整lambda直到看起来好。若IPF和简单混合的读出差仅数值噪声，或所谓静态不变性失败，就停在诊断层。
+
+现有 R3 component_probe 只落数值摘要，没有保存完整 joint a/QKV，不能从 RMS/cosine 重建软B。因此可复用它验证旧A/SP性质，但新的真实单状态投影须由root先确认有可用实际缓存；否则只在下一已授权 forward 被动取数，并把采集成本计入，不能假称零额外模型工作。独立 attention 计算本身不需要新的 DiT NFE，获取真实输入可能需要。
+
+阶段2：只有上述诊断给出实质差别，才值得最小成片对照。必须保留同源同seed Native、Full、SP或b_mix，以及一个正常例；固定同时间支持和去噪调用，报告未选时段、身份/背景/重影、原冻结时间指标和 UNKNOWN。仅较Full更弱但更清晰不能证明投影机制有效，须区分强度效应与联合耦合效应。本轮优先完成自动控制与新源固定Full对照，不因重新命名A/B中断既有队列。
+
+本地证据定位
+
+- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/spatial_marginal_claim_review.txt
+- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/R2_FOUR_ARM_REVIEW.md
+- /Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/R3_FOUR_ARM_REVIEW.md
+- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/extensions/H3TemporalRouter/core.py
+- /Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/extensions/H3SpatialMarginalRouter/{core,component_probe}.py
+
+本报告只新增本文件与对应JSON；其余运行、指标和封存文件均保持原样。
+
+
+7. 追加：正向 Full 与反向 BLOCK 的联合，是否值得一个因果交互对照？
+
+依据 root 的追加问题及已完成 R25：主窗方向(.3/.5) Native13/13、Full1/1、reverse_BLOCK8/8、reverse_SAME7/7；腕分别13/12、1/1、7/7、7/7。R25两反向臂都只部分缓解。已核本地库存与R25最终报告中没有 Full+reverse_BLOCK 联合完成结果，因此它与前述重复A/硬B不同：这是尚缺的一格2×2交互对照，但仍只是已知读取规则的组合诊断。
+
+严格区分读边：A_TR表示 target-query读reference-key；A_RT表示reference-query读target-key。固定同一 Q/K/V，令F只在目标事件query行替换正向参考组读出，B只在参考事件query行替换为target-video补集attention。两集合不重叠，因此：
+  O_FB = O + Delta_F(on T rows) + Delta_B(on R rows).
+在同一次attention的固定输入上，两操作交换且线性相加，局部没有可额外发现的“协同”。T行联合结果应等于F-only同QKV输出，R行应等于B-only同QKV输出，其余行保持native；所有修正都应从原native读出/QKV计算，不能让先写入的结果污染第二项的归一化。
+
+有意义的交互发生在后续层及后续Euler状态：B可能改变后层F将读取的参考KV，F也可能改变后层B原本会接收的生成信息。这样的闭环切断具备可检验动机，尚无证据说明它一定减ghost。参考hidden每次forward重建；B仍保留目标audio/文本/其它参考行等路径，不能称完全隔离或静态cache。反向单臂弱于Full既不证明组合无效，也不说明组合有益。
+
+先例边界沿用已经核过的独立报告 reverse_reference_feedback_prior_art.txt：OmniTransfer、Identity as Presence、FullDiT2已有非对称参考读取；Vidu S2公开文字的对应帧交换可能覆盖双向原则。联合F+B不能称首次非对称/双向时间结构。具体可研究的是：在冻结H3、相同局部物理窗和采样索引下，去除这条反向直接边是否改变正向Full的时序—视觉质量取舍。 [OmniTransfer](https://arxiv.org/html/2601.14250v1) [IAP](https://arxiv.org/html/2603.17889v1) [FullDiT2](https://arxiv.org/html/2506.04213v1) [Vidu S2](https://arxiv.org/html/2609.11638v1)
+
+最小建议是有条件保留一个联合臂，而不是新增窗口/强度/层搜索。先核旧Native/Full/BLOCK实际条件、噪声、采样表、kernel和可用prefix证据，保留历史postaugmentation未完整存树的已知界限。若这些配对门成立，可复用三旧臂，只加同source05/Sam1311、W50–65、indices6–14、50层的F+B。每条仍20NFE/20Euler，联合应有450正向+450反向局部修正调用，成本如实记录。首active输入与旧前缀相等；先用同QKV的小契约核上述两组输出关系，之后不把局部相加直接推成全轨迹线性。
+
+预定问题应以F为关键对照：联合能否在主窗方向与腕两阈值仍达到既有±2帧门、保留原四窗及全片UNKNOWN/共同支持的同时，改善先固定的55/86/105和42–82片段中可见的肢体重影、身份或背景质量？必须保留完整片段，不能看完联合再挑它最好的帧。只有同帧骨骼误差降低不能证明ghost改善；需要独立可见质量审查，未验证项照实留空。
+
+若要报告2×2描述性交互，应在四臂相同有效支持上用同一个连续误差E，计算 E_FB−E_F−E_B+E_N，并列每臂E与覆盖；不能对UNKNOWN的lag填0，也不能将这个单例差分当统计显著性或协同机制证明。时序若变差、视觉无可辨收益，则本组合不值得按此固定规则推进；若一项好一项坏，报告取舍而非综合成功。若时序保留且质量明显改善，这才支持进一步在正常例和新失败素材检验互补性。
+
+这项联合比重复DC/SP更有明确的本地缺口，但其科学问题是“已有边规则的因果交互及取舍”。它不替代正在推进的自动窗口/起停与新源评价。本报告只给建议，未实现、排队或授权任何新GPU工作。

@@ -1,0 +1,88 @@
+{
+  "schema": "r141-native-paired-consumer-binding-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-oxygen-generic-retention-r141b-host9-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020",
+  "producer_seal_sha256": "2039321f1b4fa9103fd6376ae2592f2c684c17669aaa36b002b858e3d9076590",
+  "producer_contract_sha256": "847caafa9e4e752e1d8d2fac9fbe72b221c6722da6bc38d0e830d14262acb5a0",
+  "producer_runtime_sha256": "393d7469695939725e708135d47fbe5fef2978a98cfb985926ab6f70c2e69c08",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0252"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0252",
+      "run_id": "r141_short_0252_seed2026101703_native",
+      "forced_run_id": "r141_short_0252_seed2026101703_forced",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+      "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
+      "original_task": {
+        "id": 252,
+        "src_video_name": "short_0252.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+        "edit_prompt": "Replace the man with an elderly woman",
+        "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+        "target_span": "elderly woman",
+        "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "Existing oxygen-mask source simple prompt replication; no added source coverage.",
+      "valid_frames": 98,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 101,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "101/25",
+        "end_exclusive_rational": "102/25",
+        "duration_rational": "102/25"
+      },
+      "source": {
+        "file": "inputs/short_0252_video.mp4",
+        "sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+        "bytes": 14091905
+      },
+      "provenance": {
+        "file": "inputs/short_0252_provenance.json",
+        "sha256": "0b89cccf8d6ca154da87ec9d505a543a69ff3399c34037f7b0fdbd89fc80f1a0",
+        "bytes": 15138
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/inputs/short_0252_original.mp4",
+        "sha256": "37c7d3a52c17176d092eb8ce2908436d73ca548188b0e8d53601974182324143"
+      },
+      "graph_sha256": "5feea2a8a15c3dac43867dedd1d7a8cd971078b3218226f5f58528c4c35101ed",
+      "forced_graph_sha256": "76bd6344a69404e6816cc930f0f690c387d6a2513b3315b90f6b07eac97360e1"
+    }
+  ],
+  "fixed_source_denominator": 1,
+  "new_independent_sources": 0,
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

@@ -1,0 +1,18 @@
+待 root GPU 审阅与短 MF 两批精确释放后，只执行一次。该文本尚未执行。
+
+ssh H3_SERVER_A 'python3 -c '"'"'from pathlib import Path
+import json,subprocess,hashlib,time
+p=Path('"'"'"'"'"'"'"'"'/home/researcher/h3_runs/timing_ive_long0174_correspondence_r115_20261019'"'"'"'"'"'"'"'"')
+a='"'"'"'"'"'"'"'"'root_correspondence_attempt1'"'"'"'"'"'"'"'"'
+r=json.loads((p/'"'"'"'"'"'"'"'"'audit/GPU_DEPLOYMENT_REVIEW.json'"'"'"'"'"'"'"'"').read_text())
+assert r['"'"'"'"'"'"'"'"'approved'"'"'"'"'"'"'"'"'] is True and r['"'"'"'"'"'"'"'"'reviewer'"'"'"'"'"'"'"'"']=='"'"'"'"'"'"'"'"'root'"'"'"'"'"'"'"'"' and r['"'"'"'"'"'"'"'"'scope'"'"'"'"'"'"'"'"']=='"'"'"'"'"'"'"'"'r115-two-arm-host9-gpu-execution'"'"'"'"'"'"'"'"'
+assert r['"'"'"'"'"'"'"'"'producer_seal_sha256'"'"'"'"'"'"'"'"']==hashlib.sha256((p/'"'"'"'"'"'"'"'"'deploy_manifest.json'"'"'"'"'"'"'"'"').read_bytes()).hexdigest()
+assert not (p/'"'"'"'"'"'"'"'"'audit'"'"'"'"'"'"'"'"'/a).exists() and not (p/'"'"'"'"'"'"'"'"'processes/service.json'"'"'"'"'"'"'"'"').exists()
+log=p/'"'"'"'"'"'"'"'"'audit'"'"'"'"'"'"'"'"'/(a+'"'"'"'"'"'"'"'"'.launch.log'"'"'"'"'"'"'"'"')
+argv=['"'"'"'"'"'"'"'"'python3'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'-u'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'audit/root_run_seedpairs.py'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'--execute'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'--attempt'"'"'"'"'"'"'"'"',a,'"'"'"'"'"'"'"'"'--predecessor-attempt'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'R105=root_remaining_repair_attempt1'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'--peer-root'"'"'"'"'"'"'"'"','"'"'"'"'"'"'"'"'/home/researcher/h3_runs/timing_flexiact_remaining_repair_r104_20261019'"'"'"'"'"'"'"'"']
+with log.open('"'"'"'"'"'"'"'"'xb'"'"'"'"'"'"'"'"') as out:
+ child=subprocess.Popen(argv,cwd=p,stdin=subprocess.DEVNULL,stdout=out,stderr=subprocess.STDOUT,start_new_session=True)
+receipt={'"'"'"'"'"'"'"'"'wrapper_pid'"'"'"'"'"'"'"'"':child.pid,'"'"'"'"'"'"'"'"'argv'"'"'"'"'"'"'"'"':argv,'"'"'"'"'"'"'"'"'cwd'"'"'"'"'"'"'"'"':str(p),'"'"'"'"'"'"'"'"'unix'"'"'"'"'"'"'"'"':time.time(),'"'"'"'"'"'"'"'"'GPU_review_sha256'"'"'"'"'"'"'"'"':hashlib.sha256((p/'"'"'"'"'"'"'"'"'audit/GPU_DEPLOYMENT_REVIEW.json'"'"'"'"'"'"'"'"').read_bytes()).hexdigest()}
+(p/'"'"'"'"'"'"'"'"'audit'"'"'"'"'"'"'"'"'/(a+'"'"'"'"'"'"'"'"'.launch.json'"'"'"'"'"'"'"'"')).write_text(json.dumps(receipt,indent=2)+'"'"'"'"'"'"'"'"'\n'"'"'"'"'"'"'"'"')
+print(json.dumps(receipt))
+'"'"''

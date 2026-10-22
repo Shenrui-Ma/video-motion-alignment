@@ -1,0 +1,7 @@
+R84 独立 watchdog 行政v2，14项CPU测试通过；原63文件seal未变。尚未部署/启动。
+root恢复SSH后：保留原processes/watchdog.json、旧脚本和运行log；核其PID/start/cmdline确为本root scripts/lease_watchdog.py，再仅终止该watchdog并确认退出。当前service857566/start8690132必须重新核活性/原identity，不能只按历史PID操作。
+将本目录watchdog_v2.py复制到同远端audit/watchdog_recovery_v2/，从原root以CPU环境启动：
+CUDA_VISIBLE_DEVICES= python3 audit/watchdog_recovery_v2/watchdog_v2.py --expected-pid 857566 --expected-start-ticks 8690132
+该命令由root执行。本文件不提供自动kill/替换入口。新watchdog身份写STARTED.json，原processes/watchdog.json应由root归档并登记新identity供后续精确清理。
+服务总期限继续从原started_unix扣除已耗时。active job从已绑定本service的job submitted_unix恢复；已知active计时不会因UNKNOWN或重采样重置。未知HTTP不算空闲，下一次明确空队列重新累计1800秒idle。job14400秒/service43200秒沿原policy。
+真实history error或期限结束才调用原service.stop(expected_record)，每次核完整owner；身份已换则仅记录退出，拒绝操作replacement。任何日志写入失败不会阻断实际期限的精确清理。

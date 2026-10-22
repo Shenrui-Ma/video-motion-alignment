@@ -1,0 +1,152 @@
+{
+  "frozen_unix": 1792174584.061347,
+  "scope": "Source-only automatic continuous141-frame trim selection. A sampling rule for new Native screening, not an intervention window or new method claim.",
+  "sources": {
+    "40372": {
+      "original_sha256": "33872bfd4a002616587046055b0444cdacf61fc0aa284a6d3f0fcf8111d68496",
+      "original_url": "https://assets.mixkit.co/videos/40372/40372-720.mp4",
+      "source_page": "https://mixkit.co/free-stock-video/full-shot-of-an-urban-fashion-dancer-40372/",
+      "download_record_sha256": "7e341a23935e4ecee34292eabb541a14e3eec4420390f0022034e3af3d96be54"
+    },
+    "51317": {
+      "original_sha256": "73a95da95ed47e5b0b9e2d18df5bf7f4a45f6d3383eb55844734a7a418f469f5",
+      "original_url": "https://assets.mixkit.co/videos/51317/51317-720.mp4",
+      "source_page": "https://mixkit.co/free-stock-video/talented-man-dancing-a-choreography-at-night-51317/",
+      "download_record_sha256": "d95676c61ff34a5a1fcf5950a8a954e6c7782d0519f6e54ece5ade5e20449479"
+    },
+    "51304": {
+      "original_sha256": "474523e474152deb04ab8351fbf9d21e5c3b86d5695a7cfff802e7c9f6d2852f",
+      "original_url": "https://assets.mixkit.co/videos/51304/51304-720.mp4",
+      "source_page": "https://mixkit.co/free-stock-video/dynamic-choreography-by-a-girl-on-the-street-at-night-51304/",
+      "download_record_sha256": "33882fe8a5542e8bf19a1282128a80c6a9b48f0e62c00363bf19996410f892bd"
+    }
+  },
+  "source_pose_unread_at_freeze": true,
+  "full_preparation": {
+    "fps": 24,
+    "width": 1312,
+    "height": 736,
+    "scale": "aspect-ratio fit, dimensions divisible by2, centered black padding; same as R24",
+    "codec": "H264 crf16 yuv420p",
+    "mapping": "actual ffmpeg showinfo checksums before/after fps, plus original and prepared timestamps"
+  },
+  "clip_length_frames": 141,
+  "candidate_start_stride": 1,
+  "pose_probe_sha256": "04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f",
+  "timing_metrics_sha256": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+  "pose_threads": 4,
+  "confidence_primary": 0.3,
+  "confidence_report_only": 0.5,
+  "valid_joint": "finite,score>=threshold,inframe; original selector unchanged; ambiguous selected frame invalid for selection",
+  "anchor_joints": [
+    5,
+    6,
+    11,
+    12
+  ],
+  "arm_chains": [
+    [
+      5,
+      7,
+      9
+    ],
+    [
+      6,
+      8,
+      10
+    ]
+  ],
+  "leg_chains": [
+    [
+      11,
+      13,
+      15
+    ],
+    [
+      12,
+      14,
+      16
+    ]
+  ],
+  "bone_pairs": [
+    [
+      5,
+      7
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      13,
+      15
+    ],
+    [
+      12,
+      14
+    ],
+    [
+      14,
+      16
+    ],
+    [
+      5,
+      6
+    ]
+  ],
+  "additional_bone": "midhip to midshoulder",
+  "bone_min_length_pixels": 1.0,
+  "smoothing": "normalized mean unit direction over3 consecutive valid frames; no gap fill",
+  "turn": {
+    "radius_frames": 4,
+    "minimum_signed_angle_each_side_degrees": 15,
+    "definition": "opposite signs of signed angular changes from t-4 to t and t to t+4; each magnitude>=15deg",
+    "bone_weights": [
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "strength": "sum weights times min(leftangle,rightangle,90deg) over reversing bones",
+    "event_nonmax_separation_frames": 8,
+    "candidate_edge_margin_frames": 5,
+    "note": "Geometric pose reversal proxy; does not identify semantic action categories."
+  },
+  "visibility_tiers": {
+    "2": "anchor>=.8, each arm chain>=.8, each leg chain>=.6, ambiguity<=.05",
+    "1": "anchor>=.8, each arm chain>=.8, ambiguity<=.05 but not fullbody tier2",
+    "0": "no adequate arm/torso support; keep selected clip with UNKNOWN eligibility"
+  },
+  "ranking": "max tier, then count of nonmax-selected reversal events, then mean of anchor/leftarm/rightarm/leftleg/rightleg coverages, then sum event strength, then earliest start; tier0 instead max mean support, then eventcount/strength, then earliest",
+  "outputs": "All starts, coverages at.3/.5, event candidates and chosen centers, reject reasons, ranking tuple, selected frame map, full raw pose. All3sources retained even UNKNOWN.",
+  "selection_limits": [
+    "No generated output read or used.",
+    "Pose confidence is raw score, not calibrated probability.",
+    "View changes/occlusion/track errors can affect apparent reversal count.",
+    "Selection prioritizes visibility and direction changes, not evidence that generation will fail."
+  ],
+  "selected_clip_encoding": "Trim the full prepared timeline exactly; H264 libx264 qp0 lossless YUV, verify every decodedYUV frame equals the selected full-frame slice. Reuse corresponding full-pose JSON frames with explicit offset after exactYUV verification.",
+  "CPU_locks": [
+    "local R2 cpu_evaluation_global.lock",
+    "remote R2 consumer.lock"
+  ],
+  "no_GPU": true
+}

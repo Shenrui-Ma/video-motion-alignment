@@ -1,0 +1,1413 @@
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+from itertools import pairwise
+
+import torch
+import torch.nn.functional as F
+
+from .contracts import TrajectoryRun, TrajectorySample
+from .geometry import resize_video
+from .sigma import interpolate_coordinate
+
+EXACT_PREFIX_GUIDANCE_GAUGE_POLICY = "exact_prefix_guidance_reference_coupled_v1"
+EXACT_PREFIX_GUIDANCE_DC_GAUGE_POLICY = "exact_prefix_guidance_reference_dc_v1"
+
+
+class ExactPrefixGuidanceGauge:
+    """Carry authoritative prefix data while comparing references in its gauge.
+
+    Coupled handoffs use their full measured residual and temporal support.
+    DC-only handoffs compare only channel means over their first suffix token.
+    Source trajectory tensors remain caller-owned and untouched.
+    """
+
+    def __init__(self, exact_prefix: torch.Tensor, weights: tuple[float, ...], *, spatial_mean_only: bool = False):
+        if exact_prefix.ndim != 5 or not exact_prefix.is_floating_point() or exact_prefix.shape[2] < 1:
+            raise ValueError("guidance reference gauge requires a floating video prefix")
+        if (
+            not weights
+            or weights[0] != 1.0
+            or any(not math.isfinite(w) or not 0 < w <= 1 for w in weights)
+            or any(a < b for a, b in pairwise(weights))
+        ):
+            raise ValueError("guidance reference gauge requires the coupled handoff support")
+        if not isinstance(spatial_mean_only, bool) or (spatial_mean_only and weights != (1.0,)):
+            raise ValueError("DC guidance reference gauge requires first-suffix-only support")
+        self.prefix_t = int(exact_prefix.shape[2])
+        self.weights = tuple(weights)
+        self.spatial_mean_only = spatial_mean_only
+        self.policy = EXACT_PREFIX_GUIDANCE_DC_GAUGE_POLICY if spatial_mean_only else EXACT_PREFIX_GUIDANCE_GAUGE_POLICY
+        last = exact_prefix[:, :, -1:].detach()
+        self.anchor_shape = tuple(last.shape)
+        self.anchor = last.float().mean(dim=(-2, -1), keepdim=True) if spatial_mean_only else last.clone()
+        self.calls = 0
+
+    def __deepcopy__(self, memo):
+        # Recursive model-options copies share this one high-lifetime owner.
+        memo[id(self)] = self
+        return self
+
+    def residual(self, reference: torch.Tensor, *, prefix_t: int) -> torch.Tensor:
+        if self.anchor is None:
+            raise RuntimeError("guidance reference gauge used outside its high lifetime")
+        if prefix_t != self.prefix_t or not 0 < prefix_t < reference.shape[2]:
+            raise RuntimeError("guidance reference gauge prefix ownership differs")
+        last = reference[:, :, prefix_t - 1 : prefix_t]
+        if tuple(last.shape) != self.anchor_shape:
+            raise RuntimeError("guidance reference gauge target geometry differs")
+        if self.spatial_mean_only:
+            last = last.float().mean(dim=(-2, -1), keepdim=True)
+        self.calls += 1
+        return self.anchor.to(last) - last
+
+    def add_to(self, operand: torch.Tensor, residual: torch.Tensor, *, scale=1.0) -> None:
+        for offset, weight in enumerate(self.weights[: max(0, operand.shape[2] - self.prefix_t)]):
+            index = self.prefix_t + offset
+            operand[:, :, index : index + 1].add_(residual * (weight * scale))
+
+    def close(self) -> None:
+        self.anchor = None
+
+
+@dataclass(frozen=True, slots=True)
+class GuidanceConfig:
+    mode: str = "direction"
+    direction_weight: float = 0.35
+    acceleration_weight: float = 0.0
+    temporal_weight: float = 0.20
+    consistency_weight: float = 0.0
+    cutoff: float = 0.25
+    temporal_search_radius: int = 4
+    temporal_min_similarity: float = 0.35
+    temporal_min_margin: float = 0.02
+    temporal_cycle_tolerance: float = 0.0
+    schedule_power: float = 1.0
+    transfer_mode: str = "bicubic"
+    max_correction_rms_ratio: float = 0.5
+
+    def __post_init__(self) -> None:
+        modes = {"off", "direction", "direction+acceleration", "direction+temporal", "downsample_consistency"}
+        if self.mode not in modes:
+            raise ValueError(f"unsupported guidance mode {self.mode!r}")
+        for name in ("direction_weight", "acceleration_weight", "temporal_weight", "consistency_weight"):
+            value = float(getattr(self, name))
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        if not 0 < self.cutoff <= 1:
+            raise ValueError("cutoff must be in (0, 1]")
+        if type(self.temporal_search_radius) is not int or self.temporal_search_radius < 1:
+            raise ValueError("temporal_search_radius must be a positive integer")
+        if not math.isfinite(float(self.temporal_min_similarity)) or not -1.0 <= self.temporal_min_similarity < 1.0:
+            raise ValueError("temporal_min_similarity must be finite and in [-1, 1)")
+        if not math.isfinite(float(self.temporal_min_margin)) or self.temporal_min_margin <= 0:
+            raise ValueError("temporal_min_margin must be finite and positive")
+        if not math.isfinite(float(self.temporal_cycle_tolerance)) or self.temporal_cycle_tolerance < 0:
+            raise ValueError("temporal_cycle_tolerance must be finite and non-negative")
+        if self.schedule_power < 0 or not math.isfinite(self.schedule_power):
+            raise ValueError("schedule_power must be finite and non-negative")
+        if not math.isfinite(float(self.max_correction_rms_ratio)) or self.max_correction_rms_ratio <= 0:
+            raise ValueError("max_correction_rms_ratio must be finite and positive")
+
+
+@dataclass(frozen=True, slots=True)
+class RegisteredGuidanceReference:
+    video: torch.Tensor
+    validity: torch.Tensor
+    prefix_t: int
+    run_id: str
+    reference_coordinate: float
+    dx: float
+    dy: float
+    cache_key: str
+    temporal_search_radius: int
+
+
+class HandoffGuidanceReference:
+    """The exact source/target tensor pair executed by the learned handoff.
+
+    The trajectory run still owns endpoint identity and schedule provenance, but
+    the provider input is the authoritative source representation for the learned
+    target. The one-call probe can pass through sampler output algebra after the
+    PREDICT_NOISE capture, so requiring bit identity with the captured tensor
+    would reject a valid handoff and would also make temporal guidance compare a
+    learned target against a source tensor the provider did not actually consume.
+    """
+
+    def __init__(
+        self,
+        source_video: torch.Tensor,
+        video: torch.Tensor,
+        *,
+        run_id: str,
+        coordinate: float,
+        prefix_t: int,
+    ):
+        if (
+            source_video.ndim != 5
+            or video.ndim != 5
+            or not source_video.is_floating_point()
+            or not video.is_floating_point()
+            or source_video.device.type == "meta"
+            or video.device.type == "meta"
+            or source_video.shape[:3] != video.shape[:3]
+            or not bool(torch.isfinite(source_video).all().item())
+            or not bool(torch.isfinite(video).all().item())
+            or type(prefix_t) is not int
+            or not 0 < prefix_t < video.shape[2]
+            or not math.isfinite(coordinate)
+            or not 0 <= coordinate <= 1
+        ):
+            raise ValueError("handoff guidance requires a finite source/target video pair and endpoint")
+        self.source_video = source_video.detach().clone()
+        self.video = video.detach().clone()
+        self.run_id = str(run_id)
+        self.coordinate = float(coordinate)
+        self.prefix_t = prefix_t
+        self.calls = 0
+        self.captured_source_prefix_delta_rms = 0.0
+        self.captured_source_prefix_delta_abs_max = 0.0
+        self.captured_source_suffix_delta_rms = 0.0
+        self.captured_source_suffix_delta_abs_max = 0.0
+
+    def __deepcopy__(self, memo):
+        memo[id(self)] = self
+        return self
+
+    def resolve(
+        self,
+        high: torch.Tensor,
+        *,
+        run_id: str,
+        coordinate: float,
+        prefix_t: int,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if self.source_video is None or self.video is None:
+            raise RuntimeError("handoff guidance used outside its high lifetime")
+        if str(run_id) != self.run_id:
+            raise RuntimeError("handoff guidance trajectory identity drifted")
+        if not math.isclose(float(coordinate), self.coordinate, rel_tol=0.0, abs_tol=1e-7):
+            raise RuntimeError("handoff guidance endpoint identity drifted")
+        if prefix_t != self.prefix_t or high.shape != self.video.shape or self.source_video.shape[:3] != high.shape[:3]:
+            raise RuntimeError("handoff guidance target ownership drifted")
+        self.calls += 1
+        return self.source_video.to(high), self.video.to(high)
+
+    def close(self) -> None:
+        self.source_video = None
+        self.video = None
+
+
+@dataclass(slots=True)
+class _TemporalCorrespondence:
+    coordinate: float
+    cache_key: str | None
+    prefix_t: int
+    backward_flow: torch.Tensor
+    forward_flow: torch.Tensor
+    backward_confidence: torch.Tensor
+    forward_confidence: torch.Tensor
+    confidence_mean: float
+    valid_fraction: float
+    similarity_mean: float
+    margin_mean: float
+    flow_magnitude_mean: float
+    flow_magnitude_max: float
+
+
+@dataclass(slots=True)
+class GuidanceState:
+    start_coordinate: float | None = None
+    current_coordinate: float | None = None
+    current_high_velocity: torch.Tensor | None = None
+    current_reference_velocity: torch.Tensor | None = None
+    previous_coordinate: float | None = None
+    previous_high_velocity: torch.Tensor | None = None
+    previous_reference_velocity: torch.Tensor | None = None
+    last_schedule: float | None = None
+    last_correction_rms: float | None = None
+    last_baseline_rms: float | None = None
+    last_correction_rms_ratio: float | None = None
+    last_clamp_scale: float | None = None
+    last_direction_rms_ratio: float | None = None
+    last_acceleration_rms_ratio: float | None = None
+    last_acceleration_applied: bool = False
+    last_same_coordinate_refinement: bool = False
+    last_acceleration_anchor_coordinate: float | None = None
+    temporal_cache: _TemporalCorrespondence | None = None
+    last_temporal_rms_ratio: float | None = None
+    last_temporal_confidence_mean: float | None = None
+    last_temporal_valid_fraction: float | None = None
+    last_temporal_disocclusion_fraction: float | None = None
+    last_temporal_similarity_mean: float | None = None
+    last_temporal_margin_mean: float | None = None
+    last_temporal_flow_magnitude_mean: float | None = None
+    last_temporal_flow_magnitude_max: float | None = None
+    last_temporal_cache_hit: bool = False
+    last_temporal_reference_coordinate: float | None = None
+    last_temporal_reference_clamped: bool = False
+    last_temporal_search_radius: int | None = None
+    last_temporal_cross_prefix_pairs_disabled: int = 0
+    last_registered_reference_used: bool = False
+    last_reference_gauge_used: bool = False
+    last_reference_gauge_policy: str | None = None
+    last_temporal_reference_gauge_used: bool = False
+    last_handoff_reference_used: bool = False
+    last_temporal_handoff_reference_used: bool = False
+
+    def reset(self) -> None:
+        self.start_coordinate = None
+        self.current_coordinate = None
+        self.current_high_velocity = None
+        self.current_reference_velocity = None
+        self.previous_coordinate = None
+        self.previous_high_velocity = None
+        self.previous_reference_velocity = None
+        self.last_schedule = None
+        self.last_correction_rms = None
+        self.last_baseline_rms = None
+        self.last_correction_rms_ratio = None
+        self.last_clamp_scale = None
+        self.last_direction_rms_ratio = None
+        self.last_acceleration_rms_ratio = None
+        self.last_acceleration_applied = False
+        self.last_same_coordinate_refinement = False
+        self.last_acceleration_anchor_coordinate = None
+        self.temporal_cache = None
+        self.last_temporal_rms_ratio = None
+        self.last_temporal_confidence_mean = None
+        self.last_temporal_valid_fraction = None
+        self.last_temporal_disocclusion_fraction = None
+        self.last_temporal_similarity_mean = None
+        self.last_temporal_margin_mean = None
+        self.last_temporal_flow_magnitude_mean = None
+        self.last_temporal_flow_magnitude_max = None
+        self.last_temporal_cache_hit = False
+        self.last_temporal_reference_coordinate = None
+        self.last_temporal_reference_clamped = False
+        self.last_temporal_search_radius = None
+        self.last_temporal_cross_prefix_pairs_disabled = 0
+        self.last_registered_reference_used = False
+        self.last_reference_gauge_used = False
+        self.last_reference_gauge_policy = None
+        self.last_temporal_reference_gauge_used = False
+        self.last_handoff_reference_used = False
+        self.last_temporal_handoff_reference_used = False
+
+
+_PHASE_PRIORITY = {
+    "handoff_probe": 4,
+    "corrected": 3,
+    "single": 2,
+    "predicted": 1,
+}
+
+
+def trustworthy_samples(run: TrajectoryRun) -> tuple[TrajectorySample, ...]:
+    if not run.complete:
+        raise RuntimeError("incomplete trajectory runs cannot guide regeneration")
+    exact = [sample for sample in run.samples if sample.provenance == "actual"]
+    if not exact:
+        raise RuntimeError("trajectory has no exact anchors")
+    if any(not math.isfinite(float(sample.coordinate)) for sample in exact):
+        raise RuntimeError("trajectory contains a non-finite exact coordinate")
+    exact.sort(key=lambda sample: sample.coordinate, reverse=True)
+
+    # PECE evaluates predicted and corrected states at the same sigma. Keep one
+    # exact anchor per coordinate, preferring the corrected endpoint; a dedicated
+    # handoff probe is the strongest anchor because it evaluates the actual
+    # stopped low-stage state at the split coordinate.
+    deduplicated: list[TrajectorySample] = []
+    for sample in exact:
+        if deduplicated and math.isclose(
+            float(sample.coordinate),
+            float(deduplicated[-1].coordinate),
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ):
+            current = deduplicated[-1]
+            if _PHASE_PRIORITY.get(sample.phase, 0) > _PHASE_PRIORITY.get(current.phase, 0):
+                deduplicated[-1] = sample
+            continue
+        deduplicated.append(sample)
+    return tuple(deduplicated)
+
+
+def time_matched_reference_info(run: TrajectoryRun, coordinate: float) -> tuple[torch.Tensor, float, bool]:
+    samples = trustworthy_samples(run)
+    requested = float(coordinate)
+    if requested >= samples[0].coordinate:
+        resolved = float(samples[0].coordinate)
+        return samples[0].video_x0, resolved, not math.isclose(requested, resolved, rel_tol=0.0, abs_tol=1e-12)
+    if requested <= samples[-1].coordinate:
+        resolved = float(samples[-1].coordinate)
+        return samples[-1].video_x0, resolved, not math.isclose(requested, resolved, rel_tol=0.0, abs_tol=1e-12)
+    for left, right in pairwise(samples):
+        if left.coordinate >= requested >= right.coordinate:
+            weight = interpolate_coordinate(left.coordinate, right.coordinate, requested)
+            return torch.lerp(left.video_x0, right.video_x0, weight), requested, False
+    raise RuntimeError("trajectory interpolation support is inconsistent")
+
+
+def time_matched_reference(run: TrajectoryRun, coordinate: float) -> torch.Tensor:
+    return time_matched_reference_info(run, coordinate)[0]
+
+
+def low_frequency_projection(video: torch.Tensor, cutoff: float) -> torch.Tensor:
+    if video.ndim != 5:
+        raise ValueError("low-frequency projection expects BxCxTxHxW")
+    if cutoff >= 1.0:
+        return video
+    h, w = video.shape[-2:]
+    radius = max(1, round(0.5 / cutoff))
+    kernel = 2 * radius + 1
+    work = video.permute(0, 2, 1, 3, 4).reshape(-1, video.shape[1], h, w).float()
+    padded = F.pad(work, (radius, radius, radius, radius), mode="replicate")
+    filtered = F.avg_pool2d(padded, kernel_size=kernel, stride=1)
+    return filtered.reshape(video.shape[0], video.shape[2], video.shape[1], h, w).permute(0, 2, 1, 3, 4).to(video)
+
+
+def _masked_low_frequency_projection(
+    video: torch.Tensor,
+    validity: torch.Tensor,
+    cutoff: float,
+) -> torch.Tensor:
+    """Project only over valid spatial support and keep invalid pixels zero."""
+
+    if video.ndim != 5:
+        raise ValueError("masked low-frequency projection expects BxCxTxHxW")
+    if validity.shape != video.shape[-2:] or validity.dtype != torch.bool:
+        raise ValueError("masked low-frequency projection requires an HxW boolean validity mask")
+    height, width = video.shape[-2:]
+    mask_2d = validity.to(device=video.device, dtype=torch.float32).view(1, 1, height, width)
+    work = video.permute(0, 2, 1, 3, 4).reshape(-1, video.shape[1], height, width).float()
+    expanded_mask = mask_2d.expand(work.shape[0], 1, height, width)
+
+    if cutoff >= 1.0:
+        filtered = work * expanded_mask
+    else:
+        radius = max(1, round(0.5 / cutoff))
+        kernel = 2 * radius + 1
+        numerator = F.avg_pool2d(
+            F.pad(work * expanded_mask, (radius, radius, radius, radius), mode="replicate"),
+            kernel_size=kernel,
+            stride=1,
+        )
+        denominator = F.avg_pool2d(
+            F.pad(expanded_mask, (radius, radius, radius, radius), mode="replicate"),
+            kernel_size=kernel,
+            stride=1,
+        )
+        filtered = torch.where(
+            denominator > 0,
+            numerator / denominator.clamp_min(1e-12),
+            torch.zeros_like(numerator),
+        )
+        filtered = filtered * expanded_mask
+
+    reshaped = filtered.reshape(video.shape[0], video.shape[2], video.shape[1], height, width)
+    return reshaped.permute(0, 2, 1, 3, 4).to(video)
+
+
+def _rms_ratio(correction: torch.Tensor, reference: torch.Tensor) -> float:
+    dims = tuple(range(1, correction.ndim))
+    corr_rms = correction.float().square().mean(dim=dims, keepdim=True).sqrt()
+    ref_rms = reference.float().square().mean(dim=dims, keepdim=True).sqrt().clamp_min(1e-8)
+    return float((corr_rms / ref_rms).mean().detach().to(device="cpu", dtype=torch.float64).item())
+
+
+def _local_correspondence(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    *,
+    radius: int,
+    min_similarity: float,
+    min_margin: float,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Return a local query->key displacement with conservative match confidence."""
+    if query.ndim != 4 or key.shape != query.shape:
+        raise ValueError("temporal correspondence expects matching NxCxHxW tensors")
+    normalized_query = F.normalize(query.float(), dim=1, eps=1e-6)
+    normalized_key = F.normalize(key.float(), dim=1, eps=1e-6)
+    batch, _, height, width = normalized_query.shape
+    padded = F.pad(normalized_key, (radius, radius, radius, radius))
+    best = torch.full((batch, height, width), -float("inf"), device=query.device)
+    second = torch.full_like(best, -float("inf"))
+    best_dx = torch.zeros((batch, height, width), device=query.device, dtype=torch.int64)
+    best_dy = torch.zeros_like(best_dx)
+    yy = torch.arange(height, device=query.device).view(1, height, 1)
+    xx = torch.arange(width, device=query.device).view(1, 1, width)
+
+    for dy in range(-radius, radius + 1):
+        for dx in range(-radius, radius + 1):
+            shifted = padded[
+                :,
+                :,
+                radius + dy : radius + dy + height,
+                radius + dx : radius + dx + width,
+            ]
+            score = (normalized_query * shifted).sum(dim=1)
+            valid = (yy + dy >= 0) & (yy + dy < height) & (xx + dx >= 0) & (xx + dx < width)
+            score = score.masked_fill(~valid, -float("inf"))
+            better = score > best
+            second = torch.where(better, best, torch.maximum(second, score))
+            best = torch.where(better, score, best)
+            best_dx = torch.where(better, torch.full_like(best_dx, dx), best_dx)
+            best_dy = torch.where(better, torch.full_like(best_dy, dy), best_dy)
+
+    margin = best - second
+    similarity_confidence = ((best - min_similarity) / (1.0 - min_similarity)).clamp(0.0, 1.0)
+    unique = (best >= min_similarity) & (margin >= min_margin)
+    # min_margin is a rejection threshold, not merely a soft scale. The first
+    # media smoke showed repetitive grass with high cosine scores but margins
+    # far below this threshold; allowing those ambiguous matches to retain a
+    # small nonzero weight produced patterned texture transport.
+    margin_confidence = torch.where(
+        torch.isfinite(margin),
+        (margin / (margin + min_margin)).clamp(0.0, 1.0),
+        torch.ones_like(margin),
+    )
+    confidence = similarity_confidence * margin_confidence * unique.float()
+    flow = torch.stack((best_dx, best_dy), dim=1).float()
+    return flow, confidence, best, margin
+
+
+def _gather_at_integer_flow(value: torch.Tensor, flow: torch.Tensor) -> torch.Tensor:
+    if value.ndim != 4 or flow.ndim != 4 or flow.shape[1] != 2:
+        raise ValueError("integer-flow gather expects NxCxHxW values and Nx2xHxW flow")
+    if value.shape[0] != flow.shape[0] or value.shape[-2:] != flow.shape[-2:]:
+        raise ValueError("integer-flow gather geometry differs")
+    batch, channels, height, width = value.shape
+    yy = torch.arange(height, device=value.device).view(1, height, 1).expand(batch, height, width)
+    xx = torch.arange(width, device=value.device).view(1, 1, width).expand(batch, height, width)
+    px = xx + flow[:, 0].round().long()
+    py = yy + flow[:, 1].round().long()
+    if bool(((px < 0) | (px >= width) | (py < 0) | (py >= height)).any().item()):
+        raise RuntimeError("temporal correspondence produced an out-of-bounds matched coordinate")
+    index = (py * width + px).reshape(batch, 1, height * width).expand(batch, channels, height * width)
+    return torch.gather(value.reshape(batch, channels, height * width), 2, index).reshape(
+        batch, channels, height, width
+    )
+
+
+def _masked_mean(value: torch.Tensor, mask: torch.Tensor) -> float:
+    selected = value[mask]
+    if selected.numel() == 0:
+        return 0.0
+    return float(selected.float().mean().detach().to(device="cpu", dtype=torch.float64).item())
+
+
+def _build_temporal_correspondence(
+    reference: torch.Tensor,
+    *,
+    coordinate: float,
+    config: GuidanceConfig,
+    prefix_t: int = 0,
+    validity: torch.Tensor | None = None,
+    search_radius: int | None = None,
+    cache_key: str | None = None,
+) -> _TemporalCorrespondence | None:
+    if reference.ndim != 5:
+        raise ValueError("temporal correspondence expects BxCxTxHxW")
+    batch, channels, frames, height, width = reference.shape
+    if frames < 2:
+        return None
+    if type(prefix_t) is not int or not 0 <= prefix_t <= frames:
+        raise ValueError("temporal correspondence prefix length is invalid")
+    radius = config.temporal_search_radius if search_radius is None else int(search_radius)
+    if radius < 1:
+        raise ValueError("temporal correspondence search radius must be positive")
+    if validity is not None:
+        if validity.shape != (height, width) or validity.dtype != torch.bool:
+            raise ValueError("registered temporal validity must be an HxW boolean tensor")
+        validity = validity.to(device=reference.device)
+
+    pair_count = frames - 1
+    # Pair k connects frame k to k+1. With an authoritative exact prefix,
+    # prefix-internal pairs and the exact-prefix/suffix crossing are outside the
+    # learned registered temporal contract. Build correspondence only for
+    # generated-to-generated pairs rather than computing and masking them later.
+    pair_start = prefix_t if prefix_t else 0
+    active_pairs = pair_count - pair_start
+    if active_pairs <= 0:
+        zero_flow = torch.zeros(
+            (batch, pair_count, 2, height, width),
+            device=reference.device,
+            dtype=torch.float32,
+        )
+        zero_confidence = torch.zeros(
+            (batch, pair_count, 1, height, width),
+            device=reference.device,
+            dtype=torch.float32,
+        )
+        return _TemporalCorrespondence(
+            coordinate=float(coordinate),
+            prefix_t=prefix_t,
+            cache_key=cache_key,
+            backward_flow=zero_flow,
+            forward_flow=zero_flow.clone(),
+            backward_confidence=zero_confidence,
+            forward_confidence=zero_confidence.clone(),
+            confidence_mean=0.0,
+            valid_fraction=0.0,
+            similarity_mean=0.0,
+            margin_mean=0.0,
+            flow_magnitude_mean=0.0,
+            flow_magnitude_max=0.0,
+        )
+
+    # Match a lightly smoothed clean-state latent. This keeps the matcher H3-native
+    # and dependency-free while avoiding pixel/detail noise as the correspondence key.
+    features = low_frequency_projection(reference, 0.5)
+    left = features[:, :, pair_start : frames - 1].permute(0, 2, 1, 3, 4).reshape(-1, channels, height, width)
+    right = features[:, :, pair_start + 1 : frames].permute(0, 2, 1, 3, 4).reshape(-1, channels, height, width)
+
+    backward, backward_base, backward_similarity, backward_margin = _local_correspondence(
+        right,
+        left,
+        radius=radius,
+        min_similarity=config.temporal_min_similarity,
+        min_margin=config.temporal_min_margin,
+    )
+    forward, forward_base, forward_similarity, forward_margin = _local_correspondence(
+        left,
+        right,
+        radius=radius,
+        min_similarity=config.temporal_min_similarity,
+        min_margin=config.temporal_min_margin,
+    )
+
+    reverse_forward = _gather_at_integer_flow(forward, backward)
+    reverse_forward_confidence = _gather_at_integer_flow(
+        forward_base.unsqueeze(1),
+        backward,
+    ).squeeze(1)
+    backward_cycle = (backward + reverse_forward).abs().amax(dim=1) <= config.temporal_cycle_tolerance
+    backward_confidence = (backward_base * reverse_forward_confidence).clamp_min(0.0).sqrt() * backward_cycle.float()
+
+    reverse_backward = _gather_at_integer_flow(backward, forward)
+    reverse_backward_confidence = _gather_at_integer_flow(
+        backward_base.unsqueeze(1),
+        forward,
+    ).squeeze(1)
+    forward_cycle = (forward + reverse_backward).abs().amax(dim=1) <= config.temporal_cycle_tolerance
+    forward_confidence = (forward_base * reverse_backward_confidence).clamp_min(0.0).sqrt() * forward_cycle.float()
+
+    if validity is not None:
+        expanded_validity = validity.view(1, 1, height, width).expand(backward.shape[0], 1, height, width).float()
+        backward_sample_valid = _gather_at_integer_flow(
+            expanded_validity,
+            backward,
+        ).squeeze(1)
+        forward_sample_valid = _gather_at_integer_flow(
+            expanded_validity,
+            forward,
+        ).squeeze(1)
+        query_valid = expanded_validity.squeeze(1)
+        backward_confidence = backward_confidence * query_valid * (backward_sample_valid > 0.5)
+        forward_confidence = forward_confidence * query_valid * (forward_sample_valid > 0.5)
+
+    all_confidence = torch.cat((backward_confidence.reshape(-1), forward_confidence.reshape(-1)))
+    valid = all_confidence > 0.0
+    all_similarity = torch.cat((backward_similarity.reshape(-1), forward_similarity.reshape(-1)))
+    all_margin = torch.cat((backward_margin.reshape(-1), forward_margin.reshape(-1)))
+    all_flow = torch.cat(
+        (
+            backward.square().sum(dim=1).sqrt().reshape(-1),
+            forward.square().sum(dim=1).sqrt().reshape(-1),
+        )
+    )
+    confidence_mean = float(
+        all_confidence.float()
+        .mean()
+        .detach()
+        .to(
+            device="cpu",
+            dtype=torch.float64,
+        )
+        .item()
+    )
+    valid_fraction = float(
+        valid.float()
+        .mean()
+        .detach()
+        .to(
+            device="cpu",
+            dtype=torch.float64,
+        )
+        .item()
+    )
+    flow_magnitude_max = (
+        float(
+            all_flow[valid]
+            .max()
+            .detach()
+            .to(
+                device="cpu",
+                dtype=torch.float64,
+            )
+            .item()
+        )
+        if bool(valid.any().item())
+        else 0.0
+    )
+
+    if pair_start == 0:
+        return _TemporalCorrespondence(
+            coordinate=float(coordinate),
+            prefix_t=prefix_t,
+            cache_key=cache_key,
+            backward_flow=backward.reshape(
+                batch,
+                pair_count,
+                2,
+                height,
+                width,
+            ).detach(),
+            forward_flow=forward.reshape(
+                batch,
+                pair_count,
+                2,
+                height,
+                width,
+            ).detach(),
+            backward_confidence=backward_confidence.reshape(
+                batch,
+                pair_count,
+                1,
+                height,
+                width,
+            ).detach(),
+            forward_confidence=forward_confidence.reshape(
+                batch,
+                pair_count,
+                1,
+                height,
+                width,
+            ).detach(),
+            confidence_mean=confidence_mean,
+            valid_fraction=valid_fraction,
+            similarity_mean=_masked_mean(all_similarity, valid),
+            margin_mean=_masked_mean(all_margin, valid),
+            flow_magnitude_mean=_masked_mean(all_flow, valid),
+            flow_magnitude_max=flow_magnitude_max,
+        )
+
+    backward_full = torch.zeros(
+        (batch, pair_count, 2, height, width),
+        device=reference.device,
+        dtype=backward.dtype,
+    )
+    forward_full = torch.zeros_like(backward_full)
+    backward_confidence_full = torch.zeros(
+        (batch, pair_count, 1, height, width),
+        device=reference.device,
+        dtype=backward_confidence.dtype,
+    )
+    forward_confidence_full = torch.zeros_like(backward_confidence_full)
+    backward_full[:, pair_start:] = backward.reshape(
+        batch,
+        active_pairs,
+        2,
+        height,
+        width,
+    )
+    forward_full[:, pair_start:] = forward.reshape(
+        batch,
+        active_pairs,
+        2,
+        height,
+        width,
+    )
+    backward_confidence_full[:, pair_start:] = backward_confidence.reshape(
+        batch,
+        active_pairs,
+        1,
+        height,
+        width,
+    )
+    forward_confidence_full[:, pair_start:] = forward_confidence.reshape(
+        batch,
+        active_pairs,
+        1,
+        height,
+        width,
+    )
+
+    return _TemporalCorrespondence(
+        coordinate=float(coordinate),
+        prefix_t=prefix_t,
+        cache_key=cache_key,
+        backward_flow=backward_full.detach(),
+        forward_flow=forward_full.detach(),
+        backward_confidence=backward_confidence_full.detach(),
+        forward_confidence=forward_confidence_full.detach(),
+        confidence_mean=confidence_mean,
+        valid_fraction=valid_fraction,
+        similarity_mean=_masked_mean(all_similarity, valid),
+        margin_mean=_masked_mean(all_margin, valid),
+        flow_magnitude_mean=_masked_mean(all_flow, valid),
+        flow_magnitude_max=flow_magnitude_max,
+    )
+
+
+def _temporal_correspondence(
+    reference: torch.Tensor,
+    *,
+    coordinate: float,
+    config: GuidanceConfig,
+    state: GuidanceState,
+    prefix_t: int = 0,
+    validity: torch.Tensor | None = None,
+    search_radius: int | None = None,
+    cache_key: str | None = None,
+) -> tuple[_TemporalCorrespondence | None, bool]:
+    cached = state.temporal_cache
+    expected_pairs = max(reference.shape[2] - 1, 0)
+    if (
+        cached is not None
+        and cached.cache_key == cache_key
+        and cached.prefix_t == prefix_t
+        and math.isclose(
+            cached.coordinate,
+            coordinate,
+            rel_tol=0.0,
+            abs_tol=1e-8,
+        )
+        and cached.backward_flow.shape
+        == (
+            reference.shape[0],
+            expected_pairs,
+            2,
+            reference.shape[-2],
+            reference.shape[-1],
+        )
+        and cached.backward_flow.device == reference.device
+    ):
+        return cached, True
+    built = _build_temporal_correspondence(
+        reference,
+        coordinate=coordinate,
+        config=config,
+        prefix_t=prefix_t,
+        validity=validity,
+        search_radius=search_radius,
+        cache_key=cache_key,
+    )
+    state.temporal_cache = built
+    return built, False
+
+
+def _resize_pairwise_flow(flow: torch.Tensor, target_h: int, target_w: int) -> torch.Tensor:
+    batch, pairs, _, source_h, source_w = flow.shape
+    work = flow.reshape(batch * pairs, 2, source_h, source_w).float()
+    work = F.interpolate(work, size=(target_h, target_w), mode="bilinear", align_corners=False)
+    work[:, 0].mul_(target_w / source_w)
+    work[:, 1].mul_(target_h / source_h)
+    return work.reshape(batch, pairs, 2, target_h, target_w)
+
+
+def _resize_pairwise_confidence(confidence: torch.Tensor, target_h: int, target_w: int) -> torch.Tensor:
+    batch, pairs, _, source_h, source_w = confidence.shape
+    work = confidence.reshape(batch * pairs, 1, source_h, source_w).float()
+    work = F.interpolate(work, size=(target_h, target_w), mode="bilinear", align_corners=False)
+    return work.reshape(batch, pairs, 1, target_h, target_w).clamp(0.0, 1.0)
+
+
+def _warp_video_pairs(video: torch.Tensor, flow: torch.Tensor) -> torch.Tensor:
+    if video.ndim != 5 or flow.ndim != 5 or flow.shape[2] != 2:
+        raise ValueError("temporal warp expects BxCxTxHxW video and BxTx2xHxW flow")
+    batch, channels, pairs, height, width = video.shape
+    if flow.shape != (batch, pairs, 2, height, width):
+        raise ValueError("temporal warp flow geometry differs from video")
+    frames = video.permute(0, 2, 1, 3, 4).reshape(batch * pairs, channels, height, width).float()
+    offsets = flow.reshape(batch * pairs, 2, height, width).float()
+    yy, xx = torch.meshgrid(
+        torch.arange(height, device=video.device, dtype=torch.float32),
+        torch.arange(width, device=video.device, dtype=torch.float32),
+        indexing="ij",
+    )
+    grid_x = ((xx.unsqueeze(0) + offsets[:, 0] + 0.5) * (2.0 / width)) - 1.0
+    grid_y = ((yy.unsqueeze(0) + offsets[:, 1] + 0.5) * (2.0 / height)) - 1.0
+    grid = torch.stack((grid_x, grid_y), dim=-1)
+    warped = F.grid_sample(frames, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
+    return warped.reshape(batch, pairs, channels, height, width).permute(0, 2, 1, 3, 4).to(video)
+
+
+def _temporal_alignment_correction(
+    high: torch.Tensor,
+    reference: torch.Tensor,
+    correspondence: _TemporalCorrespondence,
+    *,
+    transfer_mode: str,
+    reference_is_target_grid: bool = False,
+) -> torch.Tensor:
+    if high.ndim != 5 or reference.ndim != 5:
+        raise ValueError("temporal alignment expects BxCxTxHxW tensors")
+    if high.shape[:3] != reference.shape[:3]:
+        raise ValueError("temporal alignment source/target batch-channel-time geometry differs")
+    _, _, frames, target_h, target_w = high.shape
+    if frames < 2:
+        return torch.zeros_like(high)
+
+    if not isinstance(reference_is_target_grid, bool):
+        raise TypeError("reference_is_target_grid must be boolean")
+    backward_source = correspondence.backward_flow
+    forward_source = correspondence.forward_flow
+    same_grid = reference_is_target_grid and backward_source.shape[-2:] == (target_h, target_w)
+    if same_grid:
+        backward_target = backward_source
+        forward_target = forward_source
+    else:
+        backward_target = _resize_pairwise_flow(
+            backward_source,
+            target_h,
+            target_w,
+        )
+        forward_target = _resize_pairwise_flow(
+            forward_source,
+            target_h,
+            target_w,
+        )
+
+    work_high = high.float()
+    work_reference = reference.float()
+    previous_reference = _warp_video_pairs(
+        work_reference[:, :, :-1],
+        backward_source,
+    )
+    previous_innovation = work_reference[:, :, 1:] - previous_reference
+    previous_target = _warp_video_pairs(
+        work_high[:, :, :-1],
+        backward_target,
+    )
+    if same_grid:
+        previous_target = previous_target + previous_innovation
+    else:
+        previous_target = (
+            previous_target
+            + resize_video(
+                previous_innovation,
+                target_h,
+                target_w,
+                mode=transfer_mode,
+            ).float()
+        )
+    previous_delta = previous_target - work_high[:, :, 1:]
+
+    next_reference = _warp_video_pairs(
+        work_reference[:, :, 1:],
+        forward_source,
+    )
+    next_innovation = work_reference[:, :, :-1] - next_reference
+    next_target = _warp_video_pairs(
+        work_high[:, :, 1:],
+        forward_target,
+    )
+    if same_grid:
+        next_target = next_target + next_innovation
+        backward_confidence = correspondence.backward_confidence
+        forward_confidence = correspondence.forward_confidence
+    else:
+        next_target = (
+            next_target
+            + resize_video(
+                next_innovation,
+                target_h,
+                target_w,
+                mode=transfer_mode,
+            ).float()
+        )
+        backward_confidence = _resize_pairwise_confidence(
+            correspondence.backward_confidence,
+            target_h,
+            target_w,
+        )
+        forward_confidence = _resize_pairwise_confidence(
+            correspondence.forward_confidence,
+            target_h,
+            target_w,
+        )
+    next_delta = next_target - work_high[:, :, :-1]
+
+    backward_confidence = backward_confidence.permute(0, 2, 1, 3, 4)
+    forward_confidence = forward_confidence.permute(0, 2, 1, 3, 4)
+
+    weighted = torch.zeros_like(work_high)
+    weight = torch.zeros(
+        (high.shape[0], 1, frames, target_h, target_w),
+        device=high.device,
+        dtype=torch.float32,
+    )
+    weighted[:, :, 1:] += backward_confidence * previous_delta
+    weight[:, :, 1:] += backward_confidence
+    weighted[:, :, :-1] += forward_confidence * next_delta
+    weight[:, :, :-1] += forward_confidence
+
+    # Below unit total confidence, keep the correction proportionally attenuated.
+    # Above one, normalize the two-sided estimate instead of doubling its strength.
+    correction = weighted / weight.clamp_min(1.0)
+    return correction.to(high)
+
+
+def _bounded(
+    correction: torch.Tensor,
+    reference: torch.Tensor,
+    ratio: float,
+    *,
+    prefix_t: int = 0,
+) -> tuple[torch.Tensor, dict[str, float]]:
+    if type(prefix_t) is not int or not 0 <= prefix_t < correction.shape[2]:
+        if prefix_t == correction.shape[2]:
+            return torch.zeros_like(correction), {
+                "correction_rms": 0.0,
+                "baseline_rms": 0.0,
+                "correction_rms_ratio": 0.0,
+                "clamp_scale": 1.0,
+            }
+        raise ValueError("guidance correction prefix length is invalid")
+    correction_work = correction[:, :, prefix_t:]
+    reference_work = reference[:, :, prefix_t:]
+    dims = tuple(range(1, correction_work.ndim))
+    corr_rms = correction_work.float().square().mean(dim=dims, keepdim=True).sqrt()
+    ref_rms = reference_work.float().square().mean(dim=dims, keepdim=True).sqrt().clamp_min(1e-8)
+    scale = torch.clamp(
+        ref_rms * ratio / corr_rms.clamp_min(1e-8),
+        max=1.0,
+    )
+    bounded_rms = corr_rms * scale
+    summary = (
+        torch.stack(
+            (
+                bounded_rms.mean(),
+                ref_rms.mean(),
+                (bounded_rms / ref_rms).mean(),
+                scale.mean(),
+            )
+        )
+        .detach()
+        .to(device="cpu", dtype=torch.float64)
+    )
+    correction_rms, baseline_rms, correction_rms_ratio, clamp_scale = map(
+        float,
+        summary.tolist(),
+    )
+    bounded = correction * scale.to(correction)
+    if prefix_t:
+        bounded = bounded.clone()
+        bounded[:, :, :prefix_t] = 0
+    stats = {
+        "correction_rms": correction_rms,
+        "baseline_rms": baseline_rms,
+        "correction_rms_ratio": correction_rms_ratio,
+        "clamp_scale": clamp_scale,
+    }
+    return bounded, stats
+
+
+def apply_guidance(
+    high_x0: torch.Tensor,
+    *,
+    run: TrajectoryRun,
+    coordinate: float,
+    config: GuidanceConfig,
+    state: GuidanceState,
+    high_state: torch.Tensor | None = None,
+    sigma: float | None = None,
+    registered_reference: RegisteredGuidanceReference | None = None,
+    protected_prefix_t: int = 0,
+    reference_gauge: ExactPrefixGuidanceGauge | None = None,
+    handoff_reference: HandoffGuidanceReference | None = None,
+) -> torch.Tensor:
+    if config.mode == "off":
+        return high_x0
+    acceleration_active = config.mode == "direction+acceleration" and config.acceleration_weight > 0
+    temporal_active = config.mode == "direction+temporal" and config.temporal_weight > 0
+    if acceleration_active and len(trustworthy_samples(run)) < 3:
+        raise RuntimeError("acceleration guidance requires at least three exact trajectory anchors")
+    coordinate = float(coordinate)
+    if not math.isfinite(coordinate) or not 0.0 <= coordinate <= 1.0:
+        raise ValueError("guidance coordinate must be finite and inside [0, 1]")
+    if acceleration_active:
+        if high_state is None:
+            raise ValueError("acceleration guidance requires the current high-grid sampler state")
+        if high_state.shape != high_x0.shape:
+            raise ValueError("acceleration sampler state and predicted-clean video shapes differ")
+        if sigma is None or not math.isfinite(float(sigma)) or float(sigma) <= 0.0:
+            raise ValueError("acceleration guidance requires a finite positive sampler sigma")
+        high_state = high_state.to(
+            device=high_x0.device,
+            dtype=high_x0.dtype,
+        )
+        sigma_value = float(sigma)
+    else:
+        sigma_value = None
+
+    registered = registered_reference is not None
+    if type(protected_prefix_t) is not int or not 0 <= protected_prefix_t < high_x0.shape[2]:
+        raise ValueError("guidance protected prefix length is invalid")
+    prefix_t = protected_prefix_t
+    temporal_validity = None
+    temporal_radius = config.temporal_search_radius
+    temporal_cache_key = None
+    source_ref = None
+    native_target_ref = None
+    if registered_reference is not None:
+        if handoff_reference is not None:
+            raise RuntimeError("registered and native handoff guidance references cannot be combined")
+        if config.mode == "downsample_consistency":
+            raise RuntimeError("registered frame-gauge guidance does not support downsample_consistency")
+        if str(registered_reference.run_id) != str(run.run_id):
+            raise RuntimeError("registered guidance reference trajectory identity drifted")
+        if registered_reference.video.shape != high_x0.shape:
+            raise RuntimeError("registered guidance reference target geometry drifted")
+        if registered_reference.video.device.type == "meta" or not bool(
+            torch.isfinite(registered_reference.video).all().item()
+        ):
+            raise RuntimeError("registered guidance reference is not a finite materialized tensor")
+        if protected_prefix_t not in (0, registered_reference.prefix_t):
+            raise RuntimeError("registered guidance and authoritative prefix ownership disagree")
+        prefix_t = registered_reference.prefix_t
+        if type(prefix_t) is not int or not 0 <= prefix_t < high_x0.shape[2]:
+            raise RuntimeError("registered guidance reference prefix ownership is invalid")
+        if (
+            registered_reference.validity.shape != high_x0.shape[-2:]
+            or registered_reference.validity.dtype != torch.bool
+        ):
+            raise RuntimeError("registered guidance reference validity geometry drifted")
+        coordinate_tolerance = 1e-7
+        if coordinate > float(registered_reference.reference_coordinate) + coordinate_tolerance:
+            raise RuntimeError("high-stage sampler evaluated above the registered guidance endpoint")
+        _, resolved_coordinate, _ = time_matched_reference_info(
+            run,
+            coordinate,
+        )
+        if not math.isclose(
+            float(resolved_coordinate),
+            float(registered_reference.reference_coordinate),
+            rel_tol=0.0,
+            abs_tol=coordinate_tolerance,
+        ):
+            raise RuntimeError("registered guidance reference coordinate identity drifted")
+        ref = registered_reference.video.to(
+            device=high_x0.device,
+            dtype=high_x0.dtype,
+        )
+        reference_coordinate = float(registered_reference.reference_coordinate)
+        reference_clamped = not math.isclose(
+            coordinate,
+            reference_coordinate,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        )
+        temporal_reference = ref
+        temporal_validity = registered_reference.validity.to(device=high_x0.device)
+        temporal_radius = int(registered_reference.temporal_search_radius)
+        temporal_cache_key = registered_reference.cache_key
+    else:
+        trajectory_source_ref, reference_coordinate, reference_clamped = time_matched_reference_info(run, coordinate)
+        if handoff_reference is not None:
+            if config.mode == "downsample_consistency":
+                raise RuntimeError("handoff guidance requires a direction reference")
+            if coordinate > handoff_reference.coordinate + 1e-7:
+                raise RuntimeError("high-stage sampler evaluated above the learned handoff endpoint")
+            source_ref, ref = handoff_reference.resolve(
+                high_x0, run_id=run.run_id, coordinate=reference_coordinate, prefix_t=prefix_t
+            )
+            native_target_ref = resize_video(
+                source_ref,
+                high_x0.shape[-2],
+                high_x0.shape[-1],
+                mode=config.transfer_mode,
+            )
+        else:
+            source_ref = trajectory_source_ref.to(
+                device=high_x0.device,
+                dtype=high_x0.dtype,
+            )
+            ref = resize_video(
+                source_ref,
+                high_x0.shape[-2],
+                high_x0.shape[-1],
+                mode=config.transfer_mode,
+            )
+        temporal_reference = source_ref
+
+    reference_residual = None
+    if reference_gauge is not None:
+        if registered or config.mode == "downsample_consistency":
+            raise RuntimeError("exact-prefix guidance gauge requires an unregistered direction reference")
+        reference_residual = reference_gauge.residual(ref, prefix_t=prefix_t)
+
+    if state.start_coordinate is None:
+        state.start_coordinate = coordinate
+    start = max(float(state.start_coordinate), 1e-8)
+    schedule = min(1.0, max(0.0, coordinate / start)) ** config.schedule_power
+
+    correction = torch.zeros_like(high_x0)
+    if config.mode in {
+        "direction",
+        "direction+acceleration",
+        "direction+temporal",
+    }:
+        direction_delta = ref - high_x0
+        if reference_residual is not None:
+            reference_gauge.add_to(direction_delta, reference_residual)
+        if registered:
+            assert temporal_validity is not None
+            residual = _masked_low_frequency_projection(
+                direction_delta,
+                temporal_validity,
+                config.cutoff,
+            )
+        else:
+            residual = low_frequency_projection(
+                direction_delta,
+                config.cutoff,
+            )
+        if prefix_t:
+            residual = residual.clone()
+            residual[:, :, :prefix_t] = 0
+        correction = correction + schedule * config.direction_weight * residual
+    if config.mode == "downsample_consistency":
+        assert source_ref is not None
+        source_size = (
+            run.geometry.latent_h,
+            run.geometry.latent_w,
+        )
+        work = (
+            high_x0.permute(0, 2, 1, 3, 4)
+            .reshape(
+                -1,
+                high_x0.shape[1],
+                *high_x0.shape[-2:],
+            )
+            .float()
+        )
+        down = F.interpolate(
+            work,
+            size=source_size,
+            mode="area",
+        )
+        down = down.reshape(
+            high_x0.shape[0],
+            high_x0.shape[2],
+            high_x0.shape[1],
+            *source_size,
+        ).permute(0, 2, 1, 3, 4)
+        source_error = source_ref - down.to(source_ref)
+        error = resize_video(
+            source_error,
+            *high_x0.shape[-2:],
+            mode=config.transfer_mode,
+        )
+        correction = correction + schedule * config.consistency_weight * error
+
+    direction_correction = correction
+    temporal_correction = torch.zeros_like(high_x0)
+    temporal_match = None
+    temporal_cache_hit = False
+    temporal_reference_gauge_used = False
+    temporal_handoff_reference_used = False
+    guided = high_x0 + direction_correction
+    if temporal_active:
+        temporal_match, temporal_cache_hit = _temporal_correspondence(
+            temporal_reference,
+            coordinate=reference_coordinate,
+            config=config,
+            state=state,
+            prefix_t=prefix_t,
+            validity=temporal_validity,
+            search_radius=temporal_radius,
+            cache_key=temporal_cache_key,
+        )
+        if temporal_match is not None:
+            temporal_high = guided
+            if native_target_ref is not None:
+                # The source matcher and its innovations still describe the
+                # native low-grid trajectory. Remove the learned-transfer
+                # representation difference before applying that operator.
+                # Add the resulting correction to the learned representation,
+                # without replacing or freezing the current high prediction.
+                temporal_high = guided - ref + native_target_ref
+                temporal_handoff_reference_used = True
+            if reference_residual is not None:
+                # Correspondence and reference innovations describe the native
+                # source representation. Pull the target operand back into that
+                # same representation before transporting it. The resulting
+                # correction can then be added in the reconciled representation:
+                # subtracting the gauge only after transport would miss W(delta).
+                if temporal_high is guided:
+                    temporal_high = guided.clone()
+                reference_gauge.add_to(temporal_high, reference_residual, scale=-1.0)
+                temporal_reference_gauge_used = True
+            temporal_delta = _temporal_alignment_correction(
+                temporal_high,
+                temporal_reference,
+                temporal_match,
+                transfer_mode=config.transfer_mode,
+                reference_is_target_grid=registered,
+            )
+            temporal_correction = schedule * config.temporal_weight * temporal_delta
+            if prefix_t:
+                temporal_correction = temporal_correction.clone()
+                temporal_correction[:, :, :prefix_t] = 0
+            guided = guided + temporal_correction
+        correction = guided - high_x0
+    else:
+        state.temporal_cache = None
+
+    acceleration_correction = torch.zeros_like(high_x0)
+    reference_velocity = None
+    same_coordinate_refinement = False
+    acceleration_applied = False
+    if acceleration_active:
+        assert high_state is not None
+        assert sigma_value is not None
+        reference_velocity = (high_state - ref) / sigma_value
+        if reference_residual is not None:
+            reference_gauge.add_to(reference_velocity, reference_residual, scale=-1.0 / sigma_value)
+        high_velocity = (high_state - guided) / sigma_value
+
+        if state.current_coordinate is not None:
+            same_coordinate_refinement = math.isclose(
+                coordinate,
+                state.current_coordinate,
+                rel_tol=0.0,
+                abs_tol=1e-8,
+            )
+            if not same_coordinate_refinement:
+                state.previous_coordinate = state.current_coordinate
+                state.previous_high_velocity = state.current_high_velocity
+                state.previous_reference_velocity = state.current_reference_velocity
+
+        if (
+            state.previous_coordinate is not None
+            and state.previous_high_velocity is not None
+            and state.previous_reference_velocity is not None
+        ):
+            acceleration_delta = (
+                reference_velocity - state.previous_reference_velocity - high_velocity + state.previous_high_velocity
+            )
+            high_velocity = high_velocity + schedule * config.acceleration_weight * acceleration_delta
+            acceleration_guided = high_state - sigma_value * high_velocity
+            acceleration_correction = acceleration_guided - guided
+            guided = acceleration_guided
+            acceleration_applied = True
+        correction = guided - high_x0
+
+    if prefix_t:
+        correction = correction.clone()
+        correction[:, :, :prefix_t] = 0
+        acceleration_correction = acceleration_correction.clone()
+        acceleration_correction[:, :, :prefix_t] = 0
+    correction, correction_stats = _bounded(
+        correction,
+        high_x0,
+        config.max_correction_rms_ratio,
+        prefix_t=prefix_t,
+    )
+    result = high_x0 + correction
+
+    metric_reference = high_x0[:, :, prefix_t:] if prefix_t else high_x0
+    direction_metric = direction_correction[:, :, prefix_t:] if prefix_t else direction_correction
+    temporal_metric = temporal_correction[:, :, prefix_t:] if prefix_t else temporal_correction
+    acceleration_metric = acceleration_correction[:, :, prefix_t:] if prefix_t else acceleration_correction
+
+    state.last_schedule = float(schedule)
+    state.last_correction_rms = correction_stats["correction_rms"]
+    state.last_baseline_rms = correction_stats["baseline_rms"]
+    state.last_correction_rms_ratio = correction_stats["correction_rms_ratio"]
+    state.last_clamp_scale = correction_stats["clamp_scale"]
+    state.last_direction_rms_ratio = _rms_ratio(
+        direction_metric,
+        metric_reference,
+    )
+    state.last_temporal_rms_ratio = _rms_ratio(
+        temporal_metric,
+        metric_reference,
+    )
+    state.last_acceleration_rms_ratio = _rms_ratio(
+        acceleration_metric,
+        metric_reference,
+    )
+    state.last_acceleration_applied = acceleration_applied
+    state.last_same_coordinate_refinement = same_coordinate_refinement
+    state.last_acceleration_anchor_coordinate = state.previous_coordinate if acceleration_applied else None
+    state.last_temporal_cache_hit = temporal_cache_hit
+    state.last_temporal_reference_coordinate = reference_coordinate if temporal_active else None
+    state.last_temporal_reference_clamped = reference_clamped if temporal_active else False
+    state.last_temporal_search_radius = temporal_radius if temporal_active else None
+    state.last_temporal_cross_prefix_pairs_disabled = (
+        min(prefix_t, max(0, high_x0.shape[2] - 1)) if temporal_active else 0
+    )
+    state.last_registered_reference_used = registered
+    state.last_reference_gauge_used = reference_residual is not None
+    state.last_reference_gauge_policy = reference_gauge.policy if reference_residual is not None else None
+    state.last_temporal_reference_gauge_used = temporal_reference_gauge_used
+    state.last_handoff_reference_used = handoff_reference is not None
+    state.last_temporal_handoff_reference_used = temporal_handoff_reference_used
+
+    if temporal_match is None:
+        state.last_temporal_confidence_mean = 0.0
+        state.last_temporal_valid_fraction = 0.0
+        state.last_temporal_disocclusion_fraction = 1.0 if temporal_active else 0.0
+        state.last_temporal_similarity_mean = 0.0
+        state.last_temporal_margin_mean = 0.0
+        state.last_temporal_flow_magnitude_mean = 0.0
+        state.last_temporal_flow_magnitude_max = 0.0
+    else:
+        state.last_temporal_confidence_mean = temporal_match.confidence_mean
+        state.last_temporal_valid_fraction = temporal_match.valid_fraction
+        state.last_temporal_disocclusion_fraction = 1.0 - temporal_match.valid_fraction
+        state.last_temporal_similarity_mean = temporal_match.similarity_mean
+        state.last_temporal_margin_mean = temporal_match.margin_mean
+        state.last_temporal_flow_magnitude_mean = temporal_match.flow_magnitude_mean
+        state.last_temporal_flow_magnitude_max = temporal_match.flow_magnitude_max
+
+    if acceleration_active:
+        assert high_state is not None
+        assert sigma_value is not None
+        assert reference_velocity is not None
+        state.current_coordinate = float(coordinate)
+        state.current_high_velocity = ((high_state - result) / sigma_value).detach()
+        state.current_reference_velocity = reference_velocity.detach()
+    else:
+        state.current_coordinate = None
+        state.current_high_velocity = None
+        state.current_reference_velocity = None
+        state.previous_coordinate = None
+        state.previous_high_velocity = None
+        state.previous_reference_velocity = None
+    return result
+
+
+def conditional_renoise_alignment(
+    reference_x0: torch.Tensor,
+    *,
+    target_h: int,
+    target_w: int,
+    sigma: float,
+    noise: torch.Tensor,
+    transfer_mode: str = "bicubic",
+) -> torch.Tensor:
+    if not 0 <= sigma <= 1:
+        raise ValueError("sigma must be in [0, 1]")
+    ref = resize_video(reference_x0, target_h, target_w, mode=transfer_mode).to(noise)
+    return conditional_renoise_target(ref, sigma=sigma, noise=noise)
+
+
+def conditional_renoise_target(
+    target_x0: torch.Tensor,
+    *,
+    sigma: float,
+    noise: torch.Tensor,
+) -> torch.Tensor:
+    """Reconstruct x_t from an already target-sized clean state and target noise."""
+    if not 0 <= sigma <= 1:
+        raise ValueError("sigma must be in [0, 1]")
+    ref = target_x0.to(noise)
+    if ref.shape != noise.shape:
+        raise ValueError("initialization reference and noise shapes differ")
+    return (1.0 - sigma) * ref + sigma * noise

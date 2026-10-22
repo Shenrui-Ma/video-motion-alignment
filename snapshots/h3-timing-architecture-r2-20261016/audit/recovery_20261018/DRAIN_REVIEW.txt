@@ -1,0 +1,17 @@
+Drain administrative-script independent CPU review: PASS
+
+Reviewed current script SHA256: 9181124ef95748513cf5c7b6b780e4a71b2faabb5c923fa72f818cad6bc9603f
+19/19 mock regressions passed; source remained unchanged during test run.
+
+Root corrections verified:
+- Controller binds exact service identity.
+- Failure-receipt write errors cannot skip controller recovery.
+- Accepted cleanup attempts service and controller independently and preserves original exception.
+- Successful current history and completed-run summary require completed=true plus status_str=success.
+- Controller identity is rechecked immediately before initial SIGSTOP after prior-audit I/O.
+
+Additional coverage: scientific queue byte preservation; missing, ambiguous and pending service jobs recover controller; accepted job/status errors clean exact owner; replaced controller receives no cleanup signals; final queue must be empty; dictionary status supported.
+
+All os.kill calls intercepted. Service and job modules synthetic. No SSH, real service request, real signal, inference, or GPU operation occurs. Test runner returns nonzero on failure. This reviewer changed only tests and review receipts. Root owns real execution. CPU mocks do not prove live process/kernel/network behavior.
+
+Evidence: DRAIN_MOCK_REVIEW.json, DRAIN_MOCK_TESTS.log. Failed pre-correction evidence retained as *.before_history_fix.

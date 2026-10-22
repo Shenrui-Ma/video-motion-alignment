@@ -1,0 +1,57 @@
+
+'use strict';
+const DATA=JSON.parse(document.getElementById('metadata').textContent),$=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let currentTask=null,currentVersion=null,players=[],generation=0,urls=[];
+function assetURL(id){return 'data:'+DATA.asset_types[id]+';base64,'+$('asset_'+id).textContent;}
+function groupState(t){return t.state==='编辑已完成'?'done':t.state==='待复核'?'review':'repair';}
+function filteredTasks(){const q=$('search').value.trim().toLowerCase();return DATA.tasks.filter(t=>(!$('bench').value||t.bench===$('bench').value)&&(!$('status').value||groupState(t)===$('status').value)&&(!q||[t.title,t.source,t.target,t.bench].join(' ').toLowerCase().includes(q)));}
+function renderNav(){const tasks=filteredTasks();let html='';for(const [label,rows] of [['FlexiAct',tasks.filter(t=>t.bench==='FlexiAct')],['IVEBench',tasks.filter(t=>t.bench==='IVEBench')]]){if(!rows.length)continue;html+='<div class="section-label">'+label+' · '+rows.length+'</div>';for(const t of rows)html+='<button class="task-button" data-key="'+esc(t.key)+'" aria-current="'+(currentTask?.key===t.key)+'"><span>'+esc(t.title)+'</span><small>'+esc('R'+t.latest_run+' · '+t.source+(t.target?' / '+t.target:''))+'</small></button>';} $('task-list').innerHTML=html||'<p class="empty-list">没有匹配的任务</p>';for(const b of $('task-list').querySelectorAll('button'))b.onclick=()=>selectTask(b.dataset.key);}
+function numeric(n){return typeof n==='number'&&Number.isFinite(n)?n.toFixed(4):'待评测';}
+function metricColumns(v){
+ const m=v.mf||{};
+ if(v.mode==='prompt_control')return {labels:['原提示词普通编辑','改写提示词普通编辑'],values:v.repair_mf?[v.repair_mf.old_native,v.repair_mf.new_native]:[m.native,m.alternative_native]};
+ if(v.mode==='sampler_control')return {labels:['Euler','res_multistep'],values:[m.euler,m.res_multistep]};
+ if(v.mode==='positional_control')return {labels:['普通编辑','RoPE 时间坐标对齐'],values:[m.native,m.aligned]};
+ if(v.mode==='resumed_online_guidance')return {labels:['普通编辑','自动时序引导'],values:[m.native,m.visible_only]};if(v.mode==='reference_origin_control')return {labels:['普通编辑','参考分支相位引导'],values:[m.native,m.reference_origin]};
+ if(typeof m.fixed_control==='number')return {labels:['普通编辑','固定时序引导','空间分布引导'],values:[m.native,m.fixed_control,m.guided]};
+ if(typeof m.original_fixed==='number')return {labels:['普通编辑','固定6–14步','延长6–19步'],values:[m.native,m.original_fixed,m.guided]};
+ if(v.mode==='native_only')return {labels:['普通编辑'],values:[m.native]};
+ return {labels:['普通编辑',v.method],values:[m.native,m.guided]};
+}
+function metricHTML(v,t){const c=metricColumns(v),vals=c.values,delta=vals.length===2&&vals.every(x=>typeof x==='number')?vals[1]-vals[0]:null;
+ let s='<section><h3>'+esc(t.bench+' Motion Fidelity')+'</h3><table><thead><tr>'+c.labels.map(x=>'<th>'+esc(x)+'</th>').join('')+(delta!==null?'<th>变化</th>':'')+'</tr></thead><tbody><tr>'+vals.map(x=>'<td>'+numeric(x)+'</td>').join('')+(delta!==null?'<td>'+(delta>=0?'+':'')+delta.toFixed(4)+'</td>':'')+'</tr></tbody></table><p class="metric-note">官方整体运动保持评分，越高越好。'+(t.bench==='FlexiAct'?'FlexiAct 比较轨迹运动方向。':'IVEBench 比较轨迹位置与位移。')+'</p>';
+ if(v.events?.events){let rows='';const sampler=v.mode==='sampler_control',names=sampler?['Euler','res_multistep']:['普通编辑',v.method],fields=sampler?['euler_frames','res_multistep_frames']:['native_frames',v.mode==='reference_origin_control'?'reference_origin_frames':'guided_frames'];
+ for(const e of v.events.events){if(!e.source_frames||!e[fields[0]]||!e[fields[1]])continue;const format=(a)=>{const lo=(a[0]-e.source_frames[1])/v.events.fps,hi=(a[1]-e.source_frames[0])/v.events.fps;return lo.toFixed(2)+' ～ '+hi.toFixed(2)};rows+='<tr class="event-row" data-time="'+e.source_frames[0]/v.events.fps+'"><td>'+esc(e.name)+'</td><td>'+format(e[fields[0]])+'</td><td>'+format(e[fields[1]])+'</td></tr>';}
+ if(rows)s+='<h3 style="margin-top:19px">动作时间差 · 秒</h3><table><tr><th>动作</th><th>'+esc(names[0])+'</th><th>'+esc(names[1])+'</th></tr>'+rows+'</table><p class="metric-note">正值为延后，负值为提前。区间来自逐帧事件标注。点击动作可跳到参考发生时刻。</p>';}
+ return s+'</section>';}
+function stopPlayers(){for(const v of players){v.pause();v.removeAttribute('src');v.load();}players=[];for(const url of urls)URL.revokeObjectURL(url);urls=[];}
+function selectTask(key,version){const t=DATA.tasks.find(x=>x.key===key);if(!t)return;currentTask=t;currentVersion=version&&t.versions.includes(version)?version:t.current;renderNav();renderTask();history.replaceState(null,'','#'+encodeURIComponent(t.key));}
+function alignmentMark(value,available){return value===true?'<span class="mark yes" aria-label="对齐">✓</span>':value===false?'<span class="mark no" aria-label="存在动作或时间偏差">✗</span>':'<span class="mark unknown">'+(available?'待核验':'待生成')+'</span>';}
+function alignmentHTML(v){
+ if(v.mode==='positional_control')return '<div class="alignment-row"><strong>普通编辑：动作–时间对齐'+alignmentMark(v.alignment_native,true)+'</strong><strong>RoPE 时间坐标对齐：'+alignmentMark(v.alignment_alternative,v.has_alternative)+'</strong></div>';
+ if(v.mode==='reference_origin_control')return '<div class="alignment-row"><strong>普通编辑：动作–时间对齐'+alignmentMark(v.alignment_native,true)+'</strong><strong>参考分支相位引导：'+alignmentMark(v.alignment_guided,v.has_guided)+'</strong></div>';
+ const labels=v.mode==='prompt_control'?['原提示词普通编辑','改写提示词普通编辑']:v.mode==='sampler_control'?['Euler 普通编辑','res_multistep 普通编辑']:['普通编辑','引导编辑'];
+ const secondAvailable=v.has_guided||v.mode==='prompt_control'||v.mode==='sampler_control';
+ return '<div class="alignment-row"><strong>'+labels[0]+'：动作–时间对齐'+alignmentMark(v.alignment_native,true)+'</strong><strong>'+labels[1]+'：'+(secondAvailable?'动作–时间对齐'+alignmentMark(v.alignment_guided,true):'<span class="mark unknown">尚无成片</span>')+'</strong></div>';
+}
+function renderTask(){stopPlayers();const token=++generation,t=currentTask,v=DATA.versions[currentVersion];let html='<p class="kicker">'+esc(t.bench+' / '+t.source)+(t.target?' / '+esc(t.target):'')+'</p><h2>'+esc(t.title)+'</h2>';
+html+=alignmentHTML(v);
+html+='<div class="still-shell"><div class="still-grid" style="--n:'+v.players.length+'">';v.players.forEach((p,i)=>{html+='<figure><img id="still'+i+'" alt="'+esc(v.still_reason+'；'+p.still_labels.join('、'))+'"><figcaption style="--cols:'+p.still_labels.length+'">'+p.still_labels.map(x=>'<span>'+esc(x)+'</span>').join('')+'</figcaption></figure>';});html+='</div><p class="still-note">'+esc(v.still_reason)+' · '+(v.still_frame/v.fps).toFixed(3)+' 秒 · 第 '+v.still_frame+' 帧</p></div>';
+html+='<div class="player-shell" id="player-shell"><div class="video-grid" style="--n:'+v.players.length+'">';v.players.forEach((p,i)=>{html+='<figure><video id="player'+i+'" controls playsinline preload="none" aria-label="'+esc(p.labels.join('、'))+'"></video><figcaption style="--cols:'+p.labels.length+'">'+p.labels.map(x=>'<span>'+esc(x)+'</span>').join('')+'</figcaption></figure>';});html+='</div><div class="video-tools"><div class="tools"><button id="play">播放 / 暂停</button><button id="restart">从头播放</button><select id="speed" aria-label="播放速度"><option value="1">1× 原速</option><option value="0.5">0.5× 慢放</option><option value="0.25">0.25× 慢放</option></select><button id="full">全屏</button><button id="download">下载对比视频</button></div><span class="time" id="clock">'+(v.frames/v.fps).toFixed(2)+' 秒 · '+v.fps+' fps</span></div></div>';
+html+='<div class="under"><section>'+metricHTML(v,t)+'<p class="result-summary">'+esc(v.summary)+'</p></section><section><h3>输入与方法</h3><div class="ref-line">';if(v.reference_image)html+='<button id="open-image" aria-label="放大实际参考图"><img id="ref-image" alt="实际角色参考图"></button>';html+='<div><p>'+esc(v.reference_image?'输入：参考视频 + 角色参考图':'输入：参考视频 + 编辑提示词')+'</p><p>'+esc('方法：'+v.method)+'</p>'+(v.pair_group?'<p>'+esc(v.pair_group)+'</p>':'')+'<p>'+esc(v.source_time)+'</p></div></div></section></div>';
+html+='<div class="version-row"><label>查看版本<select id="version">';for(const id of t.versions){const p=DATA.versions[id];html+='<option value="'+esc(id)+'"'+(id===v.id?' selected':'')+'>'+esc(p.run+' · '+p.method+(id===t.current?' · 当前结果':''))+'</option>';}html+='</select></label></div>';
+html+='<details><summary>提示词与实验记录</summary><p>'+esc(v.id+' · '+v.method_detail)+'</p>'+(v.prompt?'<details><summary>实际提示词</summary><pre>'+esc(v.prompt)+'</pre></details>':'')+'</details><footer>素材已内嵌，可分享此 HTML 离线查看。更新于 '+esc(DATA.updated)+'。</footer>';
+$('content').innerHTML=html;$('version').onchange=e=>{currentVersion=e.target.value;renderTask()};
+v.players.forEach((p,i)=>{const el=$('player'+i);el.poster=assetURL(p.poster);$('still'+i).src=assetURL(p.still);players.push(el)});
+// Attach only this task's media. Switching tasks releases the old decoders.
+requestAnimationFrame(()=>{if(token!==generation)return;v.players.forEach((p,i)=>{$('player'+i).src=assetURL(p.asset)});});
+if(v.reference_image){$('ref-image').src=assetURL(v.reference_image);$('open-image').onclick=()=>{$('large-image').src=assetURL(v.reference_image);$('image-dialog').showModal()};}
+$('play').onclick=()=>{if(players[0].paused){const time=players[0].currentTime;for(const p of players){p.currentTime=time;p.play().catch(()=>{})}}else players.forEach(p=>p.pause())};$('restart').onclick=()=>{for(const p of players){p.currentTime=0;p.play().catch(()=>{})}};$('speed').onchange=e=>players.forEach(p=>p.playbackRate=Number(e.target.value));$('full').onclick=()=>{$('player-shell').requestFullscreen?.()};$('download').onclick=()=>{for(let i=0;i<v.players.length;i++){const a=document.createElement('a');a.href=assetURL(v.players[i].asset);a.download=v.id+(v.players.length>1?'_'+i:'')+'.mp4';a.click()}};
+players[0].ontimeupdate=()=>{const p=players[0];$('clock').textContent=p.currentTime.toFixed(2)+' / '+(v.frames/v.fps).toFixed(2)+' 秒 · '+v.fps+' fps';if(players.length>1)for(const q of players.slice(1))if(Math.abs(q.currentTime-p.currentTime)>0.1)q.currentTime=p.currentTime;};
+players[0].onplay=()=>{for(const p of players.slice(1)){p.currentTime=players[0].currentTime;p.play().catch(()=>{})}};players[0].onpause=()=>players.slice(1).forEach(p=>p.pause());players[0].onseeked=()=>players.slice(1).forEach(p=>p.currentTime=players[0].currentTime);
+for(const row of document.querySelectorAll('[data-time]'))row.onclick=()=>{for(const p of players)p.currentTime=Number(row.dataset.time)};
+}
+for(const id of ['bench','status','search'])$(id).addEventListener(id==='search'?'input':'change',renderNav);
+$('close-image').onclick=()=>$('image-dialog').close();$('counts').textContent=DATA.tasks.length+' 项编辑任务 · '+DATA.unique_sources+' 段参考视频 · '+Object.keys(DATA.versions).length+' 条实验记录';$('updated').textContent='更新 '+DATA.updated;
+let initial;try{initial=decodeURIComponent(location.hash.slice(1))}catch{}selectTask(DATA.tasks.find(t=>t.key===initial)?.key||DATA.tasks[0].key);

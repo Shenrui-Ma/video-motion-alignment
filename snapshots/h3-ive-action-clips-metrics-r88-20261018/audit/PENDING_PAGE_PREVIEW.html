@@ -1,0 +1,131 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IVEBench 素材片段探索 · R88</title><style>body{margin:0;padding:24px;background:#090a0e;color:#eee;font:18px/1.6 system-ui}main{max-width:2200px;margin:auto}h1{font-size:32px}h2{font-size:25px}h3{font-size:18px;color:#ccc}section{padding-top:28px;margin:35px 0;border-top:1px solid #30313b}video,.sheet{display:block;width:100%;background:#000}p{color:#ccc}details{margin-top:20px}pre{white-space:pre-wrap;font:14px/1.5 monospace}summary{cursor:pointer}</style><main><h1>IVEBench 素材片段探索 · 五组视频编辑对照</h1><p>三列依次为参考视频、普通编辑、时序引导。每对使用相同的输入、提示词与初始噪声；引导作用于去噪步骤6–14，参考时序对应关系由固定策略指定。</p><p>连续片段按原视频内容预先选择。三列按相同24fps帧索引展示，统一裁去输入外加边框；尾部补帧排除。全部五组及失败状态保留。先检查任务和原场景保留，再比较动作时序。本页记录素材片段探索，完整官方 benchmark 分数尚未测量。</p><section><h2>long_0047 · Replace the man with a woman</h2><p>原片区间 [0.000000, 4.004000) 秒；原始帧 0–119。有效输出 97 帧。</p><p>生成状态：PENDING；编辑任务、原场景与时序效果：待人工检查。</p><p>本组实际成片对照待完成。</p><details><summary>官方任务、提示词与时间映射</summary><p>Source: A man is sitting in a chair and talking into a microphone.</p><p>Edit: Replace the man with a woman</p><p>Target: A woman is sitting in a chair and talking into a microphone.</p><p>原始有理时间区间 [0, 1001/250)；原片逐帧映射随归档保存。提示协议：P1-local-v1。</p><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.
+&lt;Subject 1&gt; is the seated interviewee in &lt;Video 1&gt;, shown in dark clothing and gesturing with both hands near a microphone. The requested replacement changes this person to a woman.
+&lt;Subject 2&gt; is the original interview setting, chair, microphone and its boom, side table, drinking vessels, shelves and all other visible objects.
+Source context: A man is sitting in a chair and talking into a microphone.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;. Replace the seated man with a woman performing the same visible gestures in the original interview setting.
+Requested edit: Replace the man with a woman
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - apply the requested replacement to the interviewee. Preserve the original seated body placement, visible hand gestures, crossed-leg posture, clothing arrangement and interactions while changing the person to a woman.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - preserve the chair, microphone, furniture, drinking vessels, shelves, background, lighting and their positions.
+&lt;Video 1&gt; (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.
+The requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.
+
+detailed_description:
+The target video retains the original visual style, lighting and camera composition of &lt;Video 1&gt;.
+[Shot 1] A woman sits in the original interview chair beside the microphone, continuing the original interviewee&#x27;s hand gestures and seated movements as shown in &lt;Video 1&gt;. The camera and surrounding interview setting remain in place.
+The complete visible action sequence and all its phases follow &lt;Video 1&gt; in their original order and timing.
+
+overall_soundscape:
+No specific soundscape is requested.
+
+non_diegetic_music:
+No specific music is requested.
+</pre></details></section><section><h2>long_0123 · Change the white dough to red.</h2><p>原片区间 [1.500000, 7.500000) 秒；原始帧 45–224。有效输出 144 帧。</p><p>生成状态：PENDING；编辑任务、原场景与时序效果：待人工检查。</p><p>本组实际成片对照待完成。</p><details><summary>官方任务、提示词与时间映射</summary><p>Source: A baker wearing gloves is kneading white dough on a table and then placing it into a container.</p><p>Edit: Change the white dough to red.</p><p>Target: A baker wearing gloves is kneading red dough on a table and then placing it into a container.</p><p>原始有理时间区间 [3/2, 15/2)；原片逐帧映射随归档保存。提示协议：P1-local-v1。</p><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.
+&lt;Subject 1&gt; is the pale dough being manipulated by the blue-gloved baker in &lt;Video 1&gt;. Its color is the requested edit target.
+&lt;Subject 2&gt; is the original baker, blue gloves, white work clothes, worktable, yellow trays or containers and the rest of the bakery scene.
+Source context: A baker wearing gloves is kneading white dough on a table and then placing it into a container.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;. Change the white dough to red within the original baking scene.
+Requested edit: Change the white dough to red.
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - apply the requested color change to the dough. Preserve its shape, deformation, surface detail, hand contact and movement throughout kneading and placement.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - preserve the baker, blue gloves, white clothing, worktable, containers, background and all original hand and object movements.
+&lt;Video 1&gt; (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.
+The requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.
+
+detailed_description:
+The target video retains the original visual style, lighting and camera composition of &lt;Video 1&gt;.
+[Shot 1] The baker&#x27;s original blue-gloved hands knead and handle red dough at the original worktable, following the visible kneading, lifting and container interactions in &lt;Video 1&gt;. The original trays, baker and surroundings retain their appearance and positions.
+The complete visible action sequence and all its phases follow &lt;Video 1&gt; in their original order and timing.
+
+overall_soundscape:
+No specific soundscape is requested.
+
+non_diegetic_music:
+No specific music is requested.
+</pre></details></section><section><h2>long_0167 · Change the earth-toned clothing to white</h2><p>原片区间 [0.360000, 6.360000) 秒；原始帧 9–158。有效输出 144 帧。</p><p>生成状态：PENDING；编辑任务、原场景与时序效果：待人工检查。</p><p>本组实际成片对照待完成。</p><details><summary>官方任务、提示词与时间映射</summary><p>Source: The video depicts a scene with three animated characters, resembling gnomes or dwarves, engaged in a playful interaction. They are dressed in rustic, earth-toned clothing and are surrounded by a rocky, cave-like environment. One character is holding a pickaxe, another a broom, and the third is interacting with a wooden bucket. The scene conveys a sense of camaraderie and lightheartedness among the characters.</p><p>Edit: Change the earth-toned clothing to white</p><p>Target: The video depicts a scene with three animated characters, resembling gnomes or dwarves, engaged in a playful interaction. They are dressed in white clothing and are surrounded by a rocky, cave-like environment. One character is holding a pickaxe, another a broom, and the third is interacting with a wooden bucket. The scene conveys a sense of camaraderie and lightheartedness among the characters.</p><p>原始有理时间区间 [9/25, 159/25)；原片逐帧映射随归档保存。提示协议：P1-local-v1。</p><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.
+&lt;Subject 1&gt; is the earth-toned clothing worn by the three animated gnome-like characters in &lt;Video 1&gt;. The requested edit changes that clothing to white.
+&lt;Subject 2&gt; is the original three characters apart from their edited clothing, their handheld tools, broom, wooden bucket and the rocky cave-like environment.
+Source context: The video depicts a scene with three animated characters, resembling gnomes or dwarves, engaged in a playful interaction. They are dressed in rustic, earth-toned clothing and are surrounded by a rocky, cave-like environment. One character is holding a pickaxe, another a broom, and the third is interacting with a wooden bucket. The scene conveys a sense of camaraderie and lightheartedness among the characters.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;. Change the earth-toned clothing of the animated characters to white while retaining the original animation and scene.
+Requested edit: Change the earth-toned clothing to white
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - apply the requested clothing-color edit. Preserve the garment shapes, folds and attachment to the characters throughout their original poses and movements.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - preserve the original character identities, faces, body proportions, animation style, tools, broom, bucket, rocky surroundings and all visible interactions.
+&lt;Video 1&gt; (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.
+The requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.
+
+detailed_description:
+The target video retains the original visual style, lighting and camera composition of &lt;Video 1&gt;.
+[Shot 1] The original animated characters wear white versions of their earth-toned clothing and continue their original gestures, turns and tool or bucket interactions in &lt;Video 1&gt;. The cave-like setting and props remain in their original positions and colors.
+The complete visible action sequence and all its phases follow &lt;Video 1&gt; in their original order and timing.
+
+overall_soundscape:
+No specific soundscape is requested.
+
+non_diegetic_music:
+No specific music is requested.
+</pre></details></section><section><h2>long_0173 · Replace the woman with an old man</h2><p>原片区间 [4.379375, 10.385375) 秒；原始帧 105–248。有效输出 145 帧。</p><p>生成状态：PENDING；编辑任务、原场景与时序效果：待人工检查。</p><p>本组实际成片对照待完成。</p><details><summary>官方任务、提示词与时间映射</summary><p>Source: A young girl and a woman are in a room. The girl is opening a box while the woman watches her with a smile.</p><p>Edit: Replace the woman with an old man</p><p>Target: A young girl and an old man are in a room. The girl is opening a box while the old man watches her with a smile.</p><p>原始有理时间区间 [7007/1600, 83083/8000)；原片逐帧映射随归档保存。提示协议：P1-local-v1。</p><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.
+&lt;Subject 1&gt; is the adult woman beside the young girl in &lt;Video 1&gt;, wearing a tan or brown outer garment and participating in the box interaction. The requested replacement applies to this adult woman.
+&lt;Subject 2&gt; is the original young girl, the box, furniture, window, curtains and the room around them.
+Source context: A young girl and a woman are in a room. The girl is opening a box while the woman watches her with a smile.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;. Replace the adult woman with an old man while preserving the young girl, box interaction and original room.
+Requested edit: Replace the woman with an old man
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - apply the requested replacement to the adult woman. The old man follows her original body placement, arm movements, handling of the box, turns, steps and occlusions.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - preserve the young girl&#x27;s identity and appearance, her original actions, the box and its appearance, the room, furniture, window, curtains and their original relationships.
+&lt;Video 1&gt; (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.
+The requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.
+
+detailed_description:
+The target video retains the original visual style, lighting and camera composition of &lt;Video 1&gt;.
+[Shot 1] An old man occupies the original adult woman&#x27;s role beside the young girl, following the same visible movements around the box and through the room as in &lt;Video 1&gt;. The young girl continues her original actions and the box and room remain unchanged.
+The complete visible action sequence and all its phases follow &lt;Video 1&gt; in their original order and timing.
+
+overall_soundscape:
+No specific soundscape is requested.
+
+non_diegetic_music:
+No specific music is requested.
+</pre></details></section><section><h2>long_0174 · Change the white outfit to black</h2><p>原片区间 [0.375375, 6.381375) 秒；原始帧 9–152。有效输出 145 帧。</p><p>生成状态：PENDING；编辑任务、原场景与时序效果：待人工检查。</p><p>本组实际成片对照待完成。</p><details><summary>官方任务、提示词与时间映射</summary><p>Source: A man and a woman wearing a white outfit are walking outside a building. The woman is holding the man&#x27;s arm and they are talking to each other.</p><p>Edit: Change the white outfit to black</p><p>Target: A man and a woman wearing a black outfit are walking outside a building. The woman is holding the man&#x27;s arm and they are talking to each other.</p><p>原始有理时间区间 [3003/8000, 51051/8000)；原片逐帧映射随归档保存。提示协议：P1-local-v1。</p><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.
+&lt;Subject 1&gt; is the woman wearing the white outfit beside the suited man in &lt;Video 1&gt;. The requested color change applies to her white outfit.
+&lt;Subject 2&gt; is the original man, both people&#x27;s identities and visible body features, the building entrance, stone facade, ground and remaining surroundings.
+Source context: A man and a woman wearing a white outfit are walking outside a building. The woman is holding the man&#x27;s arm and they are talking to each other.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;. Change the woman&#x27;s white outfit to black while preserving the two people and their original interaction outside the building.
+Requested edit: Change the white outfit to black
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - apply the requested clothing-color change. Preserve the woman, garment shape, folds and her original arm contacts, turns, steps and movements around the man.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - preserve the man&#x27;s face and suit, both people&#x27;s original actions and interaction, the stone building, entrance, ground, lighting and camera movement.
+&lt;Video 1&gt; (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.
+The requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.
+
+detailed_description:
+The target video retains the original visual style, lighting and camera composition of &lt;Video 1&gt;.
+[Shot 1] The original woman now wears the same outfit in black beside the original suited man. Their visible arm-holding, turns, steps and changing positions follow &lt;Video 1&gt;, with the original building and surroundings retained.
+The complete visible action sequence and all its phases follow &lt;Video 1&gt; in their original order and timing.
+
+overall_soundscape:
+No specific soundscape is requested.
+
+non_diegetic_music:
+No specific music is requested.
+</pre></details></section></main></html>

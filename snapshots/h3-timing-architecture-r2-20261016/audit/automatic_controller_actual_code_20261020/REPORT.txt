@@ -1,0 +1,26 @@
+自动窗口与开始/停止：实际代码核查
+
+状态：已运行的后期自动版本为 R55（IVE，signed delay/advance）和 R50（FlexiAct，delay-only）。R55 的5条 CASE_RUNTIME_GATE 都记录 observations=20、NFE=20、first_on=null、mask=[]，即观测运行完成而干预未触发。R86是继承R59可见手臂扫描的已实现候选，其consumer results/SUMMARY.json仍为 generation=PENDING、GPU_validation=PENDING。当前R113/R119/R121使用fixed6..14；它们的结果只直接检验固定时序干预。
+
+1. 每步观察什么
+R55 core.py:288–379 在每个Euler step先从当前同一状态做一次普通模型预测，解码预测的clean endpoint，提取DWPose，再选择是否在该状态额外计算一次guided预测。选中则Euler使用guided预测，否则使用普通预测。ELIGIBLE_STEPS为0..19（core.py:21），最早可在step1通过连续两次证据触发；没有另一个指定“开始扫描step”。总模型前向=20+实际触发步数。
+
+2. 视频时间窗口怎样获得
+R86 geometry.py:59–64 / R55同位置枚举所有长度16、32帧窗口，stride4，补齐最后一个完整窗口；仅使用valid帧。没有先按动作密度固定选一段。每一步都重新扫描全套窗口和双臂/左臂/右臂3个descriptor。
+R55 scan_current_pose.py:7、26–31仍经pose_domain/timing_metrics的肩-髋躯干有效性门；缺可靠躯干时整次UNKNOWN。R86 scan_current_pose.py:8与arm_features.py:13–44改为肩→肘、肘→腕单位方向向量，只需相应关节可见。R86另有源任务指定的画面横向40%–75%人物中心范围（adult_selector.py:15–28），因此人物身份选择并非全自动。
+
+3. 时差和阈值的准确含义
+令d_f为所选手臂骨段的2D单位向量，w_f为源/生成关节置信度最小值。对窗口W，C_c(W,l)=sum[w_f ||d_src(f)-d_pred(f+l)||]/sum[w_f]；l搜索[-24,24]帧，置信度截断c分别为0.3、0.5。timing_metrics.py:81–147。
+有效性：覆盖率>=0.8，至少8帧；同帧和无约束最低点覆盖均需合格；最低点不能在±24边界；与相差>=4帧的次优谷相对gap>=0.05；非零lag需比同帧误差降低>=0.05；移位后残差<=0.5。两个c给出的lag差<=2帧且同号，abs(lag)>2才成为偏移候选（scan_current_pose.py:29–43）。正lag表示生成动作更晚。
+再与e=-2..2的近同步假设分别在共同有效支持上比较：g_(c,e)=(C_(c,e)-C_(c,l))/max(C_(c,e),1e-8)。每个比较要求coverage>=0.8、>=8帧、候选残差<=0.5；min_(c,e) g_(c,e)>0.5才保留（pairwise_gain.py:5–28；delayed_window_policy.py:9–17）。这些常数来自已冻结的工程原型，未提供统计标定或学习阈值的证据。
+
+4. 窗口数量、开始与停止
+同一步合格窗口按时间重叠合并；每个连通组取最小绝对收益最大的代表（min_(c,e)(C_null-C_proposal)最大），相同时先短窗口、再早时间（delayed_window_policy.py:19–32）。当前代表和上一步代表需同偏移方向、共享左/右手臂、交集长度/较短窗口长度>=0.5才激活（automatic_window_policy.py:51–72，delayed_window_policy.py:34–38）。可激活多个不相交组，无固定1/2/3个上限，也无视频长度配额。
+停止规则为下一步重算后没有持续合格代表则立即不引导；UNKNOWN或不达标会清空上一步候选，之后再需连续两次证据。无额外停止阈值、hysteresis、最短持续步数。阈值并未根据去噪时间动态改变。
+R86 selector.py:7–9、89–107另保留候选visible_fallback：仅整次完整扫描全部baseline UNKNOWN时，在固定6..14步用alpha0.25全片引导；R86实际登记arm是visible_only，弱兜底关闭。
+
+5. 怎么作用于Attention
+选中的是视频物理时间区间，映射到H3完整position bins；空间范围仍是该时间bin的全部画布query，全部50层；没有人体部位空间mask。R86 selector.py:69–107、dynamic_support.py。用原Q/K softmax的参考总mass，替换该query时间对应reference-bin的Value贡献，alpha1。guided分支在当步原始输入上重算一次；不会把guide当作额外Euler更新。当前fixed6..14直接在一次原模型前向中执行该算子，预定全部valid时间bin；20NFE且不运行观察器。
+
+证据与边界
+R55 actual files: analysis/postrun/completed_cases/r55_short_*/CASE_RUNTIME_GATE.json；五条均mask=[]。R86 candidate state: h3-oxygen-online-metrics-r86-20261018/results/SUMMARY.json。已有状态审计：R2/audit/controller_status_20261018/REPORT.txt。这里按实际执行记录区分自动观察器和固定干预，不把CPU候选写成已验证的在线方法。

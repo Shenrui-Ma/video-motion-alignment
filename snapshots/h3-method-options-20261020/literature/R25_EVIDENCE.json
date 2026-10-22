@@ -1,0 +1,644 @@
+{
+  "schema": "r25-historical-evidence-audit-v1",
+  "audited_utc": "2026-10-20T10:17:01.766065+00:00",
+  "scope": "Only existing local files read; no pose extraction, GPU work or producer changes.",
+  "verdict": "13/1/8 verified for primary arm-direction lag; wrist BLOCK is7, not8.",
+  "summary_zh": "R25记录确为同一Sam真人书记舞source05、seed2026101311：主窗50–65帧的手臂方向lag在置信阈值0.3/0.5下均是Native13、正向Full1、reverse BLOCK8帧。对应腕部lag为Native13/12、Full1/1、BLOCK7/7。实际对照视频为R3的Native/Full与R25的BLOCK，均20步Euler、相同sigma、相同原条件/噪声；两种引导使用采样索引6..14、50层与同一事件窗。",
+  "case": {
+    "source_id": "05_real_megumi_v",
+    "task": "Sam Altman portrait replaces the original real secretary-dance performer",
+    "source": {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/inputs/05_real_megumi_v.mp4",
+      "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857"
+    },
+    "seed": 2026101311,
+    "geometry": {
+      "width": 1312,
+      "height": 736,
+      "frames": 141,
+      "fps": 24
+    },
+    "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+    "historical_control_identity": "R3 r3_s05_native / r3_s05_full_6to14; distinct run IDs from earliest s05_full_seed1_* controls"
+  },
+  "metric": {
+    "feature": "arm_direction",
+    "window_inclusive_zero_based": [
+      50,
+      65
+    ],
+    "confidence_thresholds": [
+      0.3,
+      0.5
+    ],
+    "search_lag_frames_inclusive": [
+      -24,
+      24
+    ],
+    "definition_zh": "将source窗口内每帧与edited在 t+lag/24 秒的姿态配对，搜索最小置信加权二维手臂单位方向欧氏距离；正lag表示编辑视频动作延后。",
+    "unit": "frames at24fps",
+    "status": "exploratory",
+    "reliability": "coverage>=0.8 and >=8 valid frames, with boundary/ambiguous-phase/large-residual rejection as frozen original code",
+    "not_event_onset_measurement": true,
+    "metric_code": {
+      "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/scripts/timing_metrics.py",
+      "sha256": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e"
+    },
+    "definition_lines": [
+      81,
+      111,
+      143
+    ],
+    "main_lags": {
+      "native": {
+        "0.3": 13,
+        "0.5": 13
+      },
+      "full": {
+        "0.3": 1,
+        "0.5": 1
+      },
+      "reverse_block": {
+        "0.3": 8,
+        "0.5": 8
+      }
+    }
+  },
+  "same_condition_checks": {
+    "prompt": true,
+    "sigmas": true,
+    "sampler": true,
+    "source_video": true,
+    "portrait": true,
+    "noise_streams": true,
+    "noise_signature": true,
+    "actual_input_video": true,
+    "actual_native_vae_calls": true,
+    "actual_conditioning_embedding": true,
+    "actual_token_tags": true,
+    "actual_target_latent_shapes": true,
+    "actual_packed_layout": true,
+    "actual_prompt": true
+  },
+  "schedule": {
+    "physical_event_window_inclusive": [
+      50,
+      65
+    ],
+    "latent_interval_half_open": [
+      14,
+      20
+    ],
+    "latent_position_bin_coverage_inclusive": [
+      47,
+      67
+    ],
+    "full_and_reverse_block_steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "full_and_reverse_block_steps_one_based_inclusive": [
+      7,
+      15
+    ],
+    "active_step_count": 9,
+    "block_interval_half_open": [
+      0,
+      50
+    ],
+    "Euler_updates": 20,
+    "Native_active_routes": 0,
+    "Full_and_BLOCK_active_routes_each": 450,
+    "Native_config_step_fields": "6..15 exclusive also present, but mode=native yields0 routes"
+  },
+  "operator_scope": {
+    "full": "target-video event queries; same-bin reference-video readout with original mass preserved",
+    "reverse_block": "reference-video event queries; remove attention to the entire target-video key group; target audio remains in complement",
+    "source": "extensions/H3ReverseReferenceRouter/core.py:41–91",
+    "factorial_combination_status": "R25 has separate BLOCK and SAME arms. This evidence file does not add a Full+BLOCK result."
+  },
+  "runs": {
+    "native": {
+      "run_id": "r3_s05_native",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/config.json",
+          "sha256": "b9e0f01de81069bbe8760e64b5ba5fda6dea8a48fd474d3661967d252262c758"
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/native_history.json",
+          "sha256": "1eb569a87c978ae773b850e967299d825704123cf4fae6ae1d3bf9e9ffcc39be"
+        },
+        "router": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/native_router_audit.json",
+          "sha256": "81e8d4b57b40fca8120ba04c8b795d99575e7b604567c4ed94e1b9c4d9563899"
+        },
+        "noise": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/native_noise.json",
+          "sha256": "48147d0fe46f886618f962c51d0f854a41eff74fef787133c0046a2eba08da34"
+        },
+        "condition": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/native_conditioning.json",
+          "sha256": "8e959e1392d1aa6035b708715701209a7e6f7345ca49582568a228f60d5b23ed"
+        },
+        "video": {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_native_00001_.mp4",
+          "sha256": "11527cd3412e19b436e0e5deca1673d22a99f5f748cb650817c643e9a8fff1f2"
+        }
+      },
+      "actual_history_matches_config": true,
+      "history_success": true,
+      "video_sha_matches_archived_media_manifest": true,
+      "ffprobe": {
+        "width": 1312,
+        "height": 736,
+        "avg_frame_rate": "24/1",
+        "nb_read_frames": "141"
+      },
+      "seed": 2026101311,
+      "router_node_50": {
+        "class_type": "H3TemporalRouter",
+        "inputs": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "51",
+            0
+          ],
+          "mode": "native",
+          "alpha": 1.0,
+          "radius": 0,
+          "time_offset": 0,
+          "start_frame": 50,
+          "end_frame": 65,
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 6,
+          "step_end": 15,
+          "run_id": "r3_s05_native",
+          "audit_dir": "/data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/router"
+        }
+      },
+      "actual_router": {
+        "mode": "native",
+        "alpha": 1.0,
+        "step_interval_half_open": [
+          6,
+          15
+        ],
+        "block_interval_half_open": [
+          0,
+          50
+        ],
+        "pixel_interval_inclusive": [
+          50,
+          65
+        ],
+        "routed_calls": 0,
+        "routed_by_forward": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "completed_forward_calls": 20,
+        "completed_calls": 1000
+      },
+      "primary_metrics": {
+        "0.3": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 13,
+            "same_frame_error": 1.1258775816767232,
+            "same_frame_coverage": 1.0,
+            "best_error": 0.18442283337449203
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 13,
+            "same_frame_error": 0.8181429231665569,
+            "same_frame_coverage": 1.0,
+            "best_error": 0.1668389621666649
+          }
+        ],
+        "0.5": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 13,
+            "same_frame_error": 1.1355159084788156,
+            "same_frame_coverage": 0.96875,
+            "best_error": 0.18504534973735484
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 12,
+            "same_frame_error": 0.8156708116006353,
+            "same_frame_coverage": 0.9375,
+            "best_error": 0.155263878134439
+          }
+        ]
+      }
+    },
+    "full": {
+      "run_id": "r3_s05_full_6to14",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_full_6to14_provenance/config.json",
+          "sha256": "83dec6024bdad01a02dd762dbce94fce93b21611d36cceb67df579a6757e57fe"
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/full_6to14_history.json",
+          "sha256": "cde43a74b1e5a22f259a02bd07a4db7ff284e2fe638d1d0113ea27742d4a650c"
+        },
+        "router": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/full_6to14_router_audit.json",
+          "sha256": "a3ca1c2c8f983e8ea5fa2d933bbf4d072f0d43f2dc53bfa6aa027b2a2fbbb333"
+        },
+        "noise": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/full_6to14_noise.json",
+          "sha256": "61d4aff41cc7028008b7b379b79d93c7937b60b92bb6920c82dc566ba5da9ba0"
+        },
+        "condition": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/parent_evidence/full_6to14_conditioning.json",
+          "sha256": "12b7164bbde50fb58744239fe818d1f64b1155aa5ef2dbe75760894ada7c0d99"
+        },
+        "video": {
+          "path": "/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_full_6to14_00001_.mp4",
+          "sha256": "1c76ee0edc663652e93596cc38463d6b1bebdb7a01c6c10ab88a84a66a9ac1ab"
+        }
+      },
+      "actual_history_matches_config": true,
+      "history_success": true,
+      "video_sha_matches_archived_media_manifest": true,
+      "ffprobe": {
+        "width": 1312,
+        "height": 736,
+        "avg_frame_rate": "24/1",
+        "nb_read_frames": "141"
+      },
+      "seed": 2026101311,
+      "router_node_50": {
+        "class_type": "H3TemporalRouter",
+        "inputs": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "51",
+            0
+          ],
+          "mode": "mass_preserve",
+          "alpha": 1.0,
+          "radius": 0,
+          "time_offset": 0,
+          "start_frame": 50,
+          "end_frame": 65,
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 6,
+          "step_end": 15,
+          "run_id": "r3_s05_full_6to14",
+          "audit_dir": "/data5/researcher/h3_runs/timing_spatial_r3_20261016/audit/router"
+        }
+      },
+      "actual_router": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "step_interval_half_open": [
+          6,
+          15
+        ],
+        "block_interval_half_open": [
+          0,
+          50
+        ],
+        "pixel_interval_inclusive": [
+          50,
+          65
+        ],
+        "routed_calls": 450,
+        "routed_by_forward": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "completed_forward_calls": 20,
+        "completed_calls": 1000
+      },
+      "primary_metrics": {
+        "0.3": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 1,
+            "same_frame_error": 0.13256783290256935,
+            "same_frame_coverage": 1.0,
+            "best_error": 0.09686293665494076
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 1,
+            "same_frame_error": 0.14813292378359438,
+            "same_frame_coverage": 1.0,
+            "best_error": 0.1317369700151923
+          }
+        ],
+        "0.5": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 1,
+            "same_frame_error": 0.13330782284971313,
+            "same_frame_coverage": 0.984375,
+            "best_error": 0.09595294154578257
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 1,
+            "same_frame_error": 0.1495297519581543,
+            "same_frame_coverage": 0.96875,
+            "best_error": 0.12504729787286595
+          }
+        ]
+      }
+    },
+    "reverse_block": {
+      "run_id": "r25_s05_reverse_block_6to14",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/configs/graphs/r25_s05_reverse_block_6to14.json",
+          "sha256": "d752093e498231dc9b052c792fb7120970494059188627df9d285c2c9a28be9f"
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/logs/r25_s05_reverse_block_6to14_history.json",
+          "sha256": "64e9cc538663af9ad7fe34c05569a682b623b3c6674ddf545f3b25953871d8f6"
+        },
+        "router": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/router/r25_s05_reverse_block_6to14.json",
+          "sha256": "67c0aee9a10df71d7d5b05e079e7c7e56cab05395d3a282908c460c757415b7d"
+        },
+        "noise": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/r25_s05_reverse_block_6to14_noise.json",
+          "sha256": "6857160c6c1e4ebab4bbe4d4f6d99a7cba35c288cd4c183635ecba4aa4147d12"
+        },
+        "condition": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/audit/r25_s05_reverse_block_6to14_conditioning.json",
+          "sha256": "d33dc90cc1132c66eca3461d66072fb331544f8c5d3af09c3ce633b045e3c875"
+        },
+        "video": {
+          "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/captured/r25_s05_reverse_block_6to14/output/r25_s05_reverse_block_6to14_00001_.mp4",
+          "sha256": "ba86b3e7ce4c53f569f217571638a7eca0b891ec7bf56f661b96e50c501a157a"
+        }
+      },
+      "actual_history_matches_config": true,
+      "history_success": true,
+      "video_sha_matches_archived_media_manifest": true,
+      "ffprobe": {
+        "width": 1312,
+        "height": 736,
+        "avg_frame_rate": "24/1",
+        "nb_read_frames": "141"
+      },
+      "seed": 2026101311,
+      "router_node_50": {
+        "class_type": "H3ReverseReferenceRouter",
+        "inputs": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "51",
+            0
+          ],
+          "mode": "reverse_block",
+          "run_id": "r25_s05_reverse_block_6to14",
+          "audit_dir": "/data5/researcher/h3_runs/timing_reverse_reference_r25_20261017/reverse_block/audit/router"
+        }
+      },
+      "actual_router": {
+        "mode": "reverse_block",
+        "alpha": 1.0,
+        "step_interval_half_open": [
+          6,
+          15
+        ],
+        "block_interval_half_open": [
+          0,
+          50
+        ],
+        "pixel_interval_inclusive": [
+          50,
+          65
+        ],
+        "routed_calls": 450,
+        "routed_by_forward": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "completed_forward_calls": 20,
+        "completed_calls": 1000
+      },
+      "primary_metrics": {
+        "0.3": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 8,
+            "same_frame_error": 0.7316487048224576,
+            "same_frame_coverage": 1.0,
+            "best_error": 0.11713574192691704
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 7,
+            "same_frame_error": 0.5582713280425914,
+            "same_frame_coverage": 1.0,
+            "best_error": 0.15560897664242995
+          }
+        ],
+        "0.5": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "arm_direction",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 8,
+            "same_frame_error": 0.7391311215460685,
+            "same_frame_coverage": 0.984375,
+            "best_error": 0.11501682163525298
+          },
+          {
+            "window": [
+              50,
+              65
+            ],
+            "feature": "wrist_relative",
+            "status": "exploratory",
+            "flags": [],
+            "reliable_lag_frames": 7,
+            "same_frame_error": 0.5488020683031378,
+            "same_frame_coverage": 0.96875,
+            "best_error": 0.15590461601311711
+          }
+        ]
+      }
+    }
+  },
+  "review_sources": [
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/FINAL_INTERPRETATION.txt",
+      "sha256": "ce4ae0a2c8dcd1e4f5dbd8b5ac3a2bacbe795e3250afb275c29b6a25b0e49dfe",
+      "claim_lines": [
+        3,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11,
+        31
+      ]
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/FINAL_RESULTS.json",
+      "sha256": "6e8cbca9bda393f7572924bfb1fba0c50c7b2199757065fd016f352d1315fec8"
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/FINAL_RESULTS.txt",
+      "sha256": "fe27c57e6194544180c40526740a8fc9e4d28f97d1c04ecf3679e3cb0cd31e70"
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/PROTOCOL.txt",
+      "sha256": "98622c5c223be6b17a0b64bd90a7a4b6ee5316c2aeed94370038a2d0e1357710"
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/independent_review/BASELINE_CONTRACT.json",
+      "sha256": "bbabbc78acbaa3acc0dc9214f5b516f91bf986c67d7fb21461c827109b34bd00"
+    },
+    {
+      "path": "/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/analysis/postrun/ROOT_VISUAL_REVIEW.json",
+      "sha256": "6495660bdeadc2731daac5d49b60d6ba576aa2bf2a2a4b2cbf8a1b99b389a875"
+    }
+  ],
+  "interpretation_zh": "正向Full在该开发病例的主窗最接近源；BLOCK从13帧降到8帧，是部分改善，原评审的四项±2帧完整修复门未通过。该13/1/8是指定主窗方向lag，不能写成整片统一时间误差。",
+  "historical_limits": [
+    "One previously selected development case; correlated windows share the same clip.",
+    "Old postaugmentation tensor tree was not archived; original clean conditions/noise and actual005 AV prefix gates are available."
+  ],
+  "only_written_file": "/Users/researcher/DevProjects/h3-method-options-20261020/literature/R25_EVIDENCE.json"
+}

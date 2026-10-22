@@ -1,0 +1,8 @@
+R132 deployment: CPU first, after root review.
+1. Transfer only deploy_manifest-listed files plus deploy_manifest and audit/ROOT_PRELAUNCH_REVIEW.json to the frozen .41 remote root. Do not copy x0 tensors.
+2. Stream actual R122 noise from H3_SERVER_A into the new .41 parent_artifacts path, with temporary destination then atomic rename after SHA149c638af54913020b9c3f49c5625aba8a44efa3e326738834f6be9e87a1f943 verification. No local persistent copy.
+3. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 frozen runtime Python scripts/remote_cpu_validate.py. Verify exact runtime core/checkpoint hashes, all69files, original noise,22CPUtests. Read validation receipt.
+4. Fresh capacity and exact8189/R131 release checks, then the reviewed wrapper:
+   python3 -u audit/root_run_batch.py --execute --attempt host41_reference_origin_attempt1
+   Uses no live research peer on .41; user8189 is permitted through the explicit readonly_peer policy.
+5. One output; no extra Native. Consumer collects small runtime/audit/video only after gate+COMPLETE+exactrelease.

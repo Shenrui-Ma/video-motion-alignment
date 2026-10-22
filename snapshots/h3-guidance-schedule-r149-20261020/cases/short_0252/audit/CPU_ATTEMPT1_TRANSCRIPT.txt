@@ -1,0 +1,29 @@
+
+STDERR
+WARNING:xformers:WARNING[XFORMERS]: xFormers can't load C++/CUDA extensions. xFormers was built for:
+    PyTorch 2.5.1+cu124 with CUDA 1204 (you have 2.11.0+cu130)
+    Python  3.10.15 (you have 3.10.12)
+  Please reinstall xformers (see https://github.com/facebookresearch/xformers#installing-xformers)
+  Memory-efficient attention, SwiGLU, sparse and more won't be available.
+  Set XFORMERS_MORE_DETAILS=1 for more details
+Traceback (most recent call last):
+  File "/data4/researcher/h3_runs/guidance_schedule_r149_20261020/cases/short_0252/scripts/cpu_runtime_smoke.py", line 57, in <module>
+    if __name__=='__main__':main()
+  File "/data4/researcher/h3_runs/guidance_schedule_r149_20261020/cases/short_0252/scripts/cpu_runtime_smoke.py", line 39, in main
+    clone=router_module.H3FixedSchedule().apply(base,positive,c['arm'],'mass_preserve',c['alpha'],0,0,
+  File "/data4/researcher/h3_runs/guidance_schedule_r149_20261020/cases/short_0252/extensions/H3TemporalRouter/__init__.py", line 53, in apply
+    raise ValueError("launch with --use-pytorch-cross-attention")
+ValueError: launch with --use-pytorch-cross-attention
+Exception ignored in: <function ModelPatcher.__del__ at 0x74ecca591630>
+Traceback (most recent call last):
+  File "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_patcher.py", line 1747, in __del__
+  File "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_patcher.py", line 1300, in detach
+AttributeError: 'NoneType' object has no attribute 'ON_DETACH'
+Traceback (most recent call last):
+  File "/data4/researcher/h3_runs/guidance_schedule_r149_20261020/cases/short_0252/scripts/remote_cpu_validate.py", line 9, in <module>
+    subprocess.run([r['python'],str(ROOT/'scripts/cpu_runtime_smoke.py')],check=True,env=dict(os.environ,PYTHONPATH=r['dependencies'],PYTHONDONTWRITEBYTECODE='1'))
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/data3/researcher/ComfyUI/.venv/bin/python', '/data4/researcher/h3_runs/guidance_schedule_r149_20261020/cases/short_0252/scripts/cpu_runtime_smoke.py']' returned non-zero exit status 1.
+
+EXIT 1

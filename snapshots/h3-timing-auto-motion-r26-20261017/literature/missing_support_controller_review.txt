@@ -1,0 +1,104 @@
+缺测支持下的局部时延证据：有界先例与数学审查
+日期：2026-10-17。范围：只读论文/代码及设计；未读取完整R27实际观察序列，未重放policy，未改运行算法，未执行GPU或姿态模型。
+
+结论
+建议保留一个小型离线候选：以“候选时延相对所有容差内时延的共同支持优势”的保守区间替代单纯coverage计数，先检查它能否认证原规则拒判的强证据窗口。它不是新数学原语，也暂不是架构贡献。能否救回index5尚未知；保留当前gain>0.5及方向残差<=0.5时，最坏界可能更严格。更有价值的细节是保留每个缺测槽里仍可计算的一侧距离，而非把整槽信息丢弃。不要直接把UNKNOWN改成继续ON。
+
+一、当前拒判发生在哪里
+根提供的事实：index4选择44..59左臂；index5在confidence .3下lag4、coverage .90625，在.5下coverage .78125，因此UNKNOWN/OFF。UNKNOWN不是已经对齐。
+实际代码核对：
+R27/scripts/timing_metrics.py SHA eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e
+R27/scripts/physical_tolerance.py SHA 48e86013a3b5d0dbdb0073777bbada1496a962a41f7c7f807c4d5b7c09db9010
+R27/scripts/pairwise_gain.py SHA a5d84914149c0c0fe1d7a945512743e68bc5d15c1edc66c2d2ec848a41acf960
+R27/scripts/scan_current_pose.py SHA db6cb40c30d88ae7b4ce4892a90be16483d903a1aeee2a634f1dedc9cd63c814
+这里R27=/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017。
+
+local_diagnostic先要求coverage>=.8、至少8有效帧，且同帧与未限制最优lag的支持也要通过；另有远隔候选歧义、收益、±24边界和方向残差门。它拒判后scan_current_pose不会进入pairwise_gain。因此只把pairwise_gain里的.8条件换成区间计算，不会改变这个具体失败。需要一个独立、明确版本化的候选提出/证据通道；原49点曲线和旧判决应保留作基线。
+pairwise_gain对每个null e=-2,-1,0,1,2，使用source、proposal和null三者都有效的共同槽；权重为三者confidence最小值。每个null内部proposal和null分母相同，跨null分母不保证相同。它要求proposal_cost<=.5且最差null gain>0.5。新界必须对应这些量，不能仅证明proposal比lag0略好。
+方向特征是各骨端点差归一化后的二维单位向量，距离在[0,2]。腕部相对位置/身体坐标没有这个统一上界，不能直接套用。全局姿态加载仍有躯干尺度可用性前提，不能借方向公式绕过输入失败。
+
+二、最接近的原文和官方实现
+1) MimicMotion，arXiv:2406.19680，§3.4。
+https://arxiv.org/html/2406.19680v1#S3.SS4
+论文将关键点/骨骼confidence编码为姿态图亮度，训练PoseNet/视频模型；可靠手部区域加大训练损失。官方util.py的draw_bodypose仍有任一端点confidence<.3就跳过的底线，之后以confidence乘积调色。因此应同时记录连续权重与硬过滤，不把论文概括成完全取消阈值。已覆盖“按姿态置信度减弱错误条件”；没有在所核部分计算候选lag相对容差区间的缺测最坏优势。
+https://github.com/Tencent/MimicMotion/blob/6907bdcc259a6a048d41a365e840d22274f9256c/mimicmotion/dwpose/util.py
+
+2) ConfCtrl，arXiv:2603.09819，§4。
+https://arxiv.org/html/2603.09819v1
+置信加权点云投影初始化 z0=lambda1*(w⊙z_pc)+lambda2*epsilon；训练的Kalman-DiT预测/更新结构用投影参考纠偏。作者明确区分其灵感与跨去噪步递归贝叶斯状态估计。任务是相机控制，置信作用在条件/融合，不是单位骨向量的部分识别区间或选择性时延干预。此条核全文相关公式，未审完整官方运行代码。
+
+3) Drop-DTW，NeurIPS2021 / arXiv:2108.11996。
+https://arxiv.org/abs/2108.11996
+https://github.com/SamsungLabs/Drop-DTW/blob/32ce9c82c6a0d717a94f4139b1902ad146923444/dp/exact_dp.py
+exact_dp.py的drop_dtw与double_drop_dtw联合优化匹配/丢弃路径；第二种允许两端丢元素。已覆盖有离群/无对应片段时不强制对齐。drop代价和路径选择不是把隐藏骨方向补全到最坏值再认证优势；丢弃后损失低不代表被丢槽仍支持同一lag。当前PDF提取入口不稳定，本条数学执行证据以固定commit的精确DP实现和论文摘要为准，不假称本次重新审遍PDF。
+
+4) Joint Self-Supervised Video Alignment and Action Segmentation，VAOT/VASOT，ICCV2025 / arXiv:2503.16832，§3.1。
+https://arxiv.org/html/2503.16832v1#S3.SS1
+FGW目标同时使用跨视频帧的特征代价与各视频内部结构代价，并满足传输边际；虚拟帧容纳低匹配概率离群帧，未匹配项退出训练损失。方法学习视频表示，处理重复动作/上下文和离群；不是缺测骨向量的条件最坏界，也不是native x0在线动作控制。精确重叠在“不能把所有时刻强制匹配”；没有理由把名称相近当成完整同构。此次未固定其完整官方代码commit。
+
+5) Estimating Dynamic Time Warping Distance Between Time Series with Missing Data，ECML-PKDD2023，DTW-AROW/DTW-CAI。
+https://doi.org/10.1007/978-3-031-43424-2_14
+https://github.com/aras-y/DTW_with_missing_values/blob/9fcd528b600ca030927b0322abadf33115d9b4e7/dtw_missing/dtw_missing.py
+官方AROW代码令缺测cost为0，以full/partial路径约束限制缺测区域的横纵移动，再按缺测比例调整距离；默认adjustment factor为sqrt((M1+M2)/(M1_nonmiss+M2_nonmiss))。README另列聚类平均插补CAI。已直接覆盖“缺测时不要用普通DTW距离假装可信”。它是距离估计/路径约束，不是完整槽域上对每个null的最坏优势认证。作者PDF跳转认证页，本次精读AROW代码，CAI仅核README，保留此覆盖缺口。
+
+选择性引导的已有边界：MotionEcho §3.4/Algorithm1已有运动误差驱动的启停；Trust Sampling讨论proxy与真实目标之间的差距，使用噪声范数trust门。不能把“有把握才引导”或“UNKNOWN拒判”称首次原则。这里最多有待验证的是缺测局部相位证据如何转换为动作路由决策。
+https://arxiv.org/html/2506.19348v2#S3.SS4
+https://arxiv.org/html/2411.10932v1
+既有精读记录：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/literature/calibrated_stopping_margin_review.txt。
+在上述明确核查范围未找到完整同构实现，不能据此证明不存在；没有穷尽pose uncertainty或鲁棒时间配准文献。
+
+三、严格目标与保守界
+固定一个物理帧窗W和骨集合B。槽i=(t,b)，总槽域I=W×B，绝不能因某个lag缺测就缩短总域。source单位向量s_i，当前native端点目标向量y_{t+l,b}；正lag表示生成动作晚。候选l必须在容差[-2,2]外，null e∈{-2,-1,0,1,2}。
+d_l(i)=||s_i−y_{t+l,b}||_2∈[0,2]；d_e同理。
+对于同一个null比较，使用共同非负权重a_i：
+C_l=Σ a_i d_l(i)/Σ a_i，C_e=Σ a_i d_e(i)/Σ a_i。
+gain=(C_e−C_l)/C_e>g，g=.5，等价于 H_e=(1−g)C_e−C_l>0（C_e>0）。原实现分母max(C_e,1e−8)，因此仍明确要求C_e下界>1e−8或另行精确处理零分母。
+
+A. 固定权重下的逐槽部分信息界
+若d_l∈[L_l,U_l]，d_e∈[L_e,U_e]，则
+L(H_e)=Σa_i[(1−g)L_e(i)−U_l(i)]/Σa_i；
+U(H_e)=Σa_i[(1−g)U_e(i)−L_l(i)]/Σa_i。
+观测到的距离区间退化为一点，未观测距离为[0,2]。对g=.5：两侧已知为.5*d_e−d_l；只知道null时下界.5*d_e−2；只知道proposal时下界−d_l；两侧都未知下界−2。不要把只能算一侧距离的槽一并清空，这可严格改善粗界。
+所有5个null的L(H_e)>0，才认证候选满足原gain标准；并同时要求 U(C_l)<=.5。后者不是可选装饰，否则认证的是“比非常差的null好”，仍可能是完全不同动作。
+距离共用源向量及跨lag重复目标向量，因此这些独立区间构成外包络，通常不紧；保守性不会破坏充分条件。固定等权/源权重与当前confidence最小值不是同一指标，须作为明确的新分析定义及独立基线，不能把差异全归于取消coverage硬门。
+
+B. 保留已观测confidence权重的最简保守完成界
+对null e，O_e为source/proposal/null均有效的槽，w_i=min(c_s,c_l,c_e)，M_e为余槽。
+W_e=Σ_O w_i；S_l=Σ_O w_i*d_l；S_e=Σ_O w_i*d_e。
+对每个缺测槽，只假设完成后的metric权重0<=w_i<=b_i，默认b_i=1。B_e=Σ_M b_i。
+未归一化优势下界 J_e=(1−g)S_e−S_l−2B_e。
+若W_e>0、所有J_e>0，完成后的共同分母不改变符号，故候选对所有null仍有gain>g。残差上界为 U(C_l)=(S_l+2B_e)/(W_e+B_e)；null下界为L(C_e)=S_e/(W_e+B_e)。每个null都要验证。
+若保留低confidence的原始分数，可另行冻结 b_i=min(raw c_s,raw c_l,raw c_e) 作为该已定义权重的上限，不把confidence当真实正确概率。此变体可能更松，但会把低分关键动作赋很小质量；需与普通confidence加权完整比较。没有分数/人物身份未知时不能擅设b_i=0。
+这保留已观测部分的权重，但把评价对象扩为完整窗的可能补全，仍不同于原来将所有缺测权重直接归零的观察统计。应称“完整槽域条件界”，不能声称原metric完全未变。
+更精确的后续实现可结合A保留单侧距离，而非直接给M中所有槽−2；这是同一候选的紧化，不新增随意阈值。
+
+必须保留的拒判
+1 时间越过真实视频边界不是被遮挡的未知方向。首版直接拒绝该候选，不虚构视频外姿态。
+2 已观测向量暂作可信量；高confidence错误、左右翻转、选错人不在缺测界内。没有校准的角度误差集，就没有物理姿态保证或概率coverage保证。
+3 至少8有效物理帧、原输入合法性及歧义状态保留。击败[-2,2]并不能证明+4优于+20等周期别名；有多个相隔>=4帧的可行lag时输出AMBIGUOUS，不任选一个进行定向控制。
+4 在.3/.5两条路径中都报告界和拒判，不悄悄用.3替代.5。改为联合confidence模型需另一项预先定义的消融。
+5 这最多证明当前native端点的局部方向比较；不证明动作存在/幅度正确、最终视频改善，亦不证明下一步应保持ON。UNKNOWN停止与UNKNOWN持有上次动作是不同政策，需要单独因果比较。
+
+四、必要反例及是否可能越过.8门
+16帧左臂有32槽。25槽有效、7槽未知的等权示例（实际pairwise共同支持可能比25更少，不能直接把index5的.78125代入该例）:
+残差界要求 (25*c_l+14)/32<=.5，即可见proposal平均误差c_l<=.08。
+gain界要求25*(.5*c_e−c_l)>14，即可见优势>.56。
+因此c_e=1.5,c_l=.05时两项可通过；c_e=.4,c_l=.05虽可见gain=.875，最坏界仍拒判。此例说明低于80%支持不是永远不可认证，但普通较弱运动常无足够余量。若已知槽confidence仅.5而缺测权重上界1，W=12.5,B=7，最大优势也不足14，无法认证。
+必要负例：
+• 缺测恰好落在动作转折，隐藏proposal距离2/null距离0，可逆转可见优势；不能假设missing at random。
+• 常量/低运动：所有lag几乎相等，必须拒判；高coverage不能创造时序信息。
+• 周期动作：+4与+20同样好，null差仍不足以唯一定位lag；保留多解。
+• 幅度变化但骨方向几乎不变：该方向界可能通过，却不能检测动作幅度/手指/身份损伤。腕部/形状独立测量继续保留UNKNOWN。
+• 置信度高的错误骨骼或左右臂交换：区间把它当已知即可错误认证；需报告此未覆盖误差源。
+• 以不同有效域分别算proposal与null：容易出现支持偏差；所有界须同一槽域、同一null比较权重。
+
+五、最小离线验证方案（本文件仅设计，当前未运行）
+先冻结独立目录、输入pose/SHA、所有窗口/49lag、候选提出方式及区间实现，再读完整R27实际序列。不要修改已经冻结的policy_replay。顺序如下：
+1 合成/遮蔽检验：从已有source pose构造0、±4、±8、±12帧已知时移；所有来源/缺测位置预定，保留域外边界；增加常量、周期多峰、左右交换、角度轨迹幅度减半的负例。幅度消融应作用于角度轨迹，不能仅缩放最终单位向量后再归一化。逐槽mask覆盖26/32与25/32门槛两侧，及连续遮挡、仅proposal缺测、仅null缺测、source缺测、转折集中缺测。保存全部变体。
+2 对有完整真值后再人为遮蔽的样本，验证每个认证都被隐藏完整值支持；构造极端补全核不等式。目标是实现正确性和保守性，合成项不当独立生成样本。
+3 基线：原.8规则；仅降coverage至.7的明示负控；保留confidence的观察域gain；固定权重区间；上述已观察权重+缺测权重上界区间。后两者的指标差异逐项报告，不挑最能救index5的一种当事前协议。其余g=.5/残差.5/容差2/原歧义门保持。
+4 实际离线开发：复用已经归档的正常R24和坏例R27/R26可用pose观察，完整列出新增认证、原认证被撤销、UNKNOWN、周期多解、自然缺测不可核真值；index5只是一条开发案例。源视频数量/轨迹数量分别计数，不把重叠窗和steps当独立样本。现成成片真值与中间端点不能混作同一对象。
+5 此时只比较决策差异；任何实际ON/OFF变化将改变之后轨迹，离线回放不能给因果收益。进入GPU前最低必要条件是：至少存在被新界认证且完整可见真值支持的原coverage拒判窗口，同时常量/错误别名/正常例不新增错误认证；若所有真实拒判仍UNKNOWN，则此强鲁棒版本暂不值得实施控制器。不能据此否定更好的观测器。
+
+可保留的独立价值与边界
+独立可测价值是“支持不足时仍保留可用部分证据，并明确量化何时足以支持局部干预”，相对单一coverage门可能减少某些不必要的OFF，同时保留可证伪的拒判。仅改成区间阈值不构成新架构；需要跨片段证据、与普通confidence权重/阈值降低的实证区别、已知路由下的实际因果收益，才可形成方法与评估组合贡献。目前只建议做零GPU必要性验证。

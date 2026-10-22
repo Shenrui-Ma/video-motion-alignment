@@ -1,0 +1,47 @@
+既有参考视频路由强度：五例只读审查
+2026-10-19；仅读取已归档小JSON与实际core源码。未读取PT、未运行GPU、未改动推理。
+
+五例都实际执行了450次same-bin修正，抽样记录均为有限且非零。one_leg的平均修正量低于oxygen，但日志不足以把未修复归因于干预太弱。rotate原本同步，修正量却与oxygen接近；game4有可测修正仍角色替换失败。
+
+| 实际案例 | 既有完整视频审阅结论 | 视频参考mass均值 | 修正相对RMS均值 | 第6→10→14步修正相对RMS | 低于1%的层×步数 /450 |
+|---|---|---:|---:|---|---:|
+| R73 氧气设备0252 | 局部动作有帮助 | 16.42% | 20.18% | 21.70% → 20.35% → 18.49% | 0 |
+| R89 眼镜0358 | 早段稍改善，后段仍延后 | 17.69% | 21.67% | 24.18% → 21.72% → 19.33% | 6 |
+| R85 单腿/movie9 | 明显延后，固定引导未修复 | 8.39% | 11.51% | 12.71% → 11.65% → 10.40% | 0 |
+| R85 转身/gamegirl1 | 普通编辑已同相 | 17.05% | 20.22% | 21.52% → 20.18% → 18.94% | 1 |
+| R66 俯卧/game4 | 基础角色替换失败 | 12.06% | 15.43% | 18.41% → 15.17% → 13.00% | 0 |
+
+数字的具体含义
+设 O 为原全序列attention输出，O_ref为只在整段参考视频key内归一化得到的输出，O_aligned为同一latent时间bin内全部空间key的归一化输出。实际代码为：
+m = exp(min(LSE_ref − LSE_all, 0))
+O_new = cast_bf16[O + m × (O_aligned − O_ref)]，本次alpha均为1。
+ref_mass_mean是参考视频组在全部packed key中的注意力占比。图像参考、文本、音频和输出视频的质量未分别记录。m_ref中的“mass”表示概率质量，与内容正确程度无关。
+correction_ratio = RMS(sample(O_new − O)) / max(RMS(sample(O)), 1e−8)。它在bf16写回之前的目标值上完成统计：O_new已转回bf16，再以float计算差值；随后原位写回attention输出。位置在输出投影、残差和MLP之前。日志没有绝对RMS、最终flow/x0/像素修正范数。
+表中均值是450个“层×步骤”统计的算术平均。既没有按原输出能量合并成全张量范数，也没有按Euler步长加权。1%只用于描述分布，没有实验校准为“有效/无效”界限。
+
+记录覆盖与抽样限制
+五例均为20次预测/20次Euler更新，实际0基步骤6…14开启路由，每步0…49全部50层，合计450次。步骤0…5和15…19的总参考mass及输出修正统计未记录；Native也没有对应的全参考组mass统计。
+每层从56个head中固定取[0,7,14,21,28,35,42,49]；从128个channel中取[0,8,…,120]；在选中query区间按ceil(N_query/128)等步幅取128个位置。输出范数使用8×128×16个元素，mass使用8×128个值。没有按人体、手臂、身份或动作事件选点。
+oxygen：29个选中bin、27,347个query，stride214；0358：32个bin、30,176个query，stride236；三个Flex例：44个bin、38,016个query，stride297。每个被选bin至少有一个query被抽到，具体packed位置/空间位置已列入COMPARISON.json。统计保留到层级，未保存每个位置的correction。
+参考组归一化包含完整参考视频key：oxygen/0358各32个bin，Flex各47个bin，包括尾部padding。路由query只覆盖按有效帧选定的bin；0358末bin坐标覆盖0…106但有效0…104，Flex覆盖0…148但有效0…146，边界bin内含少量padding。oxygen选中覆盖0…97。
+四个producer的core.py SHA均为7a7e9c8067c9c0287659fafed06b775549aaa8cab5141c60220c0536b0eeb650。R66实际在.41，其余四例在.9；角色图、prompt、时长和任务也不同。这五例提供跨案例描述，不提供单因素因果对照。
+
+能观察到的差别
+one_leg的mass为oxygen的0.511倍，修正相对RMS为0.570倍。one_leg的450个层×步骤比率最小1.19%、最大41.58%，没有接近零的全程关闭记录。总输出均值掩盖局部差异，仍可能存在动作相关位置修正不足。
+五例从第6步到第14步的平均mass与修正比率均下降。分层差异明显：各例第42层跨步平均修正约39.87%～64.71%，第0层约0.98%～1.32%。这说明单个总均值不能代表所有层。现有记录可描述去噪步骤与层的差异，无法定位0358“最后离嘴事件”处的具体修正量。
+上述第6…14步对应video sigma从0.965517到该区间更新终点0.8，覆盖Δsigma约0.165517；后五步覆盖0.8。步骤长度非线性，当前表没有把“经过9步”当作完整去噪影响比例。步骤15之后修正关闭可由配置与调用计数确认，对末段事件的因果作用需要独立调度对照。
+
+已有另一组时间分布读数
+temporal_readouts在block25、步骤0/5/10/15/19计算原QK分布：同样8个head，各被选时间bin取空间中心周围8个位置，再在完整参考视频key内部归一化。日志含每个query bin的p_ref_frame、same_bin_mass、within_one_bin_mass、mean_minus_query_bins和entropy。它不含其他模态分母，不能与表中的m_ref混用。
+步骤10/15/19来自各自已经分叉的Native和guided轨迹，读数在本层当次修正前提取。它只能反映该抽样位置的组内时间注意力；mean_minus_query_bins不能换算成动作延迟。所有五例0/5步同bin读数一致，符合首次干预在步骤6。
+例如步骤19的组内same-bin均值：oxygen Native6.42%→guided6.59%；0358 6.24%→5.99%；one_leg1.99%→1.95%；rotate2.03%→2.07%；game4 3.61%→3.48%。该窄采样读数与动作或身份结果没有一一对应关系。完整50条读数摘要和原始分布已归档。
+
+可复核文件
+/Users/researcher/DevProjects/h3-routing-effect-audit-20261019/results/COMPARISON.json：五例、450条统计的逐步/逐层汇总、准确抽样位置、时间读数摘要及缺失字段。
+/Users/researcher/DevProjects/h3-routing-effect-audit-20261019/results/ALL_ACTIVE_LAYER_STATS.csv：2,250条实际层×步骤记录。
+/Users/researcher/DevProjects/h3-routing-effect-audit-20261019/results/INPUT_PROVENANCE.json：原路径、快照、SHA与COLLECTION逐项核验。
+/Users/researcher/DevProjects/h3-routing-effect-audit-20261019/inputs/router_core.py：只读源码快照；136–151统计公式、154–201时间读数、204–278实际修正、358–388聚合、390–425调度。
+/Users/researcher/DevProjects/h3-routing-effect-audit-20261019/scripts/extract.py：可重复运行的stdlib提取器。
+
+完成证据：五例actual gate passed、全部checks true；Native/forced历史均success；各20次预测、Native0次/forced450次路由；20份被COLLECTION绑定的router/history与5份gate SHA全部匹配；四份core逐字一致；逐层重新聚合与原逐步均值误差≤1e−12。原router最终status字段仍保留sampling，完成依据为实际history、20步计数与gate。视觉结论沿root既有完整视频审阅，本任务未重新评价视频。
+研究含义：这些统计支持“干预确已产生attention特征变化”和“one_leg平均变化较小”的描述。它们不能直接判定特征变化方向是否有利、动作相关位置是否得到足够修正、角色图是否被压制，以及后续去噪是否抵消了修正。

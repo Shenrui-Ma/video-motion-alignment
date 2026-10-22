@@ -1,0 +1,43 @@
+R145：现有clean latent廉价观察器最小离线试验
+
+现有clean latent可约0.15秒/步读出变化与局部匹配信号。首版能区分早段高残差/歧义与step5–9较一致状态；相邻差分step2接受+17帧而既有RGB局部读数多为+8–12帧，局部匹配step1–4拒判。尚未准确测出早段实际时差，保留为低成本候选信号而未接入控制。
+
+运行与绑定：.41 CPU四线程，CUDA_VISIBLE_DEVICES为空，torch.cuda未初始化；无VAE/DiT前向。真实step000–009、seed2026101701、Native branch、reference tensor signature及逐文件SHA均核齐。代码SHA 9e7faf4f499df28402726b364a9ef53f0ca4d548a7549ea4a015b9750edb182e
+结果SHA 53c9cb3efb4f2171bec8ef528bef4648d324789c17c78ba1a0fb2ff151078455
+
+范围：本地与远端均为新独立R145目录。只回传约1.48MB JSON；11MB级latent留在.41读取。旧运行包、阈值、报告未改。
+
+冻结首版定义：
+A. 24通道相邻原生bin绝对差，空间4×4均值，得到384维描述。
+B. 2×2 latent patch对应96维；23×41网格，±2patch局部cosine，双向互近邻、top1与top2差>1e-6；4×4格汇总dx/dy/位移模长。
+两者都不插值、不按相位去均值、不拟合ROI；全空间易受静止背景/外观影响。位移单位是latent patch格/相邻bin，不称RGB光流。
+统一固定中央18个transition，搜索−6..6bin；全trace RMS归一化MSE，relative gap≥0.10、MSE≤0.5、共同可用支持≥80%、静态/无时间变化拒判。这些是探索性规则，非概率置信度或原pose阈值。
+
+原生时间域：107帧→32bin，覆盖[1,4,4,4,4]重复；只用完整有效bin0..30，对应原帧0..102。bin31覆盖103..106并混有padding，本轮不评价。物理偏移逐配对bin中心计算；+5bin恰为17帧，+3bin不固定等于12帧。
+
+合成检查：两种读数各自通过零偏移、+3bin、−3bin、静态拒判、5bin周期歧义拒判，10/10。合成检查验证符号/拒判，不替代真实视频事件核对。
+
+step | 差分 best/status MSE gap | 局部匹配 best/status MSE gap | 独立RGB全部窗口可靠lag中位数(范围) | CPU秒
+00 | +0/candidate 0.0879 0.283 | +0/candidate 0.2997 0.722 | -1.0 [-19, 22] | 0.2552
+01 | +0/unknown 0.0733 0.075 | +0/unknown 0.7571 0.083 | 6.0 [-5, 13] | 0.1567
+02 | +5/candidate 0.0574 0.188 | +5/unknown 0.6510 0.092 | 10.0 [0, 13] | 0.1484
+03 | +0/unknown 0.0600 0.011 | +5/unknown 0.5533 0.123 | 10.0 [-1, 18] | 0.1461
+04 | +0/candidate 0.0505 0.137 | +5/unknown 0.6123 0.062 | 10.0 [-1, 19] | 0.1458
+05 | +0/candidate 0.0443 0.542 | +0/candidate 0.2222 0.740 | -1.0 [-3, 10] | 0.1464
+06 | +0/candidate 0.0431 0.547 | +0/candidate 0.1680 0.821 | -1.0 [-4, 11] | 0.1485
+07 | +0/candidate 0.0401 0.563 | +0/candidate 0.1471 0.847 | -1.0 [-3, 12] | 0.1450
+08 | +0/candidate 0.0359 0.584 | +0/candidate 0.1616 0.827 | -1.0 [-2, 11] | 0.1540
+09 | +0/candidate 0.0315 0.612 | +0/candidate 0.1529 0.837 | 未收集完成标签 | 0.1522
+
+耗时：差分中位2.05ms，局部匹配92.72ms；含读取/hash/两读数与lag比较共148.46ms/step（范围145–255ms）；完整试验含合成与RGB标签附加4.857s。历史同次RGB链解码约52.5–56.7s、pose约142.8–157.5s。成本优势已实测；完整观察功能仍有差异，未推算整次生成加速倍数。
+
+具体问题：step1–4的RGB多个窗口报告约+3..15帧，差分仅step2报+17、其余0/未知；局部匹配在这些步保留unknown。step5–9的0lag与主要双臂窗口改善方向相符，但RGB仍有右臂局部残差，全球读数会漏掉。17帧峰又与H3每5bin周期相同，后续需区分表示周期与动作延迟；本次未改阈值让它通过。
+所有132窗×两置信阈值的RGB小读数保留在results_v1/RGB_LABELS_UNTUNED.json；它们是比较标签，非独立真值。统计各窗中位数仅供概览，不把全局latent与局部pose视为同一个量。
+
+RGB标签在全部latent读数写完后附加，未用于改参数或删除失败；10步属同一条在线guided轨迹的每步Native分支，不是10个独立样本或纯Native整条轨迹。
+
+架构只读结论：当前Native executor返回clean endpoint，实际FLOW_AV继承CONST：x0=x−sigma*model_output。视频保存保持原尺度；audio÷4，sigma_audio=sigma_video/(4−3*sigma_video)。该velocity是sigma方向去噪导数，视频物理运动是不同视频时间bin之间的位置变化。
+hook复用：实际core model.py749–764提供double_block img/layout；已有TemporalAttentionOverride取得Q/K/V；native_features.py44提供post-attention/pre-W_O四头采样。当前passive分支均禁用，因此本轮用现存x0，没有额外前向或特征抓取。
+旧对应内核：R112/R115 correspondence.py107–176是DiT reference Value相邻帧互近邻，可借数学但不把VAE语义当已验证。旧latent_phase_probe的非等宽插值周期反例仍保留；本轮无插值，并实际通过周期拒判控制。
+
+复现：目标端现有ComfyUI venv运行pilot.py --root <当前饮酒case> --output <新输出目录>；输出目录必须不存在。任何后续方法变更应另存版本，不覆盖results_v1。

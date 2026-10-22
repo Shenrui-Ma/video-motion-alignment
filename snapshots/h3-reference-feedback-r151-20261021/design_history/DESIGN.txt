@@ -1,0 +1,54 @@
+R151：双向同时间、组概率保持——实施前核查
+2026-10-21；仅设计与只读代码审查。GPU 实验尚未启动。
+
+建议
+优先验证原正向引导与反向 SAME 的组合，硬屏蔽保留为机制对照。两侧都保持原 attention 分给另一视频的总概率，只改变这部分概率在时间上的分配。这样检验的是跨时间混合；硬屏蔽同时消除整个 generated-video 组并重归一化其余组，干预更强。β=1 适合作为清楚的二元开关；它的实际质量收益仍待三例 2×2。
+
+已有证据
+R25 已实现并测试 reverse_same，不能把这个反向项当作本轮新发明。同一 Sam 书记舞、seed2026101311、视频窗50–65、采样6..14、50层：主窗方向 lag 为 Native13、正向Full1、反向BLOCK8、反向SAME7 帧；腕部为 Native13/12、Full1/1、BLOCK7/7、SAME7/7（置信.3/.5）。主窗共同支持方向误差 BLOCK0.74959、SAME0.74984，几乎相等；SAME 在后续窗口改善较多。历史没有这个正向+反向 SAME 的组合，且本轮 early0..8 与旧 R25 schedule 不同。
+证据：h3-timing-reverse-reference-r25-20261017/analysis/postrun/FINAL_RESULTS.json、FINAL_INTERPRETATION.txt；完整路径及SHA见 CODE_FEASIBILITY.json。
+
+机制与精确范围
+记 T 为 generated-video、R 为 reference-video，W 为原物理窗映射到的 H3 时间 bin。所有项取自同一次、未改动的 Q/K/V：
+  O = softmax(QKᵀ/√d)V
+  m_R(i) = exp(LSE_R(i) - LSE_all(i))
+  m_T(i) = exp(LSE_T(i) - LSE_all(i))
+  O_T[W] += α m_R (μ_Rsame - μ_Rall)
+  O_R[W] += β m_T (μ_Tsame - μ_Tall)
+same 表示同 ordinal physical bin 内全部空间 token；没有空间坐标配对。R、T 的全视频段分别是组概率的分母与原条件输出范围。两组 Q 行不相交，因此同一 attention call 可独立写入各一次；后续层会读取已经改变的 hidden states。
+
+对一个 target query，j∈R 时：
+  p'ij = (1-α)pij + α m_R(i) 1[j∈Rsame(i)] exp(sij)/Σ_{k∈Rsame(i)}exp(sik)
+j∉R 时 p'ij=pij。reverse 对称交换 T/R。α、β∈[0,1] 时每行非负、归一化，原跨组总概率和所有组外概率逐项保持。α=1 的分布也是固定组外概率/组总量/同 bin 支持约束下 min KL(p'||p) 的行级解；这是标准条件化投影解释，不作数学首创声明。
+这里“双向”指两方向都作用，并不要求 p_TR=p_RTᵀ，也不采用 RecCAR 式双向 KL 一致性。
+
+三例保留原窗口
+机舱 short_0252：物理0–97；32个时间bin中[0,29)，覆盖0–97。
+饮酒 short_0358：物理0–104；32个时间bin中[0,32)，实际bin覆盖0–106。继续原算子重叠bin规则，评测只用105有效帧。
+Sam 05_real_megumi_v：物理50–65；42个时间bin中[14,20)，实际bin覆盖47–67。继续原边界，不缩成纯包含bin。
+三例每bin943空间token；原latent H/W为46×82。两侧geometry逐项验证相等；Sam肖像reference单独排除。same-time不比较带不同segment origin的RoPE时间数值，不改RoPE表、相位、position_ids。具体packed区间、原prompt/noiseSHA见 CODE_FEASIBILITY.json。
+
+最小代码改动（待root确认后实施）
+1. 在新R151包复用R149 layout、ScheduleState、fresh model.clone；新增一个 merged attention override。
+2. 保留原 forward route_attention 的运算顺序与数值分支。full O/LSE只算一次；reverse读取原QKV/LSE，再算全T条件输出及same-bin T条件输出。β=0必须回到原forward结果。
+3. 可借R25 reverse_plan和reverse_same代数，不能照搬其native attention_pytorch/Flash混合分母、固定6..14 gate、首active全QKV克隆审计。R25首审计快照约5GB，当前只保存小统计。
+4. 不叠加两个EventBlockPatch：现core明确拒绝已有attention override。两方向合在一个override，不增加模型NFE，不在已修改的输出上重新估计mass。
+5. active call比forward多两类辅助注意力（全T、同bin T），并有选中reference行暂存。不是性能加速；实际显存/耗时用原服务监测。禁用每步RGB/VAE/pose。
+6. 记录两个方向未clamp的logmass、mass extrema、finite、修正幅度、same-bin索引与命中步。旧forward的数值容错保持原样；新反向必须单列raw误差，遇失败不调整容差掩盖。
+
+建议最小2×2
+每例四条件：
+  Native α=0 β=0：复用既有匹配视频。
+  Forward α=1 β=0：复用R149 early真实视频。
+  Reverse SAME α=0 β=1：新增一条。
+  Both α=1 β=1：新增一条。
+全部early0..8，50层，20Euler，phase0，原prompt、四/五条件、实际AVnoise、模型、sigma、attention后端、geometry不变；共新增6条。R25 BLOCK/SAME作为历史开发证据，不替代新early反向条件。新增hard-exclusion对照由root另定，当前不额外扩臂。
+每条20NFE、1000block calls；450个active block calls。Both有450次正向行组更新+450次反向行组更新，不写成900个DiT block或增加NFE。
+
+判定
+沿用冻结事件/同帧视觉检查、最终pose一次、官方MF；检查身份/眼镜编辑、背景、动作顺序，尤其early噪声目标是否被集中回写参考。按例报告相对Forward的收益及2×2交互 e11-e10-e01+e00（e为同一误差度量）；MF与时间误差各自报告，不合成一个分数。若Forward已达到0/1帧，关注其余事件和视觉质量的变化。
+reference初始latent固定，但同一次forward深层reference hidden可读目标；下一Euler从固定条件重新嵌入，变化可经目标latent间接延续。当前干预只改选中reference-video query，音频/文本/窗外参考仍提供间接路径。实验直接回答“增加这一反向约束是否有益”；把原延后归因于reference污染还需要更细机制证据。
+
+文献定位
+硬断边见 OmniTransfer §4.3、Identity as Presence Eq6及公开实现、FullDiT2 Eq8–9；双向帧对齐见Vidu S2 §3.2；免训练互反attention见Story2Board Eq4–7；跨模态双向KL见RecCAR Eq6–8。RefGAP重分配ref组总量，DCAG缩放K/V，RefAdapt控制reference缓存，均应准确区分。逐篇公式/链接见 PRIOR_ART.json。
+本轮有界检索未发现完整相同的“预训练模型推理时、两个视频方向、同物理bin条件化、分别保持原跨组概率”的直接形式。可研究的具体增量是已知部件的这个组合及其收益验证；名称和泛称“双向/免训练/保护reference”本身已有明确先例。

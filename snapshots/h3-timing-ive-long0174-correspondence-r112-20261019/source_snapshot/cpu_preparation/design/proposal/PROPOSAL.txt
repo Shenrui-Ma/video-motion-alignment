@@ -1,0 +1,81 @@
+R111 失败诊断与最小后续结构方案（CPU proposal，2026-10-19）
+
+结论
+R111 的固定坐标读出有一个可构造的身份混合反例：原注意力一直关注移动的人物，汇总每个图像坐标的权重后，在另一个时刻仍读取相同坐标，可能读到背景或另一人。实际成片出现帽子、书消失和绕行路线改变，与这种风险一致；现有采样记录还不能确定实际失败的因果来源。
+下一项结构试验可以把“在相同坐标强制读目标时刻”改成“沿参考视频内部的特征对应关系，只向目标时刻移动一个 latent bin”。需要与相同时间移动幅度、相同支持区域的固定坐标版本对照。
+
+一、已核对的实际证据
+1. R111 在 20 次模型调用的第 6–14 次、全部 50 个 DiT blocks 上执行了 450 次干预。前 6 次的 video/audio x0 prediction 与 R96 普通编辑和 R107 同帧引导逐值一致。控制条件、初始噪声和 sigma grid 一致。
+2. router 在 Attention 输出、out_proj 之前更改 canvas query 的参考视频贡献。Q/K 来自本次完整前向，保留参考视频总权重 m。它没有直接修改 text、reference-image 或 audio query 的输出。后续 blocks 和采样步骤仍会传播改变。
+3. spatial_marginal_attention 将 V(tau,s) 复制到所有参考 key 时间 t。因此其读出恰为 sum_s [sum_t A_q(t,s)] V(tau,s)。坐标 s 属于图像网格，不能自动代表同一个移动物体。
+4. 当前路由统计中，修正量 RMS / 原输出 RMS 的采样均值为 0.1954、最大值 0.5371；R107 既有同帧版本的采样均值约 0.205。当前证据不支持把失败简单归为“修正幅度更大”。
+5. 已保存 readout 为 block 25、steps 0/5/10/15/19、8 heads × 8 个中心邻域位置的时间权重边际；它没有记录空间匹配矩阵或 Value 向量。不能从它推断人物 token 实际匹配到了哪个物体。
+6. 全 145 帧成片审核由 consumer / root 完成：出现新帽子、丢书、人物绕行路径变化。预登记联合动作无法作同一事件的时间比较。该结果保留为失败样本。
+
+证据文件
+audit/ACTUAL_PRE6_THREEWAY_TRAJECTORY.json
+  SHA256 34b35c7be088389b6cf03764bbcf5aed3da518fe24958a02bfe074e18d47b0ac
+audit/router/r111_long_0174_seed2026101701_forced.json
+  SHA256 3fa0c5317c08ef218a806b2440928d23e20e19d314249b1e36c4bda1d62b87b1
+core source comfy/ldm/minimax/model.py
+  SHA256 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+
+二、拟测试的单处改动
+令 tau 为 canvas query 的物理时间在参考视频 latent grid 上对应的索引。t、s 分别为参考 key 的时间与空间索引。A_q(t,s) 是原 Q/K 在参考视频组内归一化的权重；m_q 是该组在完整注意力中的总权重。原输出为
+  O_q = O_nonref,q + m_q sum_(t,s) A_q(t,s) V(t,s).
+
+先在相邻有效参考时间内，用当前 block 的原始 Value feature 建立互为唯一最近邻的空间对应 pi_(t,u)(s)。descriptor 对每个 head 分别归一化，按 head 的 cosine 平均确定匹配；禁止直接把不同 head 的通道相加。双向唯一最近邻通过时 c=1，存在并列、零向量或不互为最近邻时 c=0。
+  u(t,tau) = t + sign(tau-t),  t 为有效时间；padding 时间保持 u=t。
+  V_tilde_q(t,s) = V(t,s) + c [V(u,pi_(t,u)(s)) - V(t,s)].
+  O'_q = O_q + m_q sum_(t,s) A_q(t,s)c [V(u,pi_(t,u)(s)) - V(t,s)].
+当 t=tau 时保持原 Value。匹配失败时保持原 Value。一次读出最多前进或后退一个 latent bin；这里的 bin 是模型位置网格，不能当作精确 VAE 时间感受野。
+
+这个操作保留原参考总权重和本层原非参考贡献；改变的是每个参考 key 携带的 Value 所对应的动作阶段。Value 依赖 canvas 时间，不能把共享 V 原地全局覆盖，否则其他模态 query 也会一起改变。
+
+局部性质与适用假设
+若匹配沿真实物体轨迹，且某个 Value 分量在该轨迹上恒定，该分量的修正严格为零。该性质作用于固定的当次匹配与 Q/K；最终视频中的身份与构图仍需实际验证。
+本方案放弃“固定像素坐标上的时间常量不变”性质。纯粹平移、但沿物体轨迹 Value 完全不变的表征会得到零修正；因此它未必能解决以全身平移为主的时间延后。它更可能作用于沿物体轨迹发生的姿态或动作阶段变化。
+互为最近邻只是筛选规则，不能保证语义对应正确。遮挡、重复纹理和不同身体部位可能互相误配。这个 proposal 尚未增加可训练模块、外部教师、额外 inversion 或 tracking 模型。
+
+三、CPU 可证伪检查（cpu_check.py / CPU_RESULT.json，22 项通过）
+合成场景中 A/B/C 三个物体跨 3 个位置移动。原参考权重全都指向 A，三时刻权重为 0.7/0.2/0.1。A 的动作阶段标量为 0/0.4/0.8，目标时刻为最后一个时刻。
+  原读出：                  A/B/C = 1/0/0，phase 0.16
+  原同帧注意力：            A/B/C = 1/0/0，phase 0.80
+  R111 固定空间边际：       A/B/C = .1/.7/.2，phase .08
+  固定坐标仅推进一个 bin：  A/B/C = .1/0/.9，phase .08
+  互惠对应仅推进一个 bin：  A/B/C = 1/0/0，phase .52
+这个例子说明“缩小时间跳距”本身仍会混合身份；对应关系提供了独立作用。它只证明数学反例和构造，未证明 H3 的 Value feature 能形成可靠对应，也未证明成片动作改善。
+检查还覆盖：有效权重非负且和为一、一步移动界限、未匹配/并列/零向量回退、同帧恒等、轨迹常量不变、固定像素常量不再不变、错误匹配可泄漏身份、padding 保留、原参考总权重及非参考项保留。
+
+四、H3 实现位置与代价
+当前模型 Attention.forward 先 qkv_proj(x)，V 直接 reshape；Q/K 接着经过 fused RMSNorm + RoPE，再进入 optimized_attention，最后 out_proj。现有 TemporalAttentionOverride 获取的是 RoPE 后 Q/K 和未旋转的 V。
+因此最小实现可直接用已有 V 做相邻参考时间的匹配，无需修改 model.py 或复制一次前向。原 Q/K 继续参与原注意力。如果后续改用 K，应在 fused in-place RMSNorm/RoPE 之前另存 reference K，再归一化；直接以当前 RoPE 后 K 的 cosine 作为语义对应会混入时空位置差。逆 RoPE 需要准确的 partial rotary 维度和频率，当前 hook 未携带这些信息。
+这里的“原 Value”指当前 block 在这次操作前的 Value。H3 reference tokens 已通过前面 blocks 的多模态 self-attention，可能包含 canvas 和编辑条件的信息；它们不等于一条独立、未干预前向的 reference feature。匹配质量应在实际干预轨迹中抽查，不能只在普通编辑的一次读出上验证后就视为永久可靠。
+匹配采用每个相邻帧对的 spatial×spatial 矩阵，逐对、逐 chunk 处理。该例有效时间为 43、每帧 943 个 token、56 heads × 128 channels。全 heads 的匹配约为 42×943²×7168 = 2.68e11 次乘加/block；不能称为免费。单个 spatial 矩阵 FP32 约 3.4 MiB。完整两帧归一化 descriptor 约 25.8 MiB（BF16）；仅为估算，实际 peak 与耗时需记录。
+随后按每个 canvas 时间构造一个参考 V 临时张量，复用 R111 的 Flash attention/LSE 执行结构。有效 reference 区间为 43 个 bin，现有参考总长 47；末 4 个 padding bin 保持原 V。两个新的一步版本使用完全相同的 padding 处理，避免把 padding 改变混入 correspondence 消融。
+
+五、最小实验判据（仅设计，未启动）
+同一任务、seed、prompt、sampler、干预步和 blocks 下：保留普通编辑与 R107 同帧方法；新跑固定坐标一步推进、互惠对应一步推进。R111 现有失败作为历史参照。
+主要检验是两个一步版本之差：同样的时间移动幅度、reference mass、padding、有效 queries，只有空间对应不同。首先检查编辑完成、物品身份和人物路线；满足后比较同一预登记事件的 timing、动作幅度和官方 MF。无法对应的动作单列，不给出有利时延分数。
+至少保存若干原生 reference V 匹配示意，覆盖人物/物品/背景及遮挡，记录接受率、双向 cosine/margin 分布、空间位移和 query 时间距离。每个事件的比较窗口沿用 source-only 预登记，不以生成结果重新挑选。
+否定条件：互惠匹配与固定坐标版本身份/路线错误相近；匹配实际频繁越过物体；修正近零而时间误差未改善；编辑任务损坏；或只有整体注意力修正变弱才能解释收益。任何一种出现，都不支持这一结构带来所宣称的作用。
+
+六、直接近邻与创新边界
+Story2Board / RAVM（2025）最接近 Value 操作。其论文用双向 cross-panel attention 的最小值、跨层/步聚合、Otsu 筛选和最佳匹配做 Value mixing。官方实现先计算 RoPE 前 Q/K attention，选中 bottom token 后混合 matched top Value，再对 Q/K 加 RoPE。互惠匹配、training-free、只改 V、保持当次 Q/K 均已有公开实现。
+本 proposal 可区分的操作是：在单条参考视频内部沿相邻时间匹配；以 canvas query 的目标时间决定推进方向；每次最多推进一个 bin；只替换该 canvas query 的 reference contribution 并保留原组权重。这个组合尚需要实验证明它相对固定坐标一步推进和已有同帧方法有独立价值，不能仅凭“用于 H3”主张新机制。
+论文 https://arxiv.org/html/2508.09983v1
+实现 https://raw.githubusercontent.com/DavidDinkevich/Story2Board/main/story2board_attention_processor.py
+
+TokenFlow（ICLR 2024）从原视频的 diffusion feature 建立跨帧最近邻，并在编辑中传播关键帧的 edited feature。特征对应与传播是直接先例。本 proposal 将对应应用于当前参考 Value 的有界时间推进；不会把“使用模型特征做对应”列为贡献。
+https://arxiv.org/html/2307.10373v3
+https://github.com/omerbt/TokenFlow
+
+FLATTEN（ICLR 2024）以光流轨迹收集跨帧 K/V，在轨迹内计算 attention；FRESCO（CVPR 2024）结合 intra/inter-frame correspondence 的 attention 与显式 feature optimization。沿物体对应关系读取特征、处理遮挡及空间一致性已有直接先例。拟议的区别集中在原参考注意力保持不变时，query 时间依赖的 Value 时间推进，而非沿轨迹重新计算整个 attention。
+https://arxiv.org/html/2310.05922v2
+https://arxiv.org/html/2403.12962v1
+
+DIAL 通过 reference attention logits bias 调节参考内容；FlowMotion 使用预测的干净 latent 的时间差形成 flow guidance，并配合 velocity projection。当前 proposal 的运算位置为 Attention Value contribution。该位置差异只给出可检验的机制区别，不能替代性能和消融证据。
+https://arxiv.org/html/2609.11507v1
+https://arxiv.org/abs/2603.06289
+
+检索与判断范围：以上一手论文及 Story2Board 官方实现于 2026-10-19 核对；没有据此声称全领域不存在相同方法。当前最直接的创新障碍为 RAVM、TokenFlow 与 FLATTEN，而不是单纯的 attention logits 加权。

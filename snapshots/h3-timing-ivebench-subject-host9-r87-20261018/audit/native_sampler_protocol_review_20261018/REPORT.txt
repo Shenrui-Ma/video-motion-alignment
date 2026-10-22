@@ -1,0 +1,71 @@
+H3 Ref2VA 官方模板与当前采样协议核验
+2026-10-18；只读源码与 CPU 计算；实际 .9 环境复核完成
+
+结论
+推荐 Comfy 模板使用 res_multistep、simple、20 次更新。当前 R85/R87 使用 Euler、ManualSigmas、20 次更新。默认模型采样包装、CFG=1、video/audio shift=12/3 一致；两个视频 sigma 网格在 float32 下有五处 1 ULP 差异。可以保持当前 sigma 逐位相同，只比较两种 solver。当前被动记录器和验收程序写死 Euler，未来对照需要独立的记录/验收适配。现有 R85/R87 的 87/134 个封存文件全部通过原 SHA 核验。
+
+一、模板的实际生效分支
+固定官方模板 revision e7cd011d4ded3411c2f481200544f0be6fdc962e：
+node123=res_multistep；124=simple/20/denoise1；126=BasicGuider。
+node146=false，同时决定 node141 使用未经 Turbo LoRA 修改的 UNET、node142 使用20步。虽然模板包含4步LoRA节点，它在此默认分支不生效。
+模板和当前图的 UNET/Qwen 权重文件名一致。模板示例尺寸1344×768×124、参考素材和任务另有配置；这里只核采样协议，没有把整个模板等同于当前实验。
+
+二、实际 sigma 与模型包装
+.9 supported_models.MiniMaxH3.sampling_settings 默认 shift12/audio_shift3。
+model_base 的 FLOW_AV 使用 ModelSamplingAV + CONST。当前 MiniMaxH3SigmaShift 显式重建同类型包装、设为12/3、保留 noise_scale，再把12/3交给DiT；默认与显式包装生成的1000点表逐位相同，audio_scale均为4，noise_scale均为1。
+
+simple20 从1000点表中取第1000、950、…、50点，再加终点0。实数公式为：
+  b_i = 1 − i/20，sigma_v(i)=12 b_i / (1+11 b_i)，i=0…20。
+ManualSigmas 把当前21个十进制字符串解析成 float32。它和simple20最大差5.960464477539063e-08；差异位置如下（step从0开始）：
+  step      ManualSigmas             simple20                  绝对差
+   2   0.9908257126808167   0.9908256530761719   5.960464478e-08
+   3   0.9855072498321533   0.9855073094367981   5.960464478e-08
+   8   0.9473684430122375   0.9473683834075928   5.960464478e-08
+  11   0.9075630307197571   0.9075629711151123   5.960464478e-08
+  19   0.3870967626571655   0.3870967924594879   2.980232239e-08
+完整21行见 SIGMAS_host9.csv。第20行是采样终点，模型只在第0…19行调用。当前手写表经过模型 timestep=sigma×1000、DiT再除1000的回转后，20个非终点数值保持逐位相同。
+
+音频使用同一基础网格，实际代码先反解video shift，再加audio shift：
+  base = sigma_v / (12 − 11 sigma_v)
+  sigma_a = 3 base / (1 + 2 base)
+实数化简为 sigma_a=sigma_v/(4−3 sigma_v)。表中的音频列按实际两次 float32 运算计算；两种视频网格引起的音频 sigma 最大差2.384185791015625e-07。
+外层 sampler 对 packed AV 使用视频 sigma；音频按既有 audio_scale=4 和 sigma_a/sigma_v 转换，模型返回与外层视频时间变量一致的速度。更换 solver 会共同更新这份 packed AV。没有额外再把视频 sigma 做一次12倍shift。
+
+实际 checkpoint 的 JSON 头部另经只读核验：video_out.weight=[96,5376]，audio_out.weight=[32,5376]。当前 video_patch_dim=24×1×2×2=96，因此 FinalLayer 的头数 n=1，走单头路径；源码中的 PDD 多头按步长选头分支在该 checkpoint 上不生效。读取仅95416字节头部，未读20.97GB tensor payload。
+
+三、两个 solver 改变了什么
+记 D_i 为当前去噪预测，r_i=sigma_(i+1)/sigma_i。
+Euler：
+  x_(i+1) = r_i x_i + (1−r_i) D_i。
+
+res_multistep：第0步和最后一步采用Euler；第1…18步使用当前与上一预测。
+  h=log(sigma_i/sigma_(i+1))，c=log(sigma_i/sigma_(i−1))/h
+  phi1(z)=(exp(z)−1)/z；phi2(z)=(phi1(z)−1)/z
+  b1=phi1(−h)−phi2(−h)/c；b2=phi2(−h)/c
+  x_(i+1)=exp(−h)x_i+h b1 D_i+h b2 D_(i−1)。
+这里 c<0，上一预测的系数为负，是使用历史预测作二阶更新。入口 sample_res_multistep 固定 eta=0、cfg_pp=false；不要求额外无条件分支，也不增加随机噪声。
+
+例：当前表第6步，Euler当前D权重为0.00876422669；res当前D权重0.01378630201、上一D权重−0.00502207532，状态权重均0.99123577331。这个差别说明轨迹会改变，不能从系数大小推断人物更像、动作更准。
+
+CPU执行原函数的确定性小张量检查：两者各20次模型调用、20次callback、同一组模型调用sigma、额外噪声调用0、全局随机状态未改。第0步更新相同，因此第0、1次模型输入和预测相同；第1步更新开始使用历史信息，第2次模型调用起轨迹出现差异。该检查使用 toy denoiser，未加载H3，输出差不能当作视频质量证据。
+本机Torch2.10与实际.9 Torch2.5.1+cu121分别通过；网格、模型包装结果在两机完全一致。toy最终值有CPU数学库舍入差，已分别保留原结果。
+
+四、现有故障能否据此归因
+目前没有保持输入/提示词/噪声/条件/网格相同的 Euler 与 res_multistep 成片配对，所以任务失败和动作延后由 solver 引起仍未知。已有提示协议、换人目标与场景定义的诊断证据继续有效，不能被本次源码差异替代。官方默认使用某 solver 只构成应核对的实现依据。
+
+五、最小可执行诊断的设计
+选定一条已有明确失败且输入完整的任务，先冻结其失败判据。新目录准备两次 fresh Native：Euler20 与 res_multistep20；两次保留当前完全相同的 ManualSigmas，不额外切到simple。两次同机、同模型、提示全文、图/视频、fps/有效帧、原始AV噪声与所有条件tensor、precision和kernels。两次时序路由均为Native零写入。记录20次forward、实际sigmas、墙钟时间及最终完整视频；先判断目标身份/编辑内容、源动作保留，再判断时刻。
+当前基础设施有三个明确适配点，均放新包：
+1. H3X0Readout/core.py:109–116只允许sample_euler；manifest和snapshot_semantics也写死Euler。两臂共同使用支持这两个确定性20步solver的被动记录器，按真实名字写入更新语义，保留原先所有shape/finite/20callback校验。
+2. analysis/postrun/capture_checks.py:48要求sampler为sample_euler；verify_pair.py把更新数写成Euler_updates。新验收按各臂实际solver检查。
+3. 原Native/forced配对要求前6次x0相等，这只适用于同solver、前6步尚未干预的情况。跨solver诊断应核相同输入与初始AV噪声，并核第0、1次预测/输入状态；第2次起差异符合更新公式。不要通过要求前6次相等把正常solver差异判成异常。
+若之后要完整比较官方simple20配方，应另加一项、单独标明网格也变动。当前两次对照已经能单独回答 solver 的影响。
+
+证据与复现
+- SOURCE_BINDINGS.json：固定模板、实际源文件、当前两图的路径与SHA。
+- ACTUAL_HOST9_BINDINGS.json：8个实际.9源码与审计副本逐字一致。
+- CPU_host9.json / SIGMAS_host9.csv：实际环境数值；CPU_local.json为本机复核。
+- compare_cpu.py：从原文件AST提取并执行原函数；不导入Comfy，不初始化CUDA。
+- MODEL_HEADER_ONLY.json：实际checkpoint头部与单头证据。
+- PRODUCTION_SEALS_UNCHANGED.json / VERIFICATION_RECEIPT.json：原生产封存未变及核验范围。
+源码行：supported_models.py962–983；model_sampling.py90–106/294–360；model_base.py148–151/2141–2166；nodes_minimax_h3.py366–405；samplers.py645–653/981–1006/1221–1241；sampling.py190–219/1462–1528；minimax_model.py36–39/300–345/559–600/626–630。

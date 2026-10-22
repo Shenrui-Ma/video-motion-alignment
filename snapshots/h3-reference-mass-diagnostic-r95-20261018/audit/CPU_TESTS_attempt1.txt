@@ -1,0 +1,459 @@
+test_alpha_blend (test_mass.MassTests.test_alpha_blend) ... ERROR
+test_alpha_invalid (test_mass.MassTests.test_alpha_invalid) ... ok
+test_alpha_zero_exact_native (test_mass.MassTests.test_alpha_zero_exact_native) ... ok
+test_below_one_explicit_complement_recorded (test_mass.MassTests.test_below_one_explicit_complement_recorded) ... ERROR
+test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) ... 
+  test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=0.1) ... ERROR
+  test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=0.5) ... ERROR
+  test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=1.01) ... ERROR
+  test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=3) ... ERROR
+  test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=100) ... ERROR
+test_fallback_audit (test_mass.MassTests.test_fallback_audit) ... ERROR
+test_gain_invalid_even_if_disabled (test_mass.MassTests.test_gain_invalid_even_if_disabled) ... ok
+test_gain_one_exact_parent_paths (test_mass.MassTests.test_gain_one_exact_parent_paths) ... 
+  test_gain_one_exact_parent_paths (test_mass.MassTests.test_gain_one_exact_parent_paths) (dtype=torch.float64, mode='samebin_group_gain', alpha=0.25) ... ERROR
+  test_gain_one_exact_parent_paths (test_mass.MassTests.test_gain_one_exact_parent_paths) (dtype=torch.float64, mode='samebin_group_gain', alpha=1) ... ERROR
+test_group_gain_matches_log_bias (test_mass.MassTests.test_group_gain_matches_log_bias) ... ok
+test_half_precision_extreme_finite_gains (test_mass.MassTests.test_half_precision_extreme_finite_gains) ... ok
+test_half_precision_oracle (test_mass.MassTests.test_half_precision_oracle) ... ok
+test_inputs_unmodified (test_mass.MassTests.test_inputs_unmodified) ... ERROR
+test_invalid_mode_and_ranges (test_mass.MassTests.test_invalid_mode_and_ranges) ... ok
+test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) ... 
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=0.1) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=3) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=1e-300) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=1e+300) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=0.1) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=3) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=1e-300) ... ERROR
+  test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=1e+300) ... ERROR
+test_naive_mask_plus_gain_is_different (test_mass.MassTests.test_naive_mask_plus_gain_is_different) ... ERROR
+test_neighbor_geometry_reused (test_mass.MassTests.test_neighbor_geometry_reused) ... ERROR
+test_no_cuda_initialization (test_mass.MassTests.test_no_cuda_initialization) ... ok
+test_other_modality_queries_exact (test_mass.MassTests.test_other_modality_queries_exact) ... ok
+test_reference_all_keys (test_mass.MassTests.test_reference_all_keys) ... ERROR
+test_stats_measure_boost_and_actual_change (test_mass.MassTests.test_stats_measure_boost_and_actual_change) ... ERROR
+
+======================================================================
+ERROR: test_alpha_blend (test_mass.MassTests.test_alpha_blend)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 47, in test_alpha_blend
+    out,(q,k,v,p)=self.call(mode,alpha=.25)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_below_one_explicit_complement_recorded (test_mass.MassTests.test_below_one_explicit_complement_recorded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 99, in test_below_one_explicit_complement_recorded
+    logs=[];out,_=self.call('samebin_group_gain',gain=.1,audit=logs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=0.1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 21, in test_combined_matches_normalized_samebin_logits
+    out,(q,k,v,p)=self.call('samebin_group_gain',gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=0.5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 21, in test_combined_matches_normalized_samebin_logits
+    out,(q,k,v,p)=self.call('samebin_group_gain',gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=1.01)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 21, in test_combined_matches_normalized_samebin_logits
+    out,(q,k,v,p)=self.call('samebin_group_gain',gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 21, in test_combined_matches_normalized_samebin_logits
+    out,(q,k,v,p)=self.call('samebin_group_gain',gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_combined_matches_normalized_samebin_logits (test_mass.MassTests.test_combined_matches_normalized_samebin_logits) (r=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 21, in test_combined_matches_normalized_samebin_logits
+    out,(q,k,v,p)=self.call('samebin_group_gain',gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_fallback_audit (test_mass.MassTests.test_fallback_audit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 106, in test_fallback_audit
+    logs=[];self.call('samebin_group_gain',gain=1,audit=logs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 76, in route_attention
+    return _fallback(q,k,v,heads,plan,oldmode,alpha,radius,time_offset,attention,audit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 44, in _fallback
+    out=parent.route_attention(q,k,v,heads,plan,mode=mode,alpha=alpha,radius=radius,time_offset=time_offset,attention=attention,diagnostics=legacy)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 243, in route_attention
+    aligned, aligned_lse = _aligned_attention(
+                           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_gain_one_exact_parent_paths (test_mass.MassTests.test_gain_one_exact_parent_paths) (dtype=torch.float64, mode='samebin_group_gain', alpha=0.25)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 33, in test_gain_one_exact_parent_paths
+    a=route_attention(q,k,v,2,p,mode=mode,reference_gain=1,alpha=alpha,attention=dense_attention)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 76, in route_attention
+    return _fallback(q,k,v,heads,plan,oldmode,alpha,radius,time_offset,attention,audit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 44, in _fallback
+    out=parent.route_attention(q,k,v,heads,plan,mode=mode,alpha=alpha,radius=radius,time_offset=time_offset,attention=attention,diagnostics=legacy)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 243, in route_attention
+    aligned, aligned_lse = _aligned_attention(
+                           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_gain_one_exact_parent_paths (test_mass.MassTests.test_gain_one_exact_parent_paths) (dtype=torch.float64, mode='samebin_group_gain', alpha=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 33, in test_gain_one_exact_parent_paths
+    a=route_attention(q,k,v,2,p,mode=mode,reference_gain=1,alpha=alpha,attention=dense_attention)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 76, in route_attention
+    return _fallback(q,k,v,heads,plan,oldmode,alpha,radius,time_offset,attention,audit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 44, in _fallback
+    out=parent.route_attention(q,k,v,heads,plan,mode=mode,alpha=alpha,radius=radius,time_offset=time_offset,attention=attention,diagnostics=legacy)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 243, in route_attention
+    aligned, aligned_lse = _aligned_attention(
+                           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_inputs_unmodified (test_mass.MassTests.test_inputs_unmodified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 56, in test_inputs_unmodified
+    route_attention(q,k,v,2,p,mode='samebin_group_gain',reference_gain=3,attention=dense_attention)
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=0.1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=1e-300)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=-40, mode='samebin_group_gain', r=1e+300)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=0.1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=1e-300)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_mass_near_zero_one (test_mass.MassTests.test_mass_near_zero_one) (bias=40, mode='samebin_group_gain', r=1e+300)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 78, in test_mass_near_zero_one
+    out,(q,k,v,p)=self.call(mode,bias=bias,gain=r)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_naive_mask_plus_gain_is_different (test_mass.MassTests.test_naive_mask_plus_gain_is_different)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 24, in test_naive_mask_plus_gain_is_different
+    out,(q,k,v,p)=self.call('samebin_group_gain')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_neighbor_geometry_reused (test_mass.MassTests.test_neighbor_geometry_reused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 111, in test_neighbor_geometry_reused
+    out,(q,k,v,p)=self.call('samebin_group_gain',radius=1,time_offset=offset)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_reference_all_keys (test_mass.MassTests.test_reference_all_keys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 117, in test_reference_all_keys
+    out=route_attention(q,k,v,2,p,mode=mode,reference_gain=r,attention=dense_attention)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+======================================================================
+ERROR: test_stats_measure_boost_and_actual_change (test_mass.MassTests.test_stats_measure_boost_and_actual_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 102, in test_stats_measure_boost_and_actual_change
+    logs=[];out,_=self.call('samebin_group_gain',audit=logs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/tests/test_mass.py", line 12, in call
+    q,k,v,p=fixture(dtype,bias);return route_attention(q,k,v,2,p,mode=mode,reference_gain=gain,alpha=alpha,attention=dense_attention,**kw),(q,k,v,p)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/mass.py", line 94, in route_attention
+    aligned,_=parent._aligned_attention(query,keys,values,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/r95_kernel/snapshot/core.py", line 80, in _aligned_attention
+    lse[indices] = aligned_lse
+    ~~~^^^^^^^^^
+RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and Double for the source.
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.373s
+
+FAILED (errors=23)

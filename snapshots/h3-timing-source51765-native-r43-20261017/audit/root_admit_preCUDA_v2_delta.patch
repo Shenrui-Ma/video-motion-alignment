@@ -1,0 +1,89 @@
+--- v1
++++ v2
+@@ -28,13 +28,21 @@
+ def check_config(c):
+  require(c.get('schema')=='r43-root-launch-config-v1' and c.get('root_approved') is True,'root config approval required')
+  require(set(c)=={'schema','root_approved','old_run_gate_sha256','old_cleanup_sha256','old_release_sha256','peer'},'unexpected config fields')
+- peer=c['peer'];require(set(peer)=={'root','pid','identity','manifest_sha256','admission_sha256'},'peer config schema')
++ for value in (c['old_run_gate_sha256'],c['old_cleanup_sha256'],c['old_release_sha256']):
++  require(isinstance(value,str) and len(value)==64 and all(x in '0123456789abcdef' for x in value),'unbound SHA in root config')
++ peer=c['peer']
++ if peer is None:return c
++ require(isinstance(peer,dict) and set(peer)=={'root','pid','identity','manifest_sha256','admission_sha256'},'peer config schema')
+  root=Path(peer['root']);require(root.is_absolute() and root.parent==ROOT.parent and root not in (ROOT,OLD),'peer root outside task area')
+  require(type(peer['pid']) is int and peer['pid']>1,'peer PID schema')
+  identity=peer['identity'];require(set(identity)=={'uid','start_ticks','cmdline_sha256'} and type(identity['uid']) is int and isinstance(identity['start_ticks'],str) and identity['start_ticks'].isdigit(),'peer exact identity schema')
+  for value in (c['old_run_gate_sha256'],c['old_cleanup_sha256'],c['old_release_sha256'],peer['manifest_sha256'],peer['admission_sha256'],identity['cmdline_sha256']):
+   require(isinstance(value,str) and len(value)==64 and all(x in '0123456789abcdef' for x in value),'unbound SHA in root config')
+  return c
++
++def validate_peerless_processes(rows,lookup_uid,current_uid):
++ require(not any(lookup_uid(row['pid'])==current_uid for row in rows),'peer=null requires zero existing own GPU compute processes')
++ return True
+ 
+ def validate_release(gate,cleanup,release,gate_file,gate_sha,old_absent):
+  require(gate.get('passed') is True and gate.get('run_id')==OLD_RUN,'R40 archive RUN_GATE is not complete')
+@@ -94,7 +102,7 @@
+  ops.precheck()
+  ops.launch_service_only()
+  owner,gate=ops.ready_owner()
+- ops.register_peer(owner)
++ if ops.has_peer:ops.register_peer(owner)
+  ops.recheck_before_go(owner,gate)
+  ops.go(gate)
+  ops.wait_http(owner)
+@@ -103,7 +111,7 @@
+ 
+ class RealOperations:
+  def __init__(self,config,attempt):
+-  self.c=config;self.attempt=attempt;self.owner=None;self.gate=None;self.peer_after=None
++  self.c=config;self.attempt=attempt;self.owner=None;self.gate=None;self.peer_after=None;self.has_peer=config['peer'] is not None
+   sys.path.insert(0,str(ROOT/'scripts'));self.service=importlib.import_module('service')
+   require(self.service.RUN==ROOT and self.service.GPU==GPU and self.service.PORT==PORT,'imported service belongs to wrong task')
+  def logged(self,name,command,timeout):
+@@ -111,6 +119,7 @@
+    result=subprocess.run(command,cwd=ROOT,stdout=f,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,timeout=timeout,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
+   require(result.returncode==0,name+' failed; retained log')
+  def peer(self):
++  if not self.has_peer:return None
+   c=self.c['peer'];root=Path(c['root'])
+   require(sha(root/'deploy_manifest.json')==c['manifest_sha256'],'peer producer seal changed')
+   owner=read(root/'processes/service.json')
+@@ -128,7 +137,9 @@
+   return {'owner':owner,'gate_sha256':sha(gate_file),'cleanup_sha256':sha(paths['old_cleanup_sha256']),'release_sha256':sha(paths['old_release_sha256'])}
+  def strict_idle(self):
+   peer=self.peer();rows=self.service.compute_processes()
+-  admission={'ready_for_launch':True,'scope':'own_user_video_jobs','existing_comfy_port':None,'permitted_compute_processes':[{'pid':peer['pid'],'identity':self.c['peer']['identity']}]}
++  if not self.has_peer:validate_peerless_processes(rows,self.service.proc_uid,os.getuid())
++  permitted=[] if not self.has_peer else [{'pid':peer['pid'],'identity':self.c['peer']['identity']}]
++  admission={'ready_for_launch':True,'scope':'own_user_video_jobs','existing_comfy_port':None,'permitted_compute_processes':permitted}
+   self.service.check_admission(admission,rows,{'queue_running':[],'queue_pending':[]})
+   return admission,rows,self.service.gpu_readiness()
+  def precheck(self):
+@@ -138,7 +149,7 @@
+   for rel in ('cuda_gate_ready.json','cuda_gate_go.json','controller.json'):
+    require(not (ROOT/'processes'/rel).exists(),'existing generation record; explicit recovery required')
+   old=self.released();peer=self.peer();admission,rows,gpu=self.strict_idle()
+-  require(sha(Path(self.c['peer']['root'])/'configs/admission.json')==self.c['peer']['admission_sha256'],'peer admission changed since root binding')
++  if self.has_peer:require(sha(Path(self.c['peer']['root'])/'configs/admission.json')==self.c['peer']['admission_sha256'],'peer admission changed since root binding')
+   write_new(self.attempt/'precheck.json',{'old_release':old,'peer':peer,'admission':admission,'compute':rows,'gpu':gpu})
+   # Mutable admission only; producer files remain sealed.
+   self.service.write_json(ROOT/'configs/admission.json',admission)
+@@ -162,7 +173,7 @@
+  def recheck_before_go(self,owner,gate):
+   self.released();self.peer();self.service.assert_owned(owner)
+   require(read(ROOT/'processes/service.json')==owner,'R43 service registry changed before go')
+-  require(read(Path(self.c['peer']['root'])/'configs/admission.json')==self.peer_after,'peer admission changed before go')
++  if self.has_peer:require(read(Path(self.c['peer']['root'])/'configs/admission.json')==self.peer_after,'peer admission changed before go')
+   validate_gate(read(ROOT/'processes/cuda_gate_ready.json'),owner,self.service.external_identity(owner['pid']),sha(ROOT/'scripts/compatibility_bootstrap.py'))
+   self.strict_idle() # R43 is still before CUDA; target card must remain empty.
+  def go(self,gate):
+@@ -182,7 +193,7 @@
+   raise TimeoutError('R43 HTTP readiness timeout: '+str(last))
+  def start_controller(self,owner):
+   self.peer();self.service.assert_owned(owner)
+-  require(read(Path(self.c['peer']['root'])/'configs/admission.json')==self.peer_after,'peer registration changed before controller')
++  if self.has_peer:require(read(Path(self.c['peer']['root'])/'configs/admission.json')==self.peer_after,'peer registration changed before controller')
+   self.logged('controller',['python3','-u','scripts/start_controller.py','--pid',str(owner['pid']),'--start-ticks',str(owner['identity']['start_ticks'])],180)
+   c=read(ROOT/'processes/controller.json');require(c['service_pid']==owner['pid'] and c['service_identity']==owner['identity'],'controller generation mismatch')
+   write_new(self.attempt/'COMPLETE.json',{'service':owner,'controller':c,'status':'started','unix':time.time()})

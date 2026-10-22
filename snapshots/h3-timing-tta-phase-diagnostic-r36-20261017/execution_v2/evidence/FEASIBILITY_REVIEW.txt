@@ -1,0 +1,24 @@
+R36 v2 feasibility result and recommendation
+
+Status: COMPLETE for the authorized old-identity-only diagnostic. New transformed pose remains unrun and unauthorized. Existing R36 v1 protocol/code/results are unchanged.
+
+The v2 proposal and support rule were frozen before this calculation. FREEZE SHA a757cf5c480f72283dbedcfaf8aadeb09ae04be8334ed78159e47f480e3f4f25; protocol24df554028fccdf79f4348d6d90e74317e3f2adebff13efeca31957ab305f908. Seven synthetic support/candidate tests passed. Actual run took2.449s on one CPU thread under the existing Mac global CPU lock; no torch/onnxruntime import, pose, newviewscore, VAE or GPU. All792 rows and their original49lag curves were retained.
+
+For each confidence threshold the later nine-view cost uses candidate-plus-null support; the candidate itself is fixed once from the original identity .3 diagnostic and reused at both thresholds. The .5 identity estimate is an acceptance/consistency check, not a replacement proposal. Count of rows with reliable consistent candidate and potentially adequate identity support (of198 each): bad00454; bad00587; normal004137; normal005143. These upper bounds can decrease when two transformed views arrive.
+
+Original primary50–65:
+- bad004 bilateral/right: original identity candidate UNKNOWN. Left candidate15 at both thresholds; restricted support .8125/.65625, so dual support fails.
+- bad005 bilateral/right: original identity candidate UNKNOWN. Left .3 candidate4 but .5 UNKNOWN; restricted support .71875/.53125, so dual support also fails.
+- normal004 and005 bilateral/left/right all potentially measurable; identity candidates−1/0/−1. This is a pose-estimator descriptor, not independent early truth.
+
+Actual development controller window44–59 was already a member of the frozen186 scan, not added after this result:
+- bad004 left: common d*=15, secondary13 (difference2); restricted identity support .9375/.875. It can potentially test a start-side candidate gate.
+- bad005 left: d*=4, secondaryUNKNOWN, restricted support .6875/.40625. It cannot adjudicate stop correctness or whether the policy should continue. No masked score or a smaller null set has been substituted.
+
+There are36 bad and126 normal rows potentially measurable at both recorded indices. Only2 of the36 bad rows have delayed candidate at index4; neither remains delayed at index5. Two normal rows have delayed candidates at both indices, with independent current-endpoint labels still UNKNOWN. These are correlated overlapping windows; counts are not independent successes, errors or sample sizes. All row identities are in SUMMARY.json, not selected as new endpoints.
+
+Recommendation: keep the10newposepasses paused. v2 makes many windows measurable and is a coherent fixed-candidate gate comparison, but it does not cover the requested primary delayed4→5 event or establish an observable stop. If root deliberately narrows the purpose to start-side proposal gating plus normal-control stability, the same original5videos10passes can be considered after independent labels/review; no favorable-window selection or new threshold is justified by this feasibility result. It would remain a development experiment, not a replacement for production gain>.5 or evidence of a new algorithm.
+
+A finite candidate neighborhood could be another predefined design, but choosing it now to recover these failing supports would be an additional result-informed variation. This report does not introduce or execute it. Likewise, .3-only scoring could expose descriptors, but cannot be promoted to the frozen dual-threshold endpoint.
+
+All independent truth labels remain UNKNOWN. Source07/newsource validation pending. No production or sealed runtime was changed.

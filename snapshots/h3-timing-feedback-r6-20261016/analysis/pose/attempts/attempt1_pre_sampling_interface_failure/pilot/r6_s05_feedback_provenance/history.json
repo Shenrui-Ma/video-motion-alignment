@@ -1,0 +1,378 @@
+{
+  "prompt": [
+    1,
+    "88336f3a-6027-46d6-9789-8ab709f09f25",
+    {
+      "1": {
+        "class_type": "UNETLoader",
+        "inputs": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        }
+      },
+      "2": {
+        "class_type": "CLIPLoader",
+        "inputs": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        }
+      },
+      "3": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        }
+      },
+      "4": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "41": {
+        "class_type": "MiniMaxH3SigmaShift",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "shift_video": 12.0,
+          "shift_audio": 3.0
+        }
+      },
+      "5": {
+        "class_type": "H3EventAuditReference",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ],
+          "ref_video": [
+            "23",
+            0
+          ],
+          "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+          "width": 1312,
+          "height": 736,
+          "length": 141,
+          "audit_dir": "/data3/researcher/h3_runs/timing_feedback_r6_20261016/audit",
+          "run_id": "05_sam_1312x736_shared_v3",
+          "semantic_fps": 2,
+          "phase_frames": 0,
+          "ref_image": [
+            "21",
+            0
+          ]
+        }
+      },
+      "6": {
+        "class_type": "H3EventAuditNoise",
+        "inputs": {
+          "noise_seed": 2026101311,
+          "audit_dir": "/data3/researcher/h3_runs/timing_feedback_r6_20261016/audit",
+          "run_id": "r6_s05_feedback",
+          "pair_id": "05_sam_1312x736_2026101311_v3"
+        }
+      },
+      "7": {
+        "class_type": "BasicGuider",
+        "inputs": {
+          "model": [
+            "52",
+            0
+          ],
+          "conditioning": [
+            "51",
+            0
+          ]
+        }
+      },
+      "8": {
+        "class_type": "KSamplerSelect",
+        "inputs": {
+          "sampler_name": "euler"
+        }
+      },
+      "9": {
+        "class_type": "ManualSigmas",
+        "inputs": {
+          "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+        }
+      },
+      "10": {
+        "class_type": "SamplerCustomAdvanced",
+        "inputs": {
+          "noise": [
+            "6",
+            0
+          ],
+          "guider": [
+            "7",
+            0
+          ],
+          "sampler": [
+            "8",
+            0
+          ],
+          "sigmas": [
+            "9",
+            0
+          ],
+          "latent_image": [
+            "51",
+            1
+          ]
+        }
+      },
+      "11": {
+        "class_type": "VAEDecode",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "12": {
+        "class_type": "VAEDecodeAudio",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "4",
+            0
+          ]
+        }
+      },
+      "13": {
+        "class_type": "CreateVideo",
+        "inputs": {
+          "images": [
+            "11",
+            0
+          ],
+          "audio": [
+            "12",
+            0
+          ],
+          "fps": 24.0,
+          "bit_depth": 8
+        }
+      },
+      "14": {
+        "class_type": "SaveVideo",
+        "inputs": {
+          "video": [
+            "13",
+            0
+          ],
+          "filename_prefix": "r6_s05_feedback",
+          "format": "mp4",
+          "codec": "h264",
+          "codec.encoding": "re-encode",
+          "codec.encoding.crf": 16.0
+        }
+      },
+      "21": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "sam_altman_village_global_20221117_original.jpg"
+        }
+      },
+      "22": {
+        "class_type": "LoadVideo",
+        "inputs": {
+          "file": "05_real_megumi_v.mp4"
+        }
+      },
+      "23": {
+        "class_type": "GetVideoComponents",
+        "inputs": {
+          "video": [
+            "22",
+            0
+          ]
+        }
+      },
+      "50": {
+        "class_type": "H3FeedbackRouter",
+        "inputs": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "51",
+            0
+          ],
+          "policy": "feedback",
+          "fixed_indices": "",
+          "start_frame": 50,
+          "end_frame": 65,
+          "width": 1312,
+          "height": 736,
+          "length": 141,
+          "run_id": "r6_s05_feedback",
+          "audit_dir": "/data3/researcher/h3_runs/timing_feedback_r6_20261016/audit/feedback"
+        }
+      },
+      "51": {
+        "class_type": "H3PairConditionSnapshot",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "source_audit_dir": "/data3/researcher/h3_runs/timing_feedback_r6_20261016/audit",
+          "source_run_id": "05_sam_1312x736_shared_v3",
+          "run_id": "r6_s05_feedback"
+        }
+      },
+      "52": {
+        "class_type": "H3X0Readout",
+        "inputs": {
+          "model": [
+            "50",
+            0
+          ],
+          "run_id": "r6_s05_feedback",
+          "output_dir": "/data3/researcher/h3_runs/timing_feedback_r6_20261016/audit/x0",
+          "width": 1312,
+          "height": 736,
+          "length": 141
+        }
+      }
+    },
+    {
+      "client_id": "h3-timing-architecture-r2-20261016",
+      "create_time": 1792133274085
+    },
+    [
+      "14"
+    ]
+  ],
+  "outputs": {},
+  "status": {
+    "status_str": "error",
+    "completed": false,
+    "messages": [
+      [
+        "execution_start",
+        {
+          "prompt_id": "88336f3a-6027-46d6-9789-8ab709f09f25",
+          "timestamp": 1792133274086
+        }
+      ],
+      [
+        "execution_cached",
+        {
+          "nodes": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "41",
+            "5",
+            "8",
+            "21",
+            "22",
+            "23"
+          ],
+          "prompt_id": "88336f3a-6027-46d6-9789-8ab709f09f25",
+          "timestamp": 1792133274160
+        }
+      ],
+      [
+        "execution_error",
+        {
+          "prompt_id": "88336f3a-6027-46d6-9789-8ab709f09f25",
+          "node_id": "10",
+          "node_type": "SamplerCustomAdvanced",
+          "executed": [
+            "9",
+            "50",
+            "6",
+            "7",
+            "52",
+            "51"
+          ],
+          "exception_message": "only unmodified BasicGuider CFG1 is supported\n",
+          "exception_type": "ValueError",
+          "traceback": [
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 545, in execute\n    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 344, in get_output_data\n    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 318, in _async_map_node_over_list\n    await process_inputs(input_dict, i)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 306, in process_inputs\n    result = f(**inputs)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_api/internal/__init__.py\", line 149, in wrapped_func\n    return method(locked_class, **inputs)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_api/latest/_io.py\", line 2046, in EXECUTE_NORMALIZED\n    to_return = cls.execute(*args, **kwargs)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_extras/nodes_custom_sampler.py\", line 1055, in execute\n    samples = guider.sample(noise.generate_noise(latent), latent_image, sampler, sigmas, denoise_mask=noise_mask, callback=callback, disable_pbar=disable_pbar, seed=noise.seed)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1335, in sample\n    output = executor.execute(noise, latent_image, sampler, sigmas, denoise_mask, callback, disable_pbar, seed, latent_shapes=latent_shapes)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1262, in outer_sample\n    output = self.inner_sample(noise, latent_image, device, sampler, sigmas, denoise_mask, callback, disable_pbar, seed, latent_shapes=latent_shapes)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1237, in inner_sample\n    samples = executor.execute(self, sigmas, extra_args, callback, noise, latent_image, denoise_mask, disable_pbar)\n",
+            "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 114, in execute\n    return self.wrappers[self.idx](self, *args, **kwargs)\n",
+            "  File \"/data3/researcher/h3_runs/timing_feedback_r6_20261016/custom_nodes/H3FeedbackRouter/core.py\", line 193, in __call__\n    validate_guider(model_wrap, extra_args, state, guider_class=self.guider_class)\n",
+            "  File \"/data3/researcher/h3_runs/timing_feedback_r6_20261016/custom_nodes/H3FeedbackRouter/core.py\", line 154, in validate_guider\n    raise ValueError(\"only unmodified BasicGuider CFG1 is supported\")\n"
+          ],
+          "current_inputs": {
+            "noise": [
+              "</data3/shenrui_x_ma/h3_runs/timing_feedback_r6_20261016/custom_nodes/H3EventAudit.CachedNoise object at 0x7087183aa650>"
+            ],
+            "guider": [
+              "</data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_extras/nodes_custom_sampler.Guider_Basic object at 0x7087183aa7d0>"
+            ],
+            "sampler": [
+              "<comfy.samplers.KSAMPLER object at 0x708734ba4130>"
+            ],
+            "sigmas": [
+              "tensor([1.0000, 0.9956, 0.9908, 0.9855, 0.9796, 0.9730, 0.9655, 0.9571, 0.9474,\n        0.9362, 0.9231, 0.9076, 0.8889, 0.8660, 0.8372, 0.8000, 0.7500, 0.6792,\n        0.5714, 0.3871, 0.0000])"
+            ],
+            "latent_image": [
+              "{'samples': NestedTensor([tensor([[[[[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          ...,\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]]],\n\n\n         [[[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          ...,\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]]],\n\n\n         [[[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          ...,\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]]],\n\n\n         ...,\n\n\n         [[[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          ...,\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]]],\n\n\n         [[[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          ...,\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]]],\n\n\n         [[[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          ...,\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]],\n\n          [[0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           ...,\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.],\n           [0., 0., 0.,  ..., 0., 0., 0.]]]]]), tensor([[[[0., 0., 0.,  ..., 0., 0., 0.],\n          [0., 0., 0.,  ..., 0., 0., 0.]],\n\n         [[0., 0., 0.,  ..., 0., 0., 0.],\n          [0., 0., 0.,  ..., 0., 0., 0.]],\n\n         [[0., 0., 0.,  ..., 0., 0., 0.],\n          [0., 0., 0.,  ..., 0., 0., 0.]],\n\n         ...,\n\n         [[0., 0., 0.,  ..., 0., 0., 0.],\n          [0., 0., 0.,  ..., 0., 0., 0.]],\n\n         [[0., 0., 0.,  ..., 0., 0., 0.],\n          [0., 0., 0.,  ..., 0., 0., 0.]],\n\n         [[0., 0., 0.,  ..., 0., 0., 0.],\n          [0., 0., 0.,  ..., 0., 0., 0.]]]])])}"
+            ]
+          },
+          "current_outputs": [
+            "9",
+            "50",
+            "5",
+            "6",
+            "3",
+            "4",
+            "1",
+            "12",
+            "8",
+            "10",
+            "22",
+            "14",
+            "2",
+            "7",
+            "21",
+            "13",
+            "52",
+            "11",
+            "23",
+            "41",
+            "51"
+          ],
+          "timestamp": 1792133277911
+        }
+      ]
+    ]
+  },
+  "meta": {}
+}

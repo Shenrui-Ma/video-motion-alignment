@@ -1,0 +1,35 @@
+READ-ONLY FOUR-PAIR CONTROL / CAUSAL AUDIT — 2026-10-15
+No inference, verifier rerun, visual review, or mutation of sealed archives was performed.
+
+1. Evidence quality
+Saved controls: Musk05 130/130 pass; Musk07 110/110 pass; Sam batch 171/171 pass; zero errors/missing. Read JSON checks and hook implementation, inspected graph parameters, and independently hashed all three copies of the hook (identical SHA256 3352d993f7d3daaf96d1b8a7ab3ff1404880871f022afa65397654729b5d35a6).
+Every formal pair has matching actual conditioning/reference-latent snapshots, token tags, packed layout/position IDs, and cached actual noise. Same input video, portrait and prompt within pair; formal graphs differ only factor and administrative run/output identifiers. All use seed 2026101311, Euler 20, video/audio shift 12/3, no Turbo LoRA/Sage, native PyTorch SDPA. Output geometry is 1312x736, 141 frames, 24 FPS. Saved runtime sigma schedules match within each pair. Baseline is original DiT block (0 native overrides); weighted arm has 1000 overrides = 50 blocks x 20 forwards.
+Snapshot caveat: target latent content is established by cached-object reuse plus shape/dtype, not a separate target-content digest; saved raw storages have independent hashes, unsaved embeddings use runtime hash records. Technical integrity does not establish visual efficacy.
+
+2. Exact intervention
+Implementation: extensions/H3EventEmphasis/core.py, duplicate_event_attention (line171); apply registration in __init__.py line45; EventBlockPatch line353.
+At every DiT block and every diffusion forward, all heads (runtime56) are covered. For selected TARGET video queries, append two exact copies of selected REFERENCE-video K/V after QK normalization/RoPE, recompute native attention, and replace only those query outputs. Other query outputs in that particular attention operation use native attention. Model parameters, token refiner, prompt, RoPE coordinates and K/V vector amplitudes are not changed.
+05 selects manual source interval50–65, temporal slots[14,20), positional bins47–67. 07 selects54–69, slots[16,22), bins52–72. Each selects6 x943=5658 Q and5658 K tokens, with all spatial positions. These are positional-bin boundaries, not exact VAE receptive fields. Every selected Q attends to the whole selected K group, not a one-frame-to-one-frame matching constraint.
+This is broad spatiotemporal reference conditioning: source appearance/background/pose and other information are all reinforced. It is not an isolated hand-motion feature or a motion-only channel intervention.
+
+3. Meaning of factor3
+For fixed Q/K/V in one attention operation, duplicated K/V is algebraically equivalent to +ln(3) on selected logits. If the pre-intervention attention probability mass on the selected group is P, aggregate P'=3P/(1+2P). Thus selected-vs-unselected odds are tripled, while attention probability is not generally tripled (P=.5 becomes.75). For selected individual p_i, p'_i=3p_i/(1+2P). This equivalence is conditional on the same instantaneous hidden state; later hidden states diverge between the full baseline and weighted trajectories. Actual BF16/kernel numerics may introduce small implementation-level differences.
+Across later layers/denoising steps, dense joint attention can propagate changes beyond the selected time interval, including to earlier physical frames. Physical video time is not denoising execution time. Therefore differences outside47–67/52–72 are possible without proving an indexing defect; they must nevertheless be measured as potential collateral effects.
+
+4. What causal evidence can support
+If a blinded, full-clip motion assessment finds better target timing/shape in a matched pair, this is useful initial evidence that this attention-conditioning intervention can alter/improve that rendered event under those fixed conditions. It is not explained by a new random seed, new prompt, different input preprocessing or changed within-pair sampler schedule.
+It does NOT establish that insufficient attention is the original cause, that the VAE preserved all fine information, that an omitted event was recovered (versus an existing event retimed), that short actions specifically benefit, that3 is optimal, or that the effect generalizes. Better synthesis may exploit pose/context priors rather than recover an identifiable encoded feature.
+There are no wrong-window/equal-token/placebo/all-video controls, no layer/step/space ablation, no frozen evaluation set, no multi-seed estimate and no measured attention-map mediation. The manual source window is an oracle, not an automated detector.
+
+5. Sample / runtime limits
+Four pairs = two related choreography source clips x two replacement identities x one seed, with8 formal generated outputs. Not four independent action types or a broad benchmark. Windows were reused across identities, which helps cross-identity replication, but not independent action generalization. Identity replacement changes source/target body, clothing and appearance too.
+Musk05 ran on.41 (Torch2.11.0+cu130, observed CUDA INT8 linear); Musk07 and both Sam cases on.9 (Torch2.5.1+cu121, observed Triton INT8 row guard; PyAV16 bridge). Each pair is internally matched; comparisons between Musk05 and Sam05 cannot isolate identity alone because runtime differs. Same SDPA name does not imply every low-level operation is cross-runtime identical.
+
+PRIMARY SOURCES
+/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/analysis/pair_verification.json
+/Users/researcher/DevProjects/h3-musk-bedside-pair-20261014/analysis/pair_verification.json
+/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/analysis/batch_verification.json
+/Users/researcher/DevProjects/h3-musk-bedside-pair-20261014/extensions/H3EventEmphasis/core.py
+/Users/researcher/DevProjects/h3-musk-bedside-pair-20261014/extensions/H3EventEmphasis/__init__.py
+/Users/researcher/DevProjects/h3-musk-bedside-pair-20261014/audit/emphasis/07_musk_s1_weight3.json
+Corresponding configs/*s1_baseline.json and *s1_weight3.json in all three roots.

@@ -1,0 +1,120 @@
+--- v1/BINDING.template.json
++++ v2/BINDING.template.json
+@@ -2,7 +2,7 @@
+   "schema": "r35-root-bound-postrun-v1",
+   "approved_for_consumer_start": false,
+   "remote_root": "/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017",
+-  "protocol_sha256": "69c5137a4687cd144e78bb30d879e3b7bcfa1570afd08a7ffe835a98ffcc1f02",
++  "protocol_sha256": "a60606d2a5fce587f279e855eb913db9bd03d3f532a2ab963ab66345e7669ebf",
+   "producer_manifest_sha256": "de40ebf6076bf85b781627e1b8bd5629dabadf9740f1d14c75b8ad009e73d190",
+   "service_record": null,
+   "external_identity": {
+--- v1/PROTOCOL.json
++++ v2/PROTOCOL.json
+@@ -1,5 +1,5 @@
+ {
+-  "schema": "r35-phase-bounded-postrun-v1",
++  "schema": "r35-phase-bounded-postrun-v2",
+   "created_utc": "2026-10-16T20:05:51.697442+00:00",
+   "root_local": "/Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017",
+   "root_remote": "/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017",
+@@ -130,13 +130,14 @@
+   "normal_off_requires_final_AV_and141RGB_exact": true,
+   "phase_validation": {
+     "archive": "full producer+copy inventory, actual tensor and runtime gates",
+-    "observation": "pinned inventory+RUN_GATE+actual request/response/pose/source/observer+native endpoint file+specific copied run audit",
++    "observation": "pinned inventory+RUN_GATE+actual request/response/pose/source/observer+native endpoint file+specific copied run audit; every producer scripts/extensions Python import SHA against sealed manifest",
+     "status": "small seal/gate/inventory metadata and completed phase receipts; no full PT scan",
+-    "finalize": "complete original+derived inventory and producer all files rechecked"
++    "finalize": "complete original+derived inventory and producer all files rechecked; full immutable producer manifest before and after evaluation"
+   },
+   "online_priority_roots": [
+     "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017",
+     "/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017"
+   ],
+-  "blind_media_seed": 2026101735
++  "blind_media_seed": 2026101735,
++  "revision": "v2 adds actual producer code-import dependency verification. Source data/numerical algorithm unchanged; v1 preserved under history/v1."
+ }
+--- v1/contract.py
++++ v2/contract.py
+@@ -97,6 +97,18 @@
+   checked[rel]=expected
+  return checked
+ 
++def verify_producer_sources(root,manifest_sha256,all_files=False):
++ """Pin executable imports per phase; full immutable inventory at boundaries."""
++ manifest_path=Path(root)/'deploy_manifest.json'
++ require(sha(manifest_path)==manifest_sha256,'producer manifest changed')
++ entries=read(manifest_path)['files'];checked={}
++ for rel,expected in entries.items():
++  if not all_files and not (rel.endswith('.py') and rel.split('/')[0] in ('scripts','extensions')):continue
++  p=safe(root,rel);require(p.stat().st_size==expected['bytes'] and sha(p)==expected['sha256'],'producer source changed '+rel)
++  checked[rel]=expected['sha256']
++ require(bool(checked),'producer dependency inventory empty')
++ return checked
++
+ def verify_archive_anchor(arc,run,owner):
+  receipt=read(arc.parent.parent/'archive_receipts'/f'{run}.json')
+  require(receipt['run_id']==run and receipt['owner']==owner,'archive receipt identity')
+--- v1/remote_consume.py
++++ v2/remote_consume.py
+@@ -160,18 +160,21 @@
+   dependencies.add(relative(ROOT,request['endpoint_file']))
+   dependencies.update(relative(ROOT,response[key]['file']) for key in ('decode','pose','observer'))
+   checked=verify_phase_dependencies(ROOT,arc,dependencies)
++  source_checks=verify_producer_sources(ROOT,P['producer_manifest_sha256'])
+   runtime_imports();from scan_current_pose import observe
+   result=observe(source,pose,index);require(numeric_observer(result)==numeric_observer(m['observer']),'independent current pose scan differs')
+   dest=arc/'observer_replay'/f'{index:03d}.json';require(not dest.exists(),'observer replay already exists; validate before resuming')
+-  out={'passed':True,'index':index,'scan_sha256':canonical_sha(numeric_observer(result)),'producer_observer_sha256':canonical_sha(numeric_observer(m['observer'])),'source_pose_sha256':sha(source),'pose_sha256':sha(pose),'all_numeric_values_equal':True,'summary':observer_summary(result),'elapsed_seconds':time.time()-started,'verified_dependencies':checked,'archive_inventory_sha256':sha(arc/'FILE_INVENTORY.json')};validate_replay(out,replay_binding(arc,ROOT,run,index));save(dest,out);save(HERE/'phase_receipts'/run/f'{index:03d}.json',{'run_id':run,'index':index,'result_sha256':sha(dest),'inventory_sha256':sha(arc/'FILE_INVENTORY.json')});return out
++  out={'passed':True,'index':index,'scan_sha256':canonical_sha(numeric_observer(result)),'producer_observer_sha256':canonical_sha(numeric_observer(m['observer'])),'source_pose_sha256':sha(source),'pose_sha256':sha(pose),'all_numeric_values_equal':True,'summary':observer_summary(result),'elapsed_seconds':time.time()-started,'verified_dependencies':checked,'verified_producer_sources':source_checks,'archive_inventory_sha256':sha(arc/'FILE_INVENTORY.json')};validate_replay(out,replay_binding(arc,ROOT,run,index));save(dest,out);save(HERE/'phase_receipts'/run/f'{index:03d}.json',{'run_id':run,'index':index,'result_sha256':sha(dest),'inventory_sha256':sha(arc/'FILE_INVENTORY.json')});return out
+ 
+ def final(run):
+  with locked():
+   arc,owner=checked_archive(run,full=True);case=case_for(run)
++  verify_producer_sources(ROOT,P['producer_manifest_sha256'],all_files=True)
+   for i in range(20):validate_replay(read(arc/'observer_replay'/f'{i:03d}.json'),replay_binding(arc,ROOT,run,i))
+   import evaluate
+   result=evaluate.evaluate(ROOT,arc,case,P)
+   verify_source_archive(ROOT,arc,owner,run)
++  verify_producer_sources(ROOT,P['producer_manifest_sha256'],all_files=True)
+   result.update(passed=True,run_id=run,owner=owner,no_GPU=True,cleanup_claim=False,observer_replay_indices=list(range(20)))
+   result['derived_outputs']=sorted(str(p.relative_to(arc)) for p in (arc/'final').rglob('*') if p.is_file())
+   save(arc/'CPU_COMPLETE.json',result)
+--- v1/test_phase_dependencies.py
++++ v2/test_phase_dependencies.py
+@@ -1,6 +1,6 @@
+ import json,tempfile,unittest
+ from pathlib import Path
+-from contract import save,sha,verify_phase_dependencies,verify_archive_anchor
++from contract import save,sha,verify_phase_dependencies,verify_archive_anchor,verify_producer_sources
+ 
+ class PhaseDependencyTests(unittest.TestCase):
+  def fixture(self,base):
+@@ -34,4 +34,25 @@
+    (arc/'FILE_INVENTORY.json').write_text('{}')
+    with self.assertRaises(ValueError):verify_archive_anchor(arc,'run',owner)
+ 
++class ProducerImportTests(unittest.TestCase):
++ def fixture(self,root):
++  entries={}
++  for rel,data in [('scripts/scan.py',b'code'),('extensions/X/core.py',b'kernel'),('inputs/data.pt',b'unrelated')]:
++   p=root/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data);entries[rel]={'bytes':len(data),'sha256':sha(p)}
++  save(root/'deploy_manifest.json',{'files':entries})
++  return sha(root/'deploy_manifest.json')
++ def test_phase_sources_skip_unrelated_PT_but_final_rejects(self):
++  with tempfile.TemporaryDirectory() as d:
++   root=Path(d);sealed=self.fixture(root);(root/'inputs/data.pt').write_bytes(b'bad')
++   self.assertEqual(len(verify_producer_sources(root,sealed)),2)
++   with self.assertRaises(ValueError):verify_producer_sources(root,sealed,all_files=True)
++ def test_import_tamper_rejected(self):
++  with tempfile.TemporaryDirectory() as d:
++   root=Path(d);sealed=self.fixture(root);(root/'scripts/scan.py').write_bytes(b'evil')
++   with self.assertRaises(ValueError):verify_producer_sources(root,sealed)
++ def test_manifest_tamper_rejected(self):
++  with tempfile.TemporaryDirectory() as d:
++   root=Path(d);sealed=self.fixture(root);save(root/'deploy_manifest.json',{'files':{}})
++   with self.assertRaises(ValueError):verify_producer_sources(root,sealed)
++
+ if __name__=='__main__':unittest.main()

@@ -1,0 +1,24 @@
+2026-10-16 13:42 UTC：空间支撑随姿态错位变化的后续候选，初步近邻核对
+
+动机来自R16完整性通过后的失败：源手臂固定mask覆盖最终ROI结果前臂的比例低。干预前index005已有左臂错位证据，右臂可见性不足。最终位置和clean端点姿态都不能直接当作hidden query的解剖标签。
+
+待验证候选：从当前生成轨迹的原生clean端点读取可靠身体局部位置，将需要达到的源位置与当前生成位置共同用于选择允许修改的query区域。mask应覆盖旧位置的消除及新位置的形成；动作时间误差决定是否需要这种修正。对unknown部位预先规定拒判；不能由最终生成结果构造mask然后称在线方法。此处未实现、未冻结参数、未授权GPU。R16原mask及统计保持原样。
+
+本轮新查的原文近邻：
+1. FreeMask §4.2 Eq2–8、§4.3 Eq9–11：在DAVIS上评估不同层/去噪步的mask精度，按编辑语义选择固定或随步变化的mask，再融合时序/交叉/自注意力。它已明确指出固定源形状与编辑后形状不合、mask变化可引发模糊。当前候选的区别只能具体落在同状态原生端点、动作物理帧误差、两端姿态支撑及执行器上；“mask随步变”已有。
+https://arxiv.org/html/2409.20500v1#S4
+
+2. TeleMorpher §4.3 Eq3–6：显式计算源/目标人体mask的交集与对称差，按对应身体局部细化，再执行部位图像warp；§4.4将得到的条件注入attention。已覆盖双方位置及部位差异，union/对称差本身不能作为新数学贡献。该文的对象是预给定源/目标运动及一次性指导构造；本候选关注去噪当前状态的时序纠错。尚未审官方实现，不能据此排除其所有细节。
+https://arxiv.org/html/2606.19676v1#S4.SS3
+
+3. MotionFollower ICCV2025 §3/4：以源、编辑人体mask及其交叠/差集区分引导区域，有训练好的pose/reference控制器和推理score guidance。源/目标空间差异分区已有直接先例。
+https://openaccess.thecvf.com/content/ICCV2025/papers/Tu_MotionFollower_Editing_Video_Motion_via_Score-Guided_Diffusion_ICCV_2025_paper.pdf
+
+4. DIAL §3及Appendix C：上一去噪步ISGM引导下一步query-to-reference偏置，逐步更新主体支撑。当前状态mask和空间局部attention控制也已有。当前候选需检验物理动作错位是否带来独立必要性及可重复收益。
+https://arxiv.org/html/2609.11507v1
+
+5. ASTRA作者页明确先验mask重定向、深度约束及分时段结构控制；目前只读作者页/README，没有把它作为已审全部算法。
+https://muzishen.github.io/ASTRA/
+https://github.com/XWH-A/ASTRA
+
+结论范围：双mask、并集/差集、部位引导、随步更新均有先例。候选仍可作为诊断或组合组件，创新需要依靠可检验的动态时序纠错机制和质量收益。先完成R16均匀对照、R17位置双符号及R18停止因果检查，再决定是否实施；不因概念相近直接否决，也不将组合自动称为创新。

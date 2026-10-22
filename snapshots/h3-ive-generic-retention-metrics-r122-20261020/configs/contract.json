@@ -1,0 +1,87 @@
+{
+  "schema": "r122-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_generic_retention_r122_20261020",
+  "producer_seal_sha256": "3c8b41e7fbbe6d226292ae96f07c43c58eef1e9535cac42ba159008910adb196",
+  "producer_contract_sha256": "3efdac4f3eefc493b91ce7ca5a132b025efb681a4c2168cf436c8eb54f82a5c9",
+  "producer_runtime_sha256": "c4aae60a144be715b1014874156f6e997a1bb375b6b9148faa054b2f41ce5c0c",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "long_0039"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0039",
+      "run_id": "r122_long_0039_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdjust the color of book to blue\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+      "original_task": {
+        "id": 39,
+        "src_video_name": "long_0039.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "The video depicts a modern office environment where a woman is sitting at a desk, working on a computer and reading a orange book. In the background, two colleagues are engaged in a conversation, and another person joins them, creating a collaborative and productive atmosphere.",
+        "edit_prompt": "Adjust the color of book to blue",
+        "target_prompt": "The video depicts a modern office environment where a woman is sitting at a desk, working on a computer and reading a blue book. In the background, two colleagues are engaged in a conversation, and another person joins them, creating a collaborative and productive atmosphere.",
+        "target_span": "blue",
+        "target_phrase": "blue book"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 109,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "109/25",
+        "end_exclusive_rational": "22/5",
+        "duration_rational": "22/5"
+      },
+      "task_scope": "manipulated_object_color",
+      "evaluation_scope": "IVEBench素材片段探索",
+      "forced_run_id": "r122_long_0039_seed2026101701_forced",
+      "valid_frames": 106,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/long_0039_video.mp4",
+        "sha256": "ed29fd0615aaeee1f24f103b37bea5f18dc7daebce0159b8ff460492ca6c934c",
+        "bytes": 22940334
+      },
+      "provenance": {
+        "file": "inputs/long_0039_provenance.json",
+        "sha256": "f17a4f35c334aaea09c24ceed9db989472c09f29d122bd3d425da452800d3695",
+        "bytes": 27727
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/inputs/long_0039_original.mp4",
+        "sha256": "eab696d1555be316d9efad4e306c1209feff2967ef1f93cf3ee1a7c7c88d868e"
+      },
+      "graph_sha256": "5ef3cccaa2ddf51198cbac01efb024e99d77b0e7c8bc6301f84705542aa508bd",
+      "forced_graph_sha256": "6a04347273accfbbc8dd9efd418914665b33727af54c4918a2965031c74fe26c"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

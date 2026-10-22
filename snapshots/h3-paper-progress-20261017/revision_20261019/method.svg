@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 610" role="img" aria-labelledby="title desc">
+<title id="title">H3 参考时间读取的作用位置与两种计算方式</title>
+<desc id="desc">在 DiT Attention 内、RoPE 之后和输出投影之前，计算参考视频原读出与对应时间读出的差，并乘回原参考总权重。新结构保留原空间分配，读取对应时间的 Value。下方概率矩阵为数学示意。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#465467"/></marker></defs>
+<style>text{font-family:Arial,"PingFang SC",sans-serif;fill:#1b2534;font-size:18px}.small{font-size:15px}.label{font-size:20px;font-weight:600}.wire{fill:none;stroke:#465467;stroke-width:2;marker-end:url(#arrow)}.box{fill:#f2f4f7;stroke:#aab4c0;stroke-width:1.5}.blue{fill:#edf4fd;stroke:#608bc0;stroke-width:1.5}</style>
+<rect x="1" y="1" width="1198" height="608" rx="12" fill="white" stroke="#d8dee6"/>
+<text x="28" y="36" class="label">作用位置：每个选定 DiT Block 的 Attention 内部</text>
+<rect x="30" y="66" width="175" height="88" rx="7" class="box"/><text x="117" y="101" text-anchor="middle">当前视频与参考</text><text x="117" y="128" text-anchor="middle">多模态特征</text>
+<path d="M205 110 H240" class="wire"/><rect x="242" y="66" width="150" height="88" rx="7" class="box"/><text x="317" y="94" text-anchor="middle">Q / K / V</text><text x="317" y="118" text-anchor="middle" class="small">Q/K RMSNorm</text><text x="317" y="141" text-anchor="middle" class="small">RoPE</text>
+<path d="M392 110 H425" class="wire"/><rect x="427" y="66" width="185" height="88" rx="7" class="box"/><text x="520" y="101" text-anchor="middle">原 Attention</text><text x="520" y="128" text-anchor="middle">输出 O</text>
+<path d="M612 110 H649" class="wire"/><rect x="651" y="66" width="235" height="88" rx="7" class="blue"/><text x="768" y="100" text-anchor="middle">参考时间读取修正</text><text x="768" y="129" text-anchor="middle">O′ = O + α m (z* − z)</text>
+<path d="M886 110 H925" class="wire"/><rect x="927" y="66" width="243" height="88" rx="7" class="box"/><text x="1048" y="101" text-anchor="middle">输出投影 · 后续网络</text><text x="1048" y="128" text-anchor="middle">采样状态更新</text>
+<text x="30" y="195" class="small">m：当前 query 原本分给参考视频的总注意力；z：原参考读出；z*：修改后的参考读出。</text>
+<line x1="30" y1="216" x2="1170" y2="216" stroke="#d8dee6"/>
+<text x="30" y="253" class="label">三种读取分布的并列比较：目标时刻对应参考时间 t₀</text>
+<text x="65" y="295">原参考分布 A(t,s)</text><text x="468" y="295">已有同帧读取</text><text x="847" y="295">保留空间分配的读取</text>
+<g text-anchor="middle"><text x="134" y="326" class="small">位置 s₀</text><text x="230" y="326" class="small">位置 s₁</text><text x="535" y="326" class="small">位置 s₀</text><text x="631" y="326" class="small">位置 s₁</text><text x="940" y="326" class="small">位置 s₀</text><text x="1036" y="326" class="small">位置 s₁</text></g>
+<g stroke="white" stroke-width="2"><rect x="86" y="340" width="96" height="62" fill="#85b2e5"/><rect x="182" y="340" width="96" height="62" fill="#d8e8f8"/><rect x="86" y="402" width="96" height="62" fill="#e7f0fa"/><rect x="182" y="402" width="96" height="62" fill="#76a8de"/>
+<rect x="487" y="340" width="96" height="62" fill="#3873b4"/><rect x="583" y="340" width="96" height="62" fill="#bfd7f0"/><rect x="487" y="402" width="192" height="62" fill="#f4f6f9"/>
+<rect x="892" y="340" width="96" height="62" fill="#76a8de"/><rect x="988" y="340" width="96" height="62" fill="#5d95d0"/><rect x="892" y="402" width="192" height="62" fill="#f4f6f9"/></g>
+<g text-anchor="middle"><text x="52" y="378">t₀</text><text x="52" y="440">t₁</text><text x="134" y="378">0.40</text><text x="230" y="378">0.10</text><text x="134" y="440">0.05</text><text x="230" y="440">0.45</text><text x="535" y="378" style="fill:white">0.80</text><text x="631" y="378">0.20</text><text x="535" y="440">0</text><text x="631" y="440">0</text><text x="940" y="378">0.45</text><text x="1036" y="378">0.55</text><text x="940" y="440">0</text><text x="1036" y="440">0</text></g>
+<line x1="382" y1="316" x2="382" y2="510" stroke="#d8dee6" stroke-dasharray="4 5"/><line x1="786" y1="316" x2="786" y2="510" stroke="#d8dee6" stroke-dasharray="4 5"/>
+<text x="65" y="499" class="small">空间总量：0.45 / 0.55</text><text x="468" y="499" class="small">空间总量：0.80 / 0.20</text><text x="847" y="499" class="small">空间总量：0.45 / 0.55</text>
+<text x="30" y="550" class="small">新结构：全参考 K 决定空间权重；对应时刻的 V 提供读出内容；参考总权重 m 保留。</text>
+<text x="30" y="578" class="small">矩阵数值用于说明计算差异。固定空间位置跨帧可能对应不同物体，实际视频效果由实验检验。</text>
+</svg>

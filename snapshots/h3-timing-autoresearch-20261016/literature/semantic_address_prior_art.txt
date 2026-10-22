@@ -1,0 +1,116 @@
+H3 稀疏语义 / 密集 VAE 时间地址：独立窄范围先例与可主张范围审查
+审查日：2026-10-16；作者：独立 literature/code reviewer
+写入范围：仅本文件。未运行 GPU、未修改实现、未部署。P/T 结果在本审查中不预支。
+
+结论先行
+
+已有非常直接的“稀疏语义条件与密集 diffusion latent 共享时空坐标”视频生成先例：Baton 的 Relative Semantic RoPE。另有 VideoCanvas 的像素帧到分数 latent 时间位置、MOVA 的不同采样率及首帧时间偏置校正。因而“统一多模态物理时间地址 / 校准不同分支的时钟”作为概念或简单坐标公式，不能视为新的架构贡献。
+
+当前 H3 P/T 2×2 是有意义的因果诊断，但没有实施显式语义—VAE 时间地址校准。T 修改 Qwen 输入的文字，P 修改被观察的图像；两者都改变条件内容。即使输出动作时刻随之变化，也不能直接判定为 RoPE 时钟冲突，更不能据此宣布一个 training-free 新架构。本轮没有保留足够可信、可以直接推进实现并称为架构创新的方案。下文仅保留一个待反证的诊断假设；它不是论文新方法承诺。
+
+一、五个最接近的原始证据与准确边界
+
+1. Baton：最危险且直接的语义—latent 地址先例
+论文：https://arxiv.org/html/2605.25195v1
+作者项目：https://francis-rings.github.io/Baton/
+原文范围：§3.1 末尾，§3.2（Eq. 5–7），§3.3；本次 HTML 112–141 行。
+短引文：“The two grids differ along all three axes”（§3.2）。
+方法：稀疏计划语义网格 (N,h_s,w_s) 与 VAE latent 网格 (T_l,H_l,W_l) 不同，在 DiT 的语义 cross-attention 中令 query 坐标为 (i_t,i_h,i_w)，semantic key 为 (j_t*T_l/N,j_h*H_l/h_s,j_w*W_l/w_s)，再做 3D RoPE。规划阶段另用 timestamp-based RoPE 对齐音/视频语义塔。训练包括 planner、DiT adaptation 和 joint fine-tuning；不是无需训练的补丁。
+碰撞：给稀疏语义 token 增加按物理时间/压缩率换算的坐标，让输出 latent 读对应语义片段，已有明确公式。区别：Baton 使用训练得到且有指定网格的计划 token；H3 当前是上下文化的参考视觉 hidden states。仅换成 H3、仅去掉训练，均不自动成为机制创新。
+代码可得性：本次作者项目实际 href 列表无方法仓库链接，限定检索未找到可核实的实现；不声称作者从未发布代码。碰撞判断依据论文全文，不能声称已复现其效果。
+
+2. VideoCanvas：像素时间与 VAE 压缩时间的精确地址映射
+论文：https://arxiv.org/html/2510.08555v1
+原文范围：§3.3、§5.1、§5.3，尤其 Eq. pos_t(z_cond,i)=t_i/N；HTML 138–164、183–190 行。
+短引文：“a frozen VAE and a fine-tuned DiT”。
+方法：条件图片独立 VAE 编码，条件 token 用物理帧号 / VAE stride 的分数 RoPE 时间位置；目标 latent 保持整数网格。它比较了整数定位、像素 padding、latent condition，并观察指定帧对齐。不是整个模型 frozen / training-free：训练 DiT，冻结 VAE，无新增参数。
+碰撞：用连续物理时间替代粗 latent-bin index、修正压缩后的定位歧义，已有视频生成/补全先例。它不等于文字 timestamp 对 Qwen 上下文的影响，也不是 H3 双帧语义块诊断。
+官方仓库：https://github.com/KlingAIResearch/VideoCanvas
+本次 API 核验 commit 8e0310d5e3b76e0ec115ba2011f76ec56eab53ea；仓库只有 README/assets，无可审查方法 Python 实现，README 标注 Code (Coming soon)。因此方法证据来自论文，不假称代码复验。
+
+3. MOVA：多速率物理时间以及首帧边界偏置已有具体实现
+论文：https://arxiv.org/html/2602.08794v1
+原文范围：§2.2 Aligned RoPE，HTML 149–160 行。
+短引文：“the same physical time”。
+方法：音/视频 latent FPS 不同，令 p_v(i)=(f_a/f_v)*i、p_a(j)=j，交叉注意力使用共享时间单位。该文明确沿用 MMAudio/OVI 的对齐思路；不能称物理时间统一始于我们。
+已读官方代码：
+https://github.com/OpenMOSS/MOVA/blob/1591b2557b42030a3421442c998dd6f5602ed9bd/mova/diffusion/models/interactionv2.py#L421
+build_aligned_freqs 421–463 行：默认均匀映射；可选 apply_first_frame_bias_in_rope 使用首 latent 起点 0、后续起点 1/video_fps+k/(video_fps/4)，再转 audio-step 单位。227–250 行将对应 cos/sin 施于 cross-attention Q/K。此函数仍硬编码 stride=4，不适合直接拷入 H3 的非均匀时间格。
+边界：代码存在该开关不证明所有发布权重或推理配置启用了它；本次未运行模型。它是音/视频 latent 对齐，不是 paired-frame 语义上下文校准，但“VAE 首帧和不同时间采样率需要校准”已有先例。
+
+4. Bernini：真正的语义规划 + source VAE 视频编辑近邻，不能误当相同校准
+论文：https://arxiv.org/html/2605.22344v2
+原文范围：§2.1.1–2.1.2，Eq. 1–2；§6.6。
+短引文：“segment-dependent global phase modulation”。
+模型将 MLLM 语义计划与 source VAE 条件结合；SA-3D RoPE 给输入/目标 segment 加不同 source_id 全维复相位，用于身份/来源区分。它不是将文字 timestamp 翻译为共享物理时间的公式。
+已读官方代码 commit e6c2cf11843470b08491745947abcba9c3c6b079：
+https://github.com/bytedance/Bernini/blob/e6c2cf11843470b08491745947abcba9c3c6b079/bernini/models/transformer_wan.py#L269
+269–291 行生成局部 t/h/w 频率并乘 source_id 频率；446–451 行 patch_vae_latent。
+https://github.com/bytedance/Bernini/blob/e6c2cf11843470b08491745947abcba9c3c6b079/bernini/models/wan_diffusion.py#L400
+400–475 行分配条件 source_id、target=0；217–218 行将 cond_embeds 与 rotary_embs 分别传给 transformer。
+边界：这核实了相关 renderer/segment 机制，不等于复现完整 planner。它否定“双分支分工新颖”；没有从上述段落/代码证明其做了本 P/T 交叉诊断，未见不等于不存在。
+
+5. Qwen3-VL：文字时间标签本来就是时间语义机制，不能称纯 RoPE shift
+论文：https://arxiv.org/html/2511.21631v1
+原文范围：§2.3 Video Timestamp，HTML 133–137 行。
+短引文：“textual token–based time encoding strategy”。
+文中用格式化文本 timestamp 取代此前直接绑定绝对时间的位置方案，讨论长视频和多 FPS 训练；这是理解模型中的时间表示设计，并非新的 H3 编辑修正。故 label-only 改变下游动作首先是条件语义效应，其出现本身并不反常。
+本次还直接读取了本地冻结 H3 源码，见下一节；不把 Qwen 报告中的通用描述当作当前 H3 具体调用链的唯一证据。
+
+二、H3 这轮实际改了什么：不要混淆四个层次
+
+本地原始源码证据包：
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+本次重读内含：
+- comfy_extras/nodes_minimax_h3.py:313–362：完整 prepared frames 进入 VAE；另每12帧采一张给 Qwen（24fps下2fps），最后 clip.tokenize/encode，附加 dense reference blocks。
+- comfy/text_encoders/minimax.py:39–72：两张图进入一个 temporal patch；不是像素平均。
+- 同文件179–191：两张图的 timestamp 均值，格式化 <%.1f seconds>，然后 add_vision。
+另沿用已审计的 comfy/ldm/minimax/model.py:353–460：Qwen输出作为 semantic/text segment，下游位置按序列索引安排，而非把这些秒数直接作为 DiT RoPE。
+
+层次1：P 的图像采样物理时间。P0=[0,12,…132]，P6=[6,18,…138]，实际移6/24=.25秒，观察到的姿势/遮挡/外观也变化。
+层次2：T 的文本时间语义。双帧中心均值 .25,1.25,…在原生格式化后为 .2,1.2,…；T6为 .5,1.5,…，文字差 .3秒。不能把 .25 秒像素相位与 .3 秒显示标签混称一次等量时钟平移。
+层次3：Qwen 的视觉网格/MRoPE及上下文化。文字改变可能传播至多个甚至全部后层 token；输入块位置不等于纯粹独立、可任意搬运的动作槽。
+层次4：H3 DiT packed-sequence temporal RoPE。当前固定长度 P/T 试验没有更改该位置网格。reference origin6961、target7196的235单位差也保持；不能把 label 效应解释为已修复这235单位差。
+
+相位与地址的区分：如果所有相互作用 token 的 RoPE 坐标共同加常数，理想标准 RoPE 内积保持；只移动参考支会改变相对内积，绝不是共同坐标规范变换。仅把参考段 origin reset，仍属于已有参考位置修改，不能通过改名为“校准”获得新意。token数、K/V信息量、参考时长变化必须独立控制。
+
+三、P/T 若有效，最多说明什么
+
+设 A=P0T0、B=P6T6、C=P0T6、D=P6T0；e 为事先冻结的、有符号动作lag估计，unknown仍记unknown。
+- C−A、B−D：固定图像时改文字标签的总效应；不是纯注意力坐标效应。
+- D−A、B−C：固定标签时换图像的总效应；不是无内容改变的采样时钟效应。
+- B−D−C+A：对该特定 P、T 水平的交互；不能单凭显著交互证明两套时钟冲突。
+- C或D故意制造不匹配元数据，其成功可能是补偿偏差的分布外提示策略，而非“恢复正确时间”。B的真实时间标签也受一位小数舍入，不是连续时间真值。
+- 一次改善只说明该 seed / clip 的条件敏感性。当前四臂未给出概率、普适性、训练分布或架构因果的充分证据。
+
+最低替代解释排除清单（按优先级）
+1. 呈现链路：真实 vision pixels / dense latent / noise / packed layout / frame count/fps / sampler 全部审计。相同P的vision张量一致，相同T的标签一致；用本轮A0实际编码门，不用历史口头数字。
+2. 语义内容：P改变的姿势和可见性直接影响生成。不能以“固定采样张数”就声称信息量相同。
+3. 文本扰动：T改了词嵌入及整个条件 hidden states。若无方向、无剂量规律，仅变化很大，首先解释为上下文敏感；不能说模型内部时间轴被平移了。
+4. 调参/选择偏差：最优标签偏置必须由发现集选择，在未看过seed/clip上冻结验证。不能只公布修好的 C或D、忽略B和正常样本。
+5. 时间评估：统一物理fps，禁止后处理变速/剪辑误对齐；有符号lag与动作幅度、遗漏、身份及背景质量分开报告，遮挡unknown不转成功。
+6. 分布外补偿：错误标签救回错误输出，最多可说明存在干预杠杆；还需证明真实标签/真实物理时间的一致性原则，而非通用反向提示。
+7. 源/目标位置：若后续新增地址算子，直接比较同帧mask、简单reference-origin shift、Baton式比例映射。不能用“没有完全相同H3论文”代替这些基线。
+
+四、仅保留一个可证伪问题，不保留新架构承诺
+
+诊断问题：在 dense reference、采样内容数量、DiT layout 和噪声固定时，H3 动作时刻是否对“标签的数值时间关系”具有可重复、有符号响应，而不仅是对任意文字变化敏感？
+这比“更改timestamp后视频变了”严格，但仍是诊断贡献。只有先证明这一点，才有理由研究已知坐标对齐思想在冻结上下文化条件上的适配；本轮没有足够证据提出独立新算子。
+
+最小下一轮反证实验（如现P/T确有效才考虑；不是要求现在加GPU任务）：
+- 冻结P0、dense latent/noise和全部推理设置；在现T0、T+之外，加一个保持词法长度/非负时间可行的数值反向偏置，预先指定符号和允许误差。不可见负标签为满足对称而硬造分布外样本；可改用后段局部窗口，明确这不是全局偏移。
+- 增加一个保持数值时间关系但改变呈现文字的匹配控制，以及一个不表达时间偏移的同规模文本扰动。不同格式必须报告token长度及位置变化，不能假称完全等价；若做不到等预算，先放弃此控制的因果结论。
+- 用至少一个新seed、一个新clip复验固定方向；报告发现案例及正常案例。时间偏置若只是“更容易随机生成另一条动作”，signed response不会稳定。
+- 若只有P有效、T无重复效应，拒绝文字时间地址失配假设，转为采样内容/事件覆盖问题。
+- 若T有效但非时间词扰动相当，或增减标签都能随机改善/恶化且无方向，拒绝“可校准时钟”解释。
+- 若最佳偏置仅随seed而变、无法预测，或改善来自动作幅度/身份/背景退化，拒绝结构校准主张。
+- 即使方向稳定，也不能立即称新架构：还要证明简单固定偏移/已知跨速率RoPE映射不能解释全部收益，并在新数据验证。若简单基线即可解释，应如实归类为接口诊断或推理校准应用。
+
+这里故意没有给第二、第三个装配式候选。当前最合理的学术态度是先保留因果问题，暂不承诺“多模态时间地址一致性新架构”。
+
+五、检索范围与不确定性
+
+本次窄检索使用 arXiv全文、作者项目和官方GitHub，重点词为 semantic tokens / diffusion latents / temporal alignment / timestamp / physical time / RoPE / video editing。核实了Baton、VideoCanvas、MOVA、Bernini、Qwen3-VL具体相关段落与上述可得源码；一般视频理解、纯文本剪辑agent、二手论文解读不作为机制证据。
+未穷尽所有2026论文；未找到本H3固定预算P/T交叉诊断完全同构的论文不是空白证明。Baton和VideoCanvas方法源码本轮不可核实，已明确保留；可访问的MOVA/Bernini实现已固定commit。没有用网页摘要中的“frozen backbone”覆盖VideoCanvas正文明确fine-tuned DiT的事实。
+
+最终gate：P/T先完成并审计，效果只决定是否继续因果诊断；它不自动打开架构创新gate。当前结论是“存在强直接先例，尚无已证明且明确区别的结构贡献”。

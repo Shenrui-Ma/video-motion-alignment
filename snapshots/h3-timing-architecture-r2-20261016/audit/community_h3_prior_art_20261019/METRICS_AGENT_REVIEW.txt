@@ -1,0 +1,50 @@
+MiniMax-H3-Flow-Aligned-Regenerate：只读方法核查
+2026-10-19；commit e13bdfe0d2a7970f05f0504ee092f3ae852a977d（2026-10-17 13:32:02 UTC）；README/Release v0.3.14。
+
+结论
+它应纳入我们的社区先例：已经在 H3 上用相邻帧 latent 匹配、双向循环检查、置信度拒绝与运动补偿做 training-free temporal guidance。仅主张“无需光流网络、从H3特征求对应、在推理时按可信度传输”会明显覆盖已有思想。
+当前读到的实现与 R115 的具体算子有明确差别；也未在已核查代码中找到拟议的 query-time 依赖 reference K 差分 RoPE 旋转。这个局部结论不构成整个领域的新颖性证明。
+
+1. 它解决什么、在哪里改
+主要任务是低分辨率生成的轨迹指导高分辨率再生成，以及多段 continuation 的边界/场景连续性。其 reference 通常是第一次低分辨率 H3 推理得到的 predicted-clean trajectory，按去噪坐标选取/插值；不是把输入编辑参考视频的原始动作时刻作为监督事件。time-matched 在主引导函数中首先指去噪时间。它也有视频帧维度的 temporal 项，两种时间不要混淆。
+runtime.py:600–629 在一次模型预测完成后拆出 video_x0，调用 apply_guidance，再与原 audio_x0 打包。由此可确认主 temporal 算子作用于预测干净 latent，而非 DiT 每层 reference Value 或 K。
+
+2. 具体算子
+令 H_t 是本次高分辨率 predicted-clean latent，L_t 是匹配去噪坐标的低分辨率预测，U 是空间转换。direction 项为
+  H <- H + eta(s) * lambda_d * LP(U(L)-H)，
+eta(s)=(s/s_start)^p，最后以 RMS 上限缩放合并修正。schedule 是坐标函数；当前实现没有基于输出事件迟到来自动开关干预。
+
+temporal 项先在平滑后的 L 的相邻视频帧求局部余弦最近邻。默认空间半径4、相似度至少0.35、第一与第二候选差至少0.02，反向匹配必须回到原点（默认cycle tolerance0）。可信度将相似度、唯一性和双向支持结合，失败点为0；同一参考去噪坐标的匹配可缓存。
+设 W 是由这些对应得到的warp（跨分辨率时还会缩放位移），前向修正可写成
+  delta_t = W(H_{t-1}) + U[L_t - W(L_{t-1})] - H_t。
+反方向同样计算，然后按confidence合并、以max(总confidence,1)归一化；最后乘eta(s)*lambda_t加回H。括号项保留参考的逐帧变化，因此不能简单归类为纯时域平均。
+此外，acceleration 比较相邻不同去噪坐标的 flow velocity 差，v=(x_s-x0)/sigma；它对应去噪轨迹曲率。downsample_consistency 则把 H 下采样后的误差搬回目标网格。
+证据：guidance.py:307–369、420–474、501–612、838–950、1141–1205、1207–1318；runtime.py:600–629。
+
+3. Attention Lab 与位置处理
+Attention Lab 的 diagnostic 模式统计注意力；experimental_sparse 将部分head保留全局，其余head按空间邻域限制视频到视频连接；非视频（含reference）仍全局可见。vdn_reference_dense 用5帧chunk邻域及首末/边界anchor构造mask。名称中的 reference 指拓扑正确性对照，不代表编辑参考视频的专属动作引导。证据 attention.py:14–31、77–116、170–220、276–341、343–455。
+partitioned_positions 为高分辨率prefix与低分辨率suffix构造各自原生空间位置，并保留连续视频时间；未按输出query时间给同一reference K不同旋转。证据 partitioned_stage.py:408–448。partitioned_prefix.py:230–329实现按LSE和log measure合并不同K/V组的softmax结果，是已有的组质量/采样密度处理，不应把“分组注意力归一化”本身作为我们的独立新公式。
+
+4. 与我们逐项比较
+R115：在每层reference Value上、共同第6次模型调用处固定相邻时间bin的双向对应；随后由query所在时间tau决定把早于tau的Value向后一bin、晚于tau的向前一bin读取，保留原Q/K、参考组总attention质量与其他组输出。匹配来自逐head Value余弦描述，双方严格共享bank，未匹配位置原值回退。
+社区实现：从低分辨率x0的相邻帧生成局部对应，直接修正高分辨率x0的运动补偿残差；其算子不依赖单个query时间，也没有R115这种保持原Q/K及组质量的Value读取替换。因此匹配思想是近邻先例，干预位置、读出方式与实验问题存在差异。R115能否形成贡献仍需实际成片与固定位置对照支持。
+
+拟议RoPE：K'_{tau,j}=R(p'_tau,j)R(p_j)^T K_j，并将新reference组分布乘回原组质量。该算子改变依赖Q/K和query-time的相对相位及组内权重。核查的主引导、Attention Lab和partitioned位置实现均未出现这一组合。仓库确实兼容 Untwisting RoPE；兼容关系及原生多分辨率RoPE不等于已经实现我们的差分旋转。拟议分支当前仍只有本地理论推导。
+
+5. 效果证据与使用边界
+该项目 docs/RESEARCH.md:98–126 自述：严格匹配后的可用支持很稀疏，D14 direction与direction+temporal肉眼未见差异，temporal列为中性实验项。这是作者的公开实验记录，我没有复跑。它没有提供本次任务所需的IVEBench编辑事件时间改善证据。README推荐的完整continuation堆栈使用预训练VDN和learned upscaler；Flow引导本身没有训练新权重，training-free应按这个含义表述。
+
+6. 来源、许可、论文
+仓库公开代码许可证Apache-2.0（LICENSE；GitHub metadata一致）。README、RELEASE_NOTES、CREDITS、RESEARCH中有大量引用论文链接；本次检查没有发现该仓库自身对应的独立论文/DOI/arXiv链接。CREDITS把direction归因HiFlow，把temporal对应归因TokenFlow/FRESCO/MoVideo/Upscale-A-Video/LatentWarp等。对这些引用本文只记录其作为仓库归因的事实，未重新审查全部原论文。
+只读下载71个相关源码/文档共2.23MB，精确SHA与URL在SNAPSHOT.json。没有安装依赖、import该仓库、执行其测试或启动GPU。
+
+固定commit来源
+README: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/README.md
+Release: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/RELEASE_NOTES.md
+Guidance: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/h3_flow_regenerate/guidance.py#L838-L950
+Runtime: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/h3_flow_regenerate/runtime.py#L600-L629
+Attention: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/h3_flow_regenerate/attention.py#L170-L220
+Positions: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/h3_flow_regenerate/partitioned_stage.py#L408-L448
+Measurements: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/docs/RESEARCH.md#L98-L126
+Credits: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/CREDITS.md
+License: https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/LICENSE

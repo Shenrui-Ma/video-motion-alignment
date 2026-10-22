@@ -1,0 +1,134 @@
+{
+  "schema": "r134-source-only-head-neck-event-plan-v1",
+  "created_unix": 1792454218.502333,
+  "source_id": "short_0353",
+  "source": {
+    "file": "/Users/researcher/DevProjects/h3-ivebench-subject-candidates-r82-20261018/sources/short_0353.mp4",
+    "sha256": "0cbadb3992e905be874c99111c641b58694f2788c63ec4fe9771b8776e0487c4"
+  },
+  "official_task": {
+    "id": 353,
+    "src_video_name": "short_0353.mp4",
+    "category": "attribute_editing",
+    "subcategory": "color adjustment",
+    "source_prompt": "The video depicts a medical team wearing blue scrubs performing surgery in an operating room. One surgeon is prominently in the foreground, leaning over the patient.",
+    "edit_prompt": "Change the blue scrubs to green.",
+    "target_prompt": "The video depicts a medical team wearing green scrubs performing surgery in an operating room. One surgeon is prominently in the foreground, leaning over the patient.",
+    "target_span": "green",
+    "target_phrase": "medical team wearing green scrubs"
+  },
+  "metadata": {
+    "file": "/Users/researcher/DevProjects/h3-ivebench-next-candidates-20261018/metadata/ivebenchdb_prompt_short.json",
+    "sha256": "feb0186c1930da6c4bc0745c3d3f88c456efe924e147db65b76214011ae875f8"
+  },
+  "source_frames": 49,
+  "source_fps": "24000/1001",
+  "source_duration_rational": "49049/24000",
+  "all_source_frames_viewed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48
+  ],
+  "contact_binding": {
+    "file": "/Users/researcher/DevProjects/h3-oxygen-online-metrics-r133-20261020/audit/source_screen_candidates_20261020/short0353_source_events/BINDING.json",
+    "sha256": "f61691a16e2d48dd0520e16c77e17d64f9faca7cee33e0e8d219325d5cf8baa9"
+  },
+  "events": [
+    {
+      "id": "head_raised",
+      "name": "首次抬头后进入持续向前看的姿态",
+      "definition": "前景戴花纹帽口罩男子从首帧低头姿态抬头；双眼可见并转入持续数帧向前看的稳定段，取这一转换区间。",
+      "original_frame_interval": [
+        4,
+        6
+      ],
+      "original_time_interval_s": [
+        0.166833,
+        0.25025
+      ]
+    },
+    {
+      "id": "head_lowered_again",
+      "name": "向前看后再次低头",
+      "definition": "前景人物从此前稳定平视转回向下，帽顶相对更可见、视线落回画面下方；取转换而非后续最深低头。",
+      "original_frame_interval": [
+        24,
+        27
+      ],
+      "original_time_interval_s": [
+        1.001,
+        1.126125
+      ]
+    },
+    {
+      "id": "head_turn_screen_right",
+      "name": "低头状态下形成向画面右侧转头",
+      "definition": "在第二个低头阶段之后，前景人物头部进一步转向画面右侧；以相对此前低头姿态明显增加的侧向脸部/口罩朝向为标志。转向渐进，保留较宽边界。",
+      "original_frame_interval": [
+        38,
+        44
+      ],
+      "original_time_interval_s": [
+        1.584917,
+        1.835167
+      ]
+    }
+  ],
+  "event_scope": "foreground surgeon head/neck, not hands or surgical operation",
+  "editing_scope": "Official edit concerns the medical team blue scrubs; retain people, scene and head-motion sequence. Do not silently narrow clothing edit to only the foreground subject.",
+  "comparison_plan": "Task/scene preservation first; three event-time intervals and two adjacent phase durations separately; no current arm-observer applicability claim.",
+  "frame_mapping_note": "R134 producer reports50valid@24fps; generated valid0..48 map original0..48, valid49 repeats original48; total56,50..55padding. Verify against actual producer input provenance before applying these original-frame intervals.",
+  "generated_outputs_seen": false,
+  "events_used_for_generation": false,
+  "limitations": [
+    "Mouth and lower face covered by mask; track visible eyes/head-cap orientation.",
+    "No visible hand contact events, so this does not validate current arm-based automatic controller.",
+    "Third turn is gradual; its6-frame interval expresses annotation ambiguity, not a sharp contact event."
+  ]
+}

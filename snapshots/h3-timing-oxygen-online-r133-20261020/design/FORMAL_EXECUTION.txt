@@ -1,0 +1,16 @@
+R133: one actual online run of the frozen R86 visible-only controller.
+Historical comparison: R113 seed2026101703 source / Native / fixed6..14, all actual host41 outputs. This run reuses the exact R113 source, P1 prompt, AV noise, sigma grid,20 Euler updates,CFG1,107 generated /98 valid frames.
+
+Only inference result added: r133_short_0252_seed2026101703_visible_only.
+Automatic temporal decisions: observe the current ordinary x0 at each physical index0..19; keep the frozen R86 visible-arm measurements, thresholds, persistence, and Controller. Manual horizontal ROI0.40..0.75 chooses the adult identity. It supplies no temporal event window or denoising index.
+If ON: recompute guided prediction at the same x/sigma/RNG/condition, then apply one Euler update. If OFF/UNKNOWN: use current ordinary prediction. Thus20+K model predictions and20 actual updates. Compare actual ordinary predictions to historical Native through the first ON index inclusive; after the first guided update the current trajectory is independent of historical Native, including subsequent OFF steps.
+
+Precheck only observed historical Native x0: index0 OFF, index1 ON interval44..59, left arm,lag15,minimum gain0.7717598078. These values are evidence that the unchanged detector can fire; they are not fed into the formal controller as scheduled decisions. First-ON person selection and release were independently reviewed.
+
+Entry after independent root approval and actual CPU validation:
+CUDA_VISIBLE_DEVICES='' /data3/researcher/ComfyUI/.venv/bin/python scripts/root_run_online.py --execute --attempt root_oxygen_online_attempt1
+The existing R86 wrapper starts one service on GPU2/8610 and fresh decoder children on GPU7. Each decoder exits before CPU pose. Existing user service8189 is retained under exact UID/PID/start/command/GPU matching, excluded only from research-card count. Its memory remains in fresh capacity checks. Main40GiB / decoder16GiB and original64/76GiB cgroup startup gates remain.
+
+Outputs: audit/counterfactual/<run>.json; per-observation request/response,raw/filtered pose,decision,decode/lifetime/timing records; logs/<run>_{job,history}.json; audit/x0/<run>/manifest.json; analysis/postrun/ONLINE_RUNTIME_GATE.json; audit/<attempt>/{STARTED,ROOT_EXIT_RECEIPT,COMPLETE_REVIEW_HOLD}.json. Exact service and observer cleanup precedes final CPU gate. Save failure receipts and partial output when any hard gate fails.
+
+Evaluation: view all98 valid frames. Verify elderly woman,child,cabin and mask action before interpreting temporal scores. Source intervals42..45 hand leaves knee;48..51 grips mask cup;69..75 cup reaches upper chest/side of face. Measure each visible event and the two successive phase durations; missing event remains null. Reuse historical source/Native/fixed official MF; score only new auto output. Record ON indices/video windows,actual route calls,20+K prediction count,decoder/pose/wall durations and memory. No efficiency tuning in this trial.

@@ -1,0 +1,3041 @@
+{
+  "time_unix": 1792297953.8861473,
+  "roots": [
+    {
+      "root": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018",
+      "contract_sha256": "eb69281facc7500891fa1afb5ce8b631aad876b1c99e55cbeb1c8a9b0ac6060a",
+      "seal_sha256": "e0f05d7808eed8976020005e36eca1226b2f4a71e347600527ef9fe2377aeb75",
+      "cases": [
+        {
+          "case": {
+            "run_id": "r73_short_0252_seed2026101701_native",
+            "source_id": "short_0252",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0252_video.mp4",
+            "provenance": "short_0252_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 98,
+            "original_task": {
+              "id": 252,
+              "src_video_name": "short_0252.mp4",
+              "category": "subject_editing",
+              "subcategory": "replace existing subject",
+              "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+              "edit_prompt": "Replace the man with an elderly woman",
+              "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+              "target_span": "elderly woman",
+              "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+            },
+            "video_sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+            "provenance_sha256": "0b89cccf8d6ca154da87ec9d505a543a69ff3399c34037f7b0fdbd89fc80f1a0",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 107,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0252_original.mp4",
+            "arm": "native",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 107,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0252_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0252_seed2026101701_native",
+                "pair_id": "r73_short_0252_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0252_seed2026101701_native",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0252_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "native",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 97,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0252_seed2026101701_native",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0252_shared",
+                "run_id": "r73_short_0252_seed2026101701_native"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0252_seed2026101701_native",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 107
+              }
+            }
+          },
+          "graph_sha256": "d8ef0374752835d3f5151ee979e0cd9de6dd051951136b7098543a60af558388",
+          "actual": {
+            "job": {
+              "file": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/logs/r73_short_0252_seed2026101701_native_job.json",
+              "sha256": "7679514073011717197a759df01cba5869ea421c48d7452d1f93d84f8fa82eac",
+              "data": {
+                "name": "r73_short_0252_seed2026101701_native",
+                "graph": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/configs/graphs/r73_short_0252_seed2026101701_native.json",
+                "graph_sha256": "d8ef0374752835d3f5151ee979e0cd9de6dd051951136b7098543a60af558388",
+                "submitted_unix": 1792296251.7347963,
+                "status": "pending_or_running",
+                "service_pid": 40927,
+                "service_identity": {
+                  "uid": 1016,
+                  "start_ticks": "2632511242",
+                  "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/scripts/service_entry.py /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8541 --base-directory /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018 --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout --input-directory /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/input --output-directory /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/output --temp-directory /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/temp --user-directory /data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/user --database-url sqlite:////data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/screen.db "
+                },
+                "queue_before_submit": {
+                  "queue_running": [],
+                  "queue_pending": []
+                },
+                "host_admission_checked_unix": 1792296251.734774,
+                "case_binding": {
+                  "case": {
+                    "run_id": "r73_short_0252_seed2026101701_native",
+                    "source_id": "short_0252",
+                    "seed": 2026101701,
+                    "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                    "parent_graph": "configs/parent_graphs/r63_template_native.json",
+                    "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+                    "video": "short_0252_video.mp4",
+                    "provenance": "short_0252_provenance.json",
+                    "reference_video_count": 1,
+                    "reference_image_count": 0,
+                    "valid_frame_count": 98,
+                    "original_task": {
+                      "id": 252,
+                      "src_video_name": "short_0252.mp4",
+                      "category": "subject_editing",
+                      "subcategory": "replace existing subject",
+                      "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+                      "edit_prompt": "Replace the man with an elderly woman",
+                      "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+                      "target_span": "elderly woman",
+                      "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+                    },
+                    "video_sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+                    "provenance_sha256": "0b89cccf8d6ca154da87ec9d505a543a69ff3399c34037f7b0fdbd89fc80f1a0",
+                    "geometry": {
+                      "width": 1312,
+                      "height": 736,
+                      "frames": 107,
+                      "fps": 24
+                    },
+                    "evaluation_crop_xywh": [
+                      16,
+                      8,
+                      1280,
+                      720
+                    ],
+                    "original_source": "short_0252_original.mp4",
+                    "arm": "native",
+                    "prompt_version": "P1",
+                    "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+                  },
+                  "source_id": "short_0252",
+                  "seed": 2026101701,
+                  "arm": "native",
+                  "graph_sha256": "d8ef0374752835d3f5151ee979e0cd9de6dd051951136b7098543a60af558388"
+                },
+                "queue_sha256": "4ccecab5206bac557262e5d36e6c342451268c780bd2dc63231202dc3d22cbb0",
+                "response": {
+                  "prompt_id": "b6b55814-49ea-4e43-8ee1-43e63786c645",
+                  "number": 0,
+                  "node_errors": {}
+                },
+                "prompt_id": "b6b55814-49ea-4e43-8ee1-43e63786c645",
+                "observed_unix": 1792297938.2396412
+              }
+            }
+          }
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0252_seed2026101701_forced",
+            "source_id": "short_0252",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0252_video.mp4",
+            "provenance": "short_0252_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 98,
+            "original_task": {
+              "id": 252,
+              "src_video_name": "short_0252.mp4",
+              "category": "subject_editing",
+              "subcategory": "replace existing subject",
+              "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+              "edit_prompt": "Replace the man with an elderly woman",
+              "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+              "target_span": "elderly woman",
+              "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+            },
+            "video_sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+            "provenance_sha256": "0b89cccf8d6ca154da87ec9d505a543a69ff3399c34037f7b0fdbd89fc80f1a0",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 107,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0252_original.mp4",
+            "arm": "forced",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 107,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0252_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0252_seed2026101701_forced",
+                "pair_id": "r73_short_0252_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0252_seed2026101701_forced",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0252_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "mass_preserve",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 97,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0252_seed2026101701_forced",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0252_shared",
+                "run_id": "r73_short_0252_seed2026101701_forced"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0252_seed2026101701_forced",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 107
+              }
+            }
+          },
+          "graph_sha256": "f192b78ed66a9e1b811ca2b5571ae023e5b2f4acc1d92c1c44ba777439bfaacd",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0344_seed2026101701_native",
+            "source_id": "short_0344",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A close-up shot of a hand gently touching and caressing the surface of a black leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the black leather suitcase to red.\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA close-up shot of a hand gently touching and caressing the surface of a red leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0344_video.mp4",
+            "provenance": "short_0344_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 58,
+            "original_task": {
+              "id": 344,
+              "src_video_name": "short_0344.mp4",
+              "category": "attribute_editing",
+              "subcategory": "color adjustment",
+              "source_prompt": "A close-up shot of a hand gently touching and caressing the surface of a black leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.",
+              "edit_prompt": "Change the black leather suitcase to red.",
+              "target_prompt": "A close-up shot of a hand gently touching and caressing the surface of a red leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.",
+              "target_span": "red",
+              "target_phrase": "red leather suitcase"
+            },
+            "video_sha256": "eb8600b75ece027f1be81130e64eb01c81db8a7b858275d7b064186e1bb0adb7",
+            "provenance_sha256": "f7706893c4594656182f99e90906e868e8cbc698b4e3ecd85bd67343b33ad801",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 73,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0344_original.mp4",
+            "arm": "native",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A close-up shot of a hand gently touching and caressing the surface of a black leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the black leather suitcase to red.\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA close-up shot of a hand gently touching and caressing the surface of a red leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 73,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0344_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0344_seed2026101701_native",
+                "pair_id": "r73_short_0344_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0344_seed2026101701_native",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0344_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "native",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 57,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0344_seed2026101701_native",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0344_shared",
+                "run_id": "r73_short_0344_seed2026101701_native"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0344_seed2026101701_native",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 73
+              }
+            }
+          },
+          "graph_sha256": "6dd16c024c99920cb3d5ed549619a10c17065dd5b736c67714b21ffe48633084",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0344_seed2026101701_forced",
+            "source_id": "short_0344",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A close-up shot of a hand gently touching and caressing the surface of a black leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the black leather suitcase to red.\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA close-up shot of a hand gently touching and caressing the surface of a red leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0344_video.mp4",
+            "provenance": "short_0344_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 58,
+            "original_task": {
+              "id": 344,
+              "src_video_name": "short_0344.mp4",
+              "category": "attribute_editing",
+              "subcategory": "color adjustment",
+              "source_prompt": "A close-up shot of a hand gently touching and caressing the surface of a black leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.",
+              "edit_prompt": "Change the black leather suitcase to red.",
+              "target_prompt": "A close-up shot of a hand gently touching and caressing the surface of a red leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.",
+              "target_span": "red",
+              "target_phrase": "red leather suitcase"
+            },
+            "video_sha256": "eb8600b75ece027f1be81130e64eb01c81db8a7b858275d7b064186e1bb0adb7",
+            "provenance_sha256": "f7706893c4594656182f99e90906e868e8cbc698b4e3ecd85bd67343b33ad801",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 73,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0344_original.mp4",
+            "arm": "forced",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A close-up shot of a hand gently touching and caressing the surface of a black leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the black leather suitcase to red.\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA close-up shot of a hand gently touching and caressing the surface of a red leather suitcase. The hand appears to be exploring the texture and contours of the suitcase, which is adorned with metal clasps and stitching.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 73,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0344_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0344_seed2026101701_forced",
+                "pair_id": "r73_short_0344_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0344_seed2026101701_forced",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0344_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "mass_preserve",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 57,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0344_seed2026101701_forced",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0344_shared",
+                "run_id": "r73_short_0344_seed2026101701_forced"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0344_seed2026101701_forced",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 73
+              }
+            }
+          },
+          "graph_sha256": "ba88dbcf3d28110d0f227f0ae9ae393e68716e72a8746054cc659dcd95417c87",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0065_seed2026101701_native",
+            "source_id": "short_0065",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a wooden cutting board.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the wooden cutting board with a marble cutting board\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a marble cutting board.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0065_video.mp4",
+            "provenance": "short_0065_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 47,
+            "original_task": {
+              "id": 65,
+              "src_video_name": "short_0065.mp4",
+              "category": "subject_editing",
+              "subcategory": "replace existing subject",
+              "source_prompt": "A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a wooden cutting board.",
+              "edit_prompt": "Replace the wooden cutting board with a marble cutting board",
+              "target_prompt": "A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a marble cutting board.",
+              "target_span": "marble cutting board",
+              "target_phrase": "A chef is preparing a fresh salad on a marble cutting board"
+            },
+            "video_sha256": "0bd43b95d22ada336546f51991e742cda03a396f8f3640d1442a163ad6edd3bd",
+            "provenance_sha256": "9e3b2a231f5c8bb5996835097239542088943dfcd29e267851d621c096283152",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 56,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0065_original.mp4",
+            "arm": "native",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a wooden cutting board.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the wooden cutting board with a marble cutting board\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a marble cutting board.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 56,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0065_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0065_seed2026101701_native",
+                "pair_id": "r73_short_0065_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0065_seed2026101701_native",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0065_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "native",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 46,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0065_seed2026101701_native",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0065_shared",
+                "run_id": "r73_short_0065_seed2026101701_native"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0065_seed2026101701_native",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 56
+              }
+            }
+          },
+          "graph_sha256": "d9519754980a6b734472cddd85d9cb1425a41525711754343cb0df123fa103ca",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0065_seed2026101701_forced",
+            "source_id": "short_0065",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a wooden cutting board.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the wooden cutting board with a marble cutting board\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a marble cutting board.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0065_video.mp4",
+            "provenance": "short_0065_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 47,
+            "original_task": {
+              "id": 65,
+              "src_video_name": "short_0065.mp4",
+              "category": "subject_editing",
+              "subcategory": "replace existing subject",
+              "source_prompt": "A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a wooden cutting board.",
+              "edit_prompt": "Replace the wooden cutting board with a marble cutting board",
+              "target_prompt": "A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a marble cutting board.",
+              "target_span": "marble cutting board",
+              "target_phrase": "A chef is preparing a fresh salad on a marble cutting board"
+            },
+            "video_sha256": "0bd43b95d22ada336546f51991e742cda03a396f8f3640d1442a163ad6edd3bd",
+            "provenance_sha256": "9e3b2a231f5c8bb5996835097239542088943dfcd29e267851d621c096283152",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 56,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0065_original.mp4",
+            "arm": "forced",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a wooden cutting board.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the wooden cutting board with a marble cutting board\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA chef is preparing a fresh salad in a kitchen setting. He is seen mixing ingredients in a glass bowl on a marble cutting board.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 56,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0065_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0065_seed2026101701_forced",
+                "pair_id": "r73_short_0065_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0065_seed2026101701_forced",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0065_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "mass_preserve",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 46,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0065_seed2026101701_forced",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0065_shared",
+                "run_id": "r73_short_0065_seed2026101701_forced"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0065_seed2026101701_forced",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 56
+              }
+            }
+          },
+          "graph_sha256": "26e3b0658bb764d07b86238f2486f149d7d0e8cd05646cf35fabb34400b6b28c",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0135_seed2026101701_native",
+            "source_id": "short_0135",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: The video shows a close-up of an artist's hand painting a colorful abstract artwork on a canvas. The artist uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the artist's hand with a robotic arm\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nThe video shows a close-up of a robotic arm painting a colorful abstract artwork on a canvas. The robotic arm uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0135_video.mp4",
+            "provenance": "short_0135_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 112,
+            "original_task": {
+              "id": 135,
+              "src_video_name": "short_0135.mp4",
+              "category": "subject_editing",
+              "subcategory": "replace existing subject",
+              "source_prompt": "The video shows a close-up of an artist's hand painting a colorful abstract artwork on a canvas. The artist uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.",
+              "edit_prompt": "Replace the artist's hand with a robotic arm",
+              "target_prompt": "The video shows a close-up of a robotic arm painting a colorful abstract artwork on a canvas. The robotic arm uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.",
+              "target_span": "robotic arm",
+              "target_phrase": "robotic arm painting a colorful abstract artwork on a canvas"
+            },
+            "video_sha256": "6521e18cdb4f7fb6347d62e2d8458a64d9c61f58748ea1df909a445c2d764797",
+            "provenance_sha256": "fc0df2897d59b6197726eb6da7c2a11224d4fb947312a4299cd1b4862096aa99",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 124,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0135_original.mp4",
+            "arm": "native",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: The video shows a close-up of an artist's hand painting a colorful abstract artwork on a canvas. The artist uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the artist's hand with a robotic arm\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nThe video shows a close-up of a robotic arm painting a colorful abstract artwork on a canvas. The robotic arm uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 124,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0135_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0135_seed2026101701_native",
+                "pair_id": "r73_short_0135_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0135_seed2026101701_native",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0135_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "native",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 111,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0135_seed2026101701_native",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0135_shared",
+                "run_id": "r73_short_0135_seed2026101701_native"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0135_seed2026101701_native",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 124
+              }
+            }
+          },
+          "graph_sha256": "8c8bce453faaaa1b2167126955c6143aa79b037e1ae9ed08de213a8b0697dffe",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0135_seed2026101701_forced",
+            "source_id": "short_0135",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: The video shows a close-up of an artist's hand painting a colorful abstract artwork on a canvas. The artist uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the artist's hand with a robotic arm\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nThe video shows a close-up of a robotic arm painting a colorful abstract artwork on a canvas. The robotic arm uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0135_video.mp4",
+            "provenance": "short_0135_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 112,
+            "original_task": {
+              "id": 135,
+              "src_video_name": "short_0135.mp4",
+              "category": "subject_editing",
+              "subcategory": "replace existing subject",
+              "source_prompt": "The video shows a close-up of an artist's hand painting a colorful abstract artwork on a canvas. The artist uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.",
+              "edit_prompt": "Replace the artist's hand with a robotic arm",
+              "target_prompt": "The video shows a close-up of a robotic arm painting a colorful abstract artwork on a canvas. The robotic arm uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.",
+              "target_span": "robotic arm",
+              "target_phrase": "robotic arm painting a colorful abstract artwork on a canvas"
+            },
+            "video_sha256": "6521e18cdb4f7fb6347d62e2d8458a64d9c61f58748ea1df909a445c2d764797",
+            "provenance_sha256": "fc0df2897d59b6197726eb6da7c2a11224d4fb947312a4299cd1b4862096aa99",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 124,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0135_original.mp4",
+            "arm": "forced",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: The video shows a close-up of an artist's hand painting a colorful abstract artwork on a canvas. The artist uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Replace the artist's hand with a robotic arm\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nThe video shows a close-up of a robotic arm painting a colorful abstract artwork on a canvas. The robotic arm uses a paintbrush to apply vibrant shades of pink, red, and white, creating a dynamic and expressive composition.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 124,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0135_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0135_seed2026101701_forced",
+                "pair_id": "r73_short_0135_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0135_seed2026101701_forced",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0135_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "mass_preserve",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 111,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0135_seed2026101701_forced",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0135_shared",
+                "run_id": "r73_short_0135_seed2026101701_forced"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0135_seed2026101701_forced",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 124
+              }
+            }
+          },
+          "graph_sha256": "67da2abccb22a548dd3d95d26a9bfedc06422d0abdccfe1b4181ce1850aeebea",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0035_seed2026101701_native",
+            "source_id": "short_0035",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A person is typing on a computer keyboard with a glowing blue light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the glowing blue light to a glowing red light\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA person is typing on a computer keyboard with a glowing red light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0035_video.mp4",
+            "provenance": "short_0035_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 70,
+            "original_task": {
+              "id": 35,
+              "src_video_name": "short_0035.mp4",
+              "category": "attribute_editing",
+              "subcategory": "color adjustment",
+              "source_prompt": "A person is typing on a computer keyboard with a glowing blue light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.",
+              "edit_prompt": "Change the glowing blue light to a glowing red light",
+              "target_prompt": "A person is typing on a computer keyboard with a glowing red light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.",
+              "target_span": "red",
+              "target_phrase": "red light"
+            },
+            "video_sha256": "20a4f030be017d19661cab2db03d781ff6a7cc49b0df3765bb626ffe5aeba464",
+            "provenance_sha256": "e45aefc2d8b9023ffa9ff8b49409d071b83c36b79ef172fc51b5338554db4ae7",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 73,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0035_original.mp4",
+            "arm": "native",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A person is typing on a computer keyboard with a glowing blue light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the glowing blue light to a glowing red light\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA person is typing on a computer keyboard with a glowing red light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 73,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0035_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0035_seed2026101701_native",
+                "pair_id": "r73_short_0035_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0035_seed2026101701_native",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0035_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "native",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 69,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0035_seed2026101701_native",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0035_shared",
+                "run_id": "r73_short_0035_seed2026101701_native"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0035_seed2026101701_native",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 73
+              }
+            }
+          },
+          "graph_sha256": "7d0a7bb15f2a3b9da6fcfe40409f9ff5c3bd4ad235da397026862d02f1671afa",
+          "actual": {}
+        },
+        {
+          "case": {
+            "run_id": "r73_short_0035_seed2026101701_forced",
+            "source_id": "short_0035",
+            "seed": 2026101701,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A person is typing on a computer keyboard with a glowing blue light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the glowing blue light to a glowing red light\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA person is typing on a computer keyboard with a glowing red light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+            "parent_graph": "configs/parent_graphs/r63_template_native.json",
+            "parent_graph_sha256": "051156a8700c11b565e4cabe3079b98f4f48523f4ac885e20d351d426d82a0d9",
+            "video": "short_0035_video.mp4",
+            "provenance": "short_0035_provenance.json",
+            "reference_video_count": 1,
+            "reference_image_count": 0,
+            "valid_frame_count": 70,
+            "original_task": {
+              "id": 35,
+              "src_video_name": "short_0035.mp4",
+              "category": "attribute_editing",
+              "subcategory": "color adjustment",
+              "source_prompt": "A person is typing on a computer keyboard with a glowing blue light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.",
+              "edit_prompt": "Change the glowing blue light to a glowing red light",
+              "target_prompt": "A person is typing on a computer keyboard with a glowing red light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.",
+              "target_span": "red",
+              "target_phrase": "red light"
+            },
+            "video_sha256": "20a4f030be017d19661cab2db03d781ff6a7cc49b0df3765bb626ffe5aeba464",
+            "provenance_sha256": "e45aefc2d8b9023ffa9ff8b49409d071b83c36b79ef172fc51b5338554db4ae7",
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 73,
+              "fps": 24
+            },
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "original_source": "short_0035_original.mp4",
+            "arm": "forced",
+            "prompt_version": "P1",
+            "parent_semantics": "Inherited numerical graph with new source and root-approved metadata P1 template; same actual source/prompt/noise between Native and forced."
+          },
+          "graph": {
+            "1": {
+              "class_type": "UNETLoader",
+              "inputs": {
+                "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                "weight_dtype": "default"
+              }
+            },
+            "2": {
+              "class_type": "CLIPLoader",
+              "inputs": {
+                "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+                "type": "minimax",
+                "device": "default"
+              }
+            },
+            "3": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+              }
+            },
+            "4": {
+              "class_type": "VAELoader",
+              "inputs": {
+                "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+              }
+            },
+            "41": {
+              "class_type": "MiniMaxH3SigmaShift",
+              "inputs": {
+                "model": [
+                  "1",
+                  0
+                ],
+                "shift_video": 12.0,
+                "shift_audio": 3.0
+              }
+            },
+            "5": {
+              "class_type": "H3EventAuditReference",
+              "inputs": {
+                "clip": [
+                  "2",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ],
+                "ref_video": [
+                  "23",
+                  0
+                ],
+                "prompt": "subject_definitions:\n<Video 1> is the source video for this editing task.\nSource context: A person is typing on a computer keyboard with a glowing blue light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nRequested edit: Change the glowing blue light to a glowing red light\n\nretention_analysis:\n<Video 1>: partially_preserved - apply the requested edit.\nPreserve the source actions and their order, timing and duration,\nbody pose, camera framing and movement, and unedited scene content.\n\ndetailed_description:\nA person is typing on a computer keyboard with a glowing red light underneath. The scene includes a monitor, a mouse, and a smartphone on a desk.\nThe visible action sequence follows <Video 1> throughout the clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+                "width": 1312,
+                "height": 736,
+                "length": 73,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0035_shared",
+                "semantic_fps": 2,
+                "phase_frames": 0
+              }
+            },
+            "6": {
+              "class_type": "H3EventAuditNoise",
+              "inputs": {
+                "noise_seed": 2026101701,
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "run_id": "r73_short_0035_seed2026101701_forced",
+                "pair_id": "r73_short_0035_seed2026101701"
+              }
+            },
+            "7": {
+              "class_type": "BasicGuider",
+              "inputs": {
+                "model": [
+                  "52",
+                  0
+                ],
+                "conditioning": [
+                  "51",
+                  0
+                ]
+              }
+            },
+            "8": {
+              "class_type": "KSamplerSelect",
+              "inputs": {
+                "sampler_name": "euler"
+              }
+            },
+            "9": {
+              "class_type": "ManualSigmas",
+              "inputs": {
+                "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+              }
+            },
+            "10": {
+              "class_type": "SamplerCustomAdvanced",
+              "inputs": {
+                "noise": [
+                  "6",
+                  0
+                ],
+                "guider": [
+                  "7",
+                  0
+                ],
+                "sampler": [
+                  "8",
+                  0
+                ],
+                "sigmas": [
+                  "9",
+                  0
+                ],
+                "latent_image": [
+                  "51",
+                  1
+                ]
+              }
+            },
+            "11": {
+              "class_type": "VAEDecode",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "3",
+                  0
+                ]
+              }
+            },
+            "12": {
+              "class_type": "VAEDecodeAudio",
+              "inputs": {
+                "samples": [
+                  "10",
+                  0
+                ],
+                "vae": [
+                  "4",
+                  0
+                ]
+              }
+            },
+            "13": {
+              "class_type": "CreateVideo",
+              "inputs": {
+                "images": [
+                  "11",
+                  0
+                ],
+                "audio": [
+                  "12",
+                  0
+                ],
+                "fps": 24.0,
+                "bit_depth": 8
+              }
+            },
+            "14": {
+              "class_type": "SaveVideo",
+              "inputs": {
+                "video": [
+                  "13",
+                  0
+                ],
+                "filename_prefix": "r73_short_0035_seed2026101701_forced",
+                "format": "mp4",
+                "codec": "h264",
+                "codec.encoding": "re-encode",
+                "codec.encoding.crf": 16.0
+              }
+            },
+            "22": {
+              "class_type": "LoadVideo",
+              "inputs": {
+                "file": "short_0035_video.mp4"
+              }
+            },
+            "23": {
+              "class_type": "GetVideoComponents",
+              "inputs": {
+                "video": [
+                  "22",
+                  0
+                ]
+              }
+            },
+            "50": {
+              "class_type": "H3TemporalRouter",
+              "inputs": {
+                "model": [
+                  "41",
+                  0
+                ],
+                "positive": [
+                  "51",
+                  0
+                ],
+                "mode": "mass_preserve",
+                "alpha": 1.0,
+                "radius": 0,
+                "time_offset": 0,
+                "start_frame": 0,
+                "end_frame": 69,
+                "block_start": 0,
+                "block_end": 50,
+                "step_start": 6,
+                "step_end": 15,
+                "run_id": "r73_short_0035_seed2026101701_forced",
+                "audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/router"
+              }
+            },
+            "51": {
+              "class_type": "H3PairConditionSnapshot",
+              "inputs": {
+                "positive": [
+                  "5",
+                  0
+                ],
+                "target": [
+                  "5",
+                  1
+                ],
+                "source_audit_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit",
+                "source_run_id": "r73_short_0035_shared",
+                "run_id": "r73_short_0035_seed2026101701_forced"
+              }
+            },
+            "52": {
+              "class_type": "H3X0Readout",
+              "inputs": {
+                "model": [
+                  "50",
+                  0
+                ],
+                "run_id": "r73_short_0035_seed2026101701_forced",
+                "output_dir": "/data5/researcher/h3_runs/timing_ivebench_expanded_r73_20261018/audit/x0",
+                "width": 1312,
+                "height": 736,
+                "length": 73
+              }
+            }
+          },
+          "graph_sha256": "ea7fee27d4b2a62f28b2a2cc32114a4386ddf3f26a1bf82e454b210d2cc7db7a",
+          "actual": {}
+        }
+      ]
+    }
+  ]
+}

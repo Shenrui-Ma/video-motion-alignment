@@ -1,0 +1,52 @@
+氧气面罩 short_0252：官方 Motion Fidelity 的实际分数分解
+
+本次复用 R73 已有三份 CoTracker 轨迹，在 CPU 上调用官方四个数值函数的原始 AST，复现普通编辑 0.8026777861879288、固定时序引导 0.8024124040915745，差值 −0.0002653820963543。与历史分数的误差小于 1e−12。源、普通、引导各为 98 帧、100 个点，原轨迹和正式分数文件均保持不变。
+
+直接可确认的解释：全图轨迹的正负变化接近抵消，位置项的小幅下降超过位移项上涨，形成最终的小幅下降。官方 MF 同时包含位置、相邻采样步位移和每对轨迹的跨度归一化。动作事件的物理时刻更接近源片，可以和这个全图总分略降同时发生。现有数据不能把下降单独归因于某个身体部位、背景、跟踪误差或某项模型机制。
+
+                         普通编辑          时序引导          差值
+MF                       0.802677786188    0.802412404092   −0.000265382096
+位置项，已乘 0.7         0.521959698576    0.521044139434   −0.000915559142
+帧间位移项，已乘 0.3     0.280718087612    0.281368264658   +0.000650177046
+
+上表是对最终总分的加权贡献，不能再次乘 0.7/0.3。“帧间位移”沿官方源码计算 diff(track)，并把首个差值复制到第 0 个采样点。它在官方重采样后的坐标序列上计算，没有除以秒数。
+
+每对轨迹的归一化分母为源与目标轨迹包围框对角长度的平均值；低于 1e−6 时按官方规则设为 1。位置和位移距离都除以这个分母后再映射为 1/(1+d/n)。本次 100 对的分母均值由 8.720239 px 增至 9.227819 px，其中 58 对增大。
+
+为了核对分母是否参与变化，对相同匹配点逐对做了两种替换顺序的平均算术分解：分别替换距离数组 d 与归一化分母 n，再平均两条路径；每对和总和均精确还原实际差值。这些交叉组合只是分数记账，未重新生成视频或轨迹，不能给出因果归因。
+
+                         距离数组的贡献    归一化分母的贡献    合计
+位置项（0.7已计入）      −0.005641789950   +0.004726230807   −0.000915559142
+位移项（0.3已计入）      −0.000370554315   +0.001020731361   +0.000650177046
+合计                    −0.006012344265   +0.005746962168   −0.000265382096
+
+因此，位移项上涨也依赖归一化分母的变化；不能仅据该项上涨就断言像素空间运动已经更准确。分母来自各轨迹实际跨度，不能用全片平均分母替代逐对计算。
+
+匹配与可见性核查：
+• 两版均有 100 个源点和 100 个目标点通过有效性判定，Hungarian 匹配为 100 对，接受 100 对，拒绝 0 对。
+• 100 对的目标点 ID 全部相同。把引导轨迹放在普通编辑的既有配对上重算，得到同一引导分数；本次匹配重选与接受阈值变化的贡献为 0。
+• 官方 synchronize_videos 后所有点的可见性权重均为 1，最终直接加权没有变化。
+• 原始可见性仍间接参与计算：官方 interpolate_track 先删除 visibility≤0.5 的时刻，再将剩余可见位置等距插值到完整长度。因此坐标、位移及跨度已受该处理影响。本报告没有把可见性间接作用从坐标变化中独立分离。
+• 原始源片有 51 条全程可见轨迹、49 条部分可见轨迹；普通和引导分别有 59、54 条全程可见。按源可见性固定分组，51 条贡献合计 −0.002525285，49 条合计 +0.002259902；两者相抵得到总差值。该分组没有语义部位标签。
+
+全图 100 点里，53 点上涨、47 点下降。所有上涨贡献合计 +0.017695678，下降贡献合计 −0.017961060。图上圆点大小/颜色表示该轨迹对完整 98 帧总分的贡献，编号和坐标可在 SOURCE_POINT_DELTAS.csv 查询。圆点位置取原始 source track 在图示帧的坐标；空心表示该时刻源 tracker 可见性≤0.5。它不是该帧单独的分数，也不是人工标注的手、脸或背景掩码。
+
+与既有动作证据并列理解：R73 的独立原时间域姿态与人工事件审阅显示，伸手/抓面罩阶段更接近原片；32–63 帧窗口方向匹配位移 +16→+1 帧，共同可见支撑 1.0。该窗口是在视觉查看后选定，属于探索性证据。官方 MF 此处使用整段全图稀疏点和插值，评价对象与局部事件时间不同。原事件检查路径见下。
+
+复现入口：
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python /Users/researcher/DevProjects/h3-oxygen-mf-attribution-20261019/scripts/analyze.py
+
+结果：
+results/SUMMARY.json：总分、加权项、匹配接受集与可见性分组。
+results/native_attribution.json、forced_attribution.json：每个实际匹配点的原值、跨度、距离和贡献。
+results/NORMALIZATION_DECOMPOSITION.json：每点及合计的距离/分母算术分解。
+results/SOURCE_POINT_DELTAS.csv：100 点 ID、原始第 0 帧坐标和贡献。
+figures/point_contributions_frame_000.png、048.png、072.png：编号点位置图，0、2、3 秒。
+audit/VALIDATION.json：原文件 SHA、官方分数复现、逐点/分解求和及输出完整性。
+
+一手代码和历史证据：
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/runtime/official_source/metrics/fidelity/motion_fidelity.py
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/tracks/{source,native,forced}/short_0252/attempt1/tracks.npz
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/results/short_0252/{native,forced}_source1_target1.json
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/audit/official_mf_time_calibration/REPORT.txt
+/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/audit/physical_time_short0252/PHYSICAL_REPORT.txt

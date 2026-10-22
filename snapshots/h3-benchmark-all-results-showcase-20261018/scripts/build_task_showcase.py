@@ -135,6 +135,9 @@ def choose_current(items):
 def short_method(item):
     if item.get('comparison_kind') == 'prompt_control': return '提示词对照'
     if item.get('comparison_kind') == 'sampler_control': return '采样器对照'
+    if item.get('comparison_kind') == 'positional_control': return 'RoPE整体对齐'
+    if item.get('comparison_kind') == 'reference_origin_control': return '参考分支相位引导'
+    if item.get('comparison_kind') == 'resumed_online_guidance': return '自动时序引导'
     if not item.get('guided_video_path'): return '普通编辑'
     if item.get('guidance_activation') == 'zero': return '自动检测 · 本次零触发'
     label = item.get('method_label', '')
@@ -207,6 +210,19 @@ def normalize(item, assets, ffmpeg, evidence):
     result.update({k: proof[k] for k in ['alignment_native', 'alignment_guided', 'summary'] if k in proof})
     result.setdefault('alignment_native', None)
     result.setdefault('alignment_guided', None)
+    if mode == 'positional_control':
+        alignment = item.get('action_alignment_by_method') or {}
+        result['alignment_native'] = alignment.get('native')
+        result['alignment_alternative'] = alignment.get('aligned')
+        result['has_alternative'] = bool(item.get('alternative_video_path'))
+    if mode == 'reference_origin_control':
+        alignment = item.get('action_alignment_by_method') or {}
+        result['alignment_native'] = alignment.get('native')
+        result['alignment_guided'] = alignment.get('reference_origin')
+    if mode == 'resumed_online_guidance':
+        alignment = item.get('action_alignment_by_method') or {}
+        result['alignment_native'] = alignment.get('native')
+        result['alignment_guided'] = alignment.get('visible_only')
     result.setdefault('summary', ' '.join(dict.fromkeys([result['edit'], result['timing']])).strip())
     frame = max(0, min(int(proof.get('still_frame', item['valid_frames'] // 2)), item['valid_frames'] - 1))
     result['still_frame'] = frame

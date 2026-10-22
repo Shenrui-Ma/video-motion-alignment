@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "runtime_sha256": "aff99d3a0d781741b675ea52c4eb53711c4e5b95085fd116e55792d50b5049ff",
+  "torch": "2.11.0+cu130",
+  "CPU_only": true,
+  "cuda_initialized": false,
+  "modules": [
+    "compatibility_bootstrap.install",
+    "compatibility_bootstrap.install_video_compat",
+    "comfy.sd",
+    "comfy.ldm.minimax.vae",
+    "actual nodes.load_custom_node(H3EventAudit,H3PairAudit,H3TemporalRouter,H3X0Readout,H3CachedCondition)"
+  ],
+  "model_loads": 0,
+  "actual_ModelPatcher_clone_isolated_four_arms": true,
+  "repatch_rejected": true,
+  "actual_Comfy_namespace": true,
+  "extensions_sys_path_absent": true,
+  "four_cached_tensors_and_layout_verified": true,
+  "cached_module_sha256": "6c845999281104424d55dabdef7cc5324399d4d89b7593c39bbc19a5b57a5af3",
+  "unix": 1792500463.0821247
+}
+
+STDERR
+WARNING:xformers:WARNING[XFORMERS]: xFormers can't load C++/CUDA extensions. xFormers was built for:
+    PyTorch 2.5.1+cu124 with CUDA 1204 (you have 2.11.0+cu130)
+    Python  3.10.15 (you have 3.10.12)
+  Please reinstall xformers (see https://github.com/facebookresearch/xformers#installing-xformers)
+  Memory-efficient attention, SwiGLU, sparse and more won't be available.
+  Set XFORMERS_MORE_DETAILS=1 for more details
+Exception ignored in: <function ModelPatcher.__del__ at 0x75e43a3956c0>
+Traceback (most recent call last):
+  File "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_patcher.py", line 1747, in __del__
+  File "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_patcher.py", line 1300, in detach
+AttributeError: 'NoneType' object has no attribute 'ON_DETACH'
+Exception ignored in: <function ModelPatcher.__del__ at 0x75e43a3956c0>
+Traceback (most recent call last):
+  File "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_patcher.py", line 1747, in __del__
+  File "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_patcher.py", line 1300, in detach
+AttributeError: 'NoneType' object has no attribute 'ON_DETACH'
+
+EXIT 0

@@ -1,0 +1,23 @@
+R142 CPU deployment is already complete; no GPU/service/observer was launched.
+Local package: /Users/researcher/DevProjects/h3-timing-oxygen-centered-control-r142-20261020
+Remote: /home/researcher/h3_runs/timing_oxygen_centered_control_r142_20261020
+
+CPU deployment command (already executed successfully; exact files only):
+  python3 scripts/deploy_cpu.py --execute
+Target CPU entrypoints (already passed with CUDA_VISIBLE_DEVICES=''):
+  /home/researcher/miniconda3/envs/comfyui/bin/python scripts/materialize_parent.py
+  /home/researcher/miniconda3/envs/comfyui/bin/python scripts/cpu_runtime_smoke.py
+  /home/researcher/miniconda3/envs/comfyui/bin/python scripts/preflight.py
+  /home/researcher/miniconda3/envs/comfyui/bin/python -m unittest discover -s tests -v
+
+ROOT ONLY, after actual corrected R141b completion and exact release:
+1. Write audit/PREDECESSOR_RELEASE_BINDING.json with root_reviewed=true, host=H3_SERVER_A, remote_root, actual attempt, producer_seal_sha256, ROOT_EXIT_RECEIPT_sha256, COMPLETE_sha256. scripts/predecessor.py checks actual completion and owner/controller process absence plus CUDA absence.
+2. Fresh inspect GPU3(main)>=40GiB and GPU2(decoder)>=16GiB; own research cards max2; host/finite cgroup headroom>=20GiB. Port8624 must still be free. No already running own research process is permitted.
+3. Write configs/admission.json from fixed_fields of configs/admission_template.json, plus permitted_compute_processes=[],root_live_review_required=false,ready_for_launch=true. Keep actual predecessor binding separate from sealed science.
+4. Run python3 scripts/execution_gate.py approve-trial.
+5. Start the original supervised wrapper in remote package with subprocess argv:
+  ['python3','-u','scripts/root_run_online.py','--execute','--attempt','root_oxygen_centered_attempt1']
+   stdout/stderr to task audit log, start_new_session=True, then retain exact wrapper identity.
+No background watcher has been created by preparation. Wrapper owns exact service/decoder cleanup and final CPU gate.
+
+Completion requires analysis/postrun/ONLINE_RUNTIME_GATE.json, audit/root_oxygen_centered_attempt1/COMPLETE_REVIEW_HOLD.json and ROOT_EXIT_RECEIPT.json. Source/native/fixed/originalauto are historical comparisons; only new centeredauto is generated.

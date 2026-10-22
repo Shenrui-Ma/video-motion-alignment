@@ -1,0 +1,11 @@
+R65/R66实际prompt审计
+
+核对20条成功history、对应graph和实际pairgate，文本均与R49原P0相同。六section、显式Picture/Video编号、任务prefix均为0条；具体动作source/target caption均未直接进入文本。R65两对与R66两对属于官方CSV，R66另六对是原始素材自建组合。
+
+原P0明确：参考图提供人物外观和环境，参考视频提供完整动作、时序、方向和幅度。其任务语义是动作迁移。文本未分section不等于缺少多模态条件：实际Comfy tokenizer已经给图像/视频前置Picture/Video标签，模型仍收到两类参考token。官方与实际tokenizer采用Picture，而非Image。
+
+官方guide把仅提供动作/节奏的参考视频归于reference generation；把直接改动源视频归于video editing。因此后续Flex P1应保持人物/背景来自图、动作来自视频，明确绑定并采用对应任务类型；IVE中保留源场景的模板不能原样用于当前任务。现有P0下的配对比较保持有效，现有失败要保留；格式是否改善结果需要单独P0/P1试验。
+
+后续8条适合在生成前冻结一套独立Flex P1，并从源素材/正确官方caption写动作语义；crouch的拉力器错误caption需单独处理。P1包含格式、显式引用和信息量变化，收益只能先归于整体适配。
+
+证据：ACTUAL_PROMPT_AUDIT.json保留20条实际history/gate哈希。官方guide固定commit d21241f0a4b3acbb34c97dae47fa417b7065e438，URL https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/skills/h3-prompt-writing/references/ref-en.txt 。本审计未写新prompt、未改生产包、未启动GPU。

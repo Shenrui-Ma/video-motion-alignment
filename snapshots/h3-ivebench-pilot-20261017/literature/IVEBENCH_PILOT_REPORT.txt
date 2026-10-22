@@ -1,0 +1,57 @@
+IVEBench 五条原任务：源数据与官方评分交接
+2026-10-17
+
+执行结论
+五条已固定：short_0210、short_0230、short_0263、short_0352、short_0370。原MP4、逐帧PTS、原始编辑指令、任务元数据与SHA均已落盘。它们是从原任务中按源视频内容挑选的开发小集合；当前没有读取这些任务的H3输出，也没有按普通编辑失败筛选。完整母集合600条、人物/物体替换或颜色修改88条、其中短片60条、实际下载并按8个均匀源帧复核12条、最终5条；这些分母保留在inputs_selection。12条源图检查用于选择，不是全片逐帧可见性保证。
+
+原任务和素材
+short_0210：Replace the woman with a man；演讲中连续展开/收回手势，86帧，24000/1001fps。
+short_0230：Change the red headscarf and apron to blue；准备食物，倾倒容器后移手/持碗，107帧，30fps。
+short_0263：Replace the woman with a young girl；阅读，片尾书页变化，73帧，24000/1001fps。作为低幅度控制保留。
+short_0352：Replace the man in traditional attire with a woman in a modern dress；短暂抬手指点再收回，81帧，25fps。
+short_0370：Change the blue clothes to white；饮茶、落杯、低头，88帧，24000/1001fps。
+五条均有局部手部/上肢动作；近景或遮挡会使当前DWPose上肢观察器返回UNKNOWN，尤其0352和0370的肘部常出框。UNKNOWN保留在五条总分母。原任务没有目标身份图，输入使用原视频与原edit_prompt；source_prompt、target_prompt及短语字段保留元数据。
+素材绝对路径和所有原文均在 ../inputs_selection/PILOT_5_MANIFEST.json。该文件SHA：5d4f43a066dffa7227e062c5914734f1d406627d10c2c1c8cdf0388e25ad8fd9。
+
+输入适配
+已安装H3节点的FPS=24；参考视频Qwen取样间隔12帧，时间戳间隔0.5秒，音频latent长度也由帧数/24计算。直接把30fps原帧当24fps送入会改变动作物理速度。
+五条采用相同规则：每个j/24秒取原PTS最近帧，相同距离取早帧；有效长度N=ceil(last_original_PTS*24)+1；然后用最后原帧补到17k+5。有效长度分别87/86/74/78/89，统一H3输入90帧，补尾3/4/16/12/1帧。有效末采样点可能比原末PTS晚不足1/24秒。0230原107帧只覆盖其中86个唯一帧，0352原81帧覆盖78个；这是固定24fps采样造成的信息限制，两种方法同样承受。
+所有原片16:9。root采用完整内容缩放1280×720，左右各16、上下各8黑边，得到1312×736画布；评测源片与输出均固定去边为1280×720。正式制作与逐帧像素映射核验由R54 producer完成。比较源片与输出相同有效24fps前缀，尾填充排除。controller统计也排除尾填充，但补尾仍会进入参考条件与全局注意力。
+
+纯视频+文本条件
+本机实验封装H3EventAuditReference.ref_image为optional，None时调用原生MiniMaxH3ReferenceToVideo.execute(ref_images=None, ref_videos={'ref_video_0':frames})。原生节点循环(ref_images or {}).values()，支持零张图；静态代码支持此输入路径。
+现有H3TemporalRouter/layout.py仍限定恰好一张角色图，IVEBench Auto必须放宽至零或一张图，按真实PackedLayout重新验证offset，并做实际graph检查。去掉图片后文本长度/参考序列都会变，不能复用旧图文双参考offset。此任务没有运行新的H3图。
+证据：literature/installed_nodes_minimax_h3.py（从当前.9只读复制）；R49/extensions/H3EventAudit/__init__.py:170,189–190；H3TemporalRouter/layout.py:88。
+
+官方MF实际做法
+固定代码commit 2dcf8900ee65197f43854c76f61c66a32bb8dbfc。metrics/fidelity/motion_fidelity.py用CoTracker3 offline，window_len=60、v2=False、grid_size=10、grid_query_frame=0、backward_tracking=False。它和FlexiAct旧CoTracker、grid55、单位速度余弦不是同一评测器；旧权重和轨迹缓存不能用于声称IVEBench官方MF。
+每条轨迹先取visibility>0.5的位置；将剩下的有效点序号均匀归一到[0,1]，插值到两视频较短长度。随后按0.7位置相似度+0.3速度相似度形成轨迹对分数，相似度为1/(1+归一化距离)，归一化分母是两轨迹空间跨度范数的均值。Hungarian分配一对一轨迹，保留分数>0.3的匹配求平均。没有有效轨迹返回0。
+这一步插值会压缩不可见间隔，例如原有效帧[0,1,4]被映射到[0,.5,1]，无法直接代表原物理时刻。其全画面轨迹还可能主要位于背景。静止且相同的轨迹也可得1。因此官方MF用于运动保真对比；局部动作延后仍单列固定物理时刻的pose估计与可见性。
+官方入口对主体动作修改、镜头动作修改、event effect排除；本次五条均在保留范围。缺输出/异常返回-1并跳过平均，适配器额外保存五条固定分母和失败数，五条全有效才给完整五条均值。
+直接API：from fidelity.motion_fidelity import MotionFidelityEvaluator；显式传已核SHA的checkpoint和device；compute_motion_similarity(source_score_video, edited_score_video)。适配器复用原类和原公式，新增媒体SHA、固定样本、帧数/PTS、源帧映射及输出裁边/前缀像素核验。评分参考直接取实际送入H3的prepared90裁边与有效前缀。原片SHA→R54已核验的缩放/显式帧映射provenance→prepared90 SHA和decoded MD5→评分裁边建立完整链，避免评分时重新缩放产生第二套输入。generation/release记录按文件SHA归档，其内部科学含义由生成与release审查负责。
+
+运行资源
+必要新增权重仅facebook/cotracker3/baseline_offline.pth，revision bf55ea50d4390e1820a267f131cd6587240fb2c5，101,889,786bytes，SHA da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df。已按root授权下载本机 literature/weights/baseline_offline.pth，SHA/大小与官方LFS一致。未做GPU推理。
+固定IVEBench推理及评分源码61文件、414,733bytes已核Git blob与SHA。所需核心torch/numpy/cv2/scipy/PyYAML/tqdm/PIL/torchvision均可由.9既有环境核验；find_spec已确认前六，torchvision实际导入由CPU检查记录确认。MF推理依赖链不引入训练用OmegaConf/Hydra。Mac现torch环境缺cv2/scipy，不在本机安装新包。
+只读查找范围：Mac常规HF/torch cache；.9用户HF/torch cache、ComfyUI/models、h3_runs深度≤6。只找到已知FlexiAct旧权重，未找到CoTracker3；这不是全磁盘穷尽结论。
+
+其他指标与汇报边界
+官方Temporal Flickering无需新权重，计算相邻帧像素差的反向分数；运动更少也可能更高，因此只作为画面变化描述。Subject Consistency需要DINO，Instruction Satisfaction需要Qwen2.5-VL-72B，语义维度需要VideoCLIP-XL-v2等。先跑MF不等于12指标总榜。
+这五条保留官方编辑任务，但使用H3适配的24fps采样、分辨率与有效前缀。可称“IVEBench五条原任务、官方MF实现的配对测试”；与原论文全600条/各方法全榜分数的直接大小比较不成立。全量数据和跨方法同协议测试需后续扩展。
+
+版本与许可
+GitHub当前HEAD与原审查相同：2dcf8900ee65197f43854c76f61c66a32bb8dbfc；HF当前revision 1e6cb655c0a537f6093edcf18e2607fb03e76734；arXiv当前v2发表于2026-03-27，README记ICLR2026录用。当前源与原审查4项元数据逐字一致。
+HF card标MIT，并要求学术/教育用途与原来源条款；card称仅元数据，但仓库实际发布600MP4。选中前三条原mapping给YouTube链接，0352/0370的mapping未给外部URL；已保留缺项，不能替它们编造底层版权许可。GitHub未见顶层LICENSE，CoTracker源码说明版权归Meta，官方CoTracker3 model card声明CC-BY-NC-4.0，使用时需同时遵守该非商业许可。
+
+原始依据
+https://arxiv.org/html/2510.11647v2
+https://github.com/RyanChenYN/IVEBench/tree/2dcf8900ee65197f43854c76f61c66a32bb8dbfc
+https://github.com/RyanChenYN/IVEBench/blob/2dcf8900ee65197f43854c76f61c66a32bb8dbfc/metrics/fidelity/motion_fidelity.py
+https://huggingface.co/datasets/Coraxor/IVEBench/tree/1e6cb655c0a537f6093edcf18e2607fb03e76734
+https://huggingface.co/facebook/cotracker3/tree/bf55ea50d4390e1820a267f131cd6587240fb2c5
+
+2026-10-17 运行交接补充
+官方CoTracker3已分别在.9 torch2.5.1+cu121与.41 torch2.11.0+cu130完成CPU实例化，参数25,385,700，CUDA均未初始化。现有环境足够，未安装依赖。.41共17项CPU测试通过，覆盖官方数学/可见性、输入映射、缓存来源绑定和exact-PID门控；五条真实source_score的prepared输入、PTS与像素核验全部通过。
+GPU source tracking按root逐例准入在.41 GPU2执行，保存tracks/source/{pair_id}/tracks.npz及REPORT.json；每例记录推理秒数、显存峰值、模型与输入SHA，结束后确认PID消失。source缓存仅表示原视频轨迹已经提取，编辑保真分数需R54/R55输出释放后计算。
+缓存路径调用原MotionFidelityEvaluator的同一CoTracker3 forward参数，并用原_compute_similarity_from_tracks计算相似度；它复用源轨迹以免Native与Auto重复提取。直接compute_motion_similarity的原类入口也保留。对外仍说明官方算法复用以及24fps/分辨率/五例子集的协议差异。
+本机运行交接见LAUNCH_PROTOCOL_HOST41.txt；.41权重和runtime位于/data3/researcher/h3_runs/ivebench_official_metric_20261017。

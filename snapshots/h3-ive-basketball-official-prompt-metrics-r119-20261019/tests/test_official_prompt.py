@@ -26,3 +26,9 @@ class OfficialPrompt(unittest.TestCase):
         with self.assertRaises(ValueError): c.verify_official_prompt(p)
 
 if __name__ == '__main__': unittest.main()
+
+class GateMetadataTests(unittest.TestCase):
+ def test_known_producer_metadata_is_separate(self):
+  self.assertEqual(c.config()['producer_gate_prompt_version'],'frame-preservation-short-v1')
+  self.assertEqual(c.info('short_0114')['prompt_version'],'official-edit-prompt-verbatim-v1')
+  self.assertEqual(c.info('short_0114')['prompt'],'Replace the basketball with a neon-lit ball')

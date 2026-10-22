@@ -1,0 +1,53 @@
+--- verify_r16_remote.py
++++ verify_r16_remote_v2.py
+@@ -24,7 +24,9 @@
+     protocol=read('configs/protocol.json');g=read('configs/'+run+'.json');h=read('logs/'+run+'_history.json')
+     assert h['status']['status_str']=='success' and h['status']['completed'] and h['prompt'][2]==g
+     audit=read('audit/router/'+run+'.json');local=audit['local_query_gain']
+-    assert audit['status']=='complete' and audit['run_id']==run and audit['mode']=='mass_preserve'
++    # Frozen router retains "sampling" after its last block. Completion is
++    # established by successful exact history, all 20x50 calls, and the recorder.
++    assert audit['status']=='sampling' and audit['run_id']==run and audit['mode']=='mass_preserve'
+     assert audit['alpha']==1 and audit['radius']==audit['time_offset']==0
+     assert audit['step_interval_half_open']==[6,15] and audit['block_interval_half_open']==[0,50]
+     assert audit['pixel_interval_inclusive']==[50,65]
+@@ -55,6 +57,7 @@
+         ref_inventory.append({'path':str(p),'sha256':sha(p),'tensor':sig(t)})
+     folder=root/'audit/x0'/run;m=json.loads((folder/'manifest.json').read_text());indices=[5,6,7,8,9,10,15,19]
+     assert m['status']=='complete' and m['run_id']==run and m['seed']==2026101311
++    assert m['expected_callback_count']==m['callback_count']==20
+     assert m['capture_steps_zero_based']==indices and [r['step_zero_based'] for r in m['captures']]==indices
+     assert m['sigmas_video']==audit['sample_sigmas'] and m['noise']==packed_noise
+     entries=m['captures']+[m['final_sampler_result']]
+@@ -75,14 +78,29 @@
+     assert all(prefix.values()),prefix
+     comfy=Path('/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI')
+     core=read('configs/parent_core_hashes.json');assert {p:sha(comfy/p) for p in core}==core
+-    bundle_path=root/'configs/bundle_manifest.json';bundle=json.loads(bundle_path.read_text())
+-    assert {p:sha(root/p) for p in bundle['files']}==bundle['files']
++    bundle_path=root/'deploy_manifest_v1.json';bundle=json.loads(bundle_path.read_text())
++    expected_hashes={p:row['sha256'] for p,row in bundle['files'].items()}
++    assert len(expected_hashes)==63
++    actual_bundle={p:sha(root/p) for p in bundle['files']}
++    admission_change=read('audit/r17_parallel_admission_update.json')
++    assert admission_change['field_changed']=='permitted_compute_processes'
++    assert admission_change['old_sha256']==expected_hashes['configs/admission.json']=='fe7295a1015556a9f939538648dce8b9493f6a326f1c439b4ffd50230b6ac15e'
++    assert admission_change['new_sha256']==actual_bundle['configs/admission.json']=='bc780c5042e1a1bb42164e0a2f649af85cbf6833a4f9e3cd5e3bc1193570197a'
++    current_admission=read('configs/admission.json')
++    assert current_admission==admission_change['new']
++    assert admission_change['old']=={'scope':'own_user_video_jobs','existing_comfy_port':None,'permitted_compute_processes':[]}
++    expected_admission=dict(admission_change['old'],permitted_compute_processes=[{'pid':5985,'identity':{'uid':1016,'start_ticks':'2618526185','cmdline_sha256':'5df03b3b3467a1bc9134c70f78fc49a5e69d8379a071ebfcbd9c12493035ccb9'}}])
++    assert current_admission==expected_admission
++    expected_bundle=dict(expected_hashes,**{'configs/admission.json':admission_change['new_sha256']})
++    assert actual_bundle==expected_bundle
+     out={'passed':True,'run_id':run,'variant':variant,'actual_NFE':20,'sampler_updates':20,'callbacks':20,
+          'completed_blocks':1000,'routed_blocks':450,'active_indices':list(range(6,15)),
+          'actual_condition_checks':condition_checks,'actual_noise_equal_R3':True,'actual_noise_file_sha256':sha(path),
+          'packed_noise':packed_noise,'actual_reference_inventory':ref_inventory,'prefix005_equal_R3_full':prefix,
+          'capture_indices':indices,'capture_inventory':inventory,'mask_audit':local,
+          'protocol_sha256':sha(root/'configs/protocol.json'),'bundle_sha256':sha(bundle_path),'core_sha256':core,
++         'administrative_admission_change':admission_change,'all_other_bundle_files_unchanged':True,
++         'router_status_semantics':'Frozen router ends with sampling; complete success is independently bound to executed history, 20x50 calls, and complete 20-callback recorder.',
+          'cpu_seconds':time.time()-started,'no_GPU_started':True,
+          'dose_limit':'Equal sum of source mask alpha per bin is not equal attention-mass-weighted correction dose.',
+          'scope':'One known development source/seed; finite/runtime integrity is not visual efficacy.'}

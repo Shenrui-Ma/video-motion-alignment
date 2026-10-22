@@ -1,0 +1,95 @@
+{
+  "schema": "r126-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-handkerchief-full-context-r126-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_handkerchief_full_context_r126_20261020",
+  "producer_seal_sha256": "1ec2ccfe516e56e5f8c00b91749b02576b952638016e438725ce17a3da6d6c88",
+  "producer_contract_sha256": "ef3a3e7036aaec6f72e75e6c90304250530c60586986fa62dd70df1d61211fc3",
+  "producer_runtime_sha256": "5a9557f899d1fb1b3a6096fa0fd00aab0d24874de8850292915b6630b38b70e5",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "long_0059"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0059",
+      "run_id": "r126_long_0059_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 158,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-official-fields-full-Context-IR-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.\n<Subject 1> is the hand of the bald man in the black shirt in <Video 1>.\n<Subject 2> is the bald man, including his face and black shirt, in <Video 1>.\n<Subject 3> is the remaining source scene and objects in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a white handkerchief in the man's hand\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 59,
+        "src_video_name": "long_0059.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "A man with a bald head and a black shirt is looking down and wiping his eye with his hand.",
+        "edit_prompt": "Add a white handkerchief in the man's hand",
+        "target_prompt": "A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand",
+        "target_span": "white handkerchief",
+        "target_phrase": "a white handkerchief",
+        "origin_mapping": {
+          "source_name": "4588469",
+          "order_name": "long_0059",
+          "type": "long",
+          "url": "https://videos.pexels.com/video-files/4588469/4588469-uhd_3840_2160_25fps.mp4",
+          "start frame": "",
+          "end_frame": ""
+        }
+      },
+      "clip": {
+        "start_frame": 175,
+        "end_frame_inclusive": 324,
+        "start_pts_rational": "7",
+        "end_pts_rational_inclusive": "324/25",
+        "end_exclusive_rational": "13",
+        "duration_rational": "6"
+      },
+      "task_scope": "hand_object_addition",
+      "evaluation_scope": "IVEBench素材片段探索",
+      "forced_run_id": "r126_long_0059_seed2026101701_forced",
+      "valid_frames": 144,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/long_0059_video.mp4",
+        "sha256": "d8d60f728e4d4e7a8d06566689a12f7816383765f610b467476a5fe955056c79",
+        "bytes": 17878025
+      },
+      "provenance": {
+        "file": "inputs/long_0059_provenance.json",
+        "sha256": "f224cb70b32641822406be5b4deeaa951be73ece4d41e6a30d96bf12ac63f872",
+        "bytes": 37681
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/inputs/long_0059_original.mp4",
+        "sha256": "29d5efba7e64de58cd8deca2a0a27b458dd64e7b31c4e059967f919da033db28"
+      },
+      "graph_sha256": "fc469517b61a87f724bba83c58505dc00208294cfde957125839f7f0d9a89213",
+      "forced_graph_sha256": "d456c9e05c016208c099af3fdb8a3317c376aee1561c6f0dc78de784b92a6ceb"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

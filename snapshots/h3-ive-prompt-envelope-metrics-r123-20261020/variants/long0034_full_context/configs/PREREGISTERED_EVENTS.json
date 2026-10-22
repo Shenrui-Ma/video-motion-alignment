@@ -1,0 +1,85 @@
+{
+  "schema": "source-only-physical-event-brackets-v1",
+  "created_at_utc": "2026-10-19T19:48:31.695087+00:00",
+  "source_id": "long_0034",
+  "source_sha256": "f84b061c0f456324d8ce5a62f678e7115344868d9dc4f1009342551a1f821e8f",
+  "prepared_sha256": "48d9048059f83818b9e3750e9601c40b16dbf835d62868020fe1b9af0e13e2b3",
+  "provenance_file": "/Users/researcher/DevProjects/h3-ive-short-source-selection-20261020/long0034_clip20_129/prepared_media/long_0034_provenance.json",
+  "provenance_sha256": "1b58fe35e71d38c6254040d2c302b44dffeff59fa2de6d9da4a561f6f2c54034",
+  "clip": {
+    "start_frame": 20,
+    "end_frame_inclusive": 129,
+    "start_pts_rational": "4/5",
+    "end_pts_rational_inclusive": "129/25",
+    "end_exclusive_rational": "26/5",
+    "duration_rational": "22/5"
+  },
+  "fps": 24,
+  "valid_frames": 106,
+  "padding_indices": [
+    106
+  ],
+  "generation_outputs_seen": false,
+  "use": "Evaluation only; never enters prompt, intervention schedule or attention mask",
+  "events": [
+    {
+      "event": "first_knife_upstroke_after_slice",
+      "definition": "Knife begins the sustained upward withdrawal after that ordered slicing stroke; preserve first/second order when matching generated motion.",
+      "original_frame_bracket_inclusive": [
+        41,
+        44
+      ],
+      "prepared_frame_bracket_inclusive": [
+        20,
+        23
+      ],
+      "prepared_seconds_bracket": [
+        0.8333333333333334,
+        0.9583333333333334
+      ]
+    },
+    {
+      "event": "second_knife_upstroke_after_slice",
+      "definition": "Knife begins the sustained upward withdrawal after that ordered slicing stroke; preserve first/second order when matching generated motion.",
+      "original_frame_bracket_inclusive": [
+        113,
+        116
+      ],
+      "prepared_frame_bracket_inclusive": [
+        89,
+        92
+      ],
+      "prepared_seconds_bracket": [
+        3.7083333333333335,
+        3.8333333333333335
+      ]
+    }
+  ],
+  "review_scope": {
+    "full_context": "24 evenly spaced frames through original391",
+    "dense_original_ranges_inclusive": [
+      [
+        24,
+        53
+      ],
+      [
+        60,
+        79
+      ],
+      [
+        94,
+        129
+      ]
+    ],
+    "pages_files": [
+      "/Users/researcher/DevProjects/h3-ive-short-source-selection-20261020/source_events_long0034/PAGES.json",
+      "/Users/researcher/DevProjects/h3-ive-short-source-selection-20261020/source_events_long0034/ADDITIONAL_PAGES.json"
+    ]
+  },
+  "matching_rules": [
+    "First and second upstrokes matched by order; do not shift by a whole slicing cycle.",
+    "Absent event in valid generated span is marked unobserved/right-censored; do not use padded frames or substitute the final frame.",
+    "Check board addition, original knife/cucumber/hands and composition before timing assessment."
+  ],
+  "task": "Add a cutting board under the cucumber being sliced"
+}

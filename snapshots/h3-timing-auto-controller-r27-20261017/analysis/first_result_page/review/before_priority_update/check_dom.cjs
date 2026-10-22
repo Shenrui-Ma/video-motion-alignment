@@ -1,0 +1,16 @@
+const fs=require('fs'),assert=require('assert'),crypto=require('crypto');
+const {JSDOM}=require('/Users/researcher/DevProjects/openclaw/node_modules/jsdom');
+const html=fs.readFileSync('/Users/researcher/Downloads/H3_自动动作窗口_初步结果_20261017.html','utf8');
+const dom=new JSDOM(html,{runScripts:'outside-only'}),w=dom.window,d=w.document;
+w.fetch=()=>{throw Error('offline')};w.XMLHttpRequest=class{constructor(){throw Error('offline')}};w.requestAnimationFrame=()=>0;
+w.HTMLMediaElement.prototype.pause=function(){};w.HTMLMediaElement.prototype.play=function(){return Promise.resolve()};
+for(const s of d.querySelectorAll('script'))w.eval(s.textContent);
+assert.equal(d.querySelectorAll('video').length,4);assert.equal(d.querySelectorAll('#rows tr').length,20);assert.equal(d.querySelectorAll('#rows .on').length,1);
+assert.equal(d.querySelector('#rows .on td').textContent,'4');
+assert.equal(d.querySelectorAll('script[src],link[rel=stylesheet],iframe').length,0);
+const manifest=JSON.parse(fs.readFileSync(__dirname+'/manifest.json','utf8'));
+const videos=[...d.querySelectorAll('video')];videos.forEach((v,i)=>{assert(v.src.startsWith('data:video/mp4;base64,'));const sha=crypto.createHash('sha256').update(Buffer.from(v.src.split(',')[1],'base64')).digest('hex');assert.equal(sha,manifest.assets[i].sha256)});
+d.getElementById('seek').value=55;d.getElementById('seek').dispatchEvent(new w.Event('input'));videos.forEach(v=>assert.equal(v.currentTime,55/24));
+d.getElementById('next').click();videos.forEach(v=>assert.equal(v.currentTime,56/24));d.getElementById('prev').click();videos.forEach(v=>assert.equal(v.currentTime,55/24));d.getElementById('reset').click();videos.forEach(v=>assert.equal(v.currentTime,0));
+d.getElementById('speed').value='0.5';d.getElementById('speed').dispatchEvent(new w.Event('change'));videos.forEach(v=>assert.equal(v.playbackRate,.5));
+const result={passed:true,embedded_assets:4,asset_sha_exact:true,decision_rows:20,selected_denoising_index:4,seek_buttons_and_speed:true,external_runtime_assets:0,scope:'offline DOM/control-state and byte checks; browser layout and actual media playback unassessed'};fs.writeFileSync(__dirname+'/DOM_CHECK.json',JSON.stringify(result,null,2));console.log(result);w.close();

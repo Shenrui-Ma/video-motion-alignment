@@ -1,0 +1,146 @@
+R17 independent bounded code/numerical-gate review
+Reviewer: /root/h3_feedback_builder_20261016
+Scope: read-only source inspection; no GPU, model loading, dependency change,
+service launch or changes to implementation/tests/configs were made.
+
+Verdict
+--------
+No mathematical or frozen-graph implementation blocker found in the reviewed
+revision. Formal launch remains conditional on the actual CPU interface and GPU
+numeric gates passing with these source hashes, root resource admission and
+the actual runtime/model/conditioning/noise pins. This is not an efficacy review.
+Two interface/reporting boundaries below must be respected before claiming gate
+coverage; neither requires changing the scientific operator.
+
+Reviewed source identities
+--------------------------
+extensions/H3PhaseRoPE/core.py
+b5a9e12b6ca2a28cba46c83890eeb2f412b34fea3bde8d881343d3279cfb9c4f
+extensions/H3PhaseRoPE/__init__.py
+1cf914c5e3f8a1cefdb756bbe8e63b8739b85578a45998e76b3ea9ee85f9cc57
+extensions/H3PhaseRoPE/architecture.py
+d4b9f44f39235a1b32257a80b7762cf38fb365b926fa2af1fb7e405d1b0d8a2a
+scripts/gpu_phase_rope_smoke.py
+8b8edcf838893bce94074251db5630491ac6b184ae5fb1e9b156baf36d432bd9
+tests/real_comfy_cpu_smoke.py
+2634feebdfde6781edfcf8924b6031a6eca8aa21fa6c9e46d07bead94a7012a4
+configs/protocol.json
+2f34ee496d0f1459b1d15d88f0f313e47a8665704e415d03c621e52da0384b34
+
+1. Actual dimensions and model identity
+---------------------------------------
+Official .9 Comfy source was read at
+/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/ldm/minimax/model.py.
+Attention lines158..200 define inner=heads*head_dim, QKV(hidden,3*inner), and
+output(inner,hidden). MiniMaxH3Model lines473..478 defaults hidden5376,
+num_attention_heads56,head_dim128. R3 first_attention provides the actual observed
+56heads/128dim/7168returned width. architecture_contract checks all50layers;
+node.apply then binds heads/dim/inner to that archived runtime evidence.
+Therefore formal QKV21504 and out7168→5376 are correct. Deriving42heads from
+the final hidden5376 would be wrong. Some synthetic unit fixtures intentionally
+exercise a valid42head contract; they do not define or override the actual56head
+formal contract. No torch.nn.Linear subclass gate is imposed on MixedPrecision
+linear modules; dimensions are checked through official feature attributes.
+Attention class identity and absence of instance forward overrides are checked.
+
+2. Temporal channels, physical units and sign
+--------------------------------------------
+Official rope_freqs lines523..530 forms16 time,16 height,16 width angles, then
+duplicates the48angle half; rope_rotation_table lines149..155 constructs
+[[cos,-sin],[sin,cos]]. Attention lines177..199 applies partial split-half RoPE
+before the hooked optimized_attention, with rot_dim96. Thus time pairs are
+channels0..15 and48..63, with16..47 and64..127 unchanged. TemporalRotation
+matches these pairs, copies its input and rotates only the query used in the
+auxiliary reference-video branch. K/V and the actual native Q remain unmodified.
+Delta physical frames is multiplied by FRAME_RESCALE=5/3. Adding positive delta
+to query phase corresponds to positive query time-coordinate displacement in
+the mathematical RoPE composition. It is not a guarantee about the sign or
+amount of action timing change in generated video. Both signs are retained.
+The independent full-coordinate FP64 test covers large packed coordinates,
+both signs and a fractional offset; installed kitchen eager API comparison
+checks actual split-half layout/rounding, with explicit backend scope.
+
+3. Group probability mass and reference scope
+---------------------------------------------
+At a fixed layer input, let m_ref be the original full-attention probability
+mass assigned to reference-video keys. The formula
+ O' = O + alpha*m_ref*(O_ref(rotatedQ)-O_ref(originalQ))
+corresponds to replacing only that group's probabilities by the convex mixture
+(1-alpha)*P_ref + alpha*m_ref*softmax(rotatedQ K_ref^T). Its sum remains m_ref;
+other groups' original probabilities remain unchanged. The reference identity
+image is outside the selected video segment. The main canvas query interval is
+checked disjoint from video reference keys. Clamping tiny positive logmass to0
+is inherited numerical protection, not an exact global probability claim under
+finite precision. Audits expose excess and finite statistics. Future states,
+future group masses and final image pixels need not be invariant.
+
+4. Native/zero path and20NFE scope
+---------------------------------
+PhaseAttentionOverride directly calls the supplied undecorated native attention
+with original kwargs when inactive,alpha0 or delta0. It does not insert extra
+Flash calls into that route. Active calls evaluate the original full attention
+and two conditional reference attentions inside the same DiT forward; these are
+extra attention computations, not extra model predictions. No PREDICT_NOISE or
+SAMPLER_SAMPLE branching wrapper is added by PhaseRoPE. PhaseBlockPatch requires
+sequential50blocks, unchanged21sigmas, and refuses >20denoiser forwards. The
+unchanged H3X0Readout separately requires20Euler callbacks and writes8specified
+x0s plus final. Formal audits must show20complete forwards/1000blocks,
+450phase calls/550direct native calls and20callbacks. These joint checks also
+prevent interpreting sequential CFG double-forwards as20physical Euler steps.
+
+Two static graphs were independently compared with R3: only nodes5,6,14,50,51,52
+differ. Weights, inputs, prompt,seed2026101311, manual21sigma values, BasicGuider,
+Euler and unchanged source geometry match. Node50 carries only delta±4,alpha.5,
+window50..65,blocks[0,50),steps[6,15). Other changes are run/path/cache identities.
+Auxiliary H3EventAudit allowed root/default now correctly point to R17, and
+test_graph_contract actually invokes node6/path validation for graph5/6 paths.
+
+5. Actual CPU gate coverage and staging caveat
+----------------------------------------------
+The current real_comfy_cpu_smoke directly imports H3PhaseRoPE. It constructs the
+real H3 meta model with actual56heads, actual checkpoint frequency and archived
+clean refs; uses real ModelPatcher and actual native wrap_attn on tiny tensors.
+It manually iterates20x50blocks and checks phase/direct counts and input/RNG
+preservation. Its final scope string correctly says not DiT forward/sampler.
+It does NOT use nodes.load_custom_node, BasicGuider, KSAMPLER/Euler or callback.
+Do not report it as a real loader/sampler20NFE integration test. Graph/node
+registration readiness and formal actual counters remain separate gates.
+
+The smoke's temporary audit directory is under its installation root/audit,
+while node.apply permits only the exact formal R17 remote root. A different
+r17_cpu_stage... installation root will fail that path guard. Run the gate
+from the formal R17 root, or adjust only the test's temporary audit destination
+to the allowed formal root. Do not remove the path guard. Root was notified.
+Both smoke scripts currently call torch.set_num_threads(4); root was notified
+to reduce this if the shared CPU gate policy remains one thread. This is a
+resource setting and does not change the operator.
+
+6. GPU numerical thresholds and limits
+---------------------------------------
+The inspected GPU script freezes tolerances before execution:
+- BF16 attention versus independently built dense FP32 probability oracle:
+  maxabs<.025 and RMS<.003; both signs,alpha.5, ordinary and >.999ref mass.
+- Independent pair-matrix BF16 rotatedQ: atol.03125,rtol0.
+- FP64 full-coordinate composition: atol/rtol2e-10.
+- Installed kitchen eager coordinate recomputation: FP32 max.005/RMS.0006;
+  BF16 max.0625/RMS.012. This allows extra BF16 rounding and large-coordinate
+  FP32 argument rounding; it does not claim bitwise recomputation equivalence.
+- Actual native attention versus explicit Flash must be bitwise equal on the
+  small test and full actual packed geometry; zero path must be bitwise native.
+- Both nonzero signs at actual full shape must be finite, preserve all query
+  rows outside the selected interval and preserve QKV/globalCUDA RNG.
+The root should bind this script SHA before GPU execution and preserve failures;
+threshold changes after seeing failures require an explicit revised gate.
+The script tests checkpoint-frequency tensor arithmetic and actual eager API,
+not a weighted H3 DiT forward or semantic action correctness. Calling kitchen
+disable_backend('cuda') is scoped to this short diagnostic process; it must not
+be interpreted as a supported compiled CUDA13 path. GPU admission is root-owned;
+the script checks selectedGPU3 idle, and root must additionally enforce the
+maximum two owned .9 GPUs while R16 occupiesGPU2.
+
+7. Decision
+------------
+No code change is demanded by this review for the operator itself. Preserve the
+CPU staging/reporting distinction, run actual gates, retain both signed outputs
+and evaluate action timing plus appearance/duplicate limbs independently.
+No new-method or guaranteed phase-control claim follows from passing these gates.

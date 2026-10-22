@@ -1,0 +1,184 @@
+H3 动作时间错位：架构／机制创新门槛独立审查
+2026-10-16；作者 /root/h3_timing_prior_art_20261016；只读文献和实验记录。
+本轮仅新增此文件，没有操作 GPU、实施模型修改或改变实验队列。
+
+裁定
+当前 full-resolution mass-preserving same-bin routing 的 13→0 帧改善，是可信的单坏例干预证据，但不是架构创新证据。最窄、尚值得验证的假设是：冻结 RGB 视频编辑器内部，输出→参考视频子交互中存在一个可识别、可控的局部动作时间自由度；能在保持参考组总强度和其他同层交互不变的条件下，用物理时间坐标的有符号小扰动纠正相位，并在可观测且仍可控制的去噪区间闭环更新。
+这仍是“候选机制”，不是已发现的新架构。把 pose tracker、阈值、RoPE、mass normalization 串起来，不足以自然获得创新。若下面的区分实验不支持它，应拒绝这个创新主张，即使某个动作指标继续改善。
+
+本轮还补出两类不能忽略的新近邻：
+（1）Smart-Insertion-V 已有 RGB 视频编辑中的中间 x0→外部感知→更新引导的推理闭环，且同一系统使用条件 RoPE 偏移；
+（2）Untwisting RoPE 已分析 reference-only 频带调制，公开第三方 H3 实现已在 2026-09-09 的固定版本做 post-RoPE ref-K 干预。不能声称首次在 H3 或首次在参考分支改 RoPE。
+
+一、本轮实际证据及其上限
+
+读取：
+analysis/pose/pilot/FULL_MASS_1312_REVIEW.md
+configs/late11_mass_protocol.json
+literature/phase_feedback_second_audit.txt
+literature/innovation_assessment.txt（相关检索段）
+literature/guidance_collision_audit.md（相关检索段）
+
+full Sam05 seed1 的 50–65 帧窗口：native +13，mass 0；0.3 与 0.5 置信阈值、both-arm/right-arm均支持。common-support 指标及几何 crossing 也改善。后续多个窗口变化，说明干预的最终作用不是严格局部。69–81 的残余形状差异／覆盖不足不能吞掉而称全部成功。
+这些结果暂时支持“直接时间路由可改善该例的时间保真”，不能判断原因究竟是：正确时刻检索、参考组内分布变尖、广泛结构复制、非线性轨迹切换，还是其组合。
+
+late11 按已看过的 native x0 checkpoint10 选定，测试剩余 11..19 步是否还有纠偏能力。它是发现阶段的固定晚期干预。即使成功，也不是动态闭环；需要 checkpoint005/010 与 native 完全一致证明因果起点。
+本轮审查时 hard-mask、phase zero、±12 RoPE、late11 的最终结论尚未交给本审查；本文不预支其结果。
+正常 1024 样例 attention 参考时间均值偏移很大、但输出对齐的已有反例仍有效：未经校准的 attention temporal barycenter 不能直接作为 lag 状态。
+
+二、最接近 primary 原文／代码，及准确碰撞范围
+以下引号仅摘取定位用短句；完整数学以相应公式号为准。每篇证据只覆盖实际核查的部分，不以未看到某条代码证明不存在。
+
+1. DiTFlow — Video Motion Transfer with Diffusion Transformers
+https://arxiv.org/html/2412.07776v2
+定位 §4.2–4.3、Eq.4/7/8、Algorithm1 lines19–20、Appendix A。
+Eq.8 用参考与当前生成的 Attention Motion Flow 平方差；Algorithm1 更新 z_t 或 rho_t。§4.3 原文短句：“optimize positional embeddings”。AMF 是跨帧空间 patch displacement，位置优化直接改变 DiT 内部计算；训练骨干冻结，属于测试时优化。
+直接碰撞：从运动偏差引导位置编码、training-free motion transfer、可把内容 latent 与位置变量分开操作。
+可能差别：本候选只允许 reference 子交互的低维物理时间位移，信号是相同动作出现时刻的 signed lag，而不是全 patch 空间位移损失。但将 DiTFlow 的优化变量简单限制成一维 rho 仍是很强的“直接限制参数空间”反驳。必须比较相同低维执行器的通用损失优化基线，不能仅说我们没有反传。
+
+2. RoPECraft
+https://arxiv.org/html/2505.13344v1
+定位 §4.1、Algorithm2、§4.2–4.3。
+原文短句：“We leave the temporal component ... unmodified”。§4.1 的 optical-flow 轨迹改变 h/w 位置；§4.2 在早期步优化 rotary embeddings，使模型 flow velocity 匹配由参考 latent 和当前噪声坐标构造的目标；§4.3 加 Fourier phase 约束。
+直接碰撞：参考运动驱动 RoPE、动态推理优化、phase 相关约束。
+可能差别：物理动作 lag 不同于 Fourier phase；本候选仅旋转 reference interaction 的 t bank，保留所有 ref keys，无生成器反传。原文认为改 t 容易造成解码伪影，是需面对的反证，不能当“它没做所以我们新”的论据。未逐行核实其所有优化变体是否从不更新 t。
+
+3. Modular Body-Part Phase Control / Phase ControlNet
+https://arxiv.org/html/2603.19795v1
+定位 §4.2 Eq.5–6、§4.3 Eq.7–8、§4.4 Eq.11。
+Eq.5 的局部运动包含 amplitude/frequency/phase shift/offset；Eq.8 是层级 residual injection。Eq.11 为 mask 加权的 P(decoded predicted x0) 与 P(reference) 的 L1 距离。核心 backbone 冻结，但 phase extractor、encoder 和 ControlNet 要训练。
+直接碰撞：相位与幅度拆开、body-part 局部控制、预测 clean latent 解码后提取相位并对参考比较。
+可能差别：它是结构化 motion 的训练控制分支；这里拟研究 RGB 视频编辑推理时的误差反馈。不能把“局部 phase 表示”再算贡献，也不能因为 RGB 或 H3 的不同就自动主张架构新颖。
+
+4. DIAL
+https://arxiv.org/html/2609.11507v1
+定位 §3.3 Eq.6–7、Algorithm1 step5；§3.4。
+Eq.6 对 video query→subject reference keys 增加 log(gamma_k)×上一去噪步的归一化 ISGM；Eq.7 进入 softmax。Algorithm1 在递减步索引 i≤0.8N 时开启，因此是跳过开头约20%，在最后80%执行，不是走完80%才开。PhaseII 另有偏好训练。
+直接碰撞：reference-only logit干预、局部空间信号、上一去噪步反馈。
+区别上限：本候选在参考组内改变“读哪个时刻”，不以统一 gain 改“多相信这个主体多少”。但任意正 attention 分布都可写成 logit bias；只说公式不一样或我们 softmax 后处理无效。必须在同等 gain／entropy 控制下验证 signed timing response。
+
+5. FlowMotion
+https://arxiv.org/html/2603.06289v1
+https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+定位 §3.3 Eq.4–5、§3.4 Eq.6–9；run.py _apply_guidance_step 202–256。
+Eq.5 是 source/target clean-latent prediction 的 LA 加跨帧 difference DA；Eq.7–8 将 velocity 分为累计方向投影与正交分量，抑制后者。代码优化 target_latent_opt，loss.backward 后 Adam.step；不需要生成教师。
+直接碰撞：teacher-free、从预测端点得到运动差异并引导、稳定性约束、motion/appearance trade-off。
+可能差别：本候选不追整个 latent，而只校正有符号参考时钟；但“降低优化维数”本身不足。需要证明 phase-specific 操作纠正 timing 的同时，比一般 latent-motion 逼近更少破坏想编辑的身份／外观。此链接为 main，本轮未固定该仓库 commit，方法复现时应再冻结。
+
+6. Vidu S2-Editing（以及前轮已核 Wan-Animate-2）
+https://arxiv.org/html/2609.11638v1
+定位 §3.2、Eq.6 后的 Bidirectional Video Editing Training 段。
+短句：“restricted to temporally aligned frame pairs”。输出帧只与对应 source 帧交互，ref image 对所有帧可见；在训练后再做因果化等。
+直接碰撞：当前 same-bin 时间路由核心已经存在。训练方式不同，不使同帧 mask 本身变新。
+如果 hard-mask 在 H3 适配中与 mass 方法一样好，应撤销“保 mass 是主要机制贡献”。它仍可作为实现选择，不能被包装成新路由架构。
+Wan 及 TST 细节沿用 literature/innovation_assessment.txt，不在本轮重述未重读的公式。
+
+7. TempoControl
+https://arxiv.org/html/2510.02226v3
+定位 §4 Eq.9、Correlation-based early stopping 段、附录 Algorithm1。
+文字 token 的 temporal attention profile 对齐目标 mask，优化 latent；达到相关阈值提前终止当步优化。原文短句：“terminate optimization early for that step”。
+直接碰撞：时间误差驱动的训练外引导、按误差停手。换成 pose 误差和新阈值不是足够区别。
+可能差别：目标来自 source-video 的细动作相位、执行器是 relation-specific 时间坐标，不是文字 presence profile 或 latent 梯度。需比较反馈信号与执行器两个因素，不可将所有差异一起换掉再把收益全归于“动态”。
+
+8. MotionEcho
+https://arxiv.org/html/2506.19348v2
+定位 §3.3–3.5；§8.1 对 activation delta1 / truncation delta2 的消融。
+教师调用按学生运动偏差激活；教师运动损失达标后提前结束；经端点反馈校正学生轨迹。
+直接碰撞：监测→触发→有限指导→停止的闭环。无教师是成本／适用性区别，不是自动成为新控制原则。
+本轮复核阈值消融段；完整原文机制此前已记录于 phase_feedback_second_audit.txt。
+
+9. 新补查：Smart-Insertion-V
+https://arxiv.org/html/2605.23891v1
+定位 §4.1、§4.3、AppendixB Eq.7–8 / Early-Stage Feedback。
+推理时取 image-stream one-step x0 预测，VLM 检查风格／位置，重算 guidance embedding 替换原引导；预定义早期区间外停止 VLM 并保持引导。Eq.7 的输入为 insertion prompt、predicted x0、source 首帧。双流要训练。另给不同条件分配 spatial/temporal RoPE offsets。
+直接碰撞：“RGB编辑里的中间x0感知闭环”已有。它还将 feedback 和 conditional RoPE 放在同一系统，进一步削弱宽泛组合叙事。
+未直接重合：反馈输出是语义引导嵌入，RoPE offsets 为条件隔离设计；没有在本轮所读部分看到 signed action lag→动态参考时间坐标。代码声明待接收后发布；未查到完整实现不等于没有实现。
+
+10. 新补查：Untwisting RoPE + 已有 H3 开源适配
+论文：https://arxiv.org/html/2602.05013v1
+定位 §4 Eq.8、§5 Eq.9–10、§6 Discussion on shifted RoPE。
+论文将参考 key 的二维频带乘以随频率／去噪步变化的正尺度；Eq.9 是高低频端点的多项式插值，Eq.10 只变 reference key。它改变 locality/semantic reference trade-off；原文还分析 reference位置偏移导致的周期复制等伪影。
+原文短句：“Only the reference image keys are modulated”。这不是物理时间平移，而是对应频带贡献的幅值缩放。
+H3 工程适配（第三方，不冒称论文作者官方代码）：
+https://github.com/xmarre/ComfyUI-Untwisting-RoPE
+固定 commit 63c8d8df5e08dfdad4b397480d966b90f9b5a6c6，GitHub API committer date=2026-09-09T04:24:12Z。
+实际读取：
+https://github.com/xmarre/ComfyUI-Untwisting-RoPE/blob/63c8d8df5e08dfdad4b397480d966b90f9b5a6c6/flux_untwist/patches.py#L92
+https://github.com/xmarre/ComfyUI-Untwisting-RoPE/blob/63c8d8df5e08dfdad4b397480d966b90f9b5a6c6/flux_untwist/patches.py#L412
+https://github.com/xmarre/ComfyUI-Untwisting-RoPE/blob/63c8d8df5e08dfdad4b397480d966b90f9b5a6c6/nodes.py#L316
+patches.py 92–141 构造 H3 split-half 频带scale，t默认1；412–433 clone ref K、乘scale、调用原attention。nodes.py 给 image/video scope、时间步窗口、t bank 实验开关。
+直接碰撞：H3本地、原生ref2va、reference-only、post-RMS/RoPE 的干预位置均已有。区别是我们的norm-preserving二维旋转与有符号物理时间、选中query×reference子块、固定参考总mass和反馈；这些应分别测试。若频带缩放就能达到同样 timing/edit trade-off，时间坐标机制的必要性要重估。
+
+三、为什么常见“区别”仍不够
+
+最强组合反驳：用 Phase ControlNet 已有的局部相位传感，套用 TempoControl/MotionEcho 的误差 gate，把 DiTFlow/RoPECraft 的位置优化限制成一维，借 DIAL/Untwisting 的参考子块干预，再做标准 softmax 组归一化。
+这在技术上当然不与某一篇全文逐字相同，但组合的新颖性和非显而易见性尚未证明。“training-free、H3、没有teacher、更局部、动态、更省显存”都可能是有用工程属性，而非独立架构发现。
+严格说当前没有增加 trainable backbone 模块。更合适的暂定类别是“受约束推理控制算子／机制”，除非后续证据支持真正的关系结构设计原则；不要为了兑现“架构创新”而凭空加分支。
+
+四、比组件组合更有原则的剩余假设
+
+建议仅保留如下可被推翻的机制假设：
+H_clock：对一类形状基本保留、但动作相位偏移的视频编辑错误，冻结生成器存在可用的 reference-relative temporal control mode；该 mode 在生成动作仍可观测／可修正时，可由局部 signed error 驱动，不需要增加参考组总量或改变其他即时交互。
+
+这里的“clock”只是操作性控制变量，不等于证明 native 错误根源必然是错误 RoPE 坐标。已有正常例 attention 平均读偏的反例禁止这种直接因果归因。
+
+统一符号：s=去噪调用/进度，tau=视频物理时间，r=参考帧，u=人为时间坐标偏移。观察量 e_s 是动作发生时刻误差，不是 RoPE 角度、扩散velocity或attention质心。
+假设相同动作在输出 y 中延后 e>0；可用 common-support pose descriptor 在局部窗口拟合 y(tau)≈source(tau-e)。只有 best-aligned残余低、覆盖足、最优峰与其他周期峰可区分时，才把它叫 phase error。拟合本身和 confidence gate 是常规统计工具，不计新颖性。
+
+候选算子（本审查的明确化，不声称新数学）：
+对选中q，仅在参考集合R内使用 Q_time'=R_time(5u/3)Q_time；空间bank与所有K/V保留。
+a_qr(u)=<Q'_q(u),K_r>/sqrt(d)，r属于R。
+pi_qr(u)=softmax_R(a_qr(u))；m_q=sum_R p_native(q,r)。
+O_q(u)=O_native,q + alpha*m_q*[sum_R pi_qr(u)V_r - sum_R pi_qr(0)V_r]。
+其余q保持同层原值。坐标零偏移应走精确native fastpath。
+等价logit写法给R内增加 a(u)-a(0) 及 LSE(0)-LSE(u) 的组修正，因此不能用“不是logit bias”来区分DIAL的广义数学家族。
+
+更可检验的结构性质，是这个低维扰动是否真的指向 timing，而不是任意增强：
+在同一层固定Q/K/V下，导数为
+dO/du = alpha*m_q*sum_r pi_qr(u)*(V_r-mu_q(u))*[da_qr(u)/du]。
+这里mu_q=sum pi*V，dm_q/du=0；这只是softmax导数，不是定理创新。
+由于内容相似度和周期频率，da/du与最终lag导数没有固定符号保证。因此必须实测最终 e(u) 和中间观察 e_s(u)，不能从正旋转直接宣称正时间纠偏。
+
+若未来能证明以下三点，才形成比“拼工具”更强的核心：
+（A）关系隔离有必要：仅改output→reference关系，比全局Q/RoPE改变，能以更低外观／相机副作用获得相同时间响应。
+（B）时间模式可辨识、可控：提前／延后／正常病例中的响应有稳定符号；它与参考gain、entropy、频带scale等干扰因素可区分。
+（C）观测与控制窗口相交，闭环确有必要：生成中能可靠测到误差且后续步骤仍能改变它；固定同帧或开发集最佳固定偏移不能解释全部收益。
+三者共同形成一个任务约束的机制贡献候选，仍需与近期／新增primary做持续对照，不保证审稿人认为足够新。
+
+五、必须能否决我们的实验
+
+Gate0 — 当前队列应回答的最小问题
+1) native vs phasezero：同一输入、后端、几何/seed/solver，确认零操作无额外轨迹改变。失败先修运行契约，不能报告科学收益。
+2) hard same-bin vs mass same-bin：如果在编辑质量、局部性和动作指标上等价，拒绝“mass conservation是主要新贡献”；它只剩控制变量/实现选择。
+3) late11 vs all-step mass：若late11成功且早期x0相等，只证明可观测时刻之后还有执行余地；若失败，否决当前checkpoint10 observer+这个late actuator的闭环计划，不否决所有training-free方法。
+4) phase±12 vs zero：比较 e(+12)、e(0)、e(-12)，不是只选最好一个。若两种符号变化无序、都是参考复制增强或动作缺损，拒绝signed actuator假设。若力度太大，可预注册仅一次更小幅度复验；不能不断挑参数直到出现漂亮结果。
+
+Gate1 — 控制模式的因果区分
+5) 以相同的reference总量/预算，比较同帧mask、时间打乱但entropy匹配的分布、频带scale、uniform gain、signed时间旋转。若时间不对齐的浓缩也等效，拒绝“物理时刻对齐”解释。
+6) reference-only vs全局相同时间旋转；比较same-frame motion、best-aligned shape、identity/edit成功、camera/background和窗口外事件。若reference隔离并无优点，只称低维位置操作，不能把隔离包装成关键架构。
+7) 与简单posthoc retime比较。若全视频固定时移就达到同等质量、且没有局部异步错误需要处理，闭环生成控制的实用必要性不足。
+
+Gate2 — 真实反馈而非固定策略
+8) 冻结开发参数后，至少包含提前、延后、正常三类及另一source/seed；比较最佳固定offset、固定late schedule、真正feedback、相同监测但不执行、冻结/打乱/反号feedback。若feedback没有额外收益或反号也同样好，拒绝反馈机制主张，即便相对native整体涨分。
+9) 传感器对已知人工时移、幅度改变、遮挡、重复动作必须区分并适当abstain；若tracker身份偏差或周期错配主导，不能称测到了真实lag。
+10) 一个窗口内只有相同pose晚到才能叫相位差；动作本身缺失、形状错或低置信不应被硬压成一个lag数字。若错误类型混淆导致所谓改善，拒绝课题证据。
+11) 若可靠lag只在最后几步出现，而这些步的有限干预已无法改正动作，则observer-controllability intersection为空，停止当前闭环而不是再增加阈值花样。
+
+Gate3 — 创新性而非单纯性能
+12) 如果实现最终退化为“pose误差超过阈值就开已有same-frame mask”，且用一张固定时间表即可复现收益，应归为已有技术的自动化适配，不主张新的架构。
+13) 若只要把DiTFlow/RoPECraft限制到同一低维时间参数、换成相同phase loss就能得到同样控制性质，论文必须承认是特例／改进；不能继续声称发现独立架构。进一步贡献只能来自经证明的约束或观察原则，而非改名。
+14) 只在选中坏例成功、正常例受损；或者动作指标提升是身份回退／源视觉泄漏／不执行用户动作编辑换来的，都否决“保持编辑下的时间一致性”主张。
+15) 即使平均指标显著提升，若没有新机制证据，仍可能是有价值的工程或实证工作，但不等于达到顶会主会的架构创新门槛；应如实收缩论文定位。
+
+六、本轮建议的停止／推进决策
+
+继续当前已登记的hard/zero/late/±12诊断，等结果后决定；不以mass单坏例成功立即扩写复杂controller。
+若signed响应不存在而same-frame静态路由持续有效：停止“相位伺服”创新叙事，保留静态适配结果；不要用增加observer复杂度来掩盖执行器不可控。
+若signed响应、晚期可控性和normal-case非退化同时存在：才做独立的observer校准与小规模feedback vs固定策略实验。
+若所有门槛通过，可使用的最窄贡献表述应明确为：冻结视频编辑器中，基于可辨识局部动作时间误差，对隔离的参考时间关系实施有符号、可停止的推理控制，并实证其相比静态拷贝/全局运动逼近的优势。不要使用“首个动态RoPE”“首个局部phase”“首个x0闭环”“首次H3参考干预”等表述。
+
+七、检索与不确定性记录
+
+本轮重读arXiv指定版本方法/公式，FlowMotion作者代码，并定向搜索 reference-only RoPE、video phase feedback、relative temporal coordinates、time-warp attention。新增Smart-Insertion-V与Untwisting/H3适配均查到primary全文或固定代码。第三方聚合页面只用于发现，不作为机制结论依据。
+本轮未找到与完整“RGB x0可靠signed lag→reference-only物理时间关系→保mass→误差停手”全部契约完全一致的工作；此句只能描述检索结果，不构成不存在证明。未穷尽全部文献、引用链、专利和未公开稿件。
+更重要的是：即使没有完全同名/同实现的文章，现有组件足以构成显而易见组合的审稿反驳，必须依靠上述可证伪结构性质而非“没搜到一模一样”支撑推进。

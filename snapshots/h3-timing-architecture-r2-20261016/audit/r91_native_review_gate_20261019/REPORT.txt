@@ -1,0 +1,35 @@
+R91 篮球与取书任务：Native 后验收门只读审查
+
+当前 R91 没有普通编辑完成后的任务验收门。按现成启动命令执行，会先跑篮球普通编辑、再立即跑篮球固定引导，之后才等待 root 审阅。这个流程会在普通编辑任务失败时仍花费一次引导推理。
+
+准确依据：
+1. scripts/execution_gate.py:21–38：approve-first-pair 的 allowed_runs=order[:2]；这两条无需成片任务验收就都可提交。approve-rest 依据首对 PAIR_RUNTIME_GATE 放行后两条。
+2. scripts/run_queue.py:76–101：按完整队列取下一条；Native history success 后加入 completed，下一次循环直接提交 forced。awaiting_first_pair_review 仅在 admitted_job 拒绝时发生。
+3. audit/root_run_batch.py:132–146：first_completed 等 completed==order[:2]，之后才 CPU verify pair 并产生 FIRST_PAIR_REVIEW_HOLD。
+4. analysis/postrun/verify_pair.py:35–79：只接受 --source，没有 --native-only；随后访问两个 run 的 history/conditions/noise/x0。
+5. scripts/r91_contract.py:41–45：registry 要求固定四条顺序，直接从 configs/queue.json 删掉 forced 会拒绝运行。
+6. scripts/job.py:88/99/121 已在入口、提交锁内与 POST 前检查 admitted_job。新的验收约束应接在这个既有边界上。
+
+建议沿用已验证的 R92 Native-first 行政逻辑，留原 R91 seal 及科学图字节。当前只提交方案，未修改任何生产文件。
+
+最小状态流程：
+• 篮球 Native → 实际 NATIVE_RUNTIME_GATE → 最多 1800 秒 root guide/skip 等待。
+• guide 需要本条局部编辑已成立、任务目标/动作变化已审阅；才提交原 frozen forced 图。普通编辑与引导沿同服务、同实际条件/噪声，前 6 个预测仍由真实 pair gate 校验。
+• skip 记录 native_only 和原因，例如“球未完成替换”或“原动作已同步”；保留原片/Native，不生成第三栏或 pair gate，也不算一条修复成功。
+• 第一次实际 guide 的 pair 完成后，再保留一次实际容量/质量审阅门。若篮球 skip，取书成为第一次 guide 的候选，流程同样成立。
+• 取书使用相同 Native → 验收 → guide/skip 流程。篮球 105/107 有效/总帧，取书 144/158；取书继续标作素材六秒片段探索。
+• 等待到期后精确释放自己的服务，Native、条件、噪声和未决原因留档；不自动重发已有 POST。不把 timeout 当 skip。跨服务继续需要显式恢复和重新核配对代次，旧 wrapper 不应自动接管。
+
+需要改动的文件与可复用入口（实施应单独授权并封存新版本）：
+A. scripts/execution_gate.py：复用 R92 approval/native_binding/decision/ledger/admitted_job/first_guided_reviewed/write_decision。root 决定原子写入，绑定 Native gate/成片 SHA、runtime 和实际 service PID/UID/start/cmd。guide/skip 不靠提示文字或文件是否存在猜测。
+B. analysis/postrun/verify_pair.py：复用 R92 的 --native-only 分支。Native 只核实际 history/graph/shape/PTS/20NFE/0route/条件/噪声/capture，输出独立 NATIVE_RUNTIME_GATE；成对分支继续核原共同条件、AV 噪声、0–5 预测逐位一致。补 service_owner 和 binding_artifacts 供决定绑定，不降低原检查。
+C. scripts/run_queue.py：复用 R92 逐 source execute/verify/hold/finish_source，替换原 completed-prefix 推进。首次 guided 审核可以落在任一源，skip 留账后继续下一 Native。
+D. audit/root_run_batch.py：复用 R92 的结束状态识别，接收 paired/native_only/review_timeout，不再固定等待 order[:2]。原资源准入、精确 peer/GO、最多两张自有卡、HTTP UNKNOWN、原 deadline、清理机制保持原实现。
+E. scripts/lease_watchdog.py 与 scripts/job.py：核对新的等待状态和门接口。watchdog 原 1800 秒空闲界限可复用；UNKNOWN 不能累积为空闲，POST 保持单次提交。job 已有三个 admitted_job 调用点，通常只需更新说明与新门测试。
+F. configs/scientific_contract.json 的执行流程说明、封存清单、ROOT_HANDOFF 和必要定向测试同步记录；四图、输入、P1、seed、20 Euler 与六个数值源文件逐字继承。configs/queue.json 可继续注册完整四图，是否实际执行由账本控制。
+
+必要回归限于：无决定拒绝 forced；guide 绑定后允许；换成片/身份/决定拒绝；skip 无 forced 记录和无 pair gate；首个 guided 不一定是篮球；1800 秒等待到期释放；状态 UNKNOWN 不重发 POST。现成 R92/R96 已有同类实现，可直接复用并改两源绑定，无需再造长期进程。
+
+若目标只是先拿篮球 Native 看任务是否成立，也可以另写一次性单 Native wrapper 并在结束后释放；随后同服务快速追加 guided 的便利性会消失，原 R91 配对验收要求同一 service owner。当前两任务都需要按任务质量决定是否引导，建议采用上面的完整两源 Native-first 小幅移植。
+
+本次仅本地读取已存在源文件并写这份独立审查；未启动 GPU、服务、watcher，也未改 R91 seal。

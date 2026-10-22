@@ -1,0 +1,27 @@
+现有证据分母：按原始视频去重
+
+快照合计：76 条实验展示记录，34 个原始视频来源。记录数包含提示词、角色、采样器及引导变体；同一成片也可能被不同对照复用。
+
+FlexiAct
+来源 8 个；记录 28 条；实际激活引导的配对 17 个版本，涉及 7 个来源；零干预配对 1 个版本。
+每来源最新普通编辑验收：{'UNKNOWN': 1, 'PARTIAL': 5, 'COMPLETE_OBSERVED': 1, 'MIXED': 1}。
+实际配对的既有时序结论（版本数）：{'NEUTRAL': 11, 'NOT_COMPARABLE': 6}。
+已有实际配对官方 MF 11 个版本；缺失 6 个版本。
+
+IVEBench
+来源 26 个；记录 48 条；实际激活引导的配对 31 个版本，涉及 23 个来源；零干预配对 5 个版本。
+每来源最新普通编辑验收：{'PARTIAL': 3, 'COMPLETE_OBSERVED': 23}。
+实际配对的既有时序结论（版本数）：{'LOCAL_TIMING_IMPROVEMENT': 2, 'NOT_COMPARABLE': 8, 'NEUTRAL': 17, 'NEUTRAL_EXTENSION': 1, 'EXTRA_GESTURE_SUPPRESSED': 1, 'MIXED_LOCAL_CHANGE': 1, 'REGRESSION_EVENTS_NOT_COMPARABLE': 1}。
+已有实际配对官方 MF 23 个版本；缺失 8 个版本。
+
+局部支持与边界：
+IVEBench short_0252 的三个面罩阶段有对齐改善，short_0358 的部分喝酒阶段更接近参考。这两个来源有局部时序改善证据。short_0358 末端到达仍延后。
+long_0174 固定引导提前了局部伸臂，同时头手组合仍未恢复；后续空间版本出现构图/内容退化。short_0352 抑制了新增手势，属于动作内容保持证据。
+现有记录没有建立整条事件序列全面修复，也没有建立自动方法在十个独立来源上有效。
+FlexiAct 的新 fitness 配对完成角色、背景和可见动作，两版时序接近；新盘腿前屈配对仍存在手触地延后。
+
+解释：COMPLETE_OBSERVED 只指现有审阅覆盖内的任务完成；六时刻和全帧审阅的覆盖差异保留在 JSON。UNKNOWN 与 PARTIAL 均保留。该审计未新增视觉判断。
+
+快照：
+flexiact: 4b0ac00786a3a5986533bed06b09417fa3c18d7a67e0c125e63c361f54176f95
+ivebench: d39ba863e56343511617806b08e21dcb960630b41edcdb4c80bdd31a5f71ac92

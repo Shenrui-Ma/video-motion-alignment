@@ -1,0 +1,75 @@
+同状态候选接受：文献边界与最小否证方案
+2026-10-17。只读文献、作者源码和本地冻结代码；没有实现新控制器、解码、pose提取、推理、权重下载或依赖安装。
+
+判断
+值得作为“干预是否真的有效”的工程诊断，但基本循环已经有直接先例，不能作为新架构或首次反馈引导。Dynamic CFG已经在同一当前状态复用预测、比较引导强度并选优；SVDD-PM/Free²Guide已经使用clean预测的非可微reward筛选同父状态候选；CAT/DynamicDPS已经将实际目标下降用于步长接受。把这些操作换成DWPose、两个候选、一个阈值或H3，不构成独立的新颖性。
+
+相对当前Auto，明确新增的是：Native观察通过后，额外观察本步Full，并允许保留Native；现在代码只根据Native决定是否运行Full，运行后直接采用Full，没有Full效果检验。该改变能否减少有害干预尚未验证。它测的是“当前clean预测的响应”，不是实际下一状态/最终视频已经改善。
+
+最接近的三组先例
+1. Dynamic CFG，2509.16131v2，§3.2–3.3 Eq5–7、Appendix A.2–A.3。
+https://arxiv.org/html/2509.16131v2
+每步复用条件/无条件预测，组合候选CFG尺度，由在线latent evaluators贪心选择；已有alignment/fidelity等多目标反馈。与拟议方案最直接重合的是同状态多尺度候选选择。其评估器在noisy latent上专门训练；拟议方案用现成RGB pose、局部物理时间和Native/路由Full两支。论文Eq6略写为e_t(x_t,c)，不宜据此断言它明确解码两个同sigma clean端点；正文明确复用预测和在线搜索即可成立重合。本轮未核到官方可执行仓库；不把第三方笔记当代码证据。
+
+2. SVDD-PM与Free²Guide：已经有无需新增训练、非可微clean输出评价。
+SVDD 2408.08252v5 §4.2 Algorithm1、§4.3 Algorithm3：
+https://arxiv.org/html/2408.08252v5
+从同一父状态采样多个下一状态；用r(xhat0)近似其未来价值，按权重或argmax选下一状态。PM分支不学习新的value模型。官方图像代码已核：commit920d3b66062f0b7a7b2db709e9ecca35631e3b74，sd_pipeline.py 562–602（多个候选、下一时刻预测、argmax）和1021–1063（PM clean预测、VAE、reward）；不是本轮只看生物序列实现后推断图像代码。
+https://github.com/masa-ue/SVDD-image/blob/920d3b66062f0b7a7b2db709e9ecca35631e3b74/sd_pipeline.py
+Free²Guide 2411.17041v2 §4.1/4.3 Algorithm2明确对候选下一状态的clean视频解码、评价并选一个继续；可组合多个reward。它已覆盖视频、黑盒评价和无教师。
+https://arxiv.org/html/2411.17041v2
+官方commitd0c732b2532199b5e7440c0fd2959dc6c1bd2afa，path_integral_video.py 509–547是候选→下一时刻clean预测→解码→argmax；476–478固定repeat10/初段，不能说作者代码按需接受Native/Full。文件同时保留多个同名get_reward定义，最后为async，而该循环按同步调用；本轮只核实控制流，没有运行或认证该脚本开箱可用。
+https://github.com/kjm981995/free2guide_code/blob/d0c732b2532199b5e7440c0fd2959dc6c1bd2afa/path_integral_video.py
+这两者的候选是随机转移后的不同状态，拟议方案是同x/sigma/条件下不同路由预测；这是具体实现差异，不推翻候选评价范式的重合。
+
+3. 实际目标下降/缩放：CAT与DynamicDPS。
+CAT 2609.21251v1 §4 Theorem4/Eq12、Algorithm1 24–32：对几何约束方向做Armijo回溯，用实际guidance objective检查有限步下降。它有梯度/局部光滑条件和管状几何预算，不能将其保证直接移植给离散lag、可见性门、非梯度Full方向。本轮论文未发现作者代码链接。
+https://arxiv.org/html/2609.21251v1
+DynamicDPS 2503.01075v2 §2.4 Eq6及Wolfe条件也明确自适应线搜索。
+https://arxiv.org/html/2503.01075v2
+官方commit0a29e70112b993e637c2237f1d5764794347bda4，guided_diffusion/condition_methods.py 345–389实际重预测trial state clean输出、检查Armijo/curvature；400–413按间隔调用并使用scale。实现达到迭代/步长界限仍返回alpha，并非任何失败都回退零步，因此不能把它引用成严格无害接受证书。
+https://github.com/edshkim98/DynamicDPS/blob/0a29e70112b993e637c2237f1d5764794347bda4/guided_diffusion/condition_methods.py
+
+指定四篇的精确边界（本轮重开主文；承接已有审计，不重做大综述）
+• MotionEcho §3.3 Eq5已有端点插值，§3.4已有loss触发和达标停止；教师重新加噪并走细轨迹。未见同状态Native/Full双解码、比较物理lag后拒绝教师端点的本循环。官方仍Code Coming soon。
+  https://arxiv.org/html/2506.19348v2 ; https://euminds.github.io/motionecho/
+• FlowMotion §3.3 Eq4–5使用源/目标clean latent与时间差分目标，§3.4调速度。官方run.py固定前guidance_step、固定Adam内循环，然后正常更新；没有本步Native/Full接受检查。网络速度no_grad，不应称其必须反传整个DiT。
+  https://arxiv.org/html/2603.06289v2
+  https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py （197–285）
+• FlowDirector V2 §3.4 Eq9–11已有motion/appearance分解的clean端点能量纠正，§3.5/Algorithm1已有多个候选流与差分平均。候选按与平均流的方向关系处理，不是解码后物理时间收益接受；不同prompt/source-target分支也不同于同条件路由。官方V1代码不可当V2实现。
+  https://arxiv.org/html/2506.05046v2
+  https://github.com/Westlake-AGI-Lab/FlowDirector/blob/cecd56e30820b279f35acaa18597f4da25fa4f42/wan/text2video.py （834–904，V1）
+• DIAL PhaseI §3.3 Eq6–7/Algorithm1根据上一去噪步空间注意力施加用户指定bias，无本步两个端点质量接受。PhaseII Algorithm2确实有偏好winner/loser，但用于DPO训练，不能混称同状态免训练接受。保参考组mass也不自动保身份或背景。
+  https://arxiv.org/html/2609.11507v1
+
+最多两个可以继续否证的具体机制；两者都是候选适配，不是已成立的新贡献
+H1. 对同一步路由响应分解“相位改善”和“姿态变形”，而不是只奖励源/目标方向误差下降。
+固定Native发现的物理窗、手臂和目标时刻规则。记N/F为本步两支的RGB pose，R为源，期望保留动作的目标lag为tau*=0；明确动作重定时编辑则应使用任务指定tau*。在同一可观测帧/骨段集合和相同权重上，为N/F保留完整lag误差曲线，分别估计tau_N/tau_F；时间收益是|tau_N-tau*|−|tau_F-tau*|，另报告各自相位对齐后的shape residual。再将F相对N补偿这次相位变化，观察剩余几何变化；不能把手臂振幅缩小、姿势旋转或消失当“准时”。这比通用reward具体，但仍是既有候选评价的任务化目标，只有确实拒掉错因/有害响应才有实用意义。
+支持必须同时约束两支和源，比较时权重固定，例如三者置信度的最小值；还应固定lag候选之间的可比较支持，或明确报告支持依赖并拒绝因此改变结论的样例。共同支持之外的可见性减少必须另列，不能删掉难点后让F胜出。重复/恒定动作、不同lag近似等价、两置信阈值结论不一致均保留UNKNOWN。DWPose置信度不是时间增益的统计置信区间；相邻去噪端点也不是独立重复样本。本轮失败的自由Drop-DTW不能用来给此门提供可信时间真值。
+
+H2. 将编辑保持写成不可用时间收益抵消的可行性条件，并把Native作为明确的回退候选。
+源视频只约束任务要求保留的运动；身份/外观要对目标参考和目标prompt判断。允许改变动作的部位/事件不能硬拉回源动作。F必须在时间上有可辨收益，同时不损害已指定的编辑目标、相位对齐后的形状及保护区域；证据缺失则保留Native并记录UNKNOWN，不能用较高motion reward补偿身份编辑失败。相比Dynamic CFG/Free²Guide的分数组合，这个区别是有任务依据的硬非劣约束；受约束候选选择本身仍是通用旧技术。仅比较F≈N会固化Native已经失败的身份编辑，不能声称满足目标。现有单位手臂方向不包含身份/背景信息；若没有已有RGB审查或冻结的目标一致性信号，H2尚不可被完整执行或验证。
+
+“缩放”必须区分两种不同操作
+令D_N,D_F是同x_sigma得到的完整AV clean预测。端点混合D_beta=(1−beta)D_N+beta D_F，beta∈[0,1]，在无churn Euler下：
+ x_next(beta)=x_sigma+(sigma_next−sigma)/sigma * (x_sigma−D_beta)
+             =(1−beta)x_next(N)+beta*x_next(F)。
+这是本轮代数推导，只说明下一latent更新线性；VAE、pose、lag和最终质量均不线性。它一般不等于把50层路由alpha设成beta重新forward，因为中间层非线性。不得将混合预测叫已经评估的弱Full，也不得把两个分支的注意力mass性质直接说成混合预测对应一次forward的证明。视频/音频是耦合输出；仅混视频、继续使用Full音频需要单独定义，不能默认无影响。
+因此两个端点的评价最多支持beta∈{0,1}的接受/拒绝。想选择0.5等强度，必须实际解码并评价那个混合预测；只用两端点分数插值不够。若改路由alpha则还需额外H3 forward。Full方向不是已知下降方向，回溯到小beta并不保证物理时间目标下降；预算耗尽必须允许beta0，而非强行返回最小非零值。“trust region”也需明确约束和检验，不能仅把beta上限换名。
+
+现有R53资产可做的最小否证；先二元接受，不做scale搜索
+本轮读取本地R53代码证实：core.py 282–375同x/sigma/condition/RNG计算Native后可选Full；194–217保存stepNNN_native.pt/full.pt，并保存双方签名；live_observer.py只测Native。配置指向远端：
+ /data5/researcher/h3_runs/timing_signed_source6980766_r53_20261017/audit/counterfactual/
+其中run_id来自configs/r53_source_6980766_seed2026101701_auto.json，快照子目录为run_id+'_snapshots'；Native pose关联audit/observations/stepNNN_UUID/response.json中的pose路径和endpoint SHA。路径模板不等于逐文件存在性核验。
+本地R53 postrun LATEST记录step019 observer技术失败；本轮没有成功最终输出，也没有找到下载到本地的Full pose或分支archive ledger。已存在configs/source.pose.json及R47 parent native.pose.json；后者是最终Native视频pose，绝不能替代R53每步Native端点pose。远端已归档的确切列表由root冻结的资产清单补齐；本轮不连接GPU、不作新解码/pose、不把缺测填成结果。
+
+最小表按所有已归档且实际提议ON的步顺序纳入，不挑“看起来改善”的步：
+ n,sigma,shared_input/condition/RNG,Native/Full endpoint SHA,pose/decode SHA,原窗口/arm,两侧及共同coverage,丢失可见性,tau_N,tau_F,时间收益,各自对齐shape residual,N→F相位补偿后残差,编辑目标状态,保护区状态,接受/拒绝/UNKNOWN原因。
+窗口和arm完全复用当步冻结Native决策；不要先扫描Full再重选一个对它有利的窗口。c=.3/.5均报告，原±24限制原样保留；较大lag单列为预先声明的诊断对照，不能同时改观测器和接受机制后归功于本机制。空支持、边界极值和形状不对应都不能记为时间改善。
+先比较三列：现有Auto（所有ON均用Full）、简单共同支持同步误差选优、H1/H2受约束二元判别。观察是否有明确决策分歧，并用已有对应端点视频进行固定时刻事件/几何/编辑目标复核。没有Full pose时，本轮只能确认该表缺必要输入，不能给出接受率或“将改善”结论。即使有pose，也只能检验即时端点代理与拒判覆盖；若无现成独立RGB/事件判断，不能用同一pose分数既选又证明正确。
+
+直接否证条件：多数ON在共同支持下仍无法辨认相位；所谓收益主要来自消失/形状变化；加入编辑保持后全部UNKNOWN；或所有决定与简单分数选优相同而额外约束没有实际作用。若只有个别原ON明确被识别为有害，值得后续小型对照；先公开所有不确定/无收益步，不调阈值挽救。
+还要区分“本步干预效果”和“长期策略效果”：归档的n+1 Native在实际选中Full后的轨迹上，并没有拒绝Full后的反事实后续轨迹。不能离线逐步挑选不同分支、继续使用原后续状态，拼成一个新策略的最终成绩。R53的技术失败也使本轮更不能证明最终改进；无需为了本次文献审查补跑。
+
+最终建议
+先补齐已有资产清单，若Full pose缺失就停在“未能离线测量”，不立即深度实现。两个分支的存在已解决提出候选，但尚未解决评价可靠性。最值得保留的研究问题是：在任务要求保留的动作上，具有共同支持和编辑非劣条件的即时响应检查，能否拒掉当前自动策略的有害Full提议。应称“受约束的候选接受适配”；不得写首次training-free counterfactual/首次动态启停/首次端点评价，也没有穷尽全部先例的保证。

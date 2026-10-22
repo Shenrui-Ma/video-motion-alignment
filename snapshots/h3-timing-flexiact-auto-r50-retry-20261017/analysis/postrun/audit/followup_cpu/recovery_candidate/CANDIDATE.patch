@@ -1,0 +1,64 @@
+--- sealed/transport.py
++++ candidate/transport.py
+@@ -1,5 +1,5 @@
+ """Immutable request transport and exact owned-process supervision (stdlib only)."""
+-import hashlib,json,os,signal,subprocess,threading,time
++import hashlib,json,os,signal,subprocess,sys,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+ PROTOCOL_SHA='16dbe3ff91ea84ade0201980ee97c739b3471f652976bcea593164ec0756c595'
+@@ -30,9 +30,26 @@
+  try:
+   stat=(p/'stat').read_text(); tail=stat[stat.rindex(')')+2:].split()
+   if tail[0]=='Z':return None
+-  return {'pid':pid,'uid':p.stat().st_uid,'start_ticks':int(tail[19]),'cmdline_sha256':hashlib.sha256((p/'cmdline').read_bytes()).hexdigest()}
++  command=(p/'cmdline').read_bytes()
++  # /proc can expose an empty cmdline during process startup. Bind only after
++  # exec has published the actual command; the existing launch deadline applies.
++  if not command:return None
++  return {'pid':pid,'uid':p.stat().st_uid,'start_ticks':int(tail[19]),'cmdline_sha256':hashlib.sha256(command).hexdigest()}
+  except (FileNotFoundError,ProcessLookupError):return None
+ def alive(entry):return entry is not None and identity(entry['pid'])==entry
++def bind_launched_child(process,command,*,timeout=3,lookup=None,clock=time.monotonic,sleep=time.sleep):
++ expected=hashlib.sha256(b'\0'.join(os.fsencode(v) for v in command)+b'\0').hexdigest()
++ deadline=clock()+timeout;generation=None
++ while process.poll() is None and clock()<deadline:
++  candidate=(lookup or identity)(process.pid)
++  if candidate is not None:
++   current=(candidate['pid'],candidate['uid'],candidate['start_ticks'])
++   require(candidate['uid']==os.getuid(),'launched child owner differs')
++   if generation is None:generation=current
++   require(current==generation,'child generation changed before command binding')
++   if candidate['cmdline_sha256']==expected:return candidate
++  sleep(.01)
++ raise ValueError('unable to bind launched child to complete expected argv')
+ def terminate_owned(process,entry,grace=8):
+  if process.poll() is not None:return
+  if alive(entry):
+@@ -78,10 +95,7 @@
+   require(alive(parent),'parent exited before child launch')
+   with log.open('xb') as handle:
+    proc=subprocess.Popen(command,env=env,stdout=handle,stderr=subprocess.STDOUT,start_new_session=True)
+-   deadline=time.monotonic()+3
+-   while entry is None and proc.poll() is None and time.monotonic()<deadline:
+-    entry=identity(proc.pid)
+-   require(entry is not None and entry['uid']==os.getuid(),'unable to bind own child')
++   entry=bind_launched_child(proc,command)
+    write_new(directory/(label+'.process.json'),dict(entry,command=command,parent=parent,timeout_seconds=timeout,execution_timeout_seconds=execution_timeout,execution_started_path=str(marker) if marker else None))
+    while proc.poll() is None:
+     require(alive(parent),'parent exited during child execution')
+@@ -93,8 +107,12 @@
+    if marker is not None:require(execution_start is not None,'successful child lacks execution start evidence')
+  finally:
+   if proc is not None:
+-   terminate_owned(proc,entry)
+-   write_new(directory/(label+'.exit.json'),{'pid':proc.pid,'returncode':proc.returncode,'identity_absent':not alive(entry),'wall_seconds':time.monotonic()-start,'execution_start':execution_start})
++   primary_error=sys.exc_info()[1];cleanup_error=None
++   try:terminate_owned(proc,entry)
++   except Exception as error:
++    cleanup_error=type(error).__name__+': '+str(error)
++    if primary_error is None:raise
++   write_new(directory/(label+'.exit.json'),{'pid':proc.pid,'returncode':proc.returncode,'identity_absent':not alive(entry),'wall_seconds':time.monotonic()-start,'execution_start':execution_start,'cleanup_error':cleanup_error})
+  return {'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode,'execution_start':execution_start}
+ def require_parent_closure(root=ROOT):
+  root=Path(root);c=read_json(root/'configs/PARENT_CLOSURE.json')

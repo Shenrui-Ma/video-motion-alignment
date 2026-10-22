@@ -1,0 +1,1509 @@
+{
+  "schema": "r149-schedule-evaluation-v1",
+  "status": "PREPARED_NO_NEW_OUTPUT",
+  "historical_manifest": {
+    "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/EVALUATION_MANIFEST.json",
+    "sha256": "041d529840de6ae6acdf46a54dd32a39863d5491192ce189cbd2b01e270bc797"
+  },
+  "display_index_base": 1,
+  "code_index_base": 0,
+  "roles": [
+    "source",
+    "native",
+    "fixed",
+    "selected_schedule"
+  ],
+  "schedules": {
+    "early": {
+      "label": "早段 1–9",
+      "steps_1based": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "steps_0based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    "late": {
+      "label": "晚段 12–20",
+      "steps_1based": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "steps_0based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    "split": {
+      "label": "分段 1–4＋16–20",
+      "steps_1based": [
+        1,
+        2,
+        3,
+        4,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "steps_0based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    "global_weak": {
+      "label": "全局弱引导",
+      "steps_1based": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "steps_0based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "physical_window": "full_valid_video",
+      "description": "全有效视频、全部二十步；引导强度为原来的1/4（α=0.25）。"
+    }
+  },
+  "total_sampling_steps": 20,
+  "active_steps": {
+    "early": 9,
+    "late": 9,
+    "split": 9,
+    "global_weak": 20
+  },
+  "phase_offset": 0,
+  "scientific_variable": "early/late/split change only the nine active steps. global_weak additionally uses all effective video frames and alpha=0.25 across all 20 steps.",
+  "invariants": [
+    "historical prompt",
+    "actual initial AV noise",
+    "reference conditions",
+    "mass_preserve",
+    "radius/time_offset",
+    "all 50 transformer blocks",
+    "20 Euler sampling steps",
+    "no additional RoPE phase"
+  ],
+  "global_weak_meaning": "引导强度为原来的1/4（α=0.25）：在原 all-reference 输出与同时间 bin 读数之间混合，参考总概率质量保持。全局指全有效视频与二十个去噪步，仍只作用输出视频 query。",
+  "cases": [
+    {
+      "source_id": "short_0252",
+      "title": "机舱：男性替换为年长女性",
+      "seed": 2026101703,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "media": {
+        "source": {
+          "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/inputs/short_0252_video.mp4",
+          "sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+          "producer_remote_file": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/input/short_0252_video.mp4"
+        },
+        "native": {
+          "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/incoming_pairs/short_0252/native.mp4",
+          "sha256": "5317e356d7a12e12b09799b56ec61bc0c20c03dda73e3d0478c0ca9d6c5adc7b",
+          "producer_remote_file": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/output/r141_short_0252_seed2026101703_native_00001_.mp4"
+        },
+        "fixed": {
+          "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/incoming_pairs/short_0252/forced.mp4",
+          "sha256": "d3e833361c7151671940c50a8626a917ce787d7b2dd172af095de9fa10b08668",
+          "producer_remote_file": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/output/r141_short_0252_seed2026101703_forced_00001_.mp4"
+        }
+      },
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "historical_pair_gate": {
+        "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/incoming_pairs/short_0252/PAIR_RUNTIME_GATE.json",
+        "sha256": "35538eed18e9b17bf0222176e69edf5d17b1869e03343d9fbcdfc30e918358c6"
+      },
+      "historical_review": {
+        "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/audit/independent_pair_review/INDEPENDENT_REVIEW.json",
+        "sha256": "20f56d8ff43d1a69be34a016ceb1fcb3355cf262db0ed1b3e9e41646740883a6"
+      },
+      "historical_initial_noise": {
+        "file": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/audit/r141_short_0252_seed2026101703_noise.pt",
+        "sha256": "e3a48ba246e6e9efd9d594b81091e57417dc9c912696b80766af4ffe19b818a9"
+      },
+      "historical_source_remote": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/input/short_0252_video.mp4",
+      "task_checks": [
+        "年长女性替换成立",
+        "儿童、机舱、面罩与动作顺序保留",
+        "不把抬带写成已戴稳面罩"
+      ],
+      "historical_runs": {
+        "native": {
+          "run_id": "r141_short_0252_seed2026101703_native",
+          "graph": {
+            "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/configs/graphs/r141_short_0252_seed2026101703_native.json",
+            "sha256": "5feea2a8a15c3dac43867dedd1d7a8cd971078b3218226f5f58528c4c35101ed"
+          },
+          "router_node_50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "native",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 0,
+              "end_frame": 97,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15,
+              "run_id": "r141_short_0252_seed2026101703_native",
+              "audit_dir": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/audit/router"
+            }
+          }
+        },
+        "fixed": {
+          "run_id": "r141_short_0252_seed2026101703_forced",
+          "graph": {
+            "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/configs/graphs/r141_short_0252_seed2026101703_forced.json",
+            "sha256": "76bd6344a69404e6816cc930f0f690c387d6a2513b3315b90f6b07eac97360e1"
+          },
+          "router_node_50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 0,
+              "end_frame": 97,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15,
+              "run_id": "r141_short_0252_seed2026101703_forced",
+              "audit_dir": "/home/researcher/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/audit/router"
+            }
+          }
+        }
+      },
+      "fixed_schedule": {
+        "label": "时序引导 7–15",
+        "steps_0based": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "steps_1based": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "invariant_router": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 97,
+        "block_start": 0,
+        "block_end": 50
+      },
+      "phase_offset": 0,
+      "events": [
+        {
+          "id": "hands_leave_lap",
+          "label": "双手离腿并向面罩靠近",
+          "source": [
+            42,
+            45
+          ],
+          "native": [
+            58,
+            61
+          ],
+          "fixed": [
+            42,
+            45
+          ],
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        {
+          "id": "grasp_mask_cup",
+          "label": "接触并握住黄色面罩杯",
+          "source": [
+            48,
+            51
+          ],
+          "native": [
+            62,
+            65
+          ],
+          "fixed": [
+            48,
+            51
+          ],
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        {
+          "id": "right_hand_raise",
+          "label": "右手离杯并持带向胸前上方抬起",
+          "source": [
+            69,
+            75
+          ],
+          "native": [
+            85,
+            89
+          ],
+          "fixed": [
+            69,
+            75
+          ],
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        }
+      ],
+      "event_rules": [
+        "先核编辑完成、人物和场景，再比较同一动作事件。",
+        "沿用历史事件定义及区间，缺失事件记 null，所有相邻阶段均保留。",
+        "Sam 的既有 arm_direction lag 是离线姿态窗口诊断，不是人工事件起止标注。",
+        "失败编辑、缺失动作和负时序结果均保留。"
+      ],
+      "official_MF": {
+        "native": {
+          "score": 0.8127411516001477,
+          "actual_role": "native",
+          "result": {
+            "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-mf-r141b-20261020/results/short_0252/native.json",
+            "sha256": "78b37e340ca539c62715cdf198a5801cdff2b3bf804eecbc794fe7d0347bebca"
+          }
+        },
+        "fixed": {
+          "score": 0.8029023147510279,
+          "actual_role": "forced",
+          "result": {
+            "file": "/Users/researcher/DevProjects/h3-oxygen-generic-retention-mf-r141b-20261020/results/short_0252/forced.json",
+            "sha256": "642828f3f75485502f7f42b08d00d7232212300827d062fbb3e3e50ce49fa596"
+          }
+        }
+      },
+      "MF_source_cache": {
+        "historical_inputs": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/short_0252/INPUTS.json",
+          "sha256": "3cb101a18acdc905557fe4d0c2ef1452907c3a78a9dd4da72d2f8b5b8ded63e4"
+        },
+        "report": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/short_0252/tracks/source/REPORT.json",
+          "sha256": "086b46e0fe89dea1def4b5da44ffd74fef588b3992096966dff03377d950a0e2"
+        },
+        "tracks": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/short_0252/tracks/source/tracks.npz",
+          "sha256": "6288c81613c79ee9d3040c2d6d20b628ddf201c97ac01ff6bc8ffde9b3736dbe"
+        },
+        "remote_report": "/data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020/cases/short_0252/tracks/source/REPORT.json",
+        "remote_tracks": "/data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020/cases/short_0252/tracks/source/tracks.npz",
+        "source_full_sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+        "source_score_sha256": "06bb95c68dd0a20746f7587b41d9b33c50b11faa5c8683ec958ae714b06dd8c7",
+        "source_frame_md5": [
+          "a2d86dfe01035387686ff8da22437317",
+          "36e57856f7f62f687c4357e2e2540acf",
+          "e1ebd1adf1d8c7fcccc746a18353a4ee",
+          "abeca80c6dcc9a2205248735df3e29aa",
+          "4eaeab71f32f434058dcbe550e8f30a9",
+          "f30d1f811be69383fc719b5e91c68fb1",
+          "1567011095aa3fd744c36b119bb7644c",
+          "c36c3fc59f25adaa4fa69b8865448919",
+          "7f156f74e9742d666b729deb2520a826",
+          "e28e140cd1365ba9df7cedc8789316d0",
+          "643dd4d852dd6d2d88d31b08c05c7e86",
+          "400719f807800b6da9e9c3ba5bfd1c7b",
+          "9d4fd1accf18a13cbf82cea201da06fe",
+          "76399dd5e5583aba491eb28f2f7b32a0",
+          "c632c8e364e7b986c1dca31b5e347620",
+          "ae84ca97067357f44a0eb074d343a5dc",
+          "4125f6d3f876b4f708dcf8074b49f374",
+          "1cca1d94e59e65fe35e183692f078f94",
+          "1188f3d42fa6be3bda68041b6095fc80",
+          "fb06db257ac3a6a4d45ec10368793e38",
+          "e8079acfdd85d9d3bc8e0806a9b3220f",
+          "d7581694cd5b0350d931902398cfc4a5",
+          "f8aed16fa1343f6c4c7f5ad7e9580c7b",
+          "099b52117911ac93e278c881ebf0e1eb",
+          "460a4fb8232c52ea16bf0bf70210ffc0",
+          "5353d21162a22942c54971f0ae29420d",
+          "083de59676f41a22f9fb3ad20bcf37f8",
+          "461fc721b0ae1daef01ff9cf7c7d6422",
+          "fb3c3b5d3045ce3bbb6404f49bea6295",
+          "c0ab764d765431a181da4de5d9fc8737",
+          "5056ba3a4dfdb025bd478b992d95d70c",
+          "8c438f360bf0a2571ca9f4e120a74e9a",
+          "0a80f85d20d82ded5cb1da088aa11227",
+          "78c642d7e4c918894f66b1c2bd45f7f5",
+          "5d765f62c40d92e04667879dd600909a",
+          "6a117eb1eaa15662d52f40ac055d3354",
+          "8921d4418c4a18a2816e13fb6de62a77",
+          "d0350e89fd3d4846b3497032c13565e9",
+          "0651053e6fc4f0fb7df0b5ae6209331a",
+          "7106d7f4abf1846ba923231a87a9cf72",
+          "6f576858a68cd687fec3b6d6ba2add61",
+          "811a7fda155a7551841b142fb6b2a3d0",
+          "df499918cec57333fec1a90fa73736bd",
+          "83b089298d50cb3982b31ca24eba7b0a",
+          "ce9ef685a70dad2c51c6c51f577662be",
+          "d7c3fe641d5e7a902842d35b44a7886f",
+          "99a05eece4ceb2753e5ff6202df47ecf",
+          "029a9c3c981720e1cdee8f3a5e9ee8e5",
+          "0e4a23cde867251ca6037bfd7aede7a3",
+          "dc6feb28b2844ed023f7ca9f8f4a3815",
+          "1c3d49a2227c0210d0c73dfcdfe262ed",
+          "a26926cc1770107d078c32bc5773bc7e",
+          "edd0eb776bca0c120ea7073c0b287f62",
+          "e2e0b2ba4edb7b25300ceb2520ee12f1",
+          "d73ee14fe522470ec87a2ac08147afd5",
+          "4aad409af8a27a49eba7135147014d4c",
+          "7732f124bd70f75279b5cc0b4f42cc5a",
+          "69caa5900871523e8adfb0582f9eddc7",
+          "bf12f989331b0f9a47a5cf880e5464b3",
+          "4ede62855301fae5a89cba74101c92ec",
+          "265cfffb4cab1a8eebedbaf06d53cd65",
+          "3b3e2e46dff55798df902f442f28f6e4",
+          "01d458857d5bcba2cc1fe7f17d795e8f",
+          "e6950919258d0a2a5ef1785da3f10438",
+          "22c0724d7b270cdec95bac49786f286a",
+          "560c85f77cffcc1690528f6c201ddeec",
+          "2a49b5cd59e4fc075de02453ff2bf481",
+          "b7c03ca49a528a8f91eb20bd3d5547e1",
+          "dedcefa60a597c1f2fd258ed12587727",
+          "2e510e0674c805264a24cb6ec3ca1760",
+          "4df3f7e52ff27a0ed09e44c096ed6959",
+          "2df8710593647ae086971581690d8865",
+          "693885c2660f1c38ae7a256bfc397936",
+          "63b8f920c1b525e788c79d28a58a24fc",
+          "4a3c8f8e7ff4dc86ebdee389380aaaa8",
+          "cdba2f1333ad1f364f8e633ba06c323f",
+          "08659bf643282e7d9fb099e5d4111ad1",
+          "bc12f7190793a895d4426ee1f3287a5b",
+          "0011bca97ccbbb43567e3c3e92358a72",
+          "e53b90e83791e859d59e4d9c4a5afdc3",
+          "24f0fae0eb06d44856876af8bbdf79b3",
+          "3b1227790cdb5702044f5245c3e8e752",
+          "bb36e3ea3df75a4c9431e0fbbf51ca3b",
+          "d4b1ad6285abfd5e107606892fa4ff9d",
+          "d22c51e39604ca63ef239c2075dcc070",
+          "5d104e918f82cb920138577cafc369ac",
+          "775e1f44cfe5753748ea15ddab71390d",
+          "51d54ec60f4797726b2f3727f192c9ff",
+          "32f3c7251a39c1d6f4244abbff26dd94",
+          "7e8f842e9454e709d6799d135b323c34",
+          "8770328760b4e92748f3be3e9a2407f7",
+          "29de8541edc48d7dfeb63ac020c5e194",
+          "e0b40ddb25961d23c93a08683abf0367",
+          "0caa747779c7e3f064bafdc2de12f88c",
+          "f224eb546b7a994adc20802b923510c1",
+          "7ac80d11b964c2af4629542a3624202f",
+          "8215f9c8c3efb5401b3ef42e142ff2d7",
+          "19d01da1b74837c07c046c930dc1514a"
+        ],
+        "selection_sha256": "6224d26910a70a346bd8150fce8e81c846795e598a3dce744eeae30e9e6706a3",
+        "official_commit": "2dcf8900ee65197f43854c76f61c66a32bb8dbfc",
+        "checkpoint_sha256": "da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df",
+        "tracker": {
+          "grid_size": 10,
+          "grid_query_frame": 0,
+          "backward_tracking": false,
+          "offline": true,
+          "window_len": 60
+        },
+        "prior_release": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/FINAL_RELEASE_VERIFIED.json",
+          "sha256": "8570c38f1f2d775634ca4d0e91b919a19e40f8b47592c24c95b7c7e7f1636675"
+        }
+      }
+    },
+    {
+      "source_id": "05_real_megumi_v",
+      "title": "真人书记舞：替换为 Sam Altman",
+      "dataset": "用户提供的历史真人舞蹈源片",
+      "seed": 2026101311,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 141,
+        "valid_frames": 141,
+        "fps": 24,
+        "crop_xywh": [
+          0,
+          0,
+          1312,
+          736
+        ]
+      },
+      "media": {
+        "source": {
+          "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857"
+        },
+        "native": {
+          "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b"
+        },
+        "fixed": {
+          "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_mass_6to14_x0_00001_.mp4",
+          "sha256": "8c7ffcf450fd6ecd7e3a5722765072e5798ede73c64b273e0ba7d960a93b2f9f"
+        }
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+      "prompt_source_label": "历史 Sam 人像参考＋真人舞蹈编辑的实际提交 prompt；非 IVEBench 官方指令。",
+      "reference_image": {
+        "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/sam_altman_village_global_20221117_original.jpg",
+        "sha256": "4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42"
+      },
+      "historical_pair_gate": {
+        "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/audit/s05_full_seed1_native_x0__s05_full_seed1_mass_6to14_x0_pair_check.json",
+        "sha256": "e2c77c6bd701f9dd163da9cd80a3fc322faf5df9efd42470e8116e89da3eedbc"
+      },
+      "historical_review": {
+        "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/pilot/EQUAL9_REVIEW.json",
+        "sha256": "56f99f207555da183b32907526c9a80b20a0cbcd9f79df5c0ac4c88210e2a541"
+      },
+      "historical_full_review": {
+        "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/ROUND_FINAL_REVIEW.json",
+        "sha256": "b94b4effc3124fe6325c38f4d55c21d2ee49b6b2e4f67dd30235ac0f42971087"
+      },
+      "historical_initial_noise": {
+        "file": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/05_sam_1312x736_2026101311_v3_noise.pt",
+        "sha256": "09d0f352a7a1729abeecf5cbcb401dfe6a0b25b956302b02ccebfa2196107a04",
+        "actual_tensor_signatures": [
+          {
+            "shape": [
+              1,
+              24,
+              42,
+              46,
+              82
+            ],
+            "dtype": "torch.float32",
+            "sha256": "94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96"
+          },
+          {
+            "shape": [
+              1,
+              32,
+              2,
+              235
+            ],
+            "dtype": "torch.float32",
+            "sha256": "ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3"
+          }
+        ],
+        "receipt": {
+          "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/audit/s05_full_seed1_native_x0_noise.json",
+          "sha256": "b7507f8e421b73de976b4555e081f01dfa093c7a07475df244d958a80550bce2"
+        },
+        "bytes": 15271058,
+        "file_hash_binding": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/audit/SAM_NOISE_FILE_BINDING.json",
+          "sha256": "9e9baa46cc760822fb3ecd32ec3f6b89707e8aa17ed8f29ad486bd8e4b5707ee"
+        }
+      },
+      "task_checks": [
+        "真实成人替换外观与服装符合原参考意图",
+        "原房间、镜头、边框、舞蹈动作序列保持",
+        "主窗50–65与三个后续评估窗分别记录；全141帧检查新增副作用"
+      ],
+      "historical_window_diagnostics": {
+        "record": {
+          "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/ROUND_FINAL_REVIEW.json",
+          "sha256": "b94b4effc3124fe6325c38f4d55c21d2ee49b6b2e4f67dd30235ac0f42971087"
+        },
+        "feature": "arm_direction",
+        "windows": [
+          {
+            "window": [
+              50,
+              65
+            ],
+            "native": {
+              "0.3": 13,
+              "0.5": 13
+            },
+            "fixed": {
+              "0.3": 1,
+              "0.5": 1
+            },
+            "early": null,
+            "late": null,
+            "split": null,
+            "global_weak": null
+          },
+          {
+            "window": [
+              69,
+              81
+            ],
+            "native": {
+              "0.3": 10,
+              "0.5": null
+            },
+            "fixed": {
+              "0.3": 0,
+              "0.5": null
+            },
+            "early": null,
+            "late": null,
+            "split": null,
+            "global_weak": null
+          },
+          {
+            "window": [
+              80,
+              92
+            ],
+            "native": {
+              "0.3": 8,
+              "0.5": null
+            },
+            "fixed": {
+              "0.3": 1,
+              "0.5": 1
+            },
+            "early": null,
+            "late": null,
+            "split": null,
+            "global_weak": null
+          },
+          {
+            "window": [
+              99,
+              111
+            ],
+            "native": {
+              "0.3": 4,
+              "0.5": 4
+            },
+            "fixed": {
+              "0.3": 1,
+              "0.5": 1
+            },
+            "early": null,
+            "late": null,
+            "split": null,
+            "global_weak": null
+          }
+        ],
+        "note": "Existing offline pose lag windows, not human event boundary annotations. No denoising-time observer."
+      },
+      "historical_runs": {
+        "native": {
+          "run_id": "s05_full_seed1_native_x0",
+          "graph": {
+            "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/configs/s05_full_seed1_native_x0.json",
+            "sha256": "d90de6e1cc1fd5638ca67065fa2a51c4b3e3f35db48d00836dc3e4f5fab695af"
+          },
+          "router_node_50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "native",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20,
+              "run_id": "s05_full_seed1_native_x0",
+              "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router"
+            }
+          },
+          "history": {
+            "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/logs/s05_full_seed1_native_x0_history.json",
+            "sha256": "64ec5102eb953ce3af57797e934a592d890f0887832f2f95d59afc7680dc83a8"
+          }
+        },
+        "fixed": {
+          "run_id": "s05_full_seed1_mass_6to14_x0",
+          "graph": {
+            "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/configs/s05_full_seed1_mass_6to14_x0.json",
+            "sha256": "a892edbf3be67d10614c39743738a0b5804fa74e6883ad3e7a5da83d5aa7f7d4"
+          },
+          "router_node_50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15,
+              "run_id": "s05_full_seed1_mass_6to14_x0",
+              "audit_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/router"
+            }
+          },
+          "history": {
+            "file": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/logs/s05_full_seed1_mass_6to14_x0_history.json",
+            "sha256": "9d3f373a6ed3c743704689eccf4bb0679443d40c3f7181bf59cde48c1398a640"
+          }
+        }
+      },
+      "fixed_schedule": {
+        "label": "时序引导 7–15",
+        "steps_0based": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "steps_1based": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "invariant_router": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 50,
+        "end_frame": 65,
+        "block_start": 0,
+        "block_end": 50
+      },
+      "phase_offset": 0,
+      "events": [],
+      "event_rules": [
+        "先核编辑完成、人物和场景，再比较同一动作事件。",
+        "沿用历史事件定义及区间，缺失事件记 null，所有相邻阶段均保留。",
+        "Sam 的既有 arm_direction lag 是离线姿态窗口诊断，不是人工事件起止标注。",
+        "失败编辑、缺失动作和负时序结果均保留。"
+      ],
+      "official_MF": {
+        "native": {
+          "schema": "r148-display-official-mf-v1",
+          "role": "native",
+          "score": 0.8523691857953217,
+          "actual_generated_video_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "source_full_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "valid_frames": 141,
+          "fps": 24,
+          "crop_xywh": [
+            0,
+            0,
+            1312,
+            736
+          ],
+          "result": {
+            "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/results/05_real_megumi_v/native.json",
+            "sha256": "4aa77f59b70da0b9c4fc5e99615e6c436502378188242327c8b716c12b4edd02"
+          },
+          "input_binding": {
+            "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/05_real_megumi_v/INPUTS.json",
+            "sha256": "697eeb55f01f31832094a929d30456df20fbeeee34c73d8c6798e6fb1b7191eb"
+          },
+          "final_release": {
+            "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/FINAL_RELEASE_VERIFIED.json",
+            "sha256": "8570c38f1f2d775634ca4d0e91b919a19e40f8b47592c24c95b7c7e7f1636675"
+          },
+          "official_numerics_unchanged": true
+        },
+        "fixed": {
+          "schema": "r148-display-official-mf-v1",
+          "role": "fixed",
+          "score": 0.8522732943672868,
+          "actual_generated_video_sha256": "8c7ffcf450fd6ecd7e3a5722765072e5798ede73c64b273e0ba7d960a93b2f9f",
+          "source_full_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "valid_frames": 141,
+          "fps": 24,
+          "crop_xywh": [
+            0,
+            0,
+            1312,
+            736
+          ],
+          "result": {
+            "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/results/05_real_megumi_v/fixed.json",
+            "sha256": "05f0bda475e8d7650449ac4090750df62de9416e10b02ddd7c5c4821d6f9ebd8"
+          },
+          "input_binding": {
+            "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/05_real_megumi_v/INPUTS.json",
+            "sha256": "697eeb55f01f31832094a929d30456df20fbeeee34c73d8c6798e6fb1b7191eb"
+          },
+          "final_release": {
+            "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/FINAL_RELEASE_VERIFIED.json",
+            "sha256": "8570c38f1f2d775634ca4d0e91b919a19e40f8b47592c24c95b7c7e7f1636675"
+          },
+          "official_numerics_unchanged": true
+        }
+      },
+      "MF_source_cache": {
+        "historical_inputs": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/05_real_megumi_v/INPUTS.json",
+          "sha256": "697eeb55f01f31832094a929d30456df20fbeeee34c73d8c6798e6fb1b7191eb"
+        },
+        "report": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/actual_context_mf_attempt1/tracks/05_real_megumi_v/source/REPORT.json",
+          "sha256": "18b073292dfa65cb6269bd007dc4bffe7f6d1c5aefe5f525e922d7c3c15479a9"
+        },
+        "tracks": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/actual_context_mf_attempt1/tracks/05_real_megumi_v/source/tracks.npz",
+          "sha256": "3c65bcc083e7f6611ef4054a5c7c59164d7b495b08b68ba986326be7a2bd2870"
+        },
+        "remote_report": "/data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020/audit/actual_context_mf_attempt1/tracks/05_real_megumi_v/source/REPORT.json",
+        "remote_tracks": "/data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020/audit/actual_context_mf_attempt1/tracks/05_real_megumi_v/source/tracks.npz",
+        "source_full_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+        "source_score_sha256": "5e7a7415d8ce18b66c0a90851f60279d41846c3b38fab9e7d2b6e1a6065e3bf4",
+        "source_frame_md5": [
+          "d6fab25410397f94beb043e30e2bf055",
+          "adc511d0dee898493b9ab48bb5b9d8af",
+          "28645a64d2cb277379c711689aca0f60",
+          "5d192a273958a43d9e31fb4c85a57537",
+          "1079ccdf51a85b90772addee497ae58b",
+          "51e74be01b4dd76118cec8a0c9cd0698",
+          "ddf5d4fac6da218628e8cdda43f2e31b",
+          "e5f4a996c3ea0859245fb821605de3f8",
+          "f54f93f0d7cc154e6dd7565266952bb9",
+          "29117b3b86b25c354026fbbb6db11f48",
+          "39cc77e86320e7ec668db2c8e2c748af",
+          "325bef966a3718d157cd145e74711e45",
+          "dad3ef6063a48f6324f3976178333fb5",
+          "d192742a2ce5bf8c89f90e3fef86479f",
+          "40ec78c6c25c231f46dcd0c8262a9639",
+          "49240c565eaa0a7e383b65edad20cce5",
+          "0f18547baeea51f2795b98b63b44eeb3",
+          "e30b5711009c0eacc265e1646c7f48cf",
+          "4bee0a61afcca2a19ee4d1bad639661c",
+          "aedb8f53940663bdbb1b432c555937f5",
+          "3a6464cec4242d7d9b36fb15cd79c4c8",
+          "abdb67465f72c5de1e5e054ea3d70aff",
+          "dfe24474dfc38b804281e9c9fb70f4d3",
+          "e545be9115d324750f7c2bd3fbe36c22",
+          "2b519c47529c9000daaba747984c09ab",
+          "bfeb262d2cb6519d876af5a89787d532",
+          "10e1a287dceb12d8419d8ed4a9cdb927",
+          "b2fd1d81fc701108b5d51164a5628969",
+          "e73bfda952b10d2374ded542b9b10156",
+          "10dd4f8387aa4f63e215c82a86b3c057",
+          "5d189c98921ce98d5e5e897fe20c421c",
+          "e4742562ecff5b57a3410611e6a4be7e",
+          "6716a89ab6b2b4e66fdc165fda046d5e",
+          "ed74f3dfe0ed27d8d417253b559a1500",
+          "428f6e61f2e733c69a5383877717c0c4",
+          "136148a0adda144b32d1b27c679582f3",
+          "17284d99ababbd86edd967a15ce89b98",
+          "bfa05899abb8f5b9b2b5033dc3d0ef4f",
+          "c20ba1d8608b14166ea5b5d859037896",
+          "eae5204b53ce1899562aaa05035d0217",
+          "de7bb18ff52d2a1fb0e34a91546dc7c6",
+          "0c6a407ef80845fd101308309431a8e6",
+          "5f56fbeecf26e2b0eea877567131ae90",
+          "3a76400d5fab00c0ae6956bb7b135358",
+          "65f459aa0fbbdf8470ee8e22104ab506",
+          "6dfff4533259faa9748bf8649d9a4e4a",
+          "ba7a4b5020724a5e3a1040c9ecab1dbd",
+          "031b5de6573a01476a0824405bfb5914",
+          "6ea2b6888a48774efc2352c16910f9d2",
+          "75577c572c537cdff7c7a1d0ff077df9",
+          "d051ea0556c0d30d12ddb9378e5a1bed",
+          "52afcb4f2456ba89ef44d030a973bd7d",
+          "1447aa26f787c6e33bd51f75b07b2c55",
+          "e6dd2ef508c536ce1376e1b8c62ad6ac",
+          "5e776307ace8ee17157b25ef1a8d99e7",
+          "056dbc31683b61a6516e03c14b66aba4",
+          "374ea8c916995e121fd4bbc6bfc7c9ee",
+          "0add3d6c424f47b3360ade1adf824898",
+          "21af7eacb1cd97b8da3f528fba644994",
+          "cbab03e5ff766a8f48445f2ddf2dbb74",
+          "851565fcb33232e05e96219061f85a60",
+          "fb6060b753d6880b777530bbd916797d",
+          "d53a56fb6382a07a4678a823a5f15a2f",
+          "d2abf460bdc0e7f9d4d7f8e3cd9ba636",
+          "02ac137344570d1d1501f7fe04e92ee1",
+          "8a4d473ab69bba57ab64cd99755ac5b6",
+          "9ad985094a6df9d958735866f8f15eac",
+          "86f8715a5d479304d003c52a069117df",
+          "5e2b897c31d983f5ef87e1268d0e366f",
+          "50d5c4c1f6e67add2c7aa971ac6c17db",
+          "a610e54f53100ff38cc50a1216693a1a",
+          "2c86d2b225bec62591591decec61c767",
+          "fe93d94fd41d6129c36788f23778a2da",
+          "115e2f216ef02fac59b8555089873d00",
+          "634c78adac802920c38ba7ebe277e7df",
+          "ed23831c48fb3b2c0b94f5df16b221ac",
+          "360272aa5cb9e18f957b18322ae58d5a",
+          "2755ce8e0421e35954f3b21fdfb973b4",
+          "b46dd81112d39eb1ef11c0ea35e7ea01",
+          "d98651f2304858b9eb15e2f649f4cedb",
+          "9238e29e14dcd3f883e09531da44e0a6",
+          "cad1ffa92c446941a7624647fa3d0f8c",
+          "ace3ced43e4d05c1c9bc986f69e883eb",
+          "d4ff7046c49ca484b08c30a35024b3a7",
+          "5221679d8cd187f3456e588a21a3f5c3",
+          "d4888d888658dd98a68e4d4b513c0664",
+          "89294c7c27b0fdb4ca2d87369f93b9f6",
+          "60dfa094a6f066a25e28535a2af1a67d",
+          "a25ef2852596ae81837f6445fe495e17",
+          "32affefcbbd156349a854e3ce6f8ee7f",
+          "05ae5f47bd3f07a5042153e6b403b9c6",
+          "4da6f575b4c3b25600d2b4b15fdb826b",
+          "49d4a84e4f420374e69ad91750b02140",
+          "c4ecb9c0b5de9e533cb526843fdd3f79",
+          "4b30ce8b159863cccc634ac07052ec04",
+          "1b5bc007edd42e24d0d038e000be3455",
+          "0c851e1e5d591a189f772b3e6579a95f",
+          "3f554135b1978d5cc060c578e3b0654e",
+          "8ee38af6de5e622aa935907b47210722",
+          "bf0b8efe0ca94ff2337b2a5eb2062977",
+          "e551de582ea38bce04bb223397e104a2",
+          "75e9579ae4552f246f8991723535354e",
+          "58e2ca2794ee806f7f158a05ca45406b",
+          "cb0a656d9fe85c5928a0aa6156a57324",
+          "a07a9944e621116f6f50dab2b8c4268c",
+          "ad90394475bfd52c44f6782d60dc7b44",
+          "0c5c7dbe2c25280def0fe6e090aa9f9d",
+          "8cfb0d52c4349c3b502dfa632090f81c",
+          "c735bddde87d5f9921ab986456dc98d9",
+          "f3e639794f5429ceb0213066fdd7a38a",
+          "d0c39bccba6cd93a1e69ff7343a8f77d",
+          "10a61c9f0e635e931c3f06c3e6f81db0",
+          "4ea30ba8a733d2e563458b4fcdc75c8e",
+          "4c6a6e19b4f904fe2c25e1d17178f424",
+          "2b65c41cda2cc9ceffdab6a8b5310b5e",
+          "2ac49f19d853f6c26e95c12f9f3bea72",
+          "e69fb5062c7cdb2bf1395c1b830bd13c",
+          "882b0365a45bc960611c196e841ae119",
+          "62ff2d235f96667405fae6532668dbf4",
+          "f809d811ea4e49494cabbf70bc0a2c71",
+          "321eedf3e2e9ca491377ffa47f30c14c",
+          "b29ce65b26fdbb6f4148bc0370c7e503",
+          "4c622c6d86f546ce42c97bc66d4dd72f",
+          "c9f735026e8fce671375955bc048cb7e",
+          "a1e18dee267eb40ecc27ccea00366685",
+          "3bfbff5d278f98720a92983a519e87e5",
+          "6c739c88f5d721adc647ed19c0f02165",
+          "b082815de8a70501a741ac5488560f51",
+          "68e75f0262f2a0068c535419015e02b2",
+          "40b25ccc817d77c6768e48283d8cd97c",
+          "82aa21b89105e1335637c9bf3c04bcb2",
+          "1c76c95a4ff6dbe84e1518faf8700908",
+          "165df3ee926070838cb239db71978707",
+          "7e89fbb54ee9affc0157402f68ead969",
+          "d1f50cda409ea2073254aa609c17f112",
+          "9ae66eda62598fbc6b0b172ca7ad5a98",
+          "cac5a21018e286714b9cedb86c29ae90",
+          "443a0d2102811eff87f30da75f60d7aa",
+          "a030d36b2e92d281c1c13c3018f17d56",
+          "5b5d4b813e643d42cbd54b1a1b1f5525",
+          "3fe9d6f6d55f0cf38f15569cd5955fac"
+        ],
+        "selection_sha256": "041d529840de6ae6acdf46a54dd32a39863d5491192ce189cbd2b01e270bc797",
+        "official_commit": "2dcf8900ee65197f43854c76f61c66a32bb8dbfc",
+        "checkpoint_sha256": "da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df",
+        "tracker": {
+          "grid_size": 10,
+          "grid_query_frame": 0,
+          "backward_tracking": false,
+          "offline": true,
+          "window_len": 60
+        },
+        "prior_release": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/FINAL_RELEASE_VERIFIED.json",
+          "sha256": "8570c38f1f2d775634ca4d0e91b919a19e40f8b47592c24c95b7c7e7f1636675"
+        }
+      }
+    },
+    {
+      "source_id": "short_0358",
+      "title": "外观编辑 — 给饮酒男子戴眼镜",
+      "seed": 2026101701,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "media": {
+        "source": {
+          "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_video.mp4",
+          "sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+          "producer_remote_file": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/input/short_0358_video.mp4"
+        },
+        "native": {
+          "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native.mp4",
+          "sha256": "04510e08e359c2b22614bc12a0fdcbfffb35e9cbcef1d0a2f0a7dbc92c069c2e",
+          "producer_remote_file": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/output/r123_short_0358_seed2026101701_native_00001_.mp4"
+        },
+        "fixed": {
+          "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced.mp4",
+          "sha256": "362e23ac4bc864a3a7e5ec454c1eceed5f7c6ffc572067943873636ab423f935",
+          "producer_remote_file": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/output/r123_short_0358_seed2026101701_forced_00001_.mp4"
+        }
+      },
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "historical_pair_gate": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/PAIR_RUNTIME_GATE.json",
+        "sha256": "6c4f6a6039eda434e0b4d3fc2c8dcc4185a9ebd1cc1601470cf51000ad39b196"
+      },
+      "historical_review": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/INDEPENDENT_REVIEW.json",
+        "sha256": "6304cbf88afd18aaff82b8da4060d17382967d498c80a9d54679f56c79337969"
+      },
+      "historical_initial_noise": {
+        "file": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/r123_short_0358_seed2026101701_noise.pt",
+        "sha256": "5439f8f84b471b7d53e431b886c730fc7e78492b159ce7658e08a2bad046b310"
+      },
+      "historical_source_remote": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/input/short_0358_video.mp4",
+      "task_checks": [
+        "仅左侧拿酒瓶男子添加眼镜",
+        "另一男子、场景、构图与饮酒链保留"
+      ],
+      "historical_runs": {
+        "native": {
+          "run_id": "r123_short_0358_seed2026101701_native",
+          "graph": {
+            "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/configs/graphs/r123_short_0358_seed2026101701_native.json",
+            "sha256": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1"
+          },
+          "router_node_50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "native",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 0,
+              "end_frame": 104,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15,
+              "run_id": "r123_short_0358_seed2026101701_native",
+              "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/router"
+            }
+          }
+        },
+        "fixed": {
+          "run_id": "r123_short_0358_seed2026101701_forced",
+          "graph": {
+            "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/configs/graphs/r123_short_0358_seed2026101701_forced.json",
+            "sha256": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509"
+          },
+          "router_node_50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 0,
+              "end_frame": 104,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15,
+              "run_id": "r123_short_0358_seed2026101701_forced",
+              "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/router"
+            }
+          }
+        }
+      },
+      "fixed_schedule": {
+        "label": "时序引导 7–15",
+        "steps_0based": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "steps_1based": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "invariant_router": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 104,
+        "block_start": 0,
+        "block_end": 50
+      },
+      "phase_offset": 0,
+      "events": [
+        {
+          "id": "bottle_lowered",
+          "label": "放低酒瓶",
+          "source": [
+            14,
+            18
+          ],
+          "native": [
+            14,
+            19
+          ],
+          "fixed": [
+            14,
+            19
+          ],
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        {
+          "id": "bottle_reaches_lips",
+          "label": "瓶口到嘴、开始饮酒",
+          "source": [
+            37,
+            40
+          ],
+          "native": [
+            46,
+            49
+          ],
+          "fixed": [
+            43,
+            46
+          ],
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        {
+          "id": "bottle_leaves_lips",
+          "label": "瓶口离嘴",
+          "source": [
+            80,
+            84
+          ],
+          "native": [
+            91,
+            94
+          ],
+          "fixed": [
+            90,
+            92
+          ],
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        }
+      ],
+      "event_rules": [
+        "先核编辑完成、人物和场景，再比较同一动作事件。",
+        "沿用历史事件定义及区间，缺失事件记 null，所有相邻阶段均保留。",
+        "Sam 的既有 arm_direction lag 是离线姿态窗口诊断，不是人工事件起止标注。",
+        "失败编辑、缺失动作和负时序结果均保留。"
+      ],
+      "official_MF": {
+        "native": {
+          "score": 0.8917583268279772,
+          "actual_role": "full_native",
+          "result": {
+            "file": "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_native.json",
+            "sha256": "d7ae5ff8e1d8c11417ace929655b2f10eee75b47e027f43c082b58722a4721ed"
+          }
+        },
+        "fixed": {
+          "score": 0.8810650134062523,
+          "actual_role": "full_forced",
+          "result": {
+            "file": "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_forced.json",
+            "sha256": "b10ebaee03209931bed35e2df7c6c3802b0f9358ed0f30943a5266b588e6c221"
+          }
+        }
+      },
+      "MF_source_cache": {
+        "historical_inputs": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/short_0358/INPUTS.json",
+          "sha256": "78546c2cc19d3a40847fd163cca4254219ae54a9792fb399b2a7cd8d95ab594b"
+        },
+        "report": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/short_0358/tracks/source/REPORT.json",
+          "sha256": "3b29a591030b8b83ff9d1836e90de0b17624576fff56f0a02b700f29aa596608"
+        },
+        "tracks": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/cases/short_0358/tracks/source/tracks.npz",
+          "sha256": "3ca6d6e8e8e238b26abf85ce33616ab357402defe7e33296c4cf903e8d81ef4e"
+        },
+        "remote_report": "/data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020/cases/short_0358/tracks/source/REPORT.json",
+        "remote_tracks": "/data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020/cases/short_0358/tracks/source/tracks.npz",
+        "source_full_sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+        "source_score_sha256": "1af76bf93abcafff6dcd7b2b8a1992416dcf1786948fd15860b3f7a1e4c486ea",
+        "source_frame_md5": [
+          "b7315c3faca33b970c2b1172a8ee20c3",
+          "0b98e18f1cc51b98a87cf5118acb72df",
+          "95c2db3170f4f30cac3fc39005f15591",
+          "92e7e10d517bdd0172857f988dce53e0",
+          "6dc3ecab66e9c34f36dda36e575489c2",
+          "b7b57c2c2ee38b5b29cf8ffb6981b3e6",
+          "c5d85881496457c0935b9eb450b784aa",
+          "6c2e8f30b7c8eece72a17b3bb30861b4",
+          "0938f79f5412b209ad14d1f2e6c8ca91",
+          "ec30b2dc85a9acc6c8c6361844b286b0",
+          "b7498edad94f52196dddd63a82d41eb5",
+          "76d4045c63a4f890c3c07219270eee6b",
+          "928fc642504ce9c74b76ed79f1ba7282",
+          "bc12bcd7d5ada484dc9f96083812afce",
+          "450e9c7b05f9bcfc20148bd9183e488b",
+          "dc7b24a59bfed272ebe87aa30f430926",
+          "f61af12bfda1323ad18d9cd2df11f265",
+          "601b8ab17c8c6a1996433aac309d14db",
+          "606d511dee9736f84ee475b2a616f330",
+          "419e26d95acffae94358eb5afb73c004",
+          "7ec4adb8d4c5a8354dcfe73a4b4d13bb",
+          "a5d8d608356c13615e282e746ceb0799",
+          "fc69f2d04fe51caa0f68986d3b7bf67d",
+          "bc772c2d2fe1ff6983e9e2dd37c8b60c",
+          "bd5740e925426fc9d1d59aaf733a8379",
+          "0f33ea096042110a9ff2a5584c476830",
+          "b850531cb1112e187cafac205042ec1f",
+          "059dded0a4d7f545693de755907715af",
+          "f3eb6994e1eda4e46a9702285df99677",
+          "192b63b990e35cc8b5eba5098f1eebfd",
+          "edbf5afc74b6622a85d156c32074b4d7",
+          "34c257310e4f108183511953a6e0d1d1",
+          "5c0e46e7d0dd08c0a1826124eafee692",
+          "ec6d82ea4c49f6682955535c00421f19",
+          "48a595b059335b6c48eb0f4dd3ba9399",
+          "6c982b9dc025a4ba9d9cc182b53b6847",
+          "ed5d6091521abe35700b9b3b3c871165",
+          "5ff97ad29bc4eb83edeaa56408e89f14",
+          "3fdf1e2ce548b2d5942615b86902716d",
+          "e1f702bfa155f8ee37d1e3081a6ef0c8",
+          "3f0c8b67684cfa2acc740d15ad82f95f",
+          "79f1334e1edf5b367cf538994c02f83a",
+          "8a425d77fc2a93925aa05519510decc0",
+          "bb458a949beb61f3fe4aa64eb2a664bc",
+          "3c342c928025c86703317084d22466c9",
+          "ff1a715f17d00c5c8cae6ed6b213379c",
+          "593788a020723f527053895051545f6c",
+          "d53cc4837202307462d0d15072962291",
+          "31d7064a13d728edabfa148ddc8c4215",
+          "b1b6d9c24af49a8911bde287737a8b87",
+          "6946ea33f0c8057452766db6b4f4df18",
+          "27a6f9de3fcf5e8ba6936cac018090a2",
+          "d76234c5f17cd9bb38b8ebb5ffb8f635",
+          "5e12431bb2eb693a3dda1e5209c3c6c3",
+          "3127d598e6921ca30761f4c13ad7f243",
+          "521f24776241c256d18b3de6ced3a179",
+          "12f55d0fe7050f6b49e29428ef1b4bea",
+          "1f10ee357ce4a86338c74b12f6a8f4ba",
+          "849b41bdfdd7a0163238dc732ed9fe76",
+          "3812e4d85dd9aee09f59324f5471556b",
+          "d3db35660fedd6221ae8793d02973ebc",
+          "7500cd3eceb27ac3a8a5d13a6ec3378c",
+          "3d7a9f2e60a5d503cf6c0f72a7136132",
+          "30c3c75bdcafcef3ea153dd53ab3fcdb",
+          "ed86faf1f3ee01b851d277c065fd2eb5",
+          "c17c6688dd6607c45d833c5830a9cfa2",
+          "2b1260808b03ab3c51bcf0b523c39f32",
+          "af87782f1b76fc32308757a855210c95",
+          "d24ff94b72419f514e070f6cec623502",
+          "57d1c4af3863b5e95556e786138ce5f5",
+          "c8f8a40998e6a5549a08026e24c3dac1",
+          "7c6a56630754ac41d25a3060caedfc7b",
+          "b920ce89184213eda68b1ee88960ca7c",
+          "1dc491ce5d1afe0d9b91c22d331e01d9",
+          "4f5b69e01a194ac1cab058bed7a0d051",
+          "4834722e586a77ec7bc4f20be460692e",
+          "a6594e5944b3ce4af5f99c5fa64c634b",
+          "c4d5d10f631293576ded33dec7cda7eb",
+          "bbffb21bd7cd1eaf605332e8e9fc163a",
+          "c3bc17c3fab61a7a282e355dcf3c38ea",
+          "6e8fbc5a8f1b54fce944d812649304bc",
+          "1fa10810f1de7297a0f96d5ddd77abfd",
+          "2a9358899bdbfad46a451eb37918849b",
+          "39637ff8645dc793645c55062f2efdf6",
+          "36d72313dc7cbfa4f35ecc454f940d26",
+          "fba71f20b6dc144c8645843bc3245d8f",
+          "fab50f44381f3ba2cfb6e0888d8d9f48",
+          "bee3cad79ebc5c4281385276e768a4ae",
+          "2f097d435ff908828111e58f45b0f6ca",
+          "6b21bb64ebbaad554a9fd27ccd2cf6ab",
+          "cd9aa201d0f7f129c83fb2e78202b50e",
+          "4c810004772c7c63567dbafdc56cb37a",
+          "110476310d5b17a60e88c71bec517f77",
+          "cd72dae6a5fa916e286edf314b75b244",
+          "9136be33c572fd3ebf8844fb4e16f0f5",
+          "3c90fa7665254d213bb044574a044e80",
+          "25ebe1f726b767a5a8976c9001270a28",
+          "5f3c71985d374080892e27880e97d2f2",
+          "f20b542e6665a7757316e906c2a806bf",
+          "f169ef4f3c0765017f6422abbc8132b6",
+          "cd1f799126d19366b38fdf120ed725c3",
+          "9e240dd4ff28f539d48afc54ca6119f0",
+          "873d3c019ba002e0ca4dc0548424ae5c",
+          "405008958ad4c53866c64954cfdad239",
+          "38887679b20c7de9a8c5eb43f028c572"
+        ],
+        "selection_sha256": "0fd4adebdf25c5c682cb9dfc6e4da31128f5cfcf560cb5d5fb27e1a551966774",
+        "official_commit": "2dcf8900ee65197f43854c76f61c66a32bb8dbfc",
+        "checkpoint_sha256": "da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df",
+        "tracker": {
+          "grid_size": 10,
+          "grid_query_frame": 0,
+          "backward_tracking": false,
+          "offline": true,
+          "window_len": 60
+        },
+        "prior_release": {
+          "file": "/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020/mf_preparation/audit/FINAL_RELEASE_VERIFIED.json",
+          "sha256": "8570c38f1f2d775634ca4d0e91b919a19e40f8b47592c24c95b7c7e7f1636675"
+        }
+      }
+    }
+  ],
+  "sigma_spans": {
+    "source": {
+      "file": "/Users/researcher/DevProjects/h3-guidance-schedule-audit-r149-20261020/PLAN_REVIEW.json",
+      "sha256": "149e5f4978aed49a4a7d88e8d75b30c27f5e1bec2a4bd65ad25e82c9cc59499c"
+    },
+    "values": {
+      "short_0252": {
+        "historical_middle": 0.16551724137899992,
+        "early": 0.06382978723400001,
+        "late": 0.90756302521,
+        "split": 0.820408163265,
+        "global_weak": 1.0
+      },
+      "05_real_megumi_v": {
+        "historical_middle": 0.16551724137899992,
+        "early": 0.06382978723400001,
+        "late": 0.90756302521,
+        "split": 0.820408163265,
+        "global_weak": 1.0
+      },
+      "short_0358": {
+        "historical_middle": 0.16551724137899992,
+        "early": 0.06382978723400001,
+        "late": 0.90756302521,
+        "split": 0.820408163265,
+        "global_weak": 1.0
+      }
+    },
+    "meaning": "sum(abs(sigma[i+1]-sigma[i])) over the active steps; not equal intervention strength.",
+    "note_zh": "前三个方案均启用九步，但 Euler 积分覆盖的 sigma 跨度不同；全局弱引导启用全部二十步。",
+    "additional_case_sources": {
+      "short_0358": {
+        "graph": {
+          "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/configs/graphs/r123_short_0358_seed2026101701_forced.json",
+          "sha256": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509"
+        },
+        "node_id": "9",
+        "sample_sigmas": [
+          1.0,
+          0.995633187773,
+          0.990825688073,
+          0.985507246377,
+          0.979591836735,
+          0.972972972973,
+          0.965517241379,
+          0.957055214724,
+          0.947368421053,
+          0.936170212766,
+          0.923076923077,
+          0.90756302521,
+          0.888888888889,
+          0.865979381443,
+          0.837209302326,
+          0.8,
+          0.75,
+          0.679245283019,
+          0.571428571429,
+          0.387096774194,
+          0.0
+        ]
+      }
+    }
+  }
+}

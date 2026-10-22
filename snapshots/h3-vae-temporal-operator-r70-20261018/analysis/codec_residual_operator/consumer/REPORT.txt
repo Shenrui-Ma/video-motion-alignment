@@ -1,0 +1,34 @@
+R70：已知 VAE 残差补偿算子对照（CPU 消费完成）
+
+结论：transport 在本例两种时间映射上降低重建误差，并减轻直接 latent 重排的手臂重影。相对 RGB 重编码的改善较小，主要体现在像素误差和细节。anchor 的误差与 RGB 重编码接近。
+
+共同有效区域，统一 RGB8 MAE（0–1，越低越接近直接 RGB 时间重排目标）：
+映射 | 帧数 | RGB 重编码 | latent 重排 | anchor | transport
+shift3 | 144 | 0.009827937 | 0.019677951 | 0.009796077 | 0.008452694
+offline_mapping | 147 | 0.009705603 | 0.019358463 | 0.009792236 | 0.008014055
+
+transport 相对 RGB 重编码：shift3 −13.9932%，offline −17.4286%；相对 latent 重排：−57.0448% / −58.6018%。
+anchor 相对 RGB 重编码：shift3 −0.3242%，offline +0.8926%。跨17帧块处 offline anchor 误差 .011066738，高于 RGB 重编码 .009715223；transport 为 .008468138。
+原 R70 的 float32 数字完整保存在 attempt1/HISTORICAL_FLOAT_COMPARISONS.json；本轮横向比较全部重新从无损视频读取 RGB8，未混用精度。
+
+可见结果：
+1. offline mapping 的 1.0、1.5 秒：plain latent 产生分开的手臂轮廓；transport 的轮廓接近直接 RGB 重排目标。
+2. shift3 的帧16/17与33/34：plain latent 出现面部、胸甲亮度/形状变化，transport 减轻这些变化。
+3. plain RGB 重编码在上述时刻已保留较好的轮廓；transport 相对它的视觉改进细微。anchor 的六时刻图也保持主要轮廓，量化结果与 plain RGB 接近。
+已查看预先固定六时刻和边界图。完整158帧三横拼视频保留供连续播放检查；上述人工结论限定于查看的帧。
+
+实验边界：
+同一 R65 fitness Native index6 x0；shift3 为固定提前3个24fps帧；offline 映射来自最终 Native 成片的已冻结开发集拟合。此次比较回答算子是否保留重排后的图像几何与细节。当前预测自动估计映射、反馈到采样器、最终动作时间改善仍属于后续实验。
+残差补偿思路已有 LookingGlass §4.1 Eq7–8 与 LongE2V Reencoding Alignment / Cross Residual Correction；本轮记录其在 H3 上的实现效果。
+https://arxiv.org/html/2504.08902v1#S4.SS1
+https://arxiv.org/html/2607.08770v1
+
+执行与核验：
+4次 native VAE decode，0次 encode，0次 DiT，fallback=0。wall 283.664 s；4次 decode各 40.992 / 38.888 / 38.556 / 38.399 s；peak reserved 5.570 GiB。
+root exact exit PID 54073 / UID 1016 / start_ticks 2632332877，进程和 CUDA 分配均已不存在。消费者核验4个derived latent文件SHA、冻结父输入、12个旧/新视频SHA及全部158帧RGB24像素SHA。8项CPU回归通过。
+共同有效帧沿原坐标与mask；shift3=144、offline=147，另提供三映射共同144帧、cross17、within17、decoder overlap的完整表。
+
+入口：visual_attempt1/index.html，内嵌6个三横拼和6组固定六时刻截图。
+数据：attempt1/VERIFIED.json、RGB8_ERROR_TABLE.csv、RGB8_PER_FRAME.csv、CONTINUOUS_DELTAS.json。
+图组：visual_attempt1/*_six_times.png、*_block_boundaries.png；视频 *_comparison方向由文件名和下方caption给出。
+未改变任何已冻结 producer、原消费者、当前推理任务或共享依赖。

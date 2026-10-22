@@ -1,0 +1,1080 @@
+{
+  "schema": "r149-schedule-partial-release-v1",
+  "passed": true,
+  "source_id": "05_real_megumi_v",
+  "segment_id": "host9_prefix",
+  "jobs": [
+    "r149_05_real_megumi_v_seed2026101311_early",
+    "r149_05_real_megumi_v_seed2026101311_late",
+    "r149_05_real_megumi_v_seed2026101311_split"
+  ],
+  "remaining": [
+    "r149_05_real_megumi_v_seed2026101311_global_weak"
+  ],
+  "service_owner": {
+    "pid": 33378,
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8641,
+    "started_unix": 1792502740.491022,
+    "root_attempt_token": "ac462d0cb493419e85349381bc05ad36",
+    "command": [
+      "/home/researcher/miniconda3/envs/comfyui/bin/python",
+      "-u",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py",
+      "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py",
+      "--listen",
+      "127.0.0.1",
+      "--port",
+      "8641",
+      "--base-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v",
+      "--models-directory",
+      "/data5/researcher/ComfyUI/models",
+      "--disable-auto-launch",
+      "--disable-dynamic-vram",
+      "--disable-cuda-malloc",
+      "--use-pytorch-cross-attention",
+      "--reserve-vram",
+      "8",
+      "--enable-triton-backend",
+      "--preview-method",
+      "none",
+      "--disable-all-custom-nodes",
+      "--whitelist-custom-nodes",
+      "ComfyUI-KJNodes",
+      "H3EventAudit",
+      "H3PairAudit",
+      "H3TemporalRouter",
+      "H3X0Readout",
+      "H3CachedCondition",
+      "--input-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input",
+      "--output-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output",
+      "--temp-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp",
+      "--user-directory",
+      "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user",
+      "--database-url",
+      "sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db"
+    ],
+    "identity": {
+      "uid": 1016,
+      "start_ticks": "2653165461",
+      "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8641 --base-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input --output-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output --temp-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp --user-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user --database-url sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db "
+    },
+    "cache_none": false,
+    "host_available_kib": 238642084,
+    "cgroup_startup": {
+      "schema": "r149-host9-cgroup-v1-v1",
+      "uid": 1016,
+      "membership": "/user.slice",
+      "ancestors": [
+        {
+          "path": "/user.slice",
+          "current_bytes": 219538296832,
+          "max_bytes": null,
+          "events": {
+            "oom_kill_disable": 0,
+            "under_oom": 0,
+            "failcnt": 0
+          }
+        },
+        {
+          "path": "/",
+          "current_bytes": 222336471040,
+          "max_bytes": null,
+          "events": {
+            "oom_kill_disable": 0,
+            "under_oom": 0,
+            "failcnt": 0
+          }
+        }
+      ],
+      "host_available_bytes": 244369494016,
+      "observed_unix": 1792502740.4901407,
+      "admitted": true,
+      "working_set_admission": {
+        "passed": true,
+        "stage": "entry",
+        "reasons": [],
+        "pressure_streak": 0,
+        "host_available_bytes": 244369494016,
+        "ancestors": [
+          {
+            "path": "/user.slice",
+            "current_bytes": 219538296832,
+            "max_bytes": null,
+            "events": {
+              "oom_kill_disable": 0,
+              "under_oom": 0,
+              "failcnt": 0
+            },
+            "raw_max_headroom_bytes": null,
+            "events_delta": {}
+          },
+          {
+            "path": "/",
+            "current_bytes": 222336471040,
+            "max_bytes": null,
+            "events": {
+              "oom_kill_disable": 0,
+              "under_oom": 0,
+              "failcnt": 0
+            },
+            "raw_max_headroom_bytes": null,
+            "events_delta": {}
+          }
+        ],
+        "policy": "host9 v1; host entry64/running40GiB; finite ancestor raw entry46/running20GiB; event changes stop"
+      }
+    },
+    "admission": {
+      "ready_for_launch": true,
+      "scope": "own_user_video_jobs",
+      "existing_comfy_port": null,
+      "permitted_compute_processes": []
+    },
+    "gpu_readiness": {
+      "observed_unix": 1792502740.3197155,
+      "memory_profile_sha256": "bff7e83620e6af58eed81884310c696a5a8dcaf4d4efee3ab429a4a9fb2c4ece",
+      "required_free_bytes": 21474836480,
+      "processes": [
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 46202,
+          "used_memory_mib": 26554
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 13015,
+          "used_memory_mib": 31214
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 7230,
+          "used_memory_mib": 31268
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 46202,
+          "used_memory_mib": 26554
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 7231,
+          "used_memory_mib": 31466
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 17073,
+          "used_memory_mib": 26496
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 13016,
+          "used_memory_mib": 31214
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 19439,
+          "used_memory_mib": 40374
+        }
+      ],
+      "gpu_raw": "1, GPU-REDACTED, 57841, 23209, 99, 64\n",
+      "gpu_stderr": "",
+      "memory_free_mib": 23209.0,
+      "memory_used_mib": 57841.0,
+      "utilization_percent": 99.0,
+      "temperature_c": 64.0,
+      "status": "admitted"
+    },
+    "preexisting_compute_processes": [
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 46202,
+        "used_memory_mib": 26554
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 13015,
+        "used_memory_mib": 31214
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 7230,
+        "used_memory_mib": 31268
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 46202,
+        "used_memory_mib": 26554
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 7231,
+        "used_memory_mib": 31466
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 17073,
+        "used_memory_mib": 26496
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 13016,
+        "used_memory_mib": 31214
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 19439,
+        "used_memory_mib": 40374
+      }
+    ],
+    "existing_comfy_queue": {
+      "queue_running": [],
+      "queue_pending": []
+    },
+    "state": "started_readiness_unverified"
+  },
+  "producer_seal_sha256": "67d18977e76fe8c42578bf1145801f02d120b9f76ce06a0c570843fcfc16b0be",
+  "migration_manifest_sha256": "230f71ac0b9332d32a42a42b496683f2a7b2e80c02c73bf7c3cafdac7f881fca",
+  "job_gates": {
+    "r149_05_real_megumi_v_seed2026101311_early": {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/analysis/postrun/05_real_megumi_v/r149_05_real_megumi_v_seed2026101311_early_GATE.json",
+      "sha256": "1ec1518862bf1362b9ec9332975604325b4d1c632e67fc71f39f306f89577b21"
+    },
+    "r149_05_real_megumi_v_seed2026101311_late": {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/analysis/postrun/05_real_megumi_v/r149_05_real_megumi_v_seed2026101311_late_GATE.json",
+      "sha256": "07ef7fa7d7787fa588823e92700a348785a064dc9b557a8b06edb0356eeded5c"
+    },
+    "r149_05_real_megumi_v_seed2026101311_split": {
+      "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/analysis/postrun/05_real_megumi_v/r149_05_real_megumi_v_seed2026101311_split_GATE.json",
+      "sha256": "2fc1d9ac5304c9f23b79728db463b9b123fc2a1a6d05bd024d69cd16643f042d"
+    }
+  },
+  "cleanup": {
+    "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/processes/cleanup.json",
+    "sha256": "7f2cda371007bf0bf007e99827754957501f32a974610865db772b927ed20c13",
+    "record": {
+      "pid": 33378,
+      "stopped_unix": 1792513191.114359,
+      "process_absent": true,
+      "own_compute_absent": true,
+      "remaining_gpu_processes": [
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 46202,
+          "used_memory_mib": 26554
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 35660,
+          "used_memory_mib": 31404
+        }
+      ],
+      "service_record": {
+        "pid": 33378,
+        "gpu_uuid": "GPU-REDACTED",
+        "port": 8641,
+        "started_unix": 1792502740.491022,
+        "root_attempt_token": "ac462d0cb493419e85349381bc05ad36",
+        "command": [
+          "/home/researcher/miniconda3/envs/comfyui/bin/python",
+          "-u",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py",
+          "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py",
+          "--listen",
+          "127.0.0.1",
+          "--port",
+          "8641",
+          "--base-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v",
+          "--models-directory",
+          "/data5/researcher/ComfyUI/models",
+          "--disable-auto-launch",
+          "--disable-dynamic-vram",
+          "--disable-cuda-malloc",
+          "--use-pytorch-cross-attention",
+          "--reserve-vram",
+          "8",
+          "--enable-triton-backend",
+          "--preview-method",
+          "none",
+          "--disable-all-custom-nodes",
+          "--whitelist-custom-nodes",
+          "ComfyUI-KJNodes",
+          "H3EventAudit",
+          "H3PairAudit",
+          "H3TemporalRouter",
+          "H3X0Readout",
+          "H3CachedCondition",
+          "--input-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input",
+          "--output-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output",
+          "--temp-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp",
+          "--user-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user",
+          "--database-url",
+          "sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db"
+        ],
+        "identity": {
+          "uid": 1016,
+          "start_ticks": "2653165461",
+          "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8641 --base-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input --output-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output --temp-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp --user-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user --database-url sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db "
+        },
+        "cache_none": false,
+        "host_available_kib": 238642084,
+        "cgroup_startup": {
+          "schema": "r149-host9-cgroup-v1-v1",
+          "uid": 1016,
+          "membership": "/user.slice",
+          "ancestors": [
+            {
+              "path": "/user.slice",
+              "current_bytes": 219538296832,
+              "max_bytes": null,
+              "events": {
+                "oom_kill_disable": 0,
+                "under_oom": 0,
+                "failcnt": 0
+              }
+            },
+            {
+              "path": "/",
+              "current_bytes": 222336471040,
+              "max_bytes": null,
+              "events": {
+                "oom_kill_disable": 0,
+                "under_oom": 0,
+                "failcnt": 0
+              }
+            }
+          ],
+          "host_available_bytes": 244369494016,
+          "observed_unix": 1792502740.4901407,
+          "admitted": true,
+          "working_set_admission": {
+            "passed": true,
+            "stage": "entry",
+            "reasons": [],
+            "pressure_streak": 0,
+            "host_available_bytes": 244369494016,
+            "ancestors": [
+              {
+                "path": "/user.slice",
+                "current_bytes": 219538296832,
+                "max_bytes": null,
+                "events": {
+                  "oom_kill_disable": 0,
+                  "under_oom": 0,
+                  "failcnt": 0
+                },
+                "raw_max_headroom_bytes": null,
+                "events_delta": {}
+              },
+              {
+                "path": "/",
+                "current_bytes": 222336471040,
+                "max_bytes": null,
+                "events": {
+                  "oom_kill_disable": 0,
+                  "under_oom": 0,
+                  "failcnt": 0
+                },
+                "raw_max_headroom_bytes": null,
+                "events_delta": {}
+              }
+            ],
+            "policy": "host9 v1; host entry64/running40GiB; finite ancestor raw entry46/running20GiB; event changes stop"
+          }
+        },
+        "admission": {
+          "ready_for_launch": true,
+          "scope": "own_user_video_jobs",
+          "existing_comfy_port": null,
+          "permitted_compute_processes": []
+        },
+        "gpu_readiness": {
+          "observed_unix": 1792502740.3197155,
+          "memory_profile_sha256": "bff7e83620e6af58eed81884310c696a5a8dcaf4d4efee3ab429a4a9fb2c4ece",
+          "required_free_bytes": 21474836480,
+          "processes": [
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 46202,
+              "used_memory_mib": 26554
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 13015,
+              "used_memory_mib": 31214
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 7230,
+              "used_memory_mib": 31268
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 46202,
+              "used_memory_mib": 26554
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 7231,
+              "used_memory_mib": 31466
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 17073,
+              "used_memory_mib": 26496
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 13016,
+              "used_memory_mib": 31214
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 19439,
+              "used_memory_mib": 40374
+            }
+          ],
+          "gpu_raw": "1, GPU-REDACTED, 57841, 23209, 99, 64\n",
+          "gpu_stderr": "",
+          "memory_free_mib": 23209.0,
+          "memory_used_mib": 57841.0,
+          "utilization_percent": 99.0,
+          "temperature_c": 64.0,
+          "status": "admitted"
+        },
+        "preexisting_compute_processes": [
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 46202,
+            "used_memory_mib": 26554
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 13015,
+            "used_memory_mib": 31214
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 7230,
+            "used_memory_mib": 31268
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 46202,
+            "used_memory_mib": 26554
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 7231,
+            "used_memory_mib": 31466
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 17073,
+            "used_memory_mib": 26496
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 13016,
+            "used_memory_mib": 31214
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 19439,
+            "used_memory_mib": 40374
+          }
+        ],
+        "existing_comfy_queue": {
+          "queue_running": [],
+          "queue_pending": []
+        },
+        "state": "started_readiness_unverified"
+      },
+      "release_verification": {
+        "process_absent": true,
+        "own_compute_absent": true,
+        "polls": 1,
+        "wait_seconds": 0.06392030417919159
+      },
+      "child_compute_absent": true
+    }
+  },
+  "root_failure": {
+    "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_r149_sam_host9_attempt3/FAILURE.json",
+    "sha256": "3a159c58b8bb172f4575e76e0cf2475bf647d88d29102281f089ccd6411dcf8c",
+    "record": {
+      "error": "ValueError('controller failed: {\\'unix\\': 1792513174.3965714, \\'status\\': \\'failed\\', \\'current\\': \\'r149_05_real_megumi_v_seed2026101311_early\\', \\'error\\': \"ValueError(\\'root admission pending\\')\"}')",
+      "unix": 1792513191.0498452
+    }
+  },
+  "capacity_monitor_exit": {
+    "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_r149_sam_host9_attempt3/CAPACITY_MONITOR_EXIT.json",
+    "sha256": "3f044d16dd4a216c9be16f0f6bfbb54a13a3600f972deb4eb220ab0cd6ab6975",
+    "record": {
+      "pid": 33381,
+      "identity": {
+        "uid": 1016,
+        "start_ticks": "2653165488",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/capacity_trial.py --root /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --output /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_r149_sam_host9_attempt3/CAPACITY_TRIAL.jsonl --ready /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_r149_sam_host9_attempt3/CAPACITY_MONITOR_READY.json "
+      },
+      "exit_code": 0,
+      "exact_generation_absent": true
+    }
+  },
+  "boundary_request": {
+    "file": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/partial_release_global_weak_migration/BOUNDARY_REQUEST.json",
+    "sha256": "e5af39911bf9d66b3d94bde2533b6ba199352628de21e0af7508a13bfb37a4e8",
+    "record": {
+      "schema": "r149-planned-boundary-withdrawal-v1",
+      "migration_manifest_sha256": "230f71ac0b9332d32a42a42b496683f2a7b2e80c02c73bf7c3cafdac7f881fca",
+      "service_owner": {
+        "pid": 33378,
+        "gpu_uuid": "GPU-REDACTED",
+        "port": 8641,
+        "started_unix": 1792502740.491022,
+        "root_attempt_token": "ac462d0cb493419e85349381bc05ad36",
+        "command": [
+          "/home/researcher/miniconda3/envs/comfyui/bin/python",
+          "-u",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py",
+          "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py",
+          "--listen",
+          "127.0.0.1",
+          "--port",
+          "8641",
+          "--base-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v",
+          "--models-directory",
+          "/data5/researcher/ComfyUI/models",
+          "--disable-auto-launch",
+          "--disable-dynamic-vram",
+          "--disable-cuda-malloc",
+          "--use-pytorch-cross-attention",
+          "--reserve-vram",
+          "8",
+          "--enable-triton-backend",
+          "--preview-method",
+          "none",
+          "--disable-all-custom-nodes",
+          "--whitelist-custom-nodes",
+          "ComfyUI-KJNodes",
+          "H3EventAudit",
+          "H3PairAudit",
+          "H3TemporalRouter",
+          "H3X0Readout",
+          "H3CachedCondition",
+          "--input-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input",
+          "--output-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output",
+          "--temp-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp",
+          "--user-directory",
+          "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user",
+          "--database-url",
+          "sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db"
+        ],
+        "identity": {
+          "uid": 1016,
+          "start_ticks": "2653165461",
+          "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8641 --base-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input --output-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output --temp-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp --user-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user --database-url sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db "
+        },
+        "cache_none": false,
+        "host_available_kib": 238642084,
+        "cgroup_startup": {
+          "schema": "r149-host9-cgroup-v1-v1",
+          "uid": 1016,
+          "membership": "/user.slice",
+          "ancestors": [
+            {
+              "path": "/user.slice",
+              "current_bytes": 219538296832,
+              "max_bytes": null,
+              "events": {
+                "oom_kill_disable": 0,
+                "under_oom": 0,
+                "failcnt": 0
+              }
+            },
+            {
+              "path": "/",
+              "current_bytes": 222336471040,
+              "max_bytes": null,
+              "events": {
+                "oom_kill_disable": 0,
+                "under_oom": 0,
+                "failcnt": 0
+              }
+            }
+          ],
+          "host_available_bytes": 244369494016,
+          "observed_unix": 1792502740.4901407,
+          "admitted": true,
+          "working_set_admission": {
+            "passed": true,
+            "stage": "entry",
+            "reasons": [],
+            "pressure_streak": 0,
+            "host_available_bytes": 244369494016,
+            "ancestors": [
+              {
+                "path": "/user.slice",
+                "current_bytes": 219538296832,
+                "max_bytes": null,
+                "events": {
+                  "oom_kill_disable": 0,
+                  "under_oom": 0,
+                  "failcnt": 0
+                },
+                "raw_max_headroom_bytes": null,
+                "events_delta": {}
+              },
+              {
+                "path": "/",
+                "current_bytes": 222336471040,
+                "max_bytes": null,
+                "events": {
+                  "oom_kill_disable": 0,
+                  "under_oom": 0,
+                  "failcnt": 0
+                },
+                "raw_max_headroom_bytes": null,
+                "events_delta": {}
+              }
+            ],
+            "policy": "host9 v1; host entry64/running40GiB; finite ancestor raw entry46/running20GiB; event changes stop"
+          }
+        },
+        "admission": {
+          "ready_for_launch": true,
+          "scope": "own_user_video_jobs",
+          "existing_comfy_port": null,
+          "permitted_compute_processes": []
+        },
+        "gpu_readiness": {
+          "observed_unix": 1792502740.3197155,
+          "memory_profile_sha256": "bff7e83620e6af58eed81884310c696a5a8dcaf4d4efee3ab429a4a9fb2c4ece",
+          "required_free_bytes": 21474836480,
+          "processes": [
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 46202,
+              "used_memory_mib": 26554
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 13015,
+              "used_memory_mib": 31214
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 7230,
+              "used_memory_mib": 31268
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 46202,
+              "used_memory_mib": 26554
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 7231,
+              "used_memory_mib": 31466
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 17073,
+              "used_memory_mib": 26496
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 13016,
+              "used_memory_mib": 31214
+            },
+            {
+              "gpu_uuid": "GPU-REDACTED",
+              "pid": 19439,
+              "used_memory_mib": 40374
+            }
+          ],
+          "gpu_raw": "1, GPU-REDACTED, 57841, 23209, 99, 64\n",
+          "gpu_stderr": "",
+          "memory_free_mib": 23209.0,
+          "memory_used_mib": 57841.0,
+          "utilization_percent": 99.0,
+          "temperature_c": 64.0,
+          "status": "admitted"
+        },
+        "preexisting_compute_processes": [
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 46202,
+            "used_memory_mib": 26554
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 13015,
+            "used_memory_mib": 31214
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 7230,
+            "used_memory_mib": 31268
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 46202,
+            "used_memory_mib": 26554
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 7231,
+            "used_memory_mib": 31466
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 17073,
+            "used_memory_mib": 26496
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 13016,
+            "used_memory_mib": 31214
+          },
+          {
+            "gpu_uuid": "GPU-REDACTED",
+            "pid": 19439,
+            "used_memory_mib": 40374
+          }
+        ],
+        "existing_comfy_queue": {
+          "queue_running": [],
+          "queue_pending": []
+        },
+        "state": "started_readiness_unverified"
+      },
+      "current_run": "r149_05_real_megumi_v_seed2026101311_split",
+      "prompt_id": "7f04b14e-1715-459a-9c40-275598d12e0f",
+      "queue_at_withdrawal": {
+        "queue_running": [
+          [
+            2,
+            "7f04b14e-1715-459a-9c40-275598d12e0f",
+            {
+              "1": {
+                "class_type": "UNETLoader",
+                "inputs": {
+                  "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+                  "weight_dtype": "default"
+                }
+              },
+              "3": {
+                "class_type": "VAELoader",
+                "inputs": {
+                  "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+                }
+              },
+              "4": {
+                "class_type": "VAELoader",
+                "inputs": {
+                  "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+                }
+              },
+              "41": {
+                "class_type": "MiniMaxH3SigmaShift",
+                "inputs": {
+                  "model": [
+                    "1",
+                    0
+                  ],
+                  "shift_video": 12.0,
+                  "shift_audio": 3.0
+                }
+              },
+              "5": {
+                "class_type": "H3CachedReferenceConditioning",
+                "inputs": {
+                  "cache_manifest": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/configs/CONDITION_CACHE.json",
+                  "audit_dir": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit",
+                  "run_id": "r149_05_real_megumi_v_seed2026101311_split"
+                }
+              },
+              "6": {
+                "class_type": "H3EventAuditNoise",
+                "inputs": {
+                  "noise_seed": 2026101311,
+                  "audit_dir": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit",
+                  "run_id": "r149_05_real_megumi_v_seed2026101311_split",
+                  "pair_id": "05_sam_1312x736_2026101311_v3"
+                }
+              },
+              "7": {
+                "class_type": "BasicGuider",
+                "inputs": {
+                  "model": [
+                    "52",
+                    0
+                  ],
+                  "conditioning": [
+                    "51",
+                    0
+                  ]
+                }
+              },
+              "8": {
+                "class_type": "KSamplerSelect",
+                "inputs": {
+                  "sampler_name": "euler"
+                }
+              },
+              "9": {
+                "class_type": "ManualSigmas",
+                "inputs": {
+                  "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+                }
+              },
+              "10": {
+                "class_type": "SamplerCustomAdvanced",
+                "inputs": {
+                  "noise": [
+                    "6",
+                    0
+                  ],
+                  "guider": [
+                    "7",
+                    0
+                  ],
+                  "sampler": [
+                    "8",
+                    0
+                  ],
+                  "sigmas": [
+                    "9",
+                    0
+                  ],
+                  "latent_image": [
+                    "51",
+                    1
+                  ]
+                }
+              },
+              "11": {
+                "class_type": "VAEDecode",
+                "inputs": {
+                  "samples": [
+                    "10",
+                    0
+                  ],
+                  "vae": [
+                    "3",
+                    0
+                  ]
+                }
+              },
+              "12": {
+                "class_type": "VAEDecodeAudio",
+                "inputs": {
+                  "samples": [
+                    "10",
+                    0
+                  ],
+                  "vae": [
+                    "4",
+                    0
+                  ]
+                }
+              },
+              "13": {
+                "class_type": "CreateVideo",
+                "inputs": {
+                  "images": [
+                    "11",
+                    0
+                  ],
+                  "audio": [
+                    "12",
+                    0
+                  ],
+                  "fps": 24.0,
+                  "bit_depth": 8
+                }
+              },
+              "14": {
+                "class_type": "SaveVideo",
+                "inputs": {
+                  "video": [
+                    "13",
+                    0
+                  ],
+                  "filename_prefix": "r149_05_real_megumi_v_seed2026101311_split",
+                  "format": "mp4",
+                  "codec": "h264",
+                  "codec.encoding": "re-encode",
+                  "codec.encoding.crf": 16.0
+                }
+              },
+              "50": {
+                "class_type": "H3FixedSchedule",
+                "inputs": {
+                  "model": [
+                    "41",
+                    0
+                  ],
+                  "positive": [
+                    "51",
+                    0
+                  ],
+                  "mode": "mass_preserve",
+                  "alpha": 1.0,
+                  "radius": 0,
+                  "time_offset": 0,
+                  "start_frame": 50,
+                  "end_frame": 65,
+                  "block_start": 0,
+                  "block_end": 50,
+                  "step_start": 0,
+                  "step_end": 20,
+                  "run_id": "r149_05_real_megumi_v_seed2026101311_split",
+                  "audit_dir": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/router",
+                  "enabled": true,
+                  "schedule": "split"
+                }
+              },
+              "51": {
+                "class_type": "H3PairConditionSnapshot",
+                "inputs": {
+                  "positive": [
+                    "5",
+                    0
+                  ],
+                  "target": [
+                    "5",
+                    1
+                  ],
+                  "source_audit_dir": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit",
+                  "source_run_id": "05_sam_1312x736_shared_v3",
+                  "run_id": "r149_05_real_megumi_v_seed2026101311_split"
+                }
+              },
+              "52": {
+                "class_type": "H3X0Readout",
+                "inputs": {
+                  "model": [
+                    "50",
+                    0
+                  ],
+                  "run_id": "r149_05_real_megumi_v_seed2026101311_split",
+                  "output_dir": "/home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/x0",
+                  "width": 1312,
+                  "height": 736,
+                  "length": 141
+                }
+              }
+            },
+            {
+              "client_id": "h3-guidance-schedule-r149-20261020",
+              "create_time": 1792510170084
+            },
+            [
+              "14"
+            ]
+          ]
+        ],
+        "queue_pending": []
+      },
+      "approval_before_sha256": "bff7e83620e6af58eed81884310c696a5a8dcaf4d4efee3ab429a4a9fb2c4ece",
+      "remaining": [
+        "r149_05_real_megumi_v_seed2026101311_global_weak"
+      ],
+      "created_unix": 1792510275.452922
+    }
+  },
+  "registered_generations": {
+    "root_wrapper": {
+      "pid": 33336,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653165336",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_run_batch.py --execute --attempt root_r149_sam_host9_attempt3 "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    },
+    "service": {
+      "pid": 33378,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653165461",
+        "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/service_entry.py /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8641 --base-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/input --output-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/output --temp-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/temp --user-directory /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/user --database-url sqlite:////home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/screen.db "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    },
+    "controller": {
+      "pid": 34365,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653166416",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/run_queue.py --expected-pid 33378 --expected-start-ticks 2653165461 "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    },
+    "supervisor": {
+      "pid": 33363,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653165417",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/supervise_service.py "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    },
+    "watchdog": {
+      "pid": 33379,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653165478",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/lease_watchdog.py --expected-pid 33378 --expected-start-ticks 2653165461 "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    },
+    "capacity_watchdog": {
+      "pid": 33384,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653165498",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/capacity_watchdog.py --owner /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/processes/service.json "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    },
+    "capacity_monitor": {
+      "pid": 33381,
+      "expected_identity": {
+        "uid": 1016,
+        "start_ticks": "2653165488",
+        "cmdline": "python3 -u /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/scripts/capacity_trial.py --root /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v --output /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_r149_sam_host9_attempt3/CAPACITY_TRIAL.jsonl --ready /home/researcher/h3_runs/guidance_schedule_r149_host9_20261020/cases/05_real_megumi_v/audit/root_r149_sam_host9_attempt3/CAPACITY_MONITOR_READY.json "
+      },
+      "actual_identity": null,
+      "generation_absent": true
+    }
+  },
+  "process_generation_absent": true,
+  "CUDA_allocation_absent": true,
+  "original_four_arm_COMPLETE": false,
+  "created_unix": 1792513232.831135
+}

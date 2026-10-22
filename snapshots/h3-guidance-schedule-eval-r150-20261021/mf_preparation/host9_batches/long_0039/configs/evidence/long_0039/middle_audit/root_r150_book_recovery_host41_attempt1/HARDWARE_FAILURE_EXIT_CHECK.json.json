@@ -1,0 +1,207 @@
+{
+  "schema": "r150-hardware-failure-exit-check-v1",
+  "unix": 1792522527.2735248,
+  "gpu_index": 7,
+  "gpu_uuid": "GPU-REDACTED",
+  "GPU_requires_reset": true,
+  "GPU_health_stdout": "\n==============NVSMI LOG==============\n\nTimestamp                                              : Wed Oct 21 02:55:27 2026\nDriver Version                                         : 580.126.20\nCUDA Version                                           : 13.0\n\nAttached GPUs                                          : 8\nGPU 00000000:0F:00.0\n    Performance State                                  : GPU requires reset\n    Clocks Event Reasons                               : N/A\n    Clocks Event Reasons Counters\n        SW Power Capping                               : GPU requires reset\n        Sync Boost                                     : GPU requires reset\n        SW Thermal Slowdown                            : GPU requires reset\n        HW Thermal Slowdown                            : GPU requires reset\n        HW Power Braking                               : GPU requires reset\n    Sparse Operation Mode                              : GPU requires reset\n    Temperature\n        GPU Current Temp                               : GPU requires reset\n        GPU T.Limit Temp                               : GPU requires reset\n        GPU Shutdown T.Limit Temp                      : GPU requires reset\n        GPU Slowdown T.Limit Temp                      : GPU requires reset\n        GPU Max Operating T.Limit Temp                 : 0 C\n        GPU Target Temperature                         : N/A\n        Memory Current Temp                            : N/A\n        Memory Max Operating T.Limit Temp              : GPU requires reset\n    GPU Power Readings\n        Average Power Draw                             : GPU requires reset\n        Instantaneous Power Draw                       : GPU requires reset\n        Current Power Limit                            : GPU requires reset\n        Requested Power Limit                          : GPU requires reset\n        Default Power Limit                            : GPU requires reset\n        Min Power Limit                                : GPU requires reset\n        Max Power Limit                                : GPU requires reset\n    Power Samples\n        Duration                                       : N/A\n        Number of Samples                              : N/A\n        Max                                            : N/A\n        Min                                            : N/A\n        Avg                                            : N/A\n    GPU Memory Power Readings \n        Average Power Draw                             : GPU requires reset\n        Instantaneous Power Draw                       : N/A\n    Module Power Readings\n        Average Power Draw                             : GPU requires reset\n        Instantaneous Power Draw                       : GPU requires reset\n        Current Power Limit                            : GPU requires reset\n        Requested Power Limit                          : GPU requires reset\n        Default Power Limit                            : GPU requires reset\n        Min Power Limit                                : GPU requires reset\n        Max Power Limit                                : GPU requires reset\n\n",
+  "errors": [
+    {
+      "node_id": "10",
+      "node_type": "SamplerCustomAdvanced",
+      "exception_message": "CUDA error: unknown error\nSearch for `cudaErrorUnknown' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n\n",
+      "exception_type": "torch.AcceleratorError",
+      "traceback": [
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 545, in execute\n    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 344, in get_output_data\n    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 318, in _async_map_node_over_list\n    await process_inputs(input_dict, i)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/execution.py\", line 306, in process_inputs\n    result = f(**inputs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_api/internal/__init__.py\", line 149, in wrapped_func\n    return method(locked_class, **inputs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_api/latest/_io.py\", line 2046, in EXECUTE_NORMALIZED\n    to_return = cls.execute(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_extras/nodes_custom_sampler.py\", line 1055, in execute\n    samples = guider.sample(noise.generate_noise(latent), latent_image, sampler, sigmas, denoise_mask=noise_mask, callback=callback, disable_pbar=disable_pbar, seed=noise.seed)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1335, in sample\n    output = executor.execute(noise, latent_image, sampler, sigmas, denoise_mask, callback, disable_pbar, seed, latent_shapes=latent_shapes)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1262, in outer_sample\n    output = self.inner_sample(noise, latent_image, device, sampler, sigmas, denoise_mask, callback, disable_pbar, seed, latent_shapes=latent_shapes)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1237, in inner_sample\n    samples = executor.execute(self, sigmas, extra_args, callback, noise, latent_image, denoise_mask, disable_pbar)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 114, in execute\n    return self.wrappers[self.idx](self, *args, **kwargs)\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3X0Readout/timing.py\", line 21, in __call__\n    result = super().__call__(executor, model_wrap, sigmas, extra_args, timed_callback,\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3X0Readout/core.py\", line 194, in __call__\n    result = executor(model_wrap, sigmas, extra_args, record, noise,\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 106, in __call__\n    return new_executor.execute(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1005, in sample\n    samples = self.sampler_function(model_k, noise, sigmas, extra_args=extra_args, callback=k_callback, disable=disable_pbar, **self.extra_options)\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/k_diffusion/sampling.py\", line 205, in sample_euler\n    denoised = model(x, sigma_hat * s_in, **extra_args)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 640, in __call__\n    out = self.inner_model(x, sigma, model_options=model_options, seed=seed)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1208, in __call__\n    return self.outer_predict_noise(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1215, in outer_predict_noise\n    ).execute(x, timestep, model_options, seed)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 1218, in predict_noise\n    return sampling_function(self.inner_model, x, timestep, self.conds.get(\"negative\", None), self.conds.get(\"positive\", None), self.cfg, model_options=model_options, seed=seed)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 620, in sampling_function\n    out = calc_cond_batch(model, conds, x, timestep, model_options)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 211, in calc_cond_batch\n    return _calc_cond_batch_outer(model, conds, x_in, timestep, model_options)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 219, in _calc_cond_batch_outer\n    return executor.execute(model, conds, x_in, timestep, model_options)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/samplers.py\", line 335, in _calc_cond_batch\n    output = model.apply_model(input_x, timestep_, **c).chunk(batch_chunks)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_base.py\", line 209, in apply_model\n    return comfy.patcher_extension.WrapperExecutor.new_class_executor(\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_base.py\", line 253, in _apply_model\n    model_output = self.diffusion_model(xc, t, context=context, control=control, transformer_options=transformer_options, **extra_conds)\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1779, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1790, in _call_impl\n    return forward_call(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ldm/minimax/model.py\", line 577, in forward\n    graph_out = comfy.patcher_extension.WrapperExecutor.new_class_executor(\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/patcher_extension.py\", line 113, in execute\n    return self.original(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ldm/minimax/model.py\", line 759, in _forward\n    h = blocks_replace[(\"double_block\", i)](\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3TemporalRouter/schedule.py\", line 39, in __call__\n    return super().__call__(args, extra_args)\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3TemporalRouter/core.py\", line 467, in __call__\n    result = extra_args[\"original_block\"](local_args)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ldm/minimax/model.py\", line 757, in block_wrap\n    return {\"img\": block(args[\"img\"], args[\"t_emb\"], args[\"mod_segments\"], args[\"rope_freqs\"],\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1779, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1790, in _call_impl\n    return forward_call(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ldm/minimax/model.py\", line 295, in forward\n    x = _mod_gate(x, gate_msa, attention(h, rope_freqs=rope_freqs, transformer_options=transformer_options), mod_segments)\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1779, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n",
+        "  File \"/data3/researcher/ComfyUI/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1790, in _call_impl\n    return forward_call(*args, **kwargs)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ldm/minimax/model.py\", line 199, in forward\n    out = optimized_attention(q, k, v, self.heads, mask=None, skip_reshape=True, transformer_options=transformer_options)\n",
+        "  File \"/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ldm/modules/attention.py\", line 193, in wrapper\n    return optimized_attention_override(func, *args, **kwargs)\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3TemporalRouter/core.py\", line 415, in __call__\n    out = route_attention(q, k, v, heads, self.plan, mode=mode, alpha=state.alpha,\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3TemporalRouter/core.py\", line 243, in route_attention\n    aligned, aligned_lse = _aligned_attention(\n",
+        "  File \"/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/custom_nodes/H3TemporalRouter/core.py\", line 73, in _aligned_attention\n    q_batch = grouped_q[indices].contiguous()\n"
+      ],
+      "timestamp": 1792522397949
+    }
+  ],
+  "recorded_processes": [
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/capacity_monitor.json",
+      "sha256": "2b6cc9ff148abfa854631d028a9f32e3c5eb1173c02a81e074ea459f6a878e44",
+      "pid": 176097,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804157",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/capacity_trial.py --root /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039 --output /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/audit/root_r150_book_recovery_host41_attempt1/CAPACITY_TRIAL.jsonl --ready /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/audit/root_r150_book_recovery_host41_attempt1/CAPACITY_MONITOR_READY.json "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/cuda_gate_go.json",
+      "sha256": "fc26706e5cd4ac57f469e97bb1136ed75c112f08dae4add16c124786bb9a26fd",
+      "pid": 176091,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804122",
+        "cmdline_sha256": "2fca4e570f58519f224b7a26c448b368c6f61310320d36c006f14627a4e1b22f"
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/service.json",
+      "sha256": "140e422e79c702fe6c1a493718a6360f9a811158b5b05ec215fac0892aa06e6d",
+      "pid": 176091,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804122",
+        "cmdline": "/data3/researcher/ComfyUI/.venv/bin/python -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/service_entry.py /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/compatibility_bootstrap.py /data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/main.py --listen 127.0.0.1 --port 8654 --base-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039 --models-directory /data3/researcher/ComfyUI-H3/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/input --output-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/output --temp-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/temp --user-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/user --database-url sqlite:////data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/screen.db "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/supervisor_176078.json",
+      "sha256": "c6a354ab4f07fb7a489c5c5bc623020933975658946807c5fb9bcdc3e7b1f6a9",
+      "pid": 176078,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804061",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/supervise_service.py "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/capacity_watchdog.json",
+      "sha256": "db5d9520e52eec4ce8dbb8b3c6ff0ccabc4cf94cb8d819e0eacdb0a698a84f12",
+      "pid": 176098,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804164",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/capacity_watchdog.py --owner /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/service.json "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/cuda_gate_ready.json",
+      "sha256": "b86982bd89fad0a1b8c9ca2f501c1cc45d0fefb60a7e3c58f21225fdd0a8b92c",
+      "pid": 176091,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804122",
+        "cmdline_sha256": "2fca4e570f58519f224b7a26c448b368c6f61310320d36c006f14627a4e1b22f"
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/watchdog.json",
+      "sha256": "00c5eeb693f65fa2eb22e19ae32cd51586787585a5d2a4ff529ee41bb2c147a5",
+      "pid": 176092,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804132",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/lease_watchdog.py --expected-pid 176091 --expected-start-ticks 1804122 "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/supervisor.json",
+      "sha256": "c6a354ab4f07fb7a489c5c5bc623020933975658946807c5fb9bcdc3e7b1f6a9",
+      "pid": 176078,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804061",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/supervise_service.py "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/service_176091.json",
+      "sha256": "140e422e79c702fe6c1a493718a6360f9a811158b5b05ec215fac0892aa06e6d",
+      "pid": 176091,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1804122",
+        "cmdline": "/data3/researcher/ComfyUI/.venv/bin/python -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/service_entry.py /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/compatibility_bootstrap.py /data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/main.py --listen 127.0.0.1 --port 8654 --base-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039 --models-directory /data3/researcher/ComfyUI-H3/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout H3CachedCondition --input-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/input --output-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/output --temp-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/temp --user-directory /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/user --database-url sqlite:////data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/screen.db "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/processes/controller.json",
+      "sha256": "6954a9d47bfb4dd43fe7c06d99f0fb9e872bb7add4d43de6f6aeec4aa2ae2d2b",
+      "pid": 176455,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1806126",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/scripts/run_queue.py --expected-pid 176091 --expected-start-ticks 1804122 "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    },
+    {
+      "file": "/data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/audit/ATTEMPT1_LAUNCH.json",
+      "sha256": "e0c1bbf6588b0a2cf8f9ac36322ecb973d7508f9d8fa951f0818b68caaf4e474",
+      "pid": 176063,
+      "expected_identity": {
+        "uid": 1004,
+        "start_ticks": "1803939",
+        "cmdline": "python3 -u /data4/researcher/h3_runs/guidance_schedule_r150_recovery_host41_20261021/cases/long_0039/audit/root_run_batch.py --execute --attempt root_r150_book_recovery_host41_attempt1 "
+      },
+      "actual_identity": null,
+      "exact_generation_absent": true
+    }
+  ],
+  "all_recorded_generations_exited": true,
+  "CUDA_allocation_absent": null,
+  "release_state": "process_generations_exited_gpu_unqueryable",
+  "scientific_seal_sha256": "70023888e520ac448b9bab5ec3d2324677bb61a0584ef1ad375d7db9fb1842f8"
+}

@@ -1,0 +1,325 @@
+[
+  {
+    "case": "firefly_notsin107",
+    "reference": {
+      "path": "/Users/researcher/DevProjects/dataset_LoRA/Firefly/display/3/ComfyUI_41564_.png",
+      "sha256": "4456bf6ec6bec22def5389dfa50f3b13c9849d8b847c51800d70248ccb758976",
+      "size": [
+        1600,
+        1600
+      ]
+    },
+    "video": {
+      "path": "/Users/researcher/.hermes/profiles/closure/workspace/not-a-sin-silverwolf-41/in/reference_source.mp4",
+      "sha256": "6c108548c98ad5da440fab40ceb65babf38a363c66a34498de6af51b70afa1a5"
+    },
+    "proposed_crop": {
+      "start_seconds": 0,
+      "fps": 24,
+      "frames": 107,
+      "duration_seconds": 4.458333333333333,
+      "temporal_filter": "fps=24:start_time=0:round=near,trim=end_frame=107,setpts=PTS-STARTPTS",
+      "tail_padding": 0,
+      "interpolation": "none; FPS resampling uses dropping/repeating source frames",
+      "recommended_geometry": "preserve aspect, fit and pad to agreed legal H3 canvas; portrait backup should retain portrait canvas rather than force landscape"
+    },
+    "diagnostic_sheet": "/Users/researcher/DevProjects/h3-fast-screen-20261008/analysis/assets/firefly_notsin107_cut_sheet.jpg",
+    "selection_status": "primary recommendation 1; frozen before outputs",
+    "provenance": {
+      "reference": "User existing local illustration; no new image generated for this pilot",
+      "video_title": "DeepSeek不是罪过",
+      "video_url": "https://www.bilibili.com/video/BV1LQ7j6WEyD/",
+      "video_archive_plan": "/Users/researcher/.hermes/profiles/closure/workspace/not-a-sin-silverwolf-41/plan.json",
+      "external_redistribution_license": "not established; local experiment only"
+    },
+    "reference_background": "Dark staircase with bright cyan horizontal stair-edge lights; foreground bright long wavy hair, white apron, dark dress, teal hair clip and ribbon.",
+    "why_selected": "Recognizable structured reference background versus flat lavender typography in source; curls, ribbons and ruffled dress supply nontrivial but ordinary segmentation boundaries.",
+    "foreground_preserve_checklist": [
+      "hair clip and wing-shaped ornament",
+      "loose hair curls and spaces",
+      "white apron and ruffles",
+      "dark dress hem and sleeves",
+      "hands and both visible legs"
+    ],
+    "leakage_watchlist": [
+      "cyan staircase lines",
+      "dark stairwell architecture",
+      "matching blue rim-lit setting",
+      "kneeling reference pose or static reference composition replacing source dance"
+    ],
+    "source_motion": "Face closeup opens to wider composition; hand on hip, raises spread fingers near head, hand gestures; source includes moving/rolling composition and oversized lettering.",
+    "limitations": [
+      "Anime input/output domain only",
+      "Reference is kneeling while source is standing; copied pose is separate from background leakage",
+      "Original source contains black bars/typography and camera roll; preserve identically across paired arms",
+      "107 frames at 24fps is new task, not equivalent to historical 175-frame window"
+    ],
+    "selected": true,
+    "fixed_seed": 7328488203824147083,
+    "target_geometry": [
+      1312,
+      736
+    ],
+    "source_audio_connected": false,
+    "inference": "20step Euler/manualvideo12-audio3, noTurbo, fastmodernH3Sage baseline; eachpaironlyreference/outputchange",
+    "reference_name": "firefly_notsin107_original.png",
+    "prepared_source": {
+      "path": "/Users/researcher/DevProjects/h3-fast-screen-20261008/inputs/firefly_notsin107_source.mp4",
+      "sha256": "4087c68bd2464c8e8ae718b3119342a291d57715f342ee2b40092a5cb561ebfa",
+      "ffmpeg_command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-n",
+        "-i",
+        "/Users/researcher/.hermes/profiles/closure/workspace/not-a-sin-silverwolf-41/in/reference_source.mp4",
+        "-vf",
+        "fps=24:start_time=0:round=near,trim=end_frame=107,setpts=PTS-STARTPTS,scale=1312:736:force_original_aspect_ratio=decrease:force_divisible_by=2,pad=1312:736:(ow-iw)/2:(oh-ih)/2,setsar=1",
+        "-frames:v",
+        "107",
+        "-an",
+        "-c:v",
+        "libx264",
+        "-qp",
+        "0",
+        "-pix_fmt",
+        "yuv420p",
+        "/Users/researcher/DevProjects/h3-fast-screen-20261008/inputs/firefly_notsin107_source.mp4"
+      ],
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High 4:4:4 Predictive",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.f40020",
+            "width": 1312,
+            "height": 736,
+            "coded_width": 1312,
+            "coded_height": 736,
+            "has_b_frames": 0,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "41:23",
+            "pix_fmt": "yuv420p",
+            "level": 32,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "bt709",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 54784,
+            "duration": "4.458333",
+            "bit_rate": "20413237",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "107",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc62.28.100 libx264"
+            }
+          }
+        ]
+      }
+    },
+    "prepared_reference": {
+      "path": "/Users/researcher/DevProjects/h3-fast-screen-20261008/inputs/firefly_notsin107_original.png",
+      "sha256": "4456bf6ec6bec22def5389dfa50f3b13c9849d8b847c51800d70248ccb758976",
+      "original_decoded_RGB_preserved": true
+    }
+  },
+  {
+    "case": "coast_bluestudio90",
+    "reference": {
+      "path": "/Users/researcher/.hermes/profiles/closure/workspace/scail2-study/official-sources/sample-animation-ref.jpg",
+      "sha256": "3485a50ddf5cf73d81da87ff7a9da4a16e4ad3e51cb7c8e1f2393d2dea79f781",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    "video": {
+      "path": "/Users/researcher/.hermes/profiles/closure/workspace/scail2-study/official-sources/sample-animation-driving.mp4",
+      "sha256": "a6395c6c0f927fa6d6f1f7e761aa902f31c90ae112f4ca38457baa2455108b6a"
+    },
+    "proposed_crop": {
+      "start_seconds": 0,
+      "fps": 24,
+      "frames": 90,
+      "duration_seconds": 3.75,
+      "temporal_filter": "fps=24:start_time=0:round=near,trim=end_frame=90,setpts=PTS-STARTPTS",
+      "tail_padding": 0,
+      "interpolation": "none; FPS resampling uses dropping/repeating source frames",
+      "recommended_geometry": "preserve aspect, fit and pad to agreed legal H3 canvas; portrait backup should retain portrait canvas rather than force landscape"
+    },
+    "diagnostic_sheet": "/Users/researcher/DevProjects/h3-fast-screen-20261008/analysis/assets/coast_bluestudio90_cut_sheet.jpg",
+    "selection_status": "primary recommendation 2; requires accepting honest 90-frame short source, frozen before outputs",
+    "provenance": {
+      "reference_url": "https://raw.githubusercontent.com/zai-org/SCAIL-2/78fe19576bb06be96c2375e088574a262a300edb/examples/animation_001/ref.jpg",
+      "video_url": "https://raw.githubusercontent.com/zai-org/SCAIL-2/78fe19576bb06be96c2375e088574a262a300edb/examples/animation_001/driving.mp4",
+      "local_source_manifest": "/Users/researcher/.hermes/profiles/closure/workspace/scail2-study/official-sources/manifest.jsonl",
+      "external_redistribution_license": "not re-audited; original public research demo already locally present"
+    },
+    "reference_background": "Sea, rocky shoreline, distant vessels and mountains, cloudy gray sky; adult woman has fine curly hair, blue-gray one-piece swimwear and upper-arm tattoo.",
+    "why_selected": "Adds real-photo domain, fine curly/partially transparent hair boundary, foreground/background blue-gray colors; structured coastal background versus plain blue studio.",
+    "foreground_preserve_checklist": [
+      "curly hair silhouette and interior wisps",
+      "one-piece swimsuit shoulder straps and shape",
+      "left upper-arm tattoo",
+      "hand/finger boundaries in prayer gesture",
+      "face and body identity"
+    ],
+    "leakage_watchlist": [
+      "sea horizon",
+      "rocks or waves",
+      "ships or mountains",
+      "gray overcast outdoor lighting replacing studio",
+      "static prayer pose replacing dance"
+    ],
+    "source_motion": "In-place upper-body dance: torso/head turns, hair swing, alternating raised bent arms to outward/lowered hands; no full-leg visibility.",
+    "limitations": [
+      "Only 65 native frames at 16fps; 90 output frames at 24fps use repeated source frames, not 90 independent motion samples",
+      "3.75-second diagnostic cannot exclude later leakage",
+      "Reference/dance identities may differ; evaluate actual reference identity rather than assuming same person",
+      "Swimwear is ordinary nonsexual appearance; retain original task without adding sexual content",
+      "Fine hair segmentation is not an oracle; foreground illumination may retain coastal color even if outside pixels removed"
+    ],
+    "selected": true,
+    "fixed_seed": 7328488203824147194,
+    "target_geometry": [
+      1312,
+      736
+    ],
+    "source_audio_connected": false,
+    "inference": "20step Euler/manualvideo12-audio3, noTurbo, fastmodernH3Sage baseline; eachpaironlyreference/outputchange",
+    "reference_name": "coast_bluestudio90_original.png",
+    "prepared_source": {
+      "path": "/Users/researcher/DevProjects/h3-fast-screen-20261008/inputs/coast_bluestudio90_source.mp4",
+      "sha256": "f9118c9c4d81b9f1e18fe5bb768b7b8cdae038cf4a9eefc06f5177a38f941c01",
+      "ffmpeg_command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-n",
+        "-i",
+        "/Users/researcher/.hermes/profiles/closure/workspace/scail2-study/official-sources/sample-animation-driving.mp4",
+        "-vf",
+        "fps=24:start_time=0:round=near,trim=end_frame=90,setpts=PTS-STARTPTS,scale=1312:736:force_original_aspect_ratio=decrease:force_divisible_by=2,pad=1312:736:(ow-iw)/2:(oh-ih)/2,setsar=1",
+        "-frames:v",
+        "90",
+        "-an",
+        "-c:v",
+        "libx264",
+        "-qp",
+        "0",
+        "-pix_fmt",
+        "yuv420p",
+        "/Users/researcher/DevProjects/h3-fast-screen-20261008/inputs/coast_bluestudio90_source.mp4"
+      ],
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High 4:4:4 Predictive",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.f40020",
+            "width": 1312,
+            "height": 736,
+            "coded_width": 1312,
+            "coded_height": 736,
+            "has_b_frames": 0,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "41:23",
+            "pix_fmt": "yuv420p",
+            "level": 32,
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 46080,
+            "duration": "3.750000",
+            "bit_rate": "13165476",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "90",
+            "extradata_size": 44,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc62.28.100 libx264"
+            }
+          }
+        ]
+      }
+    },
+    "prepared_reference": {
+      "path": "/Users/researcher/DevProjects/h3-fast-screen-20261008/inputs/coast_bluestudio90_original.png",
+      "sha256": "3c7a2b465e2cfb27a507fed8dc996c6057b859d56297d84b6ad5817221c42b7c",
+      "original_decoded_RGB_preserved": true
+    }
+  }
+]

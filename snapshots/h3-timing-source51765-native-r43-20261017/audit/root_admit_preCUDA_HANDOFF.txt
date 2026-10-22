@@ -1,0 +1,37 @@
+R43 root preCUDA launcher — PREPARED ONLY, NOT EXECUTED
+
+Files:
+- root_admit_and_start_preCUDA.py
+- root_admit_and_start_preCUDA.CONFIG.template.json (root_approved=false, actual SHA/peer fields null)
+- test_root_admit_preCUDA.py
+- root_admit_preCUDA_simulation_attempt1.log (14 tests PASS)
+- root_admit_preCUDA_simulation_attempt2.log (15 tests PASS, final source)
+
+R43 target: /data5/researcher/h3_runs/timing_source51765_native_r43_20261017
+GPU3 GPU-REDACTED; port8505.
+52 producer files unchanged; manifest SHA44120ecd803eeac051540bb5ea1d24e59e8c72a7b0eb7b55b6700be44e4818c7.
+
+Root must fill a NEW actual config, preserving the template:
+- old_run_gate_sha256 from R40 analysis/postrun/captured/r40_source51310_seed2026101701_auto/RUN_GATE.json
+- old_cleanup_sha256 from R40 processes/cleanup.json
+- old_release_sha256 from R40 audit/root_release_request.json
+- peer.root actual other task directory on same host
+- peer.pid and peer.identity{uid,start_ticks(string),cmdline_sha256}: exact fresh /proc identity
+- peer.manifest_sha256 and peer.admission_sha256: actual files at execution time
+- root_approved true only after root review.
+
+Inert inspect:
+python3 audit/root_admit_and_start_preCUDA.py --plan
+
+Future root-only execution, from the remote R43 directory:
+python3 -u audit/root_admit_and_start_preCUDA.py --config audit/ROOT_LAUNCH_ACTUAL.json --execute > audit/root_preCUDA_execution.log 2>&1
+Do not execute until R40 runtime archive and exact cleanup are complete. The builder did not execute this command or any remote command.
+
+Sequence: verify R40 gate/archive receipt + release bound to that gate + cleanup same owner + /proc/16635 absent; verify producer/inputs, current peer UID/start/cmdSHA and registry, selected UUID healthy/empty; launch sealed --service-only; obtain exact child from THIS launcher stdout and match registry; register new PID in peer admission preserving all non-permitted fields, removing only the exact released R40 entry; read back; repeat peer/release/idle/own-generation gates; exclusive atomic root go; bounded HTTPready; start exact controller. Root peer admission writers must be serialized; if its original hash changes before registration or readback differs, abort rather than overwrite.
+
+The administrative script has an exclusive launcher flock. It uses no shared heavyCPU lock, torch, CUDA library or model imports. Simulator runs only pure functions, fake sequence and inert --plan. Actual nvidia-smi/identity/readiness/child execution is still pending root.
+
+Existing peer observer decoder activity is NOT exempted: strict admission can reject and root may retry only after reviewing retained records and a fresh quiet interval. No blanket other-card exemption. On post-ready failure the script attempts cleanup only its captured exact owner; it never substitutes a new registry owner or kills the peer. Retained preCUDA gate files require explicit generation recovery before retries. Main gate's own600s timeout/watchdog remains in force.
+
+V2 explicit peer=null addendum (root-authorized preparation only):
+Use root_admit_and_start_preCUDA.PEERLESS.template.json if R42 has already released and no replacement peer exists. At both initial admission and pre-go, peer=null requires zero existing user-owned GPU compute PIDs; permitted_compute_processes=[]; sealed admission still rejects unknown ownership and any selected-GPU process. Other users on other cards remain untouched. Skip only peer registration; preCUDA/actual child/root go/HTTP/controller are unchanged. No assumption that a missing peer field equals null: peer key is mandatory. Root still fills the three real R40 release SHA values. Existing v1 script SHA7d36219c... preserved under root_preCUDA_v1_evidence/.

@@ -1,0 +1,340 @@
+{
+  "prompt": [
+    0,
+    "10db4ac6-ec10-4684-9f29-9038b9e1e582",
+    {
+      "1": {
+        "class_type": "UNETLoader",
+        "inputs": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        }
+      },
+      "2": {
+        "class_type": "CLIPLoader",
+        "inputs": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        }
+      },
+      "3": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        }
+      },
+      "4": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "41": {
+        "class_type": "MiniMaxH3SigmaShift",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "shift_video": 12.0,
+          "shift_audio": 3.0
+        }
+      },
+      "5": {
+        "class_type": "H3EventAuditReference",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ],
+          "ref_video": [
+            "23",
+            0
+          ],
+          "prompt": "subject_definitions:\n<Subject 1> is the elderly man wearing a dark suit in <Picture 1>. <Picture 1> provides this subject's identity, appearance, clothing and visual style.\n<Subject 2> is the background and environment shown in <Picture 1>.\n<Video 1> provides the complete body-motion sequence and its timing. Source motion context: A man raised his hands above his head while placing his right foot against his left knee.\n\nsummary:\n[reference generation] Generate <Subject 1> performing the complete body-motion sequence from <Video 1> in <Subject 2>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the identity, appearance, clothing and visual style provided by <Picture 1>.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the background and environment provided by <Picture 1>.\n<Video 1> (body-motion reference): fully_preserved - reproduce the complete sequence of body motions, including their order, timing, direction and amplitude, with the target subject.\n\ndetailed_description:\n[Shot 1] <Subject 1>, the elderly man wearing a dark suit from <Picture 1>, performs the body movements from <Video 1> in <Subject 2>. The man raises his hands above his head while placing his right foot against his left knee.\nFollow the complete visible motion sequence and its timing in <Video 1> throughout the clip. The subject's appearance and the scene come from <Picture 1>.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+          "width": 1152,
+          "height": 768,
+          "length": 158,
+          "audit_dir": "/data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018/audit",
+          "run_id": "r90_one_leg__movie_man_9_shared",
+          "semantic_fps": 2,
+          "phase_frames": 0,
+          "ref_image": [
+            "21",
+            0
+          ]
+        }
+      },
+      "6": {
+        "class_type": "H3EventAuditNoise",
+        "inputs": {
+          "noise_seed": 2026101701,
+          "audit_dir": "/data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018/audit",
+          "run_id": "r90_one_leg__movie_man_9_seed2026101701_native",
+          "pair_id": "r90_one_leg__movie_man_9_seed2026101701"
+        }
+      },
+      "7": {
+        "class_type": "BasicGuider",
+        "inputs": {
+          "model": [
+            "52",
+            0
+          ],
+          "conditioning": [
+            "51",
+            0
+          ]
+        }
+      },
+      "8": {
+        "class_type": "KSamplerSelect",
+        "inputs": {
+          "sampler_name": "euler"
+        }
+      },
+      "9": {
+        "class_type": "ManualSigmas",
+        "inputs": {
+          "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+        }
+      },
+      "10": {
+        "class_type": "SamplerCustomAdvanced",
+        "inputs": {
+          "noise": [
+            "6",
+            0
+          ],
+          "guider": [
+            "7",
+            0
+          ],
+          "sampler": [
+            "8",
+            0
+          ],
+          "sigmas": [
+            "9",
+            0
+          ],
+          "latent_image": [
+            "51",
+            1
+          ]
+        }
+      },
+      "11": {
+        "class_type": "VAEDecode",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "12": {
+        "class_type": "VAEDecodeAudio",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "4",
+            0
+          ]
+        }
+      },
+      "13": {
+        "class_type": "CreateVideo",
+        "inputs": {
+          "images": [
+            "11",
+            0
+          ],
+          "audio": [
+            "12",
+            0
+          ],
+          "fps": 24.0,
+          "bit_depth": 8
+        }
+      },
+      "14": {
+        "class_type": "SaveVideo",
+        "inputs": {
+          "video": [
+            "13",
+            0
+          ],
+          "filename_prefix": "r90_one_leg__movie_man_9_seed2026101701_native",
+          "format": "mp4",
+          "codec": "h264",
+          "codec.encoding": "re-encode",
+          "codec.encoding.crf": 16.0
+        }
+      },
+      "21": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "target_movie_man_9.webp"
+        }
+      },
+      "22": {
+        "class_type": "LoadVideo",
+        "inputs": {
+          "file": "source_one_leg_video.mp4"
+        }
+      },
+      "23": {
+        "class_type": "GetVideoComponents",
+        "inputs": {
+          "video": [
+            "22",
+            0
+          ]
+        }
+      },
+      "50": {
+        "class_type": "H3TemporalRouter",
+        "inputs": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "51",
+            0
+          ],
+          "mode": "native",
+          "alpha": 1.0,
+          "radius": 0,
+          "time_offset": 0,
+          "start_frame": 0,
+          "end_frame": 146,
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 0,
+          "step_end": 20,
+          "run_id": "r90_one_leg__movie_man_9_seed2026101701_native",
+          "audit_dir": "/data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018/audit/router"
+        }
+      },
+      "51": {
+        "class_type": "H3PairConditionSnapshot",
+        "inputs": {
+          "positive": [
+            "5",
+            0
+          ],
+          "target": [
+            "5",
+            1
+          ],
+          "source_audit_dir": "/data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018/audit",
+          "source_run_id": "r90_one_leg__movie_man_9_shared",
+          "run_id": "r90_one_leg__movie_man_9_seed2026101701_native"
+        }
+      },
+      "52": {
+        "class_type": "H3X0Readout",
+        "inputs": {
+          "model": [
+            "50",
+            0
+          ],
+          "run_id": "r90_one_leg__movie_man_9_seed2026101701_native",
+          "output_dir": "/data5/researcher/h3_runs/timing_flexiact_p1_control_r90_20261018/audit/x0",
+          "width": 1152,
+          "height": 768,
+          "length": 158
+        }
+      }
+    },
+    {
+      "client_id": "h3-timing-flexiact-p1-control-r90-20261018",
+      "create_time": 1792387978651
+    },
+    [
+      "14"
+    ]
+  ],
+  "outputs": {
+    "22": {
+      "images": [
+        {
+          "filename": "source_one_leg_video.mp4",
+          "subfolder": "",
+          "type": "input"
+        }
+      ],
+      "animated": [
+        true
+      ]
+    },
+    "14": {
+      "images": [
+        {
+          "filename": "r90_one_leg__movie_man_9_seed2026101701_native_00001_.mp4",
+          "subfolder": "",
+          "type": "output"
+        }
+      ],
+      "animated": [
+        true
+      ]
+    }
+  },
+  "status": {
+    "status_str": "success",
+    "completed": true,
+    "messages": [
+      [
+        "execution_start",
+        {
+          "prompt_id": "10db4ac6-ec10-4684-9f29-9038b9e1e582",
+          "timestamp": 1792387978653
+        }
+      ],
+      [
+        "execution_cached",
+        {
+          "nodes": [],
+          "prompt_id": "10db4ac6-ec10-4684-9f29-9038b9e1e582",
+          "timestamp": 1792387978678
+        }
+      ],
+      [
+        "execution_success",
+        {
+          "prompt_id": "10db4ac6-ec10-4684-9f29-9038b9e1e582",
+          "timestamp": 1792391405085
+        }
+      ]
+    ]
+  },
+  "meta": {
+    "22": {
+      "node_id": "22",
+      "display_node": "22",
+      "parent_node": null,
+      "real_node_id": "22"
+    },
+    "14": {
+      "node_id": "14",
+      "display_node": "14",
+      "parent_node": null,
+      "real_node_id": "14"
+    }
+  }
+}

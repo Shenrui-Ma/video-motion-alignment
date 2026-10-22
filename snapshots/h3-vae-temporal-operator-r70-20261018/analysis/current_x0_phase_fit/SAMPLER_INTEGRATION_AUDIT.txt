@@ -1,0 +1,36 @@
+同次当前 denoised 的回写入口：只读源码审计，未实现
+
+实际源码
+本目录 source_code 是 .9 当前 H3 Comfy core 的只读副本；完整 SHA 见 SOURCE_MANIFEST.json。
+1. H3X0Readout/core.py:150 的 record callback 读取当前 x0；164行 process_latent_out 后保存CPU副本。
+2. comfy/k_diffusion/sampling.py:204 调 model 返回 denoised；205行立即算 d；206–207行才调用 callback；209–211行算Euler更新。
+因此当前被动 callback 的返回值不会回写 denoised；即使在 callback 里改 x0 引用，本步 d 已经算出。直接把反馈写进该记录器会错过更新时点。
+3. comfy/samplers.py:600–605 的 sampler_post_cfg_function 在最终 denoised 返回给 Euler 之前执行，返回值赋给 cfg_result。
+4. comfy/model_patcher.py:646 的 set_model_sampler_post_cfg_function 可对 cloned model 注册 hook，默认保留 cfg1 optimization。无需修改全局采样源码或预先多跑一次 DiT。
+
+最小逻辑接线
+在新独立的 model node 注册一个 post-CFG hook；按当前 sigma 与注册的20步网格匹配 step。
+取 args['denoised']，按实际 model.latent_shapes 用 comfy.utils.unpack_latents 分开视频与音频。记录原始当前视频 x0，再通过原 VAE.decode 得 float RGB，计算当前预测的 phi，重排 RGB，再经原 VAE.encode 得视频 z_corr。
+返回视频 x0 的修正值与原 packed 音频，使用原 pack_latents 保持形状、dtype、device及音频逐位一致。原 sample_euler 随后使用新 denoised 计算 d。需要保留 hook 前/后的 x0 与干预状态日志，以免被动 readout 只看到修正后预测。
+这只是可用接口；窗口、强度、触发与拒绝规则还需独立冻结。此处没有部署新控制器。
+
+实际尺度
+MiniMaxH3 process_latent_in/out 位于 model_base.py:2162–2166；视频 scale_factor=1，所以 packed 视频 x0 已处于VAE归一化latent空间。音频在sampler中乘4，输出时除4；视频处理应保持原音频原样，避免重复缩放。
+VAE.encode 输入 Comfy float RGB [0,1]，由 Comfy封装处理输入范围；MiniMaxH3VideoVAE.encode 最终输出 (mean−latents_mean)/latents_std。decode 在698–702行执行 z*latents_std+latents_mean。再编码结果直接是VAE归一化视频latent，不应手工再除一次std。
+R70实测用的正是此封装，当前 saved x0 归一化阶段为 after_process_latent_out。
+
+Flow 与 Euler 方程
+该 H3 使用 FLOW_AV = CONST + ModelSamplingAV（model_base.py:148）。CONST.calculate_denoised（model_sampling.py:90）为 z0_hat = x_sigma − sigma*v_theta。
+Euler：d=(x_sigma−z0_hat)/sigma；x_next=x_sigma+(sigma_next−sigma)*d。
+设 delta=z_corr−z0_hat，若 hook 返回 z0_hat'=z0_hat+lambda*delta，则
+  d' = d − lambda*delta/sigma
+  x_next' = x_next + lambda*(sigma−sigma_next)/sigma*delta。
+实际 index6 sigma=.9655172228813171、sigma_next=.9570552110671997，乘数 (sigma−sigma_next)/sigma=.00876422669。
+因此单次 index6 的完整 endpoint 替换，只对下一Euler状态贡献约0.876%的delta；这与“直接把当前状态整体时间重排”是不同的更新。若只改这一步，看不到完整成片变化不能据此单独否定时间估计；应记录实际state delta与后续轨迹。此处未选择新的增益或step规则。
+
+执行约束
+D→RGB warp→E 可复用 R70 VAE流程；视频坐标、padding/无观测区域需要明确适用掩码。将VAE加载到推理服务同卡可能引起DiT卸载；当前接口审计未验证共存/重载与后续forward生命周期。可保留独立VAE worker的CPU输入/输出事务边界，由root资源调度确认。当前不新增GPU任务。
+若源视频存在用户要求修改的动作，保护区域需要由编辑语义约束单独给出；这个原型拟合只检验参考动作保持。
+
+范围
+以上是从实际实现推导的接线和数值含义，未作新颖性声明，未运行修改后的采样。

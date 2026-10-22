@@ -1,0 +1,85 @@
+R72 / R73 / R74 提示协议与时间坐标审查
+2026-10-18；只读源码、冻结工作流及实际执行记录。没有修改推理。
+
+结论
+
+P1 采用官方 Ref2VA 指南的结构和引用标记，并添加了本实验的动作、身份和场景要求。它是我们按指南编写的提示协议。官方允许自行构建上下文处理方案；本地实验没有调用完整的托管 H3-Context-IR。
+
+已核对 26 份服务器工作流与本地冻结文件逐字一致。R73 的 5 对、R74 的 6 对，Native/forced 的完整 prompt UTF-8 字节和 reference 节点参数均相同。R72 是两对 P0/P1 提示诊断，两个方法均 mode=native，提示有意不同。
+
+本次快照时，R72 fitness P0 和 R73 short_0252 Native 已提交，job 中图哈希与 prompt 绑定一致；两条已有实际 conditioning 审计。其余运行尚无实际历史记录，全部配对完成后的实际 history/conditioning 仍由各自正式 gate 核对。因此这里证明的是 26 份已部署图的配对关系，以及当前两条实际提交/条件处理路径；尚未把待运行图计成已完成配对。
+
+semantic_fps=2 只影响 Qwen 语义分支的抽帧与时间戳。参考视频 VAE 接收完整 prepared RGB 序列。稠密 MM-RoPE 时间尺度依据固定 24 fps 约定和原生 latent 网格，没有把 2 fps 传成稠密参考视频的物理帧率。
+
+官方依据与本实验的对应
+
+固定官方仓库版本：d21241f0a4b3acbb34c97dae47fa417b7065e438。
+来源原文及 SHA 在 OFFICIAL_SOURCES.json；官方 ref-en.txt 与 R72/design/official_ref-en.txt 字节一致。
+
+1. 官方结构：六个英文段落、稳定的 Subject/Picture/Video 标记、任务前缀、retention 关系标记。R72/R74 使用 reference generation，明确图像提供身份和场景、视频提供运动；R73 使用 video editing，保留 source/edit/target 三条官方任务文本。
+   Guide §1–4：
+   https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/skills/h3-prompt-writing/references/ref-en.txt
+
+2. 官方可复现请求使用完整结构化 prompt，并通过独立 conditions 传参考资产。这支持“文字说明角色，实际输入另行绑定”的组织方式。
+   https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/scripts/readme/reproducible-768p-ref2va-request.sh
+
+3. README 将 H3-Context-IR 描述为托管上下文处理流程，同时建议开发者按提示指南构建自己的处理方案。因此仅凭六段结构不能声称复现其完整行为，也不能把 P1 写成唯一正确格式。
+   https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/README.md
+
+属于本实验追加的要求
+
+R72/R74：完整动作次序、精确时间、方向、幅度；参考图中的身份、服装、视觉风格和背景；逐动作的文字说明。六段结构本身不蕴含这些约束。各原始官方 caption 和可见内容修正均有独立记录。
+
+R73：保持源动作的次序、时间和持续时长，保持身体姿态、镜头构图/运动及未编辑场景。官方 edit_prompt 在 Requested edit 中原文保留；例如 0252 的 elderly 仅在 edit_prompt 中出现，target_prompt 的 woman 没有否定年龄要求。
+
+因此 P0→P1 同时改变了结构、引用角色的清晰度、任务信息和保留条件的显式程度。这项提示诊断无法单独归因于某个字段、六段格式或某个词。R73/R74 的同 P1 比较可检验固定时序引导在这一明确提示条件上的增量作用。
+
+与完整指南仍有的差别
+
+R72/R74 将整个动作序列写作 Video 1 的 body-motion role。指南 §2.3 更细地区分视频整体结构与可复用的动作内容，后者可作为 Subject 定义。当前角色分工可读，但没有完整实现该细分。
+
+R73 采用短目标描述，未逐项定义被编辑的可见 Subject，也没有完整的 Shot 1 段落。R72/R74 虽有 Shot 1，描述也远短于官方建议的逐镜头视觉/光照/声音展开。以上是适配版的简化，不据此推断模型必然失败。
+
+原人物身份是否和替换要求冲突
+
+R72/R74：图中的人物在 Subject 1，图中环境在 Subject 2；Video 1 仅承担动作序列/时间。retention 对身份的 fully_preserved 明确指 Picture 1。未发现“保留源视频人物身份”的命令。source context 里仍有源人物性别/服装描述，例如 chest 的 dark blue vest、rotate 的 woman；这些属于源描述，可能影响语义注意，但在任务定义上没有要求把它们转成输出身份。
+
+R73：没有额外角色图，只有 Video 1。0252 明确把 man 替换为 elderly woman；0135 明确把手替换为 robotic arm。partially_preserved 后紧接 apply the requested edit，未要求保留被替换者的原身份。其余三条只修改道具材质/颜色。
+
+需要保留的解释边界：R74 chest 同时要求继承图中场景并握住源动作中的器械把手，遇到目标图没有器械时会增加场景/接触关系难度；R73 0135 的“保持 body pose”对机器人形状属于语义约束，并非明确的关节对应公式。这些要求在配对两侧完全一致。现有结果不能据此直接归因于时序模块。
+
+实际输入绑定
+
+R72/R74：LoadImage(node21) → ref_image；LoadVideo(node22) → GetVideoComponents(node23 output0) → ref_video。H3EventAuditReference.encode 把它们传给原生 MiniMaxH3ReferenceToVideo，名称为 ref_image_0 和 ref_video_0。Tokenizer 按类型独立编号，输出 Picture 1 和 Video 1。
+
+R73：没有 node21/ref_image，仅一个视频引用，因此 Video 1 唯一指向该官方源。所有 reference 节点的 source 文件、prompt、24fps 输出设置都与 scientific_contract 一致。实际模块仍依靠 Qwen 对引用说明的理解；这些标签没有创建人物身份的硬分割掩码。
+
+semantic_fps 与稠密时间坐标的核查
+
+实际源码保存在 actual_code/{host41,host9}/，共六份文件的 SHA 见 CHECKS.json。
+
+H3EventAuditReference.encode 将 semantic_fps 传给 ClipProxy；VAEProxy.encode 先直接把完整 frames 传给 native.encode。ClipProxy.tokenize 只处理 minimax_ref_items 中的视频语义抽帧。默认 2/phase0 分支还检查它与原生采样逐位相同，再直接透传原始 tokenizer 参数。
+  R72 extensions/H3EventAudit/__init__.py:63–79、92–99、126–153、177–190。
+
+原生 nodes_minimax_h3.py:33 固定 FPS=24；314–334 对完整视频做尺寸/长度处理；337–340 每 12 帧取一帧供 Qwen，时间戳为 0,.5,1,…秒；343 处 vae.encode(frames) 接收完整序列。ref_blocks 中 latent_t 取实际 z.shape[2]，没有 semantic_fps 字段。
+
+model.py:30–31、98–106 的时间网格使用
+  t_k = origin + (5/3) × sum_{i<k} (1,4,4,4,4)[i mod 5]。
+其物理时间换算为 (t_k-origin)/40 秒，即原 RGB bin 起点/24 秒。这里表示模型的时间位置，不代表 VAE 的精确时域感受野。参考与输出视频分别有自己的 origin，并使用同一内部尺度。
+
+PackedLayout:357–455 根据实际 latent_t 与参考块组织坐标。text_len 和引用块改变绝对 origin；因此语义 token 数变化可以改变绝对位置与整个条件序列，但不会把该视频内部尺度变为 2 fps。10 个小型 CPU helper 检查覆盖 .41/.9 的73、90、107、124、158帧网格，并验证改变 text_len 后内部相对时间坐标一致。
+
+frames 数组本身没有携带容器 fps。这里正确的说法是“预处理把输入固定为24fps，节点按24fps约定解释”，而不是“节点动态读取原片fps”。原始 FlexiAct49帧8fps经repeat3成为147有效帧，再补到158；这是已审计的同物理时间展开。IVE 原片各自经过既定24fps预处理，随后使用原生相同坐标约定。
+
+本次实际 conditioning 证据
+  R72 fitness P0：VAE输入158 RGB帧→47 latent时间位置；Qwen输入14抽样帧。
+  R73 short_0252：VAE输入107 RGB帧→32 latent时间位置；Qwen输入9抽样帧。
+  两者 Qwen 时间戳均是原24fps索引/24，实际采样序列为0,12,24,…。
+  证据：host41_CONDITIONING_AUDITS.json、host9_CONDITIONING_AUDITS.json。
+  R74 及其余尚未产生实际 conditioning 的项目保留为待执行，不能用计划文件替代实际证明。
+
+审查材料
+  CHECKS.json：26张工作流、11对相同P1、两条实际conditioning、10个CPU位置检查。
+  *_ACTUAL_SNAPSHOT.json：只读部署图/job/history快照与时间。
+  official/：固定官方commit原文。actual_code/：两台实际安装源码。
+  audit_protocol.py：可复查的CPU校验。CUDA_initialized=false。

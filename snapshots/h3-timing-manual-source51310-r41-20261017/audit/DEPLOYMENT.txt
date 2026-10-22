@@ -1,0 +1,12 @@
+R41 local preparation only; root alone deploys/admit/launch.
+Remote /data5/researcher/h3_runs/timing_manual_source51310_r41_20261017; GPU2 UUID GPU-REDACTED; port8503.
+Runtime bundle audit/runtime_bundle_v1.tar.gz excludes two large inputs. Copy exact same basenames from /data5/researcher/h3_runs/timing_new_actions_native_r38_20261017/inputs, then validate manifest SHA and python3 scripts/preflight.py.
+Root fills audit/resource_admission.json using configs/resource_admission_template.json, preserving pending actual model/memory/prefix boundaries. Root fills exact peer admission without changing science/queue job.
+1. python3 scripts/preflight.py --live
+2. python3 -u scripts/launch_remote.py --service-only
+   Returns processes/cuda_gate_ready.json and exact service identity BEFORE CUDA import. Do not start_controller yet.
+3. Root registers this exact PID/UID/start_ticks/raw cmd SHA in R40 peer admission. Verify ready==exact current service identity; atomically create processes/cuda_gate_go.json with byte-equivalent ready JSON. No alternate subprocess or CUDA process.
+4. Wait real HTTP readiness on port8503, then python3 scripts/start_controller.py --pid <exact_service_pid> --start-ticks <exact_service_start_ticks>. Controller binds same generation and performs strict bounded <=600s submission admission waiting if peer observer child temporarily active. No prompt is submitted while waiting.
+5. Single run r41_source51310_seed2026101701_manual56to127_6to14. 20Euler,29NFE,1450blocks,450route calls,0observations; Native0..6 actualR38AV gates before Full6; 21chosen snapshots and29branch endpoints.
+6. /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_completed.py --allow-resident. Root decides exact release after archive; no consumer prepared by this producer task.
+All module/graph/metadata evidence is immutable in manifest; only declared administrative fields may be root-filled. Original full processed condition tree/rawpackedinput were not saved by R38; do not claim their equality.

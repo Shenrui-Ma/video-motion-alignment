@@ -1,0 +1,34 @@
+R117 篮球编辑构图诊断（2026-10-19，CPU 只读核查）
+
+结论
+现有证据指向生成画面的构图变化。参考预处理是等比缩小及对称补边，展示对三列使用相同裁剪。它们没有引入向下取景的差异。R110 已保住霓虹球和运球，但生成画面出现更多地面，人物上半身被裁切更久。下一次最小试验仅改变 R110 的提示词，明确逐帧保持人物画面位置、大小及头部可见程度；输入和数值配置复用 R110。
+
+源视频原本在起始阶段就裁掉部分头部。因此不能要求“头部始终可见”或“始终全身”，否则会添加与源片矛盾的构图目标。
+
+现有提示词和结果
+R109: “Replace the basketball with a neon-lit basketball.” 首半段变成球体近景，约第50帧切镜，后半球体外观也未稳定满足要求。
+R110: “Edit <Video 1> by changing only the basketball into a neon-lit basketball. Keep the original player, dribbling actions, camera framing, scene, and timing.” 保住了球体霓虹纹理、人物服装和连续运球。相机朝下、地面变多，上半身更久处于画外；目前只能记为基础任务部分完成。
+R100 的六段提示同样出现构图变化。其普通编辑和引导都大致保住了运球，首两次可判定反弹的相差仅约1–2帧。已有结果无法把构图变化归因为某一种提示词写法。
+
+空间几何核查
+原片 2560×1440，SAR=1:1。准备命令 scale=1280:720:flags=lanczos,pad=1312:736:16:8:black,setsar=1：先精确等比缩小，再左右16像素、上下8像素对称补边。
+25fps 的109帧经已验证的 nearest mapping 形成24fps的105有效帧，另补2帧到107。decoded_pixel_mapping_exact=true。该时基转换没有空间裁剪。
+R110 实际 prepared RGB [107,736,1312,3] SHA 13b246a988a72e622f61ca9b41638cf3f98484a06a363dace030ac98e108e33a；clean VAE [1,24,32,46,82] SHA 2b5d10fa4fd1238f6cd750967c7cb97dc4739af954a7592645e0850e28741cb6，实际 gate 与 R100/R109 对应输入一致。
+实际 H3 参考节点按输入宽高计算 adapt_canvas；1312×736 的已补边输入保持尺寸，_resize 使用 crop="disabled"。审计节点调用官方参考节点并记录输入/VAE；其中未加空间转换。
+R110 原输出1312×736。展示脚本对 source/R109/R110 都执行 crop=1280:720:16:8，没有逐列移动画面。已独立查看第0–5、48–53、96–101帧合计18帧；更多地面、篮架/围网位置变化与延长的头部裁切已经存在于成片。全105帧的已有评审结论一致。
+
+可检验假说及最小比较
+H3 对“保持构图”的宽泛描述仍重新生成相机/主体关系。更具体、以原片每帧为参照的简短文字可能减轻该现象。R117 Native 相比 R110 只改变提示词；先验收球外观、人物、场景、逐帧构图，再审阅反弹/运球事件。Native 基础任务成立后执行相同提示/seed/noise 的 fixed6..14。若动作已对齐，该配对保留为中性样本；若构图仍明显改坏，保留失败并交 root 决定后续。此次准备没有生成新的因果证据。
+
+证据路径
+/Users/researcher/DevProjects/h3-timing-ive-basketball-boundprompt-r110-20261019/configs/scientific_contract.json
+/Users/researcher/DevProjects/h3-timing-ive-basketball-boundprompt-r110-20261019/inputs/short_0114_provenance.json
+/Users/researcher/DevProjects/h3-ive-basketball-boundprompt-metrics-r110-20261019/incoming/gate.json
+/Users/researcher/DevProjects/h3-ive-basketball-boundprompt-metrics-r110-20261019/audit/full105_review/REVIEW.json
+/Users/researcher/DevProjects/h3-ive-basketball-boundprompt-metrics-r110-20261019/scripts/consume.py
+/Users/researcher/DevProjects/h3-ive-basketball-shortprompt-metrics-r109-20261019/audit/full105_review/REVIEW.json
+/Users/researcher/DevProjects/h3-ive-task-repair-metrics-r100-20261019/audit/root_pair_review_/short_0114/REVIEW.json
+/Users/researcher/DevProjects/h3-timing-ive-object-control-r91-20261018/scripts/prepare_inputs.py
+H3_SERVER_A:/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy_extras/nodes_minimax_h3.py (adapt_canvas/_resize/prepare_ref_video)
+
+本次仅建立新 R117 准备目录；旧实验封存未修改，GPU 队列未改变。

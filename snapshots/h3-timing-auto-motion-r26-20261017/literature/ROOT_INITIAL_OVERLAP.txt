@@ -1,0 +1,53 @@
+Initial primary-source overlap check, 2026-10-17 CST
+This is a bounded check for R26 design, not a claim that all prior work is absent.
+
+MotionEcho: https://arxiv.org/html/2506.19348v2#S7.SS2
+Algorithm 1 explicitly computes motion-guided and unguided student endpoints,
+uses a moving motion-loss average and a threshold to trigger teacher refinement,
+and truncates teacher steps with another threshold. A fixed sampling eligibility
+ratio also appears. Thus error-triggered start/stop is established. Our desired
+whole-clip localization, physical timing estimates and model-specific reliability
+calibration need separate validation; removing the teacher alone is insufficient.
+
+EditVid: https://arxiv.org/html/2609.04190v1#S4.SS4
+Section 4.4 and Appendix A.3 compute per-token edited/inverted-source latent L1
+differences, normalize each frame using 0.25/0.65 quantiles, optionally smooth,
+and blend source features more strongly where differences are small. It also
+uses sparse adjacent-frame KV memory and cycle-filtered correspondence transfer.
+Adaptive local preservation weights and per-frame quantile normalization already
+exist. Explicit action-phase error and observability are possible distinctions
+only if implemented and compared, not just renamed difference maps.
+
+AV-FlowEdit: https://arxiv.org/html/2610.13072v1
+The primary introduction/method frames source/target flow differences as edit
+directions and preservation cues. Flow saliency, aligned target-audio activity,
+multiscale low-frequency displacement and noise-level scheduling determine
+structural correction. This rules out claiming a new principle merely from
+combining local flow activity with denoising-stage-dependent preservation.
+Exact equations and public implementation still require fuller audit before a
+method-level comparison or deployment.
+
+FlowAnchor: https://arxiv.org/html/2604.22586v1#S3.SS3
+Sections 3.3–3.4 refine text-token and spatial attention inside an edit mask and
+derive adaptive magnitude modulation from normalized source/target velocity
+contrast. The paper discusses weakening edit signals with frame count. A motion
+timing detector would need to distinguish allowed appearance change from timing
+error and demonstrate useful control beyond an adaptive strength map.
+
+FlowMotion and earlier observer reviews
+https://arxiv.org/html/2603.06289v2
+Existing local review: h3-timing-architecture-r2-20261016/literature/
+coarse_to_pose_observer_scope_20261016.txt. Clean endpoint/time-difference motion
+guidance and early-to-late motion development are already established. The
+current experiment must keep internal flow time distinct from physical video
+time and cannot claim teacher-free guidance as new by itself.
+
+Baseline feasibility leads (not yet deployed)
+FlowMotion author code: https://github.com/HKUST-LongGroup/FlowMotion
+TempoControl author project: https://shira-schiber.github.io/TempoControl/
+TempoControl paper: https://arxiv.org/abs/2510.02226
+TempoControl controls concept timing using cross-attention correlation, energy
+and entropy. Its use of a supplied temporal control signal differs from automatic
+preservation from a reference video. Confirm actual released code before choosing
+it as one of the two deployed baselines. Sync-LoRA uses training and therefore is
+not automatically eligible for the user's two training-free comparison slots.

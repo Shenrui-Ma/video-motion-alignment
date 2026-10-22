@@ -1,0 +1,12 @@
+仅在root给出CPU部署审阅后执行；当前没有运行这些命令。
+
+1. 从deploy_manifest.json列举159个sealed文件，加configs/admission.json（ready_for_launch=false）、inputs/全部已hash输入、deploy_manifest.json、HANDOFF.txt和root新审阅JSON，构造本地audit/target_cpu_payload.tar。保存tar SHA及包含文件表。
+2. ssh H3_SERVER_A 用只读Python确认目标 /home/researcher/h3_runs/timing_ive_long0174_correspondence_r115_20261019 无service registry、无已开始attempt。目标若已有文件先精确核对，绝不覆盖已执行产物。
+3. scp本地tar至 /home/researcher/h3_runs/.r115_cpu_payload.tar；远端Python校验tar SHA和所有相对路径，解包到独立R115目录。只解普通文件/目录，拒绝link、绝对路径及..。
+4. 创建空的audit/logs/processes/input/output/temp/user目录（均R115内）。精确验证seal159文件及input hash。
+5. 在目标根执行：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /home/researcher/miniconda3/envs/comfyui/bin/python audit/remote_cpu_validate.py > audit/remote_cpu_validation.log 2>&1
+该脚本只执行import、CPU预检、视频时基ffprobe和unittest；不加载模型、不初始化CUDA。
+6. 只收回 audit/TARGET_CPU_VERIFIED.json、ACTUAL_CPU_IMPORTS.json、target_imports/preflight/pts/tests日志和remote_cpu_validation.log到本地audit/actual_host9_cpu。检查结果后报告root。
+
+GPU启动尚需独立root GPU_DEPLOYMENT_REVIEW，R105完整release、已协调短MF完成和新鲜资源门。CPU验证通过不触发GPU启动。

@@ -1,0 +1,90 @@
+R149 official MF: three independent batches, four new targets each
+
+Scope:
+  short_0252: 98 valid frames, 24 fps, crop [16,8,1280,720].
+  05_real_megumi_v: 141 valid frames, 24 fps, crop [0,0,1312,736].
+  short_0358: 105 valid frames, 24 fps, crop [16,8,1280,720].
+  Arms early / late / split / global_weak. Phase displacement is zero.
+  Only twelve NEW output trackers. Three source tracks and all historical scores are reused.
+  Sam is a custom example evaluated with the unchanged official IVEBench MF implementation.
+  Source videos, score views, cache reports/tracks, numerical runtime and weights already
+  exist on .41. None need uploading or retracking.
+
+Current status:
+  CPU preparation only. No new output is assumed complete.
+  No final SEAL, ROOT_REVIEW, GPU assignment, tracker process or remote mutation exists.
+  Cabin can finalize independently once its four actual gates and batch release arrive.
+  Sam remains a separate four-target batch; it does not delay cabin scoring.
+  Drink is another separate four-target batch with its producer contract still pending.
+
+Local working directory:
+  /Users/researcher/DevProjects/h3-guidance-schedule-eval-r149-20261020
+
+1. Collect each actual per-job gate and video using the case's sealed host/root.
+   Run existing ingest.py and finalize_batch.py as documented in ../README.txt.
+   Four per-job gates plus actual aggregate/COMPLETE/ROOT_EXIT are required for MF.
+
+2. Generate only the new score views, using existing R148 lossless crop/frame logic:
+   CASE=short_0252
+   for ARM in early late split global_weak; do
+     python3 prepare_mf.py --case "$CASE" --schedule "$ARM"
+   done
+
+3. Root supplies its CURRENT selected GPU UUID and exact read-only service policy JSON.
+   Do not reuse the pre-reboot PID 1646285 policy without a fresh identity check.
+   Finalize locally:
+   python3 mf_preparation/prepare_batch.py --case "$CASE" --finalize \
+     --gpu "$ROOT_SELECTED_GPU_UUID" --existing-services "$CURRENT_SERVICE_POLICY_JSON"
+   Add --peer-root /data4/researcher/h3_runs/<actual-peer-root> only if root permits
+   one concurrent H3 peer and has bound its current exact owner.
+   For Sam, optionally provide --remote-full-map /ABS/VERIFIED_DIRECT_COPY_MAP.json:
+     {"early":{"file":"/data4/researcher/h3_runs/.../early.mp4","sha256":"ACTUAL_SHA"},...}
+   The map must identify already copied .9->.41 media. It does not copy anything.
+   Without this map, Sam full videos are uploaded once from their already collected local copies.
+
+4. Finalized batch root:
+   mf_preparation/batches/<CASE>/
+   Review SEAL.json, ADMIN_DIFF.json, configs/PLAN.json, configs/RUNTIME.json,
+   audit/CPU_PREPARATION.json and audit/DEPLOY_FILES.txt.
+   Root writes ROOT_REVIEW.json with passed=true, GPU_execution_authorized=true,
+   seal_sha256=actual SEAL SHA and gpu=the selected GPU UUID.
+   Only after that authorization:
+   sh mf_preparation/batches/"$CASE"/audit/UPLOAD_AFTER_REVIEW.sh
+   This uploads listed files plus ROOT_REVIEW only, links existing runtime/cache,
+   and runs CPU-only verify_inputs.py including checkpoint and decoded pixel/PTS checks.
+   It does not launch a tracker.
+
+5. Root performs fresh admission and starts ONE batch on .41:
+   MF_REMOTE=/data4/researcher/h3_runs/guidance_schedule_mf_r149_20261020/short_0252
+   cd "$MF_REMOTE"
+   MF_PY=/data3/researcher/ComfyUI/.venv/bin/python
+   MF_GPU=$("$MF_PY" -c 'import json;print(json.load(open("configs/RUNTIME.json"))["gpu"])')
+   CUDA_VISIBLE_DEVICES="$MF_GPU" PYTHONDONTWRITEBYTECODE=1 "$MF_PY" \
+     -c 'import sys;sys.path.insert(0,"scripts");from common import *;print(resource_check(read(ROOT/"configs/RUNTIME.json")["gpu"]))'
+   nohup env CUDA_VISIBLE_DEVICES="$MF_GPU" PYTHONDONTWRITEBYTECODE=1 "$MF_PY" \
+     scripts/run_batch.py --attempt actual_context_mf_attempt1 --gpu "$MF_GPU" \
+     --review ROOT_REVIEW.json > audit/actual_context_mf_attempt1.wrapper.log 2>&1 < /dev/null &
+   Record the actual wrapper PID/start/UID. Four trackers run sequentially.
+   Existing R148 capacity thresholds, peer registration and exact-child cleanup are unchanged.
+   The wrapper rechecks resources before each tracker and monitors cgroup OOM counters.
+
+6. After the actual batch wrapper has exited:
+   CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 "$MF_PY" \
+     audit/final_release.py --attempt actual_context_mf_attempt1
+   Return the SHA of audit/FINAL_RELEASE_VERIFIED.json.
+   Local compact result and tracker receipt collection:
+   python3 mf_preparation/batches/"$CASE"/audit/collect.py
+   Four output scores must match their actual generated video SHAs and valid frame domain.
+   Repeat for Sam only after root schedules that separate batch.
+
+Minimum new transfer:
+  Cabin/drink: four new cropped/lossless score views per case + small configs/gates/release evidence.
+         New original generated MP4s are reused in place when their producer is on .41.
+  Sam: four new score views + four original generated MP4s once, unless the explicit
+       verified .9->.41 mapping above is supplied. No original Sam/source/historical videos.
+  Final exact file count and bytes appear in CPU_PREPARATION.json after actual inputs exist.
+
+Verification performed locally:
+  python3 -m unittest -v test_evaluation.py
+  python3 -m unittest discover -s mf_preparation -p test_preparation.py -v
+  No browser, GPU kernel, model import, host probe, upload or download is part of preparation.

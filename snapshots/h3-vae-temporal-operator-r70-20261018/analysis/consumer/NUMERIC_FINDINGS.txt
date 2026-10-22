@@ -1,0 +1,29 @@
+R70：H3 VAE 时间重排算子诊断
+
+实际完成
+同一 fitness Native index6 的预测 x0；3 次 VAE encode、6 次 decode、0 次 DiT。全部按原 checkpoint 与归一化流程，未进入 OOM fallback。8 条视频完整 158 帧、24 fps、1152×768，实际输出 SHA 和逐帧数均通过 CPU 核验。root 确认 PID6459 退出及 CUDA 分配消失。
+wall 776.77 s，CUDA 峰值 reserved 8,482,979,840 bytes（7.90 GiB）。本次 baseline D(z) 的 float RGB SHA 与 R67 原 Native index6 解码完全相同。
+
+实验定义
+x=D(z)。RGB 目标为 R_phi(x)，在 RGB 物理帧时间上做线性插值。
+一条路径在 latent 的非均匀输出 bin 中心作线性插值，然后 decode：D(L_phi(z))。
+另一条路径对相同 RGB 目标 encode 后 decode：D(E(R_phi(x)))。
+identity 再编码重建用于显示 VAE 本身的一次重建差异。
+固定 phi(t)=t+3 对应选择未来 125 ms 内容；离线 phi 来自 final Native 的已冻结 DP，应用到 index6 只测试算子。
+
+共同有效区 float RGB MAE（像素范围 0…1）
+identity：147 帧，RGB 再编码重建 .00927885。
+固定 +3 帧：144 帧，RGB 再编码重建 .00991741；latent 插值 .01974134；两条路径之间 .02271901。latent 路径对目标的误差为 RGB 路径的 1.99 倍。
+离线 phi：147 帧，RGB 再编码重建 .00979388；latent 插值 .01941858；两路径之间 .02227339。比值 1.98。
+三个映射都有效的 144 帧上，离线 phi 的两项为 .00980481、.01962092；趋势一致。
+
+跨块与边界
+固定 +3 帧：跨 RGB 17 帧块的24帧 latent误差 .02712956，块内120帧 .01826370；对应 RGB 再编码分别 .01007138、.00988662。
+离线 phi：跨块49帧 latent误差 .02215870，块内98帧 .01804853；对应 RGB 再编码 .00980103、.00979031。
+这里按实际坐标分组。不同组的运动内容也不同，组均值不能单独证明误差由17帧边界因果造成。latent 插值邻居跨块、latent 来源块改变、decoder overlap 的独立分组见 ERROR_TABLE.csv。
+
+有效域
+common valid 同时要求输入/输出在原147有效RGB帧、RGB采样域内、名义latent中心域内。padding与越界单列，未静默删除。该掩码反映算子坐标有效性；离线拟合的语义对应、可见性须另看原DP记录。
+
+范围
+本次可以检验“直接 latent 时间插值是否近似于希望执行的 RGB 时间重排”，可以观察新增几何/纹理损伤。误差数值本身不证明动作时间改善。离线 phi 使用了已完成 Native 的信息，此项实验不构成自动在线检测或端到端方法成功证据。

@@ -1,0 +1,93 @@
+--- gpu1/configs/runtime.json
++++ gpu0/configs/runtime.json
+@@ -2,7 +2,7 @@
+   "status": "CPU_PREPARING_ROOT_LAUNCH_PENDING",
+   "host": "H3_SERVER_A",
+   "remote_root": "/data5/researcher/h3_runs/timing_source51310_prompt_pair_r75_20261018",
+-  "gpu_uuid": "GPU-REDACTED",
++  "gpu_uuid": "GPU-REDACTED",
+   "port": 8542,
+   "lane": "single",
+   "core": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI",
+@@ -12,8 +12,8 @@
+   "profile_scope": "Fresh source51310 P0/P1 Native protocol bundle control; root capacity trial requires at least40GiB actual free;141frame full trajectory pending.",
+   "kj_nodes": "/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes",
+   "uid": null,
+-  "profile": "host9_gpu1_normal_reserve8",
++  "profile": "host9_gpu0_normal_reserve8",
+   "reserve_vram": 8,
+   "memory_mode": "normal",
+-  "expected_gpu_index": 1
++  "expected_gpu_index": 0
+ }
+--- gpu1/configs/scientific_contract.json
++++ gpu0/configs/scientific_contract.json
+@@ -466,7 +466,7 @@
+   },
+   "single_CUDA_process": true,
+   "preCUDA_gate": true,
+-  "source_event_annotations": "Historical windows64–95 and96–127 retained only for evaluation; no action window supplied to either Native model.",
++  "source_event_annotations": "Historical windows64\u201395 and96\u2013127 retained only for evaluation; no action window supplied to either Native model.",
+   "cost": "20 predictions and20 Euler updates per Native run; no routing; capture20 x0 plus final and wall timing.",
+   "source_ids": [
+     "source_51310"
+@@ -507,7 +507,7 @@
+   },
+   "acceleration_axes": {
+     "weights": "Same four checkpoint SHAs and nine core SHAs as prior H3 experiments",
+-    "runtime": "Same .9 runtime used by R71; both fresh arms on GPU1, normal memory/reserve8.",
++    "runtime": "Same .9 runtime used by R71; both fresh arms on GPU0, normal memory/reserve8.",
+     "attention": "Native PyTorch SDPA via inherited audited block wrapper; H3 Sage patch absent",
+     "linear_backend": "Triton INT8 with inherited row chunking guard",
+     "sampler": "Euler20 manual shifted video sigmas12/audio3, CFG1",
+--- gpu1/scripts/launch_remote.py
++++ gpu0/scripts/launch_remote.py
+@@ -74,7 +74,7 @@
+     p=argparse.ArgumentParser();p.add_argument('--service-only',action='store_true',required=True);args=p.parse_args()
+     r=service.RUN
+     preflight.check(r,live=True)
+-    for name in ['custom_nodes','input','output','temp','user','logs','processes','audit','analysis']:
++    for name in ['custom_nodes','input','output','temp','temp_os','user','logs','processes','audit','analysis']:
+         (r/name).mkdir(exist_ok=True)
+     for name in ['H3EventAudit','H3PairAudit','H3TemporalRouter','H3X0Readout']:
+         target=r/'extensions'/name
+@@ -91,7 +91,7 @@
+         prov['core_matches'][rel]=hashlib.sha256((service.CORE/rel).read_bytes()).hexdigest()==digest
+     if not all(prov['core_matches'].values()):raise ValueError('actual core differs from R54')
+     service.write_json(r/'configs/runtime_provenance.json',prov)
+-    env=dict(os.environ,LC_ALL='C',LANG='C',PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(r/'temp'),TMP=str(r/'temp'),TEMP=str(r/'temp'))
++    env=dict(os.environ,LC_ALL='C',LANG='C',PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(r/'temp_os'),TMP=str(r/'temp_os'),TEMP=str(r/'temp_os'))
+     with (r/'logs/supervisor.log').open('ab',buffering=0) as log:
+         supervisor_command=['python3','-u',str(r/'scripts/supervise_service.py')]
+         supervisor=subprocess.Popen(supervisor_command,cwd=r/'scripts',
+--- gpu1/scripts/service.py
++++ gpu0/scripts/service.py
+@@ -174,7 +174,7 @@
+         raise RuntimeError('Formal service launch requires exact remote lane root')
+     from preflight import check
+     check(RUN, live=True)
+-    for directory in ('input', 'output', 'temp', 'user', 'logs', 'configs', 'processes'):
++    for directory in ('input', 'output', 'temp', 'temp_os', 'user', 'logs', 'configs', 'processes'):
+         (RUN / directory).mkdir(parents=True, exist_ok=True)
+     with (RUN / 'processes/service.lock').open('a') as lock:
+         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+@@ -201,7 +201,7 @@
+         env = os.environ.copy()
+         env.update(CUDA_VISIBLE_DEVICES=GPU, PYTHONPATH=DEPENDENCIES + os.pathsep + str(RUN/'scripts'),
+                    OMP_NUM_THREADS='4', MKL_NUM_THREADS='4', OPENBLAS_NUM_THREADS='4',
+-                   TMPDIR=str(RUN/'temp'), TMP=str(RUN/'temp'), TEMP=str(RUN/'temp'), TOKENIZERS_PARALLELISM='false', PYTHONUNBUFFERED='1', PYTHONDONTWRITEBYTECODE='1', LC_ALL='C', LANG='C')
++                   TMPDIR=str(RUN/'temp_os'), TMP=str(RUN/'temp_os'), TEMP=str(RUN/'temp_os'), TOKENIZERS_PARALLELISM='false', PYTHONUNBUFFERED='1', PYTHONDONTWRITEBYTECODE='1', LC_ALL='C', LANG='C')
+         env['H3_SERVICE_SUPERVISOR_JSON']=json.dumps({'pid':os.getpid(),'identity':external_identity(os.getpid())})
+         args = command(cache_none)
+         started = time.time()
+--- gpu1/scripts/start_controller.py
++++ gpu0/scripts/start_controller.py
+@@ -28,7 +28,7 @@
+   gate=json.loads((root/'processes/cuda_gate_ready.json').read_text());go=json.loads((root/'processes/cuda_gate_go.json').read_text())
+   if gate!=go or gate['pid']!=owner['pid'] or gate['identity']!=service.external_identity(owner['pid']):raise ValueError('CUDA gate owner differs')
+   job.require_generation(job.active_service(),owner)
+-  env=dict(os.environ,LC_ALL='C',LANG='C',PYTHONDONTWRITEBYTECODE='1')
++  env=dict(os.environ,LC_ALL='C',LANG='C',PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(root/'temp_os'),TMP=str(root/'temp_os'),TEMP=str(root/'temp_os'))
+   with (root/'logs/controller.log').open('ab',buffering=0) as log:
+    command=['python3','-u',str(root/'scripts/run_queue.py'),'--expected-pid',str(owner['pid']),'--expected-start-ticks',str(owner['identity']['start_ticks'])]
+    child=subprocess.Popen(command,cwd=root/'scripts',stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,env=env)

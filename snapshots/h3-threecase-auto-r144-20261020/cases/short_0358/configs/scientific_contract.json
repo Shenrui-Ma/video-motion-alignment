@@ -1,0 +1,58 @@
+{
+  "schema": "r86-online-single-job-v1",
+  "cases": [
+    {
+      "run_id": "r144_short_0358_seed2026101701_visible_only",
+      "source_id": "short_0358",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "inventory_id": "r123_short_0358_full_context",
+      "arm": "visible_only",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "valid_frame_count": 105,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "video": "short_0358_video.mp4",
+      "video_sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+      "provenance": "short_0358_provenance.json",
+      "provenance_sha256": "d191c79ad0187c1e36429fc93d0a11ac15ff9b206dde46948e6c790f4770b07a",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "parent_graph": "configs/PARENT_GRAPH.json",
+      "parent_graph_sha256": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1",
+      "parent_run": "r123_short_0358_seed2026101701_native",
+      "parent_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020",
+      "parent_conditioning": "prepared_parent/conditioning.json",
+      "parent_noise": "prepared_parent/noise.json",
+      "parent_captures": "configs/PARENT_CAPTURES.json",
+      "parent_file_inventory": "prepared_parent/FILE_INVENTORY.json",
+      "source_pose_path": "configs/source.pose.json",
+      "source_pose_sha256": "f369299c808a1f17eb842d0b5a64939968260bf2e7dc59a77b5703f30eaabee8",
+      "source_pose_status": "ACTUAL_SOURCE_FULL_FRAME_CPU_POSE_BOUND"
+    }
+  ],
+  "case_order": [
+    "r144_short_0358_seed2026101701_visible_only"
+  ],
+  "arms": [
+    "visible_only"
+  ],
+  "online_observer": true,
+  "NFE": "20+actual_ON",
+  "Euler_updates": 20,
+  "continuous": {
+    "job_timeout_seconds": 14400,
+    "max_service_seconds": 18000,
+    "idle_hold_seconds": 1800
+  },
+  "parent_gate_sha256": "6c4f6a6039eda434e0b4d3fc2c8dcc4185a9ebd1cc1601470cf51000ad39b196"
+}

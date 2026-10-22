@@ -1,0 +1,43 @@
+Two-forward main capacity probe — independent audit artifact, unexecuted on GPU.
+Selected using actual conditioning metadata: short_0352, seq_len55045, largest of the five R54 cases. No benchmark quality/metric inspection was used for selection.
+
+Deploy only this folder's source package under:
+/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe
+The root R55 source/component/config choices must stay stable during the probe. Producer files are read-only inputs. The copied compatibility bootstrap and INT8 audit adapters write their logs inside the fresh probe run, not R54 logs.
+
+1) CPU preparation on .41, after R55 v4 integration is stable:
+python3 /data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/prepare.py --parent-root /data3/researcher/h3_runs/timing_ivebench_native_r54_20261017 --producer-root /data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017 --run-root /data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/run_reserve8_001 --port 8527
+
+2) Root starts the actual GPU measurement after admission:
+python3 /data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/run_probe.py --run-root /data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017/audit/main_capacity_probe/run_reserve8_001 --root-admitted --bootstrap-free-mib 45000
+
+45000MiB is the explicit initial bootstrap headroom condition for a 48GB card, not a measured reserve8 requirement. Foreign users may coexist if this condition and the current-UID two-GPU cap are met. Main GPU UUID is inherited from actual R54 runtime (GPU-REDACTED). Port must be available. A previous run directory is never reused.
+
+What executes
+- Exact R54 parent graph's UNET/CLIP/VAE names, weight_dtype, prompt/video, seed, geometry, Euler sampler and complete21-sigma grid.
+- R55 actual conditioning audit/router components. Their data paths are bound by a small standalone contract accepting only this probe's exact graph and audit directory. This contract is confined to the fresh run's scripts directory.
+- Original compatibility bootstrap/INT8 row chunking/backend audit bytes, copied into the run. Original flags plus --reserve-vram8. No alternative attention kernel, checkpoint, dtype, LoRA or sampler is introduced.
+- Official first sampler input is archived as audit/first_input_raw.pt. Initial packed noise and clean conditioning must match R54 records.
+- Native forward, then all27bin Full on the identical input/sigma/condition. Full uses the existing mass-preserve attention and actual QueryGain all-one path. Native output remains live during Full. Both branches must execute50blocks; routed counts0/50.
+- Native normalized video/audio endpoints must equal actual R54 step000 tensors and signatures. Full output is checked finite. The complete sampler grid remains present throughout; after two predictions, CapacityProbeComplete intentionally stops graph execution before Euler updates/final decoding.
+
+Files to collect
+run/.../audit/capacity_complete.json: measurements plus Native equality, current noise/condition identity, model/accounting, actual layout, attention dtype, per-branch peaks and elapsed seconds.
+run/.../audit/capacity_failure.json: original exception and partial evidence on probe failure.
+run/.../audit/resources.jsonl: sampled NVML compute memory per PID while the graph runs.
+run/.../audit/history.json: expected Comfy execution_error with CapacityProbeComplete on a successful capacity measurement.
+run/.../audit/run_result.json: capacity_passed, inference_complete=false, controlled-stop status, exact own service cleanup result.
+run/.../audit/service_identity.json and logs/service.log: command/identity and original load/offload/kernel logs.
+
+Interpretation
+- before_first_forward lifetime_max_* retains allocator peaks from preprocessing/model loading before our first reset.
+- before/after allocated_bytes is live Torch tensor allocation; reserved_bytes includes allocator cache. reserved_minus_allocated_bytes quantifies that difference. driver_free_bytes is whole-device free memory at those boundaries and includes unrelated users' activity.
+- loaded_weight_bytes/model_weight_bytes/lowvram_patch_count are the actual model patcher's residency accounting. They describe model weights, not all tensor memory.
+- Each branch synchronizes, samples entry, resets peak counters, invokes exactly one model prediction, synchronizes and records peaks before CPU finite/equality checks. peak_allocated_above_entry_bytes describes additional live allocation during that call. peak_reserved_above_entry_bytes describes additional allocator reservation. Their meanings differ from adding an isolated routing-only bound to old NVML usage.
+- These are two first-state forwards with the largest actual sequence. They establish measured reserve8 Native/Full behavior at that state; they are not a completed20step or all-case capacity proof. Keep a root-chosen explicit safety margin and monitor the first formal run. No margin or freed-memory amount is invented here.
+- A certificate must separate preprocessing/lifetime allocator peak, Native/Full call peaks, own-PID sampled NVML usage, model residency and safety margin. If Native equality fails or Full OOMs, do not mark a capacity certificate passed.
+- Successful measurement is a controlled graph error followed by exact service-group cleanup, with inference_complete=false. The runner never calls it a successful generated video. Its lifetime watcher stops the service if the exact controller generation exits. Other users' processes are never signalled.
+
+CPU validation
+python3 audit/main_capacity_probe/test_probe.py
+12 tests passed. GPU/model execution has not been performed by the authoring agent.

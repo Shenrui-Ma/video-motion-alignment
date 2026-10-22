@@ -1,0 +1,118 @@
+--- R34v3/contract.py
++++ R39/contract.py
+@@ -169,3 +169,26 @@
+  require({str(p.relative_to(arc)) for p in arc.rglob('*') if p.is_file()}==set(expected)|allowed,'exact archive delivery inventory differs')
+  for rel,d in expected.items():require(sha(safe(arc,rel))==d,'archive delivery changed '+rel)
+  return {'files_verified':len(expected),'large_PT_verified_remote':local}
++
++def validate_completed_static_parent(row):
++ """R34 parent is complete; bind its actual final, not a substitute."""
++ root=Path(row['archive_root']);required={'RUN_GATE.json','CPU_COMPLETE.json','FILE_INVENTORY.json','DERIVED_FILES.json'}
++ require(set(row['required_files'])==required,'static parent anchors differ')
++ for rel,d in row['required_files'].items():require(sha(safe(root,rel))==d,'static parent anchor changed '+rel)
++ gate=read(root/'RUN_GATE.json');done=read(root/'CPU_COMPLETE.json');original=read(root/'FILE_INVENTORY.json');derived=read(root/'DERIVED_FILES.json')
++ require(gate.get('passed') is True and done.get('passed') is True and done['run_id']==gate['run_id'] and done['phases']==list(PHASES),'static parent not complete')
++ require(gate['file_inventory_sha256']==sha(root/'FILE_INVENTORY.json'),'static parent inventory anchor')
++ require(original['configs/source.pose.json']['sha256']==row['source_pose_sha256'],'static parent source differs')
++ require(derived['CPU_COMPLETE.json']==sha(root/'CPU_COMPLETE.json') and derived[row['pose_relative']]==row['pose_sha256'],'static parent final pose inventory')
++ vp=Path(row['video']);vr=relative(root,vp);require(original[vr]['sha256']==row['video_sha256']==sha(vp),'static parent actual video differs')
++ require(sha(safe(root,row['pose_relative']))==row['pose_sha256'],'static parent pose changed')
++ return {'run_id':done['run_id'],'anchors':row['required_files'],'pose_sha256':row['pose_sha256'],'video_sha256':row['video_sha256']}
++
++def checked_parent_costs():
++ values=read(HERE/'parents/COST_BINDINGS.json')
++ require(set(values)=={'Native','GlobalFull6to14','Auto','EarlyGlobalPulse'},'cost comparison inventory')
++ for name,row in values.items():
++  require(row['NFE'] in (20,21,24) and row['Euler_updates']==row['callbacks']==20,'parent counters invalid')
++  require(len(row['evidence'])==4,'cost evidence inventory')
++  for path,d in row['evidence'].items():require(sha(path)==d,'parent cost evidence changed '+path)
++ return values
+--- R34v3/consume.py
++++ R39/consume.py
+@@ -1,7 +1,7 @@
+ """Transport helpers only; no resident consumer or GPU/service management."""
+ import os,shlex,subprocess,time
+ from contract import *
+-P=read(HERE/'PROTOCOL.json');REMOTE=P['root_remote']+'/analysis/postrun_v3';HOST='H3_SERVER_A';PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
++P=read(HERE/'PROTOCOL.json');REMOTE=P['root_remote']+'/analysis/postrun';HOST='H3_SERVER_A';PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
+ CPU=Path('/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/cpu_evaluation_global.lock')
+ SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=15','-o','ServerAliveInterval=20','-o','ServerAliveCountMax=3']
+ def remote(args,timeout=900):
+--- R34v3/one_phase.py
++++ R39/one_phase.py
+@@ -21,7 +21,7 @@
+ def execute_one():
+  with (Path(base.P['root_local'])/'analysis/postrun/unique_consumer.lock').open('a') as unique:
+   try:fcntl.flock(unique,fcntl.LOCK_EX|fcntl.LOCK_NB)
+-  except BlockingIOError:return {'status':'busy','scope':'R34 phase driver'}
++  except BlockingIOError:return {'status':'busy','scope':'R39 phase driver'}
+   prepare();(HERE/'logs').mkdir(exist_ok=True);stamp=str(time.time_ns())
+   def call(args):
+    proc=base.remote(args);(HERE/'logs'/f'{stamp}_{args[0]}.log').write_text(proc.stdout+'\nSTDERR\n'+proc.stderr);return proc
+--- R34v3/remote_consume.py
++++ R39/remote_consume.py
+@@ -31,10 +31,10 @@
+ 
+ def inventory():
+  h=read(ROOT/'logs'/f'{RUN}_history.json');j=read(ROOT/'logs'/f'{RUN}_job.json');require(h['status']['completed'] is True and h['status']['status_str']=='success' and j['status']=='success','actual producer incomplete')
+- g=read(ROOT/'configs/graphs'/f'{RUN}.json');a=read(ROOT/'audit/counterfactual'/f'{RUN}.json');c=a['counterfactual'];require(a['status']=='complete' and len(c['steps'])==20 and len(c['branches'])==21 and c['measurements']==[],'fixed run incomplete')
++ g=read(ROOT/'configs/graphs'/f'{RUN}.json');a=read(ROOT/'audit/counterfactual'/f'{RUN}.json');c=a['counterfactual'];require(a['status']=='complete' and len(c['steps'])==20 and len(c['branches'])==24 and c['measurements']==[],'fixed run incomplete')
+  rels={'processes/service.json','deploy_manifest.json','configs/queue.json','configs/runtime_provenance.json',f'logs/{RUN}_history.json',f'logs/{RUN}_job.json',f'audit/{RUN}_conditioning.json',f'audit/{RUN}_noise.json',f'audit/counterfactual/{RUN}.json',f'audit/x0/{RUN}/manifest.json'}
+  for rel in read(ROOT/'deploy_manifest.json')['files']:
+-  if rel.startswith(('configs/','inputs/')) or rel in ('PROTOCOL.json','COMPARABILITY.txt'):rels.add(rel)
++  if rel.startswith(('configs/','inputs/')) or rel in ('PROTOCOL.json','SCIENCE_PROTOCOL.json','COMPARABILITY.txt'):rels.add(rel)
+  for name in read(ROOT/'configs/input_hashes.json'):rels.add('input/'+name)
+  shared=f"audit/{g['5']['inputs']['run_id']}_conditioning.json";rels.add(shared)
+  def visit(v):
+@@ -48,7 +48,7 @@
+  require(m['status']=='complete' and [r['file'] for r in m['captures']+[m['final_sampler_result']]]==names and sorted(f.name for f in xfolder.glob('*.pt'))==sorted(names),'chosen exact21 inventory')
+  rels.update(f'audit/x0/{RUN}/'+v for v in names)
+  folder=ROOT/'audit/counterfactual'/f'{RUN}_snapshots';expected={Path(r['file']).name for r in c['branches']+c['inputs']}|{'sampler_final_raw.pt'}
+- require({f.name for f in folder.iterdir()}==expected and len(expected)==23,'raw exact23 inventory')
++ require({f.name for f in folder.iterdir()}==expected and len(expected)==29,'raw exact29 inventory')
+  rels.update(relative(ROOT,f) for f in folder.iterdir());rels.add(relative(ROOT,output_file(ROOT,h,RUN)))
+  files=[safe(ROOT,rel) for rel in sorted(rels)];require(all(f.is_file() for f in files),'completed file missing');return files
+ 
+@@ -99,8 +99,10 @@
+  require(status()['phase']=='finalize','analysis phases incomplete');owner=checked(full=True);verify_producer_sources(ROOT,P['producer_manifest_sha256'],all_files=True)
+  for phase in PHASES:validate_phase(ARC,phase)
+  validate_auto_parent(read(HERE/'AUTO_PARENT_BINDING.json'),P)
++ import outcome
++ outcome.checked_poses(ROOT,ARC,P);checked_parent_costs()
+  original=read(ARC/'FILE_INVENTORY.json');paths=sorted(str(f.relative_to(ARC)) for f in ARC.rglob('*') if f.is_file() and str(f.relative_to(ARC)) not in original and f.name not in ('ADMIN_RELEASE_ACCEPTANCE.json','FILE_INVENTORY.json'))
+- done={'passed':True,'run_id':RUN,'phases':list(PHASES),'no_GPU':True,'owner':owner,'derived_outputs':paths,'manual_quality_review':'pending blinded fixed frames/full141 comparison','scope':P['scope']};save(ARC/'CPU_COMPLETE.json',done);save(ARC/'DERIVED_FILES.json',{rel:sha(ARC/rel) for rel in paths+['CPU_COMPLETE.json']});validate_delivery(ARC);verify_source_archive(ROOT,ARC,owner,RUN);verify_producer_sources(ROOT,P['producer_manifest_sha256'],all_files=True);save(HERE/'final_receipts'/f'{RUN}.json',{'completion_sha256':sha(ARC/'CPU_COMPLETE.json'),'derived_sha256':sha(ARC/'DERIVED_FILES.json')});return done
++ done={'passed':True,'run_id':RUN,'phases':list(PHASES),'no_GPU':True,'owner':owner,'derived_outputs':paths,'manual_quality_review':'pending fixed frames/full141 review; disclose label exposure','scope':P['scope']};save(ARC/'CPU_COMPLETE.json',done);save(ARC/'DERIVED_FILES.json',{rel:sha(ARC/rel) for rel in paths+['CPU_COMPLETE.json']});validate_delivery(ARC);verify_source_archive(ROOT,ARC,owner,RUN);verify_producer_sources(ROOT,P['producer_manifest_sha256'],all_files=True);save(HERE/'final_receipts'/f'{RUN}.json',{'completion_sha256':sha(ARC/'CPU_COMPLETE.json'),'derived_sha256':sha(ARC/'DERIVED_FILES.json')});return done
+ 
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('mode',choices=['snapshot','status','archive',*PHASES,'finalize']);p.add_argument('--token');a=p.parse_args();check_seal()
+--- R34v3/outcome.py
++++ R39/outcome.py
+@@ -18,11 +18,12 @@
+ 
+ def checked_poses(root,arc,p):
+  run,video,sourcevideo,source,deps=current(root,arc,p);r=validate_phase(arc,'pose');pose=phase_folder(arc,'pose')/r['metadata']['pose_relative'];require(sha(pose)==r['metadata']['pose_sha256'] and read(pose)['video']['sha256']==sha(video),'final current pose binding')
+- poses={'EarlyGlobalPulse':pose};videos={'SOURCE':sourcevideo};provenance=read(source)['provenance'];require(read(pose)['provenance']==provenance,'current source/generated pose provenance differs')
++ poses={'MatchedGlobal':pose};videos={'SOURCE':sourcevideo};provenance=read(source)['provenance'];require(read(pose)['provenance']==provenance,'current source/generated pose provenance differs')
+  for name,row in p['parents'].items():
++  if 'archive_root' in row:validate_completed_static_parent(row)
+   fp=HERE/row['pose'];vp=Path(row['video']);require(sha(fp)==row['pose_sha256'] and sha(vp)==row['video_sha256'],'historical parent changed');raw=valid_pose(fp);require(raw['video']['sha256']==row['video_sha256'] and raw['provenance']==provenance,'historical parent provenance differs');poses[name]=fp;videos[name]=vp
+- auto=validate_auto_parent(read(HERE/'AUTO_PARENT_BINDING.json'),p);araw=valid_pose(auto['pose']);require(araw['provenance']==provenance,'R32 pose provenance differs');poses['Auto']=auto['pose'];videos['Auto']=auto['video'];videos['EarlyGlobalPulse']=video
+- order=['Native','GlobalFull6to14','Auto','EarlyGlobalPulse'];return source,{n:poses[n] for n in order},{n:videos[n] for n in ['SOURCE',*order]},auto,deps
++ auto=validate_auto_parent(read(HERE/'AUTO_PARENT_BINDING.json'),p);araw=valid_pose(auto['pose']);require(araw['provenance']==provenance,'R32 pose provenance differs');poses['Auto']=auto['pose'];videos['Auto']=auto['video'];videos['MatchedGlobal']=video
++ order=p['comparators_order'];return source,{n:poses[n] for n in order},{n:videos[n] for n in ['SOURCE',*order]},auto,deps
+ 
+ def regions_for(auto_ledger):
+  regions={'primary_40_55':list(range(40,56)),'full_0_140':list(range(141))}
+@@ -64,8 +65,8 @@
+    for conf in p['thresholds']:
+     d=common_regions(source,{name:poses[name] for name in names},regions,conf,metrics);save(folder/f'COMMON_{key}_{conf}.json',d);commons[key][str(conf)]={'status':d['status'],'rows':len(d['rows'])}
+   save(folder/'ACTUAL_PARENT_BINDING.json',auto['binding']);save(folder/'POSE_BINDINGS.json',{name:{'file':str(path),'sha256':sha(path),'video_sha256':read(path)['video']['sha256']} for name,path in poses.items()})
+-  run=p['cases'][0]['run_id'];runtime=read(arc/'RUNTIME_GATE.json');audit=read(arc/'audit/counterfactual'/f'{run}.json');a=audit['counterfactual'];eff={'actual_runtime_case':runtime['cases'][0],'route_scope':'all42bins/all50blocks at denoisingindex4 only','NFE':21,'updates':20,'callbacks':20,'observations':0,'branch_observation_seconds':0,'branch_model_seconds':sum(v['model_seconds_synchronized'] for v in a['branches']),'raw_capture_seconds':sum(v['archive_and_readout_seconds'] for v in a['branches']),'scope':'record actual scopes; not speed claim'};save(folder/'EFFICIENCY.json',eff)
+-  summary={'run':run,'scope':p['scope'],'all_UNKNOWN_retained':True,'whole_scan':scans,'common_support':commons,'efficiency':eff,'manual_quality_review':'pending fixed blinded media','elapsed_seconds':time.monotonic()-start};save(folder/'SUMMARY.json',summary);checked_poses(root,arc,p);return {'summary_file':'SUMMARY.json','elapsed_seconds':time.monotonic()-start}
++  run=p['cases'][0]['run_id'];runtime=read(arc/'RUNTIME_GATE.json');audit=read(arc/'audit/counterfactual'/f'{run}.json');a=audit['counterfactual'];eff={'parent_actual_costs':checked_parent_costs(),'dose_scope':'R32 and R39 both24NFE/fourFull at2,4,5,6; query support/delta/reference contribution differ. R29 uses20singleforward NFE, so wallcosts are not isolated operator timings.','success_scope':'automatic need not beat fixed-global; fixed-global is not manual per-event ground truth','actual_runtime_case':runtime['cases'][0],'route_scope':'all42bins/all50blocks at denoisingindices2,4,5,6','NFE':24,'updates':20,'callbacks':20,'observations':0,'branch_observation_seconds':0,'branch_model_seconds':sum(v['model_seconds_synchronized'] for v in a['branches']),'raw_capture_seconds':sum(v['archive_and_readout_seconds'] for v in a['branches']),'scope':'record actual scopes; not speed claim'};save(folder/'EFFICIENCY.json',eff)
++  summary={'run':run,'scope':p['scope'],'all_UNKNOWN_retained':True,'whole_scan':scans,'common_support':commons,'efficiency':eff,'manual_quality_review':'pending fixed full141 media; reviewer label exposure must be disclosed','elapsed_seconds':time.monotonic()-start};save(folder/'SUMMARY.json',summary);checked_poses(root,arc,p);return {'summary_file':'SUMMARY.json','elapsed_seconds':time.monotonic()-start}
+  require(phase=='media','unknown outcome phase');validate_phase(arc,'compare');require(read(phase_folder(arc,'compare')/'ACTUAL_PARENT_BINDING.json')==auto['binding'],'parent binding changed since metrics')
+- pixels=media_and_pixels(videos,folder/'all_methods',p['fixed_visual_frames'],p['fixed_clip_inclusive']);pair=['Auto','EarlyGlobalPulse'];random.Random(p['blind_media_seed']).shuffle(pair);media_and_pixels({'VIDEO A':videos[pair[0]],'VIDEO B':videos[pair[1]]},folder/'blinded_Auto_Pulse',p['fixed_visual_frames'],p['fixed_clip_inclusive']);save(folder/'BLIND_KEY.json',{'seed':p['blind_media_seed'],'mapping':dict(zip(('VIDEO A','VIDEO B'),pair)),'instruction':'Review only blinded_Auto_Pulse before metrics/key; preserve UNKNOWN.'});checked_poses(root,arc,p)
+- return {'fixed_frames':p['fixed_visual_frames'],'clip':[0,140],'fps':24,'original_frame_alignment':True,'video_sha256':{n:sha(v) for n,v in videos.items()},'elapsed_seconds':time.monotonic()-start,'quality':'pending independent blind review; pose not appearance verdict'}
++ pixels=media_and_pixels(videos,folder/'all_methods',p['fixed_visual_frames'],p['fixed_clip_inclusive']);pair=['Auto','MatchedGlobal'];random.Random(p['blind_media_seed']).shuffle(pair);media_and_pixels({'VIDEO A':videos[pair[0]],'VIDEO B':videos[pair[1]]},folder/'fixed_Auto_MatchedGlobal',p['fixed_visual_frames'],p['fixed_clip_inclusive']);save(folder/'BLIND_KEY.json',{'seed':p['blind_media_seed'],'mapping':dict(zip(('VIDEO A','VIDEO B'),pair)),'instruction':'Review fixed_Auto_MatchedGlobal; record whether reviewer already knew labels; preserve UNKNOWN.'});checked_poses(root,arc,p)
++ return {'fixed_frames':p['fixed_visual_frames'],'clip':[0,140],'fps':24,'original_frame_alignment':True,'video_sha256':{n:sha(v) for n,v in videos.items()},'elapsed_seconds':time.monotonic()-start,'quality':'pending independent fixed-view review; pose not appearance verdict'}

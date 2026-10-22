@@ -1,0 +1,221 @@
+逐 query 参考时间分布门控：实现前的文献、数学与必要观测审查
+2026-10-16。只写本文件；没有启动 GPU、部署、修改运行代码或冻结协议。范围只保留一个候选：外部粗 lag 门已打开时，依据当前 head/query 的 native reference 条件时间分布，决定该行是否使用已有 Full 同时刻读出。
+
+审查结论
+
+可以把这项候选作为减少 Full 形状/身份损伤的选择器继续调查，但目前还没有证据说明 native reference 时间分布能判断哪些行需要修复。DIAL 已用内部注意力生成逐 query 空间引导；HALO 已按熵选择注入头；DiffTrack 已同时分析注意力匹配的准确性、集中程度和实际质量，并明确给出高置信但匹配错误的反例。Wan-Animate-2 则已有对应帧 reference mask。新主张不能是首次自适应、首次局部、首次看熵或首次同帧 attention。
+
+可检验的具体差别是：在固定外部触发、相同 Full 执行器和相同干预预算下，按“参考时间读取的错位与歧义”筛行，是否比普通空间掩码、仅熵、仅 reference mass 或少量均匀干预更能保住编辑形状。已有相似不自动否定这项算法价值；“原方法没有逐行完全一样的 if”也不足以证明论文贡献。
+
+最重要的前提：这里的 p(t|q,reference) 是 softmax 权重的条件分布，不是经过校准的“动作发生在哪一帧”的后验概率。应在文案中称 reference-time readout distribution，暂不称 motion-lag posterior。模型可以正确生成动作，同时用远时刻的身份、背景或结构信息。旧正常1024 native 的粗平均参考时间偏移很大、视频却约−1帧对齐，已经构成对朴素 attention-mean=lag 的本地反例；它不直接否定尚未读取的逐行信号。
+
+索引勘误（仅记说明，不改任何历史冻结文件）
+RouterState.forward_index 为零基。step_start=6、step_end=15 的实际调用是第7–15次 forward，即零基 indices6..14；R4 所谓 STEPS=(6,10,14) 是第7/11/15次。外部 observer 读 x0_step005（第6次 forward 结束）→最早干预 index6（第7次）。当前行的 Q/K 已在本次 forward 可得，行门可在该层 attention 前计算；不能拿该次 forward 最后才产生的 x0 来控制它自身。
+
+1. 最近先例：具体操作与完整重合边界
+
+[1] DIAL：原生 attention → 空间自适应 query 引导，是最直接的选择器近邻。
+https://arxiv.org/html/2609.11507v1 ，§3.2–3.3 Eq.6–7、Appendix C.2。
+从特定块提取每主体 ISGM，用上一去噪步的归一化 s(q,k) 给 video query→主体 reference keys 加 log(gamma_k)*s(q,k)；可阈值化为空间二值门。原文比较局部 ISGM 与全局均匀增强的画质差别。候选不同在当前每头每行的参考“时间”条件分布、总参考质量保持、同帧读出而非主体增权。若候选实际上只选主体前景，且同样预算的 ISGM-like 空间门同效，那么“时间错误选择器”解释不成立。本次未从原文/定向搜索定位可核验的完整作者代码，不把第三方代码当 DIAL 官方实现。
+
+[2] Wan-Animate-2：同帧读出是直接先例，不含当前自适应错时门。
+https://arxiv.org/html/2608.06009v2 ，§3.2–3.4。
+固定作者代码：
+https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L525
+create_mask:538–556 明确 base attention 保留，条件分支以 q_frame==kv_frame 开放；reference 帧 +1 是其布局。它由视频索引决定，不查看该行原生时域分布或熵。候选的 Full 是这个家族在 frozen H3 的适配，加一个有必要性的选择器才是待测差别；不能把完整已训练 Wan 模型说成与插件端到端等价。
+
+[3] TCR：已把物理时间距离直接作为行/列相关 routing bias。
+https://arxiv.org/html/2609.02367v1 ，§3.3。
+本次实际核到官方训练/推理仓库 commit7549a0f4a7552b46f833a2d6f18271dc17e090fe：
+https://github.com/DAGroup-PKU/Temporal-Context-Routing/blob/7549a0f4a7552b46f833a2d6f18271dc17e090fe/packages/ltx-core/src/ltx_core/model/transformer/rope.py#L178
+compute_tcr_bias:178–218 实现 B_ij=−beta*alpha*(t_i−c_j)^2/(2*r_j^2)，无时间标记的 sentinel 不引导；transformer_args.py:281–301 从实际秒坐标/文本区间构建。这里是脚本文本条件和训练 LoRA，bias 本身不从 attention 偏移/置信产生。候选可区别“按当前内容读取选择是否纠正”与“所有指定时域预先施加先验”，仍须与等预算 Gaussian/soft-band 比较。
+
+[4] FRESCO：可靠空间对应、遮挡处理和局部 attention 路由已有。
+https://arxiv.org/html/2403.12962v1 ，§3.3–3.4。
+固定作者代码：
+https://github.com/williamyang1991/FRESCO/blob/736a7140f30d622ba8b62584445c8f6c2d9d9fe0/src/diffusion_hacked.py
+266–270 用源 Q/K 对生成 query 作 spatial-guided attention；293–351 沿光流轨迹 gather Q/K 和当前 hidden V，再以 interattn_mask 聚合；873–885 从遮挡/flow 构造 mask。不是 native query→reference-video 时间偏移后验筛行。但它已直接解决只让可信对应交换特征的需求。若后来给本候选加入外部 flow/遮挡作为主要选择依据，应与该核心进行实质比较，不能泛称第一次可靠性门。
+
+[5] FLATTEN：沿物理对应轨迹限制 attention，处理不相关位置混合。
+https://arxiv.org/html/2310.05922v2 ，§3.2–3.3 Eq.6–7。
+本次新增核验固定官方实现：
+https://github.com/yrcong/flatten/blob/ac2d83bf10363c670c911b6857614b9b41ef6eb4/models/attention.py#L507
+520–541 根据 traj 的时间/空间索引 gather K/V，用轨迹 mask 对无效成员置−inf；另有 old_qk 配置。它未先估计一个 query 的 reference 时间分布偏移再决定是否激活同帧读取。候选可避免额外光流，但只是省去流模型不能证明更准确；尤其不能把固定空间 query 当成同一个运动点。两者的有用对照是对应可靠性、结构编辑适应性、局部误伤与成本。
+
+[6] HALO：entropy/head 选择注入与形状保护已有，不能把低熵等同运动头。
+https://arxiv.org/html/2607.11081v1 ，§3、§4.2、Appendix C。
+固定官方实现：
+https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/custom_modules_inject_final.py#L95
+95–105 按 heads_to_inject_mask 替换 reference V，保持当前 Q/K。论文按注意力熵辨别结构头，并另以 motion heads 提运动。候选粒度是 head/query 的“参考时间边缘”而非整头总 entropy，执行器也不同；但熵选择、局部干预减少伪影都已明确。若候选最后等价于固定低熵头或全局 head gate，应收缩为该简单基线，不能保留逐行时移解释。
+
+[7] DiffTrack：本候选观测假设必须面对的直接反例与基线。
+https://arxiv.org/html/2506.17220v2 ，§3.3–3.4 Eq.8–9、Fig.5，§5 Eq.10。
+官方固定版本：
+https://github.com/cvlab-kaist/DiffTrack/tree/670a83c185b26a04fdb83e0f32e3d8e629ba1d41
+实际读 utils/matching.py 的 correlation argmax/optional softmax 和 motion_guidance.py 的固定 layer CAG 配置。论文把空间匹配准确性、attention 集中度、跨帧 mass 分开，明确高 confidence 可以不正确、受位置编码支配；CAG 以去掉跨帧 attention 的额外预测作反向引导。它不是本候选的 reference 时间行门，但直接排除“softmax尖峰天然可信”的论证。其空间对应置信与我们的时间边缘熵也不是同一统计，不能照搬阈值。
+
+[8] TST：行级熵调节已经存在；它没有本候选的参考物理时间判据。
+https://arxiv.org/html/2609.08505v1
+https://github.com/lytang63/temporal-state-transport/blob/1b2f68207230a6d62b518a0feadb04fb75867759/tst/core.py
+既有审查与本次源码重开确认其根据行熵/谱信号调节 query 温度；代码与正文的具体温度形式需区分。候选若只有低熵行开或改变尖锐程度，没有物理时间信息的额外价值，就必须与这种简单温度/熵门比较。名称、操作位置不同不构成机制差别。
+
+本次在上述已读原文与明确代码段中，未确认完整同构的“每 head/query 参考条件时间分布→错时/歧义门→保该行原参考质量的 same-time readout”。这只是一个有限检索结论。基础数学、局部自适应和时间先验已有近邻，不能因此承诺空白或发表潜力。
+
+2. 候选只保留这一种定义
+
+固定层 l、头 h、目标 query q。令原全域 attention 为 a_qj，reference-video keys 集合为 R，时间 bin u 的集合为 R_u。先区分三项：
+  m_q = sum_{j∈R} a_qj；
+  r_qj = a_qj/m_q，j∈R；
+  p_q(u) = sum_{j∈R_u} r_qj。
+m_q 接近0时应拒绝把 p 当作重要的读取分布。图像 reference、文本、音频、目标视频等不混入 R。p 需按当前头/当前行计算，先平均 heads/spaces 再求 entropy/mode 与逐行运算不等价。
+
+由已审核布局将 target query 和 reference bin 映射到物理时间 t_q、c_u。采用 source-relative covered-frame centres 或预先指定的覆盖区间距离；不使用 H3 为不同模态/reference 分配的绝对 RoPE 原点差当物理时间差。H31/4/4/4/4覆盖不等宽，均匀 bin 分布不等于均匀物理时间密度。固定42bin下可使用离散 p 做候选，但阈值不能声称对长度/fps/VAE压缩不变。
+
+可计算的 readout descriptors：
+  e_q = sum_u p_q(u)c_u − t_q；
+  u*_q = argmax p_q(u)；
+  H_q = −sum_u p_q(u)log p_q(u)；
+  z_q = sum_{u∈same-time band} p_q(u)。
+门 g_hq = G(p_q, t_q, m_q) ∈{0,1}，要求明显离时、集中到一个连通时间邻域、竞争远峰不显著，并具有最低质量/数值支持。暂不指定 entropy/offset 的最佳阈值，必须在未读取新 row 数据前冻结一个分析口径和开发/检验分区。外部全局窗口门 b_n 仍由前一次 x0 决定，实际作用 g=b_n*g_hq。
+
+门控只选择已有 Full：
+  r_B(q,j)=r_qj 1[j∈B_q]/z_q，
+  O'_q = O_q + b_n*g_hq*m_q*(r_B V_R − r_q V_R)。
+所有 K/V 和其他 attention 分支在该次算子中不替换；随后网络会受 hidden state 改变影响，不能说整个模型其他交互永远不变。若 z_q 太小，same-time conditional readout 只是在重新放大原本很弱的 keys；需要记录条件数/变化范数，不能把低 z 同时当最应该强改且最可靠的证据。
+
+这里不再加入按估计偏移移动中心、soft bandwidth 扫描、选层/选头优化、光流或额外训练。一旦加入，这个最小因果问题就变成多个变动。每头每行 gate 是空间选择器，不能自动获得“选哪些层”结论。
+
+3. 数学等价性与反例
+
+对软门0≤g≤1，reference 条件分布为 r'=(1−g)r+g*r_B。等价地，只在 reference logits 上加
+  Delta L_qj = log[(1−g)+g*1[j∈B_q]/z_q]。
+因为 sum_j r_qj exp(Delta L_qj)=1，reference 组未归一化总和保持不变，非 reference 权重也保持。g=1 时 off-band 是−inf，on-band是−log z_q；g=0为恒等。故这仍属于自适应 logit bias/mask 家族，不是脱离 DIAL/一般 attention reweighting 的新数学。它与 DIAL 的具体 ISGM/group gain 不完全同构：后者改变整主体组相对权重，而这里重分该组内时间。是否有独立价值需实验，不由能否改写决定。
+
+反例A：所有参考时刻 V_j 相同，即使 p 在远时刻单峰，r_B V−rV=0；所谓“错误读取”完全无害。仅靠 p 不能判断该行修正有用。
+反例B：两个远峰分居 t_q 两侧，均值e=0，但没有同时间内容；均值门漏判。反之，约.51/.49的双峰在42bin的归一化entropy里仍可显得很低，单靠小H也不能宣称单峰可信。需完整分布或明确模态分离统计。
+反例C：低 m_q 的行具有非常尖的 p，其分布“自信”但对 O 影响近零。预算不能只数行，应同时报告选中 reference mass 与实际修正范数。
+反例D：某目标动作晚delta帧，则当前目标时间t的形状可能更像源t−delta；若 attention 真追形状，e≈−delta，而不是+delta。所以 reference readout offset 的符号不能直接等同生成视频 lag。静态身份读取还可产生任意符号的偏移。
+反例E：某些低熵头专门保局部空间结构（HALO已有分析）；将其判成“最有信心的错时头”反而可能最伤身份。边缘分布还隐藏了空间对应，p集中到正确帧也不保证读对肢体。
+反例F：g几乎处处1退化成Full，处处0退化native；与少量uniform Full同效则可能只是干预剂量降低。不能用这些情况解释为精确局部时序判断。
+
+4. 是否值得新增被动 capture：最小前提与规格
+
+目前旧6×42 traces已在head/space平均，不能反推逐行p、熵、多峰或局部支持；已存C/Y feature也不包含Q/K，因此不能离线恢复p。一个小型native被动捕获可以回答必要性问题，前提是它与现有重放共用且明确成本；不建议为“漂亮热图”单独追加完整视频。它不能直接证明门控提升视觉质量。
+
+建议最小规格（需 root 决定，不在本文件授权执行）：
+  native arm，固定 block25；固定heads[0,14,28,42]，不按新输出挑头；
+  零基forward indices6/10/14，即实际第7/11/15次；
+  event query bins14..19，全部23×41=943个空间位置；
+  保存每行对全部42 reference bins的 p，FP32，形状[4,6,23,41,42]；
+  同行m_ref、LSE_ref与LSE_all、same-bin log mass、query时间与完整reference时间表；
+  如已有同forward Full counterfactual，可附同行||C−Y||、||Y||标量，不以R代C，不重新跑模型分支；
+  metadata固定run/seed/实际condition&noise哈希、layout、index、head、dtype、kernel/quantization定义。
+p本身每检查点3,802,176字节（约3.63MiB），三次约10.88MiB；标量另加。这是存储量，不是计算量估计。无需保存N×N矩阵。必须用分块稳定logsumexp或真正相应kernel的聚合，不能拿mean K替代sum exp(QK)；标准Flash/Sage未必直接提供逐reference-bin mass，额外读出有实在的计算成本。
+
+backend口径必须准确：若 native使用量化Q/K，而探针用BF16 Q/K的FP32 dot-product，则它是FP32 proxy，不能标成实际native posterior。应保留一致的量化定义或至少给FP32/实际backend关键量差异审计；不能因存为FP32就默认是实际执行权重。捕获不得修改model输出、RNG、条件或缓存，native前缀/结果等值需要验收。原feature的四头/单块选择只是最小筛查，不能据此宣称其余52头/49块均适用。
+
+第一层CPU必要性（无需新视频干预）：
+  a) 检查p行和、非负、有限、mass范围、物理坐标/同帧支持正确；
+  b) 同时输出每头、每时间、全空间的e、mode、H、m、z和多峰，不只展示最漂亮头；
+  c) 对source-only固定人体/背景tile作分层。它仅是参考ROI，目标换身份/形状后可能不对应，不能据此给每行“错动作”真值；
+  d) 检查候选门是否退化全开/全关/几乎固定head门，能否在不同query上产生可重复区分；
+  e) 若C/Y存在，只能检查被选行是否有非零/极端局部提议、以及相同m预算的其他选择是否产生同等范数；不能把小||C−Y||叫保形，也不能把大范数叫修复；
+  f) gate计算前冻结source-only tiles、阈值规则与留出空间分区；所有真实target数据只作一次开发/检验，不以生成结果反复挑gate。
+
+这些检查主要否证“当前分布有足够差异、数值上可用且值得实施选择器”。如果p基本只编码layer/head固定偏置、或所有疑似错时行都与背景/身份读取混在一起且无可辨别性，不应直接投入全网络门控。需要保留可能有用的简化head/foreground基线，而非强称逐行识别。
+
+第二层必须有的支持，不能由单次被动捕获替代：对已独立确认的正常native和延后native，以相同定义检验误触发及局部关系。旧1024正常例可用作压力测试，但分辨率改变是混淆，不能单凭两分辨率差异做因果归因。已修复mass是受干预轨迹，不能冒充自然正常对照。当前早期整体pose未知的行继续unknown；单臂证据不得给整张query网格贴“错误时间”标签。若没有可靠局部真值，可以把gate当经验损伤抑制选择器来评估，必须放弃“准确定位时延”机制主张。
+
+5. 最少独立价值对照与失败条件
+
+先保持外部x0窗口触发/schedule不变，只改变row gate，避免把全局controller收益算到局部选择器：
+  G0：native；G1：现有Full全行；
+  G2：预先固定source-only ROI内Full，或DIAL-inspired内部空间门；不能标成完整DIAL复现；
+  G3：entropy-only或固定head门，检验读出时间是否带来额外价值；
+  G4：相同每头/每时间路由行数的固定均匀抽样，以及原reference mass近似匹配的budget控制；
+  G5：本文错时+歧义门。可用预定空间置换g作为另一预算匹配负控，但它破坏空间连贯，解释须明确。
+无需一次跑完全部GPU臂；被动必要性筛查先淘汰退化方案，再挑最直接的一项简化门和一项预算控制。不能在本文件内为尚未观察的分布预订最佳阈值。
+
+最窄成功命题：同一执行器、同外部触发下，G5能达到与Full接近的时序修复，同时减少独立形状/身份/重影损伤，且优于G2/G3或同等干预预算。另报告算力成本；为得到gate而完整额外计算QK可能抵消稀疏路由收益。效率不是自动成立。
+
+否证或降级条件：
+  - G5不优于entropy-only/空间门：不支持参考时间判据的独立作用；
+  - 同等mass或均匀少行同效：主要解释是降低剂量；
+  - 正常视频普遍触发且有损伤：native时间分布不是可靠错时选择器；
+  - 低熵远峰行的修正主要改身份/背景，动作并未更好：拒绝物理时移定位解释；
+  - 少数头/单块有用但全层失败：限制架构范围，不靠事后挑层保留原全网络claim；
+  - 高时序收益伴随形状/幅度劣化：仍是旧Full权衡，未达到本候选目标；
+  - 只单seed异常样例有效：机制探索，不写普遍架构优势。
+
+可形成的贡献若最终有证据，是“以参考时间条件分布作局部纠正选择，提高冻结参考编辑模型的时序—形状权衡”，配合行级可辨识性评测、失败拒判和实测效率。它是可研究的细化算法，不需要假装发明全新attention数学；目前也还没有达到这一成功命题。
+
+检索范围与完整性
+本次定向查 video editing/animation 的 query-level temporal confidence/entropy routing；重新读取DIAL、TCR、FRESCO、FLATTEN、HALO、DiffTrack相关全文，并核上列官方固定源码；Wan-Animate-2同帧mask、TST代码作为直接基线。没有遍历所有时序检索/跟踪/稀疏attention论文，没有执行官方项目。搜索结果中的非官方摘要只用于发现标题，机制结论以上述主来源为依据。没有找到完整同构实现不等于证明空白；root应以被动前提与实际差异实验决定是否推进。
+
+6. R6 后续窄审查：停止条件是否受到当前执行器的直接影响
+补充于2026-10-16；只审查机制与近邻，不运行或改动实验。以下R6数字来自root提供的运行中trace，尚不是最终视频结论。
+
+6.1 实测现象支持什么
+root报告zero-based index5 native x0估计lag11，index6启用Full后guided x0估计lag1而决定关闭；index7无Full时lag12，再开后index8/9/10分别lag6/9/10。这个序列与“当前引导端点看起来已对齐，但实际采样状态未充分保留修正”的假说相容；它不证明关闭index7就是最终成败原因。不同index的x、sigma均改变，必须在同一个实际x/sigma同时取得native和guided预测才能直接检验本次执行器的观测影响。
+
+root已审过实际Euler路径：callback在更新前，
+  x_next = (sigma_next/sigma) x + (1−sigma_next/sigma) x0.
+相同x/sigma下两分支的状态差为
+  Δx_next = (1−sigma_next/sigma) Δx0.
+index6的后项系数约0.00876。它说明本次端点差只以这一系数进入原始latent更新；它不是pose lag缩小比例，不证明图像动作误差按0.00876缩放，也不建立稳定性。非线性后续网络可能放大或削弱这一差异。
+
+6.2 MotionEcho停止变量的精确纠正：观测与本次执行器分离已有直接先例
+主来源： https://arxiv.org/html/2506.19348v2 ，§3.2、§3.4、§7.2 Algorithm1；作者页 https://euminds.github.io/motionecho/ 当前代码标为Coming soon，未核到可执行官方实现。
+代表性MotionClone实例定义G^m=||M_ref·(A(z_ref)−A(z_current))||²：从当前噪声状态网络提取attention，再计算运动能量。Algorithm1行10–13形成不含/含运动梯度的两个student端点；行16–17按student当前/历史G激活teacher；行21–24用teacher当前状态G低于δ2或预算耗尽来截断，随后用guided teacher端点重加噪推进。
+
+关键是：G本身不是对已经加上本次−η∇G的clean endpoint再测。此前纠正已改变z，当前G读取该状态；因此它已经具有“在当前状态上测量，避免把本次端点修正直接当停止证据”的实质。不能以正文没有写turn-off字样制造区别。论文还可换用DiTFlow/MOFT等运动提取器，不能假定所有版本都测x0。teacher替换为同backbone、attention替换梯度，并不足以单独建立新意。
+
+6.3 其他直接近邻：哪些部件已有，什么差别仍可测
+
+Adaptive Guidance（AG），Eq7和§5：
+  gamma=cos(eps_cond(x_t),eps_uncond(x_t)); gamma>阈值后由CFG切为conditional，并省掉后续unconditional求值。它已做同状态双预测与条件化计算/停止，切点随seed与prompt变化。当前候选则以参考动作误差决定是否执行修正分支，可能重新开启；AG不是这一动作误差控制器。不能声称“动态省一次模型调用”或“双预测判断是否停止”本身新。
+论文 https://arxiv.org/html/2312.12487v1 （本次读取到的版本）；作者项目 https://bcv-uniandes.github.io/adaptiveguidance-wp/ 。未审核其实现，结论限论文公式。
+
+PAG，Eq10、Eq13与Algorithm1：同一x_t分别做原attention和identity attention预测，再用eps+s(eps−eps_perturbed)更新，参数无需重训。其双分支是受损预测的反向外推；本候选是根据native动作误差，选择整条Full纠正预测或复用native，没有因此发明同模型反事实预测。
+论文 https://arxiv.org/html/2403.17377v2 ；官方仓库 https://github.com/sunovivid/Perturbed-Attention-Guidance 。本次核了正文算法与官方仓库归属，未执行该项目。
+
+DiffTrack的CAG，§5 Eq10：把选定层的跨帧attention置零制造motion-degraded分支，再外推eps+s(eps−eps_hat)。官方motion_guidance实现已在前文核过。它使“同模型attention开关、两个预测、不训练/无外部teacher、用于运动提升”成为明确近邻；不能把这四点合起来当空白。当前候选差别是参考视频物理时间误差的控制与停止、额外forward只在需要时发生，并直接积分纠正分支；是否有用要实测。
+论文 https://arxiv.org/html/2506.17220v2#S5 ；官方 https://github.com/cvlab-kaist/DiffTrack 。此处补充与前文DiffTrack段为同一来源，未新核代码分支。
+
+Autoguidance，Eq3、§4：以较小/欠训练、相同条件和任务的坏模型作指导，D_w=wD_good+(1−w)D_bad；并非同一checkpoint开关一个模块。它支持模型预测差的引导，但不等于本候选的lag检测/条件计算。不能把论文名称“itself”误读成始终复用完全相同权重。
+论文 https://arxiv.org/html/2406.02507v2 ；官方 https://github.com/NVlabs/edm2 。本次核正文，没有执行代码。
+
+这些先例足以否定“首次无teacher的同模型双预测反馈/停止”的宽claim。尚未在这些具体公式中看到完整的H3参考时间误差native-first条件Full方案，但这不是空白证明。若最终有效，贡献必须落实到被验证的观测偏差、相应控制机制、时序与形状权衡、或总预算收益。
+
+6.4 当前唯一值得检验的具体变体：native-first同状态观测、按需纠正
+定义D0(x,sigma,c)为保留H3原条件/CFG/LoRA但禁用本研究Full的端点预测，D1为同一参数、同一x/sigma/c启用Full的预测。native不是无条件分支；不删除已有参考条件。每个选定采样index n：
+  y0_n = D0(x_n,sigma_n,c)
+  (lag_n,valid_n) = frozen_observer(y0_n,source)
+  u_n = frozen_positive_delay_gate(lag_n,valid_n,previous_gate_state)
+  y_used = D1(x_n,sigma_n,c) if u_n=ON else y0_n
+  x_(n+1) = Euler(x_n,y_used,sigma_n,sigma_(n+1)).
+阈值/unknown/overshoot沿用冻结规则，不用本次结果重调：lag>=4开，−2..2关，3保持，<=−3关并报告提前，unknown暂停。这里的同状态判断允许在index n检测后直接选择index n用于积分的预测；旧R6是在index n的已执行分支上观察，控制下一index。这个时序差异应单列，不能把全部收益都归给去除直接影响。
+
+因此最小分离实验应包括一个仅换观测分支、仍延迟一index应用决策的版本，或者至少在论文明确本候选同时改变“观测分支”和“决策延迟”。若资源只够native-first当前步版本，可先做可行性试验，暂不拆分两项机制收益。
+
+这个算子没有新训练、无需生成teacher，也不优化latent。它是条件计算的推理控制器，尚不是已成功的新模型架构。native测量不会直接包含本次Full的输出变换，但它仍在历史干预产生的状态上；它不是“没有任何干预”的平行世界轨迹。原模型x0预测的稳定、视觉可信性和gap5 observer的有效性均仍需独立验收。
+
+6.5 必要因果对照、实现门与资源口径
+
+首要观测证据：至少在刚准备停止的位置，同一实际x/sigma下native与guided两个x0有分离，且无干预下一步的回弹与native而非guided预测更一致。报告全部预定点和unknown，不只挑lag1/12的分离点。这个证据支持测量问题，不单独证明最终视频受益。
+
+最小成败比较：旧guided-observer控制、native-first控制、已有固定Full脉冲。固定Full需报告修正次数、实际sigma区间/积分剂量、总NFE及耗时；匹配次数不自动匹配剂量。若要声称控制优于固定预算，需同预算固定修正/固定延时停止等直接基线；若收益仅来自少漏一次index7或持续多开，应把结果限定为调度收益，不说复杂反馈独立必要。可加入同NFE但不参与决策的dummy native probe验无状态扰动；它不是提高最终质量的算法基线。
+
+计数上，20个Euler步、K次额外Full forward是20+K次完整模型评估（假定每步native只需一次模型调用，底层CFG未另增分支）。不能把它与20步Full的成本相同。重复x0解码/observer开销、注意力额外分支、模型CFG批大小均另外披露。现阶段没有共享前缀/半网络缓存的实证，不预支这种效率。
+
+必须守住的工程因果门：两个预测共享完全同一x/sigma/条件/初始噪声；native probe不做Euler更新、不消耗新的采样RNG，不把probe当新采样index；RouterState的step index、callback次数、缓存版本和审计计数分开。除两个明确预测外不悄悄更新reference state或KV缓存。禁用Full时的native输出须有已有回放一致性验收。没有这些门，观察差异可能只是两条不同轨迹或调度偏移。
+
+拒绝或降级条件：
+  - 相同x/sigma的native/guided观测无可重复分离：当前“直接影响”解释不成立；
+  - native-first仍频繁误开/误停、或unknown很多：observer先验不足，不能靠双forward包装；
+  - 只需固定多开一次、短hold时间或同等Full预算即可同效：无需此条件计算结构；
+  - 最终动作更准但身份/重影更差，或增加NFE却没有质量—成本改进：只复现旧执行器权衡；
+  - native-first当步有效、延迟一index无效：收益可能来自决策延迟，不能全部归给观测去偏；
+  - 只有本例成功：单例机制诊断，不支持稳定控制或普适架构。
+
+当前建议：R6最终结果前不下结论；将native-first作为针对已经出现的观测—执行器耦合现象的最小后续可行性测试，比立即再引入尚未验证的逐行posterior gate更有直接证据基础。MotionEcho、AG、PAG/CAG是必须正面对照的机制近邻。能形成贡献的是证明这个具体故障、给出有效且成本可接受的处理和明确适用域；不能宣称首次自适应引导、首次自反馈、或已经获得稳定性保证。

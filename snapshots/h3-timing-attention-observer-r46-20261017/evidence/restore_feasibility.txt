@@ -1,0 +1,34 @@
+Attention 两状态 Native 重放：条件与 RNG 恢复只读核对
+2026-10-17。结论：可准备独立的两 NFE 诊断，但尚未完成这两个状态的实际重放。raw x 和 sigma 本身不充分；现有原始条件实体、完整签名树、seed、full grid 与冻结代码共同提供了可验证的恢复入口。
+
+一、已有材料足够做什么
+
+两个状态分别是 R33 / seed2026101311 和 R37 / seed2026101313 的去噪 index4；都在该轨迹第一次 Full 之前。实际 raw input 是 [1,1,3817216] FP32，sigma=0.9795918464660645，下一值=0.9729729890823364。完整21点grid保留，不能只传两点或截断采样日程。原输入与 Native4 的 PT 路径、文件SHA、packed/AV签名、实际条件树及现有R27同状态桥，详列同名JSON。
+
+关键补充：两条记录均保存原始 Qwen embedding [1,6960,5120] FP32 实体（tensor SHA06ca52a8…790ca3）、token tags、肖像clean latent与视频clean latent，四个最小条件实体都在各自 FILE_INVENTORY；共八类历史blob还包含prepared RGB等。本次无需重跑Qwen或VAE，也不需重跑index0..3。两个seed共用这些clean内容，payload seed和UUID不同，不能把两条完整条件SHA强行设为相同。
+
+原始 CONDITIONING 中 pooled_output=null，只有一项positive，无额外未归档pooled实体；原始refs/tag/embedding可按签名树重建。随后必须沿真实 BasicGuider/Comfy materialization，再验证完整processed树，不能以clean reference相等代替processed相等。当前条件身份：R33 a38553bd…0a8c9；R37 cedd3b4c…1ddea。
+
+二、仍需重新物化的条件与真实缺口
+
+冻结 comfy/model_base.py:2168–2216 的 extra_conds 在采样前把原始embedding送入 condition_proj + token_refiner，然后生成 CONDRegular、CONDConstant、PackedLayout；comfy/ldm/minimax/model.py:518–521 给出实际调用。处理后 [1,6960,5376] BF16 context只有签名 cb786704e4c1ffeb66cf47acd78156c1e237ee171cae6f797ebdca26d2620c9d，未找到对应实体。这意味着每个状态仍需一次模型条件物化并逐字节核SHA；这是额外GPU条件计算，不能藏在“仅2NFE”成本里。可按每状态一次执行，避免引入跨seed缓存新假设。
+
+后augmentation的参考rows也没有保存实体。不过 frozen model.py:532–545 对每一reference重新创建CPU局部Generator并manual_seed(payload seed)，以FP32生成噪声后按固定顺序混合；audio条件同理seed+1，当前cond_audio_latents为空。故seed+clean实体+冻结实现可尝试重建，不依赖“先跑过4步”的全局RNG消费。原全局CPU/CUDA RNG state字节未归档，不能宣称恢复了旧RNG状态；已有每分支global_rng_unchanged及未来运行前后同样检查，是另一种证据。若完整processed签名或最终Native AV不等，就停止，不放宽为近似恢复。
+
+三、最小可复用入口与必须避免的陷阱
+
+可复用 R13 extensions/H3OneStepForkAudit/__init__.py:105–130 的 report-only node / BasicGuider生命周期，和 core.py:224–257 的 terminal SAMPLER_SAMPLE wrapper：先由Comfy加载模型并执行extra_conds一次，再拦截 sampler.sample，直接以已存raw x4、sigmas[4]和当前model_options调用guider（core.py:282–320）。每状态1 Native，合计2NFE、100块、0Euler更新、0普通callbacks；返回仅报告，不把占位输出接VAE。
+
+这不是可直接运行原R13：它硬编码R10、points6/10/14、六预测与n+1，以及Euler fork重建。将来只应新建小适配器，直接读取R33/R37 raw index4；不能沿旧n+1、不能重建U_F/U_N。R13的严格UUID恢复（core.py:146–160）可复用模式：先核其他原始字段，再恢复已存UUID；processed UUID须对应，不能广泛忽略树内差异。
+
+关键调用顺序据冻结 comfy/samplers.py:1220–1238：process_conds在SAMPLER_SAMPLE之前；真正KSAMPLER.sample:983–993会对noise做noise_scaling。因此terminal wrapper必须不调用其executor；不能把raw x4塞入noise参数后让普通sampler执行。Guider端输入sigma4，由原model_base处理timestep×1000；model.py:560–571再按video/audio shift12/3还原audio carry。不要额外手动缩放noisy audio。端点对照的normalized audio=raw audio×0.25，须以raw两流核逐位等值。
+
+Native backend也必须保真：R33/R37 H3TemporalRouter/core.py:205–236 调用显式aten Flash并透传native output；:415–452是postRoPE/preW_O接点。R13只提供生命周期参考，不能因名为Native就改成另一SDPA实现。保存原full grid至实际transformer_options，检验真实output head入参；该冻结checkpoint为single_linear、pdd_active=false，不能再把fullgrid记录叫“实际PDD银行选择”。
+
+四、两NFE是否值得准备及拒绝门
+
+工程上有条件可准备，当前不缺必须重新VAE/Qwen编码的条件实体。尚缺的是新的严格source adapter、被动探针、CPU接口门和这两个状态的实际端点重现；当前GPU资源与实现均未授权。最小验收：每state物化1次；完整条件、raw input、grid/seed/model/core/backend绑定；50块且0route；输入/条件/RNG不变；Native4 raw video/audio分别等于归档目标。任一失败即保留证据并停止，不能用x0倒推状态或额外20步补救。
+
+每状态固定block25/heads0,14,28,42/25空间点/42时间bin的注意力只读统计，仍按原prerequisite，不增加扫描。本次只确认它可接入原生输出路径，未验证统计无扰动或物理时延可辨。Motion4Motion/STR-Match及已有query-time审查的先例和正常反例依然成立；两开发状态有区别也不证明校准成功、独立泛化或新颖性。
+
+证据范围：本次只读本地已归档JSON/源码和冻结core tar成员，核文件签名/metadata关联；没有读取大PT、重新做远端PT内容hash、调用模型、pose、VAE或GPU。JSON列出了每份证据及代码SHA、精确行号、最小四实体路径。将来执行前必须重新核PT内容与实际环境，不能把本页当作新重放PASS。

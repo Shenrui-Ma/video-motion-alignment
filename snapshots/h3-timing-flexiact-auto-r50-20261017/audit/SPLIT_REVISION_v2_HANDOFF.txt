@@ -1,0 +1,32 @@
+R50 engineering revision v2: GPU3 main model, GPU2 dedicated decoder
+
+Local/remote root respectively:
+/Users/researcher/DevProjects/h3-timing-flexiact-auto-r50-20261017
+/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017
+
+Canonical producer manifest SHA256:
+13d2842849143f4d30122e51a8dd1ab05e3b083f9f1af7de8777f4ec35798b93
+Bundle audit/runtime_bundle_v2.tar.gz SHA256:
+2a74c5196938195d60415fe50807737ade5dffa73843fdc32bd6354d21cae988
+Protocol SHA256:
+e8058874b94bce9673fe82773d3b75aecb3cdc92d12f9469975afc56466c6d73
+
+V1 is retained in audit/revisions/producer_v1, including exact old manifest and complete sealed-file tarball. Original runtime_bundle_v1 also remains untouched. The replacement bundle carries that preservation. Root can extract v2 into the existing inactive R50 root after verifying bundle SHA. Inputs and parent captures remain unchanged; no repeat upload is necessary.
+
+Numerical preservation: current protocol after removing resources equals prior protocol; 101 frozen science/parent/graph files remain byte-identical. Decoder load, normalization, FP16 VAE execution and RGB writing AST are identical after renaming only the resource-admission call. Five actual47-bin kernel gates are explicitly inherited via configs/engineering_v2/previous_kernel_gate.json. Runtime evidence still verifies actual parent/noise/conditioning and chosen trajectories.
+
+CPU checks: all51 tests PASS; metadata preflight PASS; 171 sealed files checked. Two component-era tests were updated to use an explicit pending closure fixture and verify the now-completed actual parent closure. No GPU was launched by this agent.
+
+Root runtime steps (after R53 releases GPU2, and both planned cards are idle):
+1. Extract audit/runtime_bundle_v2.tar.gz and verify every deploy_manifest.json entry. Keep configs/admission.json root_live_review_required=true until live resource approval.
+2. Run from the remote root using /home/researcher/miniconda3/envs/comfyui/bin/python:
+   scripts/known_endpoint_158_gate.py --root-admitted --output audit/known_endpoint_158_split_gate.json
+   Set TMPDIR/TMP/TEMP to this root's temp, CUDA_VISIBLE_DEVICES empty for the CPU parent. This fresh full158 gate uses audit/observations/known_endpoint_158_split_v2 and audit/counterfactual/known_endpoint_158_split_v2. The child waits at decoder_ready.json; root verifies/registers its exact PID identity and GPU2, then creates decoder_go.json {root_approved:true,identity:<ready identity>,gpu_uuid:<ready uuid>}.
+   The gate requires all158 RGB hashes and decoded tensor hash to match the prior GPU3 same-endpoint decode. Dedicated GPU2 has the same A800/runtime/VAE.
+3. Run audit/build_split_resource_admission_proposed.py --root-approved. This is CPU-only, requires both cards idle, binds the profile, Native samples and new decoder proof, and writes audit/resource_admission_v2.json once. Review its engineering estimate; it does not call a sampled peak a proven bound.
+4. Refresh mutable admission permitted_compute_processes=[] and root_live_review_required=false only after root review. Run scripts/preflight.py (full remote gates and parent tensor checks).
+5. Run scripts/launch_remote.py --service-only. Confirm exact R50 GPU3 service ownership/readiness. Run scripts/start_controller.py --pid <service PID> --start-ticks <service start ticks>. Existing five-case queue and finalization setting are preserved.
+
+Both whole-run gate files are immutable after creation. Each callback continues to write its decoder_admission and after_decoder_admission to its own audit/observations/<request_id>/response.json. The latter is now {idle,wait_seconds,attempts,decoder_identity_absent,strict_original_idle_assertion_passed}, matching the reviewed R55 exit wait. CPU pose begins after the isolated decoder exits. Service cleanup retains process_absent, own_compute_absent and child_compute_absent.
+
+Resource interpretation: actual standalone retained increment is8,302,624,768 bytes, leaving8.886GiB with the observed64,903MiB Native footprint on one A800, below the unchanged12GiB co-resident requirement. V2 uses a separate card with >=45000MiB free, <=1024MiB used, zero utilization and no compute process; all owned GPUs must be main only before admitting the second card. R50 reserves both own-GPU slots. Other users on unrelated GPUs remain unaffected.

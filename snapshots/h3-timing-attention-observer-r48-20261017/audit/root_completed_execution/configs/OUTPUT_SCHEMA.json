@@ -1,0 +1,105 @@
+{
+  "schema": "r46-readout-payload-v1",
+  "report": "audit/probe/{bad,normal}/report.json",
+  "tensors": "audit/probe/{bad,normal}/attention.pt",
+  "required_accepted_state": "report.status=complete, Native_AV_bitwise_equal=true, probe.quality.status=PASS, independent verify_completed passed",
+  "head_order": [
+    0,
+    14,
+    28,
+    42
+  ],
+  "query_order": "time_bin outer, spatial row then col; 42*25=1050",
+  "q": {
+    "shape": [
+      1,
+      4,
+      1050,
+      128
+    ],
+    "dtype": "torch.bfloat16"
+  },
+  "reference_k": {
+    "shape": [
+      1,
+      4,
+      39606,
+      128
+    ],
+    "dtype": "torch.bfloat16"
+  },
+  "distribution": {
+    "bin_lse": [
+      1,
+      4,
+      1050,
+      42
+    ],
+    "probabilities": [
+      1,
+      4,
+      1050,
+      42
+    ],
+    "reference_lse": [
+      1,
+      4,
+      1050
+    ],
+    "reduced_reference_lse": [
+      1,
+      4,
+      1050
+    ],
+    "full_lse": [
+      1,
+      4,
+      1050
+    ],
+    "reference_mass": [
+      1,
+      4,
+      1050
+    ],
+    "mass_weighted_readout_difference_l2": [
+      1,
+      4,
+      1050
+    ],
+    "mass_weighted_readout_difference_rms": [
+      1,
+      4,
+      1050
+    ],
+    "reference_output": [
+      1,
+      4,
+      1050,
+      128
+    ],
+    "same_bin_output": [
+      1,
+      4,
+      1050,
+      128
+    ],
+    "quality": "raw gates/errors, no clamps"
+  },
+  "mapping": "heads, queries {bin,row,col,local_index,packed_index,source_frames_inclusive}, frame_intervals,reference_segment,target_segment,position_scope",
+  "descriptors": [
+    "same_bin_mass",
+    "same_or_adjacent_bin_mass",
+    "entropy_nats",
+    "top2_probability",
+    "top2_bins",
+    "expected_reference_center_minus_query_center_frames",
+    "expected_interval_distance_frames",
+    "unweighted_mean_offset_frames",
+    "reference_mass_weighted_mean_offset_frames"
+  ],
+  "readout_difference": "row norms of exp(logsumexp(bin_lse)-full_lse)*(same_bin_output.float-reference_output.float), from independent copies, no intervention",
+  "interpretation": "nominal position-bin reference-time distribution; not pose lag, actual VAE receptive field or independent samples; no fitting",
+  "failures": "UNKNOWN_NUMERICAL raw PT may exist but actual endpoint/pair result is rejected; partial model call counts retained",
+  "physical_index_legacy": "denoising index4, not video frame4",
+  "cost": "two attempted Native forwards maximum; 43 extra small attention per successful capture"
+}

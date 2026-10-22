@@ -1,0 +1,38 @@
+Primary-source implementation check, 2026-10-17
+
+FlowMotion: official code is available, with Wan2.1-T2V-1.3B-Diffusers by default.
+run.py uses source video, target text and an initial noise sample. It constructs
+clean-endpoint and temporal-difference losses and optimizes the latent during
+a preset early interval; calc_velocity is evaluated with no_grad. It does not
+accept H3's portrait/reference joint-token interface. A Wan transfer therefore
+needs an explicit actuator/interface adaptation, documented separately from
+reproducing the authors' method. Read official run.py lines138–290.
+https://github.com/HKUST-LongGroup/FlowMotion
+https://raw.githubusercontent.com/HKUST-LongGroup/FlowMotion/main/run.py
+
+TempoControl: official repository and actual Wan attention/control code are
+available. The earlier session already reviewed commit ac28c443ec112e0da6f9f5cbca26a2218d8d12dc;
+the exact prior evidence is in h3-timing-autoresearch-20261016/literature/timing_prior_art.md.
+Current README specifies Wan2.1-T2V-1.3B and roughly110GB GPU memory for its
+provided configuration. It accepts text concepts and timing control signals,
+which differ from direct reference-motion preservation. A fair task adapter
+must state how source motion becomes those signals and give every method the
+same permitted information. Availability alone does not make it a drop-in
+baseline for Sam portrait editing. No deployment or quality comparison yet.
+https://github.com/Shira-Schiber/TempoControl
+https://raw.githubusercontent.com/Shira-Schiber/TempoControl/main/wan/text2video.py
+
+FlowAnchor: the official repository currently lists pipeline/inference release
+in its TODO and exposes README/assets. The paper is relevant, but the inspected
+repository is not yet a runnable released baseline. A third-party summary saying
+code is public does not establish implementation availability.
+https://github.com/CUC-MIPG/FlowAnchor
+
+Sequence: finish H3 development and freeze a successful policy; then select two
+actually runnable, task-compatible comparisons. Match backbone, video geometry,
+physical frame rate, input information and evaluation. Count all source/target
+forwards and latent optimization calls. A controller+FlowMotion variant tests
+controller portability, not portability of H3's joint-reference attention edge.
+
+2026-10-17 read-only .9 model inventory
+The user model directory has Wan2.1 Fun Control (~3.13GB), Wan2.1 FLF2V14B, Wan2.2 Animate14B, Wan2.1 VAE and UMT5 weights. No exact Wan2.1 T2V1.3B Diffusers checkpoint was found by a case-insensitive Wan/UMT5 filename walk under /data5/researcher/ComfyUI/models. This is a bounded directory inventory, not a whole-server absence claim. Fun Control is not automatically interchangeable with the official baseline backbone. No weights were downloaded and no new dependencies installed.

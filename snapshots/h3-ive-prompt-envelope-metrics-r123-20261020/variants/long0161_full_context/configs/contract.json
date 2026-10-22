@@ -1,0 +1,88 @@
+{
+  "schema": "r123-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-full-context-long0161-r123-20261020",
+  "producer_remote": "/data4/researcher/h3_runs/timing_ive_full_context_long0161_r123_20261020",
+  "producer_seal_sha256": "5333d470f595bb647a41931265622f9db00d04ecc6f8884d90a0030605335176",
+  "producer_contract_sha256": "82bc2d4c8738a0496c9b359bbc3d27731bf8f0a5b66cb84db954be503009c21d",
+  "producer_runtime_sha256": "d70ceb993adb69edd796b09ec164acbd8ff38be55bd6d6fafbb677f1e914cc37",
+  "host": "H3_SERVER_B",
+  "source_order": [
+    "long_0161"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0161",
+      "run_id": "r123_long_0161_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man and a woman are sitting on the grass in a park, enjoying a sunny day. They appear relaxed and are engaged in a conversation.\n<Subject 1> is the man in <Video 1>.\n<Subject 2> is the woman in <Video 1>.\n<Subject 3> is the grass and park scene in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the man with a child\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A child and a woman are sitting on the grass in a park, enjoying a sunny day. They appear relaxed and are engaged in a conversation.\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 161,
+        "src_video_name": "long_0161.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A man and a woman are sitting on the grass in a park, enjoying a sunny day. They appear relaxed and are engaged in a conversation.",
+        "edit_prompt": "Replace the man with a child",
+        "target_prompt": "A child and a woman are sitting on the grass in a park, enjoying a sunny day. They appear relaxed and are engaged in a conversation.",
+        "target_span": "child",
+        "target_phrase": "child"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "New independent IVE source, first4.4seconds, 106valid24fps frames.",
+      "forced_run_id": "r123_long_0161_seed2026101701_forced",
+      "graph_sha256": "866f003dcc5ccab24f40ddced8ac111ace8515d02f594e064a461de6a8d17482",
+      "forced_graph_sha256": "397ac1e13415a1c0710c24cbb4e35d8f9e22d927e39842f98694b67dd485c742",
+      "valid_frames": 106,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 109,
+        "original_frame_interval_half_open": [
+          0,
+          110
+        ],
+        "scope": "First 4.4 seconds of source original 25fps; 106 valid prepared24fps frames"
+      },
+      "source": {
+        "file": "inputs/long_0161_video.mp4",
+        "sha256": "54bf3d44ea0dc8c12d7e612f784f1afddc45c4eb9e9ce26a0fd6c4c758bc3a60",
+        "bytes": 26077869
+      },
+      "provenance": {
+        "file": "inputs/long_0161_provenance.json",
+        "sha256": "fed673b44ab36cdc387511b03a01d99f62959a6ba4e8da6aa5a923737cb23d7f",
+        "bytes": 20083
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/long0161_full_context/inputs/long_0161_original.mp4",
+        "sha256": "6300e6338e041120d3a59d9f6789e2461eb272510fa1e07ce67336c8282c3ebb"
+      }
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

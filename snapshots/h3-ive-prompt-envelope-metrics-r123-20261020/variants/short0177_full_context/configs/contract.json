@@ -1,0 +1,87 @@
+{
+  "schema": "r123-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-tiger-lion-r131-20261020",
+  "producer_remote": "/data4/researcher/h3_runs/timing_ive_tiger_lion_r131_20261020",
+  "producer_seal_sha256": "bccb03189d41f6a12f053c9be4338c3af8e7dd192636ccba535ed0bab82993d9",
+  "producer_contract_sha256": "c400d74a7567636be33b285ec57dddb3016c2be1f20857ee304d0527a6cf335d",
+  "producer_runtime_sha256": "c8d2247155ee26e5f8a788fdc7642b402875b790093c1d49c523775fead511ff",
+  "host": "H3_SERVER_B",
+  "source_order": [
+    "short_0177"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0177",
+      "run_id": "r123_short_0177_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A tiger is resting on a rock and yawning widely, showing its sharp teeth and tongue.\n<Subject 1> is the tiger in <Video 1>.\n<Subject 2> is the rock in <Video 1>.\n<Subject 3> is the remaining source scene in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the tiger with a lion\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve this source object, including its appearance and motion.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A lion is resting on a rock and yawning widely, showing its sharp teeth and tongue.\nThe edited subject is <Subject 1>; the source rock is <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 177,
+        "src_video_name": "short_0177.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A tiger is resting on a rock and yawning widely, showing its sharp teeth and tongue.",
+        "edit_prompt": "Replace the tiger with a lion",
+        "target_prompt": "A lion is resting on a rock and yawning widely, showing its sharp teeth and tongue.",
+        "target_span": "lion",
+        "target_phrase": "lion"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "New IVE whole2.48-second source,60valid24fpsframes.",
+      "forced_run_id": "r123_short_0177_seed2026101701_forced",
+      "graph_sha256": "1d1342305d79152d6f6da8579690743a277f4ad4d860cbe1903c41bac0db003c",
+      "forced_graph_sha256": "36326f569fe1b793823ccb6173d3680b4daa06d1d24c867b5fbc0632fd098e33",
+      "valid_frames": 60,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 61,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "61/25",
+        "end_exclusive_rational": "62/25",
+        "duration_rational": "62/25"
+      },
+      "source": {
+        "file": "inputs/short_0177_video.mp4",
+        "sha256": "d5da95935608029e1c458def4cb1c09a3ce42ea7e6d60cc9a44c9c6575f801f2",
+        "bytes": 17720446
+      },
+      "provenance": {
+        "file": "inputs/short_0177_provenance.json",
+        "sha256": "cada5281d056b3773b9c8f7e7fdeb67f5b37eb355071515aaf4127c45fe02ef4",
+        "bytes": 10264
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/short0177_full_context/inputs/short_0177_original.mp4",
+        "sha256": "c63e24e4e53a7dee997aeff9074d9ca24aad10763985b55d2855a88176db486c"
+      }
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

@@ -1,0 +1,321 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1680" viewBox="0 0 1440 1680" role="img">
+<title>时间 RoPE 与按修正方向选择 head</title>
+<defs>
+<marker id="03_rope_and_head_selection_arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#55647a"/></marker>
+<marker id="03_rope_and_head_selection_bluearrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#246ac4"/></marker>
+<pattern id="03_rope_and_head_selection_hatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#f4f5f8"/><path d="M-2 2 L2 -2 M0 8 L8 0 M6 10 L10 6" stroke="#b8c1d0" stroke-width="1"/></pattern>
+</defs>
+<style>text{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;fill:#172335} .math{font-family:"Times New Roman","PingFang SC",serif} .small{fill:#55647a}</style>
+<rect width="1440" height="1680" fill="white"/>
+<text x="48" y="49" font-size="16" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">图 3  /  坐标消融与选择策略</text>
+<text x="48" y="88" font-size="30" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">时间 RoPE 与按修正方向选择 head</text>
+<text x="48" y="119" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">上：辅助参考 Attention 的时间相位补偿；下：依据局部误差与 residual 增量选择干预位置</text>
+<line x1="48" y1="140" x2="1392" y2="140" stroke="#d9e0eb" stroke-width="1.5"/>
+<rect x="48" y="162" width="1344" height="542" rx="10" fill="white" stroke="#d9e0eb" stroke-width="1"/>
+<text x="68" y="193" font-size="18" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">A</text>
+<text x="102" y="193" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">16 个时间通道对与相位补偿</text>
+<text x="72" y="230" font-size="19" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">每个 head 的 128 维 Q / K</text>
+<rect x="72" y="248" width="152.2" height="43" rx="3" fill="#c2d5ee" stroke="white" stroke-width="1"/>
+<text x="148.1" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">0–15</text>
+<text x="148.1" y="315" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">t</text>
+<rect x="227.2" y="248" width="152.2" height="43" rx="3" fill="#e2e7ec" stroke="white" stroke-width="1"/>
+<text x="303.29999999999995" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">16–31</text>
+<text x="303.29999999999995" y="315" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">h</text>
+<rect x="382.4" y="248" width="152.2" height="43" rx="3" fill="#e9ecf0" stroke="white" stroke-width="1"/>
+<text x="458.5" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">32–47</text>
+<text x="458.5" y="315" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">w</text>
+<rect x="537.5999999999999" y="248" width="152.2" height="43" rx="3" fill="#c2d5ee" stroke="white" stroke-width="1"/>
+<text x="613.6999999999999" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">48–63</text>
+<text x="613.6999999999999" y="315" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">t</text>
+<rect x="692.8" y="248" width="152.2" height="43" rx="3" fill="#e2e7ec" stroke="white" stroke-width="1"/>
+<text x="768.9" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">64–79</text>
+<text x="768.9" y="315" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">h</text>
+<rect x="848.0" y="248" width="152.2" height="43" rx="3" fill="#e9ecf0" stroke="white" stroke-width="1"/>
+<text x="924.1" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">80–95</text>
+<text x="924.1" y="315" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">w</text>
+<rect x="1003.2" y="248" width="307.4" height="43" rx="3" fill="#f4f5f8" stroke="white" stroke-width="1"/>
+<text x="1156.9" y="275" font-size="17" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">96–127</text>
+<text x="1156.9" y="315" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">未旋转</text>
+<text x="72" y="355" font-size="19" fill="#172335" font-weight="600" text-anchor="start" class="" style="fill:#172335">时间二维对：(0,48), (1,49), …, (15,63)</text>
+<rect x="72" y="373" width="26" height="25" rx="2" fill="#bad0ec" stroke="white" stroke-width="1"/>
+<rect x="72" y="459" width="26" height="25" rx="2" fill="#ebe5f5" stroke="white" stroke-width="1"/>
+<text x="85" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">0</text>
+<text x="85" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">48</text>
+<line x1="85" y1="401" x2="85" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="85" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="85" y1="428" x2="89.69686356423689" y2="426.28551096272275" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="102" y="373" width="26" height="25" rx="2" fill="#bdd2ed" stroke="white" stroke-width="1"/>
+<rect x="102" y="459" width="26" height="25" rx="2" fill="#eae4f5" stroke="white" stroke-width="1"/>
+<text x="115" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">1</text>
+<text x="115" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">49</text>
+<line x1="115" y1="401" x2="115" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="115" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="115" y1="428" x2="119.48026248762763" y2="425.7802594651724" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="132" y="373" width="26" height="25" rx="2" fill="#c0d4ee" stroke="white" stroke-width="1"/>
+<rect x="132" y="459" width="26" height="25" rx="2" fill="#e9e3f4" stroke="white" stroke-width="1"/>
+<text x="145" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">2</text>
+<text x="145" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">50</text>
+<line x1="145" y1="401" x2="145" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="145" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="145" y1="428" x2="149.20950487581135" y2="425.30183975633014" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="162" y="373" width="26" height="25" rx="2" fill="#c3d6ef" stroke="white" stroke-width="1"/>
+<rect x="162" y="459" width="26" height="25" rx="2" fill="#e8e1f4" stroke="white" stroke-width="1"/>
+<text x="175" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">3</text>
+<text x="175" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">51</text>
+<line x1="175" y1="401" x2="175" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="175" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="175" y1="428" x2="178.88786359375464" y2="424.85603487990767" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="192" y="373" width="26" height="25" rx="2" fill="#c5d8ef" stroke="white" stroke-width="1"/>
+<rect x="192" y="459" width="26" height="25" rx="2" fill="#e7e0f3" stroke="white" stroke-width="1"/>
+<text x="205" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">4</text>
+<text x="205" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">52</text>
+<line x1="205" y1="401" x2="205" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="205" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="205" y1="428" x2="208.51922657826117" y2="424.448233637912" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="222" y="373" width="26" height="25" rx="2" fill="#c8daf0" stroke="white" stroke-width="1"/>
+<rect x="222" y="459" width="26" height="25" rx="2" fill="#e6dff2" stroke="white" stroke-width="1"/>
+<text x="235" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">5</text>
+<text x="235" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">53</text>
+<line x1="235" y1="401" x2="235" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="235" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="235" y1="428" x2="238.10804984135333" y2="424.08336545186256" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="252" y="373" width="26" height="25" rx="2" fill="#cbdcf1" stroke="white" stroke-width="1"/>
+<rect x="252" y="459" width="26" height="25" rx="2" fill="#e4ddf2" stroke="white" stroke-width="1"/>
+<text x="265" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">6</text>
+<text x="265" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">54</text>
+<line x1="265" y1="401" x2="265" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="265" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="265" y1="428" x2="267.6593036068718" y2="423.7658407769099" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="282" y="373" width="26" height="25" rx="2" fill="#cedef2" stroke="white" stroke-width="1"/>
+<rect x="282" y="459" width="26" height="25" rx="2" fill="#e3dcf1" stroke="white" stroke-width="1"/>
+<text x="295" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">7</text>
+<text x="295" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">55</text>
+<line x1="295" y1="401" x2="295" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="295" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="295" y1="428" x2="297.17841223138356" y2="423.49949778911747" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="312" y="373" width="26" height="25" rx="2" fill="#d1e0f3" stroke="white" stroke-width="1"/>
+<rect x="312" y="459" width="26" height="25" rx="2" fill="#e2daf1" stroke="white" stroke-width="1"/>
+<text x="325" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">8</text>
+<text x="325" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">56</text>
+<line x1="325" y1="401" x2="325" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="325" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="325" y1="428" x2="326.6711886356225" y2="423.2875559903415" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="342" y="373" width="26" height="25" rx="2" fill="#d4e1f3" stroke="white" stroke-width="1"/>
+<rect x="342" y="459" width="26" height="25" rx="2" fill="#e1d9f0" stroke="white" stroke-width="1"/>
+<text x="355" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">9</text>
+<text x="355" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">57</text>
+<line x1="355" y1="401" x2="355" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="355" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="355" y1="428" x2="356.1437640390423" y2="423.1325772915234" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="372" y="373" width="26" height="25" rx="2" fill="#d6e3f4" stroke="white" stroke-width="1"/>
+<rect x="372" y="459" width="26" height="25" rx="2" fill="#e0d8f0" stroke="white" stroke-width="1"/>
+<text x="385" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">10</text>
+<text x="385" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">58</text>
+<line x1="385" y1="401" x2="385" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="385" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="385" y1="428" x2="385.6025138468368" y2="423.03643504481204" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="402" y="373" width="26" height="25" rx="2" fill="#d9e5f5" stroke="white" stroke-width="1"/>
+<rect x="402" y="459" width="26" height="25" rx="2" fill="#dfd6ef" stroke="white" stroke-width="1"/>
+<text x="415" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">11</text>
+<text x="415" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">59</text>
+<line x1="415" y1="401" x2="415" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="415" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="415" y1="428" x2="415.05398058529136" y2="423.00029139885015" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="432" y="373" width="26" height="25" rx="2" fill="#dce7f6" stroke="white" stroke-width="1"/>
+<rect x="432" y="459" width="26" height="25" rx="2" fill="#ded5ef" stroke="white" stroke-width="1"/>
+<text x="445" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">12</text>
+<text x="445" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">60</text>
+<line x1="445" y1="401" x2="445" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="445" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="445" y1="428" x2="444.50479481700637" y2="423.0245832509491" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="462" y="373" width="26" height="25" rx="2" fill="#dfe9f6" stroke="white" stroke-width="1"/>
+<rect x="462" y="459" width="26" height="25" rx="2" fill="#ddd4ee" stroke="white" stroke-width="1"/>
+<text x="475" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">13</text>
+<text x="475" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">61</text>
+<line x1="475" y1="401" x2="475" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="475" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="475" y1="428" x2="473.9615949919561" y2="423.10901696595977" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="492" y="373" width="26" height="25" rx="2" fill="#e2ebf7" stroke="white" stroke-width="1"/>
+<rect x="492" y="459" width="26" height="25" rx="2" fill="#dcd2ee" stroke="white" stroke-width="1"/>
+<text x="505" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">14</text>
+<text x="505" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">62</text>
+<line x1="505" y1="401" x2="505" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="505" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="505" y1="428" x2="503.43094720320556" y2="423.2525719256769" stroke="#246ac4" stroke-width="1.5"/>
+<rect x="522" y="373" width="26" height="25" rx="2" fill="#e5edf8" stroke="white" stroke-width="1"/>
+<rect x="522" y="459" width="26" height="25" rx="2" fill="#dbd1ed" stroke="white" stroke-width="1"/>
+<text x="535" y="391" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">15</text>
+<text x="535" y="477" font-size="12" fill="#172335" font-weight="400" text-anchor="middle" class="" style="fill:#172335">63</text>
+<line x1="535" y1="401" x2="535" y2="453" stroke="#87addf" stroke-width="1.3"/>
+<circle cx="535" cy="428" r="7" fill="white" stroke="#6697d6" stroke-width="1"/>
+<line x1="535" y1="428" x2="532.9192658172643" y2="423.4535128658716" stroke="#246ac4" stroke-width="1.5"/>
+<text x="72" y="522" font-size="16" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">每一对按 ωb · t 旋转；h / w 通道保持原值。</text>
+<text x="72" y="549" font-size="16" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">固定原点差 Δ 来自 PackedLayout 的实际位置坐标。</text>
+<circle cx="699" cy="430" r="65" fill="white" stroke="#d9e0eb" stroke-width="1.5"/>
+<line x1="626" y1="430" x2="772" y2="430" stroke="#d9e0eb" stroke-width="1"/>
+<line x1="699" y1="357" x2="699" y2="503" stroke="#d9e0eb" stroke-width="1"/>
+<line x1="699" y1="430" x2="751.2728251512892" y2="416.6525563982185" stroke="#246ac4" stroke-width="2.8"/>
+<circle cx="751.2728251512892" cy="416.6525563982185" r="3.4" fill="#246ac4" stroke="#246ac4" stroke-width="1"/>
+<line x1="699" y1="430" x2="689.38362529771" y2="376.91395816615113" stroke="#df8423" stroke-width="2.8"/>
+<circle cx="689.38362529771" cy="376.91395816615113" r="3.4" fill="#df8423" stroke="#df8423" stroke-width="1"/>
+<text x="759.2728251512892" y="421.6525563982185" font-size="15" fill="#246ac4" font-weight="600" text-anchor="start" class="" style="fill:#246ac4">K</text>
+<text x="679.38362529771" y="369.91395816615113" font-size="15" fill="#df8423" font-weight="600" text-anchor="start" class="" style="fill:#df8423">Q</text>
+<text x="699" y="527" font-size="17" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">原始相位</text>
+<circle cx="921" cy="430" r="65" fill="white" stroke="#d9e0eb" stroke-width="1.5"/>
+<line x1="848" y1="430" x2="994" y2="430" stroke="#d9e0eb" stroke-width="1"/>
+<line x1="921" y1="357" x2="921" y2="503" stroke="#d9e0eb" stroke-width="1"/>
+<line x1="921" y1="430" x2="973.2728251512892" y2="416.6525563982185" stroke="#246ac4" stroke-width="2.8"/>
+<circle cx="973.2728251512892" cy="416.6525563982185" r="3.4" fill="#246ac4" stroke="#246ac4" stroke-width="1"/>
+<line x1="921" y1="430" x2="911.38362529771" y2="376.91395816615113" stroke="#df8423" stroke-width="2.8"/>
+<circle cx="911.38362529771" cy="376.91395816615113" r="3.4" fill="#df8423" stroke="#df8423" stroke-width="1"/>
+<text x="981.2728251512892" y="421.6525563982185" font-size="15" fill="#246ac4" font-weight="600" text-anchor="start" class="" style="fill:#246ac4">K</text>
+<text x="901.38362529771" y="369.91395816615113" font-size="15" fill="#df8423" font-weight="600" text-anchor="start" class="" style="fill:#df8423">Q</text>
+<line x1="921" y1="430" x2="966.7094132391738" y2="401.34250462216835" stroke="#7954bd" stroke-width="2.8"/>
+<circle cx="966.7094132391738" cy="401.34250462216835" r="3.4" fill="#7954bd" stroke="#7954bd" stroke-width="1"/>
+<text x="972.7094132391738" y="391.34250462216835" font-size="17" fill="#7954bd" font-weight="600" text-anchor="start" class="" style="fill:#7954bd">Q̃</text>
+<path d="M913.4691041488089 388.42659374457617 A42.25 42.25 0 0 1 956.7965284403168 407.5573831378427" stroke="#7954bd" stroke-width="1.5" fill="none" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<text x="921" y="527" font-size="17" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">全频补偿</text>
+<circle cx="1179" cy="430" r="65" fill="white" stroke="#d9e0eb" stroke-width="1.5"/>
+<line x1="1106" y1="430" x2="1252" y2="430" stroke="#d9e0eb" stroke-width="1"/>
+<line x1="1179" y1="357" x2="1179" y2="503" stroke="#d9e0eb" stroke-width="1"/>
+<line x1="1179" y1="430" x2="1231.2728251512892" y2="416.6525563982185" stroke="#246ac4" stroke-width="2.8"/>
+<circle cx="1231.2728251512892" cy="416.6525563982185" r="3.4" fill="#246ac4" stroke="#246ac4" stroke-width="1"/>
+<line x1="1179" y1="430" x2="1169.3836252977098" y2="376.91395816615113" stroke="#df8423" stroke-width="2.8"/>
+<circle cx="1169.3836252977098" cy="376.91395816615113" r="3.4" fill="#df8423" stroke="#df8423" stroke-width="1"/>
+<text x="1239.2728251512892" y="421.6525563982185" font-size="15" fill="#246ac4" font-weight="600" text-anchor="start" class="" style="fill:#246ac4">K</text>
+<text x="1159.3836252977098" y="369.91395816615113" font-size="15" fill="#df8423" font-weight="600" text-anchor="start" class="" style="fill:#df8423">Q</text>
+<line x1="1179" y1="430" x2="1207.2355930700264" y2="384.02877221583185" stroke="#7954bd" stroke-width="2.8"/>
+<circle cx="1207.2355930700264" cy="384.02877221583185" r="3.4" fill="#7954bd" stroke="#7954bd" stroke-width="1"/>
+<text x="1213.2355930700264" y="374.02877221583185" font-size="17" fill="#7954bd" font-weight="600" text-anchor="start" class="" style="fill:#7954bd">Q̃</text>
+<path d="M1171.469104148809 388.42659374457617 A42.25 42.25 0 0 1 1201.1122114403822 393.99843607263944" stroke="#7954bd" stroke-width="1.5" fill="none" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<text x="1179" y="527" font-size="17" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">部分频带补偿</text>
+<text x="921" y="567" font-size="25" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">Q̃b = R(−ωb Δ) Qb</text>
+<text x="1179" y="567" font-size="24" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">Q̃b = R(−gb ωb Δ) Qb</text>
+<rect x="72" y="592" width="1296" height="80" rx="6" fill="#f7f9fc" stroke="none" stroke-width="1"/>
+<text x="91" y="622" font-size="17" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">相位补偿只用于额外的 T query → R keys 计算；原主 Attention 使用原始 Q / K。</text>
+<text x="91" y="651" font-size="17" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">gb ∈ [0,1] 控制每个时间频带。全频版本已有实现，部分频带属于待选消融。</text>
+<rect x="48" y="726" width="1344" height="876" rx="10" fill="white" stroke="#d9e0eb" stroke-width="1"/>
+<text x="68" y="757" font-size="18" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">B</text>
+<text x="102" y="757" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">以固定网格特征变化与同时间状态选择修正</text>
+<rect x="72" y="785" width="232" height="64" rx="6" fill="#f0f5fb" stroke="#acc6e9" stroke-width="1"/>
+<text x="188.0" y="811" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">原 Attention 输出</text>
+<text x="188.0" y="834" font-size="14" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">各 head 的 Value 加权和</text>
+<rect x="342" y="785" width="228" height="64" rx="6" fill="#f6f3fa" stroke="#ccbee6" stroke-width="1"/>
+<text x="456.0" y="811" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">out_proj ＋ gate</text>
+<text x="456.0" y="834" font-size="14" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">投影到 residual 坐标</text>
+<rect x="608" y="785" width="444" height="64" rx="6" fill="#fdf6f0" stroke="#f3d0ab" stroke-width="1"/>
+<text x="830.0" y="811" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">Y：Attention residual 更新后</text>
+<text x="830.0" y="834" font-size="14" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">在这里测量；参考状态在本次选择中固定</text>
+<rect x="1090" y="785" width="278" height="64" rx="6" fill="#f0f5fb" stroke="#acc6e9" stroke-width="1"/>
+<text x="1229.0" y="811" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">FFN</text>
+<text x="1229.0" y="834" font-size="14" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">测量发生在 FFN 之前</text>
+<line x1="308" y1="817" x2="335" y2="817" stroke="#55647a" stroke-width="1.8" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<line x1="574" y1="817" x2="601" y2="817" stroke="#55647a" stroke-width="1.8" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<line x1="1056" y1="817" x2="1083" y2="817" stroke="#55647a" stroke-width="1.8" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<text x="720" y="884" font-size="23" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">实际修正增量：rh = gate ⊙ WO,h · δoh</text>
+<line x1="72" y1="908" x2="1368" y2="908" stroke="#d9e0eb" stroke-width="1.5"/>
+<text x="76" y="945" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">候选层 × Attention heads</text>
+<text x="76" y="974" font-size="16" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">逐层决策；每次只合并同一层的增量</text>
+<text x="97" y="1037" font-size="15" fill="#55647a" font-weight="400" text-anchor="end" class="" style="fill:#55647a">ℓ0</text>
+<rect x="111" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="141" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="171" y="1014" width="26" height="31" rx="3" fill="#b39ed9" stroke="white" stroke-width="1"/>
+<circle cx="184" cy="1029" r="3.5" fill="white" stroke="white" stroke-width="1"/>
+<rect x="201" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="231" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="261" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="291" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="321" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="351" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="381" y="1014" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<text x="97" y="1073" font-size="15" fill="#55647a" font-weight="400" text-anchor="end" class="" style="fill:#55647a">ℓ1</text>
+<rect x="111" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="141" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="171" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="201" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="231" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="261" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="291" y="1050" width="26" height="31" rx="3" fill="#b39ed9" stroke="white" stroke-width="1"/>
+<circle cx="304" cy="1065" r="3.5" fill="white" stroke="white" stroke-width="1"/>
+<rect x="321" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="351" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="381" y="1050" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<text x="97" y="1109" font-size="15" fill="#55647a" font-weight="400" text-anchor="end" class="" style="fill:#55647a">ℓ2</text>
+<rect x="111" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="141" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="171" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="201" y="1086" width="26" height="31" rx="3" fill="#b39ed9" stroke="white" stroke-width="1"/>
+<circle cx="214" cy="1101" r="3.5" fill="white" stroke="white" stroke-width="1"/>
+<rect x="231" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="261" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="291" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="321" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="351" y="1086" width="26" height="31" rx="3" fill="#b39ed9" stroke="white" stroke-width="1"/>
+<circle cx="364" cy="1101" r="3.5" fill="white" stroke="white" stroke-width="1"/>
+<rect x="381" y="1086" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<text x="97" y="1145" font-size="15" fill="#55647a" font-weight="400" text-anchor="end" class="" style="fill:#55647a">ℓ3</text>
+<rect x="111" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="141" y="1122" width="26" height="31" rx="3" fill="#b39ed9" stroke="white" stroke-width="1"/>
+<circle cx="154" cy="1137" r="3.5" fill="white" stroke="white" stroke-width="1"/>
+<rect x="171" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="201" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="231" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="261" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="291" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="321" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="351" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="381" y="1122" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<text x="97" y="1181" font-size="15" fill="#55647a" font-weight="400" text-anchor="end" class="" style="fill:#55647a">ℓ4</text>
+<rect x="111" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="141" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="171" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="201" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="231" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="261" y="1158" width="26" height="31" rx="3" fill="#b39ed9" stroke="white" stroke-width="1"/>
+<circle cx="274" cy="1173" r="3.5" fill="white" stroke="white" stroke-width="1"/>
+<rect x="291" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="321" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="351" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<rect x="381" y="1158" width="26" height="31" rx="3" fill="#edf1f6" stroke="white" stroke-width="1"/>
+<text x="124" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">0</text>
+<text x="154" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">1</text>
+<text x="184" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">2</text>
+<text x="214" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">3</text>
+<text x="244" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">4</text>
+<text x="274" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">5</text>
+<text x="304" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">6</text>
+<text x="334" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">7</text>
+<text x="364" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">8</text>
+<text x="394" y="1002" font-size="12" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">9</text>
+<text x="80" y="1230" font-size="15" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">紫色：sh &gt; 0 且匹配可靠的候选修正</text>
+<text x="80" y="1258" font-size="15" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">每层的原 Attention 与 FFN 正常执行。</text>
+<line x1="435" y1="1105" x2="473" y2="1105" stroke="#55647a" stroke-width="2" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<text x="494" y="945" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">固定读出、空间对应与差分算子</text>
+<text x="494" y="984" font-size="25" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">HT = P(YT)； HR = W P(YR)</text>
+<text x="494" y="1016" font-size="16" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">P：共享线性投影；W：局部窗口内固定对应</text>
+<text x="494" y="1043" font-size="16" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">D：固定网格、按实际物理时间间隔求差分</text>
+<text x="494" y="1090" font-size="25" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">e0 = √λ0 (HT − HR)</text>
+<text x="494" y="1128" font-size="25" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">e1 = √λ1 D(HT − HR)</text>
+<text x="494" y="1164" font-size="24" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">e = (e0, e1)</text>
+<text x="494" y="1208" font-size="23" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">gh = (√λ0 P(rh),  √λ1 D P(rh))</text>
+<text x="494" y="1250" font-size="24" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">sh = −⟨e, gh⟩ ；选择 sh &gt; 0</text>
+<text x="1203" y="945" font-size="19" fill="#172335" font-weight="650" text-anchor="middle" class="" style="fill:#172335">冻结局部代理</text>
+<text x="1203" y="975" font-size="18" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">选择强度 α</text>
+<line x1="1085" y1="1195" x2="1330" y2="1195" stroke="#55647a" stroke-width="1.5" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<line x1="1085" y1="1195" x2="1085" y2="1020" stroke="#55647a" stroke-width="1.5" marker-end="url(#03_rope_and_head_selection_arrow)"/>
+<path d="M1085.00 1108.86 L1088.59 1113.29 L1092.19 1117.57 L1095.78 1121.69 L1099.38 1125.67 L1102.97 1129.48 L1106.56 1133.15 L1110.16 1136.66 L1113.75 1140.02 L1117.34 1143.22 L1120.94 1146.28 L1124.53 1149.17 L1128.12 1151.92 L1131.72 1154.51 L1135.31 1156.95 L1138.91 1159.24 L1142.50 1161.37 L1146.09 1163.36 L1149.69 1165.18 L1153.28 1166.86 L1156.88 1168.38 L1160.47 1169.75 L1164.06 1170.96 L1167.66 1172.03 L1171.25 1172.93 L1174.84 1173.69 L1178.44 1174.29 L1182.03 1174.74 L1185.62 1175.04 L1189.22 1175.19 L1192.81 1175.18 L1196.41 1175.01 L1200.00 1174.70 L1203.59 1174.23 L1207.19 1173.61 L1210.78 1172.83 L1214.38 1171.91 L1217.97 1170.83 L1221.56 1169.59 L1225.16 1168.20 L1228.75 1166.66 L1232.34 1164.97 L1235.94 1163.13 L1239.53 1161.13 L1243.12 1158.97 L1246.72 1156.67 L1250.31 1154.21 L1253.91 1151.60 L1257.50 1148.83 L1261.09 1145.92 L1264.69 1142.85 L1268.28 1139.62 L1271.88 1136.25 L1275.47 1132.72 L1279.06 1129.03 L1282.66 1125.20 L1286.25 1121.21 L1289.84 1117.07 L1293.44 1112.77 L1297.03 1108.32 L1300.62 1103.72 L1304.22 1098.97 L1307.81 1094.06 L1311.41 1089.00 L1315.00 1083.78" stroke="#7954bd" stroke-width="3" fill="none"/>
+<circle cx="1190.8" cy="1175.2" r="5" fill="#df8423" stroke="white" stroke-width="1.5"/>
+<line x1="1190.8" y1="1183.2" x2="1190.8" y2="1195" stroke="#df8423" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="1190.8" y="1220" font-size="21" fill="#df8423" font-weight="400" text-anchor="middle" class="math" style="fill:#df8423">α*</text>
+<text x="1329" y="1220" font-size="21" fill="#55647a" font-weight="400" text-anchor="end" class="math" style="fill:#55647a">α</text>
+<text x="1205" y="1253" font-size="22" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">E(α) = ½ ‖e + αg‖²</text>
+<rect x="72" y="1301" width="1296" height="113" rx="5" fill="#f7f9fc" stroke="none" stroke-width="1"/>
+<text x="720" y="1337" font-size="23" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">同层合并：r = Σh rh，g = Σh gh</text>
+<text x="720" y="1384" font-size="27" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">α* = clip( −⟨e, g⟩ / ‖g‖²,  0,  αmax )，  0 ≤ α ≤ αmax ≤ 1</text>
+<text x="88" y="1452" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">同时间状态项 e0 提供时间相位锚点；固定网格变化项 e1 比较局部时间变化。</text>
+<text x="88" y="1485" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">P、W、D 与可信区域在本次计算中固定；‖g‖ = 0 时取 α = 0，所得强度精确最小化该局部二次目标。</text>
+<text x="88" y="1518" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">需要验证：跨角色的比例、纹理和身份差异对这个特征代理的影响。</text>
+<text x="88" y="1570" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">后续位移版：局部 Q/K soft matching ＋ Jacobian；在 sampled queries 上复核局部误差。</text>
+<line x1="48" y1="1631" x2="1392" y2="1631" stroke="#d9e0eb" stroke-width="1.5"/>
+<text x="48" y="1659" font-size="14" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">机制示意，非实测 attention。选择规则为候选；局部代理与最终动作时序的关系待实测。</text>
+</svg>

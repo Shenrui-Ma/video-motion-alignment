@@ -1,0 +1,59 @@
+校准误差余量停止规则：有界直接近邻审查
+日期：2026-10-16。仅研究新停止条件，不改代码、不启动GPU。当前R12的内部停止读数2与独立pose约4帧不一致，构成开发动机，不构成稳定偏差估计。
+
+1. 候选的准确含义与代数边界
+
+令 d_k 是当前实际状态的 native clean endpoint 的独立物理时延，dhat_k 是冻结latent观察器读数。经验误差余量 b_k>=0。拟停止条件为：观察有效，且 |dhat_k|+b_k<=epsilon，epsilon=2帧。这来自三角不等式：若确有 |d_k−dhat_k|<=b_k，才可推出 |d_k|<=2。
+
+这是一个集合包含判据：I_k=[dhat_k−b_k,dhat_k+b_k]完全位于[-2,2]。非对称误差可用[dhat_k−b_minus,dhat_k+b_plus]，但新增估计必须另行冻结；本轮不建议顺便增加自由度。
+
+关键：若b_k恒为同一个b，该条件严格等价于 |dhat_k|<=2−b。它是阈值收紧，不是新架构，也不是独立新原语。b=2等价于仅零读数可停止；b>2则没有可认证停止点。不能把负阈值截成零后仍声称保留原误差界。若只是从本次“2对应4”定b=2，是事后开发参数，不能反称校准保证。
+
+此式最多约束当前native端点。它不自动约束停止引导后的最终成片；后续Euler轨迹、模型误差、停止改变的状态分布仍存在。若要主张最终成片容差，校准目标必须明确是该策略下的最终误差或更强的轨迹对象，不能把当前端点保证偷换为最终结果保证。
+
+2. 五个直接机制近邻（原文或官方实现）
+
+(1) MotionEcho，arXiv:2506.19348v2，§3.4、Algorithm1。
+https://arxiv.org/html/2506.19348v2#S3.SS4
+原机制：移动平均运动损失超过delta1时启用教师；教师过程的运动损失低于delta2时提前截断。论文把delta2称confidence threshold，但所读公式没有把这个词定义为经独立校准得到的物理帧误差上界。已有运动误差驱动的启停与条件计算；不能把“有把握才停止”作为首次概念。当前可区别对象是encoder-aware物理lag的校准残差、明确拒判及逐例停止可靠性，须以实验成立。作者页仍列Code(Coming soon)，本条核论文，不假称审过完整代码。
+https://euminds.github.io/motionecho/
+
+(2) Adaptive Guidance，arXiv:2312.12487v1，Eq7、§5。
+https://arxiv.org/html/2312.12487v1
+原机制：条件/无条件预测的cosine相关gamma_t跨过gamma_bar后，余下步骤省去CFG，只使用条件预测。停止时刻由种子/条件决定，阈值控制质量与计算。它不是外部物理误差区间校准；但“改变停止阈值以保守地保质量”已被直接覆盖。常数b方案应承认属于这类阈值政策，不因换成视频lag就称新的动态控制原理。本次核全文§4.2/5，未验证独立官方执行代码。
+
+(3) Opening the Black Box of Classifier-Free Guidance via Information Bottleneck，arXiv:2610.13369v1，§4 Eq26–27、Algorithm1。
+https://arxiv.org/html/2610.13369v1
+原机制：DeltaJhat=mean||s_cond||²−mean||s_uncond||²，首次反向扫描满足DeltaJhat>=n/(m(t)beta*)后开启CFG并继续。属于带理论动机的代理统计阈值与随机启用时间；不是用校准集建立视频lag的误差上界，也不是反复停止/重开。不能借“stopping time”一词把它当对最后输出误差的概率保证。我们的余量并不来自IB推导，不能声称直接改进其信息论界。本次核公式/伪代码；未声称核到作者公开完整代码。
+
+(4) Constrained Diffusion with Trust Sampling，NeurIPS2024 / arXiv:2411.10932v1，§3.1–3.3 Eq8–9、Algorithm1。
+https://arxiv.org/html/2411.10932v1
+原机制区分真实目标E[f(x0)]和proxy f(E[x0])；曲率条件给出误差与方差的上下界。实际用trust schedule限制梯度次数，且预测噪声范数越界停止；范数阈值由无约束样本观察设定。官方固定commit diffusion.py约437–477确有重预测、范数门、越界样本梯度清零。直接重叠的是“估计代理可信程度并据此终止引导”，而非我们的物理lag残差区间。其边界保护状态流形；我们拟证明已足够接近参考动作，停止目的不同。
+https://github.com/will-s-h/trust-sampling/blob/04fc14452b512426fd09e00c2047b3855f6edb1f/diffusion/diffusion.py#L437
+
+(5) Conformalized Rate-Adaptive Sensing（CoRAS），arXiv:2607.26887v1，§4.2 Eq18、Theorem2。
+https://arxiv.org/html/2607.26887v1#S4.SS2
+先从早期重建路径预测达到目标质量的时间，再用校准残差构造可接受时间集合，取最大保留时间 U=max{t:p(t)>alpha}。其最终误差保证需要exchangeability、对称校准以及误差沿采样率几乎处处单调不增。我们观察到非单调轨迹/重影，不满足可直接搬用的前提；其任务也不是视频去噪引导。官方run_fashion_coras.py明确分calibration/test，并分别报告stopping_coverage与actual_loss_success。这是“校准后保守停止”的强近邻，不是我们的精确同构实现。
+https://github.com/jiawei-yang05/Conformalized_Rate_Adaptive_Sensing
+https://raw.githubusercontent.com/jiawei-yang05/Conformalized_Rate_Adaptive_Sensing/main/scripts/run_fashion_coras.py
+所读实现范围：该入口的oracle_indices、metrics、calibration/test拆分与full_conformal调用；没有运行其项目或假称审遍hv_conformal内部。
+
+3. 经验边界与概率保证必须分开
+
+a. calibration应以独立clip/身份/seed或明确分组为单位。一个视频的多个时间步、同源身份替换、同一段shift合成样本高度相关，不能按几十个独立样本算覆盖率。真实参考原片的已知平移可校准encoder/读取几何，不能自动校准生成中间态与pose之间的语义误差。
+b. 平均误差/RMSE不是上界；有限样本max也是经验最大值，不是未来确定界。单纯取分位数仍需声明数据假设与有限样本处理。
+c. 同一视频反复看多个steps并据其选择停止产生选择偏差。每step边际覆盖不等于整个自适应停止策略覆盖；不应把逐步误差条称anytime guarantee。用开发集选余量后再在同组视频宣称coverage属于复用证据。
+d. 当前观察器unknown/多峰/形状不匹配不能设为零误差或从分母删除；应单列拒判。余量仅覆盖“有效对应存在”时的标量误差，不能修复动作不存在或错误对应。
+e. runtime、VAE相位、sigma和策略变化都可能改变误差分布。不能把干净source校准余量无条件移植到early x0。R12单例足以推翻“内部2必然外部<=2”，不足以证明固定+2对所有状态成立。
+
+4. 最小开发验证与可主张范围
+
+先由critic完成已有校准数据盘点，在看新增成片前冻结：余量来源/有效样本单位/目标端点/unknown策略及所有数据排除理由。若只有同一已挑出的失败例，明确标development，不标held-out。
+
+最低成本先回放既有决策读数，仅比较原规则和预定余量规则会在哪些点选择不同；在已有对应独立pose上标false-safe-stop（规则判断可停，外部误差>2）与无法核验。离线回放不能模拟后续状态因改策略而变化，不能替代因果推理实验。
+
+如进入单次新开发运行，必须保留原R12，以及数学等价的收紧阈值基线；常数b与2−b结果本应完全一致，若不一致说明实现/状态处理不同。对instance-dependent b，才有必要额外比较同开发数据选出的常数保守阈值、固定启用范围和matched intervention-count对照；记录外部lag/shape/coverage、重影与身份保真。不能只证明多施加几次Full会改善时延，就把收益归于校准。
+
+潜在可贡献点是：给定冻结视频编辑器和编码相位，建立能在未见片段上识别false-safe-stop的低成本、有效域明确的观察器校准，并证明它比固定保守阈值更少误停/伤害。它可以与已知路由、评估协议组合形成贡献；仅添加固定余量仍是工程开发改进。并不保证前者成立，当前不支持新架构或概率安全停止claim。
+
+本次范围仅核上述5个最直接机制；搜索包含diffusion guidance calibrated/uncertainty stopping、Trust Sampling、MotionEcho及conformal stopping，优先原文与作者代码。未在这些精确范围读到“冻结H3 native物理lag加经验余量停止”的完整实现；这是未查到，不是不存在证明。无新增GPU、无代码或冻结协议变更。

@@ -1,0 +1,239 @@
+{
+  "schema": "r98-user-condition-confusion-audit-v1",
+  "created_utc": "2026-10-18T17:28:24.036796+00:00",
+  "conclusion": "R98第三列为0次时序引导的新版普通编辑；旧普通编辑也为0次。未发现实际图/路由日志/成片SHA映射将持续引导放入第三列的证据。",
+  "actual_execution": {
+    "old_native": {
+      "NFE": 20,
+      "Euler_updates": 20,
+      "mode": "native",
+      "routed_calls": 0,
+      "routed_by_forward": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "new_native": {
+      "NFE": 20,
+      "Euler_updates": 20,
+      "mode": "native",
+      "routed_calls": 0,
+      "routed_by_forward": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "native_mode_explanation": {
+    "source_file": "/Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019/extensions/H3TemporalRouter/core.py",
+    "lines": [
+      222,
+      223,
+      224,
+      413,
+      417,
+      418,
+      419
+    ],
+    "meaning": "mode=native在完整attention计算后直接返回；step范围0..20和alpha1只保存节点配置，未进入mass_preserve/hard_route分支。1000 native_override_calls=20步×50层的完整attention调用，不是1000次时序修正。"
+  },
+  "graph_diff_counts": {
+    "administrative": 13,
+    "prompt_scientific_change": 1
+  },
+  "unchanged_model_sampler_and_input_nodes": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+      }
+    },
+    "41": {
+      "class_type": "MiniMaxH3SigmaShift",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "shift_video": 12.0,
+        "shift_audio": 3.0
+      }
+    },
+    "7": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "52",
+          0
+        ],
+        "conditioning": [
+          "51",
+          0
+        ]
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "ManualSigmas",
+      "inputs": {
+        "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+      }
+    },
+    "21": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "target_game_man_4.jpg"
+      }
+    },
+    "22": {
+      "class_type": "LoadVideo",
+      "inputs": {
+        "file": "source_human2animal_1_video.mp4"
+      }
+    },
+    "23": {
+      "class_type": "GetVideoComponents",
+      "inputs": {
+        "video": [
+          "22",
+          0
+        ]
+      }
+    }
+  },
+  "unchanged_other_axes": {
+    "seed": 2026101701,
+    "geometry": [
+      1152,
+      768,
+      158
+    ],
+    "fps": 24,
+    "valid_frames": 147,
+    "image_then_video_reference": true,
+    "Qwen_semantic_fps": 2,
+    "Qwen_phase_frames": 0,
+    "reference_image_size": "match",
+    "turbo_lora_nodes": 0,
+    "online_observer": false,
+    "raw_initial_AV_noise_equal": true,
+    "numeric_source_modules_byte_equal": 6
+  },
+  "changed_variables": [
+    "prompt由原3句泛化指令改为官方六段格式，明确短黑发动漫男性、白背景、动作来源与段落",
+    "host .41 GPU2→.9 GPU3；Torch2.11/PyAV16.1→Torch2.5.1/PyAV16.0",
+    "same source bytes decoded RGB及clean VAE参考latent跨host哈希变化，幅值未读大tensor，不能声称差异为零或很小",
+    "joint Qwen条件embedding长度6736→7537，token tags和packed位置随提示上下文变化",
+    "run/cache/audit/output路径迁移；新文本条件独立生成"
+  ],
+  "causal_limit": "当前修复前后比较包含提示与运行环境变化，只能确认新版基础编辑成功和0引导事实。不能把外观改善或动作偏差全部归因于提示词，更不能作为时序方法效果。",
+  "condition_mapping": "同一目标图与视频文件进入原H3EventAuditReference→官方MiniMaxH3ReferenceToVideo；图像ref0和视频ref0分别编码，图像先于视频。输入时基、样本索引、VAE latent形状保留；实际张量差异单列。",
+  "evidence": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019/design/R66_ACTUAL/PAIR_RUNTIME_GATE.json",
+      "sha256": "e9f4d9924b693a0e4e096c9fb626b7d3a9a48df546449d9bf7e10ed1a021e326"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019/incoming/NATIVE_RUNTIME_GATE.json",
+      "sha256": "d4e824fcc279baae697b7ae1b69a2bcfa598475ea8c80fa8a2a1c84a614f23fe"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-flexiact-expanded-evaluation-r66-20261018/incoming/human2animal_1__game_man_4/native_router.json",
+      "sha256": "661249e7eef23e17c29fb68fa4bc3ce317139bd98418d90c68d7dd2368db6372"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019/audit/user_condition_confusion/new_router.json",
+      "sha256": "a2afa55774e61c877c8d6d1482a1e3ffbe4470e4f521eddce22c06195f217e8c"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019/audit/user_condition_confusion/GRAPH_DIFF.json",
+      "sha256": "b7bf8aaf2693dbea9180ad20a3202a154aa011d35a772f43df8ab73d3288ba0d"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019/audit/user_condition_confusion/CONDITION_COMPARISON.json",
+      "sha256": "2200050328d2a7571c816ad6802caba9329b84bc8bc1171de546575d84f5484e"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019/audit/user_condition_confusion/CAPTION_CHECK.json",
+      "sha256": "3c9294cb319ac19366ec2ca62269d3bdb0fde946261ba3c7df55767de24f2f59"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019/configs/runtime_kernel_hashes.json",
+      "sha256": "b1851b56c63d8822f3698b35287124664409976d077daafbd9aaf9e6829185c6"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019/extensions/H3TemporalRouter/core.py",
+      "sha256": "7a7e9c8067c9c0287659fafed06b775549aaa8cab5141c60220c0536b0eeb650"
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019/extensions/H3EventAudit/__init__.py",
+      "sha256": "4ee6b70515ac2925577b902f90786e6d632d4704dafe57b7678c8f77b9394b9f"
+    }
+  ],
+  "old_forced_context": {
+    "file": "/Users/researcher/DevProjects/h3-flexiact-character-repair-metrics-r98-20261019/audit/user_condition_confusion/R66_FORCED_LAYOUT_CONTEXT.json",
+    "sha256": "e5594e5c07525edc5be2a4d1f1bccdef4515c5d8ac8e6746440559d73b59e475"
+  }
+}

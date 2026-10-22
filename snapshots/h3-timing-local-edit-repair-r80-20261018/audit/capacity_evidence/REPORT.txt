@@ -1,0 +1,10 @@
+R80 首条容量试跑依据（只读审查）
+
+直接证据：.9 R63 两条90帧1312×736@24、20 Euler的 Native 与固定引导均success。实际 service PID5664 启动时 free24054MiB（23.49GiB），normal/reserve8、disable-dynamic-vram，与本次 .9 使用同一核心/模型路径。原 resources admission门为20GiB。
+原始位置：/data5/researcher/h3_runs/timing_ivebench_forced_r63_20261018/processes/service.json，logs/service_resource_admission.jsonl，logs/residency.jsonl，logs/comfyui.log；本目录HOST9_ACTUAL.jsonl保存本次只读取得的内容。
+实际 DiT装载：Native9120.79MB loaded、10875.36MB offloaded、918.83MB buffer；forced8569.13MB loaded、11427.02MB offloaded，同normal配置已使用层offload。两条日志耗时34m29s、31m03s。own residency离散采样最大14316MiB；这是采样值，不是torch peak，也不能作为确定容量上界。
+
+R71同.9的90帧P0/P1从49571MiB free启动，own residency采样最大35438MiB；normal配置会根据可用空间改变驻留量，因此它的高驻留量不表示最低需35GiB。R73已完成107帧Native/forced从49571MiB free启动，已有own residency采样最大31670MiB；当前仍在运行，其日志截至本次读取。这里只读有限三个目录，未取得124帧低余量完整成功证据，也没有确认独立lowvram/novram成功配方。
+
+新包建议/已获root授权：R80先short_0230 Native，在normal/reserve8、相同科学参数下以实际free≥30720MiB做受控容量试跑。这个30GiB门高于同90帧已有成功起点约6.5GiB，但本次P1文本更长，Qwen/attention序列长度和实际其他用户波动仍需本次完整运行验证。没有声称新的严格peak上界。OOM或其他失败仅保留诊断和精确释放，不自动改变分辨率、步数、精度、prompt或offload配置重试。首条出片审查后root才批准第二条。
+R78/R79/R73冻结配置未修改，所有GPU启动由root执行。

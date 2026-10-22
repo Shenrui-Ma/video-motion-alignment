@@ -1,0 +1,44 @@
+{
+  "file": "/Users/researcher/DevProjects/h3-reference-mass-diagnostic-r95-20261018/audit/NUMERICAL_AUDIT.json",
+  "cases": 48,
+  "cancellation_witness": {
+    "dtype": "torch.bfloat16",
+    "gain": 0.0001,
+    "ref_mass_mean": 0.9997968673706055,
+    "naive_formula_selected_max_abs_error": 0.61572265625,
+    "explicit_complement_selected_max_abs_error": 0.0009765625,
+    "note": "This is a controlled rounded-aggregate witness, not a model trajectory."
+  },
+  "max_errors_by_dtype": {
+    "torch.bfloat16": 0.00390625,
+    "torch.float16": 0.00048828125,
+    "torch.float32": 1.7881393432617188e-07,
+    "torch.float64": 1.214056702669719e-07
+  },
+  "rounding_witness": {
+    "dtype": "torch.bfloat16",
+    "gain": 1.001,
+    "audit": {
+      "execution_path": "positive_gain_log_coefficients",
+      "reference_gain": 1.001,
+      "alpha": 1.0,
+      "mode": "reference_group_gain",
+      "additional_attention_calls": 0,
+      "stats": {
+        "ref_mass_mean": 0.3774116635322571,
+        "ref_mass_max": 0.5424725413322449,
+        "boosted_ref_mass_mean": 0.37763893604278564,
+        "boosted_ref_mass_max": 0.5427206158638,
+        "effective_ref_mass_mean": 0.37763893604278564,
+        "original_rms": 1.0001225471496582,
+        "written_delta_rms": 0.0,
+        "written_delta_ratio": 0.0,
+        "cast_zero_change_fraction": 1.0,
+        "finite": true
+      },
+      "scope": "sampled attention before out_proj/AdaLN gate; boosted mass describes target before alpha blend"
+    },
+    "note": "Mass changes can coexist with zero written entries after the output cast."
+  },
+  "all_finite": true
+}

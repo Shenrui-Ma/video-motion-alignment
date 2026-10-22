@@ -1,0 +1,53 @@
+R72 CPU consumer — ready and passively watching
+
+Write scope: audit/consumer only; future showcase/ and Downloads delivery.
+Production seal: all 50 original frozen files remain unchanged.
+No producer start, GPU call, queue approval, admission change, service cleanup, or model change.
+
+Local + remote tests: 14 each passed. CPU_CHECKS.json records both actual source videos
+158 frames, 1152x768, PTS i/24; real ffmpeg 3-frame renderer smoke passed at3456x856.
+Smoke uses the same reference three times, stays under test_artifacts, and is excluded from showcase.
+
+Remote CPU watcher: PID531146, /proc start6766328, --watch-hours12.
+Local watcher: see LOCAL_PROCESS.json; tool session17142. Remote launcher tool session16692.
+Both bounded to12h, each has an exclusive local lock, remote verifier uses shared CPU lock.
+Status: REMOTE_PROGRESS.json / LOCAL_PROGRESS.json. Failures retained in *_FAILURE.json.
+
+Completion path:
+1. Wait for success job + actual successful history for both P0 and P1.
+2. Under shared CPU lock run frozen analysis/postrun/verify_pair.py --source <pair>.
+3. Require real R72 gate and bind output video, history, job and router hashes.
+4. Collect only final MP4 + necessary JSON; all PT/captured tensors stay remote.
+5. Local verify source/portrait/science/runtime hashes and exact output PTS.
+6. Render first147 frames (6.125s), 3 columns at1152x768, caption88pxbelow.
+   Six fixed frame indices:0,29,58,88,117,146 (same physical time in each column).
+   No per-column crop; target reference original portrait separately above video.
+7. Write single-file HTML with embedded actual videos, grids and original portraits.
+
+Fixed pairs: fitness__game_man_5 and one_leg__movie_man_9.
+Columns: 1.动作参考视频 / 2.P0 编辑后视频 / 3.P1 编辑后视频.
+P0 is the original instruction. P1 is the full H3 protocol adaptation, including
+explicit reference roles and motion description. Both are Native,0guidance calls.
+Target identity and scene come from portrait; action and timing come from source video.
+
+Future outputs:
+showcase/<pair>/{source_p0_p1_full147.mp4,six_times.png,PRESENTATION.json}
+showcase/index_singlefile.html; showcase/DELIVERY.json
+Downloads/H3_FlexiAct_两组P0_P1提示适配对照_20261018.html
+Downloads/H3_FlexiAct_<pair>_P0_P1完整147帧_20261018.mp4
+Only actual completed pairs are embedded. Pending second pair remains labelled pending.
+Visual assessment lives at showcase/<pair>/HUMAN_REVIEW.json, summary string.
+Rebuild after visual review: local presentation.py document.
+
+R69 existing passive watcher remains independent and active.
+
+Possible .9 migration (judgment only; not executed):
+Prepare a new independent producer root. Keep paired arms on the same host and share
+original AV noise within each pair. Copy exact R72 source/portrait/prompt/geometry;
+adapt root/core/Python/model paths, GPU UUID/port, peer ownership and admission using
+R71 validated .9 runtime. Verify six numerical core files and all input hashes,
+refreeze host-specific graphs/runtime/gate, then actual image+video VAE/Qwen/noise/
+20-forward capture evidence. .41 R72 stays sealed. Estimated CPU preparation and
+deployment validation20–40min.158-frame capacity and runtime still need actual first
+pair trial; R71's90-frame evidence cannot guarantee this larger case. Consumer can be
+ported by changing independent root/remote/schema while keeping147-frame protocol.

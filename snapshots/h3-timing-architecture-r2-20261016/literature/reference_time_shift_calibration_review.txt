@@ -1,0 +1,69 @@
+参考视频物理时移重编码能否校准 H3 Native 端点的时延读出
+2026-10-17。只读已有档案、原论文和作者代码；本次无新 VAE、DiT、pose 或张量评分实验。数据与代码来源、实际哈希另见同名 JSON。
+
+结论先行
+这不是未尝试的新候选。R2/CANDIDATE_LEDGER.json 的 phase_matched_reference_bank 已登记为 CPU_necessary_gate_failed_no_new_GPU；R12/analysis/phase_bank_cpu_gate 已实际测试真实 RGB 延迟 0/4/8 帧后重编码的参考库。固定 gap5 同槽评分把独立 pose 近零的 R11 端点排到 4 帧，且原 gap5 扫描更接近独立测量。因此不能直接用原评分部署，也不建议现在增加 GPU 编码。
+仍有一个零新 GPU 的可证伪复查：把真实重编码和 latent 插值放到完全相同的源事件锚点、候选集合和有效支持上，单独检查重编码是否提供信息。它只是对旧失败的混淆消融，不是新的成功方案；也无法凭 0/4/8 三候选证明 2 帧停止边界可分。
+
+一、已有实验到底支持什么
+1. 编码相位确实存在。R2/analysis/vae_temporal_controls/run1/RESULTS.json：重复恒定 RGB 的相邻 latent RMS 约 0.354554，但隔 5 个 latent 槽完全相同。实际 H3 冻结代码按独立 17 RGB 帧块编码成 5 槽，141 帧末端裁剪为 42 槽。朴素相邻差分对真实 delay4 的四窗读为 1/1/0/0，对 delay8 读为 −17/8/−17/17。此证据否定未经校准地把相邻槽差当纯运动，不证明生成延迟由编码器造成。
+2. gap5 以同相位、相隔约 17 RGB 帧的槽作有符号差分，减少固定相位干扰，却覆盖较宽时间范围。宽差分可能改变事件定位的辨别能力；在理想平移等变信号上，差分本身仍可保留位移。因此“跨度17帧”不能数学推出“必然低估2帧”，也不是固定解码延迟。
+3. R15 的独立 VAE 解码+冻结 pose 给出更直接的细边界证据。R10 固定 Full 历史上的 Native 端点 index10/11/12/13/14：内部 lag 2/1/0/0/0，方向及腕两阈值分别为 4/3/2/1/1。正常 R14 的 Native index5/10/15：内部和独立 pose 都是 −1。故存在开发轨迹上的偏差，但不存在已证实的统一 +2 校正。所有 index 均为零基物理 Euler index；R10 的这些未选 Native 预测不等于另一个停引导轨迹的未来状态。
+4. 原四窗的 unknown 必须保留：R15 窗69–81在0.5阈值均不可判；R14另有个别方向/腕 unknown。主窗结果不能替代这些格。源视频仍是同一 source05，问题种子和正常种子均已被观察过，不是独立统计校准。
+
+二、两种“参考校准 bank”不能混为一谈
+定义正 d 表示内容延后：(S_d R)[t]=R[t−d]，越界填充需标记。E 为实际冻结 VAE，B_d=E(S_d R)，Y 为当前 Native clean 预测。
+A. 直接模板匹配：argmin_d distance(F(B_d),F(Y))。旧 CPU 实验正是这一类：固定目标物理窗50–65、全画面/全通道 gap5 有符号余弦、候选0/4/8、16帧共同支持，未用填充块。
+  目标                         独立pose   B0/B4/B8分数                  原gap5
+  R2 native                    +14        .877569/.669184/.512716       +13
+  R2 Full6..14                 +2         .610359/.480992/.520626       +2
+  R11 continuous6..19          0          .626473/.525671/.546612       +1
+旧规则正确把8视为右边界/超范围不明，0也不赋予安全停止；内部4不是精确估计。R11的0候选存在且非并列，仍排4→8→0，构成近零排序反例。R2 Full的真实2处于0/4之间，不宜要求三候选给出2。RESULTS中的 necessary_failures=[] 仅针对预先定义的大延迟误接受，绝不等于观察器通过。
+B. 逆读出响应校正：先测 h_R(d)=O(E(R),E(S_dR))，再用其逆映射校正 O(E(R),Y)。现有同一份测试已经给出 h_R(0)=0、h_R(4)=4、h_R(8)=8，均按旧门 accepted。粗采样上没有待纠正的编码偏差，不能据此把 R12 原读数2映成4。缺少1/2/3帧控制、起点变化和跨身份 Native 端点上的可迁移性。非单调/多对一 h 没有唯一逆，不能强行选一个逆值。
+两种方法的自匹配都只证明管线索引。校准源编码器响应并不使 Y 自动等于 E(目标RGB)，也不消除人物外观、空间位置、背景、遮挡或非刚性动作变化。bank 不会恢复 Y 中已无可辨识信号的动作。
+
+三、为什么旧库不能直接修 R12
+旧 .41 bank 和三个旧目标实际 prepared RGB SHA 为 bc25b919266fb28d3f9cf5d1cf5a949f8e1be31d593201f5f39104032ccaa00d，clean reference raw SHA 为 cc5c11db3015fcd8bf1179d346ce1e3743e734b94382e1a77e45a49d79623cc0。
+R12/.9 实际 prepared RGB 为 1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42，reference raw SHA 为 75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734。
+同 MP4、同分辨率不等于同实际输入。既有记录含 PyAV 路径差异，但不能把所有差异归于该单因素。未有逐项匹配的 .9 真实时移编码库时，用旧库读取 R12/R14只能是另列的跨管线探索，不能充当同输入校准证据。本次不这样混用。
+
+四、最接近的原文/实现及明确重合边界
+AF-LDM（CVPR2025）：Fig.2 已有平移图像后重编码得到分数相位 latent；§3.3 Eq.4 比较真实输入平移编码与 latent 平移，以有效区 mask 训练等变性。作者 vae_trainer.py:187–210 可见两条实际路径。shift-and-reencode、相位与插值对照均非新原语。其目标是训练空间等变 VAE/U-Net；冻结 H3 时间读出校准不是其已读实现目标。此用途差异不能单独构成创新。
+论文 https://arxiv.org/html/2503.09419v1
+代码 https://github.com/SingleZombie/AFLDM/blob/main/afldm/trainers/vae_trainer.py
+
+FlowMotion（此处指 arXiv:2603.06289v2）：§3.3及作者 run.py:118–139、238–279 已用 clean/预测端点的 latent 对齐、相邻及跨帧绝对差分对齐指导运动迁移，并优化目标 latent。无需教师的 latent motion matching 已被覆盖；不能仅把差分从绝对值换成有符号值称为足够贡献。所读实现没有真实参考 RGB 时间移位重编码字典。它使用 Wan，H3 的相位反例不能直接否定其完整方法。
+论文 https://arxiv.org/html/2603.06289v2
+代码 https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+
+MOFT（NeurIPS2024）：从视频扩散内部特征减去跨帧均值，再用运动通道/主成分信息提取 motion features，并作无需训练的运动指导。作者 process.ipynb 的相关单元可见时间去均值与 PCA。去静态外观、提运动特征、以特征引导均有先例；其对象不等同于冻结视频 VAE 的物理延迟校准。若未来增加内容消除，只能当被比较的表征组件，不能据此宣称新颖。
+论文 https://arxiv.org/html/2405.14864v1
+代码 https://github.com/xizaoqu/MOFT/blob/44ec33d5eafb99a0dd18bc620dd7d5d5eed3d544/process.ipynb
+
+SPF/ReTime（SIGGRAPH2026）：SigLIP 帧间语义距离拟合单调语义进度；反演进度形成时间重参数化，通过 temporal RoPE、频段/去噪步调制实现 retiming，并可重新测量生成结果迭代。作者 spf/retime.py 显式处理物理帧到压缩 latent 坐标。测量进度→调整时间及映射压缩时间坐标已有先例；所读方法不是 current Native x0 的局部 VAE 相位库。不要与 Video-ReTime(2022)混淆。
+论文 https://arxiv.org/html/2604.22554v1
+代码 https://github.com/SagiPolaczek/semantic-progress-function/blob/bf5a388378d5153a9b25ae4a64c2de377e62f48f/spf/retime.py
+
+PhaseFusion（arXiv:2610.08649v1）：对多个稀疏视频取帧起点作推理并融合后验，是时间多相位测试时方法。不能声称首次显式枚举视频时间相位。它边缘化 VLM 的采样起点；本题却需保留真实延迟候选，盲目平均可能抹掉待测时间信息。此前 APS 的显式 polyphase 先例也已记录于旧审查，不在本次重复立项。
+论文 https://arxiv.org/html/2610.08649v1
+
+H3 实现佐证：FastVideo 维护者文档说明 clip_length 编码块独立、没有跨块状态。它是实际维护者实现资料，不冒充 MiniMax 官方理论保证；我们的结构事实仍以已冻结本地 VAE 代码及恒定RGB实验为直接依据。
+https://haoailab.com/FastVideo/api/fastvideo/models/vaes/minimax_h3_parallel/
+
+有限定向检索未找到已读材料中完全同构的“冻结 H3 物理移位编码库→Native局部lag拒判校准”；这不是不存在相关工作的证明。相似思路不必自动放弃，但必须用实证增益和组件消融支持具体贡献。
+
+五、当前最小可证伪的离线试验建议（尚未执行）
+目的仅是分离旧比较中的窗口锚点与真实重编码，不宣称解决停止观察器。
+输入复用旧 .41 B0/B4/B8/constant0，以及同实际输入的 R2 native、R2 Full6..14、R11 continuous6..19。全部已有，零新 VAE/DiT；重核 actual input、归一化、shape/finite及文件raw SHA，CPU共享锁内最多4线程。
+冻结唯一表征为现有有符号 gap5、全通道全画布，不在 ROI/通道/差分跨度中择优。D={0,4,8}，源事件 W=[50,65]。将所有评分统一为源事件锚定：对 u∈W，候选 d 比较 F(B_d)(u+d) 与 F(Y)(u+d)。同样候选下，latent插值库由 B0 在名义物理槽中心先插值得到 T_d B0，再应用同一 F；第三臂为原 gap5 的 F(B0)(u) 对 F(Y)(u+d)，只报告相同候选集。这三臂明确固定插值/差分顺序，不能把预处理差异混为编码增益。
+先依据原始帧映射、插值 stencil 和两个 gap5 端点决定所有臂/候选共同有效支持，排除受人工首尾填充影响的完整块；不得看目标误差选帧，不删内部17帧边界。若共同支持不足则如实 unknown。归档原固定目标窗结果不覆盖；新锚点是看过旧失败后提出的开发消融，须标明事后来源。
+冻结拒判：沿原 finite/能量/支持/no-clamp规则；并列/弱运动 unknown；0/8保持边界删失；内部4不给精确lag或safe_stop。全候选分数、每帧能量、排名与成本完整输出，不能用原 separated-runner-up 间距4冒充相邻1/2帧可分辨置信。
+可否决门：R11近零仍非0优先，或 constant被接受为运动，或已知14帧延后被可靠判为内部4/近零，则当前评分仍不能承担停止判定。若重编码与匹配的插值库等效，或只增加unknown，没有重编码必要性的正证据。即便近零排名改善，也仅是粗级必要门通过；必须证明收益相对同支持插值，而非只比旧不同锚点基线好。
+自然正常 R14 的已知结果始终保留为正常域锚，但其 .9 输入与旧库不符，本CPU粗消融不能为它填 bank 预测，明确记 NOT_EVALUATED_INPUT_MISMATCH，不能用经干预修好的 R11 冒充天然正常样本。没有正常例合法验证，不准宣称可部署的观察器。
+
+六、若粗门有价值，后续仍缺什么
+旧 phase_bank_minimal_protocol_review.txt 已预先设计了已知origin×delay0/2/4、整数候选库、跨身份及真实恒定负控；该矩阵没有执行，不应重复报作新设计。任何新编码由root另行决定，先做同机 B0逐位复验，再逐项复用实际 preparedRGB。重编码目标RGB与真实 Native x0 是不同域，必须最后用已有独立标签的 R10/R12边界端点和R14正常早期端点检查，不能靠源bank自匹配过关。
+最有用的后续成功判据是：减少残留4/3帧却被可靠判≤2的假安全，同时不把正常−1判成需引导；保留遮挡/周期歧义/缺测，不把unknown从分母删除。它还需同精度原gap5、相同支持的插值库及合适latent motion表征对照。只有后续闭环最终运动与外观/背景也受益，才可讨论方法组合贡献和减少decode成本；本次没有此结论。
+
+最终决策
+保留为已失败固定评分后的“源事件锚点/真实编码必要性”CPU诊断候选；不重启原bank，不扫描停止阈值，不加入GPU队列，不影响R24新源实验。当前没有证据证明bank能修正R12偏差，更没有理由把编码相位/17帧差分认作唯一原因。

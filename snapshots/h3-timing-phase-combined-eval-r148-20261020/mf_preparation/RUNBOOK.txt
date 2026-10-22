@@ -1,0 +1,40 @@
+R148 官方 MF；当前仅本地 CPU 准备，.41 重启后等待 root 实际资源交接。
+
+一次批次：short_0252 / short_0358 / long_0039 / long_0059 各新 fixed_phase，
+加 Sam source / native / fixed / fixed_phase。共 8 trackers、7 个视频分数。
+Sam source 仅跟踪一次，三版生成视频共享该源轨迹。
+四个 IVE 旧 Native/fixed 分数直接复用，不重测。
+Sam 为自定义数据，不标成 IVEBench 数据集样本；采用完全相同官方 MF 实现。
+
+1. 五组新成片验证后产生 PRESENTATION；书本使用独立恢复 gate/解码结果/release，
+其余使用 gate/COMPLETE/release。保留书本原 attempt 未完成和新增 DiT 为 0：
+python3 audit/prepare_queue.py --finalize --gpu <ROOT确认的GPU1完整UUID> --peer-root <当时实际存活的Sam或其他唯一H3 case远端根>
+没有 H3 peer 时省略 --peer-root。不可用重启前 PID/UUID 状态代替 fresh 检查。
+脚本不会启动 GPU；随后将 SEAL.json / ADMIN_DIFF.json / CPU_PREPARATION.json 给 root。
+
+2. root 审核 final seal、写 ROOT_REVIEW.json 后才上传：
+sh audit/UPLOAD_AFTER_REVIEW.sh
+只传清单内代码、小证据、新 score 视图；已有 runtime、四份源轨迹和新 full 视频在远端绑定。
+target CPU 会逐 SHA、checkpoint、有效帧/PTS/像素核查。
+
+3. root 确认重启后保护服务/peer健康及资源许可，实际启动：
+ssh H3_SERVER_B
+cd /data4/researcher/h3_runs/timing_phase_combined_mf_r148_20261020
+MF_GPU=$(/data3/researcher/ComfyUI/.venv/bin/python -c 'import json;print(json.load(open("configs/RUNTIME.json"))["gpu"])')
+CUDA_VISIBLE_DEVICES="$MF_GPU" PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python -c 'import sys;sys.path.insert(0,"scripts");from common import resource_check;import os;print(resource_check(os.environ["CUDA_VISIBLE_DEVICES"]))'
+nohup env CUDA_VISIBLE_DEVICES="$MF_GPU" PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python scripts/run_batch.py --attempt actual_context_mf_attempt1 --gpu "$MF_GPU" --review ROOT_REVIEW.json > audit/actual_context_mf_attempt1.log 2>&1 < /dev/null &
+
+单卡串行；原 GPU free>=40GiB、主机>=32GiB、cgroup高/硬限制余量/PSI门保持。
+两张研究卡总上限、精确 PID/start/UID peer 登记、保护服务只读与每 tracker 回收保持。
+目标卡双N/A拒绝；非目标双N/A逐行记录，不被称为释放证据。
+
+4. wrapper 真正退出后只读最终释放核验：
+PYTHONDONTWRITEBYTECODE=1 /data3/researcher/ComfyUI/.venv/bin/python audit/final_release.py --attempt actual_context_mf_attempt1
+本地回收：
+python3 audit/collect.py
+
+耗时依据：此前 .41 相同官方 tracker 的实际 tracking_seconds 约0.76–0.94秒，
+单 tracker 包含载入的 REPORT.wall_seconds 约5.9–7.3秒（98–144帧）。
+8 trackers 模型工作约50–65秒；加像素/全文件hash、CPU matching、进程释放与回收，
+预计完整批次约3–8分钟。资源门等待另计；不是 H3 采样时长。
+Sam full1312×736与141帧尚无本批实测耗时，完成后记录实际。

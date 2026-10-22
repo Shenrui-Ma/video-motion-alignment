@@ -1,0 +1,27 @@
+--- consumer_r16.py
++++ consumer_r16_v2.py
+@@ -154,7 +154,7 @@
+             raise RuntimeError('An existing pose extraction or timing metric process is active; do not run concurrently')
+         bundle = json.loads(Path(bundle_path).read_text())
+         formal_run(bundle['run_id'])
+-        from verify_r16_remote import verify
++        from verify_r16_remote_v2 import verify
+         verify(cpu_dir.parents[1],bundle['run_id'])
+         video = cpu_dir/'raw'/bundle['relative_video']
+         if digest(video) != bundle['video_sha256']:
+@@ -209,12 +209,12 @@
+     bundle, video, provenance = admitted if admitted is not None else intake(args,run)
+     cpu = PurePosixPath(args.cpu_dir)
+     shell(args.cpu_host,['mkdir','-p',str(cpu/'raw'/PurePosixPath(bundle['relative_video']).parent),str(cpu/'bundles'),str(cpu/'pilot')])
+-    subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(Path(__file__).resolve()),f'{args.cpu_host}:{cpu}/consumer_r16.py'],check=True)
++    subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(Path(__file__).resolve()),f'{args.cpu_host}:{cpu}/consumer_r16_v2.py'],check=True)
+     subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(provenance/'intake_manifest.json'),f'{args.cpu_host}:{cpu}/bundles/{run}.json'],check=True)
+     subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(video),f'{args.cpu_host}:{cpu}/raw/{bundle["relative_video"]}'],check=True)
+     subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(Path(__file__).resolve().parent/'intermediate_observer_protocol.txt'),f'{args.cpu_host}:{cpu}/intermediate_observer_protocol.txt'],check=True)
+-    subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(Path(__file__).resolve().parent/'verify_r16_remote.py'),f'{args.cpu_host}:{cpu}/verify_r16_remote.py'],check=True)
+-    command = [args.cpu_python,str(cpu/'consumer_r16.py'),'--cpu-worker',str(cpu/'bundles'/f'{run}.json'),'--cpu-dir',str(cpu)]
++    subprocess.run(['scp',*jump_options(args.cpu_host),'-q',str(Path(__file__).resolve().parent/'verify_r16_remote_v2.py'),f'{args.cpu_host}:{cpu}/verify_r16_remote_v2.py'],check=True)
++    command = [args.cpu_python,str(cpu/'consumer_r16_v2.py'),'--cpu-worker',str(cpu/'bundles'/f'{run}.json'),'--cpu-dir',str(cpu)]
+     print(shell(args.cpu_host,command),flush=True)
+     local = Path(args.local_dir)/'pilot'
+     local.mkdir(exist_ok=True)

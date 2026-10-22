@@ -1,0 +1,53 @@
+FlexiAct 后续配对建议：5 个优先候选，1 个备选
+
+已核官方8条人体动作、旧R49普通编辑、R66扩展成片记录、R74首个实际P1普通编辑及目标图。排除当前fitness/one_leg后，官方人体→人体验证配对主要来自chest/crouch/rotate三条原片。6个候选覆盖3条独立动作；原片均49帧、8fps、6.125秒。24fps准备输入是重复原帧，不能增加动作时间分辨率。
+
+建议顺序
+1. rotate → game_girl_1（已有R49普通编辑，优先验证干预适用性）。
+   动作：双手在胸前，躯干向两侧反复转动；左右转向及回中可分阶段核对。
+   现有成片：六时刻已有清楚盔甲人物，基本转体动作保留。精确相位误差及可改善幅度尚未由本次稀疏帧审查确定，可作任务成立和正常同步对照。
+   目标：上身肖像，面部与肩臂清楚；目标图未给全身，下身由模型补出，现有成片已显示完整身体。
+
+2. crouch → movie_man_5（R74已准备P1，普通编辑待完成）。
+   动作：站立→手到胸前/下蹲→起身→第二次下蹲→起身，膝髋与手部阶段清楚。
+   旧配对crouch→movie_man_4：前半站立或举臂，后半才蹲下，最后回到源人物/场景；身份与动作都不稳定。此新目标先检验任务完成。
+   目标：白底完整西装人体，头至双脚齐全；双手初态靠近裤袋。官方该行caption误写拉力器，R74已按源视频及source caption保留squat，并留存错误原文。
+
+3. crouch → movie_man_9（R74已准备P1，普通编辑待完成）。
+   动作同上；完整西装人体，深色衣裤可能影响pose。官方该行caption明确squats，原文与源动作一致。不能把两个crouch目标算作两条新动作源。
+
+4. rotate → game_man_4（R74已准备P1，普通编辑待完成）。
+   同原片的盔甲目标已有任务成立证据。新目标为常规人类比例的完整动漫人物，双脚与双臂可见；斗篷/腰部装备遮挡部分肘与躯干。P1已将Picture人物和Video动作分工写明，效果待实际Native核验。
+
+5. chest → movie_man_7（R74已准备P1，普通编辑待完成）。
+   动作：手臂展开→拉索向下合拢→复位→再次合拢，上肢多个阶段明显。
+   原片有拉力器交互，换目标时还要保留相关操作内容。目标图头、肩肘、手与大腿清楚，下腿未完整显示；源评价可集中在肩肘与合拢阶段。
+   旧R49 chest→game_girl_1和实际R74 P1 chest→game_man_5均保留源男子。新的真人目标只能作为更简单外观迁移的可行性测试，现有证据不保证P1能解决换人失败。
+
+6. 备选 rotate → game_man_1（R74已准备P1，普通编辑待完成）。
+   全身卡通人物清楚，但头身比/短臂与源差异大。动作阶段可人工核对，自动pose和幅度比较更难，排序放后。
+
+其余三条人体原片
+- human2animal_1：跪撑下降、胸部前移并伸肘抬起、弓背返回，动作阶段适合。已有movie_man_11和game_man_4人体crosspair仍有源长发残留或相位不一致；可用既有P1做任务适配诊断。官方验证目标为动物，这两个是自行交叉配对，单列扩展组。
+- human2animal_3：收腿支撑到抬腿倒立，腿部阶段丰富。真人crosspair基本推进但形状不同，动漫crosspair从倒立回到蹲撑且身份未落实；手/头靠边缘。优先级低于上述人体正式配对。
+- human2animal_2：盘腿前屈后长时间保持，变化少。已有真人版改成俯撑/跪姿，动漫版保留源人物。当前不优先用它扩充时序改善证据。
+
+当前可支持的判断
+现有审查确认1个配对具有清楚的目标外观和动作可行性，另外5个候选仍需首个普通编辑的任务审查。把“P1可能修正”作为待验证假设。R74已有的5个待完成P1配对可复用原包，避免重新设计提示或把未出片登记成成功。chest→game_man_5已完成但换人失败，原结果应继续保留。
+这些素材及部分结果已看过，属于development扩展。不要按未来输出挑选后再称为全新held-out任务；所有实际提交配对保留完整分母。
+
+确切素材和证据
+- CANDIDATES.json：6条原片/目标图绝对路径、SHA、官方CSV行、完整原始target caption、已准备P1路径和SHA。
+- 原素材与目标总目录：/Users/researcher/DevProjects/h3-flexiact-expanded-selection-20261018/official_assets/benchmark/
+- R49三动作原始/Native六帧：/Users/researcher/DevProjects/h3-timing-flexiact-native-r49-20261017/audit/root_visual_{chest,crouch,rotate}/
+- R49实际完整成片：/Users/researcher/DevProjects/h3-timing-flexiact-native-r49-20261017/analysis/postrun/captured/batch/output/
+- R74确切P1：/Users/researcher/DevProjects/h3-timing-flexiact-official-six-r74-20261018/configs/prompts/
+- R74已归档首个普通编辑：/Users/researcher/Downloads/H3_Benchmark_完整对比归档_20261018/未成对结果/R74/r74_chest__game_man_5_seed2026101701_native_00001_.mp4
+- 本次对该实际视频抽固定帧0/24/48/72/96/144：r74_chest_game5_native_six.png，输入SHA见VISUAL_INPUT.json。
+- R66实际原片/Native/固定引导三栏：/Users/researcher/DevProjects/h3-flexiact-expanded-evaluation-r66-20261018/showcase/；root视觉判读：audit/root_visual_review_20261018/OBSERVATIONS.json。
+
+官方固定版本
+https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/reference_videos/human
+https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark/captions/human
+
+本轮只做已有素材审查与证据图；GPU调用0，正式任务、提示、队列和数值代码均未修改。

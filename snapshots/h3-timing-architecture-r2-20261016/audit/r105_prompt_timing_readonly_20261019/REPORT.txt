@@ -1,0 +1,36 @@
+R105 首条 human2animal_2 / movie_man_11 提示词只读诊断
+
+范围：本次仅阅读提示词、预登记源事件及已有篮球提示词对照证据。没有 GPU 操作；没有修改已冻结 R105 配置或当前运行中的 pair。下面候选仅供当前首 pair 完成后决定是否开展新的独立对照。本记录没有因果结论。
+
+1. 当前 P1
+文件：/Users/researcher/DevProjects/h3-timing-flexiact-remaining-repair-r105-20261019/configs/prompts/human2animal_2__movie_man_11.txt
+SHA256：cfe9d107c147a9fbab9ebb100a5703340d1a2c738e6020cd957b5e3c06045c06
+共 714 个按空白拆分的英文词。第19行写 initial pause；第20行写 gradual change、extended low hold、slow continuous pace from beginning to end；第21行要求背景稳定、连续视野、人物朝向、整体构图，并要求各阶段持续时间遵循 Video 1。
+
+2. 与源片预登记的关系
+源记录：/Users/researcher/DevProjects/h3-timing-flexiact-remaining-repair-r105-20261019/design/SOURCE_TARGET_REVIEW.json
+独立预登记：/Users/researcher/DevProjects/h3-timing-flexiact-remaining-repair-r105-20261019/audit/SOURCE_EVENT_PLAN_BEFORE_OUTPUT_REVIEW.json
+源视频原始 49 帧、8fps：0–5 帧盘腿坐直、双手近膝；5–10 帧双手离膝向前落地；24–30 帧手臂伸展且身体进入低位；43–48 帧最终低位保持。较粗阶段审阅还记录 11–32 帧持续下降及 33–48 帧低位保持和少量下沉。上述边界精度至少一个原始帧，即125ms。
+因此 initial pause 和 low hold 有源内容支持；不能将它们称为人为新增动作。slow continuous pace from beginning to end 是对全片节奏的概括，它没有逐阶段指定时长，且全片实际包含静止、前移、下降、保持。该表述可能产生额外的速度先验；现有证据尚不能确定它导致了延迟。镜头和朝向约束主要复述源角色分工，Picture 1 的站立姿势并未被指定为目标首帧。
+
+3. 官方 H3 提示词证据
+归档：/Users/researcher/DevProjects/h3-timing-flexiact-remaining-repair-r105-20261019/design/OFFICIAL_REF_EN.txt
+官方内容 SHA256：1e574f356716ad55612247ffb7bbccbcdb484ad96599d63c7dca1af186b1fab7
+来源证明：/Users/researcher/DevProjects/h3-timing-flexiact-character-repair-r98-20261019/design/OFFICIAL_GUIDE_SOURCE.json
+官方地址：https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/main/docs/VIDEO_PROMPT_WRITING_GUIDE_ref_en.md
+指南第7行要求详尽说明画面和动作；第32行允许 Video N 提供整段视频时序结构；第135/143行将动作、镜头和节奏参考归入 reference generation；第242行通常建议生成任务 detailed_description 为350–500词。它支持清楚区分人物、环境和动作的来源，没有要求加入全片 slow 或额外停顿描述。下面短候选属于实验诊断文本，不是指南标准六段格式的复现，也没有证据保证它优于 P1。
+
+4. 篮球短提示词对照提供的约束
+R109：/Users/researcher/DevProjects/h3-timing-ive-basketball-shortprompt-r109-20261019/configs/prompts/short_0114_plain.txt
+只有 Replace the basketball with a neon-lit basketball.
+结果：/Users/researcher/DevProjects/h3-ive-basketball-shortprompt-metrics-r109-20261019/audit/full105_review/REVIEW.json
+0–49帧人物缺失，50帧插入切镜，后段篮球未维持霓虹外观，任务失败。
+R110：/Users/researcher/DevProjects/h3-timing-ive-basketball-boundprompt-r110-20261019/configs/prompts/short_0114_plain.txt
+明确 Edit <Video 1>，要求原球员、动作、镜头、场景、时间保留。
+结果：/Users/researcher/DevProjects/h3-ive-basketball-boundprompt-metrics-r110-20261019/audit/full105_review/REVIEW.json
+球员、连续运球与霓虹球恢复，构图仍偏下，完整任务部分完成；可对应运球阶段大体接近。该对照说明简短文本仍需明确参考分工，不能推出提示词越短越好。
+
+5. 待决候选与可检验假说
+CANDIDATE.txt 保留 Picture 1 的人物、衣服和环境，Video 1 的盘腿前屈序列、朝向、幅度和时间，省略逐段速度形容。待当前 pair 完成后再决定是否执行。
+可检验假说：去掉冗长文字对运动节奏的概括，同时维持明确参考分工，可能使动作阶段更贴近 Video 1。应先确认身份、环境与盘腿动作成立，再比较双手前移、进入低位、最终保持的事件区间。
+这一短候选同时改变格式、长度和描述密度；若表现改变，只能称为提示词策略对照。要隔离速度词的作用，需要另设保留原六段结构与其他文字、仅调整速度描述的版本，并预先固定比较事件。源内本来存在 pause/low hold，当前不作先验删词结论。

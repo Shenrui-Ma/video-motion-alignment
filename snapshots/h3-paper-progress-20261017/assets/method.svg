@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" role="img" aria-labelledby="title desc">
+<title id="title">动作时间偏差驱动的 H3 推理过程与注意力修改位置</title>
+<desc id="desc">上部显示参考 token 与画布 token 在 joint DiT Attention 内的时间读取，修改位于 RoPE 后、输出投影前。下部显示每个去噪步先计算 原模型预测 yᴺ，VAE 解码和 DWPose 测量后选择物理时间区间。ON 时在同一输入上再计算时序引导预测，关闭时沿用原模型预测，最终仅执行一次 Euler 更新。</desc>
+<defs>
+ <marker id="arr" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#384655"/></marker>
+ <marker id="bluearr" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#26658b"/></marker>
+ <style>text{font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;fill:#17202a}.hd{font-size:19px;font-weight:650}.t{font-size:18px}.sm{font-size:16px;fill:#465461}.xs{font-size:15px;fill:#465461}.ln{fill:none;stroke:#384655;stroke-width:1.8;marker-end:url(#arr)}.blue{fill:none;stroke:#26658b;stroke-width:2;marker-end:url(#bluearr)}.box{fill:#fff;stroke:#9ba8b4;stroke-width:1.5}.soft{fill:#edf5fa;stroke:#688ea7;stroke-width:1.5}</style>
+</defs>
+<rect x="1" y="1" width="1098" height="718" rx="3" fill="#fff" stroke="#d4dce2"/>
+<text x="26" y="35" class="hd">A　同一模型中的参考时间读取</text>
+<rect x="26" y="60" width="210" height="61" rx="3" class="soft"/>
+<text x="131" y="85" text-anchor="middle" class="t">参考视频 / 角色图像</text><text x="131" y="108" text-anchor="middle" class="sm">reference tokens</text>
+<rect x="26" y="144" width="210" height="61" rx="3" class="box"/>
+<text x="131" y="169" text-anchor="middle" class="t">当前待生成视频</text><text x="131" y="192" text-anchor="middle" class="sm">canvas tokens</text>
+<path d="M236 90H282V127H316M236 174H282V148H316" class="ln"/>
+<rect x="316" y="60" width="756" height="190" rx="4" fill="#f8fafc" stroke="#9ba8b4" stroke-width="1.5"/>
+<text x="338" y="88" class="hd">joint DiT Attention</text>
+<text x="1048" y="88" text-anchor="end" class="sm">RoPE 后 · 输出投影 W<tspan baseline-shift="sub" font-size="12">O</tspan> 前</text>
+<rect x="338" y="108" width="218" height="50" rx="3" class="box"/>
+<text x="447" y="129" text-anchor="middle" class="sm">画布 Q → 全部 K / V</text><text x="447" y="149" text-anchor="middle" class="xs">原注意力输出 O</text>
+<path d="M556 133H587" class="ln"/>
+<rect x="588" y="108" width="461" height="50" rx="3" class="soft"/>
+<text x="819" y="130" text-anchor="middle" class="sm">所选时间槽：保持参考视频总注意力质量</text><text x="819" y="150" text-anchor="middle" class="xs">将该组读取重新分配至对应参考时间槽</text>
+<text x="694" y="192" text-anchor="middle" font-family="Georgia,serif" font-size="26">O′ = O + α m<tspan baseline-shift="sub" font-size="16">ref</tspan> (O<tspan baseline-shift="sub" font-size="16">same_ref</tspan> − O<tspan baseline-shift="sub" font-size="16">ref</tspan>)</text>
+<text x="694" y="228" text-anchor="middle" class="xs">α = 1；所选时间槽内全空间、全部 50 层；其余 query 行保留原输出</text>
+<text x="26" y="238" class="xs">另含文本 / 音频 token</text>
+<line x1="26" y1="276" x2="1072" y2="276" stroke="#d4dce2"/>
+<text x="26" y="310" class="hd">B　每个去噪步 n：先观察当前预测，再选择是否干预</text>
+<rect x="26" y="342" width="169" height="76" rx="3" class="box"/>
+<text x="110" y="372" text-anchor="middle" class="t">当前状态 x<tspan baseline-shift="sub" font-size="12">n</tspan>, σ<tspan baseline-shift="sub" font-size="12">n</tspan></text><text x="110" y="400" text-anchor="middle" class="sm">同一输入与条件</text>
+<rect x="233" y="342" width="213" height="76" rx="3" class="box"/>
+<text x="339" y="372" text-anchor="middle" class="t">原模型预测 yᴺ</text><text x="339" y="400" text-anchor="middle" class="sm">估计当前视频的 clean 状态</text>
+<rect x="484" y="342" width="213" height="76" rx="3" class="box"/>
+<text x="591" y="372" text-anchor="middle" class="t">VAE → DWPose</text><text x="591" y="400" text-anchor="middle" class="sm">与参考动作比较</text>
+<rect x="735" y="342" width="337" height="76" rx="3" class="soft"/>
+<text x="904" y="371" text-anchor="middle" class="t">自动选择动作区间与启停</text><text x="904" y="400" text-anchor="middle" class="sm">动作延后 · 可见性 · 持续证据</text>
+<path d="M195 380H233M446 380H484M697 380H735" class="ln"/>
+<rect x="484" y="482" width="213" height="80" rx="3" class="soft"/>
+<text x="591" y="511" text-anchor="middle" class="t">时序引导预测 yᴳ</text><text x="591" y="538" text-anchor="middle" class="sm">同一 x<tspan baseline-shift="sub" font-size="12">n</tspan>, σ<tspan baseline-shift="sub" font-size="12">n</tspan> 与条件</text>
+<path d="M1008 418V522H697" class="blue"/>
+<text x="740" y="465" class="sm">开启：映射至参考时间槽</text>
+<rect x="233" y="482" width="213" height="80" rx="3" class="box"/>
+<text x="339" y="511" text-anchor="middle" class="t">选择预测 y<tspan baseline-shift="sub" font-size="12">n</tspan></text><text x="339" y="538" text-anchor="middle" class="sm">开启用 yᴳ；关闭用 yᴺ</text>
+<path d="M484 522H446" class="blue"/>
+<path d="M339 418V482" class="ln"/>
+<text x="351" y="442" class="xs">关闭 / 无法判断</text>
+<rect x="26" y="482" width="169" height="80" rx="3" class="box"/>
+<text x="110" y="510" text-anchor="middle" class="t">一次 Euler 更新</text><text x="110" y="538" text-anchor="middle" class="sm">得到 x<tspan baseline-shift="sub" font-size="12">n+1</tspan></text>
+<path d="M233 522H195M110 482V418" class="ln"/>
+<path d="M170 418V449H591V482" fill="none" stroke="#748a99" stroke-dasharray="5 4" stroke-width="1.4" marker-end="url(#arr)"/>
+<text x="733" y="558" class="xs">测量不足时，本步使用原模型预测</text>
+<rect x="26" y="597" width="1046" height="96" rx="3" fill="#f5f6f7"/>
+<text x="44" y="626" class="hd">两条时间轴</text>
+<text x="44" y="653" class="sm">视频帧 f = 0…140（24 fps）：动作发生在影片的什么位置</text>
+<text x="44" y="678" class="sm">去噪步 n = 0…19：推理进行到哪一步；20 + K 次模型预测，始终只有 20 次 Euler 更新</text>
+</svg>

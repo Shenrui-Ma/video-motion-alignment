@@ -1,0 +1,55 @@
+"""Embed actual completed videos while retaining all five task denominators."""
+import argparse
+import base64
+import html
+import math
+from common import *
+
+def summary():
+    rows = []
+    for source in PAIRS:
+        row = {'source': source, 'prompt': entry(source)['edit_prompt'], 'generation': 'PENDING', 'native_mf': None, 'forced_mf': None, 'mf_delta': None, 'editing_success': 'UNREVIEWED', 'motion_preservation': 'UNREVIEWED'}
+        gate = ROOT / 'incoming' / source / 'PAIR_RUNTIME_GATE.json'
+        if gate.is_file():
+            row['generation'] = 'COMPLETE' if read(gate).get('passed') is True else 'FAILED_GATE'
+        for method in METHODS:
+            path = ROOT / 'results' / source / (method + '_source1_target1.json')
+            if path.exists():
+                value = read(path)['motion_fidelity']; require(math.isfinite(value), 'nonfinite score')
+                row[method + '_mf'] = value
+        if all(row[method + '_mf'] is not None for method in METHODS):
+            row['mf_delta'] = row['forced_mf'] - row['native_mf']
+        review = ROOT / 'results' / source / 'HUMAN_REVIEW.json'
+        if review.exists():
+            value = read(review)
+            require(value['source'] == source and value['source_selection_sha256'] == sha(SELECTION), 'human assessment source differs')
+            for key in ('editing_success', 'motion_preservation'):
+                row[key] = value[key]
+        rows.append(row)
+    means = {}
+    for method in METHODS:
+        values = [row[method + '_mf'] for row in rows if row[method + '_mf'] is not None]
+        means[method] = {'fixed_denominator': 5, 'valid_count': len(values), 'mean_if_all_five_valid': sum(values) / 5 if len(values) == 5 else None}
+    return {'fixed_denominator': 5, 'rows': rows, 'means': means}
+
+def build(output):
+    report = summary(); blocks = []
+    for row in report['rows']:
+        source = row['source']; presentation = ROOT / 'showcase' / source / 'PRESENTATION.json'
+        body = '<p>生成与评测待完成。</p>'
+        if presentation.exists():
+            record = read(presentation); body = ''
+            for item in record['videos']:
+                path = ROOT / 'showcase' / source / (item['name'] + '.mp4')
+                require(sha(path) == item['video']['sha256'], 'presentation media changed')
+                label = '完整有效片段' if item['name'] == 'full_valid' else '前2秒'
+                body += f'<h3>{label}</h3><video controls preload="metadata" src="data:video/mp4;base64,{base64.b64encode(path.read_bytes()).decode()}"></video>'
+        values = ['待评测' if row[method + '_mf'] is None else f"{row[method + '_mf']:.4f}" for method in METHODS]
+        blocks.append(f'<section><h2>{source} · {html.escape(row["prompt"])}</h2><p>MF：普通编辑 {values[0]}；固定时序引导 {values[1]}。</p>{body}</section>')
+    document = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IVEBench 五条新素材对照</title><style>body{margin:0;padding:24px;background:#0b0c10;color:#eee;font:18px/1.65 system-ui}main{max-width:1800px;margin:auto}section{margin:40px 0}h1{font-size:30px}h2{font-size:23px}h3{font-size:18px;color:#bbb}video{display:block;width:100%;background:#000}p{color:#c9cbd0}</style><main><h1>IVEBench · 五条新素材的固定时序引导</h1><p>五条源视频筛选出的官方编辑任务：两条衣服颜色编辑、两条风格编辑和一条添加花束。两人场景保留各自角色；花束造成的合法遮挡单独记录，两组均使用相同的 H3 格式提示词。三列依次为参考视频、普通编辑、编辑加固定时序引导；展示相同物理帧。MF 衡量轨迹相似性，编辑是否成功与动作时序另行检查。固定分母为5，待完成、失败与不可测结果保留在汇总中。</p>' + ''.join(blocks) + '</main></html>'
+    output = Path(output); output.parent.mkdir(parents=True, exist_ok=True); output.write_text(document)
+    output.with_suffix('.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+    return {'html': str(output), 'sha256': sha(output), 'fixed_denominator': 5}
+
+if __name__ == '__main__':
+    p = argparse.ArgumentParser(); p.add_argument('--output', required=True); a = p.parse_args(); verify_runtime(); print(json.dumps(build(a.output)))

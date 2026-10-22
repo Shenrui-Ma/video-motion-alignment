@@ -1,0 +1,127 @@
+Independent review: semantic clock P × T diagnostic implementation
+Review date: 2026-10-16
+Reviewer scope: local read-only source/graph/manifest inspection; this report only was written.
+No remote operations, GPU work, source edits, or duplicate model tests were performed.
+
+DECISION
+
+The frozen scientific package has no remaining blocking implementation issue found in this bounded review. It is suitable for integration into the separately reviewed semantic0 runtime and for an actual A0 encoding/noise gate. This is not evidence that A0 has passed, that B/C/D may already sample, or that the hypothesis is correct.
+
+The final integrated runtime was subsequently frozen and independently checked; see the final appendix. It is suitable for uploading into its new isolated root and for CUDA-disabled remote CPU tests. Starting A0 remains conditional on those tests and on the previous transfer0 instance's exact completion, cleanup, and admission restoration. Passing A0 remains a separate prerequisite for B/C/D sampling.
+
+FROZEN SCIENTIFIC SCOPE AND INDEPENDENT HASH CHECK
+
+Root: /Users/researcher/DevProjects/h3-timing-autoresearch-20261016/semantic_clock_staged
+freeze_manifest.json SHA256:
+a009f7b88903cd68a89d8d78de754f03bf0491d2a43218585cda03e5a9633fa1
+extensions/H3SemanticClock/__init__.py SHA256:
+64170cf5dcc77da3ef8533ae7ecb14c11b07c3885b7111ca2baabeb03ed2f9cd
+
+Independently recomputed all 15 declared payload hashes: matched. No unlisted or missing non-cache file, and no symlink payload file, was found in this scientific staging directory. The imported audited_event.py remains a byte-identical helper copy, not a registered second legacy node package.
+
+The two baseline JSON files were independently compared byte-for-byte with the existing root audit files, not merely with literals in the candidate:
+05_sam_1312x736_shared_v3_conditioning.json:
+ce14565bc7279b3a75ef9f5239f8e264049e8dc02cdc4e1e4e59d3dbe51528a3
+s05_full_seed1_native_noise.json:
+d23d4260b878c5cb0aaaa4416487522899c69989673743c2c44c2d0edb77b47f
+
+Other directly reviewed inputs:
+- extensions/H3SemanticClock/audited_event.py
+- scripts/check_encoded_acceptance.py
+- tests/test_semantic_clock.py and audit/cpu_tests.txt
+- configs/graph_manifest.json and all four lower-case semantic graphs
+- README.txt and ../analysis/semantic_clock_runtime_plan.txt
+- root extensions/H3PairAudit/__init__.py and H3TemporalRouter sources
+- the original core snapshot /Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz, including execution.py, MiniMaxH3ReferenceToVideo, MiniMaxH3Tokenizer, and PackedLayout paths used by the author/test extraction.
+
+WHAT THE CODE ACTUALLY CHANGES
+
+1. Pixel phase P and timestamp phase T are independently applied at the real native clip.tokenize(minimax_ref_items=...) entry. This is not an unused configuration field. ClipProxy receives the actual 141-frame prepared video captured by VAEProxy after native preparation. P changes only the 12-frame semantic data tensor; T changes only its presentation timestamps. The original dense video VAE path is executed before this change and remains the native path.
+
+2. P0/T0 passes through the native item/list/tensor objects. P0/T6 retains native visual pixels and changes timestamps. P6/T0 changes sampled pixels and keeps native timestamps. P6/T6 changes both. The independent graph diff showed only those phase parameters and each arm's run/source/output identifiers differing among B/C/D. Native router mode, seed 2026101311, video geometry 1312 × 736 × 141 at 24 fps, sampler, and sigma settings remain fixed.
+
+3. There are 12 sampled semantic pictures and 6 two-picture visual blocks in every arm. The native MiniMaxH3Tokenizer still converts each two-frame block into a vision entry and formats its mean timestamp. No token repetition or positional padding is introduced to force a matching layout.
+
+4. P6 is a physical 6/24 = 0.25 second sampling shift. Native one-decimal formatting renders T0 as <0.2 seconds>, <1.2 seconds>, ... and T6 as <0.5 seconds>, <1.5 seconds>, ...; the displayed/text label difference is 0.3 seconds. Those are distinct interventions and must not be reported as the same numerical shift.
+
+5. The dense reference/target coordinate origin gap is intentionally retained at 235 native RoPE units. The implementation checks actual full position arrays and corresponding spatial coordinates; it does not silently align the dense temporal origins.
+
+ZERO GATE, ACTUAL NOISE, AND SAMPLER DEPENDENCY
+
+A0 has exactly CLIPLoader, VAELoader, H3SemanticClockReference, H3SemanticClockNoise, LoadImage, LoadVideo, GetVideoComponents, and H3SemanticClockGate nodes. It has no UNETLoader, SamplerCustomAdvanced, video decode/save, or hidden sampler call in the new extension. It nevertheless performs real Qwen/VAE encoding when run and invokes CachedNoise.generate_noise on the real target; “encoding only” is not “no compute.”
+
+The gate compares actual video/audio noise tensor shape, dtype, and SHA256 with the original archive. The expected video hash is 94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96 and audio hash ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3. These are archived tensor hashes, not a new seed-only assertion. GuardedNoise checks the current baseline, condition provenance, zero gate, and actual returned noise on every use, including sampler use of a previously created noise object/cache.
+
+A0 must match the original final conditioning embedding and pre-expansion token ledger bitwise, as well as dense prepared frames/latents, tags, target shapes, and packed layout. New B/C/D hidden states may differ; their shapes and all designated invariants may not. A0 writes a hash-bound zero marker only after those checks and actual noise checks succeed.
+
+B/C/D Reference refuses encoding without the current zero marker. Their node 99 Gate is a dependency of node 51's condition/target, the model router and guider, and the sampler's latent input. Thus sampling cannot complete dependency evaluation without the gate. A UNet loader might be independently scheduled or loaded while graph dependencies resolve; that is not sampling, but it is another reason to execute A0 as the separate first job and not batch-submit B/C/D before acceptance.
+
+All arm IDs/filenames are lower-case and distinct. The shared pair_id refers only to intentional fixed-noise reuse inside the new instance; it does not alias conditioning records between arms. Original baseline blob paths are metadata for comparison, not implicit reads of old tensors.
+
+INITIAL FINDINGS AND VERIFIED RESOLUTIONS
+
+HIGH, fixed: Reference/Gate initially depended on external baseline/zero-marker files without a Comfy IS_CHANGED hook. The real execution cache can skip such nodes if inputs are unchanged; OUTPUT_NODE is not a blanket no-cache guarantee. Both nodes now return NaN from IS_CHANGED, forcing the actual external-state gate on reuse.
+
+HIGH, fixed: Failed A0 Gate retries could leave an older valid marker if upstream encoding was cached. A0 Reference and Gate now revoke the old marker before any attempt. GuardedNoise revalidates current state for every use. The tests cover marker deletion/replacement and noise corruption.
+
+MEDIUM/HIGH provenance, fixed: Merely recording the present baseline hash would allow a changed baseline to become the new truth. Both original baseline file hashes are now pinned in source and independently matched to the existing audit archive.
+
+MEDIUM, fixed: A topology check which erases ordinary text IDs cannot establish that only timestamp words changed. The new code calls the real native tokenizer for the six old/new timestamp labels, locates those exact spans in the actual full token ledger, checks equal BPE lengths, and requires every non-timestamp text entry to remain equal. Inspection of the frozen MiniMaxH3Tokenizer confirms its add_text uses the same underlying tokenization path for these independently added segments. Real-word-vocabulary execution remains an A0/B/C/D runtime requirement.
+
+MEDIUM, fixed: The offline checker used assert and insufficient actual provenance validation. It now uses explicit exceptions, checks baseline and current extension files, binds accepted condition hashes, and checks same-P visual tensor/block hashes and same-T timestamps across arms. No assert remains in that checker.
+
+TEST EVIDENCE AND ITS LIMIT
+
+The author's frozen log records 16 passing CPU tests. This review read the tests and their results; it did not claim a separately rerun suite. Tests execute extracted native execute/tokenizer/PackedLayout code and cover phase separation, native object identity, token span invariants, layout SHA, path escape/stale marker rejection, graph dependencies, baseline tampering, actual CachedNoise disk write/reuse, and cached tensor corruption.
+
+The new GuardedNoise test genuinely traverses the production CachedNoise save/load implementation and hashes returned tensors; however, prepare_noise and NestedTensor are intentionally CPU stubs. Model weights, real BPE vocabulary, some resize/IO backends, and actual video VAE/Qwen inference are not exercised by these CPU tests. An AST-extracted function with stubbed dependencies is useful contract coverage, not an end-to-end Comfy integration pass. A0's exact real-model checks are mandatory and must fail closed on a mismatch rather than relaxing equality to obtain a pass.
+
+REMAINING RUNTIME INTEGRATION GATES
+
+The reviewed skeleton is semantic_runtime_staged/ and derives from the previously reviewed transfer bundle 9a7110963612953bb3c1e205c0857224ba2f8f4eefeaee926ca99835296e5e73. At initial inspection the substantive script deltas were instance/client names, semantic0 root, port 8462, and H3SemanticClock readiness/whitelist entries. startup_barrier.RUN/PORT had been corrected to semantic0/8462 and an instance-constant consistency test was added. Startup/identity/lifecycle/cleanup logic otherwise matched the prior reviewed implementation.
+
+Before launching, the final integrated manifest must cover scientific extension, baseline, graphs, input media, code, queue, and relevant config files. Recheck all reachable path guards/defaults, not only top-level service.RUN: the earlier transfer attempt actually failed in H3EventAudit.audit_root before sampling despite passing CPU tests. The helper's legacy audit_root is unreachable through the three exported semantic nodes; the separately registered H3EventAudit in the new runtime must still use the new root.
+
+Startup must retain the pre-CUDA barrier, exact PID/UID/startticks/cmdhash admission, CPU/headroom checks, compare-before-write restoration of the primary admission file, and exact owned-process cleanup. Primary is GPU2, not GPU3. Semantic0 uses GPU0/8462; this is a desired assignment, never proof of availability.
+
+Root must wait for transfer0 all-queued completion, exact service cleanup/owned-compute absence, final CPU inventory/archive, and primary admission restoration before admitting semantic0. The reused coordinator's shared lock and GPU headroom checks help reject overlapping launches, but do not by themselves constitute the complete required evidence that transfer0 finished cleanly. No new permissive PID wildcard or reuse of stale primary PID permission is justified. Primary's original natural completion is allowed only through the audited exact registry/controller/cleanup branch; a new primary identity or abnormal exit remains a rejection.
+
+Use a fresh controlled root and non-symlink output/audit subdirectories. Manifest coverage and runtime directory setup are required environmental controls; the scientific task_path check is not a substitute for an immutable deployment or arbitrary hostile-file-system protection.
+
+MANDATORY REAL ACCEPTANCE RECORDS
+
+Before any B/C/D sampling:
+- Successful A0 Comfy history with no sampler/UNet nodes in the actual submitted graph.
+- Actual final embedding and token-ledger exact equality, all dense VAE/layout/tag invariants, real six timestamp-span/non-timestamp-text checks, actual video and audio noise hashes, and hash-bound current accepted/zero records.
+- Actual installed source/graph/baseline/input hashes and backend/model provenance, not only this local staging manifest.
+
+For each B/C/D: successful own encoded acceptance; source/run identities; actual sampled pixels and timestamps; unchanged dense VAE/noise/layout; native router; complete 20-step history and video. The cross-arm checker must pass with --require-all after all arms finish. Retain failed attempts instead of replacing their evidence. Exact service/compute cleanup remains required after inference.
+
+SCIENTIFIC LIMITS, EVEN IF THE IMPLEMENTATION PASSES
+
+This is a controlled diagnostic of fixed-count semantic pictures versus textual time labels. P changes which motion/appearance evidence the model sees; a P effect alone does not establish a clock bug. C and D intentionally introduce inconsistent metadata, so either may be out of distribution. T modifies time words and contextual Qwen hidden states; it is not a pure numerical clock shift or a direct DiT temporal-coordinate intervention. A positive effect establishes sensitivity under these conditions, not a proven sparse-versus-dense clock conflict.
+
+A0 is an engineering equality gate, not an additional generated-outcome replicate. One source/identity/seed plus the already selected failure case cannot establish prevalence or a general architectural cause. Report the pre-registered window, full-video/other-window behavior, uncertainty and rejection cases; do not shift the evaluation window or scan phases until an attractive result appears. No architectural novelty or successful correction is certified by this code review.
+
+FINAL INTEGRATED RUNTIME APPENDIX
+
+Parent confirmed this exact frozen runtime version after independent inspection:
+semantic_runtime_staged/audit/bundle_manifest.json SHA256
+177fe72d697a16974a7d6a9838d6f3456dba2825d75ff6edeaabfb013f419652
+
+All 56 payload file hashes were independently recomputed and matched. There were no unlisted non-cache payload files. Scientific extensions, graphs, baselines, checker, and documentation are byte-identical to a009f7...; the science test's only change is replacing the Mac-only source tar reader with three packaged frozen core files. Each of those fixtures was independently byte-compared with its original snapshot member and matched. The test assertions and tested functions were not changed.
+
+Direct diff against the reviewed transfer runtime confirmed only these existing runtime implementation changes: semantic0 root and 8462 port in service/startup_barrier; semantic0 client ID; H3SemanticClock extension link/whitelist/readiness; new semantic0 guard/default paths in separately registered H3EventAudit. Existing coordinator, lifecycle, watchdog, supervisor, controller, compatibility bootstrap, and kernel adapter implementations are unchanged. Added scientific code/checker are covered above.
+
+An AST/string inventory of scripts, extensions, and configuration paths found no residual transfer0/8461 runtime target. The primary root in startup_barrier is intentional for exact admission coordination; shared core/model/dependency paths are read-only reuse. The old primary audit defaults inside copied H3SemanticClock/audited_event.py belong to legacy node classes that are not exported or invoked by H3SemanticClock; the actual exported Reference/Noise/Gate use semantic0 task_path. Router/PairAudit graph inputs resolve to semantic0 audit paths. This matters because a previous real transfer attempt failed at a reachable old guard despite unit tests; the new package was checked at reachable entry points, not only by global string replacement.
+
+Initial queue is exactly [s05_semantic_a0_encode_gate], sealed=false. The unchanged controller accepts a successful history without requiring a saved video, so the A0 output-node-only graph is compatible. It then waits for review and releases its service after 300 seconds idle. B/C/D graphs are present and hashed but not admitted to that queue. After actual A0 acceptance, the root may atomically append those three frozen graphs and seal the queue. If the idle timeout has already stopped the service, do not overwrite old job/history records or casually restart the same coordinator; follow the explicit lifecycle/retry protocol.
+
+CPU status: the frozen scientific log independently inspected here contains 16 passes. The parent additionally reports all 35 combined tests (19 lifecycle/startup plus 16 science) passed locally with CUDA_VISIBLE_DEVICES=''. This review inspected the combined test source/deltas and verified fixtures; it did not rerun that suite. Remote CPU compatibility is still pending. Invoke the remote test command with CUDA_VISIBLE_DEVICES='' and bytecode disabled; do not use service.start, coordinate_launch, or the real A0 graph as a purported CPU test.
+
+Final gate decision:
+1. Upload to the new isolated semantic0 root and run the frozen remote CPU tests: acceptable; no remaining blocking source issue found.
+2. Launch A0: only after remote CPU checks, exact installed manifest verification, fresh resource/primary identity admission, and transfer0's exact cleanup plus admission restoration. This report does not provide any current GPU-free claim.
+3. Admit B/C/D: only after actual A0 real-model/token/noise equality gate and saved successful history. A local CPU pass or this review cannot authorize bypassing that gate.
+
+Only literature/semantic_clock_implementation_review.txt was written by this reviewer. No implementation simplification or source modification was made. Remaining risks are real-model/backend equality, deployment/lifecycle timing, and scientific interpretation limits explicitly listed above.

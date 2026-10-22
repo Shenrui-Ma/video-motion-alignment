@@ -1,0 +1,31 @@
+R70：H3 VAE 时间重采样算子诊断
+
+输入：R65 fitness Native index 6 保存的 predicted-clean x0，video [1,24,47,48,72] float32，after_process_latent_out；video scale=1。实际 snapshot SHA 7df1ec19eb929f4ee9a25e0e9b2feee540d2f1cedfec5949ca218ac4cf40490a。
+离线映射 SHA 2962a401115b4d8a80766e5fffbb4dd03b3a9921a810532b64c4fe4a7340ad34，来自最终 Native 的 development 拟合，未新增拟合。它用于检查 index6 上时间坐标算子的可执行性，包含最终结果的信息，不代表自动在线控制实验。
+
+固定对照
+1. 基准 x=D(z)，保留 float32 RGB 在 CPU 内存。
+2. identity：D(E(x)) 与 x 比较，测量 VAE 再编码本身的误差。
+3. +3 RGB 帧：φ(t)=t+3，比较 D(Lφz)、D(E(Rφx))，并保留直接 Rφx。
+4. 既有离线 φ：把 49@8fps 索引映射乘3，线性插值至0…144@24fps；144…157使用identity。比较同上。
+
+两个算子
+Rφx(t)=对 float32 RGB 帧在 φ(t) 处作线性插值；正的+3表示选取较晚的画面，即内容前移3个RGB帧（125ms）。
+Lφz(j)=在非均匀中心坐标 c 上，把归一化 latent 按 φ(c_j) 线性插值。所有空间位置/24通道共享同一时间映射。
+H3源码 model.py 的 FRAME_PER_TOKEN=(1,4,4,4,4)、_video_t_grid 使用 exclusive cumsum 左边界。VAE clip_length17、temporal ratio4、每5token解码20帧后移除前3帧，对应输出分配1+4+4+4+4。定义 c_j=(该输出分段首RGB帧+末RGB帧)/2，得到0,2.5,6.5,10.5,14.5,17,…,155.5。这些是明确的输出分段几何中心；RoPE 使用左边界，VAE实际感受野跨位置，均单独说明。
+VAE.encode接受[0,1] RGB并返回归一化latent；VAE.decode自行执行通道mean/std反归一化。脚本不再手动乘除VAE尺度。
+
+边界与统计
+越界坐标只为保持输出长度而clamp；单独保存RGB full-domain、原147有效帧、latent中心范围、端点/尾padding相关mask。主要像素误差只看三者共同有效的帧；所有158帧误差也保留。
+单独标记RGB跨17帧块、latent插值跨块、latent来源块改变、原decoder每17帧开头5帧overlap（最后5帧尾块另标）。这些划分是源码坐标诊断，不能当作精确感受野屏蔽。
+保存分帧[0,1]RGB平均绝对误差，分别比较RGB roundtrip/直接目标、latentwarp/直接目标、latentwarp/RGB roundtrip。后续可用已保存视频做CPU动作测量。
+
+运行量与内存
+6次native decode，3次native encode，DiT forward=0。所有wrapper OOM fallback均拒绝，原H3内部17帧/256像素分块保留。
+decode已有同形状实测峰值reserved 5,981,077,504bytes（5.57GiB）。原wrapper的encode激活预算估计约2.77GiB，尚无本包实测encode峰值；16GiB实际free是trial准入值，不是峰值上界。每次操作记录耗时及累计CUDA峰值。
+CPU同时保留最多3份完整float RGB（每份约1.68GB），加临时encode工作缓冲；分支依次释放。只落盘8条lossless视频、3份小latent及JSON，无巨型RGB PT。预计10–20分钟，记录实际。
+
+CPU验证
+Mac与.9算子6测通过：identity精确、+3方向、时域/尾段、真实源码坐标、非均匀线性ramp、dtype/通道归一化所有权。另2测覆盖ready/go匹配与错进程代拒绝。.9实际--validate-only检查输入/实际core/checkpoint SHA、AV normalization和Comfy/H3 import，CUDA未初始化。
+
+冻结SHA：49618bf59ea2a82e96164cbe90b3502a9c29dd1bfc986489bb20f1a4f4abe679

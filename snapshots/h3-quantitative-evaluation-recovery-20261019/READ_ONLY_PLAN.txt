@@ -1,0 +1,36 @@
+定量评测恢复：已有实现与首组0358方案（2026-10-19）
+
+1. 已有真实分数和可复用数据
+R73 oxygen0252 的官方 MF 为普通0.8026777861879288、固定引导0.8024124040915745，差−0.0002653820963543。三份 tracks/{source,native,forced}/short_0252/attempt1/tracks.npz 全部在本机，每份88718bytes，SHA与真实REPORT一致。98有效帧、100轨迹、同.9 Torch2.5.1/A100官方路径。无需再次追踪即可CPU重算。
+根：/Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018
+具体入口：scripts/score_one.py、runtime/metric_runtime/score_cached_tracks.py；正式记录在results/short_0252/*_source1_target1.json。旧score_one会覆盖同名结果，复算应在新审计输出保留原值。
+
+同例已有CPU物理时序结果：audit/physical_time_short0252/evaluate_cpu.py，poses/{source,native,forced}原JSON，PHYSICAL_RESULTS.json与PHYSICAL_REPORT.txt。窗口32–63，普通+16帧、固定+1帧；两置信阈值及左右臂一致；同时间方向误差0.471656→0.079105，coverage1。窗口为看过案例后的探索性评估，保留全部早/晚窗口与UNKNOWN。复用的数值源为该目录vendor/physical/timing_metrics.py及shared_support.py、vendor/visible/scripts/arm_features.py等。此结果可与官方MF直接并列。
+
+2. 0358当前状态
+R89 consumer仅收集/渲染，尚无0358官方tracking caches或MF得分。
+/Users/researcher/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/
+inputs/short_0358_video.mp4与short_0358_provenance.json；incoming/short_0358/{native.mp4,forced.mp4,PAIR_RUNTIME_GATE.json,各history/job}。
+真实gate SHA963d11b3e95861cf55801ad037140794fbaa58159f0b5522eebdfcdccccc924c；107总帧、105有效帧、1312×736@24，评分取前105帧并crop=1280:720:16:8。保留真实全部105时间点，不去padding之外丢帧，不做速度对齐。人工三事件现存audit/visual_review_short0358/REVIEW.json，可直接并列报告其带不确定性的边界。
+
+3. 最小可运行实现范围（当前仅方案，尚无新runner）
+独立recovery目录中复用R73已冻结run_tracks.py、score_cached_tracks.py、官方61文件、checkpoint原字节。仅新单例manifest/路径适配：source/native/forced三份lossless评分视频、逐帧PTS/decodedMD5与原crop核验、真实gate/history/output SHA绑定。R73 track_one.py的argparse只接受固定五条，不能原命令直接塞0358；需要这个小适配层，不改官方grid或公式。
+保留官方CoTracker3 offline、window_len60、grid_size10、grid_query_frame0、backward_trackingFalse、max_framesNone；fresh三份在同.41运行后CPU原函数匹配。每份独立preCUDA ready/go与确切PID身份，串行输出tracks/{source,native,forced}/short_0358/attempt1/{tracks.npz,REPORT.json}；结果results/short_0358/{native,forced}.json。只增一个单例绑定入口，无新长期daemon。
+
+4. .41实核环境与容量
+真实CPU import成功：/data3/researcher/ComfyUI/.venv/bin/python，UID1004，Torch2.11.0+cu130，numpy1.26.4/scipy1.15.3/cv2 4.11.0。CUDA_initialized=False；import maxRSS841588KiB（约822MiB）。官方模块在/data3/researcher/h3_runs/ivebench_heldout_metrics_r64_20261018/runtime/，61文件manifest全部匹配；权重/data3/researcher/h3_runs/ivebench_official_metric_20261017/weights/baseline_offline.pth，101889786bytes，SHA da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df。
+R64 short0114正好105帧，.41已实际source/native/forced成功：peak allocated10849556480B（10.10GiB）、reserved12931039232B（12.04GiB）；tracking约0.81–1.02s，总6.9–21.85s。109帧reserved13415481344B（12.49GiB）。沿用原24GiB初始显存门；不是新测0358峰值。
+105×1280×720×3的float32输入约1.08GiB，uint8帧约277MiB，加import/model与临时复制后CPU真实峰值尚未测量。建议本次仅一个tracker，8GiB可用cgroup余量为行政trial门，记录MaxRSS和memory.current/events；不得将8GiB写成模型实测要求。刚读user.slice current88967585792B/high107374182400B，余约17.14GiB。root freshcheck后可在GPU1串行三条。
+
+5. 与R96并存的必要行政操作
+R96 scripts/lease_watchdog.py只监督绑定service与已提交job/HTTP期限，不因新增tracker自行stop。scripts/job.py:check_host_admission读取mutable configs/admission.json，service.check_admission拒绝未登记本UID compute。每个tracker ready后、CUDA之前，root须把identity(pid,uid,start_ticks,cmdline_sha256)加入R96 permitted_compute_processes，再核实际最多2张本UID GPU，才GO；tracker完全退出/CUDA释放后移除该exact entry。不改R96science/producerseal。旧entry不能顶替新PID；三次分别登记。
+
+6. 其他可复用评测与局限
+Flex官方MF：h3-flexiact-forced-metrics-r65-20261018/scripts/{tracking_plan.py,track_shared.py,score_one.py}；原49帧8fps取输出0,3,...144，旧tracker约36.66GiB reserved，不能用IVE的12GiB估算Flex。score阶段CPU。
+通用DWPose CPU：h3-timing-oxygen-online-r86-20261018/scripts/pose_probe.py，--video可重复，--threads2 --frame-start0 --frame-end104 --stride1，输出原时间/所有人/置信度。0358两个人，默认largest/IoU不保证选中左侧被编辑者，需保持原多人pose并按源任务公开指定身份选择；不能直接套oxygen成人0.40..0.75 ROI。方向lag/coverage可复用R73 timing模块，小动作物体接触仍需要瓶口/嘴等目标关系，现pose没有瓶子关键点。
+已查R2与R65/R73/R85相关代码，没有发现可直接用于本两例的已完成光流评测执行器；不把flow-matching latent velocity当RGB光流。当前优先officialMF+既有物理时序，不引入新光流模型。
+
+7. 旧问题必须分开记录
+oxygen现成MF与局部时序改善并不一致；audit/official_mf_time_calibration/REPORT.txt已执行官方函数校准：其interpolate_track删除不可见帧后把可见轨迹均匀铺到整时间，可隐藏某些间歇可见下的时间移位。该问题是指标敏感性，不是本次计算失败，也不能借此只报有利局部结果。
+R63/source_runtime_check/root_execution/FAILURE.json为monitor误读不存在tracking_forwards字段，实际source追踪成功后已有独立核验，不应重跑当模型失败。R73 short0065旧root运行有exit1，当前只读FAILURE为AssertionError，尚未查具体子日志，不能猜原因。
+本轮无GPU任务、未写任何producer、未更改旧评分/缓存。READ_ONLY_EVIDENCE.json含实核路径与SHA。

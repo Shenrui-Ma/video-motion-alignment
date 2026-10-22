@@ -1,0 +1,470 @@
+--- R28/configs/PRELAUNCH_GATE_COMMANDS.txt
++++ R32/configs/PRELAUNCH_GATE_COMMANDS.txt
+@@ -1,49 +1,44 @@
+-R28 source40372 seed2026101701 automatic-controller transfer; root launch only.
+-Root=/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017
+-Python=/home/researcher/miniconda3/envs/comfyui/bin/python
+-GPU2=GPU-REDACTED; port8491.
++R32 replaces unrun R28 by relocating its unchanged source40372 seed1701 experiment.
++Root=/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017
++Main and isolated decoder: GPU3 GPU-REDACTED; port8495.
++Exact permitted peer: GPU2 GPU-REDACTED, only its registered main process.
++Root alone controls deployment and launch. R27 must finish and release GPU3 before R32 starts; two automatic decoders are not admitted concurrently.
+ 
+-Inputs already archived at R26 laneA:
+-/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a/inputs/source_40372_video.mp4
++Copy the two immutable inputs from existing R28 formal inputs (or the same R26 laneA files):
++/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/inputs/source_40372_video.mp4
+ SHA ac122ce85c8d8d1feb27dbe3fa0f80a0c9a83e01b004b2db06dab7f013f1f052
+-/data5/researcher/h3_runs/timing_auto_motion_r26_20261017/a/inputs/source_40372_portrait.jpg
++/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/inputs/source_40372_portrait.jpg
+ SHA 4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42
+-Copy to new root/inputs under same basenames. No new download/model dependency.
++Copy under the same basenames into R32/inputs. Actual input/ copies are checked on submission.
+ 
+-After root verifies GPU2 has no compute process and R26A is fully archived/closed:
+-CUDA_VISIBLE_DEVICES=GPU-REDACTED OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/gpu_dynamic_union_smoke.py --root-admitted --output audit/gpu_dynamic_union_gate.json
+-Expected schema h3-r27-kernel-gate-v1 (reused schema), passed=true,NFE=0;
+-actual shape[1,56,87361,128], Rvideo[7679,47285), Tvideo[47755,87361), 943 spatial rows,42bins.
+-Empty/local/full masks, all42 exact sealedFull, zero exactNative, nonselected rows/QKV/RNG unchanged, finite.
+-No actual model weights loaded by this gate. This command is not authorization to run it.
++Inherited gates, not new executions:
++R28/deploy_manifest.json SHA d790180902bdb2593372f99ef1cb6011d1ff869a72f91f0e2fc2dc6a788877ad
++R28/audit/gpu_dynamic_union_gate.json SHA f91a689f5141a1ca415430c2d9ac6b291d55cf1be65bee6a0f0513851a8ac577
++Actual87361 layout [1,56,87361,128]; Rvideo[7679,47285), Tvideo[47755,87361), 943 spatial rows,42bins.
++This tests the same numerical implementation and same source geometry. It does not measure the current resident DiT on GPU3.
++R27 v2/deploy_manifest.json SHA996b14cb6e68e33babf84367cab5c9d027aa5b0f112e956308daf904817332e5
++R27/audit/known_endpoint_bridge.json SHA0fb567b1e70b282569d747106e09298817872890935d08b9c835857c84831dc9
++The older bridge certifies identical decoder/pose/scan code on its stored endpoint, not R32 current endpoint or quality.
++configs/r28_inheritance.json and r27_inheritance.json bind numerical code, source evidence and parent seals.
+ 
+-Inherited R27 formal directory must expose passed actual audit/gpu_dynamic_union_gate.json and audit/known_endpoint_bridge.json, v2 deploy_manifest.json SHA996b14cb6e68e33babf84367cab5c9d027aa5b0f112e956308daf904817332e5.
+-configs/r27_inheritance.json binds the exact numerical file mapping and prior protocol.
+-No R28 new-source VAE/pose accuracy or resident-parent equivalence is claimed from the old endpoint bridge.
++Root writes audit/resource_admission.json from configs/resource_admission_template.json only after its GPU3 resource review.
++Positive estimates and at least2 real SHA-bound evidence files are required. estimated_combined>=model+routing+decoder and<=total;
++total-model-routing>=12288MiB. Neither CPU PASS nor unmeasured allocator reuse can authorize this record.
++First real model call, every decoder's free>=12288MiB exact-parent-only admission, current conditions/noise/prefix guards remain mandatory.
+ 
+-Root writes audit/resource_admission.json with schema r28-root-resource-admission-v1:
+-root_approved:true, gpu_uuid:GPU2,
+-kernel_gate_sha256:SHA of R28 new actual-layout kernel gate,
+-known_endpoint_gate_sha256:SHA of R27 actual passed bridge,
+-inheritance_sha256:SHA of configs/r27_inheritance.json,
+-positive integer model_resident_measured_bytes/routing_increment_bound_bytes/decoder_peak_reserved_bytes/total_memory_bytes/estimated_combined_bytes,
+-required_free_before_decoder_mib>=12288,
+-scope:"single GPU isolated exec; runtime exact-parent admission remains mandatory",
+-evidence:[{file:absolute existing evidence path,sha256:actualSHA}, ...at least2].
+-Estimated combined>=sum components and<=total; total-model-routing>=required12GiB. Do not infer positive approval from interface tests or an unverified allocator assumption.
++Root then edits only mutable admission fields to root_live_review_required=false and exact currently permitted GPU2 PID/UID/start_ticks/cmdlineSHA.
++Do not carry R26/R29/R30 identities after those services exit.
++python3 scripts/preflight.py --metadata-only
++python3 scripts/preflight.py
++python3 scripts/launch_remote.py --service-only
++This creates the service and 12h watchdog and returns processes/service.json; it submits no prompt.
++If the peer needs CUDA-before-registration coordination, root uses its already audited same-PID runpy gate; do not spawn an unregistered second CUDA process.
++python3 scripts/start_controller.py --pid ACTUAL_SERVICE_PID --start-ticks ACTUAL_START_TICKS
++Creation is protected by an exclusive lock. The controller binds this exact owner on every submission.
++One graph r32_source40372_seed2026101701_auto; job4h, service12h, residenthold1800s. Root may set queue.finalize=true at completion.
+ 
+-Then root sets only permitted administrative admission fields: root_live_review_required=false, exact current peer GPU3 PID/UID/start_ticks/cmdlineSHA in permitted_compute_processes. Science unchanged.
+-python3 scripts/preflight.py --metadata-only   # no GPU gate certificate
+-python3 scripts/preflight.py                   # actual old files/inputs/core/gates/resource/seal
+-python3 scripts/launch_remote.py --service-only
+-This starts service+supervisor+12h watchdog, returns processes/service.json exact owner, NO model job submitted.
+-Root registers this actual new GPU2 service PID in R27 mutable admission before starting controller. Register actual counterpart GPU3 identity in R28 admission. Do not carry old R26 PID.
+-python3 scripts/start_controller.py --pid ACTUAL_SERVICE_PID --start-ticks ACTUAL_START_TICKS
+-This locks controller creation across registry/preflight/launch/write, rejects stale owner/duplicate controller. The controller rechecks expected owner before any submission.
+-Single graph r28_source40372_seed2026101701_auto, job4h limit, service12h, residenthold1800s; root can set queue.finalize=true when done.
++CPU producer verification after success:
++CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_completed.py --allow-resident --output audit/verified_completed.json
++Omit --allow-resident after exact cleanup. Independent full-clip pose/media remains a later postrun phase.
+ 
+-CPU postrun:
+-CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python scripts/verify_completed.py --allow-resident --output audit/verified_completed.json
+-Use without --allow-resident after exact cleanup. Existing source/seed/controller response/raw endpoint/21chosen snapshots verified. Later independent scientific pose/media review remains separate.
+-
+-Terminology: legacy physical_index is ZERO-BASED DENOISING INDEX (0..19). physical_intervals/window are RGB VIDEO FRAME indices(0..140); neither are model NFE indices(0..20+K-1).
++Terminology: legacy physical_index means zero-based DENOISING index0..19; physical_intervals are RGB VIDEO FRAME indices0..140; NFE counts actual model calls20+K.
+--- R28/configs/observer_bindings.json
++++ R32/configs/observer_bindings.json
+@@ -1,5 +1,5 @@
+ {
+-  "schema": "r28-frozen-auto-window-bindings-v1",
++  "schema": "r32-frozen-auto-window-bindings-v1",
+   "local_files": {
+     "configs/AUTOMATIC_CONTROL_BASELINE_SPEC.txt": "c4508ca039142f5e1a13f6c7c44eca38b0bc2bcfbf6c2a05a37a9ba7819ddb25",
+     "configs/PAIRWISE_GAIN_PROTOCOL.txt": "9250cba8cd27fb7ea624179631be7bc1cd76cc7727f13a9fe84c8f7baf4de8a8",
+@@ -8,7 +8,7 @@
+     "configs/model_hashes_host9.json": "8fed70a700a0a5bc80e17188fa97b98df4d1de2770c6dfa97fb4afaf863e5194",
+     "configs/parent_core_hashes.json": "b3202d86102b445dcc4bf48029be43ecff6df8a75ddca1e17ec8ac7801cfc754",
+     "configs/parent_runtime_provenance.json": "91db3eaf976bf19c2eaace9d842165804431377a1609b99ff81b56a8f79b2811",
+-    "configs/protocol.json": "2685e85dc9aa8c355cb6425a05025bc7be226bd607bb5dcebc34092470f470dd",
++    "configs/protocol.json": "455c18c72d0fae6ef2a1f888482e98256fc193111e50db3bc589ce79490b607e",
+     "configs/source.pose.json": "8d731e0c55072c216d191729be21d6b42077f79b35dfdc5810c902fac8e6f8e4",
+     "scripts/decode_x0.py": "799e64e1d2e1dab3582fe4600fea810c388facbab447fd0887dc51f4a1494014",
+     "scripts/timing_metrics.py": "eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e",
+@@ -19,7 +19,8 @@
+     "configs/parent_captures.json": "f8a7f6803c13a59c366de65f333d81f6a2ca1bd05ff712b762ef9cb5c88e5def",
+     "configs/parent_noise.json": "00447e7f5e7318c3ca521b03dea10b61fa348bc0675cd2947826c0430313662e",
+     "configs/parent_file_inventory.json": "509daae215f5ed23793e3ff8fabafdbab2db0729635102e05b3f26a3aef2e57d",
+-    "configs/r27_inheritance.json": "389a2713959932859678eab7542c98bcbd1de6f9a11763339762b8ebdfdd41a7"
++    "configs/r27_inheritance.json": "389a2713959932859678eab7542c98bcbd1de6f9a11763339762b8ebdfdd41a7",
++    "configs/r28_inheritance.json": "7abea7cbfafdf7e093c220a4ff619ec90e8a845b845233b86270ec4c3a3c5257"
+   },
+   "external_files": {
+     "/data5/researcher/h3_runs/timing_autoresearch_20261016/scripts/pose_probe.py": "04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f",
+--- R28/configs/protocol.json
++++ R32/configs/protocol.json
+@@ -1,10 +1,10 @@
+ {
+-  "schema": "r28-automatic-timing-transfer-v1",
++  "schema": "r32-administrative-relocation-r28-v1",
+   "new_method_claim": false,
+   "scope": "single source40372 development transfer selected after observing its R26 Native failure; no blind/generalization claim",
+   "cases": [
+     {
+-      "run_id": "r28_source40372_seed2026101701_auto",
++      "run_id": "r32_source40372_seed2026101701_auto",
+       "seed": 2026101701,
+       "source_id": "40372",
+       "parent_graph": "configs/parent_graph.json",
+@@ -139,8 +139,8 @@
+     "no_oracle_window": true
+   },
+   "resources": {
+-    "main_uuid": "GPU-REDACTED",
+-    "decoder_uuid": "GPU-REDACTED",
++    "main_uuid": "GPU-REDACTED",
++    "decoder_uuid": "GPU-REDACTED",
+     "CPU_lock": "/data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock",
+     "threads": 4,
+     "single_gpu_isolated_decoder": true,
+--- R28/configs/r28_source40372_seed2026101701_auto.json
++++ R32/configs/r32_source40372_seed2026101701_auto.json
+@@ -56,8 +56,8 @@
+       "width": 1312,
+       "height": 736,
+       "length": 141,
+-      "audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit",
+-      "run_id": "r28_source40372_shared",
++      "audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit",
++      "run_id": "r32_source40372_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0,
+       "ref_image": [
+@@ -70,9 +70,9 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101701,
+-      "audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit",
+-      "run_id": "r28_source40372_seed2026101701_auto",
+-      "pair_id": "r28_source40372_seed2026101701_auto_noise"
++      "audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit",
++      "run_id": "r32_source40372_seed2026101701_auto",
++      "pair_id": "r32_source40372_seed2026101701_auto_noise"
+     }
+   },
+   "7": {
+@@ -173,7 +173,7 @@
+         "13",
+         0
+       ],
+-      "filename_prefix": "r28_source40372_seed2026101701_auto",
++      "filename_prefix": "r32_source40372_seed2026101701_auto",
+       "format": "mp4",
+       "codec": "h264",
+       "codec.encoding": "re-encode",
+@@ -212,8 +212,8 @@
+         "51",
+         0
+       ],
+-      "run_id": "r28_source40372_seed2026101701_auto",
+-      "audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit/counterfactual"
++      "run_id": "r32_source40372_seed2026101701_auto",
++      "audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit/counterfactual"
+     }
+   },
+   "51": {
+@@ -227,9 +227,9 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit",
+-      "source_run_id": "r28_source40372_shared",
+-      "run_id": "r28_source40372_seed2026101701_auto"
++      "source_audit_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit",
++      "source_run_id": "r32_source40372_shared",
++      "run_id": "r32_source40372_seed2026101701_auto"
+     }
+   },
+   "52": {
+@@ -239,8 +239,8 @@
+         "50",
+         0
+       ],
+-      "run_id": "r28_source40372_seed2026101701_auto",
+-      "output_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit/x0",
++      "run_id": "r32_source40372_seed2026101701_auto",
++      "output_dir": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 141
+--- R28/extensions/H3AutomaticWindowRouter/__init__.py
++++ R32/extensions/H3AutomaticWindowRouter/__init__.py
+@@ -7,7 +7,7 @@
+     def INPUT_TYPES(cls):
+         return {'required': {'model': ('MODEL',), 'positive': ('CONDITIONING',),
+                 
+-                'run_id': ('STRING', {'default': 'r28_source40372_seed2026101701_auto'}),
++                'run_id': ('STRING', {'default': 'r32_source40372_seed2026101701_auto'}),
+                 'audit_dir': ('STRING', {'default': '/tmp/h3-counterfactual'})}}
+     RETURN_TYPES = ('MODEL',)
+     FUNCTION = 'apply'
+--- R28/extensions/H3AutomaticWindowRouter/transport.py
++++ R32/extensions/H3AutomaticWindowRouter/transport.py
+@@ -2,11 +2,11 @@
+ import hashlib,json,os,signal,subprocess,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+-PROTOCOL_SHA='2685e85dc9aa8c355cb6425a05025bc7be226bd607bb5dcebc34092470f470dd'
+-DECODER_UUID='GPU-REDACTED'
+-MAIN_UUID='GPU-REDACTED'
+-SECOND_TASK_UUID='GPU-REDACTED'
+-REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017')
++PROTOCOL_SHA='455c18c72d0fae6ef2a1f888482e98256fc193111e50db3bc589ce79490b607e'
++DECODER_UUID='GPU-REDACTED'
++MAIN_UUID='GPU-REDACTED'
++SECOND_TASK_UUID='GPU-REDACTED'
++REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def sha(path):
+--- R28/extensions/H3EventAudit/__init__.py
++++ R32/extensions/H3EventAudit/__init__.py
+@@ -21,7 +21,7 @@
+ 
+ 
+ def audit_root(value):
+-    from r28_contract import audit_dir
++    from r32_contract import audit_dir
+     root = audit_dir(value)
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+@@ -163,7 +163,7 @@
+             "width": ("INT", {"default": 1312, "min": 32, "step": 32}),
+             "height": ("INT", {"default": 736, "min": 32, "step": 32}),
+             "length": ("INT", {"default": 107, "min": 5}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit"}),
++            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "semantic_fps": ("INT", {"default": 2, "min": 1, "max": 24}),
+             "phase_frames": ("INT", {"default": 0, "min": 0, "max": 23}),
+@@ -266,7 +266,7 @@
+     def INPUT_TYPES(cls):
+         return {"required": {
+             "noise_seed": ("INT", {"default": 12345, "min": 0, "max": 0xffffffffffffffff}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017/audit"}),
++            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "pair_id": ("STRING", {"default": "case_seed1"}),
+         }}
+--- R28/scripts/build_manifest.py
++++ R32/scripts/build_manifest.py
+@@ -8,7 +8,7 @@
+  for f in (R/sub).rglob('*'):
+   if f.is_file() and '__pycache__' not in str(f) and f.name not in ('admission.json','runtime_provenance.json','queue.json'):paths.append(f)
+ files={str(f.relative_to(R)):{'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(paths)}
+-manifest={'schema':'r28-immutable-deploy-v1','files':files,'scientific_protocol_sha256':hashlib.sha256((R/'configs/protocol.json').read_bytes()).hexdigest(),'resource_revision':'frozen protocol resources','mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'GPU_launch_authorized_by_root_only':True}
++manifest={'schema':'r32-immutable-deploy-v1','files':files,'scientific_protocol_sha256':hashlib.sha256((R/'configs/protocol.json').read_bytes()).hexdigest(),'resource_revision':'frozen protocol resources','mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'GPU_launch_authorized_by_root_only':True}
+ out=Path(a.manifest);out.parent.mkdir(parents=True,exist_ok=True)
+ with out.open('x') as f:json.dump(manifest,f,indent=2);f.write('\n')
+ with tarfile.open(a.bundle,'x:gz') as archive:
+--- R28/scripts/gpu_dynamic_union_smoke.py
++++ R32/scripts/gpu_dynamic_union_smoke.py
+@@ -111,7 +111,7 @@
+ def main():
+     parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,required=True);parser.add_argument('--root-admitted',action='store_true');args=parser.parse_args()
+     import os,subprocess
+-    if not args.root_admitted or os.environ.get('CUDA_VISIBLE_DEVICES')!='GPU-REDACTED':raise ValueError('requires explicit root admission and exact GPU2 UUID')
++    if not args.root_admitted or os.environ.get('CUDA_VISIBLE_DEVICES')!='GPU-REDACTED':raise ValueError('requires explicit root admission and exact GPU3 UUID')
+     pending=subprocess.check_output(['nvidia-smi','--id='+os.environ['CUDA_VISIBLE_DEVICES'],'--query-compute-apps=pid','--format=csv,noheader,nounits'],text=True).strip()
+     if pending:raise RuntimeError('selected GPU has compute processes')
+     if args.output.exists():raise FileExistsError(args.output)
+--- R28/scripts/job.py
++++ R32/scripts/job.py
+@@ -10,7 +10,7 @@
+ import urllib.request
+ 
+ import service
+-from r28_contract import validate_job
++from r32_contract import validate_job
+ 
+ RUN = service.RUN
+ URL = f'http://127.0.0.1:{service.PORT}'
+@@ -78,7 +78,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-auto-fresh-r28-20261017'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-auto-fresh-r32-20261017'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- R28/scripts/preflight.py
++++ R32/scripts/preflight.py
+@@ -2,7 +2,7 @@
+ import argparse,json
+ from pathlib import Path
+ from observer_import import t,ROOT
+-from r28_contract import validate_job
++from r32_contract import validate_job
+ 
+ def check(root=ROOT,metadata_only=False):
+     root=Path(root);t.bindings();t.admission_document(approved=not metadata_only)
+--- R28/scripts/prelaunch_gates.py
++++ R32/scripts/prelaunch_gates.py
+@@ -34,15 +34,20 @@
+ 
+ def check(root):
+     root=Path(root);protocol=sha(root/'configs/protocol.json')
+-    kp=root/'audit/gpu_dynamic_union_gate.json';rp=root/'audit/resource_admission.json';k=read(kp)
+-    require(k['schema']=='h3-r27-kernel-gate-v1' and k['passed'] is True and k['NFE']==0,'actual kernel gate absent/failed')
+-    require(k['protocol_sha256']==protocol,'new kernel protocol differs')
+-    for name,digest in k['source_sha256'].items():require(sha(root/name)==digest,'new kernel evidence source changed: '+name)
++    spec=read(root/'configs/r28_inheritance.json');parent=Path(spec['parent_root'])
++    require(sha(parent/'deploy_manifest.json')==spec['parent_deploy_manifest_sha256'],'R28 parent seal changed')
++    require(sha(parent/'configs/protocol.json')==spec['parent_protocol_sha256'],'R28 parent protocol changed')
++    for name,digest in spec['exact_numerical_files'].items():require(sha(root/name)==sha(parent/name)==digest,'R28 inherited numerical bytes changed: '+name)
++    for name in spec['same_source_condition_noise_artifacts']:require(sha(root/name)==sha(parent/name),'source condition/noise evidence changed: '+name)
++    kp=parent/'audit/gpu_dynamic_union_gate.json';rp=root/'audit/resource_admission.json';k=read(kp)
++    require(k['schema']=='h3-r27-kernel-gate-v1' and k['passed'] is True and k['NFE']==0,'R28 actual kernel absent/failed')
++    require(k['protocol_sha256']==spec['parent_protocol_sha256'],'inherited kernel protocol differs')
++    for name,digest in k['source_sha256'].items():require(sha(parent/name)==digest,'parent actual kernel evidence changed: '+name)
+     check_layout_case(k,read(root/'configs/parent_conditioning.json'))
+     inherited=inherited_bridge(root);r=read(rp)
+-    require(r['schema']=='r28-root-resource-admission-v1' and r['root_approved'] is True,'root resource review missing')
+-    require(r['gpu_uuid']=='GPU-REDACTED','resource GPU differs')
+-    require(r['kernel_gate_sha256']==sha(kp) and r['known_endpoint_gate_sha256']==inherited['known_endpoint_gate_sha256'] and r['inheritance_sha256']==inherited['inheritance_sha256'],'resource review unbound to gates')
++    require(r['schema']=='r32-root-resource-admission-v1' and r['root_approved'] is True,'root resource review missing')
++    require(r['gpu_uuid']=='GPU-REDACTED','resource GPU differs')
++    require(r['kernel_gate_sha256']==sha(kp) and r['known_endpoint_gate_sha256']==inherited['known_endpoint_gate_sha256'] and r['inheritance_sha256']==inherited['inheritance_sha256'] and r['r28_inheritance_sha256']==sha(root/'configs/r28_inheritance.json') and r['protocol_sha256']==protocol,'resource review unbound to gates')
+     for key in ('model_resident_measured_bytes','routing_increment_bound_bytes','decoder_peak_reserved_bytes','total_memory_bytes','estimated_combined_bytes'):
+         require(type(r[key]) is int and r[key]>0,'invalid resource estimate '+key)
+     require(r['estimated_combined_bytes']>=sum(r[key] for key in ('model_resident_measured_bytes','routing_increment_bound_bytes','decoder_peak_reserved_bytes')),'resource total omits component')
+--- R28/scripts/r28_contract.py
++++ R32/scripts/r32_contract.py
+@@ -2,12 +2,12 @@
+ import hashlib,json,shutil
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-REMOTE=Path('/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017')
++REMOTE=Path('/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017')
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ def read(p):return json.loads(Path(p).read_text())
+ def audit_dir(value):
+     p=Path(value)
+-    if not p.is_absolute() or p.is_symlink() or p.resolve()!=REMOTE/'audit':raise ValueError('audit root outside frozen R28 root')
++    if not p.is_absolute() or p.is_symlink() or p.resolve()!=REMOTE/'audit':raise ValueError('audit root outside frozen R32 root')
+     return p.resolve()
+ def expected_graph(parent,case):
+     g=json.loads(json.dumps(parent))
+@@ -16,7 +16,7 @@
+             if isinstance(v,str) and case['parent_root'] in v:node['inputs'][k]=v.replace(case['parent_root'],str(REMOTE))
+     run=case['run_id']
+     for key in ('6','51','52'):g[key]['inputs']['run_id']=run
+-    g['5']['inputs']['run_id']='r28_source40372_shared';g['51']['inputs']['source_run_id']='r28_source40372_shared'
++    g['5']['inputs']['run_id']='r32_source40372_shared';g['51']['inputs']['source_run_id']='r32_source40372_shared'
+     g['6']['inputs']['pair_id']=run+'_noise';g['14']['inputs']['filename_prefix']=run
+     g['50']={'class_type':'H3AutomaticWindowRouter','inputs':{'model':['41',0],'positive':['51',0],'run_id':run,'audit_dir':str(REMOTE)+'/audit/counterfactual'}}
+     return g
+--- R28/scripts/run_queue.py
++++ R32/scripts/run_queue.py
+@@ -1,7 +1,7 @@
+ """One predeclared source40372 job, bounded resident hold, generation-bound cleanup."""
+ import json,subprocess,time
+ import job,service
+-from r28_contract import validate_job
++from r32_contract import validate_job
+ 
+ def state(**v):service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**v))
+ def run(expected_pid=None,expected_start_ticks=None):
+--- R28/scripts/service.py
++++ R32/scripts/service.py
+@@ -11,13 +11,13 @@
+ import time
+ import urllib.request
+ 
+-RUN = Path('/data5/researcher/h3_runs/timing_auto_fresh_r28_20261017')
++RUN = Path('/data5/researcher/h3_runs/timing_auto_fresh_r32_20261017')
+ CORE = Path('/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI')
+ PYTHON = '/home/researcher/miniconda3/envs/comfyui/bin/python'
+ DEPENDENCIES = '/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps'
+ MODELS = '/data5/researcher/ComfyUI/models'
+-GPU = 'GPU-REDACTED'
+-PORT = 8491
++GPU = 'GPU-REDACTED'
++PORT = 8495
+ 
+ 
+ def write_json(path, value):
+@@ -104,7 +104,7 @@
+     t.admission_document(approved=True)
+     cards={row['gpu_uuid'] for row in processes if proc_uid(row['pid'])==os.getuid()}
+     if len(cards|{GPU})>2:raise RuntimeError('own GPU limit exceeded')
+-    if cards-{GPU,'GPU-REDACTED'}:raise RuntimeError('unapproved second own GPU')
++    if cards-{GPU,'GPU-REDACTED'}:raise RuntimeError('unapproved second own GPU')
+     allowed = {int(row['pid']): row['identity']
+                for row in admission['permitted_compute_processes']}
+     for row in processes:
+--- R28/scripts/verify_completed.py
++++ R32/scripts/verify_completed.py
+@@ -35,7 +35,7 @@
+     torch.set_num_threads(1)
+     from H3X0Readout.core import tensor_signature
+     from H3AutomaticWindowRouter.selector import Controller
+-    from r28_contract import validate_job
++    from r32_contract import validate_job
+     t.bindings();t.admission_document(approved=True)
+     manifest=t.read_json(root/'deploy_manifest.json')
+     for rel,row in manifest['files'].items():t.require(t.sha(root/rel)==row['sha256'],'immutable file changed: '+rel)
+--- R28/tests/real_comfy_cpu_smoke.py
++++ R32/tests/real_comfy_cpu_smoke.py
+@@ -73,7 +73,7 @@
+     sampler_source = Path(args.comfy_root).resolve() / "comfy_extras/nodes_custom_sampler.py"
+     if not asyncio.run(nodes.load_custom_node(str(sampler_source), module_parent="comfy_extras")):
+         raise RuntimeError("actual Comfy node loader failed")
+-    graph = json.loads((root / "configs/r28_source40372_seed2026101701_auto.json").read_text())
++    graph = json.loads((root / "configs/r32_source40372_seed2026101701_auto.json").read_text())
+     graph_guider_type = graph["7"]["class_type"]
+     assert graph_guider_type == "BasicGuider"
+     graph_guider_node = nodes.NODE_CLASS_MAPPINGS[graph_guider_type]
+@@ -171,7 +171,7 @@
+         # Same actual Euler, one model prediction per step, independently prescribed masks.
+         # Both actual run IDs create independent states from the same cached ModelPatcher.
+         cached_states=[]
+-        for cache_attempt,actual_run in enumerate(('r28_source40372_seed2026101701_auto','r28_source40372_seed2026101701_auto')):
++        for cache_attempt,actual_run in enumerate(('r32_source40372_seed2026101701_auto','r32_source40372_seed2026101701_auto')):
+             cached=H3AutomaticWindowRouter().apply(base,positive,actual_run,str(temp/('cached_states_'+str(cache_attempt))))[0]
+             cs=cached.get_wrappers(WrappersMP.SAMPLER_SAMPLE,KEY)[0].state
+             assert cs.callback_count==0 and cs.forward_index==-1 and not cs.entered
+--- R28/tests/test_automatic.py
++++ R32/tests/test_automatic.py
+@@ -10,7 +10,7 @@
+ from H3AutomaticWindowRouter.dependencies import router
+ from counterfactual_support import dense_attention
+ from pose_test_support import row,measurement
+-from r28_contract import validate_job
++from r32_contract import validate_job
+ class Tests(unittest.TestCase):
+  def test_policy_off_early_restart(self):
+   self.assertFalse(Controller().select(0,measurement('always',0))['chosen_full'])
+@@ -59,7 +59,7 @@
+  def test_frozen_policy_copy(self):
+   self.assertEqual((ROOT/'scripts/automatic_window_policy.py').read_bytes(),(ROOT/'extensions/H3AutomaticWindowRouter/automatic_window_policy.py').read_bytes())
+  def test_request_bounds_single_new_seed(self):
+-  self.assertEqual(t.case_for('r28_source40372_seed2026101701_auto')['seed'],2026101701)
++  self.assertEqual(t.case_for('r32_source40372_seed2026101701_auto')['seed'],2026101701)
+   with self.assertRaises(ValueError):t.case_for('r27_s05_bad1311_auto')
+   with self.assertRaises(ValueError):t.case_for('unknown')
+ 

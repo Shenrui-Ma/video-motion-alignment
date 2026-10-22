@@ -1,0 +1,39 @@
+IVEBench 新源扩充：4 条已冻结并完成输入准备
+
+任务范围
+原5条主要是人物替换、服饰颜色编辑。本组扩展为修改道具或环境，同时保留人体动作。4条均保留官方原 edit_prompt，未追加动作文字。两组应分别报告；本组是依据源内容挑选的任务子集，未复现600条官方总榜。
+
+固定清单（顺序固定）
+ID          官方 edit_prompt                                 有效帧 / H3帧 / 尾pad
+short_0092  Remove the plants in the room                      58 / 73 / 15
+short_0114  Replace the basketball with a neon-lit ball       105 /107 /  2
+short_0126  Add a cat on the bed next to the man               109 /124 / 15
+short_0392  Remove the ornate fireplace                       57 / 73 / 16
+
+源画面审查
+0092：多次挥手后手移到胸前。后半前景相机逐渐遮挡人物，须把可见性不足单独记录。
+0114：重复运球、换手和侧向重心变化。前段头肩部分出框；周期运动可能有多个相似时刻，宜核对球和手的事件顺序。
+0126：双臂从胸前/头侧抬到头顶并保持，完整上肢清楚。后半主要保持姿态，作为单次转变案例。
+0392：反复朝镜头伸手、收手和改变手势。单侧手臂较清楚，低照度与透视缩短可能影响姿态测量。
+
+共新下载5条，逐条核官方LFS SHA并查看覆盖全片的12帧截图。short_0186被排除：官方caption写dancing，实际片段为近景双手持续贴耳机，主要头肩轻摆，肘出框，缺少明显动作切换。排除发生在任何新H3生成前，源文件和审查记录已保留。没有根据生成结果选片。没有新GPU、pose或模型调用。
+
+准备方法
+沿用R54的像素处理函数：全幅16:9等比缩为1280×720（lanczos），左右各16、上下各8黑边，得到1312×736；yuv420p、libx264 crf0。全部视频24fps。原图先完整解码再按显式原帧索引选帧；最近PTS匹配，平局选较早帧；保留最后原帧，尾部重复到最小17k+5帧长。评测只用有效前缀，共329有效帧，377输入帧。完整官方视频均保留，未裁动作片段。
+
+输入文件按R54命名：inputs/short_NNNN_{original.mp4,video.mp4,prompt.txt,provenance.json}。provenance含原始与prepared PTS、每帧映射、有效/补帧索引、原变换后和实际输入的逐帧MD5、所有SHA、实际命令及耗时。
+
+原0092/0114/0126无音轨。0392含mono AAC和无关data流，data duration不用于确定视频长度；时间映射只用0:v:0的实际PTS。准备代码沿用R54的唯一视频流默认选择和-an，验证所有准备文件均只有1条视频流，无audio/data。图的音频条件由R64生产配置按R54约定处理，本目录没有添加参考音频。
+
+验证与交接
+4条逐帧无损回读，全部输入帧MD5与指定原帧经过相同空间变换后的MD5完全一致。独立验证了时间映射、有效前缀、尾pad、FPS/尺寸/流类型、原prompt字节及冻结文件SHA。PREPARED_INPUTS_MANIFEST.json为机器可读入口，audit/VERIFICATION.json为检查结果。
+R64须为73/107/124/73建立实际latent/容量合同，不能套用R63的90帧固定合同。此前口头估计0114为124已纠正：有效105帧对应最小合法107帧。该批尚未生成；种子、模型图、固定ON位置和容量检查由root/builder封存。
+4条均应计入后续分母。人物动作改变、编辑未实现、动作不可测须分别呈现；UNKNOWN不计为同步。本组可验证固定干预在另一类任务中的表现，无法单独推出人物替换效果。
+
+主要文件
+SELECTED_4_MANIFEST.json：冻结的官方任务、源理由、风险和物理映射。
+SELECTION_FREEZE.json：在输入生成前封存的选择证据。
+PREPARED_INPUTS_MANIFEST.json：可复制16个输入文件和全部SHA。
+SOURCE_REVIEW_DECISIONS.json：5条源检查，含0186排除。
+source_review/：5条全时段源截图。
+audit/R54_PREPROCESS_DIFF.patch：相对原输入程序的准确差异。

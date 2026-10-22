@@ -1,0 +1,67 @@
+R90 / R94 之后的最小机制对照建议
+2026-10-18；只读现有源码、小JSON与实际实验记录。未改生产包，未启动推理。
+
+建议先用已经有同提示词 Native＋fixed 的失败例，增加一条 same-bin 6…19。R94 若满足这个条件，优先用它；R90 若仍延后，需要先补 P1 same-bin 6…14。是否继续扩大机制矩阵，由这一步实际成片决定。
+
+一、当前证据约束
+• R85 one_leg/movie_man_9：任务外观保住，普通编辑和fixed均有大幅动作阶段偏差。双腕事件39→138/137帧；1帧差低于源8fps的125ms时间分辨率。上臂阈值事件两版都未检出，故4秒事件差还混有动作形状/幅度改变。450次实际路由已执行；m_ref平均.08391、attention修正RMS比.11510。记录支持“现有操作没有明显修复”，不能凭量级断言“引导太弱”。[1–2]
+• R73氧气0252：任务与场景保留；参考动作32…63帧区间的探索性匹配由+16到+1帧，视觉也支持局部阶段提前恢复。相同算法的m_ref均值.16423、修正RMS比.20183。任务、参考图有无、序列长度均不同；这组差异只提供预算竞争的线索。[3–4]
+• R89等多数普通编辑已同步，对这些例子增加强度不适合诊断“如何修复延后”。保留它们作为副作用检查即可。
+• R90只有P1 Native；R94定义了P1 Native/fixed新配对。R85的P0 fixed无法充当R90的P1 fixed。旧.41 P1成片也不能代替R94本轮.9 Native。[5–6]
+
+二、三个因素分别改变什么
+
+因素                  单独改动                                    能回答的问题
+去噪干预持续时间      same-bin从indices6…14扩到6…19；其余保持     最后5次更新继续施加当前修正是否有帮助
+参考视频组总mass      同schedule给全部参考视频key统一log(3)偏置   增强视频参考相对其他条件的预算是否有帮助
+参考组内部时间读取    m_ref保持，O_ref换为O_same                    把既有参考预算分配给同名义时间组是否有帮助
+
+这里“扩大时间跨度”指去噪prediction区间。当前方法已经覆盖全部有效物理视频时间，物理query范围没有另一个更大全片可扩。若扩大reference邻域radius，会同时改变时间混合，属于另一项实验。
+
+6…14共有9次×50层=450次路由，6…19共有14次×50层=700次；均仍20Euler/20NFE。延长试验能够归因于“增加尾部5次干预”这个整体操作，不能把持续次数/累计剂量与尾部位置的贡献分开，也不能称为自动选择时机。两条fixed从同noise出发时，indices0…14应逐位一致；首次可分叉位置为index15。
+
+三、最少用多少条，先跑哪条
+
+先审R90/R94任务是否成立：人物/服装目标达成，原要求的动作路径可辨认，存在清楚的残余时序偏移。普通编辑已对齐、任务本身失败或动作类型变掉的例子，分别按正常、任务失败、动作形状问题记录。
+
+A. R94 Native仍迟、fixed6…14仍迟：只新增same-bin6…19。这是目前成本最低、已有匹配参照的一次schedule控制。
+   若明显改善且外观/动作路径保住，先在另一已确认失败例复现这一调度效果；暂不追加mass矩阵。
+   若未改善，回到已冻结的6…14 schedule，依次测“仅mass×3”，再按需要补“same-bin＋mass×3”。这样新增mass结论有对应的same-bin控制。
+B. R94 fixed有效：保留这个新支持例；同例无需继续加大干预。若R90仍迟，先补其P1 same-bin6…14，随后按A决定。
+C. R90 P1已对齐：该案例用于提示协议诊断，停止在它身上追加修复强度。若两份新Native均不构成合格失败例，下一步继续已有Native筛查。
+
+为何mass-only先于组合：它直接检验统一增权能否独立修复。若有效，已有简单操作已经解释该例的修复；只有需要主张same-bin的额外作用时再补组合。若mass-only无效但身份/场景仍保持，组合值得作为交互控制；两单项无效仍不能排除组合有效。若增权已破坏任务，需要先记录这项代价，避免仅按lag继续加权。
+
+四、2×2何时必要
+固定同一个case、P1、seed、全部条件、20Euler和schedule6…14：
+                  原参考内部读取                 同bin读取
+r=1               N：Native                      S：现有same-bin
+r=3               B：仅参考视频组增权             C：same-bin＋参考视频组增权
+
+R94具备N/S时补B/C需2条；R90只有N时补S/B/C需3条。三条额外推理不是所有情况的固定成本。若先跑了S6…19，它属于schedule旁支，不能替代这个6…14矩阵里的S。若最终改在6…19开展mass矩阵，B和C也必须使用6…19。
+
+N→B测统一mass操作；N→S测同bin操作；B→C测增权条件下同bin的附加作用；S→C测同bin条件下增权的附加作用。完整四格可描述本case/seed的交互，尚不能推出跨样本普遍机制。对不可辨认动作，不计算一个失真的lag来填满矩阵。
+
+五、实现必须保持的数学区别
+每个query/head，O=(1−m)O_other+mO_ref；统一组增权r后，m_r=rm/[1+(r−1)m]。
+S=(1−m)O_other+mO_same；B=(1−m_r)O_other+m_rO_ref；C=(1−m_r)O_other+m_rO_same。
+参考组R只能取实际layout中的video segment，角色图仍在other中。给同bin组加log(r)并删其余参考keys，会得到另一种mass；现有hard_route也改变分母，不能充当上述C。把alpha加到3是残差外推，同样不等价于mass×3。[7]
+
+增权会压低其他条件的相对预算，因此同时检查目标身份、场景、动作阶段/幅度与伪影。若未来实施，只需同query/head记录m、m_r及实际修正量；关注最终事件和轨迹变化，不能以mass变大作为效果成功。当前跨层采样均值也不能当作人物手臂区域或经过out_proj/gate后的实际影响。[2]
+
+六、已有先例与创新边界
+旧source05已有0…19、6…14、6…19和11…19；6…14与6…19主窗同为+1，0…19为0。R34已有仅index4一次、全物理时间的脉冲，+13→+2，晚于该例6…14的0。早期和更长固定调度均有本项目实测先例。R67的另一个fitness配对在index5已有延迟，index6修正仅产生小响应且最终未保留；它提供观察线索，不能替当前P1新配对定原因。[8–9]
+统一组logit偏置、softmax组分解及固定schedule均属已知操作；DIAL的相关偏置和uniform对照已在现有审查中核过。上述组合是机制控制，不凭开关组合或公式重写主张架构新颖性。若后续发展自动策略，仍需单独证明其可观测信号、决策规则与适用条件，相对这些固定对照带来实质作用；本报告未提出新的算法。
+
+证据路径
+[1] /Users/researcher/DevProjects/h3-timing-flexiact-expanded-r85-20261018/audit/root_one_leg_guided_pose_diagnostic/REPORT.txt
+[2] /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/router_strength_readonly_20261018/r85_final_comparison/REPORT.txt
+    及其上级REPORT.txt（采样范围/模型位置/代码SHA）。
+[3] /Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/audit/physical_time_short0252/SUMMARY.json
+[4] /Users/researcher/DevProjects/h3-ivebench-expanded-metrics-r73-20261018/incoming/short_0252/forced_router.json
+[5] /Users/researcher/DevProjects/h3-timing-flexiact-p1-control-r90-20261018/ROOT_HANDOFF.txt
+[6] /Users/researcher/DevProjects/h3-timing-flexiact-fitness-pair-r94-20261018/ROOT_HANDOFF.txt
+[7] /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/audit/samebin_groupboost_review/REPORT.txt
+    对应DIAL已核原文 https://arxiv.org/html/2609.11507v1#S3.SS3 ；本轮未重新开展文献检索。
+[8] /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/audit/early_schedule_history_review/REPORT.txt
+[9] /Users/researcher/DevProjects/h3-flexiact-vae-roundtrip-r67-20261018/analysis/fitness_x0_diagnostic/analysis/consumer/REPORT.txt

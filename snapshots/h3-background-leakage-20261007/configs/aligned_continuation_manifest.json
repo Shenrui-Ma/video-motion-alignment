@@ -1,0 +1,43 @@
+{
+  "status": "prepared_not_submitted",
+  "purpose": "Final corrected-workflow feasibility check after the forensic pair; not a single-variable ablation or a new method.",
+  "graph_sha256": "c058f142ea581b9bfdc3eb629f3d6601e34b8c87bd04e3e65a51e08170f68e40",
+  "prompt_sha256": "5fad4ea6bea7e9e7e92306f70fa2aaf587303d0c931258a592d25c53c35f6d8c",
+  "target_frames": 192,
+  "context_frames": 22,
+  "published_frames": 170,
+  "published_raw_interval": [
+    22,
+    192
+  ],
+  "hidden_tail_frames": 0,
+  "source_global_interval": [
+    136,
+    328
+  ],
+  "published_global_interval": [
+    158,
+    328
+  ],
+  "expected_correspondence": "Output frame j corresponds to new reference frame22+j, global source frame158+j.",
+  "common_content_with_legacy": "Global158:309; legacy intended output indices7:158 vs corrected indices0:151. Legacy actual timing is not guaranteed.",
+  "fixed": [
+    "Historical seg1 context latent",
+    "Original character image",
+    "Model stack and precision",
+    "Target shape192 and sampler seed",
+    "20-step res_multistep/simple",
+    "22-frame video and24-frame audio history"
+  ],
+  "changed": [
+    "Reference now covers the full192 sampled frames, including historical prefix.",
+    "Prompt describes8 seconds and consistent source timing; removes nonexistent source Audio1.",
+    "Publish170 new frames instead of158, leaving no unpublished tail."
+  ],
+  "limits": [
+    "All changes form a workflow package; no causal attribution to one repair.",
+    "History audio remains present despite no source audio track.",
+    "This is one fixed-history junction, not a long-chain stability test."
+  ],
+  "stopping_rule": "Stop extending experiments after this check, preserve all outcomes and clean owned processes."
+}

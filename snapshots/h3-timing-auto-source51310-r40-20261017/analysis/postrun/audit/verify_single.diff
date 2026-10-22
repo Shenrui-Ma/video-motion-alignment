@@ -1,0 +1,42 @@
+--- producer/scripts/verify_completed.py
++++ postrun/verify_single.py
+@@ -1,6 +1,7 @@
+ """Read-only CPU verification of actual online observations and chosen trajectory."""
+ import argparse,json,sys,os
+ from pathlib import Path
++sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"scripts"))
+ from observer_import import t,ROOT
+ 
+ def check_record_semantics(record,capture,case):
+@@ -29,7 +30,7 @@
+         t.require(cleanup['pid']==owner['pid'] and cleanup['service_record']==owner,'stale cleanup owner')
+         t.require(cleanup['process_absent'] and cleanup['own_compute_absent'] and cleanup['child_compute_absent'],'cleanup incomplete')
+ 
+-def check(root=ROOT,allow_resident=False):
++def check(root=ROOT,allow_resident=False,run_id=None):
+     root=Path(root);os.environ['CUDA_VISIBLE_DEVICES']='';sys.path.insert(0,str(root/'extensions'))
+     import torch
+     torch.set_num_threads(1)
+@@ -41,8 +42,11 @@
+     for rel,row in manifest['files'].items():t.require(t.sha(root/rel)==row['sha256'],'immutable file changed: '+rel)
+     results=[];jobs=[]
+     owner=t.read_json(root/'processes/service.json')
+-    for case in t.read_json(root/'configs/protocol.json')['cases']:
+-        run=case['run_id'];validate_job(run,root)
++    cases=t.read_json(root/'configs/protocol.json')['cases']
++    t.require(run_id in [c['run_id'] for c in cases], 'unregistered single-run request')
++    for case in cases:
++        if case['run_id']!=run_id:continue
++        run=case['run_id'];validate_job(run,root,inputs=False)
+         jobs.append(t.read_json(root/'logs'/f'{run}_job.json'))
+         audit=t.read_json(root/'audit/counterfactual'/f'{run}.json');c=audit['counterfactual'];mask=c['full_physical_indices'];K=len(mask);nfe=20+K
+         t.require(audit['status']=='complete' and sorted(set(mask))==mask and 0 not in mask and 0<=K<=19,'invalid complete mask')
+@@ -133,6 +137,5 @@
+     t.require(not torch.cuda.is_initialized(),'CPU verifier initialized CUDA')
+     return {'status':'pass','cases':results,'runtime_integrity_only':True,'new_method_claim':False,'cleanup_verified':released,'historical_scope':'runtime prefix/clean embedding gates are records, not independent postrun recomputation; exact historical final rechecked only all-OFF. R27 decoder bridge inherited with explicit source-accuracy limits.'}
+ if __name__=='__main__':
+-    p=argparse.ArgumentParser();p.add_argument('--root',default=str(ROOT));p.add_argument('--allow-resident',action='store_true');p.add_argument('--output');a=p.parse_args();result=check(a.root,a.allow_resident)
+-    if a.output:t.write_new(a.output,result)
+-    print(json.dumps(result,indent=2))
++    p=argparse.ArgumentParser();p.add_argument('--root',default=str(ROOT));p.add_argument('--allow-resident',action='store_true');p.add_argument('--run',required=True);p.add_argument('--output',required=True);a=p.parse_args();result=check(a.root,a.allow_resident,a.run)
++    t.write_new(a.output,result);print(json.dumps(result,indent=2))

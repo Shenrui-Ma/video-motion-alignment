@@ -1,0 +1,385 @@
+--- R40/scripts/build_manifest.py
++++ R44/scripts/build_manifest.py
+@@ -3,12 +3,14 @@
+ from pathlib import Path
+ R=Path(__file__).resolve().parents[1]
+ p=argparse.ArgumentParser();p.add_argument('--manifest',required=True);p.add_argument('--bundle',required=True);a=p.parse_args()
++from observer_import import t
++t.require_parent_closure(R)
+ paths=[R/name for name in ('PROTOCOL.json','README.txt','COMPARABILITY.txt','FREEZE.json')]
+ for sub in ('extensions','scripts','tests','configs'):
+  for f in (R/sub).rglob('*'):
+   if f.is_file() and '__pycache__' not in str(f) and f.name not in ('admission.json','runtime_provenance.json','queue.json'):paths.append(f)
+ files={str(f.relative_to(R)):{'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(paths)}
+-manifest={'schema':'r40-immutable-deploy-v1','files':files,'scientific_protocol_sha256':hashlib.sha256((R/'configs/protocol.json').read_bytes()).hexdigest(),'resource_revision':'frozen protocol resources','mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'GPU_launch_authorized_by_root_only':True}
++manifest={'schema':'r44-immutable-deploy-v1','files':files,'scientific_protocol_sha256':hashlib.sha256((R/'configs/protocol.json').read_bytes()).hexdigest(),'resource_revision':'frozen protocol resources','mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'GPU_launch_authorized_by_root_only':True}
+ out=Path(a.manifest);out.parent.mkdir(parents=True,exist_ok=True)
+ with out.open('x') as f:json.dump(manifest,f,indent=2);f.write('\n')
+ with tarfile.open(a.bundle,'x:gz') as archive:
+--- R40/scripts/gpu_dynamic_union_smoke.py
++++ R44/scripts/gpu_dynamic_union_smoke.py
+@@ -111,7 +111,7 @@
+ def main():
+     parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,required=True);parser.add_argument('--root-admitted',action='store_true');args=parser.parse_args()
+     import os,subprocess
+-    if not args.root_admitted or os.environ.get('CUDA_VISIBLE_DEVICES')!='GPU-REDACTED':raise ValueError('requires explicit root admission and exact GPU3 UUID')
++    if not args.root_admitted or os.environ.get('CUDA_VISIBLE_DEVICES')!='GPU-REDACTED':raise ValueError('requires explicit root admission and exact GPU2 UUID')
+     pending=subprocess.check_output(['nvidia-smi','--id='+os.environ['CUDA_VISIBLE_DEVICES'],'--query-compute-apps=pid','--format=csv,noheader,nounits'],text=True).strip()
+     if pending:raise RuntimeError('selected GPU has compute processes')
+     if args.output.exists():raise FileExistsError(args.output)
+--- R40/scripts/job.py
++++ R44/scripts/job.py
+@@ -10,7 +10,7 @@
+ import urllib.request
+ 
+ import service
+-from r40_contract import validate_job
++from r44_contract import validate_job
+ 
+ RUN = service.RUN
+ URL = f'http://127.0.0.1:{service.PORT}'
+@@ -78,7 +78,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-auto-source51310-r40-20261017'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-auto-source28289-r44-20261017'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- R40/scripts/parent_binding.py
++++ R44/scripts/parent_binding.py
+@@ -1,10 +1,10 @@
+-"""Read actual R38 source51310 archives; never infer absent historical trees."""
++"""Read actual R42 source28289 archives; refuse pending or invented evidence."""
+ from pathlib import Path
+ from observer_import import t
+ 
+ def check(root,remote=False):
+- root=Path(root);p=t.read_json(root/'configs/protocol.json');case=p['cases'][0]
+- t.require(len(p['cases'])==1 and case['source_id']=='51310' and case['seed']==2026101701,'case changed')
++ root=Path(root);t.require_parent_closure(root);p=t.read_json(root/'configs/protocol.json');case=p['cases'][0]
++ t.require(len(p['cases'])==1 and case['source_id']=='28289' and case['seed']==2026101701 and case['identity']=='Elon Musk','case changed')
+  run=case['parent_run'];cap=t.read_json(root/case['parent_captures']);condition=t.read_json(root/case['parent_conditioning']);inventory=t.read_json(root/case['parent_file_inventory'])
+  gate=t.read_json(root/'configs/parent_run_gate.json');runtime=t.read_json(root/'configs/parent_runtime_gate.json');history=t.read_json(root/'configs/parent_history.json');router=t.read_json(root/'configs/parent_router.json')
+  t.require(gate['passed'] is True and run in gate['runs'] and all(runtime['checks'].values()),'parent actual gates failed')
+@@ -21,12 +21,16 @@
+  t.require((v['fps'],v['width'],v['height'],v['container_frame_count'])==(24,1312,736,141),'source pose geometry differs')
+  t.require(len(frames)==141 and [f['frame'] for f in frames]==list(range(141)) and all(abs(f['time_s']-i/24)<1e-8 for i,f in enumerate(frames)),'source pose timebase differs')
+  provenance=t.read_json(root/'configs/source_provenance.json');inputs=t.read_json(root/'configs/input_hashes.json')
+- t.require(v['sha256']==provenance['prepared_sha256']==inputs['source_51310_video.mp4'],'source pose/video binding differs')
++ t.require(v['sha256']==provenance['video_sha256']==inputs['source_28289_video.mp4'],'source pose/video binding differs')
+  t.require(t.sha(root/'configs/source.pose.json')==p['observer']['source_pose_sha256'],'source pose changed')
+- times=provenance['probe']['frames'];t.require(len(times)==141 and all(abs(float(row['best_effort_timestamp_time'])-i/24)<1e-6 for i,row in enumerate(times)),'prepared video PTS differs')
+- selection=provenance['source_selection'];t.require(selection['id']=='51310' and selection['source_only_start_seconds']==0 and selection['output_frame_range_inclusive']==[0,140] and selection['output_fps']==24,'source selection mapping differs')
+- t.require(condition['packed_layout']['seq_len']==87361 and condition['conditioning_embedding']['shape']==[1,6729,5120],'actual conditioning layout changed')
+- embedding='audit/'+condition['conditioning_embedding']['tensor_file'];t.require(inventory[embedding]['bytes']==137811656,'historical embedding entity inventory absent')
++ times=t.read_json(root/'configs/source_input_probe.json')['frames'];t.require(len(times)==141 and all(abs(float(row['best_effort_timestamp_time'])-i/24)<1e-6 for i,row in enumerate(times)),'prepared video PTS differs')
++ selection=t.read_json(root/'configs/source_selection.json');selected=[x for x in selection['candidates'] if x.get('selected_for_next_native') is True]
++ t.require(len(selected)==1 and selected[0]['id']=='28289' and selected[0]['start_seconds']==0 and selected[0]['sampled_frames']==141 and selected[0]['fps']==24,'source selection mapping differs')
++ t.require(provenance['source_selection_sha256']==t.sha(root/'configs/source_selection.json'),'selection bytes differ')
++ bound=t.read_json(root/'configs/parent_layout.json')
++ t.require(bound['conditioning_sha256']==t.sha(root/case['parent_conditioning']),'layout binding source differs')
++ t.require(condition['packed_layout']==bound['packed_layout'] and condition['conditioning_embedding']==bound['conditioning_embedding'],'actual conditioning layout changed')
++ embedding='audit/'+condition['conditioning_embedding']['tensor_file'];t.require(inventory[embedding]==bound['embedding_file'] and inventory[embedding]['bytes']>0,'historical embedding entity inventory absent')
+  relations={f'configs/graphs/{run}.json':case['parent_graph'],f'audit/{run}_conditioning.json':case['parent_conditioning'],f'audit/{run}_noise.json':case['parent_noise'],f'audit/x0/{run}/manifest.json':case['parent_captures'],f'logs/{run}_history.json':'configs/parent_history.json',f'audit/router/{run}.json':'configs/parent_router.json'}
+  for rel,local in relations.items():t.require(t.sha(root/local)==inventory[rel]['sha256'],'copied parent evidence differs: '+rel)
+  checked=[]
+--- R40/scripts/preflight.py
++++ R44/scripts/preflight.py
+@@ -2,10 +2,10 @@
+ import argparse,json
+ from pathlib import Path
+ from observer_import import t,ROOT
+-from r40_contract import validate_job
++from r44_contract import validate_job
+ 
+ def check(root=ROOT,metadata_only=False):
+-    root=Path(root);t.bindings();t.admission_document(approved=not metadata_only)
++    root=Path(root);t.require_parent_closure(root);t.bindings();t.admission_document(approved=not metadata_only)
+     p=t.read_json(root/'configs/protocol.json');names=[c['run_id'] for c in p['cases']]
+     queue=t.read_json(root/'configs/queue.json')
+     t.require(set(queue)=={'jobs','finalize'} and queue['jobs']==names and type(queue['finalize']) is bool,'queue changed')
+--- R40/scripts/prelaunch_gates.py
++++ R44/scripts/prelaunch_gates.py
+@@ -45,8 +45,8 @@
+     require(sha(kp)==sha(root/'configs/inherited_actual87361_kernel.json'),'copied actual kernel evidence differs')
+     check_layout_case(k,read(root/'configs/parent_conditioning.json'))
+     inherited=inherited_bridge(root);r=read(rp)
+-    require(r['schema']=='r40-root-resource-admission-v1' and r['root_approved'] is True,'root resource review missing')
+-    require(r['gpu_uuid']=='GPU-REDACTED','resource GPU differs')
++    require(r['schema']=='r44-root-resource-admission-v1' and r['root_approved'] is True,'root resource review missing')
++    require(r['gpu_uuid']=='GPU-REDACTED','resource GPU differs')
+     require(r['kernel_gate_sha256']==sha(kp) and r['known_endpoint_gate_sha256']==inherited['known_endpoint_gate_sha256'] and r['inheritance_sha256']==inherited['inheritance_sha256'] and r['kernel_inheritance_sha256']==sha(root/'configs/kernel_inheritance.json') and r['protocol_sha256']==protocol,'resource review unbound to gates')
+     for key in ('model_resident_measured_bytes','routing_increment_bound_bytes','decoder_peak_reserved_bytes','total_memory_bytes','estimated_combined_bytes'):
+         require(type(r[key]) is int and r[key]>0,'invalid resource estimate '+key)
+--- R40/scripts/r40_contract.py
++++ R44/scripts/r44_contract.py
+@@ -1,13 +1,13 @@
+-"""One frozen source51310 development transfer; exact graph and actual loader input binding."""
++"""One source28289/Musk transfer; exact R42 graph and actual loader input binding."""
+ import hashlib,json,shutil
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-REMOTE=Path('/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017')
++REMOTE=Path('/data5/researcher/h3_runs/timing_auto_source28289_r44_20261017')
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ def read(p):return json.loads(Path(p).read_text())
+ def audit_dir(value):
+     p=Path(value)
+-    if not p.is_absolute() or p.is_symlink() or p.resolve()!=REMOTE/'audit':raise ValueError('audit root outside frozen R40 root')
++    if not p.is_absolute() or p.is_symlink() or p.resolve()!=REMOTE/'audit':raise ValueError('audit root outside frozen R44 root')
+     return p.resolve()
+ def expected_graph(parent,case):
+     g=json.loads(json.dumps(parent))
+@@ -16,7 +16,7 @@
+             if isinstance(v,str) and case['parent_root'] in v:node['inputs'][k]=v.replace(case['parent_root'],str(REMOTE))
+     run=case['run_id']
+     for key in ('6','51','52'):g[key]['inputs']['run_id']=run
+-    g['5']['inputs']['run_id']='r40_source51310_shared';g['51']['inputs']['source_run_id']='r40_source51310_shared'
++    g['5']['inputs']['run_id']='r44_source28289_shared';g['51']['inputs']['source_run_id']='r44_source28289_shared'
+     g['6']['inputs']['pair_id']=run+'_noise';g['14']['inputs']['filename_prefix']=run
+     g['50']={'class_type':'H3AutomaticWindowRouter','inputs':{'model':['41',0],'positive':['51',0],'run_id':run,'audit_dir':str(REMOTE)+'/audit/counterfactual'}}
+     return g
+--- R40/scripts/run_queue.py
++++ R44/scripts/run_queue.py
+@@ -1,7 +1,7 @@
+-"""One predeclared source51310 job, bounded resident hold, generation-bound cleanup."""
++"""One predeclared source28289 job, bounded resident hold, generation-bound cleanup."""
+ import json,subprocess,time
+ import job,service
+-from r40_contract import validate_job
++from r44_contract import validate_job
+ 
+ def state(**v):service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**v))
+ def run(expected_pid=None,expected_start_ticks=None):
+--- R40/scripts/service.py
++++ R44/scripts/service.py
+@@ -11,13 +11,13 @@
+ import time
+ import urllib.request
+ 
+-RUN = Path('/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017')
++RUN = Path('/data5/researcher/h3_runs/timing_auto_source28289_r44_20261017')
+ CORE = Path('/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI')
+ PYTHON = '/home/researcher/miniconda3/envs/comfyui/bin/python'
+ DEPENDENCIES = '/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps'
+ MODELS = '/data5/researcher/ComfyUI/models'
+-GPU = 'GPU-REDACTED'
+-PORT = 8502
++GPU = 'GPU-REDACTED'
++PORT = 8506
+ 
+ 
+ def write_json(path, value):
+@@ -104,7 +104,7 @@
+     t.admission_document(approved=True)
+     cards={row['gpu_uuid'] for row in processes if proc_uid(row['pid'])==os.getuid()}
+     if len(cards|{GPU})>2:raise RuntimeError('own GPU limit exceeded')
+-    if cards-{GPU,'GPU-REDACTED'}:raise RuntimeError('unapproved second own GPU')
++    if cards-{GPU,'GPU-REDACTED'}:raise RuntimeError('unapproved second own GPU')
+     allowed = {int(row['pid']): row['identity']
+                for row in admission['permitted_compute_processes']}
+     for row in processes:
+--- R40/scripts/verify_completed.py
++++ R44/scripts/verify_completed.py
+@@ -35,7 +35,7 @@
+     torch.set_num_threads(1)
+     from H3X0Readout.core import tensor_signature
+     from H3AutomaticWindowRouter.selector import Controller
+-    from r40_contract import validate_job
++    from r44_contract import validate_job
+     t.bindings();t.admission_document(approved=True)
+     manifest=t.read_json(root/'deploy_manifest.json')
+     for rel,row in manifest['files'].items():t.require(t.sha(root/rel)==row['sha256'],'immutable file changed: '+rel)
+@@ -122,7 +122,7 @@
+                     oldpath=Path(case['parent_root'])/'audit/x0'/case['parent_run']/oldcap['final_sampler_result']['file']
+                     old=torch.load(oldpath,map_location='cpu',weights_only=True)
+                     t.require(all(tensor_signature(old[k])==oldcap['final_sampler_result'][k] and torch.equal(value[k],old[k]) for k in ('video','audio')),'all-OFF final Native replay mismatch')
+-        results.append({'run':run,'mask':mask,'NFE':nfe,'updates':20,'observations':20,'first_on':first,'case_role':'source51310 development-screened same-corpus transfer','prefix_scope':'all20 old Native available; current Native through firstON inclusive; full and future permanently N/A','all_OFF_final_exact':not bool(mask)})
++        results.append({'run':run,'mask':mask,'NFE':nfe,'updates':20,'observations':20,'first_on':first,'case_role':'source28289 Elon Musk transfer; parent closure required','prefix_scope':'all20 old Native available; current Native through firstON inclusive; full and future permanently N/A','all_OFF_final_exact':not bool(mask)})
+     cleanup=root/'processes/cleanup.json'
+     if cleanup.exists():
+         d=t.read_json(cleanup);check_owner_evidence(owner,jobs,d);released=True
+--- R40/extensions/H3AutomaticWindowRouter/__init__.py
++++ R44/extensions/H3AutomaticWindowRouter/__init__.py
+@@ -7,7 +7,7 @@
+     def INPUT_TYPES(cls):
+         return {'required': {'model': ('MODEL',), 'positive': ('CONDITIONING',),
+                 
+-                'run_id': ('STRING', {'default': 'r40_source51310_seed2026101701_auto'}),
++                'run_id': ('STRING', {'default': 'r44_source28289_seed2026101701_auto'}),
+                 'audit_dir': ('STRING', {'default': '/tmp/h3-counterfactual'})}}
+     RETURN_TYPES = ('MODEL',)
+     FUNCTION = 'apply'
+--- R40/extensions/H3AutomaticWindowRouter/pair_gate.py
++++ R44/extensions/H3AutomaticWindowRouter/pair_gate.py
+@@ -96,5 +96,5 @@
+         t.require(required<=self.done,'missing eligible historical comparisons')
+         s.audit['counterfactual']['native_preservation']={'zero_Full':self.first_on is None,'first_on':self.first_on,
+             'status':'pending_final_exact_check' if self.first_on is None else 'divergent_controlled_trajectory',
+-            'case_role':'source51310 development-screened same-corpus transfer',
++            'case_role':'source28289 Elon Musk transfer; parent closure required',
+             'prefix_evidence':'all20 historical captures available; current Native through firstON inclusive; future permanently N/A'}
+--- R40/extensions/H3AutomaticWindowRouter/transport.py
++++ R44/extensions/H3AutomaticWindowRouter/transport.py
+@@ -2,11 +2,11 @@
+ import hashlib,json,os,signal,subprocess,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+-PROTOCOL_SHA='fd3d154d8d8c1dc3980588ed44155d7f631f40acccd045244cea366362dedda2'
+-DECODER_UUID='GPU-REDACTED'
+-MAIN_UUID='GPU-REDACTED'
+-SECOND_TASK_UUID='GPU-REDACTED'
+-REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017')
++PROTOCOL_SHA='0e2a9e0733c5121d492fdab8915f9172cafa0041f49cc6794c3fb2c2d45303a3'
++DECODER_UUID='GPU-REDACTED'
++MAIN_UUID='GPU-REDACTED'
++SECOND_TASK_UUID='GPU-REDACTED'
++REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_source28289_r44_20261017')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def sha(path):
+@@ -76,7 +76,19 @@
+    terminate_owned(proc,entry)
+    write_new(directory/(label+'.exit.json'),{'pid':proc.pid,'returncode':proc.returncode,'identity_absent':not alive(entry),'wall_seconds':time.monotonic()-start})
+  return {'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode}
++def require_parent_closure(root=ROOT):
++ root=Path(root);c=read_json(root/'configs/PARENT_CLOSURE.json')
++ require(c.get('ready') is True and c.get('status')=='READY','R44 WAITING_R42_PARENT_CLOSURE; no source pose or actual parent evidence may be inferred')
++ expected=set(c['required_actual_files']);actual=c.get('actual_file_sha256',{})
++ require(expected and set(actual)==expected,'actual R42 parent closure inventory incomplete')
++ for rel,digest in actual.items():
++  require(isinstance(digest,str) and len(digest)==64 and sha(root/rel)==digest,'actual R42 parent closure changed: '+rel)
++ case=read_json(root/'configs/protocol.json')['cases'][0]
++ require(c['parent_run']==case['parent_run'] and c['parent_root']==case['parent_root'],'parent closure identity differs')
++ return c
++
+ def bindings(external=False):
++ require_parent_closure()
+  b=read_json(ROOT/'configs/observer_bindings.json')
+  require(sha(ROOT/'configs/protocol.json')==PROTOCOL_SHA,'scientific protocol changed')
+  for p,s in b['local_files'].items():require(sha(ROOT/p)==s,'local frozen evidence changed: '+p)
+--- R40/extensions/H3EventAudit/__init__.py
++++ R44/extensions/H3EventAudit/__init__.py
+@@ -21,7 +21,7 @@
+ 
+ 
+ def audit_root(value):
+-    from r40_contract import audit_dir
++    from r44_contract import audit_dir
+     root = audit_dir(value)
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+@@ -163,7 +163,7 @@
+             "width": ("INT", {"default": 1312, "min": 32, "step": 32}),
+             "height": ("INT", {"default": 736, "min": 32, "step": 32}),
+             "length": ("INT", {"default": 107, "min": 5}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017/audit"}),
++            "audit_dir": ("STRING", {"default": '/data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/audit'}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "semantic_fps": ("INT", {"default": 2, "min": 1, "max": 24}),
+             "phase_frames": ("INT", {"default": 0, "min": 0, "max": 23}),
+@@ -266,7 +266,7 @@
+     def INPUT_TYPES(cls):
+         return {"required": {
+             "noise_seed": ("INT", {"default": 12345, "min": 0, "max": 0xffffffffffffffff}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017/audit"}),
++            "audit_dir": ("STRING", {"default": '/data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/audit'}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "pair_id": ("STRING", {"default": "case_seed1"}),
+         }}
+--- R40/tests/real_comfy_cpu_smoke.py
++++ R44/tests/real_comfy_cpu_smoke.py
+@@ -73,7 +73,7 @@
+     sampler_source = Path(args.comfy_root).resolve() / "comfy_extras/nodes_custom_sampler.py"
+     if not asyncio.run(nodes.load_custom_node(str(sampler_source), module_parent="comfy_extras")):
+         raise RuntimeError("actual Comfy node loader failed")
+-    graph = json.loads((root / "configs/r40_source51310_seed2026101701_auto.json").read_text())
++    graph = json.loads((root / 'configs/r44_source28289_seed2026101701_auto.json').read_text())
+     graph_guider_type = graph["7"]["class_type"]
+     assert graph_guider_type == "BasicGuider"
+     graph_guider_node = nodes.NODE_CLASS_MAPPINGS[graph_guider_type]
+@@ -171,7 +171,7 @@
+         # Same actual Euler, one model prediction per step, independently prescribed masks.
+         # Both actual run IDs create independent states from the same cached ModelPatcher.
+         cached_states=[]
+-        for cache_attempt,actual_run in enumerate(('r40_source51310_seed2026101701_auto','r40_source51310_seed2026101701_auto')):
++        for cache_attempt,actual_run in enumerate(('r44_source28289_seed2026101701_auto','r44_source28289_seed2026101701_auto')):
+             cached=H3AutomaticWindowRouter().apply(base,positive,actual_run,str(temp/('cached_states_'+str(cache_attempt))))[0]
+             cs=cached.get_wrappers(WrappersMP.SAMPLER_SAMPLE,KEY)[0].state
+             assert cs.callback_count==0 and cs.forward_index==-1 and not cs.entered
+--- R40/tests/test_admin_relocation.py
++++ R44/tests/test_admin_relocation.py
+@@ -2,7 +2,7 @@
+ from pathlib import Path
+ R=Path(__file__).resolve().parents[1];sys.path[:0]=[str(R/'scripts'),str(R/'extensions')]
+ from observer_import import t
+-from r40_contract import expected_graph
++from r44_contract import expected_graph
+ class AdministrativeRelocationTests(unittest.TestCase):
+  def read(self,name):return json.loads((R/name).read_text())
+  def test_observer_and_actuator_exact_except_source_binding(self):
+@@ -13,9 +13,9 @@
+   for rel,digest in spec['exact_numerical_files'].items():self.assertEqual(hashlib.sha256((R/rel).read_bytes()).hexdigest(),digest)
+  def test_exact_new_device_and_peer(self):
+   import service
+-  self.assertEqual(service.GPU,t.MAIN_UUID);self.assertEqual(service.PORT,8502);self.assertEqual(t.MAIN_UUID,t.DECODER_UUID);self.assertEqual(t.MAIN_UUID,'GPU-REDACTED');self.assertEqual(t.SECOND_TASK_UUID,'GPU-REDACTED');self.assertNotEqual(t.SECOND_TASK_UUID,t.MAIN_UUID)
++  self.assertEqual(service.GPU,t.MAIN_UUID);self.assertEqual(service.PORT,8506);self.assertEqual(t.MAIN_UUID,t.DECODER_UUID);self.assertEqual(t.MAIN_UUID,'GPU-REDACTED');self.assertEqual(t.SECOND_TASK_UUID,'GPU-REDACTED');self.assertNotEqual(t.SECOND_TASK_UUID,t.MAIN_UUID)
+  def test_graph_and_input_metadata_unchanged(self):
+-  case=self.read('configs/protocol.json')['cases'][0];g=self.read('configs/'+case['run_id']+'.json');self.assertEqual(g,expected_graph(self.read('configs/parent_graph.json'),case));self.assertEqual(case['seed'],2026101701);self.assertEqual(case['source_id'],'51310')
++  case=self.read('configs/protocol.json')['cases'][0];g=self.read('configs/'+case['run_id']+'.json');self.assertEqual(g,expected_graph(self.read('configs/parent_graph.json'),case));self.assertEqual(case['seed'],2026101701);self.assertEqual(case['source_id'],'28289')
+  def test_default_admission_denies(self):
+   self.assertTrue(t.admission_document(False)['root_live_review_required'])
+   with self.assertRaises(ValueError):t.admission_document(True)
+--- R40/tests/test_automatic.py
++++ R44/tests/test_automatic.py
+@@ -10,7 +10,7 @@
+ from H3AutomaticWindowRouter.dependencies import router
+ from counterfactual_support import dense_attention
+ from pose_test_support import row,measurement
+-from r40_contract import validate_job
++from r44_contract import validate_job
+ class Tests(unittest.TestCase):
+  def test_policy_off_early_restart(self):
+   self.assertFalse(Controller().select(0,measurement('always',0))['chosen_full'])
+@@ -59,7 +59,7 @@
+  def test_frozen_policy_copy(self):
+   self.assertEqual((ROOT/'scripts/automatic_window_policy.py').read_bytes(),(ROOT/'extensions/H3AutomaticWindowRouter/automatic_window_policy.py').read_bytes())
+  def test_request_bounds_single_new_seed(self):
+-  self.assertEqual(t.case_for('r40_source51310_seed2026101701_auto')['seed'],2026101701)
++  self.assertEqual(t.case_for('r44_source28289_seed2026101701_auto')['seed'],2026101701)
+   with self.assertRaises(ValueError):t.case_for('r27_s05_bad1311_auto')
+   with self.assertRaises(ValueError):t.case_for('unknown')
+ 
+--- R40/tests/test_case_evidence.py
++++ R44/tests/test_case_evidence.py
+@@ -2,7 +2,7 @@
+ from pathlib import Path
+ R=Path(__file__).resolve().parents[1];sys.path[:0]=[str(R/'scripts'),str(R/'extensions')]
+ from parent_binding import check
+-from r40_contract import expected_graph
++from r44_contract import expected_graph
+ class NewCaseEvidenceTests(unittest.TestCase):
+  def test_all_raw_evidence_bytes_bound(self):
+   bound=json.loads((R/'configs/parent_evidence_bindings.json').read_text())
+--- R40/tests/test_resource_relocation.py
++++ R44/tests/test_resource_relocation.py
+@@ -19,7 +19,7 @@
+   put(parent/'audit/gpu_dynamic_union_gate.json',k);put(root/'configs/inherited_actual87361_kernel.json',k)
+   for i in range(2):put(root/f'audit/evidence{i}.json',{'measured':i})
+   inherited={'known_endpoint_gate_sha256':'known','inheritance_sha256':g.sha(root/'configs/r27_inheritance.json')}
+-  resource={'schema':'r40-root-resource-admission-v1','root_approved':True,'gpu_uuid':'GPU-REDACTED','kernel_gate_sha256':g.sha(parent/'audit/gpu_dynamic_union_gate.json'),'known_endpoint_gate_sha256':'known','inheritance_sha256':inherited['inheritance_sha256'],'kernel_inheritance_sha256':g.sha(root/'configs/kernel_inheritance.json'),'protocol_sha256':g.sha(root/'configs/protocol.json'),'model_resident_measured_bytes':60*1024**3,'routing_increment_bound_bytes':2*1024**3,'decoder_peak_reserved_bytes':6*1024**3,'total_memory_bytes':80*1024**3,'estimated_combined_bytes':68*1024**3,'required_free_before_decoder_mib':12288,'scope':'single GPU isolated exec; runtime exact-parent admission remains mandatory','evidence':[{'file':str(root/f'audit/evidence{i}.json'),'sha256':g.sha(root/f'audit/evidence{i}.json')} for i in range(2)]}
++  resource={'schema':'r44-root-resource-admission-v1','root_approved':True,'gpu_uuid':'GPU-REDACTED','kernel_gate_sha256':g.sha(parent/'audit/gpu_dynamic_union_gate.json'),'known_endpoint_gate_sha256':'known','inheritance_sha256':inherited['inheritance_sha256'],'kernel_inheritance_sha256':g.sha(root/'configs/kernel_inheritance.json'),'protocol_sha256':g.sha(root/'configs/protocol.json'),'model_resident_measured_bytes':60*1024**3,'routing_increment_bound_bytes':2*1024**3,'decoder_peak_reserved_bytes':6*1024**3,'total_memory_bytes':80*1024**3,'estimated_combined_bytes':68*1024**3,'required_free_before_decoder_mib':12288,'scope':'single GPU isolated exec; runtime exact-parent admission remains mandatory','evidence':[{'file':str(root/f'audit/evidence{i}.json'),'sha256':g.sha(root/f'audit/evidence{i}.json')} for i in range(2)]}
+   put(root/'audit/resource_admission.json',resource)
+   return root,parent,resource,inherited,put
+  def test_valid_scoped_inheritance_and_gpu3_resource(self):
+@@ -29,7 +29,7 @@
+  def test_resource_wrong_gpu_protocol_or_approval_rejected(self):
+   with tempfile.TemporaryDirectory() as d:
+    r,p,v,i,put=self.fixture(d)
+-   for key,val in [('gpu_uuid','GPU-REDACTED'),('protocol_sha256','old'),('root_approved',False),('root_approved',1),('inheritance_sha256','old')]:
++   for key,val in [('gpu_uuid','GPU-REDACTED'),('protocol_sha256','old'),('root_approved',False),('root_approved',1),('inheritance_sha256','old')]:
+     bad=copy.deepcopy(v);bad[key]=val;put(r/'audit/resource_admission.json',bad)
+     with patch.object(g,'inherited_bridge',return_value=i),self.assertRaises(ValueError):g.check(r)
+  def test_actual_layout_cannot_be_inherited_from_short_prompt(self):

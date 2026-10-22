@@ -1,0 +1,107 @@
+--- a/scripts/job.py
++++ b/scripts/job.py
+@@ -5,6 +5,7 @@
+ import json
+ from pathlib import Path
+ import re
++import subprocess
+ import time
+ import urllib.error
+ import urllib.request
+@@ -39,7 +40,13 @@
+ 
+ def check_host_admission(owner):
+     admission = json.loads((RUN / 'configs/admission.json').read_text())
+-    other_processes = [row for row in service.compute_processes() if row['pid'] != owner['pid']]
++    from observer_import import t
++    try:
++        processes = service.compute_processes()
++    except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as error:
++        raise t.ResourceUnavailable('compute query temporarily unavailable',
++                                    {'error_type': type(error).__name__, 'error': str(error)}) from error
++    other_processes = [row for row in processes if row['pid'] != owner['pid']]
+     existing_queue = service.queue_at(admission.get('existing_comfy_port', 8189))
+     service.check_admission(admission, other_processes, existing_queue)
+     return time.time()
+@@ -49,16 +56,27 @@
+     if actual['pid']!=expected['pid'] or actual['identity']!=expected['identity']:raise RuntimeError('stale service generation')
+ 
+ def wait_host_admission(owner,timeout=600):
+-    started=time.monotonic()
++    from observer_import import t
++    if type(timeout) not in (int,float) or not 0<timeout<=600:
++        raise ValueError('submission resource wait must be positive and at most600seconds')
++    started=time.monotonic();deadline=started+timeout;attempt=0
+     while True:
+         require_generation(active_service(),owner)
+-        try:return check_host_admission(owner)
+-        except RuntimeError as error:
+-            # Retry the same strict test; no unregistered process is admitted.
+-            if not (str(error).startswith('Unexpected host compute PID ') or str(error)=='Selected GPU has active compute; refusing to start'):raise
+-            with (RUN/'logs/submission_admission_wait.jsonl').open('a') as f:f.write(json.dumps({'unix':time.time(),'owner_pid':owner['pid'],'error':str(error)})+'\n')
+-            if time.monotonic()-started>=timeout:raise TimeoutError('strict peer admission did not clear') from error
+-            time.sleep(2)
++        if time.monotonic()>=deadline:raise TimeoutError('submission resource admission deadline expired')
++        attempt+=1
++        try:
++            admitted=check_host_admission(owner)
++        except t.ResourceUnavailable as error:
++            with (RUN/'logs/submission_admission_wait.jsonl').open('a') as f:
++                f.write(json.dumps({'unix':time.time(),'owner_pid':owner['pid'],'attempt':attempt,
++                                    'elapsed_seconds':time.monotonic()-started,'error_type':type(error).__name__,
++                                    'error':str(error),'snapshot':error.snapshot})+'\n')
++            if time.monotonic()>=deadline:raise TimeoutError('submission resource admission deadline expired') from error
++            time.sleep(min(2,deadline-time.monotonic()))
++        else:
++            require_generation(active_service(),owner)
++            if time.monotonic()>=deadline:raise TimeoutError('submission resource query completed after deadline')
++            return admitted
+ 
+ 
+ def submit(name, expected_owner=None):
+--- a/scripts/run_queue.py
++++ b/scripts/run_queue.py
+@@ -41,8 +41,14 @@
+             while time.monotonic()<deadline:
+                 result=job.status(current);status=result['status']
+                 status=status['status_str'] if isinstance(status,dict) else status
+-                stats=subprocess.run(['nvidia-smi','-i',service.GPU,'--query-gpu=uuid,memory.used,utilization.gpu,temperature.gpu','--format=csv,noheader,nounits'],capture_output=True,text=True,timeout=20,check=True)
+-                with (service.RUN/'logs/resources.jsonl').open('a') as f:f.write(json.dumps({'unix':time.time(),'job':current,'sample':stats.stdout.strip()})+'\n')
++                sample={'unix':time.time(),'job':current}
++                try:
++                    stats=subprocess.run(['nvidia-smi','-i',service.GPU,'--query-gpu=uuid,memory.used,utilization.gpu,temperature.gpu','--format=csv,noheader,nounits'],capture_output=True,text=True,timeout=20,check=True)
++                except (subprocess.TimeoutExpired,subprocess.CalledProcessError) as error:
++                    sample.update(sample=None,sample_available=False,error_type=type(error).__name__,error=str(error))
++                else:
++                    sample.update(sample=stats.stdout.strip() or None,sample_available=bool(stats.stdout.strip()))
++                with (service.RUN/'logs/resources.jsonl').open('a') as f:f.write(json.dumps(sample)+'\n')
+                 state(status=status,current=current,completed=completed)
+                 if status=='success':
+                     history=read(service.RUN/'logs'/f'{current}_history.json')
+--- a/scripts/service.py
++++ b/scripts/service.py
+@@ -111,6 +111,7 @@
+         if uid!=os.getuid():continue
+         owned.append(row)
+         actual=external_identity(row['pid'])
++        if actual is None:raise t.ResourceUnavailable('own compute process exited during identity query',{'pid':row['pid'],'gpu_uuid':row['gpu_uuid']})
+         if row['pid'] not in allowed or actual!=allowed[row['pid']]:
+             raise RuntimeError('Unexpected own compute identity '+str(row['pid']))
+     if len({row['gpu_uuid'] for row in owned}|{GPU,t.DECODER_UUID})>2:
+@@ -297,9 +298,14 @@
+ def residency_snapshot(reason):
+     record=json.loads((RUN/'processes/service.json').read_text())
+     assert_owned(record)
+-    rows=compute_processes();own=[r for r in rows if r['pid']==record['pid']]
++    unavailable=None
++    try:
++        rows=compute_processes();own=[r for r in rows if r['pid']==record['pid']]
++    except (subprocess.TimeoutExpired,subprocess.CalledProcessError) as error:
++        own=None;unavailable={'error_type':type(error).__name__,'error':str(error)}
+     value={'observed_unix':time.time(),'reason':reason,'service':{'pid':record['pid'],'identity':record['identity']},
+-           'own_compute':own,'cache_none':record['cache_none'],'explicit_unload_requested':False,
++           'own_compute':own,'compute_snapshot_available':unavailable is None,'unavailable_reason':unavailable,
++           'cache_none':record['cache_none'],'explicit_unload_requested':False,
+            'model_residency_scope':'PID VRAM and live cached service only; individual model tensor placement not inferred'}
+     with (RUN/'logs/residency.jsonl').open('a') as f:f.write(json.dumps(value)+'\n')
+     return value

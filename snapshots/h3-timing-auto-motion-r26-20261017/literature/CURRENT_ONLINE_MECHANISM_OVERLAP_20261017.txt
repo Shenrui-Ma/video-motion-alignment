@@ -1,0 +1,95 @@
+当前线上 Full 算子与自动控制的创新边界
+核验日期：2026-10-17。范围：只读 R40/R41 冻结源码、既有文献台账及四篇指定原始论文/官方页面；重点深读 DIAL 的注意力公式与 MotionEcho 的自适应控制。未运行模型、未改实验或阈值，也没有进行穷尽新颖性检索。
+
+判断
+当前 Full 与 DIAL 的“整个参考组统一加偏置”不具有同一数学形式；Full 是保持原参考组总质量的组内时间重分配。但它可写成带归一化补偿的 token-specific logit 重加权，不能仅凭残差写法或换 H3 就称新注意力架构。动态启停、预测 clean endpoint 的运动信号、无需新权重训练和同帧共享也都有直接先例。
+仍值得检验的具体组合是：在当前采样状态先获得未施加本次路由的端点，以可拒判、有物理帧单位的局部延后假设定位0..K时间区间，再在同一 x/sigma/条件下选择一次有约束的参考路由预测。现有材料可支撑这一实现区别，尚不能证明其每个组成部分独立新颖或已识别真实动作缺失原因。
+
+1. 先界定实际实现
+记 n 为去噪迭代，f 为视频物理帧；代码旧字段 physical_index 实际指 n，不是 f。
+R40 每个 n=0..19 先在实际 x_n、sigma_n 上计算 Native clean endpoint，完整 VAE 解码并执行冻结 DWPose。若本步选中 Full，保持同 x_n、sigma_n、条件与 RNG 再运行同一 H3，一次 Euler 更新只采用最终选中的预测。共20次 Native、K次 Full、20次 Euler；没有在当前步重新评估 Full 端点是否更好再决定接受。下一步的 Native 已包含此前干预造成的轨迹变化，不是旧的全 Native 基准轨迹。
+
+观察器完整扫描16/32物理帧窗、stride4及尾窗、双/左/右臂方向，共186行；不是任意动作语义识别或全身各部位检测。两个姿态置信门.3/.5均需可靠，lag在±24帧内，两个lag差≤2且都>2才成为延后候选。相对于[-2,2]每个同步容许lag，分别用相同有效支持计算归一化误差收益；最小收益>.5、coverage≥.8、至少8帧、移位后残差≤.5才候选有效。不同容许lag之间的支持并非强制完全一样。
+重叠窗组成连通组，每组取最小绝对收益最大的代表。与上一去噪端点代表共享手臂，交集/较短窗长度≥.5才启动；连续性只比较位置/部位，不要求两步lag值一致。无合格候选或可见性UNKNOWN会OFF并打断连续证据；技术错误ABORT。提前的动作不触发相反方向修正。首次n0仅能积累证据，最早n1能ON。
+选中物理区间映射到H3名义时间bins并集，当前 alpha=1/radius=0，全部50层、所选bin所有空间query执行Full。lag大小用于候选判断，不把参考key偏移lag帧；身体部位也没有直接成为空间执行mask。局部注意力输出受限不保证后续层、下一状态或最终视频只在该区域改变。
+R41同一Full核心逐字节相同；人工指定物理56..127→bins17..37，去噪6..14固定，共29NFE。它是人工物理span加既有固定schedule，不是人工最优去噪时机，也没有线上姿态观测。
+
+2. 对照表（training-free均指无需为本任务新增权重训练）
+| 方法与核验版本 | 输入信号 | 被控制的变量 | 何时测量/施加 | 约束与归一化 | 训练/额外模型 |
+| 当前R40 | 源姿态与当前Native端点RGB姿态；有符号局部lag、共同支持收益、UNKNOWN | 每步0..K物理窗→bin并集；Native/Full二选一，alpha固定1 | 每个n先Native测量，满足相邻两步支持条件后同状态Full，Euler一次 | 每head/query保原m_ref；组内同bin条件分布；执行全空间 | 无新增训练；同一生成模型，另需现成VAE和DWPose；20+K NFE |
+| R41人工参照 | 预声明物理span与固定去噪区间 | 固定bins17..37、n6..14 Full | 每步Native，指定步追加Full；无在线测量 | 同R40核心 | 无新增训练；29NFE，无在线pose成本 |
+| DIAL Phase I [D] | 上一去噪步内生主体空间注意力图ISGM | 视频Q→主体参考图像K的logit偏置 log(gamma)*归一化ISGM | 跳过初始20%，作用最后80%；跨步更新空间guide | 全softmax重归一化，通常改变参考组总mass；组内均匀偏置不改变其相对分布 | Phase I免训练；论文Phase II另有DPO/LoRA训练 |
+| MotionEcho [M] | 当前运动特征/注意力损失及去噪历史均值 | 是否调用生成教师；教师细步修正长度；端点插值 | 历史loss越阈值触发，教师loss达标截断 | 学生端点重加噪至教师中间时刻，再细步修正/插值；不保某参考注意力组mass | 方法应用时免训练；需要预训练蒸馏学生及教师 |
+| FlowMotion [F] | 源/目标预测clean latent及跨帧差分，速度历史方向 | noisy target latent的Adam优化及预测速度投影/正交缩放 | 官方代码固定前guidance_step步，每步固定optimization_step内循环 | LA+DA目标；没有本实现的物理lag拒判或参考组mass约束 | 免训练；同生成模型多次预测；latent有梯度，网络预测no_grad |
+| FlowDirector V2论文 / 官方V1代码 [V] | source/target状态与提示词的速度、交叉注意力mask；V2另用去时间均值的clean端点差 | editing flow及latent修正、空间mask、方向分解、候选流平均 | 每个编辑ODE步；所读公式没有局部物理lag触发的ON/OFF | 源/目标共噪声但状态/条件不同；V2有运动能量纠正；不保参考attention mass | 免训练、免反演；官方仓库明示发布V1，不能当V2完整复现 |
+
+3. Full与DIAL：数学差别究竟在哪里
+以下是对当前代码的独立推导，不是从DIAL借来的新公式。固定一个query/head，原注意力p_j=exp(l_j)/Z。参考视频keys集合R，m=Σ_R p_j，参考组条件分布r_j=p_j/m。S⊂R是与query同名义时间bin的keys，h=Σ_S r_j。则
+ O = O_other + m O_R； O_same = Σ_(j∈S) r_j V_j/h。
+ Full: O' = O + alpha*m*(O_same−O_R)。
+ alpha∈[0,1]时等价于 r'_j=(1−alpha)r_j+alpha*1_(j∈S)r_j/h；R外p_j不变，Σ_R p'_j=m。
+ 它也等价于在R内加 b_j=log[(1−alpha)+alpha*1_(j∈S)/h]，R外b=0；参考partition sum仍为Z_R。alpha=1时，R内非同binkeys被置−∞，同binkeys补偿−log h。这是“受组mass约束的重加权/硬限制”的另一种写法。
+
+DIAL Eq6对同一主体组keys施加同一个query-dependent偏置b。单组情形的新mass为 m'=exp(b)m/[1−m+exp(b)m]，组内r不变。其效果侧重组间贡献，Full侧重组内时间对应；这是一项可测试的约束差异，而非两个完全无关的算子。任意token logit bias的广义家族可以容纳Full，不能写“完全避开attention reweighting先例”。
+实际实现通过Flash的LSE差求m，在FP32中构造残差后转回原dtype；有限精度下是公式实现及已测容差，不是原native概率矩阵逐位守恒证书。守mass也不守delta范数、身份、背景或运动量；参考V本身会随层和轨迹变化。
+DIAL §3.3/Algorithm1确为最后80%，不能复述为“过80%才开始”。本次未核到DIAL官方可执行实现，不伪称已审代码。
+
+4. 控制逻辑的重合与尚可验证的区别
+MotionEcho已经明确“误差历史→触发→达到阈值停止”；所以两步确认、按需指导或不用新训练都不能单独作为贡献。它把教师细轨迹校正回学生端点；当前控制的是同一个模型上的参考路由支持，并只在本步开始干预前读Native估计。与它相比，可以检验物理局部对应+UNKNOWN是否更适合错误类型混合的动作编辑，而不是把取消教师本身当理论创新。其官网仍显示Code Coming soon，本轮依据论文而非虚构官方运行对比。
+
+FlowMotion已经使用预测clean输出做免教师运动引导。准确区别在于它优化latent匹配源/目标端点及时间差分；当前以非可微的RGB姿态判别选attention执行器。FlowMatching velocity是latent去噪向量场，不等于像素光流；本实现也没有直接由flow场推导动作缺失位置。官方run.py的calc_velocity为no_grad，loss.backward只更新独立target_latent_opt，不能误写成“它必须反传整个DiT/训练模型”。
+
+FlowDirector不可只按旧V1空间mask总结：V2 §3.4 Eq9–11已从clean端点减时间均值，建立运动差能量并在ODE后改latent；§3.3/3.5还有方向分解与多流差分。因此“端点运动残差/局部flow纠偏”也已有。当前同x/sigma二分支与其source/target共噪声两状态并不等价；但双forward、残差、局部mask作为通用形式仍无独立新颖性。官方V1源码与V2论文必须分别标版本，当前仓库标签不授权把两者混称完整V2结果。
+
+补充一个已有台账里的更直接执行器先例：Motion by Queries附录B.10已有每步x0分割mask及matching-frame跨shot K/V共享。其jointsoftmax不冻结每个参考组mass；说明“同帧共享”和“x0外部模型定位mask”均早有。此项沿既有R26/motion_query_m2a_review.txt核验记录，本轮未重复展开。其原文 https://arxiv.org/html/2412.07750v3 。
+
+5. 当前可以写成研究问题的差异，以及最小消融
+A. 先验证自动化的实用目标：跨多个源和正常/错误病例，Auto相对Native改善且接近预登记人工物理选窗的效果；同时记录完整视频质量、UNKNOWN、身份/形状副作用和总时间。R40/R41可承担其中一对，人工尚未完成的结果必须留空。无须要求Auto优于人工；人工固定schedule也不等于逐事件最优oracle。线上与评价共用pose时，加独立同帧动作/重影审查，避免自证。
+B. 若论文主张“局部支持选择有作用”：优先读既有R39同去噪索引global与Auto，以及R33异位结果；二者不能自动证明局部因果。R39扩大query数/参考贡献/delta范数，属于完整策略对照。真正最小位置消融是在同一例相同启动时刻、相同bin数、相同alpha/层数下，预先固定一个异位支持，比较实际下一状态与最终全片；即使query预算相同也不保证范数剂量相同，需一并报告。不要把已见R33再包装成新实验，也不要因其成功就先验否认自动化实用价值。
+C. 若论文主张“拒判及跨步部位关联优于一般阈值”：先在已存20份真实observer JSON上离线重放去掉persistence的一步规则，及预声明全局聚合阈值规则，检查决定是否真的不同；这仅是决策消融，无最终效果结论。只有存在差异才选一个坏例+一个正常例做实际轨迹对照，保持同observer、执行器、阈值和结果全留。不能把简化标量规则标成完整MotionEcho。
+D. 若要把mass约束列为组件贡献：同一query支持/schedule对比“保mass同bin”与“同bin硬mask后全组重归一化”，优先复用已有R2对应实际配置；缺配对才增一条。这隔离归一化而非DIAL全文。报告参考mass、delta范数、动作/身份质量，不只最终lag。
+
+不建议同时开展新阈值、所有层组、所有窗口大小扫描。当前最明确的可证伪主张是“可拒判的物理时间错误支持，能把已知执行器自动用于需要的片段，并接近人工选窗效果”；目前尚无证据足以写首次training-free反馈、首次局部注意力或已完成独立架构创新。组合机制可以有贡献，贡献大小由这些具体因果/泛化证据决定，不能由模块数量决定。
+
+6. 主文与官方来源（本轮直接打开；以上版本边界适用）
+[D] Harnessing Intrinsic Subject-Aware Attention for Controllable Multi-Subject Video Generation，DIAL，2609.11507v1：
+ https://arxiv.org/html/2609.11507v1 ，§3.3 Eq6–7/Algorithm1；§3.4仅用于确认PhaseII训练边界。
+[M] When Distillation Breaks Motion Control: Restoring Generative Trajectories for Fast Video Generators，MotionEcho，2506.19348v2：
+ https://arxiv.org/html/2506.19348v2 ，§3.3–3.5；官方 https://euminds.github.io/motionecho/ 。
+[F] FlowMotion: Training-Free Flow Guidance for Video Motion Transfer，2603.06289v2：
+ https://arxiv.org/html/2603.06289v2 ，§3.2–3.4；官方 https://github.com/HKUST-LongGroup/FlowMotion 。
+ 固定代码 https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py ，93–115/118–139/197–219/224–285：no_grad速度、帧差、固定早期区间、latent Adam。
+[V] FlowDirector: Training-Free Flow Steering for Precise Text-to-Video Editing，2506.05046v2：
+ https://arxiv.org/html/2506.05046v2 ，§3.2–3.5；旧V1 https://arxiv.org/html/2506.05046v1 。
+ 官方 https://github.com/Westlake-AGI-Lab/FlowDirector ，当前README明确V1公开/V2待公开；固定V1代码 https://github.com/Westlake-AGI-Lab/FlowDirector/blob/cecd56e30820b279f35acaa18597f4da25fa4f42/wan/text2video.py ，834–904为源/目标预测、mask和编辑速度。
+
+7. 本地实现证据（行号为本轮读取版本）
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3TemporalRouter/core.py
+ L203–298：LSE mass、FP32 correction；与R41同文件逐字节相同
+ SHA256 ac9a5437f0fa22fda037506d13f09e5f14c63e0c0e5946a5fa6483d6db7de7e0
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3TemporalRouter/layout.py
+ L10–35：1,4,4,4,4名义bin覆盖，不是精确VAE感受野
+ SHA256 bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/core.py
+ L282–375：同状态Native→外部观测→可选Full；L377起Euler事务
+ SHA256 ce8862921c815e11add7ee11e2f556cb9a58ce11d360356d4e973ab57c171e2b
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/automatic_window_policy.py
+ L9–55：收益、连通组、共享手臂/重叠持续条件；没有lag相等条件
+ SHA256 5b91dc9a1ea97c1544a2483911327c93024dad2bca33da5fa488204a532cb3b2
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/selector.py
+ L5–24：UNKNOWN和技术异常分离
+ SHA256 b6281edf5ebae03c1ab480619295a93802407c043cae5b835a4dfa7358983114
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/dynamic_support.py
+ L6–23：物理区间union→全空间binary query gain
+ SHA256 e682a84587c68db279dbc0eb563ff0cf67cb5567594ed0f97402040c0ac689af
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/scan_current_pose.py
+ L24–60：186窗、方向/双置信/延后状态
+ SHA256 db6cb40c30d88ae7b4ce4892a90be16483d903a1aeee2a634f1dedc9cd63c814
+/Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/pairwise_gain.py
+ L5–28：逐null共同支持和残差拒判
+ SHA256 a5d84914149c0c0fe1d7a945512743e68bc5d15c1edc66c2d2ec848a41acf960
+/Users/researcher/DevProjects/h3-timing-manual-source51310-r41-20261017/extensions/H3StaticWindowRouter/static_plan.py
+ L2–7：人工span/fixed6..14、无observations
+ SHA256 71d8025c8a5e5272afb4f1bb2eb49a60aee922134d4479c49296a3261c7e0705
+
+既有审查入口：/Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/literature/r27_exact_controller_overlap.txt；/Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/literature/motion_query_m2a_review.txt；/Users/researcher/DevProjects/h3-timing-auto-motion-r26-20261017/literature/wan_transfer_sources/SOURCE_MANIFEST.json。本轮只新增本文件；未将任何运行中结果预写成功。

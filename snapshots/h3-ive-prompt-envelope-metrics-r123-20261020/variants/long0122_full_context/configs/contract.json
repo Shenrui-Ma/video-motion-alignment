@@ -1,0 +1,87 @@
+{
+  "schema": "r123-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-full-context-long0122-r127-20261020",
+  "producer_remote": "/data4/researcher/h3_runs/timing_ive_full_context_long0122_r127_20261020",
+  "producer_seal_sha256": "0a7e0847b7f2d446c2a88b1be145c801978637a9bfb66ee2c147f727b327a817",
+  "producer_contract_sha256": "8ea5b869b2dc5773f3660c0344c39388662f3a9988719ebd4931dd82ef33bfce",
+  "producer_runtime_sha256": "8a43be9c66de54f7deb771b0b17f147dd6e0d18172c45bda5fd2551d201bc1be",
+  "host": "H3_SERVER_B",
+  "source_order": [
+    "long_0122"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0122",
+      "run_id": "r123_long_0122_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A vibrant scarlet macaw perched on a tree branch, grooming itself.\n<Subject 1> is the scarlet macaw in <Video 1>.\n<Subject 2> is the tree branch in <Video 1>.\n<Subject 3> is the remaining source scene in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the scarlet macaw with a toucan\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve this source object, including its appearance and motion.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A vibrant toucan perched on a tree branch, grooming itself.\nThe edited subject is <Subject 1>; the source tree branch is <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 122,
+        "src_video_name": "long_0122.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A vibrant scarlet macaw perched on a tree branch, grooming itself.",
+        "edit_prompt": "Replace the scarlet macaw with a toucan",
+        "target_prompt": "A vibrant toucan perched on a tree branch, grooming itself.",
+        "target_span": "toucan",
+        "target_phrase": "vibrant toucan"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "New IVE source, original2.2–6.6seconds,106valid24fpsframes.",
+      "forced_run_id": "r123_long_0122_seed2026101701_forced",
+      "graph_sha256": "84754009e3809e25ad7926b1846e545de97045cd90020b69799ce800d3c21046",
+      "forced_graph_sha256": "f78820f7ba196480b05694d97840d0c97942d25bbbb6abf034c9127004a387b2",
+      "valid_frames": 106,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 66,
+        "end_frame_inclusive": 197,
+        "start_pts_rational": "11/5",
+        "end_pts_rational_inclusive": "197/30",
+        "end_exclusive_rational": "33/5",
+        "duration_rational": "22/5"
+      },
+      "source": {
+        "file": "inputs/long_0122_video.mp4",
+        "sha256": "7ed7f622ef94e1038e8decc5579597a0ebde56ece4c2d60c3e97a0e6155dc7a4",
+        "bytes": 28123306
+      },
+      "provenance": {
+        "file": "inputs/long_0122_provenance.json",
+        "sha256": "8d5c0ba766540e55e8cb8bbae34a2a62dbf0d01aef86c402d1fd8626d0bace63",
+        "bytes": 19625
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/long0122_full_context/inputs/long_0122_original.mp4",
+        "sha256": "f2827e528c6656cc37a7c8ddf4979c0ccaea230ae703d3b308fcf6d0cf3b369f"
+      }
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

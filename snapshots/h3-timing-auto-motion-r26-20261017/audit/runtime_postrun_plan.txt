@@ -1,0 +1,38 @@
+R26 Native screen: final-only CPU consumption plan
+
+Before quality analysis, run each lane's scripts/verify_batch.py with the real
+immutable manifest, successful exact graph history, registered service identity,
+20 actual model calls / 1000 blocks / zero routed calls / 20 callbacks, and all
+20 intermediate + final tensor files. Deliberate resident_hold is valid and is
+reported separately from exact cleanup. Waiting consumers hold no CPU lock.
+
+For each of the three predeclared cases retain the final SaveVideo MP4, original
+reference, source-only selection provenance, noise/conditioning archives, and
+all x0 archives. Do not decode every intermediate x0 now. The standard saved MP4
+already represents the final VAE decode; only its CPU video decode and frozen
+CPU DWPose are needed. Acquire the existing Mac -> remote shared CPU locks,
+max4 threads, no CUDA, and keep one consumer.
+
+Source pose is configs/source_selection_manifest.json's source_pose_path and
+SHA. It was obtained from exact selected full-source RGB/YUV frames, with the
+unchanged full-source tracking context explicitly recorded. Generated pose must
+be extracted from the actual saved final video; never substitute old source05,
+source07 or R24 pose. Validate 141 frames, 24fps, 1312x736 and actual video SHA.
+
+Use the already frozen design/SCAN_BASELINE_PROTOCOL.txt: all complete16/32frame
+windows, stride4 plus final complete window, arm_direction/left_arm_direction/
+right_arm_direction, confidence0.3/0.5, original timing_metrics.py, all49lags
+[-24,24] and original reliability gates. The corresponding root baseline script
+is read-only. New selected-source motion density or reversal positions may not
+choose an intervention/evaluation window. Record all scans, support/UNKNOWN,
+source identity checks and candidate coverage; a positive scan is a timing
+candidate pending visual review, not proof of action omission. Do not classify
+an entire clip normal from a single local aligned result. Keep every screened
+source regardless of normal/error/UNKNOWN outcome.
+
+Reuse R24 analysis/postrun/consume.py and remote_consume.py lifecycle/CPU-pose
+interfaces only after adapting away its fixed four-job Native/Full pairing and
+primary-window assumptions. Root assigns the sole consumer after service
+identities are known. This file does not start a consumer, model or GPU task.
+Only after this final baseline is complete should selected intermediate x0
+VAE decoding be proposed for a specific observability question.

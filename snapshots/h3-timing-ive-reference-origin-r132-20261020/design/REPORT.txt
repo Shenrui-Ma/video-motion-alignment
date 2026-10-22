@@ -1,0 +1,23 @@
+参考视频／输出时间 RoPE 原点：既有实验核查（只读）
+
+结论：在现有 ledger、实验日志、R17 实际成片审阅、R73/R122 实际 layout 证据中，没有找到“消除参考与输出之间整段 media-clock 原点差”的已完成实验。已经跑过的是小幅相位扰动，不能当成 Aligned Guide 对照已做过。
+
+已有证据
+1. 早期 phase 实验：日志明确记录 reference origin6961、target7196、差235 RoPE units；±12 physical frames 只使该差变化±20，没有先归零。minus12 一侧曾把开发例主窗估计13帧降到3帧，不能外推为原点对齐效果。
+2. R17 已完成±4 physical frames、alpha=.5、steps6..14、局部query窗的 reference-only 相位改动。实际代码旋转 target Q 的时间通道，再仅重算 reference组输出并保留组质量。两个符号都未修复该开发例主窗（估计仍12–13帧）。它没有更改 PackedLayout 的参考或目标原点。
+3. R73 和 R122 的 actual native_router 显示同样未对齐：R73 reference4981、target5159.333333；R122 reference4839、target5017.333333；两者差178.333333 RoPE units。两者各32个video latent bins、同46×82 latent空间网格、无参考图/参考音频。这个位置差对应序列打包约定，不能当作实测视频延后107帧。
+4. R73/R122 router core.py:337–351 读取并核验原 position_ids，未写入。Value/attention读取干预与原点设置分别存在。
+
+作用位置
+已绑定 H3 model.py SHA0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe。PackedLayout:365–455 在 text 后先排 reference，再把 target audio/video 的 clock 放到 reference span 之后。_video_t_grid:103–106 用(1,4,4,4,4)跨度和5/3尺度构造位置。forward:746 从 layout.position_ids 生成旋转表；Attention.forward:173–201 对每层 Q/K 做 RMSNorm+RoPE，V不旋转。
+社区缓存 aligned_video_refs.patch 的 packing.py 修改：aligned video不推进media clock，复用target空间网格；target与guide同一时刻同一位置。单张身份图仍独立。该源码也用于训练/LoRA路径，不能凭公开示例声称训练前的H3一定改善。
+
+对 R73/R122 的最小候选对照（尚未实施）
+A. 各复用原 prepared MP4、原完整prompt/文本与参考latent缓存、原初始video/audio噪声、模型/solver/20步/CFG及画幅；禁用现有时序router，保留已完成Native与fixed结果作各自来源明确的参照。
+B. 在 PackedLayout 生成之后、rope_rotation_table 之前，应用一个可开关的layout变体：对被指定aligned视频不计reference span。当前两个病例只有一个同尺寸视频且无refaudio/identity图，等价于把目标video和目标audio的时间坐标共同减去178.333333，使其与reference起点相同；reference与text位置保持。使用实际layout计算差，不能硬编码样本常数。空间坐标逐值相等后直接沿用。
+C. 应作为所有层/所有采样步都启用的位置设置，才能对照社区原点策略；加steps6..14窗口则是额外变体。不要把“仅reference K向前旋转”冒充完整aligned布局：后者同时影响Q/K全组交互，且canonical布局改变target相对于text的关系。
+D. 检查：相同initnoise和内容条件SHA；只允许登记的position坐标差；reference/target同bin坐标相等；关闭开关返回原布局；107总/98或106有效帧和原PTS不变。因为第一步就改位置，不要求新输出前6步预测等于Native。该条件有意变化必须单独记账，不能套用既有严格same-condition/prefix gate。
+E. 输出两条新成片即可先回答两个已确认正例上，原点对齐能否获得与fixed时序干预相近的编辑成功及事件误差。逐事件区间、任务完成和官方MF沿原协议评估；若后续需测试与本方法组合，再加组合臂。这里没有提出新颖性主张。
+
+与帧序处理的区别
+原点变化只改Transformer位置坐标；不重采样、不倒序、不移动视频像素或reference latent的时间索引。此前25→24fps输入映射、padding去除、Value跨bin读取都不等价于改变RoPE原点。本核查仅查现有缓存和源码，无GPU、无推理代码修改。

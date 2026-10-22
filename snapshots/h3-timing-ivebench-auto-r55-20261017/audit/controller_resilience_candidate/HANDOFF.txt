@@ -1,0 +1,32 @@
+R55 controller resilience candidate — CPU only, not installed
+
+Files changed inside overlay:
+1. scripts/job.py
+   - NVIDIA process-query TimeoutExpired/CalledProcessError become the existing typed ResourceUnavailable.
+   - wait_host_admission catches that type, replacing obsolete message-string matching.
+   - Each attempt checks the exact service generation; success checks it again.
+   - Resource deadline is positive and at most600seconds. No successful admission is accepted after the deadline. The existing NVIDIA/queue calls each have finite10second timeouts, so an in-flight call may finish after the deadline before failure is returned.
+   - Retry records attempt, elapsed time, reason and resource snapshot. Identity/data/graph/queue/HTTP errors keep their original hard failure path.
+2. scripts/service.py
+   - A PID that disappears between uid and full identity reads becomes ResourceUnavailable. A live reused/unregistered own identity still raises immediately.
+   - residency_snapshot still verifies the exact service first. A failed NVIDIA query records own_compute:null and compute_snapshot_available:false; no zero-memory observation is invented.
+   - Own GPU cap, permitted identities, command, precision, reserve-vram and cleanup implementation are unchanged.
+3. scripts/run_queue.py
+   - Noncritical NVIDIA telemetry timeout/nonzero exit records sample:null/sample_available:false and preserves the running job.
+   - Empty stdout is explicitly unavailable. Success history, unknown_missing, error/submission_uncertain, scientific binding and job/service deadlines retain their failure/cleanup behavior.
+   - Telemetry polling follows the existing20second loop and frozen job/service deadlines; no unbounded nested retry was added.
+
+Verification:
+21 CPU regression tests first run against original files, where the newly covered paths fail, then against the candidate, where all21 pass. They cover typed transient recovery, finite deadline, late success rejection, service replacement during waiting and during a successful query, missing/reused own PID, two-GPU limit, telemetry continuation without resubmission, real history/job errors, malformed process data and missing binary.
+CHECK_RESULTS.json records hashes and test logs. All348 files in the actual R55 deploy_manifest were rehashed and remained unchanged. No GPU/service/process operation was performed.
+
+Future deployment:
+- Keep the active frozen run intact. On the next run or after a separately documented failed attempt, prepare a new engineering revision/isolated root.
+- Check every before SHA in SOURCE_SNAPSHOTS.json before applying candidate.patch. Preserve the old producer manifest and failure evidence.
+- Re-run these CPU tests in the selected runtime, update observer bindings/manifest and consumer binding. Resource logs now admit explicit null/unavailable samples; consumers must count those as missing measurements.
+- Existing strict full90 source binding hashes all scripts. Updating these producer scripts invalidates that exact binding: satisfy the normal reviewed GPU-gate/preflight requirements for the new revision; do not silently reuse or rewrite old gate source hashes.
+- Root owns all service/GPU launch. This candidate does not resume or duplicate any job, alter graphs/seeds/sampling/attention, or change the science.
+- R50 has a different job/contract interface and lacks this R55 wait helper. Do not copy the R55 job.py wholesale into R50; adapt the same typed-resource/telemetry changes in a separate reviewed R50 revision if needed.
+
+Limits:
+Tests simulate transient resource errors and exact ownership changes. No live NVIDIA failure was injected and no inference was rerun. Malformed process records, missing NVIDIA binary, HTTP/queue errors and identity errors continue to stop through the existing hard-failure path.

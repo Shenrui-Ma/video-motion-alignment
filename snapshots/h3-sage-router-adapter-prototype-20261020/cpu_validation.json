@@ -1,0 +1,59 @@
+{
+  "recorded_at": "2026-10-20T05:23:47.653805+00:00",
+  "scope": "CPU only, injected exact backend. Real Sage CUDA and Flash kernels were not executed.",
+  "python": "/Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv/bin/python",
+  "torch": "2.10.0",
+  "unittest": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 H3_ROUTER_EXTENSION_PATH=/Users/researcher/DevProjects/h3-timing-oxygen-centered-control-r142-20261020/extensions/H3TemporalRouter /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv/bin/python -m unittest discover -s tests -v",
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "elapsed_seconds": 0.047
+  },
+  "ruff": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv/bin/python -m ruff check . --no-cache",
+    "exit_code": 0,
+    "output": "All checks passed!"
+  },
+  "syntax": {
+    "passed": true,
+    "files": [
+      "adapter.py",
+      "diagnostics.py",
+      "tests/test_adapter.py",
+      "tests/test_router_seam.py",
+      "validate_gpu.py"
+    ]
+  },
+  "gpu_cli_help": {
+    "command": "python3 validate_gpu.py --help",
+    "exit_code": 0
+  },
+  "gpu_cli_without_opt_in": {
+    "command": [
+      "/opt/homebrew/opt/python@3.13/bin/python3.13",
+      "/Users/researcher/DevProjects/h3-sage-router-adapter-prototype-20261020/validate_gpu.py",
+      "--output",
+      "/Users/researcher/DevProjects/h3-sage-router-adapter-prototype-20261020/results/must-not-be-created.json"
+    ],
+    "exit_code": 2,
+    "output_file_created": false,
+    "required_error_present": true
+  },
+  "router_core_unchanged_since_provenance": true,
+  "gpu_validation": "not_run",
+  "type_checker": "No mypy installed in reused environment; no dependency installed. Runtime shape/dtype tests and Ruff used.",
+  "files_sha256": {
+    "README.md": "b555f6e70bb9bfa90f62815b3a8ccc2206dd5ca52be46dfca2bec2e016e1ab74",
+    "adapter.py": "0cd0edd6114c2eb63ef4111ea9f647118575d5d426d71f39f08a0d5e53e2fbe9",
+    "diagnostics.py": "0359b51e04ca9a5bac4779ddacfa4b167656fd2e06df01024c3afbfbdad663f0",
+    "provenance.json": "d721f91a4182e88a48c510ffdda5a44111819ccc85237d04ff0c1ded38a55792",
+    "target_source_audit.json": "b15dffae8de4ed880c9229b82af2a9c80cc74d6134e6d786f33bab53836ff12f",
+    "tests/test_adapter.py": "2848feebe3dc0849782a2fc8e4d5431e97b47e2637f8ba4e94ec424871278863",
+    "tests/test_router_seam.py": "bcbf0ea943195f6c264bcc61159182ad4585032aeb8d62e3697aac95daf3cf97",
+    "validate_gpu.py": "8d952b1c79eab6e9d4e21ee6cc9b03f4adf9374c24d993ca2e799d2820f939c9"
+  },
+  "input_immutability_check": "Per-call full/ref/aligned Q,K,V elementwise check; regression detects in-place K modification through subset view.",
+  "target_read_only_source_audit": "target_source_audit.json; no Sage/PyTorch remote import and no CUDA execution"
+}

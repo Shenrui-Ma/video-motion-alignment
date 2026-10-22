@@ -1,0 +1,88 @@
+{
+  "schema": "r123-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-full-context-long0034-r123-20261020",
+  "producer_remote": "/data4/researcher/h3_runs/timing_ive_full_context_long0034_r123_20261020",
+  "producer_seal_sha256": "130eba2294e9530de6dd8c84835ac4582013a41076eb74feb681de781a9643a5",
+  "producer_contract_sha256": "6db44b3c23a5091b449b142693002732b8fa03ea2b2ba1a5f3b9dfa66e0c289e",
+  "producer_runtime_sha256": "2167b9ee0cbd058e4988b9877674ccbd1dfb3018f5a6c8a11e1cb3bf0526219a",
+  "host": "H3_SERVER_B",
+  "source_order": [
+    "long_0034"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0034",
+      "run_id": "r123_long_0034_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A person is slicing a green vegetable, likely a cucumber, into thin rounds using a knife on a dark surface.\n<Subject 1> is the cucumber and the dark surface supporting it in <Video 1>.\n<Subject 2> is the person and knife in <Video 1>.\n<Subject 3> is the remaining source scene in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a cutting board under the cucumber being sliced\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A person is slicing a green vegetable, likely a cucumber, into thin rounds using a knife on a cutting board on a dark surface.\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 34,
+        "src_video_name": "long_0034.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "A person is slicing a green vegetable, likely a cucumber, into thin rounds using a knife on a dark surface.",
+        "edit_prompt": "Add a cutting board under the cucumber being sliced",
+        "target_prompt": "A person is slicing a green vegetable, likely a cucumber, into thin rounds using a knife on a cutting board on a dark surface.",
+        "target_span": "cutting board",
+        "target_phrase": "a cutting board"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "New independent IVE source, original0.8–5.2seconds,106valid24fpsframes.",
+      "forced_run_id": "r123_long_0034_seed2026101701_forced",
+      "graph_sha256": "2b8c3e933bb4ee7fb2638e039f6433f089743bd5a537be9105dc771747df13ca",
+      "forced_graph_sha256": "bb1ba717ddb9b6c8ee003a2d4c842b76426599f320b420256c1c509efa28941a",
+      "valid_frames": 106,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 20,
+        "end_frame_inclusive": 129,
+        "original_frame_interval_half_open": [
+          20,
+          130
+        ],
+        "scope": "Original0.8–5.2s at25fps; 106 valid prepared24fps frames"
+      },
+      "source": {
+        "file": "inputs/long_0034_video.mp4",
+        "sha256": "48d9048059f83818b9e3750e9601c40b16dbf835d62868020fe1b9af0e13e2b3",
+        "bytes": 22201699
+      },
+      "provenance": {
+        "file": "inputs/long_0034_provenance.json",
+        "sha256": "1b58fe35e71d38c6254040d2c302b44dffeff59fa2de6d9da4a561f6f2c54034",
+        "bytes": 29676
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/long0034_full_context/inputs/long_0034_original.mp4",
+        "sha256": "f84b061c0f456324d8ce5a62f678e7115344868d9dc4f1009342551a1f821e8f"
+      }
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

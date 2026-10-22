@@ -1,0 +1,55 @@
+HALO / QWERTY 精确机制与可运行性审查
+核查日期：2026-10-17；范围：原文、作者仓库、公开模型元数据。未安装依赖、下载权重或启动推理。R27 policy_replay 保持冻结，未运行实际轨迹。
+
+结论
+HALO 直接覆盖“识别运动/结构 attention heads，再有选择地注入参考特征”；QWERTY 直接覆盖“分离语义/时间查询分量、空间 warp queries、同状态原生/修改预测构成自引导”。以后只提出这些一般操作，不能据 H3 平台不同就宣称新机制。两篇已核内容均不等于当前 H3 的 reference-group 总质量固定、组内同时间读取，也未给出 R27 的局部有符号 lag、跨步窗口匹配、自动 0..K 物理窗口控制。但这种区别只构成可测实现边界，不能证明新颖性或价值。
+
+一、固定来源与审查深度
+HALO 原文：https://arxiv.org/html/2607.11081v1 （方法§3–4、算法1、附录C/D/F已核）；作者代码提交 a4933506563a32ac38a17ba071d34ea6c428788e，2026-08-28。
+QWERTY 原文：https://arxiv.org/html/2607.01869v1 （§3–4、算法1、附录B/C已核）；作者库提交 2f525cadeeb55a0f04c8c0c13c8bc85fd3818e32，2026-06-30。
+QWERTY 此提交 recursive tree 只有 LICENSE、README.md。README 明说 coming soon；没有可 pin 的算子实现。链接：https://github.com/MICV-yonsei/QWERTY/blob/2f525cadeeb55a0f04c8c0c13c8bc85fd3818e32/README.md 。不能把下面论文机制描述称为代码复现。
+HALO 下列代码已按 commit 下载到内存阅读全文/定点审查，六个主要 Python 文件 AST 解析通过；这不是 import、依赖兼容或 GPU 运行证明。机器可读附档保存来源 SHA。
+
+二、HALO 的实际计算位置
+作者代码：https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/utils.py#L55
+1. head_classification 用空间/时间两种 pattern masks。对固定 CPU seed=42 抽出的32行，比较 masked attention 输出与完整 attention 输出的 MSE，取较小者。顺序 [spatial, temporal]，返回类别1实际是 temporal；motion_flow 文件变量名 spatial_indices 具有误导性，但不能按变量名反向解释方法。
+2. 运动分支：对类别1 heads 的跨帧 QK logits 求平均，按每个目标帧的空间 token 归一化。参考对应在 attention top-k 候选中取接近 DIFT 对应的坐标；目标读出在 DIFT 指向位置增加 beta=.1 的 bias 后计算期望位移。以参考/目标位移 MSE 优化当前 latent；这是在线 latent optimization，网络权重保持冻结。
+代码：https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/motion_flow_utils_final.py#L8 和 #L123；https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/inference_ourmethod_final.py#L513、#L645。
+3. 结构分支：noised reference 单独 forward 得到 Q/K/V；对128条抽样视觉 query 的注意力熵按行平均，H<7选择head。在目标 forward 的 SDPA 前替换这些head的视觉 V，不替换 Q/K。命名 inject_kv 不意味着真的替换 K。公式可写成固定当前 Q/K 下 O_h'=A_h V_h'，V_h,video'=V_h,reference（仅选中heads）。它会影响所有读取这些 V 的 query，并非只作用于一个参考视频 key group。
+代码：https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/custom_modules_inject_final.py#L95；https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/utils.py#L107。
+4. guidance_blocks_5b=[20]、structure blocks15..26，50步；get_timesteps([50,38])实际 Python slice为前12步，优化每步5次。guidance_step 会关闭 motion block20 的注入并打开 copy；不能笼统说12层始终同一种状态。停止按固定区间，未见基于局部物理时间 lag 的启停。
+代码：https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/configs/guidance_config_inject12.yaml；https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/inference_ourmethod_final.py#L167、#L566、#L727。
+HALO paper也报告Wan扩展，不能说其原理只支持CogVideoX；公开仓库当前实现是CogVideoX。
+
+三、HALO 代码可运行性与复现风险
+A. 有实际 inference、custom transformer/processor、DIFT 模块、配置和样例视频；没有另行训练的 HALO adapter 权重要求。入口加载 CogVideoX-5b（BF16）/2b（FP16）以及 SD2.1 DIFT。CogVideoX pipeline 启用 CPU offload、VAE slicing/tiling、gradient checkpointing；DIFT ensemble_size=8，使用 xformers。环境固定 torch2.4.0 / diffusers0.30.2 / transformers4.55.0 / xformers0.0.27.post2，不能直接套到当前 H3 环境。
+https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/inference_ourmethod_final.py#L195；https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/dift_models/dift_sd.py#L191；https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/environment.yml。
+B. 公开HF metadata当前可访问 THUDM/CogVideoX-5b、2b，并重定向到 zai-org，gated=false。匿名请求 stabilityai/stable-diffusion-2-1 的模型 metadata 返回401。只能结论“本次匿名访问不可用，运行前需解决实际访问”，不能推断权重永久缺失，也未尝试用户令牌。
+https://huggingface.co/api/models/THUDM/CogVideoX-5b
+https://huggingface.co/api/models/THUDM/CogVideoX-2b
+https://huggingface.co/api/models/stabilityai/stable-diffusion-2-1
+C. paper附录F.3在单RTX A6000报告1125s、38.2GB；这不是141帧H3运行的显存保证。paper主设定top4及记号T_opt=12；其算法条件写t>T_opt，不能直接据此把该记号等同于代码的前12个采样步。代码reference call明确传top_k=10，实际前12个采样步、每步5次优化。三种记法/数量应分别记录。
+D. 静态代码有必须先解释的对应风险：extract_dift_and_cal_sim 计算了按latent帧数的sample_indices但从未用它，实际逐RGB帧提取后生成 F_RGB² 张对应；motion_flow 两函数按 F_latent² 的循环连续取前几个对应，没有看到 pair 重索引。因此24RGB→6latent例子，latent pair(0,1)会取RGB pair(0,1)，latent pair(1,0)会取RGB pair(0,6)，而非明确校准的latent对应。这是代码阅读推断，尚未运行验证。
+E. DIFT坐标函数返回(row,col)，motion_flow消费端以(x,y)处理；前者§extract行95–106，后者compute_displacement行19–31、bonus行127–135/213–220。非对称坐标存在轴交换风险，未经作者澄清不能静默修复并称忠实复现。
+F. README clone URL写 HALO_official_code，与真实 HALO-Official-code不一致；environment名halo、final.sh激活Halo。README quickstart提到不在tree的drift-turn.mp4，实际final.sh的bmx-trees.mp4存在。这些是入口文档风险，不证明核心不工作。
+G. 以上未通过任何模型执行验证；AST pass不能签“开箱即用”。若未来作为正式baseline，保留原版本，先制作微型坐标/采样索引单测，再确认采用原代码还是注明修复的代码，最终实际运行与源任务配置单列。
+
+四、QWERTY 的已核论文机制
+原文§4.1：对第一帧空间tokens及逐帧空间均值分别PCA。通道显著性 s_d=max_i sigma_i*abs(V_di)，语义分数不低于时间分数的通道形成 STCD mask。
+§4.2：pre-RoPE查询定mask→施加空间RoPE→把第一帧语义查询按用户mask/flow空间warp到后帧→施加该目标帧的时间RoPE。对象移走位置用背景邻近查询填洞；flow不可见洞保留目标查询。
+§4.3/算法1：同一x_t计算 native u 与 warped u；停止 warped 分支梯度，对latent优化 ||u-u_w||² 加 Fourier-phase cos/sin约束，再以 warped 预测推进solver。固定前5/50步，每步5次Adam。主Wan2.2 TI2V5B，补CogVideoX I2V5B；所有attention层应用querywarp。
+§C.4作者测49帧：Wan query-only17.61GB/132.62s，含优化40.17GB/314.34s；Cog含优化47.59GB/1092.66s，单48GB A6000。均是作者特定配置测量，代码尚未公开到可复核程度。
+论文来源：https://arxiv.org/html/2607.01869v1#S4 ，https://arxiv.org/html/2607.01869v1 。此处无作者实现可验证的接口、依赖/权重清单或端到端运行证据。
+
+五、与当前 H3 算子的数学边界（本段为独立对照推导）
+令 A 是当前target query对全keys的原生softmax；m=sum_(j in ref)A_j，P_ref=A_ref/m；P_same只在物理相同时间bin的参考keys中归一化。当前Full对指定query使用
+O_new=O+alpha*m*(P_same V_ref-P_ref V_ref)，alpha=1。
+Q/K/V、其他key组贡献均保持；参考组总mass固定；只重排该组内部时间读取。这是已存在算子控制，不以分解恒等式为新数学。
+HALO原语保持target Q/K但用独立ref forward的V替代target视觉V，其差分为 A_video(V_ref-V_target)。一般不等于 m*(P_same-P_ref)V_ref：它更换值来源；我们更换已有ref组的条件权重。退化情况下可数值等价，但不存在一般等式。两者都涉及参考特征读出，是应比较的邻近基线，不因不同写法就推断贡献。
+QWERTY更换target Q的语义/空间内容，然后用全部K/V重算attention；通常会改变所有key组mass。当前Full没有query语义warp、PCA子空间或latent梯度优化。把Querywarp限制到reference branch并补mass守恒属于一种适配；不能仅凭这个约束声称超越QWERTY，需要保留相应消融证明可测价值。
+
+六、未来 head/layer / 在线局部反馈的交叉边界
+已经直接覆盖：按head功能分工挑选注入；以低熵减少结构破坏；head/layer范围选择；语义/时间特征分解；querywarp诱导期望空间对应；原生/修改同状态预测形成self-guidance；填补旧对象位置以避免复制；固定早期引导后放手。
+已读内容没有实现的具体组合：独立可见姿态的有符号物理lag与质量拒判、扫描0..K自动物理动作窗、跨连续native端点的局部对应持续性决定reference-group时间路由。注意HALO在每次迭代重算head类别/熵也有输入依赖，不能把它说成所有head固定不变；QWERTY也已经有同状态两预测，不能把native-first本身当区别。没有在这两篇里找到该控制策略，不代表全领域不存在，MotionEcho等相关工作仍必须保留。
+如探索head选择，最低必要性对照：Full全heads；HALO式低熵；temporal-patternheads；等head数的预先固定/随机选择；拟议局部反馈选择。同一stem/时窗/schedule和计算预算记录，支持不足/非动作区/正常片段须保留；选头只用源或事先固定校准集，不能靠测试输出挑。只有显著减少ghost/身份损伤而保持时间误差及正常case，才支持其独立价值。若低熵或固定子集已达到同样结果，则新增复杂选择器无必要证据。
+当前最稳妥claim仍是：H3局部时序错误诊断与参考时间读取的因果效果；R27待完成的反馈算法与泛化/质量门另算。HALO/QWERTY不是否定探索的理由，却明确阻止“首次选头/查询语义warp/同模型自引导”的表述。

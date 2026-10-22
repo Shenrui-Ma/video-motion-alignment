@@ -1,0 +1,24 @@
+R132: reference-branch origin alignment, existing R17 operator configuration control
+
+Question
+Does aligning only the auxiliary video-reference branch improve R122 book-action timing while retaining the blue-book edit? R129 globally changed target video/audio positional relations and failed the blue edit in initial review. R132 keeps the original joint attention and original reference group mass at each same-input attention call. Its late, fixed execution interval matches the existing fixed-guidance control.
+
+Operator
+Let q,k,v be the original post-RMSNorm/post-RoPE Q,K and unrotated V. Let R contain every video-reference key, with no temporal bin restriction. Let L_all and L_R be original joint/reference logsumexp. m=exp(L_R-L_all), clamping only tiny positive kernel error in the log ratio.
+z_original=softmax(q K_R^T/sqrt(d)) V_R.
+Delta=original_output_video_origin-reference_video_origin, read from the actual canonical PackedLayout.
+z_Delta=softmax((R_t(-Delta)q) K_R^T/sqrt(d)) V_R.
+O_new=O_original+alpha*m*(z_Delta-z_original).
+alpha=1. Steps zero-based6..14 (7th–15th sampling calls), all50 DiT blocks. Query scope is the same all32 latent bins used by R122 fixed guidance, covering106 valid/107 generated frames. All reference-video keys compete. Reference/text/audio queries are untouched at this call. Original joint Q/K/V, PackedLayout, rotation table and token ordering remain unchanged. Downstream states can change.
+
+Implementation and tests
+New reference_origin.py reuses R17 temporal pairs0:16 and48:64, actual diffusion.rope.inv_freq, fp32 products for bf16. Delta is directly in RoPE coordinate units, not a physical action-delay estimate. R129 alignment.py is copied byte-for-byte only to validate canonical geometry and derive Delta; its derived positions/table are never installed. Actual R122 expected Delta is178.3333333333333. core.py has a two-line factory hook so the current EventBlockPatch dispatches the new local override; its existing numerical functions remain byte-identical. Normal attention still uses the original Flash/LSE path. Every active call adds two rectangular video-query/reference-key Flash calls; no dense attention matrix is produced. No teacher, training, observer, extra model prediction, checkpoint changes or RNG consumption.
+
+Scientific controls
+Source, source pixels, full prompt, actual R122 starting AV noise, sigma grid, CFG1, Euler20, quantization, kernels and geometry are preserved. Native/fixed historical R122 videos are reused. R132 runs on host41; historical R122 ran on host9. First6 predictions are recorded by full tensor hash plus1024 deterministic sample-point RMS/max differences and full-tensor mean/RMS, with no equality gate or repeated Native. All6 current condition blobs are verified against their actual saved tensors. Original pixels, tokenization, token tags, position IDs and all conditioning metadata are strict. VAE-latent and text-conditioning embedding hashes are recorded across hosts; their shape/dtype stay strict. Exact initial AV tensor file is reused. Only R132 generated output is new. Old sealed packages are read only.
+
+Evidence and stop rules
+Actual audit must contain1000 original-table calls,450 origin rotations,20 model calls,50 blocks per call,one layout validation, actual Delta/frequency hash, per-step/layer bounded original m and correction RMS/finite summaries. No large Q/K dumps. Compare blue-book editing, scene/people, five predeclared events and four adjacent-stage durations, plus official MF. Editing failure remains failure even if action matches. Missing events get null time; different error signs are kept. All results preserved; exact UID/PID/start/cmd release after one output and verifier. No GPU until root review, R131 complete/exact release, fresh64/76GiB adjusted cgroup headroom, host64GiB, PSI<=1 and GPU40GiB. Existing8189 is an exact read-only peer. Parent AV noise transfers directly host9→host41 via a stream, SHA checked; no full historical x0 tensor is copied locally. Planned host41 GPU2/port8608, current availability must be checked then.
+
+Relation to existing work
+This is an existing R17 operator configuration control, not a new algorithm claim. It differs from R129 global media-clock alignment in scope and timing. It differs from current same-bin fixed guidance only in auxiliary conditional reference distribution. Mass preservation is algebraically group-LSE compensated reference logits. The displacement is geometry-derived, not a measured motion error. Approximate bf16 second rotation can differ numerically from recomputing a full rotation table; tests establish float64 geometry equivalence and actual runtime records dtype.

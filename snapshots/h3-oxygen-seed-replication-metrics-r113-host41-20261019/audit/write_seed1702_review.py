@@ -1,0 +1,15 @@
+from pathlib import Path
+import json, hashlib,itertools
+ROOT=Path(__file__).resolve().parents[1];base=ROOT/'audit/actual_seed2026101702_preview';out=base/'REVIEW.json'
+def bind(p):return {'file':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
+plan=json.loads((ROOT/'configs/PREREGISTERED_EVENTS.json').read_text());ledger=json.loads((base/'media/FRAME_LEDGER.json').read_text());assert [n for p in ledger['pages'] for n in p['frames']]==list(range(98))
+regions=[([57,60],[44,47]),([63,66],[51,54]),([85,89],[85,89])];notes=[
+'普通编辑 55 帧仍在膝部，57–60 帧双手离膝并靠近；引导版 44–47 帧完成对应过渡。',
+'放大核验：引导版 50–51 帧左手接近/接触杯，52–54 帧另一手也接触黄色杯；普通编辑 63–66 帧完成双手握持。接触有遮挡和模糊，保留区间。',
+'两版 84 帧右手仍贴近杯，85–89 帧才上举至胸部/脸侧区域；源片 69–75 帧已进入此阶段。引导版 72–79 帧存在向下拉/整理细带的不同手部过程，按已登记语义不计作提前举带。']
+events=[]
+for e,(n,g),note in zip(plan['events'],regions,notes):
+ s=e['source_frames'];vals=[abs(gg-ss)-abs(nn-ss) for ss,nn,gg in itertools.product(range(s[0],s[1]+1),range(n[0],n[1]+1),range(g[0],g[1]+1))]
+ events.append({'name':e['name'],'source_frames':s,'native_frames':n,'fixed_frames':g,'native_signed_lag_frames':[n[0]-s[1],n[1]-s[0]],'fixed_signed_lag_frames':[g[0]-s[1],g[1]-s[0]],'paired_absolute_error_change_bounds_frames':[min(vals),max(vals)],'status':'COMPARABLE_VISIBLE','note':note})
+v={'schema':'r113-full98-seed-pair-visual-review-v1','seed':2026101702,'source_id':'short_0252','reviewed_roles':['source','native','fixed'],'frames_reviewed':list(range(98)),'frame_ledger':bind(base/'media/FRAME_LEDGER.json'),'pair_gate':bind(base/'PAIR_GATE.json'),'intake':bind(base/'PREVIEW_INTAKE.json'),'preregistered_events':bind(ROOT/'configs/PREREGISTERED_EVENTS.json'),'hand_detail_binding':bind(base/'hand_detail/BINDING.json'),'formal_batch_complete':False,'task_assessment':{'native':{'status':'PASS_CORE_EDIT','elderly_woman':True,'cabin_child_mask':True,'clothing':'粉色开衫、浅色内搭、项链；全片稳定。','action_sequence':'接近、抓取、持握、拉动细带顺序保留；后半段上举进度较慢。'},'fixed':{'status':'PASS_CORE_EDIT','elderly_woman':True,'cabin_child_mask':True,'clothing':'与普通编辑相同的粉色开衫、浅色内搭和项链；全片稳定。','action_sequence':'接近、抓取、持握、拉动细带和末段上举保留；局部细带整理路径与参考有差异。'}},'events':events,'terminal_pose':{'definition':'片段末尾解剖右手与细带抬至额头附近，另一手持杯。','source':'95–97 帧存在','native':'有效 98 帧内未到达，末尾仍在胸前/下脸部操作','fixed':'95–97 帧存在','precise_arrival_time_claim':False,'mask_worn_securely_claim':False},'whole_sequence_observations':['普通编辑中面罩较晚落下；引导版前段落下更接近参考。此项未加入三项预登记主事件分数。','引导版 55–60 帧杯和手维持在较高位置，参考已开始降低；改善并非全段统一平移。','引导版 72–79 帧整理细带时右手偏低；第三预登记事件两版仍明显晚于参考。','两个版本人物、儿童、机舱构图及主要衣服保持稳定，未出现整个场景重构。'],'alignment':{'native':False,'fixed':False,'reason':'前两项时刻改善；第三事件残余延后，不能将全片标为完全对齐。'},'conclusion':'PARTIAL_EVENT_TIMING_BENEFIT','summary':'新种子复验中，固定时序引导恢复了接近和握住面罩的早期动作时刻，并恢复末尾抬带到额头附近的姿势；胸前举带阶段仍延后，局部手部路径不同。','suggested_still_frame':54,'suggested_secondary_frame':96,'official_MF':None,'arithmetic_note':'区间为视觉边界，不是置信区间；误差变化穷举共享同一源事件时刻，单位为 24fps 物理帧。'}
+assert not out.exists();out.write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n');print(json.dumps(bind(out),ensure_ascii=False));print(json.dumps(events,ensure_ascii=False))

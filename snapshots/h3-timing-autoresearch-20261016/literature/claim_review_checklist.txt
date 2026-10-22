@@ -1,0 +1,189 @@
+H3 动作时间错位：最终科学结论的独立审查清单
+2026-10-16；只读证据审查，不执行 GPU、不修改运行文件。
+本稿证据截面：progress.json 的 updated_local=2026-10-16T04:05:18+08:00，以及下列已完成的独立结果报告。phase ±12 和 transfer intervention 在本截面仍待定；后续结果必须按本清单再填，不能借本稿提前宣告成功。
+
+一、当前最稳妥的总述
+
+在一个事先已知失败的真人舞蹈角色编辑样例、1312×736 设置下，原始 H3 的选定动作窗口出现约13帧延后；新预选噪声种子在同一来源上也出现约15帧延后。第一种子的同帧参考路由可将主窗口相位误差降到接近0，但普通 hard mask 也能做到，尚未证明保持参考组总注意力的独特价值。第11次调用后才开启相同路由仍残留11–12帧延后，说明这一固定晚启动方案在该例不够有效。当前没有证明新的架构、自动定位或有效闭环控制。
+
+上述是“可重复的问题诊断 + 一组有价值的正负消融”，不是一个已经完成的方法论文。诊断贡献、控制算子、反馈系统、视频质量、评估设计需要分别过关，不能彼此代替。
+
+二、实际读取的本地证据
+
+A. analysis/pose/pilot/FULL_NATIVE_1312_REVIEW.md（相关原始基线记录）
+B. analysis/pose/pilot/FULL_MASS_1312_REVIEW.md
+C. analysis/pose/pilot/FULL_HARD_1312_REVIEW.md
+D. analysis/pose/pilot/LATE11_REVIEW.md
+E. analysis/pose/pilot/TRANSFER05_SEED2_NATIVE_REVIEW.md
+F. analysis/pose/pilot/NATIVE_1024_REVIEW.md、MASS_1024_REVIEW.md
+G. analysis/pose/full_support/native_mass_x3_zero_hard_late11/summary.json
+H. analysis/native_attention_readout_caution.json
+I. analysis/retiming/OLD_SAM05_REVIEW.md
+J. configs/conditional_followup_protocol.json、late11_mass_protocol.json、late_hard_round2_protocol.json
+K. analysis/pose/phase_sensitivity/PROTOCOL.json
+L. literature/architecture_novelty_gate.txt、phase_feedback_second_audit.txt、rollback_collision_audit.txt，以及 analysis/reference_time_map_novelty.txt、reference_origin_hypothesis_audit.txt
+
+备注：progress.json 的部分早期 completed_formal_runs/next 字段没有随各个独立报告同步刷新；本审查以实际已完成报告和其 history/audit 指向为准，不把汇总旧字段当最终运行真相。未直接访问 GPU 或正在运行的远程服务。
+
+三、每种结论的最低证据与禁区
+
+[1] 诊断：某个样例存在动作时间错位
+最低证据：源/生成的实际帧数、FPS、PTS、裁剪/缩放/播放设置明确；在原时间轴比较相同事件；至少一项可信的独立视觉/事件定位支持 pose lag；保留完整误差曲线与不可靠判定。
+当前：1312 seed1主窗口+13；预选seed2同窗+15，右臂/腕部约+16。相同现象可在第二种子重现。
+可写：选定来源/配置出现了清楚的参考动作延后。
+不能写：H3普遍会丢小动作、所有生成都变慢、只有ComfyUI逻辑造成、13/15帧即永久动作遗漏。
+动作在后面出现属于延后。确认遗漏需要检查完整相应时间上下文、动作顺序、遮挡和被截断的边界；不能仅凭原时刻截图缺姿态宣布丢失。
+
+[2] 诊断：问题具有一定重复性/跨例性
+最低证据：新种子在看结果前指定，源/编辑身份/参数固定，失败和成功都留档；跨场景要新的source，不只是另一个seed或同舞蹈的近似片段。
+当前：同一source的第二个seed支持重复性；匹配干预尚待定。1024 native本来基本对齐，是必须报告的正常条件。
+不能写：2个seed估计了总体发生率；141帧是141个独立样本；两个置信门槛是两次独立复现；phase-zero与native重复运行是新噪声重复；source07同类舞蹈就是未见领域验证。
+总体失败率需要明确采样母体、预先固定的样例/seed集合和所有结果分母。
+
+[3] 诊断：是时间相位，而非形状/幅度/遮挡
+最低证据：同一个事件的时间移动能够显著降低差异，best-shift残差合格；多个特征/事件交叉核验；重复动作多峰、置信不足、边界截断都允许“未知”。
+当前：主窗口lag较可信；69–81等窗口存在覆盖/残差拒判，必须原样保留。
+不能写：任意最小误差位置就是可用lag；对齐后仍差很多就是纯延迟；pose置信高说明语义动作一定一致；所有小手势均被COCO身体骨架测到。
+对身体动作、手指手势、脸部动作应分开限定当前覆盖范围。
+
+[4] 诊断：VAE或DiT是原因
+最低证据：分别检查原视频预处理/采样时间、VAE往返重建、冻结相同conditioning下的干预。若声称某模块因果，应有排除其他路径的对照，不能只有修复结果。
+当前：同一个参考latent下attention干预可改善动作，支持该推理接口具有可用控制作用；不证明原缺陷唯一来自attention或VAE完全无损。
+不能写：能修好就证明VAE没丢任何信息；正常VAE重建证明DiT中所有细节均可被利用；未看到某个latent特征就证明不存在它。
+先写“在该控制条件下可通过推理干预改善”，保留原因与干预点的区别。
+
+[5] 控制算子：同帧参考限制可以修复已知失败
+最低证据：配对seed、输入、完整sigma、内核、LoRA、几何等相同；科学变量清楚；run确实执行；零操作基线通过；同一评估支持上比较，并检查编辑没有简单退回源视频。
+当前：mass和hard在seed1主窗都约0lag，多个后续窗口也改善；仅有固定帧外观检查。
+可写：该时序参考干预在选定失败上有明显效果。
+不能写：已广泛解决动作丢失；所有视觉质量保持；相比发表方法SOTA；local query mask意味着最终视频变化严格局部。
+
+[6] 控制算子：mass-preserving机制是否必要/更好
+最低证据：ordinary hard、普通reference gain等强基线；共同支持，配对统计和编辑质量比较；若声称等效/非劣性须事先指定界限与充分重复。
+当前：hard与mass主相位结果相同，误差有小幅互有高低。必须撤回“mass保持是修复的必要机制”。
+代数：固定同一Q/K/V，若原ref总mass为m，同帧子集在ref内比例为s，hard后ref总mass为ms/(1−m+ms)≤m；mass方案为m。因此“hard是更强总reference增强”是错误解释。
+不能写：两算子数学等价、所有情况下等效、mass毫无潜在价值，或因为没有显著差异就证明等效。跨run hidden states不同，不得把这一同输入不等式推广为整个轨迹的全局mass界。
+
+[7] 控制算子：late11失败是否说明早期不可逆
+最低证据：干预前state相同、正确步索引/σ、实际调用数和层覆盖；晚期结果可测而非tracker失效；早期/晚期/总时长匹配的消融进一步界定窗口。
+当前：late11在主窗保留11/12帧lag；前step005/010视频与音频x0张量确切相同。只支持这一固定晚启用路由没完成修复。
+不能写：第10步之前一定已永久锁死；第10步是最早可观测时间；所有training-free late control无效。只抽样了0/5/10/15/19，6–9未测。第11次调用的视频sigma约.90756，不能把“后9次调用”误写为低噪声末期，或直接类比其他论文的80%去噪进度。
+若late6成功，只能说测试的6-start有效而11-start不足；仍混合了开始时刻与干预累计时长。若hard_late11成功，应先解释混合策略/被删keys差异，不得解释为hard总参考mass更强。
+
+[8] 诊断信号：中间x0/attention能可靠发现问题
+最低证据：与独立最终事件标注及人工查看对齐；覆盖真实正/负例；校准不确定性、重复动作、多峰和跨域外观变化；冻结阈值后再测。
+当前：若干x0采样点可观察主窗延后。正常1024视频的中心8头×8空间采样仍有约+5…+7bin平均attention偏移，说明这种聚合统计不是动作lag传感器。
+不能写：attention中心偏移就是时间偏移；低same-bin mass就是失败；pose无法早期识别证明模型内没有更早可读信号。传感器可观测性不等于生成器可控性。
+
+[9] 控制算子：PhaseRoPE是有符号动作时刻执行器
+最低证据：zero exact-native；±两臂实际符号、单位、频率/通道、调用scope正确；确认三臂仍为同一个动作；有序响应超过测量容忍度，且幅度/形状/人物/镜头未严重变化；再复测新seed/来源。
+当前：zero与native输出/存档快照匹配，±结果待定。
+按已登记门槛：zero位于两端之间且允许2帧容忍，两端差至少6帧是探索筛查，不是统计显著性；主±24搜索及共同应用的±36敏感性结果都需保留，后者未获相同合成校准。
+不能写：Q旋转正号必然动作提前；连续RoPE角度等于连续视频时间；zero通过证明非零语义正确；只有一个符号碰巧改善就证明双向控制。
+若两符号均改善、均无效、错序或改变动作身份，则判定“未证明有符号执行器”。可检验预先限制的非线性例外，不允许无限调参后只报成功。
+
+[10] 架构/原点解释
+最低证据：固定K/V内容、布局、token数量，仅变参考关系坐标；对照普通shared-origin及same-bin策略；能预测结果并超越已有原理，而非只出现一个更好样例。
+当前：H3当前ref/target origin差235RoPEunits是显式packing，不是bug证据。UNIC/VideoCoF/OmniTransfer已有时间原点对齐策略。只移参考会改cross-attention；共同移Q/K才有普通RoPE相对不变性。
+不能写：首次发现bank-local时间坐标、235差解释了13帧lag、减掉235理应修复，或training-free/H3特定实现自动构成架构创新。
+
+[11] 反馈系统：按误差动态启停/调节已经有效
+最低证据：同一次运行实时用当时可得信号决定操作；完整日志记录观测、置信、指令和实际执行；与相同开销observe-only、固定schedule、冻结/错号信号作对照；证明传感到可靠时执行器仍能起作用。
+当前：没有该证据。静态late11是在观察基线后设计的实验；all-step算子+x0读出两个独立模块不等于闭环。
+不能写：存在自动诊断、自动ROI、动作类型分类、用户动作编辑豁免或控制器稳定性，除非分别测试。
+新teacher未引入不等于完全无额外模型；现成pose tracker成本及适用域也需报告。
+
+[12] 反馈替代：迟到诊断后rollback可行/创新
+最低证据：保存真实noisy sampler state及solver/RNG/全局sigma和PDD上下文；restore无干预精确重放；恢复后引导与普通“native到r再引导”运行等价；只对失败分流是否比固定早期引导和matched-cost re-noising更有用。
+当前：未实现、未验证。x0预测不是可直接恢复的x_sigma。
+不能写：恢复checkpoint本身创造新可控性；只改局部早噪声latent即可免费兼容单sigma；正常路径无额外成本（preview/pose也耗时）；忽略丢弃路径NFE。Ctrl-Z、DiffEditor、DiffRS、ABCD、CS-VGB、TBS是直接近邻。
+
+[13] 视频质量、编辑成功与局部副作用
+最低证据：完整视频连续性/人物身份/外观编辑/背景镜头检查；目标区和区外事件分别评估；必要时盲评，保持比较的同一支持。研究动作保真不能靠减弱或撤销编辑实现。
+当前：固定帧看到服饰/房间未明显回源，只是sanity check。全片pose分数有所改善，但原本正确前段/尾段有小代价，部分后续窗口明显受影响。
+不能写：同帧骨向量误差低等于视觉质量高；短发灰衣说明Sam身份正确；one-person检测证明手部、面部、闪烁没问题；单次没有观察到问题就是一般非劣性。
+相似度/identity metric也不可替代所有动作/连续性检查。
+
+[14] 最终论文创新和方法优越性
+最低证据：精确对齐最接近机制，而非只比名字；复现或清楚说明移植基线；固定预算、采样条件及评价；证明新增结构不可由已知简单mask、坐标对齐、gain、固定schedule或后处理解释。
+当前：有研究价值的诊断和普通时间路由修复；没有强架构创新证据。
+不能写：“没有某篇在H3上做过，所以新”；“比三篇论文移植分数高就足够”；“唯一没搜索到完整组件组合，所以创新”；“运行了多小时/多轮，因此成功”。负结果可用于缩小假设，不是必须兑现架构创新的理由。
+
+四、待定结果落地后的结论分支
+
+- Phase±有序且动作/编辑保持，但只在seed1：可用的单例oracle执行器证据；不是普适反馈。
+- Phase±无序/近零/语义损坏：拒绝本配置的有符号执行器假设；保留全部结果；不推出任何RoPE干预都无效。
+- Seed2 mass也改善：同一source在第二预选噪声下复验静态路由；仍不支持mass优于hard或跨场景泛化，因为seed2没有对应hard时无法区分。
+- Seed2失败：方法依赖seed/状态，不能只将seed1列为代表成功；可继续分析原因，但不得替换预选seed。
+- Source07也改善：相关舞蹈新来源的transfer支持；该片之前已是研究过的失败，不是盲搜未见领域。
+- Source07原本正常：报告为保持性测试；不把它计入失败修复率分母。
+- Source07失败或测量未知：前者是负transfer，后者是不可判定，二者分开；不降低门槛强行产出lag。
+- late6成功/late11失败：有效schedule的有限区分，未排除duration混杂；反而说明当前可靠observer可能晚于该执行器的有效窗。
+- hard_late11成功而mass_late11失败：重要混合方式消融；不可解释为hard总refmass更大，不能用它挽救mass必要性。
+- 全部新臂无优势：最终可以明确交付“重复诊断 + 已知mask有效 + 若干新机制被否定”，并说明暂未找到架构创新。
+
+五、评估选择偏差：最终汇报必查
+
+[ ] 每条渲染均有run_id、来源、seed、几何、condition/noise/graph哈希、实际history与失败状态；失败启动不算模型动作失败。
+[ ] 区分已知坏例发现、事先选seed复验、相关来源transfer、真正未见集合。不要在采样后重新定义“代表性”。
+[ ] 不删除正常基线、反向结果、无效控制、拒判窗口；可以挑清晰图作说明，但所有科学结论依赖完整分母。
+[ ] 同一比较内使用共同有效joint-frame支持与共同权重；新增方法会改变交集，因此不要将不同支持集合的数值横向拼成一张貌似同口径表。
+[ ] 同时报告覆盖率与未知率。共同支持可防漏检刷分，但不能把被交集删掉的困难位置当作方法表现良好。
+[ ] ±24主搜索和±36预登记敏感性保持原身份；双阈值0.3/0.5是鲁棒性检查而非样本量翻倍。
+[ ] 原时间轴的同帧误差/事件时间是主要保真问题；自由DTW对齐后的下降不能替代它们。拟合与评价同一pose特征会循环论证。
+[ ] 使用视频/seed为适当独立单位，事件嵌套在视频中；不要对逐帧数据作假独立显著性检验。
+[ ] 全片传播、窗口外代价标为posthoc探索；不追溯包装成预登记主终点。
+[ ] 不用“看起来不错的一个动作”盖过其余事件的变化；检查onset/peak/offset、顺序、同时发生关系。
+[ ] 生成调用、额外attention成本、preview解码、tracker、所有候选及丢弃路径分别计费；相同NFE不等于相同GPU时间。
+[ ] runtime修复、GPU等待、预采样失败与科学方法耗时/成功率分开。
+
+六、如果Phase执行器失败，只保留这一个狭窄后续问题
+
+问题：当前编辑失败能否由“全视频共享的一条单调时间映射”解释并修复，还是存在一个共享时钟无法同时恢复的事件/部位关系？
+
+这不是宣称新架构；它是一项可明确否决课题必要性的机制诊断。优先级高于继续堆pose gate、rollback和RoPE变体。已有Sam05 seed1的多窗lag为13/10/8/4，seed2约15/15/16/17；这提示需要区分近似全局迟到与非均匀时钟变化，却尚未证明部位间相位解耦。当前不能把左/右臂lag不同或一个窗口tracker拒判视为该证据。
+
+最小判别设计（使用现有视频，不要求新GPU）：
+1. 在看方法标签前，独立标出源与各结果的少数明确事件：例如右腕越肩、左臂峰值、屈腿/落脚，以及应同时发生的组合；记录看不清/未发生/片外，而不是强制给每项时间。用onset/peak/offset和可见形状确认同一事件，减少重复舞步误配。
+2. 先拟合一个全片常数lag，再拟合一个有固定端点/速度界/复杂度限制的单调phi；这条phi必须作用于整帧和所有部位，不能让每个指标偷偷挑自己的最佳warp。
+3. 拟合只用预先指定的子集，评价留出的事件/身体部位和人工同时性，或由另一位盲评者标注；不要再次用拟合输入的同一DWPose目标充当独立效果。
+4. 与native、现有mass/hard、现有NN重采样作对应比较。已完成DTW使用125/141不同帧，重复16帧、未用16帧、最大跳4帧；这些是采样代价，不是已经确认的感知卡顿。要宣称模型方法必要，还需面对更合理的平滑重采样/插值基线，不能只击败最弱NN。
+5. 若允许每个部位单独phi_k后拟合误差变小，这本身是更多自由度的必然结果，不是发现。须在相同约束、检测噪声基准和留出事件上出现共同phi不能解释的差异，再由视频确认形状未错配。
+
+可证伪结局：
+A. 共享phi即可恢复全部可见事件关系且视觉可接受：拒绝“需要新架构来找回动作”的叙事；课题更接近轻量时序校正/评估，是否值得论文另议。
+B. 共享phi无法修复，而同帧路由确实产生了原生成片不存在的正确联合姿态/同时性：才有证据区分模型内部运动重建与普通后处理。但本轮hard已能修好时，也仍未证明新算子必要。
+C. 只因遮挡、幅度或形状变化而无法匹配：归为非纯相位问题，不把未知硬归为部位解耦。
+D. 数据中没有共同phi失败的可靠样例：停止此分支，不为了获得空白而继续挑极端失败。
+
+与已有工作的区分与碰撞：
+- Sync-LoRA、Vidu S2、Wan-Animate-2重视逐帧运动保持；不能把时序保真问题称为首次。
+- Body-Part Phase Control已经明确分离部位相位/幅度并控制局部动作时刻；“部位相位”不是我们的新表示。此窄问题是在冻结RGB编辑器中检验是否存在共享retiming无法解释的错误，并作为决定是否需要模型内部修复的反证关卡。
+- BulletTime、SpaceTimePilot已有时间控制/重映射；这里比较的是失败解释与修复必要性，不把单调warp本身当方法贡献。
+- 没有证据证明此诊断问题在文献中为空白。若要进一步写成论文，仍须专门检查时间对齐评估/动作重定时文献；当前合理产物是可复核的机制报告，不是顶会创新保证。
+
+七、最重要的主来源（本轮复用已核正文，不重复泛搜）
+
+Same-time reference routing / alignment:
+https://arxiv.org/html/2609.11638v1 — Vidu S2-Editing, §3.2
+https://arxiv.org/html/2608.06009v2 — Wan-Animate-2, Time-Align RoPE / Sparse-Ref Attention
+https://arxiv.org/html/2512.03013v1 — Sync-LoRA, synchronized appearance editing
+https://arxiv.org/html/2506.04216v1 — UNIC, Task-Aware RoPE
+https://arxiv.org/html/2512.07469v2 — VideoCoF, temporal index alignment / length generalization
+
+Local phase and positional control:
+https://arxiv.org/html/2603.19795v1 — Modular Body-Part Phase Control, §4.2–4.4; trained components, predicted-x0 phase loss
+https://arxiv.org/html/2412.07776v2 — DiTFlow, motion-guided latent / positional optimization
+https://arxiv.org/html/2505.13344v1 — RoPECraft, optical-flow spatial RoPE and test-time optimization
+https://arxiv.org/html/2512.05076v1 — BulletTime, world-time control
+https://arxiv.org/html/2512.25075v1 — SpaceTimePilot, independent source/target animation time
+
+Reference gain / dynamic gating / late correction:
+https://arxiv.org/html/2609.11507v1 — DIAL, reference attention bias (last80% steps, not begin at80%)
+https://arxiv.org/html/2510.02226v3 — TempoControl, threshold-based latent guidance and event timing
+https://arxiv.org/html/2506.19348v2 — MotionEcho, error-triggered teacher guidance
+https://arxiv.org/html/2506.20294v3 — Ctrl-Z, adaptive rollback/search
+https://arxiv.org/html/2606.13861v1 — TBS, early commitment and physical-prefix repair
+https://arxiv.org/html/2610.15281v1 — CS-VGB, verifier-guided continuous checkpoint backtracking
+
+本清单的最终判断：可以诚实地说问题已在有限设置复现，已有时序参考干预能修复选定坏例，也已经得到若干否定性机制证据。尚不能说已经找到新的架构、稳定控制器或完成可投稿方法；若最后新臂失败，这个结论本身应被保留。

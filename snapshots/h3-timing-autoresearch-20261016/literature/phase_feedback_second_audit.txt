@@ -1,0 +1,176 @@
+局部动作相位反馈→参考时间坐标校正：第二轮定向碰撞审查
+日期：2026-10-16
+性质：只读文献／代码审查，未操作 GPU，未修改模型代码。本文不宣称文献穷尽，也不是 novelty certification。
+
+结论先行
+
+完整候选链是：冻结 RGB 视频编辑器 → 在若干去噪检查点解码预测 clean endpoint → 估计源／目标局部动作的有符号物理时间差及可信度 → 仅修改允许保留动作区域内，输出 query 对参考视频 key 的时间读取映射 → 保持每行 reference-group 总注意力 → 误差进入容忍区后停止更新并监测。
+
+本轮没有在已核 primary 方法中找到这条完整链的直接同类，因此没有“因 exact prior 已存在而立即否决”的证据。但其几个最容易包装的贡献全部已有近邻：
+1. 推理时在线重设 reference RoPE 时间坐标：Knot Forcing 已做。
+2. training-free 在线移动 Q/K 时间坐标和重索引 KV：Infinity-RoPE 已做。
+3. 采样中依据运动误差更新 positional embedding：DiTFlow、RoPECraft 已做。
+4. 从预测 x0 提取局部 phase，与参考比较：Modular Body-Part Phase Control 已在训练中做。
+5. 按时间／运动误差启动、停止指导：TempoControl、MotionEcho 已做。
+
+所以仅把已有 tracker、阈值、RoPE 位移、归一化接起来，仍然有很高的“直接组合／工程系统”风险。最窄可检验差别是：把可辨识的动作时间误差当成低维状态，以 reference-only 时间重映射作为有符号执行器，形成能纠正不同方向、不同局部延迟且不扰乱编辑的闭环。当前只能推荐有上限的 actuator oracle 检验，不能预先认定架构创新成立。
+
+一、十个最接近机制（按本轮碰撞风险组织）
+
+[1] Knot Forcing: Taming Autoregressive Video Diffusion Models for Real-time Infinite Interactive Portrait Animation
+原文：https://arxiv.org/html/2512.21734v2 ，§3.3、Algorithm 1、§4.1。
+作者页：https://humanaigc.github.io/knot_forcing_demo_page/
+明确机制：训练把采样片段最后帧作为全局参考；推理把 identity reference image 视为伪最后帧。随着自回归 rollout，参考帧 RoPE 时间索引维持在当前 chunk 之后；当 chunk 越过预设参考位置时，推进参考索引并重新计算其 KV。另用 temporal knots 融合 chunk 边界。
+训练：需要基于 Wan 的 portrait 训练与少步自回归蒸馏；坐标更新本身发生在推理。
+碰撞：足以否决“首个在线动态参考时间坐标”。
+区别：它移动单张身份图的未来锚点，依据 rollout 位置预定更新；没有从生成 x0 估计动作 signed lag，也不是在源参考视频内寻找正确动作时刻。
+证据边界：读了方法和算法；仅找到作者展示仓库，未核可运行完整代码。因此不能用“没有代码”断言不存在某种实现。
+
+[2] Infinity-RoPE: Action-Controllable Infinite Video Generation Emerges From Autoregressive Self-Rollout
+原文：https://arxiv.org/html/2511.20649v1 ，§4.1–4.3。
+作者代码：https://github.com/yesiltepe-hidir/infinity-rope
+固定版本：https://github.com/yesiltepe-hidir/infinity-rope/blob/63d7b84f043a2536ccb62d5171ed54dfadc0a721/wan/modules/causal_model.py#L223
+明确机制：Block-Relativistic RoPE 将当前 latent block 置于本地窗口末端，对缓存 key 重新施加时间 RoPE，保持近期相对几何；KV Flush 响应 prompt 切换；RoPE Cut 引入预设时间坐标跳变。
+训练：基于已蒸馏的生成器，提出的推理包装无需新训练。
+代码证据：causal_model.py 257–262/277–282 分别重设 query 与缓存 key 的相对起点；pipeline/causal_inference.py 214–239 在 scene boundaries 执行 flush。这里的更新条件不是视觉误差。
+碰撞：training-free + 在线 Q/K 时间重索引不是空白。
+区别：控制自回归上下文几何与 prompt 响应，不估计参考视频动作相位，也不限制到局部动作 ROI。论文“temporal phase”不能直接等同动作晚了多少帧。
+
+[3] DiTFlow / Video Motion Transfer with Diffusion Transformers
+原文：https://arxiv.org/html/2412.07776v2 ，§4.2–4.3、Appendix A。
+作者页：https://ditflow.github.io/
+明确机制：由跨帧 attention 提取 patch displacement（AMF），最小化生成和参考 AMF 差；执行器可为 noisy latent，也可为位置编码。附录明确 CogVideoX-5B 的梯度由 block 20 回传到前面各块施加到 Q/K 的 3D RoPE。
+训练：骨干冻结，使用 test-time 优化；优化得到的位置编码还可复用于新 prompt。
+碰撞：把生成运动偏差变为 positional embedding 调整，已经是明确方法，不能只以“改位置编码而非 latent”区分。
+区别：误差是跨帧空间位移场，不显式估计源／目标动作 signed time lag；高维梯度优化不是受约束的 reference-only 时间中心伺服。
+证据边界：本轮核原文明确实现说明，未运行其代码；不声称其所有实验变体均被排除。
+
+[4] RoPECraft: Training-Free Motion Transfer with Trajectory-Guided RoPE Optimization on Diffusion Transformers
+原文：https://arxiv.org/html/2505.13344v1 ，§4.1–4.3、Algorithm 2。
+作者代码：https://github.com/berkegokmen1/RoPECraft
+明确机制：参考 optical flow 累积得到空间轨迹，用来初始化 h/w RoPE；生成早期进一步优化 rotary embeddings，匹配参考 latent 对应的 flow-matching velocity，并加入 Fourier phase 约束。
+训练：冻结骨干；仍有测试时优化成本。
+碰撞：运动驱动的动态 RoPE 校正及 phase-related loss 均已存在。不能把“phase”这个词当区别。
+区别：§4.1 明确初始运动变换不改 temporal component，理由是修改它容易产生解码伪影；其 Fourier phase 也不是动作发生时刻的有符号 lag。候选只动参考交互的时间维、无梯度优化，仍需证明确实比现有误差优化多解决了一个可复现问题。
+不确定性：本轮没有逐行核全部优化器 tensor slicing；不据 §4.1 推断后续每个代码路径都绝不影响时间分量。该文反而构成时间执行器可控性的危险反证，应优先试验。
+
+[5] SpaceTimePilot: Generative Rendering of Dynamic Scenes Across Space and Time
+原文：https://arxiv.org/html/2512.25075v1 ，§3.2.1、§3.2.2、Appendix D.3。
+固定代码：https://github.com/ZheningHuang/spacetimepilot/blob/e9cd3f5d618d6146399b8dbe6786977bc2f98934/spacetimepilot/model/spacetimepilot.py#L300
+明确机制：给 source/target 分别提供每帧 animation-time 条件，可冻结、反向、变速。代码将时间做 sinusoidal+MLP，再 temporal_downsampler 从 81 帧压到 21 latent 帧；source/target time embedding 拼接后加到 self-attention 输入。用时间 warp 数据训练解耦动画时间和 camera。
+训练：需要训练；推理使用给定的时间映射。
+碰撞：输出时间→源内容时间的映射本身已经是生成控制变量。
+区别：没有用中间生成误差在线更新映射；本候选是冻结编辑器的纠偏而非给定重定时。
+危险反证：原文 RoPE-only 消融在冻结场景运动时同时冻结 camera。不能假设时间编码只控制人物动作。局部和 reference-only 干预需要实证，而非依靠命名。
+
+[6] Controllable Text-to-Motion Generation via Modular Body-Part Phase Control
+原文：https://arxiv.org/html/2603.19795v1 ，§4.2–4.4、Eq.11。
+作者页：https://jixiii.github.io/bp-phase-project-page/
+明确机制：局部 body-part phase 表示 amplitude/frequency/phase shift/offset；冻结骨干后训练 phase extractor、Phase Encoder 和 Phase ControlNet。训练损失会解码预测 clean latent，冻结 phase extractor 提取局部 phase，与参考作 masked L1 比较。推理由用户改 phase 参数，ControlNet 注入残差。
+碰撞：x0→局部相位→参考比较的传感链已经存在；相位和幅度分离也不是全新想法。
+区别：它是结构化 motion 的训练控制分支；没有 RGB 编辑推理时由 tracker 测得 signed lag，再将误差闭环转成 reference-key 读取中心。
+证据边界：核原文 Eq.11 与训练／推理区分；没有验证其整个代码库。若候选使用其已有 phase 表征，应直接承认借用，不把该表示计作创新。
+
+[7] TempoControl
+原文：https://arxiv.org/html/2510.02226v3 ，§4。
+固定代码：https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/wan/text2video.py#L624
+明确机制：video→text attention 的时间曲线与指定目标时间 mask 比较，用 Pearson correlation 等损失优化 latent；达到阈值可以结束当前步的额外优化。
+训练：不需新训练，推理有梯度优化。
+碰撞：按物理时间控制误差决定是否继续指导，已经明确出现。
+区别：传感器是文字概念 attention profile；执行器为 latent。候选若只有把其损失换 pose、优化对象换 bias，很容易被认为直接替换；需要相位误差识别与可控时间执行器的因果证据。
+
+[8] MotionEcho
+原文：https://arxiv.org/html/2506.19348v2 ，§3.3–3.5。
+作者页：https://euminds.github.io/motionecho/
+明确机制：对学生端点重新加噪并用教师执行运动纠正；依据过去数步 motion loss 均值触发，教师侧达到阈值提前终止，然后将纠正端点反馈学生。
+碰撞：监测→触发→指导若干步→停止→再监测的闭环已经成立。
+区别：候选无生成教师，执行器是参考时间映射；但“去掉 teacher”不足以独立立项。若闭环只让误差变小却没有相位专属收益，仍落在通用 motion guidance 叙事内。
+证据边界：沿用本轮前段已读的 v2 原文，不重做泛化报告；未运行其方法。
+
+[9] SViMo: Synchronized Diffusion for Video and Motion Generation in Hand-object Interaction Scenarios
+原文：https://arxiv.org/html/2506.02444v3 ，§3.4–3.5、Eq.6–7、§4.2。
+明确机制：视频／rendered-motion 联合去噪；VID 从 video/motion latents 预测 3D 手和物体交互，渲染后 VAE 编码作为 motion guidance；视频／motion clean prediction 反过来用于 VID 并在联合训练中约束生成器。
+训练：VID warmup 后联合训练，非即插即用 tracker。
+碰撞：生成视频估计→结构化运动分析→再次影响生成的双向链有先例。
+区别：没有将参考 signed lag 映射成 reference time coordinate；以完整训练的同步 multimodal 系统为对象，非本候选无训练局部纠偏。
+证据边界：核方法与训练配置；代码未逐行检查。不能将它误写成“完全与 feedback 无关”，也不能将其训练监督等同本候选 inference feedback。
+
+[10] DiffPerformer: Iterative Learning of Consistent Latent Guidance for Diffusion-based Human Video Generation（CVPR 2024）
+原文：https://openaccess.thecvf.com/content/CVPR2024/papers/Wang_DiffPerformer_Iterative_Learning_of_Consistent_Latent_Guidance_for_Diffusion-based_Human_CVPR_2024_paper.pdf ，§4.1–4.3，印刷页 6172–6174。
+明确机制：单视频 finetune pose-guided diffusion 与 VAE decoder；生成结果拟合为 implicit video representation，3D human flow 约束其姿态／外观一致性；平滑视频重新编码、加噪、作为下一轮 diffusion 初始化。每 2000 次 implicit-representation 优化步更新生成视频。
+碰撞：已有 pose-aware feedback loop，而不是首次使用生成结果反馈纠偏。
+区别：这是跨生成轮次的拟合／再去噪，不是单次去噪内 x0 lag 传感；没有局部源时间读取中心执行器。原本第一轮全文缺口已补齐，不需继续因这个标题拖延。
+代码边界：论文提供的 https://github.com/aipixel/DiffPerformer 在本轮 API 访问为 404；只表示该链接当前不可获取，不表示代码必定未发布。
+
+二、最强审稿反驳及真正尚未证实的差别
+
+最强组合反驳不是某一篇完全相同，而是：用 Body-Part Phase Control 已出现的相位传感思想，替换 TempoControl 的 attention 误差信号，再用 DiTFlow/RoPECraft/Knot Forcing 已出现的位置执行器，最后加 MotionEcho 式 gate。对这个反驳，不能只回答“它们不是 H3”“它们用了训练/教师”“我们换成了 pose”“我们保持总 mass”。
+
+有可能站住的贡献必须具体到：
+（a）可辨识状态：在编辑外观变化、重复动作、遮挡下，识别真正的有符号相位误差，并在无法区分时不干预；
+（b）可控执行器：只改 output-video→reference-video 的相对时间关系，在误差两种符号下都产生可预测的动作时间响应；
+（c）可分离因果：同样的参考总注意力、相同计算预算下，校正来自正确的时间 correspondence，而不是通用增权或减少编辑强度；
+（d）闭环必要性：在不同局部误差大小／方向／发生时段下，反馈优于最佳固定偏移或预定 schedule，同时正常样例不过度干预。
+
+以上是待检验机制，不是当前已经获得的新颖性。即使都成立，投稿时更准确的名称也是 inference-graph control operator，而非宣称发明新 DiT 骨干架构。若只剩几行固定 mask／中心偏移，按静态 temporal routing 处理，不包装成闭环。
+
+三、执行器定义中的必要约束（本审查的数学推导，非引用论文公式）
+
+符号：s 是去噪检查点；τ 是输出视频物理时间；ρ 是参考物理时间；P(q) 是允许保留原动作的 query 区域；u_s(τ,r) 是区域 r 的读取中心位移。不要把 s 与 τ 混成一个“时间步”。
+
+1. 参考分支隔离
+修改一个 query 的 RoPE 后与全部 key 计算，会同时改变其对输出视频、文本、图像等的 logits；这不满足 reference-only。需单独计算修改后的 output-Q×ref-video-K 子块，其他 interaction logits 保持原值。若 H3 的 MM-RoPE 模态坐标有特殊布局，必须以实际代码核对，不能盲套标准 3D RoPE。
+
+2. 质量守恒只是控制混杂，不是新机制
+原始 attention 为 A，m_q=Σ_(k∈ref) A_qk。对新的参考 logits z'_qk：
+  A'_qk = m_q softmax_ref(z'_q·)_k，k∈ref；
+  A'_qk = A_qk，k∉ref。
+这等价于对 reference logits 加一个行内常数补偿 partition function，已有审查已经指出该归一化不宜独立声称新贡献。它只保证本块同一 forward 的 mass；未来 block／采样状态受影响后，新的 native mass 可以改变，不能声称整条生成轨迹的参考影响完全不变。
+
+3. “移动读取中心”不等于必然语义对齐
+φ_s(τ,r)=τ+u_s(τ,r)。可通过参考子块 Q/K 相对旋转，也可通过中心位移的局部 bias 实现，但二者不是同一数学操作。若仅用 Gaussian temporal prior，应明确是 bias，不假称 RoPE 架构改动。
+保留动作顺序时应约束 φ 单调、位移有界，局部边界平滑回接原映射；不能通过读取越界后大量 clamp，把短时事件复制到多个输出时刻。空间区域也要随目标主体跟踪，固定矩形只算 oracle 区域。
+
+4. 零误差应能退化为 native
+若 u=0 时仍始终施加同帧 mask／Gaussian prior，它就不是“零误差不干预”；正常结果改变可能全部来自静态先验。需要明确区分“同帧 prior 基线”与“差分位移 operator”。只修改 RoPE 的相对坐标且 u=0 返回原坐标，可满足该性质；其他实现也应显式测试 identity-on-zero。
+
+四、传感与闭环的最小可证伪定义
+
+令 f_ref(τ,r) 和 f_gen,s(τ,r) 为外观／尺度归一的局部姿态与速度。可用窗口内 robust alignment：
+  e_s = argmin_d Σ_τ w_τ ρrobust[f_gen,s(τ,r) − f_ref(τ−d,r)]。
+按此定义 e_s>0 表示生成动作晚。若动作只是幅度缩小，移位后仍残差大；若周期重复，多峰模糊；若遮挡，有效观测不足。置信必须同时考虑移位前后残差改善、最优／次优峰间隔、可见帧比例及幅度范围，不能只用 pose detector confidence。
+
+不要根据 e_s 的定义就断言 u=e_s。执行器真实增益 g=∂e/∂u 需要 ±oracle 位移估计。闭环可考虑有界 u_new=u−κe/g，带 deadband、置信 gate 和平滑限速；这是一般控制器，不因写成公式就具有方法新颖性。误差达标时“停止更新”与“瞬间把 u 归零”不同，后者可能让错误复发。应比较 hold／decay，但先不扩展到无限调参。
+
+来自当前主实验的新证据必须纳入传感门槛：1024 native 最终动作约 −1 帧、基本对齐，但一个 block 的少量中心位置／head 平均 reference 时间重心偏移约 +4.7 至 +7.1 latent bins。因此该 attention 均值不是动作 lag。不能把这份统计直接输入反馈控制，更不能用它证明 native 内部已经时间错位。误差可能来自背景／不同功能 head，尚未定位。
+
+同时，早期 x0 可观测性和后期动作可控性可能不重叠。只有“在还能改动作的采样阶段已经能可靠观测 lag”才有闭环成立空间。最终视频 tracker 有效并不证明中间 x0 tracker 有效。
+
+五、推进／否决门槛：先检查便宜机制，后上完整闭环
+
+Gate A：故障重现。
+固定原有素材、identity、seed、尺寸、帧率、sigma、采样器和后端，确认原 full-resolution native 的动作时间偏差仍存在。1024 结果正常不证明分辨率因果；跨尺寸相同 seed 也不等价于相同噪声张量。若坏例不可复现，暂停控制器研发，先解释配置差异。
+
+Gate B：执行器方向响应。
+native、零位移静态路由、u=−h、u=+h 分开记录，控制其他条件和 reference mass。至少另一 seed／另一事件验证 e(−h),e(0),e(+h) 有方向响应；观测 onset/peak/offset、幅度、动作顺序、身份／编辑成功与旁侧事件。+h 若读取未来参考，可能纠正延迟，它不是必然应该失败的负对照。
+否决：两种符号效果无规律；改善来自身份回退／动作消失；只有整体输出 time warp 就能解释；固定强 prior 已解释全部收益。可允许一次事先限定的弱强度复验排除干预过强，不做无边界抽卡。
+
+Gate C：中间预测传感校准。
+先只监测，不控制。保存少量预测 clean endpoint，保持 VAE temporal chunk 与真实帧时间一致，校对与最终 lag 的关系。对源姿态人工施加已知 lag、幅度变化、遮挡及周期重复，检验误分类与 abstention。
+否决：高置信 lag 方向常错；二次元／外观替换导致 tracker 偏差主导；直到动作已不可改才可观测。此时增加控制器复杂度没有意义。
+
+Gate D：证明 feedback 有必要。
+比较同帧静态 prior、开发集选定的最佳固定偏移、预定时间偏移、实时反馈、相同监测开销但不执行、冻结／打乱／反号误差信号。局部与全局执行分别测试。需要提前/延后两种错误与正常样例；只在一条晚 13 帧视频调成功不能成立。
+否决：反馈不比固定／预定策略好；监测成本超过收益且无更精细能力；正常样例显著受损；源时间校正推迟了其他动作。推进：上述门槛全部通过，才扩展样本、意图保持区域与其他 backbone。
+
+当前裁定：CONDITIONAL ADVANCE TO SIGNED ACTUATOR TEST；NO ARCHITECTURAL NOVELTY CLAIM YET。
+最有价值的结果也可能是否定：若时间读取中心没有稳定相位增益，便停止这条路线，而不是以更多 gate／mask 拼出一个名称。
+
+六、检索边界与可追溯性
+
+本轮用 primary arXiv HTML／CVF PDF 和作者代码，定向检索：diffusion video editing temporal phase feedback pose；diffusion video dynamic time warping inference；video denoised pose guidance inference；DiTFlow RoPE temporal optimization；video diffusion time warping pose。泛搜索命中的 DTW action segmentation、audio evaluation、机器人控制、noise-time alignment，没有被当作本题 exact prior。
+新重点核查 Knot Forcing、Infinity-RoPE、SpaceTimePilot、SViMo、DiffPerformer；对已有近邻只复核上述关键方法段。Infinity-RoPE 与 SpaceTimePilot 读取了固定 commit 代码；其他论文证据粒度各条注明。检索未返回 exact 完整链，只能称“本轮未找到”，不能证明不存在；对全部相关引用链、所有最新仓库、全部专利及未公开稿件没有穷尽覆盖。
+此前 DIAL／Vidu S2／Wan-Animate-2／TST 等静态路由和归一化碰撞继续有效，详见同目录 innovation_assessment.txt；本轮没有因换了反馈包装而撤销这些结论。
+
+附记：实际 H3 布局下的备用执行器（主实验负责人代码核查结果，非本审查独立运行验证）
+主实验负责人核查的 H3 attention 为 head_dim=128，split-half RoPE 旋转前 96 维；时间分量是 0:16 与 48:64 配对，使用 16 个 learned inv_freq，空间分量为 16:48 与 64:96。若当前硬时间 bin 路由没有稳定可控性，可另行测试：仅克隆选定输出 query，按模型实际旋转约定对这些时间维施加相对旋转，并仅用于 output-video→reference-video 分支；保留所有参考 key，不裁成同帧候选，空间 RoPE 不变。令 O 为该 head 原始完整 attention 输出，m_ref 为原始参考组总 mass，O_ref 与 O_ref_rotated 均为各自在参考 key 内归一化的条件输出，则 O'=O+m_ref·(O_ref_rotated−O_ref)。这一分解保持同一 forward 中其他组的贡献与原参考总 mass，但不保证后续模型状态或最终画面不受连带影响；δ=0 必须走原始 native fastpath，避免额外 kernel／数值路径造成假干预。相对 DiTFlow/RoPECraft，区别只在低维时间旋转、reference-only 子块隔离及是否由 signed lag 驱动，而不是“首次改 RoPE”；mass 分解与已有反馈原则都不新。即使所有参考 key 被保留，时间旋转也未必产生正确或单调的动作相位响应，仍须做 ±δ 对照并检查编辑质量与局部性。该方案仅为备选，当前主候选仍是 oracle ±bin 路由测试；本次没有实现它或新增 GPU 任务。

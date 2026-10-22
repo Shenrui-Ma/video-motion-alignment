@@ -1,0 +1,88 @@
+{
+  "schema": "r123-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020",
+  "producer_remote": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020",
+  "producer_seal_sha256": "a0a596ff72906e7899e482dba2ff09930eaa8a492dce43330700b2429fe9edc7",
+  "producer_contract_sha256": "d0e9cd9344e7d68641f2f6afdaae889a846fea0f664149835ffd0e09e1c1eba3",
+  "producer_runtime_sha256": "7e564d23d2c2cb5ca1987042f5a8bd430dfe6ac4b9546f3ce4b1637e0466e200",
+  "host": "H3_SERVER_B",
+  "source_order": [
+    "short_0358"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0358",
+      "run_id": "r123_short_0358_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "official_edit_prompt_with_task_reference_envelope",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.",
+      "original_task": {
+        "id": 358,
+        "src_video_name": "short_0358.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+        "edit_prompt": "Add a pair of glasses to the man.",
+        "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+        "target_span": "glasses",
+        "target_phrase": "the man is wearing a pair of glasses"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "One existing source prompt-format diagnostic; no new source coverage.",
+      "forced_run_id": "r123_short_0358_seed2026101701_forced",
+      "graph_sha256": "e6d7167ec29283de04a6723872ca215f6b669db63500ee3e1a43227bef7609a0",
+      "forced_graph_sha256": "ef74fdc9ed5b9eb97a3b891c254065d04fa4484be0f6f4f694709924a74d0a5a",
+      "valid_frames": 105,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 108,
+        "original_frame_interval_half_open": [
+          0,
+          109
+        ],
+        "scope": "existing source full temporal extent; valid/padding determined by inherited provenance"
+      },
+      "source": {
+        "file": "inputs/short_0358_video.mp4",
+        "sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+        "bytes": 18002964
+      },
+      "provenance": {
+        "file": "inputs/short_0358_provenance.json",
+        "sha256": "d191c79ad0187c1e36429fc93d0a11ac15ff9b206dde46948e6c790f4770b07a",
+        "bytes": 15482
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/inputs/short_0358_original.mp4",
+        "sha256": "42b3b299e92ae723965f58c6c5c333623afb380ccf39181481f05629478a532d"
+      }
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

@@ -1,0 +1,510 @@
+--- previous/extensions/H3AutomaticWindowRouter/transport.py
++++ retry2/extensions/H3AutomaticWindowRouter/transport.py
+@@ -1,12 +1,12 @@
+ """Immutable request transport and exact owned-process supervision (stdlib only)."""
+-import hashlib,json,os,signal,subprocess,threading,time
++import hashlib,json,os,signal,subprocess,sys,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+ PROTOCOL_SHA='16dbe3ff91ea84ade0201980ee97c739b3471f652976bcea593164ec0756c595'
+ DECODER_UUID='GPU-REDACTED'
+ MAIN_UUID='GPU-REDACTED'
+ SECOND_TASK_UUID='GPU-REDACTED'
+-REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry_20261017')
++REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry2_20261017')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def sha(path):
+@@ -30,9 +30,26 @@
+  try:
+   stat=(p/'stat').read_text(); tail=stat[stat.rindex(')')+2:].split()
+   if tail[0]=='Z':return None
+-  return {'pid':pid,'uid':p.stat().st_uid,'start_ticks':int(tail[19]),'cmdline_sha256':hashlib.sha256((p/'cmdline').read_bytes()).hexdigest()}
++  command=(p/'cmdline').read_bytes()
++  # /proc can expose an empty cmdline during process startup. Bind only after
++  # exec has published the actual command; the existing launch deadline applies.
++  if not command:return None
++  return {'pid':pid,'uid':p.stat().st_uid,'start_ticks':int(tail[19]),'cmdline_sha256':hashlib.sha256(command).hexdigest()}
+  except (FileNotFoundError,ProcessLookupError):return None
+ def alive(entry):return entry is not None and identity(entry['pid'])==entry
++def bind_launched_child(process,command,*,timeout=3,lookup=None,clock=time.monotonic,sleep=time.sleep):
++ expected=hashlib.sha256(b'\0'.join(os.fsencode(v) for v in command)+b'\0').hexdigest()
++ deadline=clock()+timeout;generation=None
++ while process.poll() is None and clock()<deadline:
++  candidate=(lookup or identity)(process.pid)
++  if candidate is not None:
++   current=(candidate['pid'],candidate['uid'],candidate['start_ticks'])
++   require(candidate['uid']==os.getuid(),'launched child owner differs')
++   if generation is None:generation=current
++   require(current==generation,'child generation changed before command binding')
++   if candidate['cmdline_sha256']==expected:return candidate
++  sleep(.01)
++ raise ValueError('unable to bind launched child to complete expected argv')
+ def terminate_owned(process,entry,grace=8):
+  if process.poll() is not None:return
+  if alive(entry):
+@@ -78,10 +95,7 @@
+   require(alive(parent),'parent exited before child launch')
+   with log.open('xb') as handle:
+    proc=subprocess.Popen(command,env=env,stdout=handle,stderr=subprocess.STDOUT,start_new_session=True)
+-   deadline=time.monotonic()+3
+-   while entry is None and proc.poll() is None and time.monotonic()<deadline:
+-    entry=identity(proc.pid)
+-   require(entry is not None and entry['uid']==os.getuid(),'unable to bind own child')
++   entry=bind_launched_child(proc,command)
+    write_new(directory/(label+'.process.json'),dict(entry,command=command,parent=parent,timeout_seconds=timeout,execution_timeout_seconds=execution_timeout,execution_started_path=str(marker) if marker else None))
+    while proc.poll() is None:
+     require(alive(parent),'parent exited during child execution')
+@@ -93,8 +107,12 @@
+    if marker is not None:require(execution_start is not None,'successful child lacks execution start evidence')
+  finally:
+   if proc is not None:
+-   terminate_owned(proc,entry)
+-   write_new(directory/(label+'.exit.json'),{'pid':proc.pid,'returncode':proc.returncode,'identity_absent':not alive(entry),'wall_seconds':time.monotonic()-start,'execution_start':execution_start})
++   primary_error=sys.exc_info()[1];cleanup_error=None
++   try:terminate_owned(proc,entry)
++   except Exception as error:
++    cleanup_error=type(error).__name__+': '+str(error)
++    if primary_error is None:raise
++   write_new(directory/(label+'.exit.json'),{'pid':proc.pid,'returncode':proc.returncode,'identity_absent':not alive(entry),'wall_seconds':time.monotonic()-start,'execution_start':execution_start,'cleanup_error':cleanup_error})
+  return {'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode,'execution_start':execution_start}
+ def require_parent_closure(root=ROOT):
+  root=Path(root);c=read_json(root/'configs/PARENT_CLOSURE.json')
+--- previous/scripts/build_manifest.py
++++ retry2/scripts/build_manifest.py
+@@ -1,17 +1,19 @@
+-"""Seal an independent same-seed R50 retry with reviewed resource lifecycle changes."""
++"""Seal the reviewed administrative recovery; inputs retain their independent hashes."""
+ import argparse,hashlib,json,tarfile
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
++def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('--manifest',type=Path,required=True);p.add_argument('--bundle',type=Path,required=True);a=p.parse_args()
+  from retry_inheritance import check
+  from preflight import check as preflight
+  inheritance=check(ROOT);preflight(ROOT,metadata_only=True)
+- paths=[ROOT/n for n in ('PROTOCOL.json','FREEZE.json','README.txt','COMPARABILITY.txt','audit/revisions/producer_v1/deploy_manifest.json','audit/revisions/producer_v1/sealed_producer.tar.gz','audit/revisions/producer_v1/PRESERVATION.json','audit/ENGINEERING_REVISION_v2_CPU_CHECK.json','audit/EXACT_COMPONENT_REUSE.json','audit/RETRY_V4_METADATA_PREFLIGHT.json','audit/RETRY_V4_TESTS.log','audit/RETRY_V4_CPU_CHECK.json')]
+- for folder in ('extensions','scripts','tests','configs','design'):
+-  paths.extend(q for q in (ROOT/folder).rglob('*') if q.is_file() and '__pycache__' not in q.parts and q.suffix!='.pyc' and q.name not in ('admission.json','runtime_provenance.json','queue.json'))
+- paths=sorted(set(paths));value={'schema':'r50-independent-resource-retry-deploy-v1','files':{str(q.relative_to(ROOT)):{'bytes':q.stat().st_size,'sha256':sha(q)} for q in paths},'scientific_protocol_sha256':sha(ROOT/'configs/protocol.json'),'engineering_revision_sha256':sha(ROOT/'configs/engineering_revision_v2.json'),'retry_inheritance_sha256':sha(ROOT/'configs/retry/inheritance.json'),'base_deploy_manifest_sha256':inheritance['base_manifest_sha256'],'GPU_launch_authorized_by_root_only':True,'mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'input_files_separate_bundle':True,'GPU_resource_and_decoder_gates':'ROOT_PENDING'}
++ paths=[q for d in ('extensions','scripts','tests','configs','design') for q in (ROOT/d).rglob('*') if q.is_file() and '__pycache__' not in q.parts and q.suffix!='.pyc' and q.name not in ('admission.json','runtime_provenance.json','queue.json')]
++ paths += [ROOT/n for n in ('PROTOCOL.json','FREEZE.json','README.txt','COMPARABILITY.txt')]
++ # Preserve the old deploy manifest's immutable audit evidence without relabelling it.
++ old=json.loads((ROOT/'configs/recovery/previous_deploy_manifest.json').read_text())
++ paths += [ROOT/n for n in old['files'] if n.startswith('audit/')]
++ paths=sorted(set(paths));value={'schema':'r50-administrative-recovery-retry2-v1','files':{str(q.relative_to(ROOT)):{'bytes':q.stat().st_size,'sha256':sha(q)} for q in paths},'scientific_protocol_sha256':sha(ROOT/'configs/protocol.json'),'previous_manifest_sha256':inheritance['base_manifest_sha256'],'execution_plan_sha256':sha(ROOT/'configs/recovery/execution_plan.json'),'GPU_launch_authorized_by_root_only':True,'mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'new_runs':inheritance['new_runs'],'external_completed':['chest'],'planned_denominator':5}
+  with a.manifest.open('x') as f:json.dump(value,f,indent=2);f.write('\n')
+  with tarfile.open(a.bundle,'x:gz') as tar:
+   for q in paths:tar.add(q,arcname=str(q.relative_to(ROOT)))
+--- previous/scripts/launch_remote.py
++++ retry2/scripts/launch_remote.py
+@@ -71,9 +71,10 @@
+     service.write_json(r/'configs/runtime_provenance.json',prov)
+     env=dict(os.environ,LC_ALL='C',LANG='C',PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(r/'temp'),TMP=str(r/'temp'),TEMP=str(r/'temp'))
+     with (r/'logs/supervisor.log').open('ab',buffering=0) as log:
+-        supervisor=subprocess.Popen(['python3','-u',str(r/'scripts/supervise_service.py')],cwd=r/'scripts',
++        supervisor_command=['python3','-u',str(r/'scripts/supervise_service.py')]
++        supervisor=subprocess.Popen(supervisor_command,cwd=r/'scripts',
+             stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,env=env)
+-    supervisor_identity=service.identity(supervisor.pid)
++    supervisor_identity=service.bind_launched_child(supervisor,supervisor_command)
+     print(json.dumps({'supervisor_pid':supervisor.pid}),flush=True)
+     try:
+         for _ in range(150):
+@@ -98,14 +99,16 @@
+             with (r/'logs'/f'{role}.log').open('ab',buffering=0) as log:
+                 child=subprocess.Popen(command,cwd=r/'scripts',
+                     stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,env=env)
+-            rec={'pid':child.pid,'identity':service.identity(child.pid),'role':role}
++            rec={'pid':child.pid,'identity':service.bind_launched_child(child,command),'role':role}
+             service.write_json(r/'processes'/f'{role}.json',rec)
+             print(json.dumps(rec),flush=True)
+         if not args.service_only:
+             subprocess.run(['python3','-u',str(r/'scripts/start_controller.py'),'--pid',str(owner['pid']),'--start-ticks',str(owner['identity']['start_ticks'])],cwd=r/'scripts',env=env,check=True)
+         print(json.dumps({'service_only':args.service_only,'service':owner,'controller_started':not args.service_only}),flush=True)
+-    except BaseException:
+-        cleanup_created_owner(r,supervisor.pid,supervisor_identity)
++    except BaseException as primary:
++        try:cleanup_created_owner(r,supervisor.pid,supervisor_identity)
++        except Exception as cleanup:
++            service.write_json(r/'logs/launch_cleanup_error.json',{'primary_error':repr(primary),'cleanup_error':repr(cleanup)})
+         raise
+ 
+ if __name__=='__main__':main()
+--- previous/scripts/preflight.py
++++ retry2/scripts/preflight.py
+@@ -9,8 +9,8 @@
+     from prelaunch_gates import check_engineering_revision
+     check_engineering_revision(root)
+     p=t.read_json(root/'configs/protocol.json');names=[c['run_id'] for c in p['cases']]
+-    queue=t.read_json(root/'configs/queue.json')
+-    t.require(set(queue)=={'jobs','finalize'} and queue['jobs']==names and type(queue['finalize']) is bool,'queue changed')
++    from recovery_contract import queue as checked_queue
++    queue=checked_queue(root)
+     rows=[validate_job(name,root,inputs=not metadata_only) for name in names]
+     from parent_binding import check as check_parent
+     parent_binding=check_parent(root,remote=not metadata_only)
+--- previous/scripts/prelaunch_gates.py
++++ retry2/scripts/prelaunch_gates.py
+@@ -1,11 +1,32 @@
+-"""Require the five actual47-bin GPU layout gates; inherit only frozen numerical code."""
+-import json,hashlib
++"""Reuse exact numerical evidence while requiring new root resource admission."""
++import json,subprocess,sys,hashlib
+ from pathlib import Path
++from retry_inheritance import check as check_inheritance,specification,inherited_file
++from recovery_contract import read,sha,require
+ 
+-def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+-def read(p):return json.loads(Path(p).read_text())
+-def require(ok,message):
+-    if not ok:raise ValueError(message)
++def check_engineering_revision(root):
++ root=Path(root);check_inheritance(root,inputs=False)
++ spec=read(root/'configs/engineering_revision_v2.json')
++ for rel,digest in spec['unchanged_scientific_files'].items():inherited_file(root,rel,digest)
++ from observer_import import t
++ profile=t.decoder_memory_profile();p=read(root/'configs/protocol.json')
++ require(p['resources']['decoder_memory_profile_sha256']==profile['profile_sha256'],'decoder measured profile differs')
++ return spec
++
++def check(root):
++ root=Path(root);check_engineering_revision(root);spec,base,_=specification(root)
++ for name in ('known_endpoint_158_split_gate.json','resource_admission_v2.json'):
++  require(sha(base/'audit'/name)==sha(root/'configs/recovery'/name),'inherited actual gate changed: '+name)
++ # Run the previous gate in a separate interpreter with its original module paths.
++ # The returned GPU evidence remains labelled as inherited, not as new GPU work.
++ code='import json;from pathlib import Path;from prelaunch_gates import check;print(json.dumps(check(Path('+repr(str(base))+'))))'
++ result=subprocess.run([sys.executable,'-c',code],cwd=base/'scripts',capture_output=True,text=True,timeout=180,check=True)
++ inherited=json.loads(result.stdout)
++ review=read(root/'audit/ROOT_RECOVERY_APPROVAL.json')
++ require(review['root_approved'] is True and review['producer_manifest_sha256']==sha(root/'deploy_manifest.json'),'new root recovery approval missing/stale')
++ require(review['protocol_sha256']==sha(root/'configs/protocol.json') and review['scope']=='four_new_cases_external_chest_fixed5','recovery resource approval scope differs')
++ require(review['main_required_free_bytes']==read(root/'configs/main_memory_profile.json')['required_free_bytes'],'main memory bound changed')
++ return {'inherited_numerical_GPU_gates':inherited,'previous_root':str(base),'new_GPU_numerical_gate_executed':False,'new_root_approval_sha256':sha(root/'audit/ROOT_RECOVERY_APPROVAL.json'),'actual_resource_checks_repeated_at_service_start':True}
+ 
+ def check_layout_cases(k, root):
+     actual=[v for v in k['cases'] if v['actual_shape']]
+@@ -19,68 +40,3 @@
+         expected={'seq_len':n,'frame_rows':864,'latent_interval_half_open':[0,47],'query_interval_half_open':target[0][:2],'reference_video_segment':ref[0][:2]}
+         require(a['shape']==[1,56,n,128] and a['plan']==expected,'new actual kernel layout differs')
+     require(all(v['passed'] and all(v['checks'].values()) for v in k['cases']),'partial kernel failure')
+-
+-def inherited_bridge(root):
+-    spec=read(root/'configs/r27_inheritance.json');parent=Path(spec['parent_root'])
+-    require(sha(parent/'deploy_manifest.json')==spec['parent_deploy_manifest_sha256'],'R27 sealed parent differs')
+-    require(sha(parent/'configs/protocol.json')==spec['parent_protocol_sha256'],'R27 protocol differs')
+-    for name,digest in spec['exact_numerical_files'].items():
+-        require(sha(root/name)==sha(parent/name)==digest,'inherited numerical source changed: '+name)
+-    bp=parent/'audit/known_endpoint_bridge.json';b=read(bp);kp=parent/'audit/gpu_dynamic_union_gate.json';k=read(kp)
+-    require(b['schema']=='r27-known-endpoint-gate-v1' and b['passed'] is True and b['NFE']==0 and b['model_forward_calls']==0,'R27 actual endpoint bridge absent/failed')
+-    require(k['schema']=='h3-r27-kernel-gate-v1' and k['passed'] is True and k['NFE']==0,'R27 actual kernel gate absent/failed')
+-    require(b['protocol_sha256']==k['protocol_sha256']==spec['parent_protocol_sha256'],'R27 GPU evidence protocol differs')
+-    for evidence in (b,k):
+-        for name,digest in evidence['source_sha256'].items():require(sha(parent/name)==digest,'parent GPU evidence source changed: '+name)
+-    require(all(b['checks'].values()) and all(v['passed'] and all(v['checks'].values()) for v in k['cases']),'partial R27 GPU gate failure')
+-    return {'known_endpoint_file':str(bp),'known_endpoint_gate_sha256':sha(bp),'parent_kernel_gate_sha256':sha(kp),'inheritance_sha256':sha(root/'configs/r27_inheritance.json'),'scope':spec['inherited_scope']}
+-
+-def check_engineering_revision(root):
+-    root=Path(root);spec=read(root/'configs/engineering_revision_v2.json')
+-    oldp=root/spec['previous_protocol_file'];old=read(oldp);current=read(root/'configs/protocol.json')
+-    require(sha(oldp)==spec['previous_protocol_sha256'],'previous protocol changed')
+-    require({k:v for k,v in old.items() if k!='resources'}=={k:v for k,v in current.items() if k!='resources'},'engineering revision changed scientific protocol')
+-    from retry_inheritance import inherited_file,check as check_retry
+-    check_retry(root,inputs=False)
+-    for rel,digest in spec['unchanged_scientific_files'].items():inherited_file(root,rel,digest)
+-    require(current['resources']['main_uuid']=='GPU-REDACTED' and current['resources']['decoder_uuid']=='GPU-REDACTED','engineering device placement changed')
+-    require(current['resources']['single_gpu_isolated_decoder'] is False and current['resources']['maximum_own_GPUs']==2,'engineering resource mode changed')
+-    from observer_import import t
+-    profile=t.decoder_memory_profile()
+-    require(current['resources']['decoder_memory_profile_sha256']==profile['profile_sha256'] and current['resources']['decoder_required_free_MiB']*1024**2>=profile['required_free_bytes'],'decoder measured memory admission differs')
+-    return spec
+-
+-def check(root):
+-    root=Path(root);protocol=sha(root/'configs/protocol.json');revision=check_engineering_revision(root)
+-    spec=read(root/'configs/kernel_inheritance.json');parent=Path(spec['parent_root'])
+-    require(sha(parent/'deploy_manifest.json')==spec['parent_deploy_manifest_sha256'],'R40 parent seal changed')
+-    require(sha(parent/'configs/protocol.json')==spec['parent_protocol_sha256'],'R40 parent protocol changed')
+-    for name,digest in spec['exact_numerical_files'].items():require(sha(root/name)==sha(parent/name)==digest,'R40 inherited numerical bytes changed: '+name)
+-    kp=root/'configs/engineering_v2/previous_kernel_gate.json';rp=root/'audit/resource_admission_v2.json';k=read(kp)
+-    require(sha(kp)==revision['previous_kernel_gate_sha256'],'previous actual kernel gate changed')
+-    require(k['schema']=='h3-r27-kernel-gate-v1' and k['passed'] is True and k['NFE']==0,'R50 actual kernel absent/failed')
+-    require(k['protocol_sha256']==revision['previous_protocol_sha256'],'prior actual kernel protocol differs')
+-    for name,digest in k['source_sha256'].items():require(sha(root/name)==digest,'actual kernel numerical source changed: '+name)
+-    check_layout_cases(k,root)
+-    inherited=inherited_bridge(root);r=read(rp)
+-    dp=root/'audit/known_endpoint_158_split_gate.json';decoded=read(dp)
+-    require(decoded['schema']=='r50-full158-decoder-gate-v1' and decoded['passed'] is True and decoded['NFE']==0 and decoded['model_forward_calls']==0,'actual dedicated full158 decoder gate missing')
+-    require(decoded['protocol_sha256']==protocol and all(decoded['checks'].values()),'dedicated decoder gate protocol/check differs')
+-    require(decoded['GPU_admission']['uuid']=='GPU-REDACTED' and decoded['checks']['revision1_RGB_exact'] and decoded['checks']['revision1_tensor_exact'],'dedicated decode differs from prior numerical result')
+-    for name,digest in decoded['source_sha256'].items():require(sha(root/name)==digest,'full158 decoder gate source changed: '+name)
+-    require(sha(Path(decoded['decode_file']))==decoded['decode_sha256'],'full158 decode artifact changed')
+-    require(r['schema']=='r50-root-two-GPU-resource-admission-v2' and r['root_approved'] is True,'root two-GPU resource review missing')
+-    require(r['main_gpu_uuid']=='GPU-REDACTED' and r['decoder_gpu_uuid']=='GPU-REDACTED','resource devices differ')
+-    require(r['protocol_sha256']==protocol and r['engineering_revision_sha256']==sha(root/'configs/engineering_revision_v2.json') and r['kernel_gate_sha256']==sha(kp) and r['decoder_gate_sha256']==sha(dp),'resource review unbound to gates')
+-    for key in ('main_native_peak_sampled_bytes','routing_increment_bound_bytes','main_margin_bytes','main_total_memory_bytes','main_estimated_peak_bytes','decoder_peak_reserved_bytes','decoder_total_memory_bytes'):
+-        require(type(r[key]) is int and r[key]>0,'invalid resource estimate '+key)
+-    require(r['main_margin_bytes']>=1024**3,'main safety margin below1GiB')
+-    require(r['main_estimated_peak_bytes']>=r['main_native_peak_sampled_bytes']+r['routing_increment_bound_bytes']+r['main_margin_bytes'] and r['main_estimated_peak_bytes']<=r['main_total_memory_bytes'],'main device capacity estimate failed')
+-    require(r['decoder_peak_reserved_bytes']>=decoded['decode']['max_memory_reserved_bytes'] and r['decoder_peak_reserved_bytes']<=r['decoder_total_memory_bytes'],'dedicated decoder capacity estimate failed')
+-    from observer_import import t
+-    profile=t.decoder_memory_profile()
+-    require(r['decoder_memory_profile_sha256']==profile['profile_sha256'] and r['required_free_before_decoder_mib']*1024**2>=profile['required_free_bytes'],'dedicated decoder measured headroom differs')
+-    require(r['scope']=='GPU3 main model; GPU2 isolated full158 decoder; maximum2 owned GPUs','resource scope differs')
+-    require(isinstance(r['evidence'],list) and len(r['evidence'])>=3,'missing actual memory evidence')
+-    for row in r['evidence']:require(sha(Path(row['file']))==row['sha256'],'resource evidence changed')
+-    return {'kernel_gate_sha256':sha(kp),'inherited_bridge':inherited,'decoder_gate_sha256':sha(dp),'engineering_revision_sha256':sha(root/'configs/engineering_revision_v2.json'),'resource_admission_sha256':sha(rp)}
+--- previous/scripts/retry_inheritance.py
++++ retry2/scripts/retry_inheritance.py
+@@ -1,46 +1,47 @@
+-"""Verify exact original science and explicit administrative relocation of this retry."""
++"""Bind a fresh administrative recovery to the unchanged failed producer."""
+ import hashlib,json
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-
+ def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+ def read(path):return json.loads(Path(path).read_text())
+ def require(ok,message):
+-    if not ok:raise ValueError(message)
++ if not ok:raise ValueError(message)
+ def specification(root=ROOT):
+-    root=Path(root);spec=read(root/'configs/retry/inheritance.json');manifest_path=root/'configs/retry/base_deploy_manifest.json'
+-    require(sha(manifest_path)==spec['base_deploy_manifest_sha256'],'retry base manifest differs')
+-    # CPU staging directories on the server use the same preserved producer.
+-    base=Path(spec['base_local_root'])
+-    if not base.exists():base=Path(spec['base_remote_root'])
+-    require(sha(base/'deploy_manifest.json')==spec['base_deploy_manifest_sha256'],'original producer seal differs')
+-    return spec,base,read(manifest_path)
++ root=Path(root);spec=read(root/'configs/recovery/inheritance.json');base=Path(spec['base_local_root'])
++ if not base.exists():base=Path(spec['base_remote_root'])
++ manifest=read(root/'configs/recovery/previous_deploy_manifest.json')
++ require(sha(base/'deploy_manifest.json')==sha(root/'configs/recovery/previous_deploy_manifest.json')==spec['base_deploy_manifest_sha256'],'previous producer seal differs')
++ return spec,base,manifest
+ def inherited_file(root,rel,expected):
+-    root=Path(root);spec,base,manifest=specification(root)
+-    require(sha(base/rel)==expected==manifest['files'][rel]['sha256'],'original inherited file differs: '+rel)
+-    if rel in spec['graph_path_changes_only']:
+-        require((root/rel).read_text().replace(spec['retry_remote_root'],spec['base_remote_root'])==(base/rel).read_text(),'graph change exceeds audit path relocation: '+rel)
+-    else:require(sha(root/rel)==expected,'scientific bytes changed: '+rel)
++ spec,base,manifest=specification(root)
++ # The older engineering certificate may bind the original pre-relocation graph.
++ original=read(base/'configs/retry/inheritance.json');original_root=Path(original['base_local_root'])
++ if not original_root.exists():original_root=Path(original['base_remote_root'])
++ require(sha(original_root/rel)==expected,'original scientific file differs: '+rel)
++ a=(Path(root)/rel).read_bytes();b=(original_root/rel).read_bytes()
++ if rel.startswith('configs/graphs/'):
++  a=a.replace(spec['retry_remote_root'].encode(),original['base_remote_root'].encode())
++ require(a==b,'scientific bytes changed: '+rel)
+ def check(root=ROOT,inputs=True):
+-    root=Path(root);spec,base,manifest=specification(root);bookkeeping=set(spec['bookkeeping_files']);resource=set(spec['resource_files']);relocated=set(spec['relocated_files']);protocols=set(spec['protocol_resource_only_files']);counts={'exact':0,'resource':0,'relocated':0,'bookkeeping':0,'protocol_resources':0}
+-    for rel,row in manifest['files'].items():
+-        require(sha(base/rel)==row['sha256'],'frozen base producer changed: '+rel)
+-        if rel in bookkeeping:counts['bookkeeping']+=1;continue
+-        if rel in resource:
+-            text=(root/rel).read_text()
+-            if rel=='extensions/H3AutomaticWindowRouter/transport.py':
+-                text=text.replace("PROTOCOL_SHA='"+spec['current_protocol_sha256']+"'", "PROTOCOL_SHA='"+spec['protocol_sha256']+"'")
+-            require(hashlib.sha256(text.encode()).hexdigest()==spec['resource_candidate_after_sha256'][rel],'resource patch differs from reviewed candidate: '+rel);counts['resource']+=1
+-        elif rel in protocols:
+-            old,current=read(base/rel),read(root/rel)
+-            require({k:v for k,v in old.items() if k!='resources'}=={k:v for k,v in current.items() if k!='resources'},'scientific protocol changed: '+rel)
+-            require(current['resources']==spec['resources_expected'],'unreviewed resource protocol changed: '+rel)
+-            require(sha(root/rel)==spec['current_protocol_sha256'],'current protocol seal differs: '+rel);counts['protocol_resources']+=1
+-        elif rel in relocated:
+-            require((root/rel).read_text().replace(spec['retry_remote_root'],spec['base_remote_root'])==(base/rel).read_text(),'relocation changed more than paths: '+rel);counts['relocated']+=1
+-        else:require(sha(root/rel)==row['sha256'],'unapproved original file change: '+rel);counts['exact']+=1
+-    require(sha(base/'configs/protocol.json')==spec['protocol_sha256'],'original scientific protocol changed')
+-    if inputs:
+-        for name,digest in read(root/'configs/input_hashes.json').items():require(sha(root/'inputs'/name)==digest,'retry input changed: '+name)
+-    return {'status':'pass','base_manifest_sha256':spec['base_deploy_manifest_sha256'],'protocol_byte_exact':False,'protocol_scientific_fields_exact':True,'resources_only_change':True,'counts':counts,'scientific_policy':'same delayed-only policy, same five cases and original seeds','new_runtime_GPU_gates':'root must execute dedicated decoder and resource admission'}
++ root=Path(root);spec,base,manifest=specification(root);counts={'exact':0,'relocated':0,'administrative':0}
++ for rel,row in manifest['files'].items():
++  require(sha(base/rel)==row['sha256'],'sealed previous producer differs: '+rel)
++  if rel=='configs/observer_bindings.json':
++   old_bind,current=read(base/rel),read(root/rel)
++   require({k:v for k,v in old_bind.items() if k!='local_files'}=={k:v for k,v in current.items() if k!='local_files'},'external observer bindings changed')
++   require(set(old_bind['local_files']).issubset(current['local_files']),'old local binding omitted')
++   for name,digest in current['local_files'].items():require(sha(root/name)==digest,'new local binding changed: '+name)
++   counts['administrative']+=1
++  elif rel in spec['administrative_changes']:
++   require(sha(root/rel)==spec['administrative_changes'][rel]['after_sha256'],'reviewed administrative file changed: '+rel);counts['administrative']+=1
++  elif rel in spec['relocated_files']:
++   require((root/rel).read_text().replace(spec['retry_remote_root'],spec['base_remote_root'])==(base/rel).read_text(),'relocation exceeds paths: '+rel);counts['relocated']+=1
++  else:
++   require(sha(root/rel)==row['sha256'],'unapproved inherited file differs: '+rel);counts['exact']+=1
++ require(sha(root/'configs/protocol.json')==sha(base/'configs/protocol.json')==spec['protocol_sha256'],'protocol must be byte exact')
++ if inputs:
++  for name,digest in read(root/'configs/input_hashes.json').items():require(sha(root/'inputs'/name)==digest,'input changed: '+name)
++ from recovery_contract import plan
++ p=plan(root)
++ return {'status':'pass','base_manifest_sha256':spec['base_deploy_manifest_sha256'],'protocol_byte_exact':True,'counts':counts,'new_runs':p['new_runs'],'external_completed':['chest'],'planned_denominator':5}
+ if __name__=='__main__':print(json.dumps(check(),indent=2))
+--- previous/scripts/run_queue.py
++++ retry2/scripts/run_queue.py
+@@ -1,5 +1,5 @@
+ """Five predeclared FlexiAct jobs, bounded resident hold, generation-bound cleanup."""
+-import json,subprocess,time
++import json,subprocess,time,sys
+ import job,service
+ from r50_contract import validate_job
+ 
+@@ -10,7 +10,8 @@
+         from start_controller import admit
+         admit(expected_pid,expected_start_ticks,owner)
+     deadline=time.monotonic()+43200;completed=[];current=None;idle=None
+-    expected=[c['run_id'] for c in json.loads((service.RUN/'configs/protocol.json').read_text())['cases']]
++    from recovery_contract import plan as recovery_plan
++    recovery=recovery_plan(service.RUN);expected=recovery['new_runs']
+     try:
+         while time.monotonic()<deadline:
+             job.require_generation(job.active_service(),owner)
+@@ -32,12 +33,17 @@
+             else:
+                 idle=idle or time.monotonic()
+                 if plan['finalize'] or time.monotonic()-idle>=1800:
+-                    state(status='all_queued_jobs_complete',completed=completed);return
++                    state(status='all_queued_jobs_complete',completed=completed,external_completed=[recovery['external_chest']['run_id']],planned_denominator=5);return
+                 state(status='resident_hold',completed=completed,idle_elapsed=time.monotonic()-idle,service_pid=owner['pid']);time.sleep(15)
+         raise TimeoutError('service12hour limit')
+     except BaseException as error:
+         state(status='failed',current=current,completed=completed,error=repr(error));raise
+-    finally:service.stop(expected_record=owner)
++    finally:
++        primary=sys.exc_info()[1]
++        try:service.stop(expected_record=owner)
++        except Exception as error:
++            service.write_json(service.RUN/'logs/controller_cleanup_error.json',{'primary_error':repr(primary),'cleanup_error':repr(error)})
++            if primary is None:raise
+ if __name__=='__main__':
+     import argparse
+     p=argparse.ArgumentParser();p.add_argument('--expected-pid',type=int);p.add_argument('--expected-start-ticks');a=p.parse_args()
+--- previous/scripts/service.py
++++ retry2/scripts/service.py
+@@ -11,13 +11,13 @@
+ import time
+ import urllib.request
+ 
+-RUN = Path('/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry_20261017')
++RUN = Path('/data5/researcher/h3_runs/timing_flexiact_auto_r50_retry2_20261017')
+ CORE = Path('/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI')
+ PYTHON = '/home/researcher/miniconda3/envs/comfyui/bin/python'
+ DEPENDENCIES = '/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps'
+ MODELS = '/data5/researcher/ComfyUI/models'
+ GPU = 'GPU-REDACTED'
+-PORT = 8514
++PORT = 8518
+ 
+ 
+ def write_json(path, value):
+@@ -28,9 +28,21 @@
+ 
+ def identity(pid):
+     proc = Path('/proc') / str(int(pid))
++    command=proc.joinpath('cmdline').read_bytes()
++    if not command:raise RuntimeError('Process command temporarily unavailable')
+     return {'uid': proc.stat().st_uid,
+             'start_ticks': proc.joinpath('stat').read_text().split(') ', 1)[1].split()[19],
+-            'cmdline': proc.joinpath('cmdline').read_bytes().replace(b'\0', b' ').decode()}
++            'cmdline': command.replace(b'\0', b' ').decode()}
++
++
++def bind_launched_child(process,command):
++    from observer_import import t
++    bound=t.bind_launched_child(process,command)
++    result=identity(process.pid)
++    expected=(b'\0'.join(os.fsencode(v) for v in command)+b'\0').replace(b'\0',b' ').decode()
++    if result['uid']!=bound['uid'] or int(result['start_ticks'])!=bound['start_ticks'] or result['cmdline']!=expected:
++        raise ValueError('process changed after complete argv binding')
++    return result
+ 
+ 
+ def current_identity(pid):
+@@ -147,7 +159,7 @@
+             used,free,util,temperature=[float(x) for x in rows[0][1:]]
+             t.require(used>=0 and free>=0 and 0<=util<=100 and 0<=temperature<85,'main GPU health invalid')
+             state.update(memory_free_mib=free,memory_used_mib=used,utilization_percent=util,temperature_c=temperature)
+-            if free*1024**2<p['required_free_bytes']:raise t.ResourceUnavailable('main GPU lacks certified memory headroom',state)
++            if free*1024**2<p['required_free_bytes']:raise t.ResourceUnavailable('main GPU lacks certified memory headroom',dict(state))
+             state['status']='admitted'
+         except (t.ResourceUnavailable,subprocess.TimeoutExpired,subprocess.CalledProcessError) as error:
+             state.update(status='waiting',reason=str(error),snapshot=getattr(error,'snapshot',None))
+@@ -214,7 +226,7 @@
+         if process.poll() is not None:
+             raise RuntimeError('Service exited during startup; inspect logs/comfyui.log')
+         record = {'pid': process.pid, 'gpu_uuid': GPU, 'port': PORT, 'started_unix': started,
+-                  'command': args, 'identity': identity(process.pid), 'cache_none': cache_none,
++                  'command': args, 'identity': bind_launched_child(process,args), 'cache_none': cache_none,
+                   'host_available_kib': available_kib, 'admission': admission, 'gpu_readiness':hardware,
+                   'preexisting_compute_processes': processes, 'existing_comfy_queue': queue,
+                   'state': 'started_readiness_unverified'}
+--- previous/scripts/start_controller.py
++++ retry2/scripts/start_controller.py
+@@ -25,7 +25,8 @@
+   job.require_generation(job.active_service(),owner)
+   env=dict(os.environ,LC_ALL='C',LANG='C',PYTHONDONTWRITEBYTECODE='1')
+   with (root/'logs/controller.log').open('ab',buffering=0) as log:
+-   child=subprocess.Popen(['python3','-u',str(root/'scripts/run_queue.py'),'--expected-pid',str(owner['pid']),'--expected-start-ticks',str(owner['identity']['start_ticks'])],cwd=root/'scripts',stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,env=env)
+-  record={'pid':child.pid,'identity':service.identity(child.pid),'role':'controller','service_pid':owner['pid'],'service_identity':owner['identity']}
++   command=['python3','-u',str(root/'scripts/run_queue.py'),'--expected-pid',str(owner['pid']),'--expected-start-ticks',str(owner['identity']['start_ticks'])]
++   child=subprocess.Popen(command,cwd=root/'scripts',stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,env=env)
++  record={'pid':child.pid,'identity':service.bind_launched_child(child,command),'role':'controller','service_pid':owner['pid'],'service_identity':owner['identity']}
+   service.write_json(registry,record);print(json.dumps(record),flush=True)
+ if __name__=='__main__':main()
+--- previous/tests/test_production_interfaces.py
++++ retry2/tests/test_production_interfaces.py
+@@ -25,7 +25,7 @@
+         from observer_import import t
+         self.assertEqual(service.GPU,t.MAIN_UUID)
+         self.assertEqual(service.RUN,t.REMOTE_ROOT)
+-        self.assertEqual(service.PORT,8514)
++        self.assertEqual(service.PORT,8518)
+         self.assertEqual(len(cases()),5)
+         for case in cases():
+             geometry=t.geometry_for(case['run_id'])
+--- previous/tests/test_retry_inheritance.py
++++ retry2/tests/test_retry_inheritance.py
+@@ -1,7 +1,8 @@
+ """Real sealed-parent regression checks for the independent retry relocation."""
+-import importlib.util,json,shutil,tempfile,unittest
++import importlib.util,json,shutil,tempfile,unittest,sys
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
++sys.path.insert(0,str(ROOT/'scripts'))
+ spec=importlib.util.spec_from_file_location('retry_inheritance_tested',ROOT/'scripts/retry_inheritance.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+ 
+ class RetryInheritanceTests(unittest.TestCase):
+@@ -17,24 +18,24 @@
+    with self.assertRaisesRegex(ValueError,pattern):module.check(self.root,inputs=False)
+   finally:p.write_bytes(before)
+  def test_exact_five_case_protocol_and_parent_inheritance(self):
+-  result=module.check(self.root,inputs=False);self.assertEqual(result['status'],'pass');self.assertTrue(result['protocol_scientific_fields_exact']);self.assertTrue(result['resources_only_change'])
++  result=module.check(self.root,inputs=False);self.assertEqual(result['status'],'pass');self.assertTrue(result['protocol_byte_exact']);self.assertEqual(len(result['new_runs']),4)
+  def test_scientific_protocol_mutation_rejected(self):
+   def change(data):
+    x=json.loads(data);x['actuator']['unapproved_gain']=0.75;return (json.dumps(x)+'\n').encode()
+-  self.changed('configs/protocol.json',change,'file change|protocol changed')
++  self.changed('configs/protocol.json',change,'unapproved inherited file differs|new local binding changed')
+  def test_graph_semantic_change_exceeds_path_relocation(self):
+   rel=module.read(self.root/'configs/retry/inheritance.json')['graph_path_changes_only'][0]
+   def change(data):
+    x=json.loads(data);first=next(iter(x));x[first]['inputs']['unexpected_edit']=True;return (json.dumps(x)+'\n').encode()
+-  self.changed(rel,change,'relocation changed')
++  self.changed(rel,change,'relocation exceeds paths')
+  def test_numeric_module_change_rejected(self):
+-  self.changed('extensions/H3AutomaticWindowRouter/dynamic_support.py',lambda b:b+b'\n# unreviewed change\n','unapproved original file change')
++  self.changed('extensions/H3AutomaticWindowRouter/dynamic_support.py',lambda b:b+b'\n# unreviewed change\n','unapproved inherited file differs|new local binding changed')
+  def test_parent_noise_metadata_mutation_rejected(self):
+-  self.changed('configs/parents/chest/noise.json',lambda b:b+b'\n','unapproved original file change')
++  self.changed('configs/parents/chest/noise.json',lambda b:b+b'\n','unapproved inherited file differs|new local binding changed')
+  def test_resource_source_must_match_reviewed_candidate(self):
+-  self.changed('scripts/run_observer.py',lambda b:b+b'\n# unreviewed change\n','resource patch differs')
++  self.changed('scripts/run_observer.py',lambda b:b+b'\n# unreviewed change\n','unapproved inherited file differs|new local binding changed')
+  def test_unreviewed_memory_margin_rejected(self):
+   def change(data):
+    x=json.loads(data);x['resources']['decoder_required_free_MiB']=1;return (json.dumps(x)+'\n').encode()
+-  self.changed('configs/protocol.json',change,'unreviewed resource protocol changed')
++  self.changed('configs/protocol.json',change,'unapproved inherited file differs|new local binding changed')
+ if __name__=='__main__':unittest.main()

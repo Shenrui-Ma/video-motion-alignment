@@ -1,0 +1,13 @@
+R133 氧气罩自动闭环：CPU 准备，未提交 GPU
+
+比较对象：R113 .41 seed2026101703，原 P1 任务/源/原噪声，20步Euler、CFG1、原sigma、1312×736、107帧中98有效。现有Native和fixed6–14均完整，复用其实际成片/官方MF，不重跑Native。R86原阈值、手臂方向、候选合并/persistence、attention与同状态额外预测全部冻结。新seed使用R113真实噪声文件；R81旧seed1701离线结果只作观察器可触发先例。
+
+两阶段：
+A. 仅 decoder7 预检，最多先看R113Native缓存index0..9。按顺序解码当前x0、CPU pose、固定源ROI[.4,.75]、原R86扫描和Controller；出现首个连续证据ON即停止、精确释放decoder。全序列保留，包括无候选原因；无ON时上报，不自动启动完整H3。该检查不改阈值/动作窗，仅测试seed1703可达性。现有R113缓存有全部20个latent；本地尚无该seed中间decoded/pose，既有R81全部20缓存来自seed1701，不能混用。
+B. 预检触发且root审阅后，.41 main2+decoder7一次真实闭环。每步先Native预测→x0解码/pose→全98帧自动扫描→如ON在同x/sigma条件追加guided预测→一次Euler更新。第一次ON后历史Native未来pred不再作为逐值约束；当前同状态/RNG/condition不变保持硬约束。历史R113同host初始输入/六条件/AVnoise与首次ON前Native预测仍严格验证。
+
+验收：年长女人替换、儿童/机舱/面罩动作保留；源冻结三个事件为手离膝42–45、抓杯48–51、右手携杯至上胸/脸侧69–75，第三事件不称已戴稳。记录三个事件的存在、时刻区间和两段间隔，缺失填null；全部98帧核查场景与附带变化。比较source/历史Native/历史fixed/自动，官方MF独立记录。ON次数、全部20步decision/窗口/置信lag/gain/UNKNOWN、20+ON前向、20次Euler、同步模型秒/解码秒/CPUpose秒/总耗时完整保存。
+
+最小实现：复用R86已审脚本和模块，仅新目录配置/父R113接口/进程资源绑定；数值Controller/scan/arm/gain/attention/PredictionProbe全部逐字继承。保留旧R86包。R86原服务whitelist遗漏H3AutomaticWindowRouter，R133补入该已存在节点名称及就绪检查。这是加载配置，未改算法。
+资源：待当前5个MF tracker完整精确释放。主卡2≥40GiB、decoder7≥16GiB，主存沿已验证 .41 H3 64/76GiB adjusted与host64GiB门。8189按精确PID/UID/start/argv核对保留，其显存/主存计入资源但不计研究卡数。任一decoder结束先精确确认退出再CPU pose。无其他研究peer并行。模型权重均已存在。当前.41 DWPose两权重及两个实现文件SHA与R81一致。
+限制：原源pose来自.9 CPU；沿原冻结源pose保持比较锚点，.41在线CPU pose的具体软件版本另记（不宣称跨环境逐值pose一致）。最初预检同时保留raw/ROI人物选择证据，root可确认对应成人。自动化范围是动作时间窗和去噪启停，ROI为预先指定的人物位置范围。

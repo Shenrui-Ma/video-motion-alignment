@@ -1,0 +1,84 @@
+公开视频编辑/运动迁移评测实现审计
+2026-10-17 | source_anchor_impl | 仅调研、源数据下载、代码静态核对
+
+结论
+建议以 MTBench 作为可立即准备的公开源数据候选，保留其原始500个prompt配对清单。已下载官方MTBench.zip，SHA与HuggingFace LFS一致；100条源视频、500条目标prompt、90个首帧mask已提取到candidate_sources/MTBench。实际运行官方评分还缺CoTracker与依赖/权重。原论文分数、当前官方代码分数、我们的物理时刻延后测量须分别列明。
+
+1. 这六项相关方法实际公开了什么
+
+FlowMotion
+官方repo HKUST-LongGroup/FlowMotion，commit f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d，完整tree13文件。论文使用50源视频×3目标prompt，源自MTBench及DAVIS，49帧480×720。公开代码只有run.py和8条demo MP4（6个49帧、2个81帧）；README仍标记benchmark待发布，没有官方评测脚本。8条demo含hike/snowboard/motocross-jump，适合官方推理smoke，不能称为完整论文50源benchmark。论文运动指标引用SMM/DMT tracklet相似度。
+https://arxiv.org/html/2603.06289v2#S4.SS1
+https://github.com/HKUST-LongGroup/FlowMotion/tree/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d
+
+MotionEcho
+完整tree144文件，commit 7b8a02618aa9f94da46377645fb5d9cecabddb26。TurboBench为22源×3编辑，DavisBench为34源×3难度prompt；MF使用CoTracker轨迹一致性。repo是展示站，发现6条reference MP4路径（含不同backbone重复演示的可能），没有Python评分器、全benchmark清单或许可证。网站展示视频可访问性不足以确认原论文集合可复现。
+https://arxiv.org/html/2506.19348v2#S4.SS1
+https://github.com/euminds/motionecho/tree/7b8a02618aa9f94da46377645fb5d9cecabddb26
+
+FlowDirector V1
+commit cecd56e30820b279f35acaa18597f4da25fa4f42，143files；video_list/有14原MP4，edit.py是真实编辑入口。未见公开评分脚本或一份完整任务清单。V1论文源片来自互联网和Wan生成；报告FrameAcc、PickScore、CLIP、WarpSSIM/Qedit。版本须写V1；现repo README的MIT描述与LICENSE Apache-2.0不同，应以LICENSE核对。14原片可复用为研究样例，但视频媒体单独授权/来源还需逐条核对。
+https://arxiv.org/html/2506.05046v1#S4.SS1
+https://github.com/Westlake-AGI-Lab/FlowDirector/tree/cecd56e30820b279f35acaa18597f4da25fa4f42/video_list
+
+TempoControl
+commit ac28c443ec112e0da6f9f5cbca26a2218d8d12dc，46files，Apache-2.0。data/action.csv实际100条，one_object80条、two_objects82条；没有参考视频输入集合。真正可执行的temporal_accuracy.py分发到metrics/temporal_accuracy_action.py。该动作分数以约4fps计算Farneback全画面平均光流，聚合5个一秒桶，比较最大桶与CSV mov_sec是否相同。它测粗粒度动作峰时刻；摄像机或背景运动也会改变峰，无法单独判定某个手部小动作是否遗漏/延后。代码把5秒之后的motion并入末桶，缺文件直接skip，需外部固定分母审计。
+https://arxiv.org/html/2510.02226v3#S5
+https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/metrics/temporal_accuracy_action.py
+
+Sync-LoRA
+commit 3868f06a19ba88eee1e37059f7884f9f45f37071，3files(README/LICENSE/teaser)。论文166portrait benchmark来自CelebV、CelebV-HQ、TalkVid、YouTube，81帧20fps；论文零lag Pearson同步评分含speech/gaze/blink/pose，MediaPipe信号插值、9帧Savitzky-Golay平滑与z-score。该机制与我们时刻一致性较直接相关，但当前repo没有166配对清单、原片或评测实现。新LTX2.3权重不能补足原论文benchmark发布缺口。
+https://arxiv.org/html/2512.03013v1#S4
+https://arxiv.org/html/2512.03013v1#S7.SS1
+https://github.com/SagiPolaczek/Sync-LoRA/tree/3868f06a19ba88eee1e37059f7884f9f45f37071
+
+DynaEdit
+commit 3d1805f10708a271de67300352265c3cdde6288e，293files，为网站。orig_vids有68个MP4，包含mobile双份；正文展示的是原片/编辑片，不是71完整tuples发布。论文71tuples从Pexels整理，49–81帧、16fps，主任务允许改变动作和交互；采用VLM与人类评价content preservation/text adherence/quality。当前无可执行评测入口或帧级事件标签。其动作修改任务须从强制保持动作的子任务区分。
+https://arxiv.org/html/2603.17989v1#S6.SS2
+https://dynaedit.github.io/
+
+2. MTBench 数据可获取性与精确库存
+
+官方作者repo Shi-qingyu/DeT，commit 2a2f4ddd2801a6bbe144d9ae1836f7d0ad3fed3d；官方dataset QingyuShi/MTBench revision94fa9410eef92d34f8eccbba52eb3af942487aec。下载HEAD与收据保存在MTBENCH_DOWNLOAD_HEAD/RECEIPT.json。
+MTBench.zip：232,573,066 bytes；SHA256 cbba0c14ef3a73637c318bb1684e415b4375c1ab3868c7a39d1557da6861fe97。
+MTBench_HQ.zip：191,019,709bytes；MTBench_subset.zip：54,050,356bytes；本轮只下载MTBench.zip。
+ZIP包含7873entries，100源，500目标prompt。视频实测：90条720×480、49帧8fps；5条480×480、32帧10fps；5条480×480、128帧14fps。95条文件duration足够141/24秒，32帧5条较短。库存不含独立小动作事件起止真值；mask/tracklet也不等于逐帧动作事件标签。
+两个文件名与原评分器的拼接规则不符：judo_2/videos/judo.mp4；mbike-trick_2/videos/mbike-trick.mp4。metadata保留此差异，源文件未重命名。
+
+许可：HF无card/README/license；作者repo无顶层LICENSE，ZIP无license/readme。上游YouTube-VOS明确非商业研究用途，annotations CC BY4.0；DAVIS官方页面明确新annotations CC BY4.0，但不能据此给所有原视频宣称统一CC许可。下载是作者公开研究入口，本轮保留原始来源与本机研究副本；独立再发布数据/代码前须补齐适用许可，论文CC BY不自动覆盖所有媒体与repo代码。
+https://huggingface.co/datasets/QingyuShi/MTBench/tree/94fa9410eef92d34f8eccbba52eb3af942487aec
+https://github.com/Shi-qingyu/DeT/tree/2a2f4ddd2801a6bbe144d9ae1836f7d0ad3fed3d
+https://youtube-vos.org/dataset/term/
+https://davischallenge.org/challenge2017/rulesdates.html
+
+3. 官方 MTBench 评分代码实际算什么（代码未修改）
+路径 sources/DeT/evaluation.py；所有行号以该commit为准。
+L89–97：CoTrackerPredictor(grid_size=50)，轨迹xy除W/H归一，pred_visibility返回后未参与后续分数；video强制.cuda()，故CLI --device cpu并非完整CPU实现。
+L61–69：两段T不同时，较长轨迹用linspace(0,T-1,short_T).int()降采样；没有读取FPS/PTS，依赖调用者确保两段代表同一物理时间范围。
+L71–85：先把initial_position与T-1个velocity拼合；逐向量归一，平均同一索引的余弦，得到Ngen×Nsrc矩阵。静止向量没有epsilon，会产生NaN。
+默认L162–166：MF = mean_i max_j C_ij，仅从generated轨迹到source单向最近邻；不是逐主体匹配。没有DTW或lag搜索。弱动作占比低、相似运动轨迹可相互代替，整片平均仍可能掩盖局部失配。
+可选L151–159：--add_frechet_score随机抽50个generated索引，同时索引source；未固定seed，同索引若源点数不足有越界可能。它与cosine各占0.5，但两分支各自取max，所以匹配对象可不同。
+L22–25：compute_frechet_distance = mean_{u,v} ||p_u-q_v||，是所有时间点两两欧氏距离均值；它对时间排列不敏感，无法实现论文的顺序约束Fréchet。
+L45–51：该均值变成1/(1+d)；论文公式为exp(-d_F)。应在结果列注明commit-level implementation。
+L114–128：源首帧mask变成bounding box，并同样用在generated中；跨位置/尺寸编辑时会选择不同语义区域。
+L130–169：按eval_prompts拼输出目录，缺目录静默略过，最后除实际有视频数；需要外部pair manifest固定500或预选子集分母，并单列缺输出/NaN。
+L205–224：CLIP分数取CLIPModel logits_per_image对角均值（包含模型logit_scale），输出目录名反解prompt。
+L227–257：TC使用DINO，平均first-frame相似与previous-frame相似，并非仅相邻帧相似；它只看generated视频，不比较source时刻。
+CLI L305–346：python evaluation.py --benchmark_root <root> --generated_video_root <root> --offline_cotracker_model_path <scaled_offline.pth> [--add_frechet_score]
+https://github.com/Shi-qingyu/DeT/blob/2a2f4ddd2801a6bbe144d9ae1836f7d0ad3fed3d/evaluation.py
+
+补充来源评分器：DiTFlow commitd6f740a29bdcfc40dbead78fdbf75689af766e2e的eval/motion_fidelity_score.py可直接接两个MP4。它使用CoTracker3_offline、grid55，长片直接截到min(T)，未读FPS，忽略visibility、无zero epsilon，并从相似矩阵减去identity再取单向max；不能与DeT数字直接混用。DMT官方motion_fidelity_score.py也已存档供核对。以上均静态审计，未安装依赖或跑模型评分。
+
+4. 可落地小样本与时间协议建议
+
+完整源库存 MTBENCH_SOURCE_INVENTORY.json；完整500配对见PAIR_MANIFEST.json。候选源图只由source制作，0/24/48帧各一张；未观察任何本轮H3输出。
+八条供root和builder固定的候选：bike-packing、breakdance、breakdance-flare、dance-jump、dance-twirl、hike、hockey、lucia。建议保留hike/lucia行走正常控制。前五舞蹈/操作与hockey包含局部肢体变化；倒立、背向、动作遮挡是测量风险，须保留UNKNOWN。此为人工按source内容构成的pilot proposal，尚非全100资格审查后的stable first8。未选92条不等于不合格，完整分母仍在库存。candidate PILOT_PROPOSAL.json明确记录此边界。尚未冻结具体prompt、任务适配或生成参数，由root/builder在生成前完成。
+原prompt五条通常包含跨物种/背景替换；直接改成Musk/Sam会变成“MTBench source上的H3 portrait editing adaptation”，不等于原500pair benchmark。原任务分数若要公平，要给各模型相同目标信息，图像参考优势需说明。
+所有八条源均49f@8fps，时间采样间隔125ms。H3若用24fps，插值/重复不会创造新的真实动作时间标签。原49帧时刻覆盖0..6秒；若保留全时间范围，24fps恰好145帧(0..144)，适合4k+1。当前141帧协议只覆盖0..5.833秒，需事前固定裁剪并同步源/目标评分，不能把49帧/6秒与141帧/5.833秒按索引强配。
+几何也要预先固定：这些源为720×480(3:2)，当前1312×736画布比例不同；等比缩放并填边能保留手脚，中心裁剪可能切掉极值动作，非等比缩放会改变肢体角度。评分使用同一可见画布映射。
+建议先用相同8source×同一预定目标prompt×Native/Auto生成；保留公开官方compatible分数与固定同物理时刻的局部延后/动作覆盖评分两列。官方MF高不直接证明短动作被保住；TC更不能证明与源动作同步。人工手选窗口可作当前能力上限参照，不能进入自动版输入。
+
+5. 环境与复现范围
+Mac既有.venv-current：torch/transformers/einops/PIL有；cotracker/cv2/decord/scipy/omegaconf未安装；默认torch/HF cache未见CoTracker/CLIP/DINO。
+.9 comfyui环境只读find_spec：torch/cv2/scipy/transformers/einops有；cotracker/decord/omegaconf无。默认torch cache无CoTracker；HF cache只见EVA-CLIP（不能替代openai/clip-vit-base-patch32）。限定.cache及Comfy-H3 models/custom_nodes浅层搜索未找到CoTracker权重，未全盘穷尽。
+本轮无新依赖、无大模型下载、无GPU初始化/推理。源视频ffprobe与网格在Mac共享CPU锁内，源库存阶段2.54秒。保留一次库存按标准路径遇judo_2缺文件的失败脚本；后续仅在manifest依据唯一实际MP4记alias，未改官方数据或评分器。

@@ -1,0 +1,79 @@
+--- /Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/extensions/H3PairAudit/__init__.py
++++ /Users/researcher/DevProjects/h3-timing-normal-fixed-r22-20261016/extensions/H3PairAudit/__init__.py
+@@ -54,9 +54,9 @@
+         if source_run_id == run_id:
+             raise ValueError("a snapshot must not overwrite the shared source manifest")
+         root = Path(source_audit_dir).resolve()
+-        allowed = Path("/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016").resolve()
++        allowed = Path("/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016").resolve()
+         if not Path(source_audit_dir).is_absolute() or not root.is_relative_to(allowed):
+-            raise ValueError("R18 pair audit must stay inside task root")
++            raise ValueError("R22 pair audit must stay inside task root")
+         source_path = root / (source_run_id + "_conditioning.json")
+         source_bytes = source_path.read_bytes()
+         common = json.loads(source_bytes)
+--- /Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/extensions/H3X0Readout/__init__.py
++++ /Users/researcher/DevProjects/h3-timing-normal-fixed-r22-20261016/extensions/H3X0Readout/__init__.py
+@@ -25,8 +25,8 @@
+         from pathlib import Path
+ 
+         if not Path(output_dir).resolve().is_relative_to(
+-                Path("/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016").resolve()):
+-            raise ValueError("R18 x0 output must stay inside task root")
++                Path("/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016").resolve()):
++            raise ValueError("R22 x0 output must stay inside task root")
+ 
+         if not isinstance(model.get_model_object("diffusion_model"), h3.MiniMaxH3Model):
+             raise TypeError("H3X0Readout requires MiniMaxH3Model")
+--- /Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/extensions/H3TemporalRouter/__init__.py
++++ /Users/researcher/DevProjects/h3-timing-normal-fixed-r22-20261016/extensions/H3TemporalRouter/__init__.py
+@@ -6,13 +6,13 @@
+ def validate_run_contract(mode, alpha, radius, time_offset, start_frame, end_frame,
+                           block_start, block_end, step_start, step_end, run_id, audit_dir):
+     from pathlib import Path
+-    expected_root = Path("/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016/audit/router")
++    expected_root = Path("/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016/audit/router")
+     if Path(audit_dir).resolve() != expected_root.resolve() or not Path(audit_dir).is_absolute():
+-        raise ValueError("R18 router audit directory must equal the isolated task router directory")
++        raise ValueError("R22 router audit directory must equal the isolated task router directory")
+     if (mode, alpha, radius, time_offset, start_frame, end_frame,
+             block_start, block_end, step_start, step_end, run_id) != (
+-            "mass_preserve", 1.0, 0, 0, 50, 65, 0, 50, 6, 12, "r18_s05_full_6to11"):
+-        raise ValueError("R18 fixed-stop scientific contract mismatch")
++            "mass_preserve", 1.0, 0, 0, 50, 65, 0, 50, 6, 12, "r22_s05_seed1313_full6to11"):
++        raise ValueError("R22 fixed-stop scientific contract mismatch")
+ 
+ 
+ 
+--- /Users/researcher/DevProjects/h3-timing-fixed-stop-r18-20261016/extensions/H3EventAudit/__init__.py
++++ /Users/researcher/DevProjects/h3-timing-normal-fixed-r22-20261016/extensions/H3EventAudit/__init__.py
+@@ -22,9 +22,9 @@
+ 
+ def audit_root(value):
+     root = Path(value).resolve()
+-    allowed = Path("/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016").resolve()
++    allowed = Path("/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016").resolve()
+     if not Path(value).is_absolute() or (root != allowed and allowed not in root.parents):
+-        raise ValueError("audit_dir must resolve inside the exact timing_fixed_stop_r18_20261016 root")
++        raise ValueError("audit_dir must resolve inside the exact timing_normal_fixed_r22_20261016 root")
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+ 
+@@ -165,7 +165,7 @@
+             "width": ("INT", {"default": 1312, "min": 32, "step": 32}),
+             "height": ("INT", {"default": 736, "min": 32, "step": 32}),
+             "length": ("INT", {"default": 107, "min": 5}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016/audit"}),
++            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "semantic_fps": ("INT", {"default": 2, "min": 1, "max": 24}),
+             "phase_frames": ("INT", {"default": 0, "min": 0, "max": 23}),
+@@ -268,7 +268,7 @@
+     def INPUT_TYPES(cls):
+         return {"required": {
+             "noise_seed": ("INT", {"default": 12345, "min": 0, "max": 0xffffffffffffffff}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_fixed_stop_r18_20261016/audit"}),
++            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_normal_fixed_r22_20261016/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "pair_id": ("STRING", {"default": "case_seed1"}),
+         }}

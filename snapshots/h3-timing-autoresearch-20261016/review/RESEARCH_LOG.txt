@@ -1,0 +1,91 @@
+H3 motion timing research — decision ledger
+
+Scope
+Frozen H3 Ref2VA inference; preserve source dance timing while replacing identity/outfit. This session may reject candidates. A successful clip is not a novelty claim, and a few selected clips do not estimate population failure rate.
+
+Evidence before new sampling
+Old Sam05/07 outputs contain local phase shifts rather than a uniform playback delay. CPU pose measurements support +13/+15 frames in pre-identified first windows; later windows differ or are unreliable. VAE roundtrips show 0 best lag in reliable windows. This excludes large VAE-roundtrip phase shift for these examples, not loss of every fine detail. Full curves, confidence and excluded measurements are retained under analysis/pose.
+
+Candidate and controls
+Separate total reference-video attention mass from conditional reading of reference time. Preserve total mass while routing the selected target latent-time bins to the corresponding reference latent-time bins. Compare native, established x3 gain, same-time hard mask, and +4-bin phase perturbation. Source image identity and text remain separate groups. This is a frozen inference-graph intervention, not a trained backbone architecture.
+
+Known competing explanations
+Mass route beating hard mask can simply compensate hard mask's lower total reference mass. Hard mask has m'=m*c/(1-m+m*c), where c is same-time conditional reference mass. Frame alignment is already present in Vidu S2 and Wan-Animate-2; DIAL already strengthens reference logits. Mass normalization is itself expressible as a query-dependent logit bias. These statements prevent claiming novelty from notation or a port alone.
+
+Phase-control amendment before results
+Reading future reference may compensate existing late output; +4 is therefore a signed phase perturbation, not a control guaranteed to fail. If both +0 and +4 improve, add -4 with equal strength and compare signed phase response. A shifted control improving by itself does not falsify temporal correspondence; identical effects across offsets weaken that explanation.
+
+Aggressive screening limitation
+alpha1/radius0/all50layers/all20steps is intentionally strong. Failure rejects this setting, not all soft routing. A cheap next test is alpha.25 with all other factors fixed. Do not tune several axes at once. Appearance damage gates any timing-success claim.
+
+Implementation incident 1
+First two-step warmup was rejected by the equal-geometry assertion: reference latent42x46x82, target42x36x64. H3 native reference preprocessing follows source dimensions independently of requested output geometry. Added only an explicit core spatial ImageScale before reference preparation; no FPS/frame changes. Old graph and failure logs retained; owned process exited and GPU returned to8MiB. g2 run has both reference/target42x36x64. The failed warmup is not a quality sample.
+
+Sampling discipline
+Paired1024x576/141frames/24FPS/20Euler/noLoRA/INT8 nativeSDPA; fresh paired baseline, no direct quality comparison to previous1312x736 scores. Same seeds and audited prepared conditions/noise. Initial warmup2steps is excluded from efficacy. Formal runs are counted even when pose detection fails. All edits and failures are retained.
+
+Reporting
+Use source/base/intervention equal display geometry, no temporal alignment or selective crop. Preserve raw videos separately. Pose lag is exploratory, not a new benchmark or proof of motion semantics. Source05 andsource07 have related dance content, so they are not two independent motion categories. Full-resolution/seed validation and stronger method baselines remain necessary before a paper claim.
+
+Created UTC: 2026-10-15T16:46:55.162329+00:00
+
+Outcome 1: low-resolution native is a success case
+Formal s05_seed1_native completed 20 steps, 141frames/24fps/1024x576. CPU pose first-window signed lag approximately-1frame, same-frame arm error0.123; frame55 independent visual check confirms source-like hand-to-temple pose. It does not reproduce the original1312x736 late action. Keep as a do-no-harm control and run original geometry before claiming rescue. Spatial resolution changes also alter noise shape/realization and conditioning pixels; one pair cannot establish resolution causality.
+
+Outcome 2: attention-lag proxy is not calibrated
+At block25, sampled8heads×8central spatial positions in the correctly-timed low-resolution baseline have conditional reference-time mean offsets+6.790,+7.067,+6.905,+6.109,+4.749 latent bins at steps0/5/10/15/19. Same-bin attention mass is~.014-.021, yet measured action lag is approximately-1physicalframe. This rules out using this particular pooled statistic directly as an action-lag alarm; it does not rule out validated motion-ROI/functional-head readouts.
+
+Passive readout protocol (registered before captures)
+Finish original-resolution replication then restart owned service to add a passive x0 recorder. Record Euler indices5/10/15 and endpoint19, no additional denoiser evaluations. Native replay must reproduce no-recorder output. Intermediate low-visibility poses are unknown, not action omission. Online feedback remains gated on both observability and signed actuator response.
+
+Outcome 3: low-resolution matched mass routing
+Actual prepared conditioning/noise hashes match the new native. First-window same-frame arm-direction error .1226→.1027, local lag−1→0frames. Other windows mixed and tiny; both already correct. Therefore this supports only noncatastrophic behavior on one good case, not a failure rescue or general superiority.
+
+Cheap postprocessing baseline
+Monotonic source/output pose time mapping with fixed±20frame band and endpoints uses125 unique generated frames for141 outputs:16repeats,16dropped,maximum jump4. The fitted pose objective decreases by construction, so it is not an independent efficacy metric. Nearest-neighbor retimed video retained with explicit postprocessing label.
+
+Outcome 4: original-resolution failure reproduced
+Full1312×736/141frames/24fps/20Euler native completes. First-window+13frames(.542s), same-frame armerror1.12588, bestlocalalignment.18442; followingwindowslag+10/+8/+4. Pose measurements match archivedSam05 exactly. This is same-seed replication, not a new randomsample. Ownedservice39464 exitedandGPU2returnedto8MiBbeforeinstallingnewrecorder.
+
+2026-10-16T02:00:15.659822+08:00 PhaseRoPE code review passed for bounded tensor tests, no scientific efficacy claim. Independent kitchen check exposed default CUDA13 backend incompatible with .9 driver; process exited and GPU3 returned to 4MiB, no service change. Retain attempt1 log. Use established runtime backend configuration for next smoke, no package upgrade. Phase3 launcher staged only, not installed while phase2 sampling. Phase2 sealed for automatic release after native_x0 and mass_x0.
+
+2026-10-16T02:24:58.931920+08:00 Native passive replay verified 141/141 RGB frames exact versus no-capture native. Five VAE-only snapshot decodes succeeded sequentially (~42s each), GPU3 returned to 4MiB with no compute PID. Frozen observer: target window step005 primary unknown because right-arm coverage insufficient, NOT blurred image/action absence; left-arm diagnostic +13/+12 and body +13. Among sampled checkpoints, step010 (11th model call) first passes primary confidence/confound gate at +13frames; steps15/19/final agree. Unmeasured steps6–9 are not claimed. Nine later model calls remain, but controllability not demonstrated.
+Phase3 zero/+12/-12 fresh-service batch prepared and independently checked. Installer fixes added shared service lock, closed extension file inventory, staged launcher hashes, exact previous service/history identity, and fixed arm set. Safe transition watcher started (local exec session38702); it only installs/launches after phase2 completes and owned service/controller/watchdog exit.
+
+2026-10-16T02:41:33.842806+08:00 Phase2 mass succeeded: target lag13→0 on discovery seed, common-support error1.1259→0.0986 versus archivedx3 0.1394. Not novel/general claim. Phase2 service20176 exited; phase3 service49019 launched after reviewed installation. Initial supervisor39936 port-bind failed; no live port on retry, no GPU job from failed attempt; successful retry retained. Zero→hard→late11→plus12→minus12 sealed queue. Late11 is fixed schedule chosen after native observability, registered before its output; compare preintervention snapshots exactly. Mass five offline VAE decodes completed, GPU3 verified4MiB/noPID.
+
+2026-10-16T03:00:14.497878+08:00 Phase-zero full inference complete: all five snapshots video/audio bitwise exact native_x0 (root independent tensor check), and critic confirms141/141 final RGB frames exact/PTS+fps+size same. Hard same-bin control now running on ownedservice49019, .9GPU2. Native coordinate audit: referenceorigin6961,target7196, gap235ropeunits; +/-12 physicalframe perturbations vary this nativegap by+/-20, do not first zero-alignorigins. This is coordinate bookkeeping, not an actual141frame outputdelay.
+
+2026-10-16T03:06:38.087348+08:00 Posthoc common-support whole-clip screen (not new primary endpoint): native/mass/x3 full arm errors .4333/.1460/.1715 atthreshold.3,99.1%commoncoverage. Pre0–46 .1355/.1411/.1557; tail112–140 .0971/.1165/.1126,100%coverage. Small outside-window errors increase for both methods, so no full-domain no-costclaim. Exact paired and all-set snapshots retained bycritic inanalysis/pose/full_support/.
+
+2026-10-16T03:30:13.481045+08:00 Hard same-frame mask completes: target lag0 at both thresholds, common-support error native/mass/hard/x3 1.125694/.098471/.097245/.139353. This rejects a claim that mass preservation is necessary or uniquely responsible for discovery repair. Whole-clip mass .14583 versus hard .15250 is small n=1 difference, not superiority proof. Four transfer graphs explicitly admitted for robustness, not novelty. First real parallel service31126 passed handshake but graph failed before sampling in H3EventAudit hard-coded audit-root check (6.32s). Exact service/GPU absent, admission restored, no cleanup errors; root/reviewer repairing path-only transfer copy with new integration test. Main49019 remains active.
+
+2026-10-16T03:36:08.808055+08:00 Transfer retry: v1 failed node5 before sampling, all5 ownedprocesses absent andGPU0empty; 38 remote artifacts renamed into archive/attempt1_before_root_guard_fix with hashmanifest. v2 only changes EventAudit exact-root validator and2defaults, scientific AST unchanged, input/graphs/seed/operators same. Independent review passed; root ran26 CPUtests on existing remote torch with CUDA_VISIBLE_DEVICES empty, allpassed. Finalv2manifest9a7110963612953bb3c1e205c0857224ba2f8f4eefeaee926ca99835296e5e73. Explicitretrylaunch requested; readinesspending.
+
+2026-10-16T03:51:14.089579+08:00 Late11 negative: target reliable both-arm lag11/12 atconfidence.3/.5 vsnative13/13; right11/11, wrist12/12, body12/12; shape/multimodalgates pass. Event wristcrossing61 vsnative63/source49. Hence no demonstrated late control by predeclared >=4frame threshold, not unknown or permanent omission. Root verified preintervention x0_step005/010 video+audio bitwiseexactnative. Admitted one predeclared step_start6 fallback after original5jobs, samegraph exceptstartindex/names; sealedqueue6jobs, samePID49019, no runtime/admissionchange. Sigma semantics: call11 video sigma.907563, so remaining9calls are not low-noise endpoint regime.
+
+2026-10-16T04:01:59.260764+08:00 Round2 diagnostic after late11: added hard_late11 as7thprimaryjob, frozenhardmode withonlystep_start11 andrun/outputnames. It is not a stronger-ref experiment: fixedQKV hard refmass=m*s/(1-m+m*s)<=m. Tests alternate mixing after deleting off-time keys, not universal controlwindowlock. Protocol savedbeforeoutput; no parameter sweep. Prior-art audits also find direct origin-alignment precedents(VideoCoF/UNIC/OmniTransfer) and detector-backtracking precedents(Ctrl-Z/CS-VGB/etc), so these labels alone are not architectural novelty.
+
+2026-10-16T04:05:18.604041+08:00 Transfer source05 seed2026101312 native completed; critic safely evaluatedinprimarysamplinggap, no concurrentpose. Frozen target botharm lag15/15,right16/16; fourwindow .3 lags15/15/16/17. Unlike seed1 this later section does not catchup. This is additional seed within selectedsource, not a normalcase or independent dataset. Matching mass remainsrunning, thresholds/windows unchanged.
+
+2026-10-16T04:24:38.068741+08:00 Phase+12 completed: target lag13/13 atbothconfidence thresholds, sameinregistered+/-36 sensitivity; wrist/body also13/13. Actual1000 phasecalls, allsampledfinite, meanboundedcorrectionratio.03418/max.26406 rulesout accidentalno-op butdoesnotestablishoutputtimecontrol. Minus12 pending; retainnegativeoutcome andoutsidewindowdifferences.
+
+2026-10-16T04:31:17.392978+08:00 Source05 seed2 fixed mass routing completes: targetnative+15/+15 vs mass-1/-1; right+16/+16→-1/-1. Actualcondition/noise/fixedgraph+successfulhistoriespaircheckpassed. Common-support wholeclip armerror .779→.201; window69–81 remains large/missing-support caveat, so notallactionsperfect. Newseed sameselectedsource; notnewdomain, notnovelty.
+
+2026-10-16T04:32:04.768653+08:00 Seed2 visual-quality qualification: frame55triptych andindependent55/86check reveal largeblackbackground regions inbothnative andmass, replacing sourcewhitecurtains/wall. Preservebackgroundtaskfails inboth. Thisisrealoutputnotpresentationpadding. Keepmotiontiminggain butrejectwhole-edit-successclaim; noattributiontonewmethodbackgroundharmwithoutfurthercomparison.
+
+2026-10-16T04:43:57.738884+08:00 Phase-12 allsteps yields target+3/+3, unchanged underregistered+/-36search; zero/+12 both+13/+13. Whitebackground/grayclothes at55/86 retainedlimitedcheck. Thisisone-sided response, notcalibratedbidirectionalcontrol. Registered/admitted onephase-12late11 atqueue10 withsamepreinterventiontensor gate; fixedschedule, notonlinefeedback. Originalstagedliteralread+/-4bins controls restoredasqueue8/9 toseparatetimecorrespondencefromgenericsharpening; selectedquerywindowunchanged, nofullsignedshiftclaim. OptionalPhaseRoPE+/-4physicalframes remainsunexecuted/notfailed.
+
+
+2026-10-16T05:47:52.329949+08:00
+Late6 and late-hard actual conditioning/noise/fixed graph/history pair checks passed. Late6 target lag +1/+1; late-hard remains +13/+12. Equal-nine-call mass calls6..14 was registered and appended before its result, following the late6 discovery; only step_end changes versus late6. This equalizes selected call count, not sigma span, correction norm, or total guidance dose.
+Semantic A0 actual Qwen/VAE/noise/layout gate passed; B/C/D sampling admitted only afterwards. B actual input invariants passed before result evaluation. The P/T factorial is an interface sensitivity diagnostic, not proof of clock misalignment or an architectural novelty.
+Primary diagnostics remain selected-case causal evidence. Hard-mask already matches all-step mass, so mass conservation necessity is rejected. Phase -12 gives partial one-sided response; +12 stays at native lag, so bidirectional signed control is not established. Fixed late schedules are not feedback.
+Early latent self-similarity probe rejected at preregistered periodic synthetic ambiguity gate; no real x0 data used and no post-failure retuning. Signed residual-V proposal remains on hold: current quality findings do not identify full-V-induced appearance leakage, so another architectural branch would lack its motivating causal evidence.
+Server clock verification: .9 uses -04 timezone and client +08; epochs agree within round-trip uncertainty. Earlier informal twelve-hour wording must not be interpreted as clock drift.
+
+
+2026-10-16T06:35:51.302888+08:00 — 尾部对照与归档审查
+错时读取−4时间格主窗可靠延后+11/+11；+4有转背/遮挡和动作形状失真。三臂共同支持.3覆盖.921875，正确/+4/−4同帧误差.1040/1.0203/1.0393；.5覆盖.671875低于.8门，完整预先判据失败。保留低阈值现象，但不改用另一个特征补救。
+语义B(P6,T6)为+5/+5；C(P0,T6)为+13/+13，只改标签的目标效应为0。D尚在生成。实际A0/B/C/D的编码输入、噪声、布局单变量验收均通过；不预支D或GPU0 native trajectory gate。
+独立审查要求将GPU0原始重放与实际输出绑定：历史图、真实条件/噪声、两端20×50 native calls、5个音视频快照原始字节哈希、141 RGB帧及播放时基。checker已补强；小型CPU夹具验证可拒绝被改过的capture manifest。此记录不是实际重放PASS。

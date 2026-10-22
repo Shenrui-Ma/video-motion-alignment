@@ -1,0 +1,427 @@
+{
+  "id": "r122_long_0039_generic_retention",
+  "benchmark": "IVEBench",
+  "source_id": "long_0039",
+  "variant": "R122 · 原句加通用保留要求 · 时序引导配对",
+  "title": "办公拿书 · 书本改为蓝色",
+  "task": "Adjust the color of book to blue",
+  "display_task": "将橙色书本改为蓝色，保留办公室与拿书动作。",
+  "reference_image_used": false,
+  "reference_image_path": null,
+  "reference_video_path": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/inputs/long_0039_video.mp4",
+  "ordinary_video_path": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native.mp4",
+  "comparison_video_path": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/showcase_pairs/long_0039/source_native_guided_full_valid.mp4",
+  "guided_video_path": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced.mp4",
+  "alternative_video_path": null,
+  "comparison_kind": "guided_pair",
+  "column_labels": [
+    "1.参考视频",
+    "2.普通编辑",
+    "3.时序引导"
+  ],
+  "guidance_activation": "fixed_active",
+  "guidance_decision": "guide",
+  "guided_status": "complete",
+  "actual_routed_blocks": 450,
+  "routed_block_calls": 450,
+  "method_label": "固定6–14步时序引导",
+  "pair_group": "IVEBench素材片段探索",
+  "valid_frames": 106,
+  "generated_frames": 107,
+  "fps": 24,
+  "seed": 2026101701,
+  "source_clip": {
+    "start_frame": 0,
+    "end_frame_inclusive": 109,
+    "start_pts_rational": "0",
+    "end_pts_rational_inclusive": "109/25",
+    "end_exclusive_rational": "22/5",
+    "duration_rational": "22/5"
+  },
+  "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdjust the color of book to blue\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+  "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+  "original_task": {
+    "id": 39,
+    "src_video_name": "long_0039.mp4",
+    "category": "attribute_editing",
+    "subcategory": "color adjustment",
+    "source_prompt": "The video depicts a modern office environment where a woman is sitting at a desk, working on a computer and reading a orange book. In the background, two colleagues are engaged in a conversation, and another person joins them, creating a collaborative and productive atmosphere.",
+    "edit_prompt": "Adjust the color of book to blue",
+    "target_prompt": "The video depicts a modern office environment where a woman is sitting at a desk, working on a computer and reading a blue book. In the background, two colleagues are engaged in a conversation, and another person joins them, creating a collaborative and productive atmosphere.",
+    "target_span": "blue",
+    "target_phrase": "blue book"
+  },
+  "review_status": "抬书提前，触书仍晚；最初伸手过程拉长",
+  "review_status_code": "PASS_CORE_EDIT",
+  "review_summary": "两版完成书本改蓝并保留原场景和动作。引导使抬书提前，触书仍晚；最初离键盘到触书过程拉长。后续立起、抬离支撑和翻开相对普通版提前，整条动作仍有延迟。",
+  "display_summary": "两版完成书本改蓝并保留原场景和动作。引导使抬书提前，触书仍晚；最初离键盘到触书过程拉长。后续立起、抬离支撑和翻开相对普通版提前，整条动作仍有延迟。",
+  "count_as_complete_task_success": true,
+  "clear_temporal_support": true,
+  "support_for_clear_whole_event_repair": false,
+  "action_alignment_bool": false,
+  "action_alignment_by_method": {
+    "native": false,
+    "guided": false
+  },
+  "guidance_effect": "LOCAL_TIMING_IMPROVEMENT",
+  "key_same_frame_indices": [
+    18,
+    81,
+    90
+  ],
+  "judgment_source": "continue_r90_r104完整106有效帧三列审阅；root抽查并复核阶段持续时间。",
+  "event_review": {
+    "file": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/paired/REVIEW.json",
+    "sha256": "35d5b5ec9b53b4f8d5767d2bb4e5d0f2b650ffac8f915a13698d8817436592d6",
+    "events": [
+      {
+        "id": "leave_keyboard",
+        "name": "手开始离开键盘",
+        "source": {
+          "status": "VISIBLE",
+          "frames": [
+            9,
+            12
+          ]
+        },
+        "native": {
+          "status": "VISIBLE_DELAYED",
+          "frames": [
+            25,
+            28
+          ]
+        },
+        "delay_interval_frames": {
+          "native": [
+            13,
+            19
+          ],
+          "forced": [
+            0,
+            6
+          ]
+        },
+        "notes": "区间表示同一可见转折的判断范围，按24fps同帧对照。",
+        "forced": {
+          "status": "VISIBLE_WITH_RESIDUAL_DELAY",
+          "frames": [
+            12,
+            15
+          ]
+        },
+        "timing_effect": "CLEAR_LOCAL_TIMING_IMPROVEMENT"
+      },
+      {
+        "id": "touch_book",
+        "name": "手指首次接触橙色书面",
+        "source": {
+          "status": "VISIBLE",
+          "frames": [
+            24,
+            26
+          ]
+        },
+        "native": {
+          "status": "VISIBLE_DELAYED",
+          "frames": [
+            40,
+            42
+          ]
+        },
+        "delay_interval_frames": {
+          "native": [
+            14,
+            18
+          ],
+          "forced": [
+            14,
+            18
+          ]
+        },
+        "notes": "区间表示同一可见转折的判断范围，按24fps同帧对照。",
+        "forced": {
+          "status": "VISIBLE_WITH_RESIDUAL_DELAY",
+          "frames": [
+            40,
+            42
+          ]
+        },
+        "timing_effect": "NO_CLEAR_BENEFIT"
+      },
+      {
+        "id": "tilt_book",
+        "name": "闭合书本从平放开始立起",
+        "source": {
+          "status": "VISIBLE",
+          "frames": [
+            67,
+            70
+          ]
+        },
+        "native": {
+          "status": "VISIBLE_DELAYED",
+          "frames": [
+            83,
+            86
+          ]
+        },
+        "delay_interval_frames": {
+          "native": [
+            13,
+            19
+          ],
+          "forced": [
+            5,
+            11
+          ]
+        },
+        "notes": "区间表示同一可见转折的判断范围，按24fps同帧对照。",
+        "forced": {
+          "status": "VISIBLE_WITH_RESIDUAL_DELAY",
+          "frames": [
+            75,
+            78
+          ]
+        },
+        "timing_effect": "CLEAR_LOCAL_TIMING_IMPROVEMENT"
+      },
+      {
+        "id": "leave_support",
+        "name": "橙色书底边离开下方灰书",
+        "source": {
+          "status": "VISIBLE",
+          "frames": [
+            76,
+            79
+          ]
+        },
+        "native": {
+          "status": "VISIBLE_DELAYED",
+          "frames": [
+            93,
+            96
+          ]
+        },
+        "delay_interval_frames": {
+          "native": [
+            14,
+            20
+          ],
+          "forced": [
+            7,
+            13
+          ]
+        },
+        "notes": "区间表示同一可见转折的判断范围，按24fps同帧对照。",
+        "forced": {
+          "status": "VISIBLE_WITH_RESIDUAL_DELAY",
+          "frames": [
+            86,
+            89
+          ]
+        },
+        "timing_effect": "CLEAR_LOCAL_TIMING_IMPROVEMENT"
+      },
+      {
+        "id": "open_pages",
+        "name": "被举起的书开始展开露出内页",
+        "source": {
+          "status": "VISIBLE",
+          "frames": [
+            85,
+            89
+          ]
+        },
+        "native": {
+          "status": "VISIBLE_DELAYED",
+          "frames": [
+            99,
+            103
+          ]
+        },
+        "delay_interval_frames": {
+          "native": [
+            10,
+            18
+          ],
+          "forced": [
+            5,
+            13
+          ]
+        },
+        "notes": "区间表示同一可见转折的判断范围，按24fps同帧对照。",
+        "forced": {
+          "status": "VISIBLE_WITH_RESIDUAL_DELAY",
+          "frames": [
+            94,
+            98
+          ]
+        },
+        "timing_effect": "SMALL_TIMING_IMPROVEMENT"
+      }
+    ],
+    "scope": "同帧事件区间逐帧审阅；局部提前与残余延迟分别记录。",
+    "phase_durations_frames": {
+      "leave_keyboard_to_touch_book": {
+        "source": [
+          12,
+          17
+        ],
+        "native": [
+          12,
+          17
+        ],
+        "forced": [
+          25,
+          30
+        ]
+      }
+    }
+  },
+  "full_frame_review_path": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/paired/REVIEW.json",
+  "release_status": "COMPLETE_EXACT_RELEASE",
+  "quantitative_metrics": {
+    "motion_fidelity": {
+      "native": 0.8777332312340698,
+      "guided": 0.8626603286262191,
+      "delta": -0.015072902607850658,
+      "status": "complete",
+      "higher_is_better": true,
+      "protocol": "IVEBench official MF",
+      "valid_frames": 106,
+      "evaluation_frames": 106,
+      "evaluation_fps": 24,
+      "source_files": [
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/forced.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/forced/RELEASED.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/native.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/native/RELEASED.json"
+      ],
+      "source_sha256": {
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json": "a6054c8a77b8c56b80f29b6309fa3c425e61ad4511637994789d0698f08825f0",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json": "dcd1a41fbe39777a76fe90779c7e09b3460a9733af38629b7378dc7e3a1ee646",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/forced.json": "2a2bf355a06832028144d6e84a12b7af9941bf3ff50f2407adf8eeafb675c7ff",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/forced/RELEASED.json": "00c382cd2c980344c7d98ca626c1520f7c47a62e7ed4b2308523a77b7f99e8f5",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/native.json": "4c14847adbba358dca76e8812af7d1096d57a2b51cabf4fad480933d044d6b1a",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/native/RELEASED.json": "af666a9512360604d26d1be7f11c5ecbd1d74f0cc8f4f8efaba8340890ed5824"
+      },
+      "scope": "官方IVEBench MF；同一有效帧域与预处理，视觉任务验收、事件区间和阶段持续时间分别记录。"
+    }
+  },
+  "prompt_protocol": {
+    "kind": "official_edit_with_generic_retention",
+    "label": "原句加任务标记与通用保留要求",
+    "official_edit_prompt": "Adjust the color of book to blue",
+    "actual_prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdjust the color of book to blue\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+    "verbatim": false,
+    "official_edit_prompt_preserved_verbatim": true
+  },
+  "actual_prompt_by_column": {
+    "ordinary": {
+      "text": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdjust the color of book to blue\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "protocol": "IVEBench-edit-with-generic-retention-v1",
+      "exact_official_edit_prompt": false,
+      "graph_bindings": [
+        {
+          "graph": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_graph.json",
+          "graph_sha256": "5ef3cccaa2ddf51198cbac01efb024e99d77b0e7c8bc6301f84705542aa508bd",
+          "node_id": "5",
+          "field": "inputs.prompt"
+        }
+      ],
+      "actual_history": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_history.json",
+      "actual_history_sha256": "80d82bbff763b79519ca88bb8dc868352df1ae6380f00270823b08f9223d7e18",
+      "scope": "对应已完成视频的实际提交图及Comfy history；consumer严格逐字核验。"
+    },
+    "guided": {
+      "text": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdjust the color of book to blue\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "protocol": "IVEBench-edit-with-generic-retention-v1",
+      "exact_official_edit_prompt": false,
+      "graph_bindings": [
+        {
+          "graph": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_graph.json",
+          "graph_sha256": "6a04347273accfbbc8dd9efd418914665b33727af54c4918a2965031c74fe26c",
+          "node_id": "5",
+          "field": "inputs.prompt"
+        }
+      ],
+      "actual_history": "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_history.json",
+      "actual_history_sha256": "05e8072a7178bac78d2f0121146cd8ca6ffeb7fb2c72906479732a0e2cbef872",
+      "scope": "对应已完成视频的实际提交图及Comfy history；consumer严格逐字核验。"
+    }
+  },
+  "evidence_paths": [
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/showcase/long_0039/PRESENTATION.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/native/REVIEW.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/native_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/native_history.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/COLLECTION.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/NATIVE_RUNTIME_GATE.json",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/guided_admission/long_0039.json",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/guided_admission/GRAPH_DIFF_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/showcase_pairs/long_0039/PRESENTATION.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/paired/REVIEW.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/PAIR_RUNTIME_GATE.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/COLLECTION.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/paired/FRAME_LEDGER.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/prepared/long_0039/paired/MF_INPUTS.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_history.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_job.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_router.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_history.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_job.json",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_router.json",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/root_generic_retention_attempt1/ROOT_EXIT_RECEIPT.json",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/root_generic_retention_attempt1/COMPLETE.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/forced.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/forced/RELEASED.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/native.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/native/RELEASED.json"
+  ],
+  "evidence_sha256": {
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/showcase/long_0039/PRESENTATION.json": "49071fcb41725b973a5d85e59e26da3321cc53e15475e1cb55e606cf88c9f75e",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/native/REVIEW.json": "e944cc25e682a3caf44571da11414fe4740b07da33d714618ea3d6f9cfad5b14",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/native_graph.json": "5ef3cccaa2ddf51198cbac01efb024e99d77b0e7c8bc6301f84705542aa508bd",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/native_history.json": "80d82bbff763b79519ca88bb8dc868352df1ae6380f00270823b08f9223d7e18",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/COLLECTION.json": "b90ff7e2ce2905086e137e95ed01ee05e2df405888f607ee689b98f76810866f",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming/long_0039/NATIVE_RUNTIME_GATE.json": "c0e8c59012603712cdd014d9059cf72bab73d2c9cfb2d85b8e4f555d9c73d5e3",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/guided_admission/long_0039.json": "a49aabaa92f1b94c6fda1f3ae785637b52c31ae510040993a9306de4a8fcd744",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/guided_admission/GRAPH_DIFF_VERIFIED.json": "b70d5f6487c8000cb638be2e8e3355adf89bc41d0ecf6243536b6c0a3b75f1c9",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/showcase_pairs/long_0039/PRESENTATION.json": "8fba8c147e61c775816455ea16aa839dcffe575638fd8c951e42456aac1b8650",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/paired/REVIEW.json": "35d5b5ec9b53b4f8d5767d2bb4e5d0f2b650ffac8f915a13698d8817436592d6",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/PAIR_RUNTIME_GATE.json": "14b6d357ef07a1d0aaa00648011be499b652421394871a315940142efc12247c",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/COLLECTION.json": "4fa8b375fe61eb70b532cfc3a499b677ac15e25db9018d3b73da1dddf2138846",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/audit/full_frame_review/long_0039/paired/FRAME_LEDGER.json": "df815fd4156bb6bc120172b7a8188a94d895fc65ca0f92f0c8798ebb82f0734c",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/prepared/long_0039/paired/MF_INPUTS.json": "73fcdd0fdf8d649ddd836c296e8df38bc3f534dcb50479805c10c3b39005b697",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_graph.json": "5ef3cccaa2ddf51198cbac01efb024e99d77b0e7c8bc6301f84705542aa508bd",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_history.json": "80d82bbff763b79519ca88bb8dc868352df1ae6380f00270823b08f9223d7e18",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_job.json": "352801cea6e3bfac222793b0fe3b1c640fa4f28a555fda7cfd725ad760c753cf",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/native_router.json": "fb5a824b4f8e363dec1ac9b62a2227e5e3547eb390e9bbb28165163ddaf94f4f",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_graph.json": "6a04347273accfbbc8dd9efd418914665b33727af54c4918a2965031c74fe26c",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_history.json": "05e8072a7178bac78d2f0121146cd8ca6ffeb7fb2c72906479732a0e2cbef872",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_job.json": "63800ca7535bd11ee3a63a731f2d174a39626d59bc555d077eec3211df296d36",
+    "/Users/researcher/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/forced_router.json": "cf657a0d8b7eadee74a96ac55f7ab935156956e59d9bde6f73b921fe838d7867",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/root_generic_retention_attempt1/ROOT_EXIT_RECEIPT.json": "06748c75fc07a6e22a5f6be1f0f23bfc0c9feba2c6aea1f91a5127434588801d",
+    "/Users/researcher/DevProjects/h3-timing-ive-generic-retention-r122-20261020/audit/root_generic_retention_attempt1/COMPLETE.json": "4b3f76f90412ba8ae16620f782372b49f99283d908f4f276d5e791296a40a758",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json": "a6054c8a77b8c56b80f29b6309fa3c425e61ad4511637994789d0698f08825f0",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json": "dcd1a41fbe39777a76fe90779c7e09b3460a9733af38629b7378dc7e3a1ee646",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/forced.json": "2a2bf355a06832028144d6e84a12b7af9941bf3ff50f2407adf8eeafb675c7ff",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/forced/RELEASED.json": "00c382cd2c980344c7d98ca626c1520f7c47a62e7ed4b2308523a77b7f99e8f5",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/long_0039/native.json": "4c14847adbba358dca76e8812af7d1096d57a2b51cabf4fad480933d044d6b1a",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0039/native/RELEASED.json": "af666a9512360604d26d1be7f11c5ecbd1d74f0cc8f4f8efaba8340890ed5824"
+  },
+  "media_sha256": {
+    "reference_video_path": "ed29fd0615aaeee1f24f103b37bea5f18dc7daebce0159b8ff460492ca6c934c",
+    "ordinary_video_path": "1511941d9f441a1e8cf844285a83f5444d944b5a556a29430627202dcc2c6c23",
+    "guided_video_path": "abe41ece0768cb8f2925e7341e97bbe06c9d5f5d8557c42825412679b80fb886",
+    "comparison_video_path": "2f0ec637bd5015591503cac3b57a1ecd6ca4a458cfeef3e26eea48e837e1d377"
+  }
+}

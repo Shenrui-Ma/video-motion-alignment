@@ -1,0 +1,135 @@
+H3 动作时间错位：创新点复审与可证伪机制设计
+审查日期：2026-10-16；仅文献、数学与实验设计审查，不含 GPU 实验结果。
+合并输入：timing_prior_art.md/json；guidance_collision_audit.md/json。按机制去重，补读原文与实现，不把同一思路在不同模型上的应用计作独立创新。
+
+一、当前判定
+
+1. “输出帧优先读同一时间参考帧”不是空白，Vidu S2-Editing 和 Wan-Animate-2 是直接先例；共享物理时间 RoPE 还有 UNIC、VideoCoF、Sync-LoRA。
+2. 当前 mass-preserving temporal routing（下称 MPR）不是超出 logits bias 的新数学机制。它是带 reference-group 行归一化修正的精确重参数化。其有意义的待测差别是：在冻结模型内隔离“参考总量”与“参考时间分配”的因果作用，并观察动作时间／编辑保真的取舍。
+3. 时间均值去除不是创新，MOFT 已明确采用；“静态全局、动态按帧路由”的架构叙事还直接遇到 DiViD。残差路径只有在定义、代数和实验上确实不同，才值得继续。
+4. 时间覆盖容量约束比独立行时间偏置多了一个跨 query 耦合条件，但 Sinkhorn／双边预算／参考视频覆盖都已有先例。尚未在本轮核对的原文与代码中找到完全相同的“冻结生成器实际 attention 上，保逐 query 原 reference mass，同时限制 reference-frame 列边缘”的实现；这不是无相关工作证明，更不是已获得创新点。
+5. 今晚最合理目标是消除等价操作、测出可复现的机制效应，而不是把单样本变好叫作架构创新成功。
+
+二、必须分清的时间与守恒量
+
+去噪时间 s 是一次采样的求解进度；视频物理时间 τ 是视频中动作发生的时刻。动态启停属于 s，帧对应属于 τ，不能因为二者都叫 temporal 就当作同一任务。
+“保持参考 mass”指当前层／头／query 对整个参考视频组的注意力总和不变。不是每个参考帧的注意力都不变；如果每帧 mass 都锁死，就无法重分配参考时间。也不保证后续层和后续去噪步的 mass 不变，更不保证身份、背景、画面质量不变。
+H3 的参考帧与输出帧应按实际解码 FPS、VAE 时间压缩与首帧特殊感受野映射到 τ；不能直接把相同 latent 下标当作相同物理时间。
+
+三、MPR 的精确等价性与四个最接近方法
+
+设 A=softmax(z)，R 是所有参考视频 key，m_q=Σ(k∈R)A_qk。若时间偏置为 b_qk，MPR 为：
+  A'_qR = m_q · softmax(z_qR+b_qR)
+  A'_q,nonR = A_q,nonR
+定义 c_q=logsumexp(z_qR)−logsumexp(z_qR+b_qR)，则把 R 内 logits 改成 z+b+c 后做一次全序列 softmax，结果与上式完全相同。
+因此，“我们在 softmax 后操作，而 DIAL 在 softmax 前操作”不能构成数学差异。若 b 在整个 R 内为同一常数，c 恰好抵消它，操作退化为恒等映射。
+若 b 只依赖参考帧 j，原参考权重可分解为 A_qjx=m_q·p_qj·C_qx|j；MPR 只改 p，不改当前 query 对该参考帧内部空间 key 的条件分布 C。
+
+DIAL：Phase I 在最后 80% 的采样步，对输出 video query→参考 image key 加 log(gain) 与 subject-aware guidance map 相关的偏置；Phase II 还有 DPO LoRA。它不等于“走完 80% 才开始”。MPR 与它共享 logits-bias 计算家族，但 DIAL 的具体 ISGM 机制和多主体图像条件不是物理参考帧时间路由；MPR 的 group correction 保原总量。统一 x3 增权只能叫 gain baseline，不能冒充完整 DIAL 复现。
+来源：https://arxiv.org/html/2609.11507v1 ，Phase I/II。未在本轮定位官方完整代码。
+
+Vidu S2-Editing：§3.2 已规定生成视频 query 读取时间对应的 source-video key，使用训练后的编辑模型并有因果化和蒸馏。当前候选的同时间路由核心直接重合。硬 mask 后普通 softmax 会改变参考组总量；MPR 的硬 mask 极限是“同一个参考组内条件分布＋恢复修改前组总量”，不是全新路由。两者端到端模型训练不同，不能据此声称整个模型等价。
+来源：https://arxiv.org/html/2609.11638v1 ，§3.2；https://github.com/shengshu-ai/Vidu-S 。本轮仓库只定位到资料/API，未核实完整网络实现。
+
+Wan-Animate-2：§3.4 与代码明确实现对应帧 reference attention，配合时间对齐位置编码和训练。官方 mask 的 ref frame 有 +1 偏移，是其输入布局要求，不能照抄给 H3。和 Vidu 一样，普通同帧 mask 是必须比较的 H3 适配基线；“无需训练移植”本身不足以抵消核心思路已有先例。
+来源：https://arxiv.org/html/2608.06009v2 ，§3.2–3.4；https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L566 。
+
+TST：正文使用时空 attention 的谱／熵诊断调节 query 温度，A'=softmax(γQKᵀ)。通常同时改变参考总量、参考时间分布以及每帧内空间分布，不与 MPR 一般等价。其仓库 core.py 的有效缩放形式与论文带符号指数形式也有差异，比较必须分别标明 paper-style 与 released-code-style，不能混成同一复现。
+附录关于 Q 缩放保持 past/future mass 比例的表述不是一般恒等式：两 key logits 为 [0,1]，past/future 比例为 exp(−1)；γ=2 后为 exp(−2)。温度缩放保留 logit 排序，不普遍保留组概率比。这只限定该数学说法，不代表整篇方法无效。
+来源：https://arxiv.org/html/2609.08505v1 ，方法与 Appendix L；https://github.com/lytang63/temporal-state-transport/blob/1b2f68207230a6d62b518a0feadb04fb75867759/tst/core.py 。
+
+MPR 最危险的实验反证：普通软时间 bias、硬同帧 mask 或只降熵的非时间操作已达到相同收益／编辑质量；错误时间路由也同样变好；只让 attention 变对角但输出动作时间不变。遇到这些结果就不能主张物理时间路由是独立机制。
+
+四、只路由 V 的动态残差：哪里真不同、哪里完全无效
+
+设参考 V_t,x=μ_x+D_t,x，μ_x 为同一空间位置沿参考时间的均值。保留原输出 O，新增残差校正：
+  O_res = O+(A'−A)D
+而 full-V 路由是 O_full=O+(A'−A)V。
+两者差为 (A'−A)μ。若 μ 是所有参考 token 共用的一个全局向量，因为 Σ_R(A'−A)=0，差严格为零。此时所谓“静动分路”只是无效重参数；不能花 GPU 把它当独立 ablation。
+即便 μ_x 按空间位置变化，如果各参考帧对 μ_x 的条件加权结果相同，也会抵消。它只有在原/新路由引起静态空间特征权重改变时才与 full-V 不同。
+令 P 为按空间位置进行时间均值的线性算子，D=(I−P)V，则 O_res 等价于有效权重 B=A'+(A−A')P 作用于原 V。B 保持行和，但可能含负数，因此一般不等价于原 V 上普通非负 softmax。一个合法 A=[.8,.1,.05,.05]、A'=[.05,.05,.1,.8] 的两时刻两位置例子给出 B=[.4,−.3,.45,.45]。这里真正新增的是一个带符号残差输出支路，不是“发现均值等于外观”。
+固定空间均值也不严格代表身份：相机移动、遮挡、光照、姿态会混在该分解中。必须报告动态能量、静态恒定输入时校正为零，以及源身份泄漏，不能用名称替代证据。
+
+已有工作对照：
+- MOFT：§3.1 已从 video diffusion 特征减去时间均值，并用 PCA 选择 motion-related channels；之后用特征运动损失做 latent optimization。直接否定“减时间均值提运动是新方法”。它不是在原 attention V 上精确保持原 static path、只对 residual 改时间路由。
+  https://arxiv.org/html/2405.14864v1 ，§3.1–4。
+- HALO：§4.1 选择运动头，用跨帧注意力和语义匹配提运动做 latent optimization；§4.2 仅在低熵结构头注入参考 V，避免全头注入的身份泄漏。已占据 motion/structure 分头与 V-path 选择；未在其已读方法看到上述按时间均值的 V residual 等式。
+  https://arxiv.org/html/2607.11081v1 ，§4.1–4.2。
+- MotionAdapter：从跨帧 attention 取 top-K 对应位置得到运动场，再用首帧 DINO 对应把参考运动适配目标内容，通过 latent loss 引导；不是 V 静态均值分路。它使“把运动与外观匹配分开处理”不能算广义新意。
+  https://arxiv.org/html/2601.01955v1 ，§3.3–3.4。
+- DeT：在 DiT attention 路径加入可训练的共享 1D 时间卷积残差适配器，并用追踪一致性损失优化。是训练式时间适配路径，非冻结 V 的均值残差重路由；“加一个时间 residual branch”早有先例。
+  https://arxiv.org/html/2503.17350v1 ，§3.2；https://openaccess.thecvf.com/content/ICCV2025/papers/Shi_Decouple_and_Track_Benchmarking_and_Improving_Video_Diffusion_Transformers_For_ICCV_2025_paper.pdf 。
+- DiViD（ICCV 2025 Workshop）：§3.2 从各帧编码减首帧编码 ri=fi−f1，得到动态 tokens；static token 全帧共享，dynamic token 只路由对应帧；§3.3 端到端训练并加正交约束。这是“static global＋dynamic frame-local”的直接概念先例，比仅 MOFT 更应引用。它不等于冻结 H3 内现成 V 的时间均值残差操作，但不能再把整个静动分路叙事宣称全新。
+  https://arxiv.org/html/2507.13934v2 ；CVF 原文 §3.2–3.3：https://openaccess.thecvf.com/content/ICCV2025W/DRL4Real/papers/Gheisari_DiViD_Disentangled_Video_Diffusion_for_Static-Dynamic_Factorization_ICCVW_2025_paper.pdf 。
+
+残差方案可证伪的小命题：在指定层／头、保持同样的参考时间分配变化时，只校正非恒定时间残差，相对 full-V 路由降低源外观泄漏，同时保留动作时间收益。反证是两支路数值等价、收益仅来自校正幅度变小、或 edit fidelity 仍然同幅下降。需额外比较 full-V 按输出校正范数缩放，不能把更弱干预误叫解耦。
+
+五、附加审查：时间覆盖预算／容量约束与 OT
+
+候选目标：独立 query 的时间先验会允许多个输出时刻集中读少数参考帧；希望在保每个 query 原参考总量的同时，使短时参考段获得可控的跨 query 覆盖。这与只给每行加 Δτ Gaussian 的数学差别，是列预算把多个 query 耦合起来。
+
+已确认的相关工作：
+- Sinkformers（AISTATS 2022）：直接用 Sinkhorn 代替行 softmax 得到双随机 attention。双边守恒不是新算法。
+  https://proceedings.mlr.press/v151/sander22a/sander22a.pdf ；https://arxiv.org/abs/2110.11773 。
+- ESPFormer：用 expected sliced transport 构造双随机 attention，避免昂贵 Sinkhorn 迭代。说明也不能把“高效 OT attention”泛称未被研究。
+  https://arxiv.org/html/2502.07962v1 。
+- FreeMix（ICCV 2025 Workshop）：对源视频相邻帧的 masked tokens 使用带空间／特征成本的熵正则 OT，建立双向对应后 warp、融合编辑特征，注入 U-Net self-attention 输出。已占据“视频编辑＋OT＋特征注入”。它的约束对象是相邻帧空间点对应，不是所有生成 query→reference-frame 的时间覆盖列预算。
+  https://openaccess.thecvf.com/content/ICCV2025W/Findings/html/Chen_Zero-shot_Customized_Video_Editing_with_Diffusion_Feature_Transfer_ICCVW_2025_paper.html ；方法 Eq.7–8 原文：https://assets.amazon.science/16/f5/d2bb45914554867704d991582b8b/scipub-approval152134-36779642-zeroshot-customized-video-editing-with-diffusion-feature-transfer.pdf 。本轮未定位完整官方代码。
+- Slot-ID：§3.2.3 的 reference-video token→identity-slot reader 用温度退火 Sinkhorn，均匀双边容量避免反复集中读少量 token，明确强调 coverage。§3.3 训练 encoder 与 LoRA，backbone 冻结；“无 per-identity fine-tuning”不等于整个方案无需训练。它已占据参考视频读取与容量平衡，区别是 slot summarization 没有输出视频物理时间，也不保持修改前每个生成 query 的 refmass。
+  https://arxiv.org/html/2601.01352v1 ，§3.2.3、§3.3。未定位官方完整代码。
+- PISCES：Appendix C 用 semantic、temporal、spatial cost 的 partial OT 计划调节 VLM 的文字→视频 attention，再据此做奖励并后训练生成器。其 A_new∝A·P_OT 的行归一化融合不自动保持 OT 计划的列边缘。对象是 reward VLM，不是冻结生成 DiT，但已占据“时空 OT prior 融合实际 attention”。
+  https://arxiv.org/html/2602.01624v1 ，Appendix C；https://github.com/roar-ai/pisces ，partial_optimal_transport.py 与 xbert.py。此轮核对官方仓库说明，未完成所有调用链审查。
+
+数学形式与实现要求：
+令 P_qj=Σ(k∈参考帧j)A_qk，原行和 m_q。给定目标覆盖 c_j，Σ_j c_j=Σ_q m_q。最小改动可写为：
+  min_X KL(X||P)+λΣ_qj X_qj d(τ_q,τ_j)
+  s.t. X1=m，Xᵀ1=c。
+解具有 diag(u)[P⊙exp(−λd)]diag(v) 的 Sinkhorn 形式，仍可写成耦合确定的 logits 偏置。算法、双边预算本身不能宣称创新。候选剩下的研究价值是选定并验证一个有物理根据的覆盖边缘，以及在冻结编辑器中实际保守恒后是否比已有行时间约束更有效。
+
+不能略过的 lifting 陷阱：
+若先按输出时间 bin 聚合 B_ij=Σ(q∈bin_i)P_qj，求 T 后按 T_ij/B_ij 缩放各 query，再逐 query 恢复原行和，通常会破坏刚满足的列预算。
+反例：两 query 的 P=[[.9,.1],[.2,.8]]，同一 bin 的目标列和 [.5,1.5]。按列缩放后逐行归一化，最终列和变成 [.774356,1.225644]，不再是目标。
+两个正确方向：
+  a. 同一 bin 内每个 query 都用 T_ij/rowmass_i，按原 m_q 缩放。可精确满足双边预算，但抹去了 bin 内不同空间 query 的时间偏好。
+  b. 直接在 query×reference-frame 小矩阵 P 上 Sinkhorn，保 m_q 与 c_j，再令 A'_qk=X_qj·A_qk/P_qj。这样精确保留每帧内部空间条件分布并满足实际双边预算。无需构建完整 query×所有参考 token 的 OT 矩阵，但 query 数仍很大，需评估成本。
+当 P_qj=0 时不能直接除，必须明确可达支持、数值 floor 和有效 mask；floor 改变支持也需记录。带宽 mask 可能让给定边缘无可行解，unbalanced OT 放松后又不能声称严格双边守恒。核对应该在最终 actual attention 上进行，而非只检查 coarse proxy。
+
+覆盖与单调约束的机制风险：
+- 若 c 取原列和，根本没有修复原来的覆盖不足；若 c 均匀，则可能强迫读取遮挡、背景或无关帧。目标边缘应按有效物理时长／可见动作证据定义，并在测试集固定，不能事后按出错样例挑。
+- 每帧 token 数、VAE 首帧时间感受野不同，均匀 token mass 不等于均匀物理时长。
+- 全画面列覆盖可由背景 query 实现，动作部位仍没读到动作；需 ROI／运动头分层诊断，不能以全局 coverage 曲线代替行为证据。
+- 严格单调非交叉传输＋相同时间网格＋相同均匀边缘退化为恒等匹配。它可能只是昂贵实现同帧 mask。若边缘不同，单调传输产生的时间扭曲又可能导致要消除的延迟。软时间成本或带状支持不等于严格单调，需要精确定义。
+- 同帧和足够覆盖只是相关条件，attention 不是物理动作解释器；必须以最终事件发生时间、幅度和编辑保真验证。
+
+六、可证伪最小机制命题与实验顺序
+
+M0（第一轮当前应检验）：在冻结 H3 的预先指定层／头与去噪区间，改变输出 query 对参考视频的条件时间分布，而保持本次操作参考组总量，可改善预先标注事件的物理时间误差。这是局部因果机制假设，不是新颖性结论。
+最低四臂：native；reference gain x3；正确物理时间 MPR；同等强度的错时间 MPR。第一轮成立后再补普通 soft-time、硬同帧、熵匹配非时间、原本正常样例与第二源视频。正确／错误时间 arms 应明确相同支持或匹配偏置强度；不必声称熵会自动相同。
+先用同 seed 同 scheduler 同 LoRA 同帧数／FPS；记录所有完成样例，包括失败。至少预先固定的多个 seeds 才能讨论稳定性。视频播放不得重定时。报告 onset/peak/offset 有符号误差、绝对误差、持续时间、动作幅度、edit success、源身份泄漏、伪影、耗时。DTW／最优时间平移只能作辅助，不能对齐后把要研究的延迟消掉。
+
+M1（仅 M0 有证据后）：只路由空间条件静态均值之外的 V residual，可在同样 lag 改善时降低源外观泄漏。对照 full-V、校正范数匹配 full-V、residual-only；首先证明非零不同并检查静态输入恒等性。若无范数匹配优势，停止“静动解耦”解释。
+
+M2（覆盖候选，尚无实验支持）：被漏掉的短事件在预先定义的运动 ROI／头上表现为参考时间覆盖不足；双边 coverage 干预在保持每 query refmass 下，相对行时间 prior 带来额外事件时间收益，并保持编辑保真。
+最小增量臂：time-only MPR；coverage-only（无时间成本）；time+coverage；错误/置换 coverage。控制 KL 改动预算或至少报告 KL、熵、校正输出范数，避免把更大干预当新机制。必须记录 actual row/column marginal error。
+最危险反证：覆盖不足与动作错误无关联；coverage-only 与 time+coverage 一样；同帧 mask 已够；收益只在手选 c／单 seed 存在；marginal 变漂亮但最终 lag 不变；严格单调退化对角；目标编辑被压制或身份回退。
+
+七、与其余已审查工作去重后的创新边界
+
+“动态发现偏离就开／停引导”：TempoControl 的阈值和 early-stop、MotionEcho 的 adaptive activation/truncation 已存在。
+“无需教师，根据运动差异引导”：FlowMotion、MotionGrounder、FRESCO、FLATTEN 已存在对应路径；flow-matching velocity 不是自动等同于图像光流。
+“从 DiT 内部提运动”：MOFT、MotionAdapter、HALO、ReaDiT 等已有；ReaDiT 需训练 readout。
+“按局部事件做时间路由”：TS-Attn、TCR、MinT 已存在，虽条件源与训练要求不同。
+“改时空位置编码使源目标相位对齐”：VideoCoF、UNIC、Sync-LoRA、RoPECraft 等不可省略。
+新方案必须给出上述机制不能解释的新增效应，并在相同骨干上用诚实命名的适配基线比较。比原 baseline 高一个指标，不自动证明相对这些工作有贡献。
+
+八、验证记录与审查局限
+
+数值验证（本地 NumPy；没有运行 H3）：
+- MPR 与带修正 logits bias 等价，20 个随机 query 最大误差 1.1102230246251565e−16。
+- 全局常数均值 residual 与 full-V 校正等价，最大误差 1.3877787807814457e−16。
+- 上述 residual 有效权重负值例、TST 组概率比反例、coarse-lifting 列预算反例均实算复核。
+- query×frame 直接 Sinkhorn 的 12×5 正支持示例，最终行／列边缘最大误差均 2.220446049250313e−16。
+
+检索覆盖 arXiv、CVF/会议原文、作者官方 GitHub；新增检索包含 video editing / Sinkhorn / temporal coverage / balanced attention / reference video / optimal transport / temporal alignment / static-dynamic residual routing 组合。DiViD 的 CVF PDF 经本地内存解析阅读 §3.1–3.3；FreeMix 方法正文与 Eq.7–8 来源已核对。数学判断是独立推导，不假托论文结论。没有遍历全部引用网络、所有图像编辑／OT／时序学习工作，也不能由未搜到推出不存在。新检索中还出现 TPD 与 VDOT++ 等非直接近邻，未据其二手摘要作新颖性判断；如后续方法扩大到 CFG 或蒸馏需补审。
+
+当前建议：继续已排队 M0 作为机制诊断；不把 MPR 单独包装成新架构。不同时叠加 residual、coverage 和 adaptive schedule，否则正结果也无法解释。MPR 有稳定且可归因的收益后，优先测试实际覆盖耦合是否贡献独立收益；residual 路径先过代数与范数控制，不能只凭模块名称推进。

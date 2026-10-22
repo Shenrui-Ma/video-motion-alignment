@@ -1,0 +1,27 @@
+Flex fitness 参考 VAE 回解：既有证据核查
+2026-10-18，只读记录审计
+
+结论
+当前已核对的记录没有 FlexiAct fitness，或另一条 49 帧 8 fps→重复三次→147 有效帧＋11 尾部填充→158 帧输入的 reference VAE encode→decode 动作时间／姿态对照。本例应记为「未测」。所以 +375 ms 延后尚不能在 VAE 与 DiT 之间作因果归属。
+
+本批实际已有的是什么
+1. R65 inputs/source_fitness_provenance.json 明确保存原49帧→158帧映射，输出1152×768@24，末11帧为填充。all158_decoded_frames_match_declared_source_exactly 是 FFmpeg 准备视频的像素回读校验，证明重复帧与缩放映射；没有经过模型 VAE。
+2. R49 configs/graphs/r49_source_fitness_seed2026101701_native.json 中，节点5编码参考，节点51保存条件；节点11 VAEDecode 接的是节点10 SamplerCustomAdvanced 的最终采样结果。图中没有把干净参考 latent 直接送去解码的输出支路。
+3. R49 analysis/source_pose158_sidecar/REPORT.json 记录五源共790帧 source pose。HANDOFF.txt 与 remote_one.py 显示输入是原 prepared source_video.mp4，不是 VAE 重建视频。
+4. R50 retry 的 live_observer.py 与 scripts/decode_x0.py 绑定保存的去噪 endpoint/snapshot。它们为反馈观察器解码当前生成预测，不能充当原参考的 VAE roundtrip。
+5. R49/R50（包括retry/retry2）/R65/R66 六个本地实验包内，未找到命名为 roundtrip/reconstruction/round_trip 的结果文件。此项只作为辅助库存证据；上面实际图和数据链是主要证据。
+
+过去确实做过的 VAE 对照
+A. h3-timing-autoresearch-20261016/analysis/pose/calibration/summary.json 和 analysis/pose/vae_roundtrip/ 的两条 pose 文件，记录真人书记舞05_real_megumi_v、床边舞07_real_ary_v的实际 VAE 重建。
+两条均141帧、1312×736、24 fps；没有本次49帧重复三次的输入流程。
+书记舞：双臂方向在50–65、69–81、80–92、99–111四窗，confidence 0.3/0.5的 reliable_lag 均0帧。
+床边舞：confidence 0.3的54–69、75–88、98–111三窗均0帧；0.5只有75–88为0，另两窗因检测覆盖不足返回UNKNOWN。不能把UNKNOWN写成0。
+这些旧结果支持那两条输入的已测窗口中未见 VAE 回解产生整体延后，不能直接覆盖 fitness 的新几何、动作和输入重复模式。
+B. h3-short-event-pilot-20261013/REPORT.txt：三条 Mixkit 输入107帧、1312×736、24 fps，实际 VAE 回解仍可辨认抬头／双手竖拇指／耳机触碰事件。报告没有给出本次 Flex 时序误差；它也不是 repeat3/158 流程。
+C. R2 analysis/vae_temporal_controls/run1/RESULTS.json：141帧的原片、人工延后4/8帧、恒定首帧做过实际 VAE encode 表征诊断；检查了编码相位和 latent 差分。结果是 latent 编码诊断，没有把四臂逐一 decode 后测动作时间。不能将该工作列为 fitness VAE 重建已完成。
+
+对下一步的直接作用
+若要解释 fitness 的持续延后，最小缺口是一条同输入、同 VAE 权重／精度／分块的 clean reference roundtrip，再沿本次相同的前2秒、双阈值、可见手臂测量。需保存并检查实际输出帧数、PTS、VAE fallback状态、输入与latent绑定；本次审计没有执行这项GPU工作。即使该 roundtrip 为0延后，也只把本例问题进一步定位到后续生成与条件利用，不单独证明某一 DiT Attention 机制。
+
+范围与文件
+本次按已有目录索引，核对R26结果/文献记录、R49/R50/R65/R66、本例数据链，以及指向的R2和更早 roundtrip 文件；没有重新全盘搜服务器或运行GPU。确切绝对路径和SHA256见 EVIDENCE.json。旧VAE双臂时序数字单独提取在 OLDER_ROUNDTRIP_TIMING.json。

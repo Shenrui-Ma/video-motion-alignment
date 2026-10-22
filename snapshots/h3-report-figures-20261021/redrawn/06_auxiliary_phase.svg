@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1110" viewBox="0 0 1440 1110" role="img" class="research-figure">
+<title>辅助 RoPE 时间相位：在参考分支旋转 query</title>
+<defs>
+<marker id="06_auxiliary_phase-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#55647a"/></marker>
+<marker id="06_auxiliary_phase-bluearrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#246ac4"/></marker>
+<pattern id="06_auxiliary_phase-hatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#f4f5f8"/><path d="M-2 2 L2 -2 M0 8 L8 0 M6 10 L10 6" stroke="#b8c1d0" stroke-width="1"/></pattern>
+</defs>
+<style>.research-figure text{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;fill:#172335} .research-figure .math{font-family:"Times New Roman","PingFang SC",serif} .research-figure .small{fill:#55647a}</style>
+<rect width="1440" height="1110" fill="white"/>
+<text x="48" y="49" font-size="16" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">图 5  /  参考分支时间相位对齐（已搁置）</text>
+<text x="48" y="88" font-size="30" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">辅助 RoPE 时间相位：在参考分支旋转 query</text>
+<text x="48" y="119" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">原始 Joint Attention 保持原路径；额外分支读取参考视频全部时间位置，并在 out_proj 之前加入替换量。</text>
+<line x1="48" y1="140" x2="1392" y2="140" stroke="#d9e0eb" stroke-width="1.5"/>
+<rect x="48" y="164" width="1344" height="410" rx="10" fill="white" stroke="#d9e0eb" stroke-width="1"/>
+<text x="68" y="195" font-size="18" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">A</text>
+<text x="102" y="195" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">主路径与两个参考分支：只在辅助分支使用旋转后的 q′</text>
+<rect x="72" y="226" width="220" height="103" rx="6" fill="#f1f5fb" stroke="#b0c9ea" stroke-width="1"/>
+<text x="182.0" y="254" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">原始 Q / K / V</text>
+<text x="182.0" y="279" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">Q/K 已经 RMSNorm</text>
+<text x="182.0" y="303" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">及原始 MM-RoPE</text>
+<rect x="322" y="226" width="240" height="103" rx="6" fill="#f1f5fb" stroke="#b0c9ea" stroke-width="1"/>
+<text x="442.0" y="254" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">完整 Joint Attention</text>
+<text x="442.0" y="279" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">softmax(QK<tspan baseline-shift="5.8px" font-size="16">⊤</tspan> / √d)V</text>
+<text x="442.0" y="303" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">保存 LSE<tspan baseline-shift="-2.9px" font-size="16">all</tspan></text>
+<rect x="592" y="226" width="80" height="103" rx="6" fill="#f1f5fb" stroke="#b0c9ea" stroke-width="1"/>
+<text x="632.0" y="283.5" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">O</text>
+<rect x="722" y="226" width="240" height="103" rx="6" fill="#fdf7f1" stroke="#f3d3b0" stroke-width="1"/>
+<text x="842.0" y="254" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">输出修正 O → O′</text>
+<text x="842.0" y="279" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">加入 αm<tspan baseline-shift="-2.9px" font-size="16">R</tspan> (z<tspan baseline-shift="-2.9px" font-size="16">Δ</tspan> − z<tspan baseline-shift="-2.9px" font-size="16">R</tspan>)</text>
+<text x="842.0" y="303" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">逐 query、逐 head</text>
+<rect x="992" y="226" width="140" height="103" rx="6" fill="#f6f4fb" stroke="#cfc1e7" stroke-width="1"/>
+<text x="1062.0" y="254" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">merge heads</text>
+<text x="1062.0" y="279" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">合并各 head</text>
+<rect x="1162" y="226" width="206" height="103" rx="6" fill="#f6f4fb" stroke="#cfc1e7" stroke-width="1"/>
+<text x="1265.0" y="254" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">out_proj</text>
+<text x="1265.0" y="279" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">gate → residual</text>
+<text x="1265.0" y="303" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">随后 RMSNorm / FFN</text>
+<line x1="295" y1="276" x2="315" y2="276" stroke="#55647a" stroke-width="1.7" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="565" y1="276" x2="585" y2="276" stroke="#55647a" stroke-width="1.7" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="675" y1="276" x2="715" y2="276" stroke="#55647a" stroke-width="1.7" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="965" y1="276" x2="985" y2="276" stroke="#55647a" stroke-width="1.7" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="1135" y1="276" x2="1155" y2="276" stroke="#55647a" stroke-width="1.7" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="181" y1="330" x2="181" y2="376" stroke="#55647a" stroke-width="1.5" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<rect x="72" y="382" width="220" height="167" rx="6" fill="#f1f5fb" stroke="#b0c9ea" stroke-width="1"/>
+<text x="182.0" y="410" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="" style="fill:#172335">取原始张量的子集</text>
+<text x="182.0" y="435" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">q<tspan baseline-shift="-2.9px" font-size="16">T</tspan> · K<tspan baseline-shift="-2.9px" font-size="16">R</tspan> · V<tspan baseline-shift="-2.9px" font-size="16">R</tspan></text>
+<text x="99" y="469" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R0</text>
+<rect x="83.0" y="482" width="15.0" height="23" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="100.0" y="482" width="15.0" height="23" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<text x="137" y="469" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R1</text>
+<rect x="121.0" y="482" width="15.0" height="23" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="138.0" y="482" width="15.0" height="23" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<text x="175" y="469" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R2</text>
+<rect x="159.0" y="482" width="15.0" height="23" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="176.0" y="482" width="15.0" height="23" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<text x="213" y="469" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R3</text>
+<rect x="197.0" y="482" width="15.0" height="23" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="214.0" y="482" width="15.0" height="23" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<text x="251" y="469" font-size="16" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R4</text>
+<rect x="235.0" y="482" width="15.0" height="23" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="252.0" y="482" width="15.0" height="23" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<text x="182" y="532" font-size="17" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">所有参考时间 bins</text>
+<line x1="293" y1="413" x2="329" y2="413" stroke="#55647a" stroke-width="1.6" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<path d="M307 413 V508 H329" stroke="#55647a" stroke-width="1.6" fill="none" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<rect x="338" y="382" width="365" height="68" rx="6" fill="#f1f5fb" stroke="#b0c9ea" stroke-width="1"/>
+<text x="520.5" y="410" font-size="19" fill="#172335" font-weight="600" text-anchor="middle" class="math" style="fill:#172335">z<tspan baseline-shift="-3.4px" font-size="16">R</tspan> = softmax(q<tspan baseline-shift="-3.4px" font-size="16">T</tspan> K<tspan baseline-shift="-3.4px" font-size="16">R</tspan><tspan baseline-shift="6.8px" font-size="16">⊤</tspan> / √d) V<tspan baseline-shift="-3.4px" font-size="16">R</tspan></text>
+<text x="520.5" y="435" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">原始 q<tspan baseline-shift="-2.9px" font-size="16">T</tspan>；同时计算 LSE<tspan baseline-shift="-2.9px" font-size="16">R</tspan></text>
+<rect x="738" y="382" width="166" height="68" rx="6" fill="#f1f5fb" stroke="#b0c9ea" stroke-width="1"/>
+<text x="821.0" y="410" font-size="18" fill="#172335" font-weight="600" text-anchor="middle" class="math" style="fill:#172335">z<tspan baseline-shift="-3.2px" font-size="16">R</tspan> 与 m<tspan baseline-shift="-3.2px" font-size="16">R</tspan></text>
+<text x="821.0" y="435" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">保留参考概率总和</text>
+<line x1="707" y1="414" x2="730" y2="414" stroke="#55647a" stroke-width="1.6" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<rect x="338" y="480" width="365" height="68" rx="6" fill="#f6f4fb" stroke="#cfc1e7" stroke-width="1"/>
+<text x="520.5" y="508" font-size="20" fill="#172335" font-weight="600" text-anchor="middle" class="math" style="fill:#172335">q′ = R<tspan baseline-shift="-3.6px" font-size="16">time</tspan>(−Δ) q<tspan baseline-shift="-3.6px" font-size="16">T</tspan></text>
+<text x="520.5" y="533" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">z<tspan baseline-shift="-2.9px" font-size="16">Δ</tspan> = softmax(q′ K<tspan baseline-shift="-2.9px" font-size="16">R</tspan><tspan baseline-shift="5.8px" font-size="16">⊤</tspan> / √d) V<tspan baseline-shift="-2.9px" font-size="16">R</tspan></text>
+<rect x="738" y="480" width="166" height="68" rx="6" fill="#f6f4fb" stroke="#cfc1e7" stroke-width="1"/>
+<text x="821.0" y="508" font-size="21" fill="#172335" font-weight="600" text-anchor="middle" class="math" style="fill:#172335">z<tspan baseline-shift="-3.8px" font-size="16">Δ</tspan></text>
+<text x="821.0" y="533" font-size="16" fill="#55647a" font-weight="400" text-anchor="middle" class="math" style="fill:#55647a">同一组 K<tspan baseline-shift="-2.9px" font-size="16">R</tspan> / V<tspan baseline-shift="-2.9px" font-size="16">R</tspan></text>
+<line x1="707" y1="512" x2="730" y2="512" stroke="#55647a" stroke-width="1.6" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<path d="M906 413 H928 V337" stroke="#246ac4" stroke-width="1.7" fill="none" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<path d="M906 512 H951 V337" stroke="#7954bd" stroke-width="1.7" fill="none" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<text x="984" y="399" font-size="21" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">m<tspan baseline-shift="-3.8px" font-size="16">R</tspan> = exp(LSE<tspan baseline-shift="-3.8px" font-size="16">R</tspan> − LSE<tspan baseline-shift="-3.8px" font-size="16">all</tspan>)</text>
+<text x="984" y="435" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">沿用原 Joint softmax 中</text>
+<text x="984" y="463" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">参考视频概率总和。</text>
+<text x="984" y="491" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">q′ 的结果只进入输出修正分支。</text>
+<rect x="48" y="596" width="638" height="440" rx="10" fill="white" stroke="#d9e0eb" stroke-width="1"/>
+<text x="68" y="627" font-size="18" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">B</text>
+<text x="102" y="627" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">相位插入点：仅旋转时间维度的二维 pairs</text>
+<rect x="72" y="655" width="223" height="43" rx="3" fill="#ebe5f5" stroke="none" stroke-width="1"/>
+<text x="183.5" y="683" font-size="17" fill="#7954bd" font-weight="600" text-anchor="middle" class="" style="fill:#7954bd">时间 pairs：旋转</text>
+<rect x="298" y="655" width="179" height="43" rx="3" fill="#dee9f6" stroke="none" stroke-width="1"/>
+<text x="387.5" y="683" font-size="17" fill="#246ac4" font-weight="600" text-anchor="middle" class="" style="fill:#246ac4">H pairs：原值</text>
+<rect x="480" y="655" width="179" height="43" rx="3" fill="#dee9f6" stroke="none" stroke-width="1"/>
+<text x="569.5" y="683" font-size="17" fill="#246ac4" font-weight="600" text-anchor="middle" class="" style="fill:#246ac4">W pairs：原值</text>
+<text x="72" y="728" font-size="18" fill="#172335" font-weight="600" text-anchor="start" class="" style="fill:#172335">一个时间 pair 的平面</text>
+<circle cx="211" cy="860" r="91" fill="none" stroke="#d9e0eb" stroke-width="1.3"/>
+<line x1="94" y1="860" x2="332" y2="860" stroke="#d9e0eb" stroke-width="1.3" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="211" y1="973" x2="211" y2="746" stroke="#d9e0eb" stroke-width="1.3" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="211" y1="860" x2="255.11767544241667" y2="780.409606650315" stroke="#246ac4" stroke-width="3" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<line x1="211" y1="860" x2="297.54614298285895" y2="831.8794535118798" stroke="#7954bd" stroke-width="3" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<text x="258.11767544241667" y="770.409606650315" font-size="21" fill="#246ac4" font-weight="400" text-anchor="start" class="math" style="fill:#246ac4">q<tspan baseline-shift="-3.8px" font-size="16">j</tspan></text>
+<text x="307.54614298285895" y="835.8794535118798" font-size="21" fill="#7954bd" font-weight="400" text-anchor="start" class="math" style="fill:#7954bd">q′<tspan baseline-shift="-3.8px" font-size="16">j</tspan></text>
+<path d="M240.08857721478023 807.5228175716362 A60 60 0 0 1 268.0633909777092 841.4589803375031" stroke="#7954bd" stroke-width="2" fill="none" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<text x="274" y="794" font-size="18" fill="#7954bd" font-weight="400" text-anchor="start" class="math" style="fill:#7954bd">−ω<tspan baseline-shift="-3.2px" font-size="16">j</tspan>Δ</text>
+<text x="331" y="882" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="math" style="fill:#55647a">x</text>
+<text x="221" y="754" font-size="17" fill="#55647a" font-weight="400" text-anchor="start" class="math" style="fill:#55647a">y</text>
+<text x="372" y="782" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">每个时间 pair 独立旋转</text>
+<text x="372" y="811" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">转角由频率 ω<tspan baseline-shift="-3.2px" font-size="16">j</tspan> 与 Δ 决定</text>
+<text x="372" y="865" font-size="24" fill="#7954bd" font-weight="400" text-anchor="start" class="math" style="fill:#7954bd">θ′<tspan baseline-shift="-4.3px" font-size="17.3">j</tspan> = θ<tspan baseline-shift="-4.3px" font-size="17.3">j</tspan> − ω<tspan baseline-shift="-4.3px" font-size="17.3">j</tspan>Δ</text>
+<text x="372" y="910" font-size="24" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">‖q′<tspan baseline-shift="-4.3px" font-size="17.3">j</tspan>‖ = ‖q<tspan baseline-shift="-4.3px" font-size="17.3">j</tspan>‖</text>
+<text x="372" y="955" font-size="24" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">q′<tspan baseline-shift="-4.3px" font-size="17.3">H/W</tspan> = q<tspan baseline-shift="-4.3px" font-size="17.3">H/W</tspan></text>
+<text x="72" y="1008" font-size="16" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">图中弧线展示相位旋转；角度与维度分区为机制示意。</text>
+<rect x="708" y="596" width="684" height="440" rx="10" fill="white" stroke="#d9e0eb" stroke-width="1"/>
+<text x="728" y="627" font-size="18" fill="#246ac4" font-weight="700" text-anchor="start" class="" style="fill:#246ac4">C</text>
+<text x="762" y="627" font-size="20" fill="#172335" font-weight="650" text-anchor="start" class="" style="fill:#172335">替换量、时间原点与读取域</text>
+<rect x="732" y="653" width="636" height="74" rx="6" fill="#f7f9fc" stroke="none" stroke-width="1"/>
+<text x="1050" y="684" font-size="29" fill="#172335" font-weight="400" text-anchor="middle" class="math" style="fill:#172335">O′ = O + αm<tspan baseline-shift="-5.2px" font-size="20.9">R</tspan> (z<tspan baseline-shift="-5.2px" font-size="20.9">Δ</tspan> − z<tspan baseline-shift="-5.2px" font-size="20.9">R</tspan>)</text>
+<text x="1050" y="714" font-size="17" fill="#55647a" font-weight="400" text-anchor="middle" class="" style="fill:#55647a">参考概率总和保持；参考组内部的加权特征改变</text>
+<text x="738" y="767" font-size="25" fill="#172335" font-weight="400" text-anchor="start" class="math" style="fill:#172335">Δ = t<tspan baseline-shift="-4.5px" font-size="18.0">生成,0</tspan> − t<tspan baseline-shift="-4.5px" font-size="18.0">参考,0</tspan></text>
+<text x="738" y="798" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">Δ 是序列打包产生的 RoPE 时间原点差，</text>
+<text x="738" y="826" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">由 PackedLayout 给出；单位为模型的位置坐标。</text>
+<text x="738" y="854" font-size="18" fill="#172335" font-weight="400" text-anchor="start" class="" style="fill:#172335">物理动作时间由视频时间 τ 的映射单独描述。</text>
+<line x1="732" y1="875" x2="1368" y2="875" stroke="#d9e0eb" stroke-width="1.5"/>
+<text x="738" y="909" font-size="19" fill="#172335" font-weight="600" text-anchor="start" class="" style="fill:#172335">相位对齐：q′ 仍读取全部参考时间</text>
+<rect x="738" y="938" width="98" height="42" rx="4" fill="#faebdc" stroke="none" stroke-width="1"/>
+<text x="787" y="965" font-size="20" fill="#df8423" font-weight="400" text-anchor="middle" class="math" style="fill:#df8423">q′<tspan baseline-shift="-3.6px" font-size="16">Tτ</tspan></text>
+<line x1="846" y1="959" x2="892" y2="959" stroke="#55647a" stroke-width="1.8" marker-end="url(#06_auxiliary_phase-arrow)"/>
+<rect x="905.0" y="938" width="22.0" height="42" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="929.0" y="938" width="22.0" height="42" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<rect x="953.0" y="938" width="22.0" height="42" rx="2" fill="#cdddf1" stroke="none" stroke-width="1"/>
+<text x="940" y="1008" font-size="17" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R0</text>
+<rect x="994.0" y="938" width="22.0" height="42" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="1018.0" y="938" width="22.0" height="42" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<rect x="1042.0" y="938" width="22.0" height="42" rx="2" fill="#cdddf1" stroke="none" stroke-width="1"/>
+<text x="1029" y="1008" font-size="17" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R1</text>
+<rect x="1083.0" y="938" width="22.0" height="42" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="1107.0" y="938" width="22.0" height="42" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<rect x="1131.0" y="938" width="22.0" height="42" rx="2" fill="#cdddf1" stroke="none" stroke-width="1"/>
+<text x="1118" y="1008" font-size="17" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R2</text>
+<rect x="1172.0" y="938" width="22.0" height="42" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="1196.0" y="938" width="22.0" height="42" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<rect x="1220.0" y="938" width="22.0" height="42" rx="2" fill="#cdddf1" stroke="none" stroke-width="1"/>
+<text x="1207" y="1008" font-size="17" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R3</text>
+<rect x="1261.0" y="938" width="22.0" height="42" rx="2" fill="#e5edf8" stroke="none" stroke-width="1"/>
+<rect x="1285.0" y="938" width="22.0" height="42" rx="2" fill="#d9e5f5" stroke="none" stroke-width="1"/>
+<rect x="1309.0" y="938" width="22.0" height="42" rx="2" fill="#cdddf1" stroke="none" stroke-width="1"/>
+<text x="1296" y="1008" font-size="17" fill="#246ac4" font-weight="400" text-anchor="middle" class="" style="fill:#246ac4">R4</text>
+<line x1="48" y1="1061" x2="1392" y2="1061" stroke="#d9e0eb" stroke-width="1.5"/>
+<text x="48" y="1089" font-size="16" fill="#55647a" font-weight="400" text-anchor="start" class="" style="fill:#55647a">时间通道旋转及角度为机制示意。</text>
+</svg>

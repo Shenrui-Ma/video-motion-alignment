@@ -1,0 +1,227 @@
+H3 动作时间错位：第二轮可实施结构候选与精确近邻
+2026-10-16；独立只读文献/数学审查。仅新增本文件，未改实验或运行文件，未使用 GPU。
+
+任务边界与当前建议
+
+继续研究，而不是把第一轮诊断结束当成整个研究结束。旧 final_claim_review.txt 保留为第一轮历史判断；其中停止本轮参数搜索的建议，不应解释为停止用户授权的后续结构探索。下面给出两个确切的结构变化，允许失败后改方向，不预先保证新颖性或成功。
+
+支持 root 正在准备的最小实验：同一区间 calls 6..14，分别只路由 V 的时间变化部分和只路由其时间均值。它不是已证实的新架构，但能决定下一步需要解决的是动态读出还是静态空间重分配。此时不应为了凑架构，立即同时加入追踪器、阈值、回退和多个分支。
+
+建议顺序：完成 dynamic/static 两臂和实际张量验收；若动态支路仍能修正时间且源外观/窗口外成本存在，先试候选一的“非负、静态读出不变的时间耦合”；若直接残差路由不能保住细粒度变化、或时序跳变明显，再试候选二的“时间边读取与零 DC 写回”。这两项都不需要另训模型；其中第二项实现和验证较重。
+
+一、作为约束的第一轮事实
+
+依据 literature/final_claim_review.txt、analysis/pose/pilot/EQUAL9_REVIEW.md、FULL_HARD_1312_REVIEW.md 等已归档结果：发现例 native 主窗 +13/+13 帧，同帧 mass 与 hard 均约 0；equal9 的 calls 6..14 为 +1/+1，calls 11..19 为 +11/+12。说明已知同帧读取基线很强，且同次数下日程仍有作用，不能继续把“多做几次”或“保 mass”当贡献。RoPE −12 仅单侧改善到 +3，晚起 −12 无充分修复。语义 P/T 四格 13/5/13/13 是交互响应，并非单独时间标签或采样相位已被证明是原因。GPU0 native 重放 FULL gate 已通过，不能再用运行环境漂移解释四格差异。
+
+此外：seed2 两臂均背景失败；source07 有窗口前姿态成本。新候选必须同时接受动作时刻、动作形状/幅度、目标身份/外观和非干预段质量检查，不能只追 lag 变小。尚无已实现的在线动作误差控制器，也无已证实的新架构；这些事实限定 claim，不禁止实施下面的可证伪结构。
+
+二、先精确界定当前 DC-split 原语
+
+对某层某头、某输出 query q，令原参考视频组条件注意力为 a_q(t,s)，Σ_ts a=1；m_q 为完整 softmax 中原参考视频组总 mass。s 是参考空间 patch，t 是参考 latent 时间 bin。原同帧条件分布为 b_q(t,s)，同样归一化。原注意力总输出 O 包含所有其他组。
+
+令 μ_s=Σ_t w_t V(t,s)，Σ_t w_t=1，D(t,s)=V(t,s)−μ_s。
+当前最小支路：
+  Δ_dyn(q)=m_q Σ_ts [b_q(t,s)−a_q(t,s)] D(t,s)
+  Δ_static(q)=m_q Σ_ts [b_q(t,s)−a_q(t,s)] μ_s
+  O_dyn=O+Δ_dyn。
+
+在同一输入 Q/K/V 上，Δ_dyn+Δ_static=Δ_full。这不是说三个独立采样运行的最终视频可相加：后续层和采样轨迹已经改变。
+
+必要检查：
+1. μ 必须按固定空间位置沿时间求，不能用全参考 token 共用的一个向量。后者在 Σ(b−a)=0 下精确抵消，所谓新分支退化为 full-V 路由。
+2. 第一轮实现可先用 token 时间均值；它是明确定义的 DC 投影。H3 非均匀 temporal compression 下，它不自动等于等物理时长均值。若改用物理时长权重 w，必须单列配置，不能暗改。
+3. V 已经过上游上下文混合，D 不等于干净的运动、μ 不等于干净的身份。静态背景、相机运动、遮挡、衣服纹理和光照都可混入 D。
+4. 在原生 O 上加差分，只保证此次运算中未替换的分支保持原值；不保证最终外观、其他帧或其他模态完全不变。
+5. 首先记录 actual Δ_dyn、Δ_static 的 FP32 范数/夹角和分解误差。若 Δ_static 近零，则两臂没有足够辨别力，不应用“动态赢了”包装一个数值近等价实验。
+
+一条对第二轮有用的精确等价式：令 c_a(s)=Σ_t a(t,s)，c_b(s)=Σ_t b(t,s)，则 O_dyn 的参考贡献等价于 m_q Σ_ts b_eff(t,s)V(t,s)，其中
+  b_eff(t,s)=b(t,s)+w_t[c_a(s)−c_b(s)]。
+所以 Σ_t b_eff(t,s)=c_a(s)，原空间边缘严格保留；但 b_eff 可以为负。这个性质不是“动态特征更纯”的证明，而是一个具体的参考读出约束。它为候选一提供了可检验的结构差异。
+
+三、最接近工作：精确重合与未直接重合的部分
+
+[P1] MOFT, Video Diffusion Models are Training-free Motion Interpreter and Controller（NeurIPS 2024）
+https://arxiv.org/html/2405.14864v1
+https://github.com/xizaoqu/MOFT
+本轮核实官方仓库 main 对应 44ec33d5eafb99a0dd18bc620dd7d5d5eed3d544；本文结论依据论文 §3.1–4，而非声称完成所有 notebook 调用链审计。
+它已明确从特征减去时间均值，并通过 PCA 选择运动相关通道，再用运动特征损失优化 latent。因此“去均值获得动态特征”“training-free 运动引导”均不能作新意。已读方法不是保留 H3 原注意力输出、只对 reference V 的 signed residual 更换读取分布。该区别须靠必要性实验，而非仅靠插入位置不同。
+
+[P2] DiViD: Disentangled Video Diffusion for Static–Dynamic Factorization（ICCV 2025 Workshop）
+https://arxiv.org/html/2507.13934v2
+https://openaccess.thecvf.com/content/ICCV2025W/DRL4Real/papers/Gheisari_DiViD_Disentangled_Video_Diffusion_for_Static-Dynamic_Factorization_ICCVW_2025_paper.pdf
+§3.2 用 r_i=f_i−f_1，经投影/Transformer 得动态 token；静态 token 全帧共享、动态 token 只作用于对应帧。§3.3 同时训练编码器/扩散解码器，并加 Σ_i(sᵀd_i)^2 正交损失。它是“静态全局＋动态逐帧”的直接概念先例。不能因它训练、我们冻结就把整套分路叙事称首次；本轮未定位并核实其完整官方实现。论文未给出上述已有注意力的静态空间边缘不变约束，也不是下面的时间边积分器。
+
+[P3] HALO, Controlling Motion Transfer in Diffusion Transformers via Attention Heads（ECCV 2026）
+https://arxiv.org/html/2607.11081v1
+https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/custom_modules_inject_final.py#L95
+本轮已从官方项目页进入公开实现并读代码。该文件 95–106 行：在选中 heads 和视频 token 范围，把当前 value 换为保存的参考 value，再调用 SDPA；并未在这一注入处对 V 做时间均值分解。论文 §4.1 用运动头/语义对应的位移损失优化 latent，§4.2 选择低熵结构头注入 V，避免全头注入的身份泄漏。它直接占据“头选择＋V 路径运动/结构控制”；我们的区别不能只是把它改叫动态头或只注入一部分 V。
+
+[P4] SMA, Separate Motion from Appearance（2025）
+https://arxiv.org/html/2501.16714v1
+§3.2 对 temporal attention 的 K 侧做 motion LoRA 适配以减少 V 携带的外观泄漏；§3.3 把 U-Net skip 起点从适配后 temporal 输出移到未适配 spatial 输出。§4 的训练/后处理对比允许 appearance highway 仅在推理时启用。因此“另保留 native 外观通路”并非新概念；我们需要证明的是对一个冻结统一 attention 的精确约束有用，而不只是把原支路留下。
+
+[P5] SMM/DMT, Space-Time Diffusion Features for Zero-Shot Text-Driven Motion Transfer（CVPR 2024）
+https://arxiv.org/html/2311.17009v1
+https://github.com/diffusion-motion-transfer/diffusion-motion-transfer/blob/da9d4c3c28af43e65c6e7c1278b440566a037cca/utilities/guidance_utils.py#L26
+§4.2 Eq.2–3 对各帧 spatial marginal mean 的两两差值做目标约束，随后 latent optimization。已读官方代码 26–39 行先做空间平均，再逐帧作 anchor 差分并累积 cosine loss；正文写平方 L2，公平复现应注明版本。它已占据“仅对时间变化而非绝对外观值施加运动约束”；候选二不能把差分表示或其静态加法不变性说成新发现。
+
+[P6] VMC（CVPR 2024）
+https://arxiv.org/html/2312.00845v1
+§3.1 Eq.9–17 定义相邻帧 latent/噪声残差，并微调 temporal attention，使预测与源 residual 的方向一致。它是相邻差分的直接先例，需要训练；候选二的区别在运行时 reference-edge 读取＋受约束写回，而非“用相邻差分表达运动”。
+
+[P7] DeT（ICCV 2025）
+https://arxiv.org/html/2503.17350v1
+§3.2 Eq.1–2 在 DiT 加共享空间位置的 1D temporal convolution 残差，down/GELU/up 与原 Attention 相加，并训练追踪约束。因此“在 attention 旁增加时间残差支路”也不是足够的新颖点。候选二必须胜过简单固定时间滤波/平滑，证明 reference-conditioned edge 读取和写回约束都必要。
+
+[P8] FlowMotion（2026）
+https://arxiv.org/html/2603.06289v1
+https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+已读方法包含 clean-latent 对齐与跨帧差分约束，并用 flow velocity 分解/投影引导；官方运行代码含 target latent 的优化。不能把 frame difference、无需教师、速度方向投影并列起来就称架构创新。下面两候选均不把 flow-matching 的采样速度误认为物理视频速度。
+
+[P9] 静态/外观保护的其他精确近邻
+Ctrl-X：https://arxiv.org/html/2406.07540v1 ，§4.1–4.2 分离 source 结构注入和 attention 加权的 appearance 均值/方差转移，feed-forward、无需训练或反传。
+FreeControl：https://openaccess.thecvf.com/content/CVPR2024/papers/Mo_FreeControl_Training-Free_Spatial_Control_of_Any_Text-to-Image_Diffusion_Model_with_CVPR_2024_paper.pdf ，用 PCA 结构子空间和 sibling appearance 引导。
+OAVC/Weighted Velocity Guidance：https://arxiv.org/html/2609.06288v1 ，Appendix B/H Eq.23、60–66 明确把 residual 投影到源 velocity 正交空间再注入，保留源基底。故本稿不把普通 PCA/正交投影另包装成第二个强候选。
+
+[P10] 非负耦合/积分算法本身已有广泛先例
+Sinkformers：https://proceedings.mlr.press/v151/sander22a/sander22a.pdf ，attention 双边归一化/Sinkhorn 本身非新。
+FreeMix：https://openaccess.thecvf.com/content/ICCV2025W/Findings/html/Chen_Zero-shot_Customized_Video_Editing_with_Diffusion_Feature_Transfer_ICCVW_2025_paper.html ，相邻帧 masked feature 的 OT 对应与编辑特征融合，已覆盖“视频编辑＋OT”。
+Temporally consistent gradient domain video editing：https://dev.ipol.im/~facciolo/emmcvpr11/ ，已在视频梯度域用时间一致性与重建约束；差分积分/Poisson 原理不是新数学。
+本轮定向检索未定位下述两项完整的 frozen-H3 reader/writer 公式；这只说明本轮读到的论文/代码未直接实现，不证明空白。
+
+四、候选一：保持原空间读出边缘的非负时间耦合
+
+它改变什么
+
+当前同帧路由是先选择时间，再沿该参考帧的空间 softmax 读取，因而同时改变了空间参考 footprint。DC-split 用带符号的补偿项保住静态空间响应。候选一改为显式维护该 footprint，同时在非负参考权重内分配时间：不是把时间均值拿掉后再拼回去。
+
+定义（每个 q/head 独立）
+
+保留原 a_q(t,s)、m_q、空间边缘 c_q(s)=Σ_t a_q(t,s)。预设时间目标 h_q(t)，Σ_t h=1。首轮 h 是已冻结物理时间同帧映射，不再搜 offset。
+求 b⁺：
+  min_b Σ_ts b(t,s) log[b(t,s)/a_q(t,s)]
+  s.t. b≥0，Σ_t b(t,s)=c_q(s)，Σ_s b(t,s)=h_q(t)。
+  O⁺(q)=O(q)+m_q Σ_ts [b⁺(t,s)−a_q(t,s)]V(t,s)。
+
+soft h 时是标准熵投影/Sinkhorn，不是新求解器。hard 同帧 h(t)=1[t=t_q] 时有唯一直接解：
+  b⁺(t,s)=1[t=t_q] c_q(s)。
+不需 Sinkhorn，不需新增完整 DiT 调用。root 给出的更好实现是：对同一目标时间 tq 的 query 分组，保持原 Q、全部参考 K 及其 RoPE 不动，仅构造 V_tq'(u,s)=V(tq,s)，在所有参考 u 上重复该时间切片。于是
+  Flash(Q_tq,K_R,V_tq')=Σ_(u,s)a_q(u,s)V(tq,s)=Σ_s c_q(s)V(tq,s)。
+再用 O+m_q[Flash(Q_tq,K_R,V_tq')−Flash(Q_tq,K_R,V_R)] 得到上述精确读出。当前六个 query 时间组可逐组处理，完全不必显式存储空间边缘矩阵或 N² attention；代价是附加 reference-only Flash 调用和重复/展开 V 的内存，须实际计时。不要同时重复 K：那会成为另一种同帧 attention，破坏这里的 native 空间边缘。m 和两个 reference-only readout 的归一化必须与现有实现一致。这里的等式先是实数算术结论，GPU bf16 的误差还需小张量与实际输出验收。
+
+可证明的结构性质与边界
+
+对任意按空间变化、但不随时间变化的 C(s)，持当前 Q/K 固定：
+  Σ_ts[b⁺−a]C(s)=0。
+这是对所有静态空间 value 场不改变读出的充要边缘条件，而不只是对本例 μ_s 恰巧正交。所有权重仍非负，位于原 V 的凸组合内；hard 情况只读取正确时刻，但继承 native 跨时间汇总的空间 footprint。若混合 α∈[0,1]，有效权重 (1−α)a+αb⁺ 也非负，首测固定 α=1。
+
+这不保证身份不泄漏：固定网格静态场不等于身份；人物移动时 native footprint 可能跨多个位置，放到单帧会读到背景/空位置。它保持的是一次算子的统计量，不是最终像素不变性。若 c_q(s) 对运动区域已不合适，此候选应失败并被拒绝。
+
+与 DC-split 的明确差异
+
+DC-split 的 b_eff 同样保 c_q(s)，但可能负权；候选一额外约束非负和指定 temporal marginal。例 a=[[.8,.1],[.05,.05]]，选择参考第0帧，均匀 w：
+  普通同帧 b=[[.888889,.111111],[0,0]]；
+  DC-split b_eff=[[.869444,.130556],[−.019444,.019444]]；
+  本候选 b⁺=[[.85,.15],[0,0]]。
+三者不是一个全局增益的重写。上述只用于说明非等价，不能代替真实 H3 张量差异和视频证据。
+
+与既有工作的区别及创新风险
+
+Vidu S2/WanAnimate2 的同帧 prior 已有；DIAL 的 logit bias 也可表达任何正的 b⁺/a 比。因此不能用“我操作概率/输出、它操作 logits”作新颖点。Sinkformer/FreeMix 的 OT 也早有。候选唯一值得验证的狭窄结构命题是：对 frozen reference-video attention，保留 native 的 per-query 空间边缘，在正确物理时间支持上作非负条件耦合，能比普通同帧或 signed DC-split 更好保留编辑内容而不失去时间校正。
+它与此前“跨 query 保 reference-frame coverage”不同：这里每个 query 内的时间×空间耦合，不控制跨 query 的 reference 预算；不应写成同一个 coverage 方法。
+
+追加精确先例反查（围绕保留 K、只重排/重复 V，而非仅泛搜 OT）：
+- Text2Video-Zero §3.3.2 Eq.8 将每帧 query 同时接到第一帧 K 和 V，公式 softmax(Q_k K_1ᵀ)V_1。它不是保留所有原 reference K、只把 V 在时间上重复；后者保留的是原多帧 K 决定的空间边缘。主来源 https://arxiv.org/html/2303.13439v1 。
+- FRESCO §3.4 Eq.7 用输入帧 Q/K 的 spatial self-similarity 先重排生成 Q，再做跨帧聚合和 flow-track temporal attention。核实官方 src/diffusion_hacked.py：237–247 行对 K 和 V 同步选择/重复同一个跨帧集合；328–358 行沿 flow 对 Q/K/V 同步 gather 后 attention。不是上述只重排 V、保原全部 K 的条件边缘算子。代码 https://github.com/williamyang1991/FRESCO/blob/736a7140f30d622ba8b62584445c8f6c2d9d9fe0/src/diffusion_hacked.py#L237 ，论文 https://arxiv.org/html/2403.12962v1 。
+- MoMo/Monkey See, Monkey Do §3.2 在骨骼 motion diffusion 中用 leader Q 读取 follower K/V，区分动作 outline 和 motifs；这证明“跨源 Q/K/V 解耦以控制动作时间结构”已有明确先例，但它无图像空间轴，也不保持原 query 的 reference 空间边缘。主来源 https://arxiv.org/html/2406.06508v1 。
+- HALO 上述真实代码保当前 Q/K、替换指定头的同位参考 V，是更接近的 value-only intervention。但它复制全部时间对应的 V，未把指定 tq 的 value 切片对所有参考 key 时间重复，也未施加 native 空间边缘约束。不能因不是完全同一行代码就称新；应以原 K 所保的空间对应信息是否必要来比较。
+- 检索词包括 video motion transfer attention value repeat/reference；video editing keys values broadcast/temporal；video diffusion values same frame；video attention spatial marginal。本轮未定位完整同式直接先例，不代表已穷尽；没有引用检索中的博客/自动综述作结论。
+
+因此下一轮最关键的近邻 ablation 还包括：只重复 V 与同时重复 K/V 的差别。若两者效果相同，native 全参考 K 所携带的空间对应并无已证必要性，候选很可能只是在不同实现里做普通同帧读取；若只重复 V 确有额外编辑保真收益，同时保有动作时间修正，才值得推进精确边缘约束这个结构故事。
+
+最小必要性对照
+
+固定 calls6..14、同 query 区间、层/头、seed、模型和噪声：
+- native/full-V 同帧/DC-split 使用已存在或正在跑的冻结结果。
+- 新 b⁺ 一臂；张量上证明非负、时间支持、空间边缘和总 mass 数值误差。
+- 若 b⁺ 有利，再加一个按实际校正 RMS 匹配的 full-V 或 DC-split 强度对照。只有减弱干预带来的改进，不支持结构必要性。
+- 至少一个正常例与第二 seed/第二源验证；不能只用发现例，而未生成的臂不能提前写入比较。
+- 若效果支持正向 claim，再固定一个关闭空间边缘约束的同帧对照；它实际就是已有强 baseline，不需要复杂新代码。
+
+拒绝与转向
+
+若 b⁺ 对真实张量近等于普通同帧；只改善很少且范数匹配后消失；人物位置/动作幅度明显变坏；或静态约束收益仅表现为复制 native 错姿态，则拒绝这一机制。保留 DC-split 诊断事实，转到候选二检验“变化信号的读写”，而不是继续调 Sinkhorn 温度和边缘预算。若 b⁺ 仅是可靠工程小改、没有组件必要性，就如实定位为推理方法改良，不能靠数学表述升格成已证明架构创新。
+
+五、候选二：参考时间边差分读取＋零 DC 的独立写回支路
+
+它改变什么
+
+把“某一帧的动态残差应该读到多少”改成“相邻物理时刻之间的变化应该如何传入目标时间边”。reference reader 作用于 edge value，writer 在目标时间轴恢复满足这些变化的最小校正，同时固定该校正的时间均值。读和写不再是逐 query 的独立原 V 重加权。
+
+定义
+
+固定一个连续 query 时间区间 I，保留其全部空间 patch；t_i、τ_k 用 H3 的真实物理 bin 时间，不用一个错误的统一×4 stride。为每个 head 和空间 y 独立写回。
+源边 value：
+  E_R(k,s)=[V(k+1,s)−V(k,s)]/[τ_(k+1)−τ_k] = D_R V。
+不先做光流补偿：将运动完全 warp 对齐后作差，在亮度恒常假设下可能把需要的位移信号消掉。当前 Eulerian 差分会含运动、遮挡、光照和相机变化，不能直接叫纯物理速度。
+
+为使最小实现确定、不另训练 Q/K，先从已有 reference conditional attention a 构造源边 reader。对目标边 (i,i+1)、同一个目标空间 y：
+  e_i(k,s)=a_(i,y)(k,s)+a_(i,y)(k+1,s)
+           +a_(i+1,y)(k,s)+a_(i+1,y)(k+1,s)；
+  A_e(i,k,s)=e_i(k,s)/Σ_(u,x)e_i(u,x)。
+这个定义保留非负性，端点参与次数不同的归一化必须真实计算，不能假定分母为4。
+
+令 H_i(k) 是目标物理区间 [t_i,t_(i+1)] 与参考区间 [τ_k,τ_(k+1)] 的重叠长度，或首次协议冻结的同边 indicator；
+  B_e(i,k,s) ∝ A_e(i,k,s) H_i(k)，逐目标边归一化。
+无可达重叠/支持时保持原输出并记录，不用任意 fallback 最近帧偷偷改方法。
+令 m_e(i,y)=[m_(i,y)+m_(i+1,y)]/2，边变化校正
+  r_i(y)=m_e(i,y) Σ_(k,s)[B_e−A_e](i,k,s) E_R(k,s)。
+
+用一个很小的目标时间积分器写回：
+  δ = argmin_(δ:Σ_i ω_i δ_i=0) ||D_Q δ − r||²_(W_e) + λ||δ||²_(W_q)
+  O_new(i,y)=O(i,y)+α δ_i(y)，只改预设 I 内的目标 video queries。
+其中 D_Q 是真实时间间隔上的一阶差分，ω 是冻结的物理时长权重。首次可固定 λ=0：连通的一维时间链上，每个 r 都能积分，零均值条件唯一确定常数项；无需反向传播或 latent optimization。实现为累积 Δt·r 后减加权均值。先不加入可学习参数、阈值或 online controller。若需 λ>0 或边界 δ=0，它们是新协议分支，需报告导数拟合残差，不能声称所有边差被精确保留。
+
+这里的 μ-free/static-null 性质发生在读入 E_R；零 DC 发生在写出 δ，两者不同。native 的 image/text/audio/其他 attention 计算仍保留；附加支路通过原参考 mass 定标，但不能宣称它是一个新的非负 softmax 或由 mass 守恒保证最终画质。它是线性 signed 输出支路。
+
+为何不是 DC-split 的重参数
+
+其算子形状是 H_Q M_e(B_e−A_e)D_R，而不是 M_q(B−A)(I−P_t)，H_Q 是受零 DC 约束的积分器。时间依赖的读取通常不与求差/积分交换。
+最小代数例（T=3，S=1，单位时间、均匀均值）：a 每行均匀、b=I、V=(0,1,4)。直接 DC 校正为(−5/3,−2/3,7/3)。若边 reader 为均匀 A_e、对齐 B_e=I，则 D_RV=(1,3)，边差校正 r=(−1,1)，零均值积分 δ=(1/3,−2/3,1/3)。两者不是标量倍数。正式实现必须再对实际 reader 定义用 CPU 小张量验证，不可只引用这个简化例。
+
+相反，若某种 reader/writer 特殊选择使 H_Q(B_e−A_e)D_R 恰好等于直接 DC 投影，应该在张量门直接标记退化，不再花 GPU 宣称新结构。若 E_R 为恒定速度场而各边 reader 只重排同一数值，r=0；本支路不能凭空区分这种表示内不可辨别的相位。它更适合含抬/放/反向等变化的短事件，而非所有运动。
+
+最接近先例与可争取的窄差异
+
+SMM 已保持两两特征差；VMC 已学习相邻 latent 残差；MOFT 已去 DC；DeT 已有时间残差分支；视频 gradient-domain 重建早已存在。这些基本组件不新。相较这些已核实方法，本候选要求在一个冻结 reference-conditioned DiT 的同一次前向中，以原 attention 为 edge reader、把源 signed increments 经过物理时间对应送到目标边，再用零 DC writer 回到 attention 输出；不调用生成 teacher、不重训/反传、不直接替换绝对源外观特征。
+可能的结构贡献是这一 reader/writer 配对是否解决“时间纠正同时扰动静态/编辑基底”的具体问题。仅有更复杂公式、不做组件必要性或只比 native，仍不足以构成贡献。本轮定向检索没有找到上述完整配对的直接实现；没有据此宣称没人做过。
+
+最小必要性对照
+
+先 CPU/张量门，不先跑一大片视频：
+1. E_R=0 时 δ 精确为0；alpha0 exact native fastpath；所有值有限；输出区间外改动为0；Σωδ 接近0。
+2. λ=0 时 D_Qδ=r 数值成立；非均匀时间坐标一致；源/目标 grid 不同需明确重叠定义。
+3. 实际张量确认不是 DC-split 的同一方向缩放；记录相对差、角度、校正能量。
+4. 不把 source/target hidden states 的物理时间差误写为采样 step 差，也不从 RoPE segment origin 推物理位移。
+
+第一组三到四个可解释臂：
+- 直接 DC-split（当前最小原语）。
+- 完整 edge-reader/zero-DC-writer。
+- 相同 edge r，但简单逐帧插值写回并减均值，匹配校正 RMS；检验积分 writer 是否必要。
+- 同样 writer，但源边差时间顺序置换、保持其范数分布；检验正确变化时间是否必要。该臂应先过数据/可见性门，拒判不算“错误方向没有效果”。
+若第二项确有收益，再补一个对直接 DC 输出做固定时间平滑、匹配频谱/范数的轻量基线。否则更平滑的画面可能解释全部改善，不能归功于边语义。
+固定 calls6..14 和已知事件区间以隔离结构；首次不把低噪声开启/停机日程优化混进去。最终至少第二 seed、第二素材、正常例和目标身份检查；校正均值为0不等于身份保真。
+
+拒绝与失败转向
+
+若 r 主要来自相机/背景、短事件没有可分辨 signed increments；只有更小范数或平滑在起作用；writer 在窗口边界造反向运动；第二 seed 不能维持动作形状；或 native 正常例被破坏，应拒绝这一具体 edge 算子，不继续搜索数十个 λ/滤波宽度挽救叙事。
+随后可把已知信号与执行器问题分开：若 E_R 有源事件信号而写回无可控响应，考虑小型可训练时间 adapter，但必须明确那是新训练方案，并与 DeT/SMA 比较；若 E_R 根本不是稳定运动表示，应先验证 pose/光流对应，不继续给特征差分冠以物理速度名称。该转向是下一轮协议，不是本稿声称已经实现。
+
+六、当前两臂出来后怎样决定，而不是事后找好故事
+
+A. dynamic 有效、static 无效，且差异超过范数匹配解释：支持“非恒定时间部分足以修正”的窄因果证据；优先候选一，检验更严格空间边缘与非负约束能否保住编辑质量，再考虑候选二。不能直接写“已经提取出纯动作”。
+B. static 有效、dynamic 无效：反驳“动态值残差是本例必要驱动”的简单叙事。说明位置/结构读出或目标姿态载体更重要；不继续强做 pure-motion storyline。可尝试候选一的空间约束是否妨碍有效结构读取，若妨碍则拒绝；不要预期它必胜。
+C. 两臂均有效：可能各自保留足够信息、或共享扰动/减强度效应；先查看 actual 范数、夹角、局部窗口与质量，而不是将其解释为两个独立新机制。组件必要性需要新的匹配对照。
+D. 两臂均无效、full 有效：可能需要静动联合读取，分拆本身破坏已学表示；候选二仍可作一次有清楚信号门的不同 reader/writer 测试，但不能把组合恢复full算创新。若真实 edge 信号门也失败，转向学习/表征任务，停止重复包装同一个 V 操作。
+
+最终允许的阶段性表述：我们正在把一个已确认有用但已有先例的同帧干预，变为可分辨的 reference-reader/writer 结构研究。两个候选有明确代数区别与失败条件，值得有界执行；目前尚不能说已有新架构、或已在所有现有工作之外找到空白。创新证明必须来自明确机制差异、组件必要性和独立样例质量，而不是文献没有同名公式。

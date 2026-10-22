@@ -38,7 +38,7 @@ def safe_path(path,subdir=None):
 def verify_gate(g,source,owner):
  c=config();p=info(source)
  require(g.get('schema')=='r119-native-runtime-gate-v1' and g.get('passed') is True,'Native gate not passed')
- require(g.get('source_id')==source and g.get('prompt_version')==p['prompt_version'],'source/prompt differs')
+ require(g.get('source_id')==source and g.get('prompt_version')==c['producer_gate_prompt_version'],'source/prompt differs')
  require(set(g.get('runs',{}))=={'native'},'Native-only receipt required')
  checks=g.get('checks');require(isinstance(checks,dict) and all(x is True for x in checks.values()),'failed actual check')
  require(all(checks.get(x) is True for x in REQUIRED_CHECKS),'required actual check missing')

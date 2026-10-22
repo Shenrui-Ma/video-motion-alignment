@@ -1,0 +1,30 @@
+H3 short-event pilot review renderer
+
+Run with the existing bundled Python (Pillow already installed):
+/Users/researcher/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 /Users/researcher/DevProjects/h3-short-event-pilot-20261013/scripts/render_review.py
+
+Open review/index.html locally. Re-run after downloading additional outputs.
+Reads source metadata in inputs/0*.json and clips in inputs/*.mp4.
+Recognizes {clip_id}_{a|b}_s{1|2}_00001_.mp4; excludes filenames containing benchmark.
+Other MP4 files (adaptive controls, prepared-source / VAE diagnostics) are listed separately.
+No model scores are created. Original inputs and outputs are never overwritten.
+
+Derivatives:
+- assets/: full decoded frame contact sheets, 30 frames per page, zero-based frame IDs.
+- derived/: SOURCE/A/B comparison at 24 FPS; same-frame-count quarter-speed at 6 FPS.
+- derived/*_event/: every frame in annotated event window plus six-frame margins.
+- manifest.json: exact files, hashes, frame counts, warnings, and rendering failures.
+Missing formal results appear as PENDING. A frame-count mismatch is conspicuous; comparison
+uses the longest sequence and labeled black panels for missing frames rather than trimming
+or repeating the last frame. FPS mismatches prevent misleading comparison rendering.
+
+Validation:
+--self-test used source copies in a temporary SYNTHETIC_RENDER_TEST directory, never in
+real outputs/. It tested three complete fixture groups, pending seed-2 groups, benchmark
+exclusion, a deliberately shortened 83-frame B copy, 107-frame comparison preservation,
+107-frame / 6-FPS quarter-speed output, and repeat-render cache reuse. Fixtures are deleted.
+See render_tool_test_report.json. These tests verify renderer behavior only, not H3 inference.
+Inline JavaScript parsed successfully with node; all current local HTML links resolved.
+A generated source contact sheet was visually inspected with frame labels.
+Browser-native multi-player sync is approximate; exact review uses numbered images and
+single-stream side-by-side MP4. No optical flow or intermediate image interpolation is used.

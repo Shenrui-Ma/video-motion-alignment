@@ -1,0 +1,11 @@
+R75 GPU0 CPU准备完成；当前root要求暂不启动。
+
+新GPU UUID：GPU-REDACTED；port8542。45文件新seal：1b1f867dc259a3729a44deddc944b4c60a2d3a68b03c3bfa476bf888f6f9098c。
+
+旧GPU1版本原45个封存文件和consumer代码/绑定已保存在本地与远端audit/gpu0_migration/before_gpu1。原远端ROOT_HANDOFF.txt尚未部署，明确记为not_present；本地旧文件已保留。
+
+封存变化5文件：runtime中设备UUID/index/profile，scientific_contract中一处设备文字，launch_remote/service/start_controller中仅行政临时目录改为root/temp_os。图、模型、输入、原始noise、采样参数与数值代码均未改变。精确diff在EXACT_DIFF.patch。
+
+本地与远端producer34项、consumer14项测试均通过。远端45个新seal文件和9个实际Comfy核心hash一致，原noise文件hash一致，tempfile实际写入root/temp_os通过。consumer运行时绑定读取实际gate与当前runtime，无GPU1硬编码；consumer代码SHA保持一致。
+
+未运行service/controller/GPU，admission仍false，无实际job/output/approval。根任务决定后续是否执行。

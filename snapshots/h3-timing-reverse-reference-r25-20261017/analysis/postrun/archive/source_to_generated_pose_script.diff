@@ -1,0 +1,11 @@
+--- old-source-b0eb
++++ frozen-generated-04c6
+@@ -144,7 +144,7 @@
+                 continue
+             raise RuntimeError(f'Existing output differs; use another directory or --force: {destination}')
+         started = time.monotonic()
+-        cap = cv2.VideoCapture(str(video))
++        cap = cv2.VideoCapture(str(video), cv2.CAP_FFMPEG, [cv2.CAP_PROP_N_THREADS, 1])
+         if not cap.isOpened():
+             raise RuntimeError(f'Cannot open {video}')
+         fps = float(cap.get(cv2.CAP_PROP_FPS))

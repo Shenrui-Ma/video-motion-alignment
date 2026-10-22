@@ -1,0 +1,26 @@
+RoPE 与时间引导：只读先例核对（2026-10-19）
+
+结论：参考/目标的位置重合、时间偏移及参考注意力调制已有直接先例，仅凭“重设参考时间 RoPE”这一宽泛描述不足以主张新颖性；但下述资料均未证明，无训练修改 H3 参考 RoPE 可以精确保留源视频的物理事件时间。本核对不裁定 R111/R112 的新颖性，不给出部署建议。
+
+1. Untwisting RoPE（arXiv v1，2026-02-04）
+RoPE 点积为 Σ_d q_dᵀR[(n−m)θ_d]k_d；方法按频段缩放参考 K：s_d=s_hf+(s_lf−s_hf)[d/(D/2−1)]^β，β=2，并沿去噪过程提高两端尺度。它改变的是 K 通道幅度，不是直接重写 θ；目标 Q/K 不变，参考注意力会改变。无需训练；证据是 Flux.1-dev 单流块的静态图像风格迁移、注意力可视化与用户研究。Flux 的时间分区未旋转，本文无视频时间控制验证。对“位置相撞导致复制”的机制重合很强，对动作时刻重定位只有间接启发。
+https://arxiv.org/html/2602.05013v1 （§3–6，式9–10）
+
+2. H3 aligned-ref gist（创建 2026-08-27；正文快照 e9d586a，2026-09-02）
+补丁把 driving-video 的位置设为 p_ref(i,h,w)=p_target(i,h,w)，复用目标时间/空间网格，且不推进 media clock；图像身份参考仍分离。训练与采样共用规则，control_latent_only 排除 guide 的 VLM 入口。位置操作本身可在推理表示，但同步/保真成功例来自配对 v2v LoRA 训练，不能当成未训练基座的验证。作者只展示四片段，承认两 checkpoint 步数、loss target、上游版本不同。它与“参考时间重新居中”几何上最接近；同时改变空间对齐/训练条件，尚未隔离时间平移本身。
+https://gist.github.com/alisson-anjos/b300f2b90e65cf85846519d78b660cd3/e9d586a5eb9fecd8018f544fa87a797e94072bae
+
+3. 指定 OpenReview PDF = Video-As-Prompt: Unified Semantic Control for Video Generation（VAP，ICLR 2026；arXiv 首发 2025-10-23）
+§3.4 用固定 Δ 把参考时间索引放在所有目标视频 token 之前，空间索引不变；可等价写 p_ref=(i−Δ,h,w)、p_tar=(i,h,w)，这里是解释性记号，原文未给 Δ 数值。目标是非像素对齐的语义迁移，故主动打破逐点对齐；这与 aligned-ref 的配对 v2v 目标不同。冻结主干、训练约 5B MoT expert，非 training-free。消融语义对齐分：同位置 68.98，时间+宽度偏移 69.05，完整方法 70.44；支撑其训练体系内的设计选择，不证明事件相位或接触时刻保真。OpenReview 直链受验证页阻挡，题名由官方会议页及同作者 arXiv 原文交叉确认。
+https://arxiv.org/html/2510.20888v1 （§3.3–3.4、§4.1、附录消融）
+https://proceedings.iclr.cc/paper_files/paper/2026/hash/ba8d1b46292c5e82cbfb3b3dc3b968af-Abstract-Conference.html
+原始入口：https://openreview.net/pdf/884af3007fa9aad2e43a03c0393339e158f1b084.pdf
+
+4. MiniMax-H3-Flow-Aligned-Regenerate（公开工程实现，e13bdfe，2026-10-17）
+主要是低/高分辨率在去噪坐标 t 的轨迹引导：x0_HR←x0_HR+λ(t)L[U(x0_LR(t))−x0_HR]；这里 flow 是生成流/去噪轨迹，不能解释成源视频物理光流或事件时间。另有独立 direction+temporal：由低分辨率 clean latent 的相邻帧局部余弦与双向一致性/唯一性门限构造 W，P_i=W(x0_HR,j)+U[R_i−W(R_j)]，用于时域细节一致性。该保守 correspondence/transport 思路与 R112 有概念重合；信号是 clean latent、操作域是预测 x0，R112 则用 attention V。README/研究日志属于工程自报，最终 D14 对照自报“无可见差异”，不是同行评审的有效性证据。
+https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/docs/ARCHITECTURE.md
+https://github.com/xmarre/MiniMax-H3-Flow-Aligned-Regenerate/blob/e13bdfe0d2a7970f05f0504ee092f3ae852a977d/docs/RESEARCH.md
+
+当前实验边界（依主任务提供的状态，未独立重跑）：R111 固定归一化参考空间边际 M_q(s)=Σ_t A_q(t,s)，读 V(τ,s)，O′=O+αm_q[Σ_s M_q(s)V(τ,s)−Σ_ts A_q(t,s)V(t,s)]；首条视频未保住内容/动作，守恒边际并非保真充分条件。待测 R112 固定原 QK/注意力质量，将参考 V 朝 query 时间移一 bin，并用冻结 mutual-cosine 空间对应和同 accepted-mask 固定坐标对照。二者干预的是 Value 读取，区别于上述位置相位/Key 调制；这一计算区别和任何正结果都不能单独构成新颖性结论。
+
+审计范围：仅检索、读取和保存本目录内资料；未改实验、运行时、配置或 inventory，未安装依赖、调用 GPU 或推理。源码/论文快照及检索错误保存在 sources/、source_manifest.json。

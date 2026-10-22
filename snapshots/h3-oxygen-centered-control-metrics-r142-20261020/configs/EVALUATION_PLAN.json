@@ -1,0 +1,156 @@
+{
+  "schema": "r142-pre-output-evaluation-plan-v1",
+  "historical_review": {
+    "file": "/Users/researcher/DevProjects/h3-oxygen-seed-replication-metrics-r113-host41-20261019/audit/full98_review/2026101703/REVIEW.json",
+    "sha256": "c98634f8db92b70c85b53ee55ec136f19b759ce74a3c4e096233affbfaf1287d"
+  },
+  "source_events": {
+    "file": "/Users/researcher/DevProjects/h3-oxygen-seed-replication-metrics-r113-host41-20261019/configs/PREREGISTERED_EVENTS.json",
+    "sha256": "e9795d28d617d5c8f97b23d0db80c3ee0637c3320baec4e8d6abdf75b38d1d84"
+  },
+  "producer_plan_snapshot": {
+    "file": "/Users/researcher/DevProjects/h3-oxygen-online-metrics-r133-20261020/design/PRE_AUTORUN_PLAN.txt",
+    "sha256": "fa04c31f61c900079cc284b0fdedc88e5a0471ed2b6e477c6d7c3cf8f8fac2e5"
+  },
+  "valid_frames": 98,
+  "fps": 24,
+  "events": [
+    {
+      "id": "hands_leave_lap",
+      "name": "双手明显离开膝部并向面罩靠拢",
+      "source_frames": [
+        42,
+        45
+      ],
+      "native_frames": [
+        57,
+        60
+      ],
+      "fixed_frames": [
+        42,
+        45
+      ],
+      "historical_note": "普通版55–56帧手仍近膝，57–60帧双手向杯靠拢；引导版42–45帧已做对应动作。",
+      "originalauto_frames": [
+        42,
+        45
+      ],
+      "centeredauto_frames": null,
+      "centeredauto_status": "NO_ACTUAL_OUTPUT"
+    },
+    {
+      "id": "grasp_yellow_mask",
+      "name": "双手明确握住黄色面罩部分",
+      "source_frames": [
+        48,
+        51
+      ],
+      "native_frames": [
+        62,
+        64
+      ],
+      "fixed_frames": [
+        48,
+        51
+      ],
+      "historical_note": "引导版47帧接触杯边，48–51帧双手握杯；普通版62–64帧握杯。模糊接触以区间保留。",
+      "originalauto_frames": [
+        48,
+        51
+      ],
+      "centeredauto_frames": null,
+      "centeredauto_status": "NO_ACTUAL_OUTPUT"
+    },
+    {
+      "id": "right_hand_raise",
+      "name": "解剖右手举带到上胸/脸侧区域",
+      "source_frames": [
+        69,
+        75
+      ],
+      "native_frames": [
+        84,
+        89
+      ],
+      "fixed_frames": [
+        69,
+        75
+      ],
+      "historical_note": "引导版与参考69–75帧右手由杯向上胸/脸侧移动；普通版到84–89帧才出现相同过渡。",
+      "originalauto_frames": [
+        68,
+        74
+      ],
+      "centeredauto_frames": null,
+      "centeredauto_status": "NO_ACTUAL_OUTPUT"
+    }
+  ],
+  "phase_pairs": [
+    [
+      "hands_leave_lap",
+      "grasp_yellow_mask"
+    ],
+    [
+      "grasp_yellow_mask",
+      "right_hand_raise"
+    ]
+  ],
+  "task_acceptance": [
+    "elderly woman identity",
+    "child and aircraft cabin retained",
+    "mask and grasp/raise action sequence retained",
+    "framing and unrequested changes checked over all98frames"
+  ],
+  "missing_event_policy": "null; no invented event time",
+  "third_event_semantics": "Third event is anatomical right hand raising strap toward upper chest/face side, not confirmed mask wearing. Intervals are manual-resolution ranges, not statistical confidence intervals.",
+  "new_auto_output_viewed": false,
+  "same_source_count_increment": 0,
+  "historical_seed": 2026101703,
+  "render_groups": [
+    [
+      "source",
+      "native",
+      "fixed",
+      "originalauto",
+      "centeredauto"
+    ]
+  ],
+  "captions": "black background with Chinese labels, same physical frame indices; no speed retiming",
+  "auto_runtime_audit": [
+    "all20step decisions incl UNKNOWN/no-candidate",
+    "ON and OFF decisions and reason",
+    "window/lag/confidence/gain",
+    "forward count20+ON and20Euler updates",
+    "same-current-state and RNG evidence at extra predictions",
+    "actual inputs/noise/condition bindings and prefix up to firstON",
+    "timing of H3/decoder/CPU pose and total",
+    "exact process and GPU release"
+  ],
+  "GPU_started_by_consumer": false,
+  "originalauto_review": {
+    "file": "/Users/researcher/DevProjects/h3-oxygen-centered-control-metrics-r142-20261020/historical/R138_REPORT_HANDOFF.json",
+    "sha256": "7520fb7bd7f2193fa9a0bbce8fd77db83ab0ffc60f3302ad5f582e914bd30432"
+  },
+  "static_pose_review": {
+    "predeclared": true,
+    "frame_range_inclusive": [
+      4,
+      19
+    ],
+    "keyframes": [
+      4,
+      10,
+      19
+    ],
+    "roles": [
+      "source",
+      "native",
+      "originalauto",
+      "centeredauto"
+    ],
+    "question": "Does the final centeredauto video worsen static pose preservation compared with source and originalauto?",
+    "guard_status": "Additional hypothesis; static pose discrepancy may matter",
+    "evidence_scope": "final_video_only",
+    "intermediate_pose_equals_final_pose_claim": false
+  }
+}

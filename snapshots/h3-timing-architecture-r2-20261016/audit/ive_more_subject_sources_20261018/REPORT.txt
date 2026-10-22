@@ -1,0 +1,116 @@
+IVEBench新增原片：源内容筛选，尚未生成
+
+这8条中仅1条适合直接优先扩展，3条各有用途限制；未凑足5条同等适合样本。此结论仅针对实际检查的8条，未宣称剩余600条全无合适样例。
+优先：long_0039。候补：long_0035、long_0060、short_0185。其余4条本轮不推荐。
+8份官方完整视频均已保留；没有制作裁片、没有修改推理或创建生产者。
+建议窗口采用原始有理PTS与半开区间；阶段描述来自抽帧查看，不能当逐帧精确标注。
+所有原指令保持原文。官方LFS SHA和大小、实际源SHA、全帧PTS、固定抽帧序号分别见metadata文件。
+去重：与R73/R80/R89/R88及之前12条没有相同已知原视频；short_0235与另外的short_0217、long_0046共用YouTube原片，不能重复计独立源；short_0362缺URL。
+
+long_0039 | 优先 | 25/1 fps | 356帧 | 14.24秒
+官方指令：Adjust the color of book to blue
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/long_0039.mp4
+SHA256：eab696d1555be316d9efad4e306c1209feff2967ef1f93cf3ee1a7c7c88d868e
+来源：{'source_name': '3249675', 'order_name': 'long_0039', 'type': 'long', 'url': 'https://videos.pexels.com/video-files/3249675/3249675-uhd_3840_2160_25fps.mp4', 'start frame': '', 'end_frame': ''}
+动作：前景女子把手从键盘移向橙色书，触碰书封，再拿起并打开。改书封颜色与保留这段动作直接兼容。
+约0.5–1.3秒：手离开键盘并伸向书。
+约1.3–2.9秒：手触书并调整抓握。
+约2.9–3.9秒：书抬起并打开，随后保持阅读。
+可见性：前景人物上半身、操作手与书清楚；背景有数位同事，须明确绑定前景书与人物。
+任务边界：只改运动中物体颜色，动作语义保留；背景人物不能混入主动作评估。
+建议窗口：[0, 6)秒；原帧0…149
+目前最适合新增的一条。
+
+long_0035 | 候补：手部操作 | 25/1 fps | 575帧 | 23.0秒
+官方指令：Remove the headphones from the DJ
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/long_0035.mp4
+SHA256：e0056acceb83780c31417e68fde308ecf8016db1a7c3a3b2c01ff7befbb4a512
+来源：{'source_name': '3196427-uhd_3840_2160_25fps', 'order_name': 'long_0035', 'type': 'long', 'url': 'https://videos.pexels.com/video-files/3196427/3196427-uhd_3840_2160_25fps.mp4', 'start frame': '', 'end_frame': ''}
+动作：双手拿起耳机并移出画面，随后手回到唱盘；两个可辨认阶段之间存在较长画外间隔。
+约5.0–6.6秒：抓住耳机并抬起，随后手与耳机离开画面。
+约6.6–10.1秒：双手主要在画外，动作不可判。
+约10.2–11.0秒：手回到设备并接触唱盘。
+可见性：主要可见腰部与双手，头部和肩肘不在画面；不适合现有人体双臂观察器。
+任务边界：官方任务删除被操作的耳机；可以检验剩余手部路径与返回唱盘时刻，但抓握接触语义会随物体删除改变。
+建议窗口：[5, 11)秒；原帧125…274
+可作手物操作扩展，动作在画外期间标为不可观测。
+
+long_0060 | 候补：逆光接触 | 25/1 fps | 644帧 | 25.76秒
+官方指令：Remove the cigarette from the scene
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/long_0060.mp4
+SHA256：5bd7b2965da355b8be330596f1b05f7ce65cc497a5fa04931f893c098f6a6c83
+来源：{'source_name': '4728104', 'order_name': 'long_0060', 'type': 'long', 'url': 'https://videos.pexels.com/video-files/4728104/4728104-uhd_3840_2160_25fps.mp4', 'start frame': '', 'end_frame': ''}
+动作：手带香烟靠近嘴部，停留后离开；逆光下手与脸边界可辨，肩肘细节很暗。
+约12.4–13.7秒：手向嘴靠近。
+约13.7–17.3秒：手在嘴附近停留。
+约17.3–18.4秒：手开始离开嘴。
+可见性：人物侧面上半身可见，强逆光形成剪影；手到嘴距离可人工判断，姿态自动测量可靠性待测。
+任务边界：官方删除香烟，保留身体路径可以评估；烟雾和被删除物体本身不宜作时间误差依据。
+建议窗口：[62/5, 92/5)秒；原帧310…459
+动作转折少，优先级低于书本案例。
+
+short_0185 | 候补：未编辑人物动作 | 24/1 fps | 100帧 | 4.166667秒
+官方指令：Replace the character lying on the floor with a small animated teddy bear
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/short_0185.mp4
+SHA256：9cf1e1cd21f89dcdb907996a9f828dc7fc8c40299a0ea6ff62ed846ab8e9a606
+来源：{'source_name': '7c2161f9-b0dd-4184-b062-aba05355fae3', 'order_name': 'short_0185', 'type': 'short', 'url': 'https://www.youtube.com/watch?v=AXrxAG-SmbM', 'start frame': '2596.0', 'end_frame': '2696.0'}
+动作：中间站立角色多次抬落手臂，末段拿到音响；官方要替换的是前景趴地角色，该角色大部分时间静止。
+约0–3.0秒：中间角色多次抬落手臂，旁人也有小幅摆动。
+约3.2–3.8秒：中间角色抬手接住/拿到音响。
+约3.9–4.17秒：卡通特效与表情变化。
+可见性：多角色动画；站立角色手臂可见，被替换的趴地角色手臂大多不可见。
+任务边界：可评估局部替换后其余角色动作是否保留；不能作为被替换主体自身运动继承的直接证据。
+建议窗口：[0, 25/6)秒；原帧0…99
+保留为原场景中未编辑动作保持的扩展任务。
+
+long_0088 | 本轮不推荐 | 25/1 fps | 365帧 | 14.6秒
+官方指令：Replace the mug with a book
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/long_0088.mp4
+SHA256：6d520e44b24654b54b2572df7e5c5d4af2819f53e48a6c1f14b4f2de1248fea2
+来源：{'source_name': '6686511', 'order_name': 'long_0088', 'type': 'long', 'url': 'https://videos.pexels.com/video-files/6686511/6686511-uhd_3840_2160_25fps.mp4', 'start frame': '', 'end_frame': ''}
+动作：举杯、嘴边停留、放下杯子的阶段清楚，但官方任务把杯子替换成书。
+约2–4秒：举杯至嘴。
+约4–10.7秒：嘴边停留。
+约11–12.7秒：杯子降低。
+可见性：女子上半身与杯子可见。
+任务边界：杯子换书会改变饮用动作的合理性，动作变化难直接解释成不受控时序错误。
+本轮不建议制作推理窗口。
+主要拒绝原因是任务与保留饮用动作存在语义冲突。
+
+short_0039 | 本轮不推荐 | 25/1 fps | 70帧 | 2.8秒
+官方指令：Replace the seagull with a pelican
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/short_0039.mp4
+SHA256：0fbf299f34dd7c394e53f564b7fb7e65da37bd172426233af14fdab2e1755d18
+来源：{'source_name': '2430774-uhd_3840_2160_25fps', 'order_name': 'short_0039', 'type': 'short', 'url': 'https://videos.pexels.com/video-files/2430774/2430774-uhd_3840_2160_25fps.mp4', 'start frame': '', 'end_frame': ''}
+动作：海鸥从低头位置抬头，随后主要站立和小幅转头；没有连续多次动作切换。
+约0–0.8秒：低头后抬头。
+约0.8–2.8秒：主要站立。
+可见性：全身鸟类可见，现有人体观察器不适用。
+任务边界：海鸥换鹈鹕伴随明显头喙形状变化，应另设计非人体评估。
+本轮不建议制作推理窗口。
+动作密度不足，暂不作为当前扩展。
+
+short_0235 | 本轮不推荐 | 30000/1001 fps | 112帧 | 3.737067秒
+官方指令：Change the white sea otter to green
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/short_0235.mp4
+SHA256：b7b39a9d771f32364106b1a08341f661384704c4e0bbcc397404786e53e004fc
+来源：{'source_name': 'bd7411bd-4d61-43ed-9e9a-14b632e4b113', 'order_name': 'short_0235', 'type': 'short', 'url': 'https://www.youtube.com/watch?v=CqE9csKLHAU', 'start frame': '6980.0', 'end_frame': '7092.0'}
+动作：海獭漂浮并小幅梳理毛发，手爪与脸附近运动较细，水体带来整体漂移。
+约0–3.7秒：细小梳理和转头，缺少清楚的大幅阶段变化。
+可见性：手爪部分被毛发遮挡，非人体。
+任务边界：可以作动物毛色编辑，但难用于当前明确手臂阶段与时序评价。
+本轮不建议制作推理窗口。
+动作幅度和可见性不足；且与short_0217/long_0046属于同一YouTube原视频。
+
+short_0362 | 本轮不推荐 | 25/1 fps | 67帧 | 2.68秒
+官方指令：Change the book with a blue cover to a red cover
+源：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/ive_more_subject_sources_20261018/sources/short_0362.mp4
+SHA256：0a14daaa993620d0c78405ce0f79bf0379c9482703fa3e8c6e4c65351176df62
+来源：{'source_name': 'part_063_b2_05_b205d97c21ee1901af2fd56c744992d4', 'order_name': 'short_0362', 'type': 'short', 'url': '', 'start frame': '', 'end_frame': ''}
+动作：人物低头阅读，蓝色书封和手的位置基本保持，未见清楚翻页或举落阶段。
+约0–2.68秒：头部轻微变化，书与手大体静止。
+可见性：两位人物上半身可见，视频分辨率较低。
+任务边界：改书封颜色任务清楚，但源动作不足以检验明显时序偏移。
+本轮不建议制作推理窗口。
+动作过少；官方映射缺少URL，独立原视频身份仅能按source_name登记。
+

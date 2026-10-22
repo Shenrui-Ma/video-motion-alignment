@@ -1,0 +1,147 @@
+--- R92/scripts/bind_execution.py
++++ R93/scripts/bind_execution.py
+@@ -1,4 +1,4 @@
+-"""Read-only binding to root's actual R92 STARTED service generation."""
++"""Read-only binding to root's actual R93 STARTED service generation."""
+ import argparse,time
+ from common import *
+ from remote import read_paths
+@@ -14,7 +14,7 @@
+  dest=ROOT/'audit/EXECUTION_BINDING.json'
+  if dest.exists():
+   old=read(dest);require(old['owner']==owner and old['attempt']==attempt and old['producer_seal_sha256']==c['producer_seal_sha256'],'different binding already exists');return bound(dest)
+- save(dest,{'schema':'r92-native-media-execution-binding-v1','producer_seal_sha256':c['producer_seal_sha256'],'owner':owner,'attempt':attempt,'root_receipts':data,'bound_unix':time.time(),'scope':'Read-only CPU media; retrospective completed output permitted after exact service exits'})
++ save(dest,{'schema':'r93-native-media-execution-binding-v1','producer_seal_sha256':c['producer_seal_sha256'],'owner':owner,'attempt':attempt,'root_receipts':data,'bound_unix':time.time(),'scope':'Read-only CPU media; retrospective completed output permitted after exact service exits'})
+  return bound(dest)
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--attempt',required=True);a=p.parse_args();print(json.dumps(bind(a.attempt)))
+--- R92/scripts/collect_native.py
++++ R93/scripts/collect_native.py
+@@ -33,7 +33,7 @@
+  verify_source_bytes(root/p['source']['file'],p['source']['sha256'])
+  verify_small_evidence(staging,source,s['binding']['owner'],g)
+  again=status(source);require(again['status']=='PASSED_GATE' and again['gate']['sha256']==s['gate']['sha256'],'gate/service changed during reads')
+- save(staging/'COLLECTION.json',{'schema':'r92-native-media-intake-v1','source_id':source,'execution_binding_sha256':sha(ROOT/'audit/EXECUTION_BINDING.json'),'gate_sha256':s['gate']['sha256'],'files':{x.name:sha(x) for x in staging.iterdir() if x.is_file()},'extra_binding_jsons':extra,'full_output_frames':p['geometry']['frames'],'display_valid_frames':p['valid_frames'],'display_fps':24,'crop_xywh':p['crop_xywh'],'GPU_started':False,'mode':'Native-only'})
++ save(staging/'COLLECTION.json',{'schema':'r93-native-media-intake-v1','source_id':source,'execution_binding_sha256':sha(ROOT/'audit/EXECUTION_BINDING.json'),'gate_sha256':s['gate']['sha256'],'files':{x.name:sha(x) for x in staging.iterdir() if x.is_file()},'extra_binding_jsons':extra,'full_output_frames':p['geometry']['frames'],'display_valid_frames':p['valid_frames'],'display_fps':24,'crop_xywh':p['crop_xywh'],'GPU_started':False,'mode':'Native-only'})
+  dest.parent.mkdir(exist_ok=True);staging.rename(dest);return bound(dest/'COLLECTION.json')
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--source',choices=SOURCES,required=True);p.add_argument('--status',action='store_true');a=p.parse_args();print(json.dumps(status(a.source) if a.status else collect(a.source)))
+--- R92/scripts/common.py
++++ R93/scripts/common.py
+@@ -1,8 +1,8 @@
+-"""Validate only the actual R92 Native receipt and its media evidence."""
++"""Validate only the actual R93 Native receipt and its media evidence."""
+ import hashlib,json,os
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-SOURCES=('long_0047','long_0123','long_0167','long_0173','long_0174')
++SOURCES=('short_0370','long_0163','long_0059','long_0081','short_0203')
+ REQUIRED_CHECKS=('producer_seal','actual_runtime_device','native_history','native_service','native_shared_conditions','native_actual_execution_counts','native_actual_layout','native_sampled_finite','native_actual_noise_cache')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+@@ -32,7 +32,7 @@
+ 
+ def verify_gate(g,source,owner):
+  c=config();p=info(source)
+- require(g.get('schema')=='r92-native-runtime-gate-v1' and g.get('passed') is True,'Native gate not passed')
++ require(g.get('schema')=='r93-native-runtime-gate-v1' and g.get('passed') is True,'Native gate not passed')
+  require(g.get('source_id')==source and g.get('prompt_version')==p['prompt_version'],'source/prompt differs')
+  require(set(g.get('runs',{}))=={'native'},'Native-only receipt required')
+  checks=g.get('checks');require(isinstance(checks,dict) and all(x is True for x in checks.values()),'failed actual check')
+@@ -41,6 +41,7 @@
+  require(g.get('runtime_profile')==read(ROOT/'configs/producer_runtime.json'),'runtime content differs')
+  require(g.get('service_owner')=={'pid':owner['pid'],'identity':owner['identity']},'Native service generation differs')
+  r=g['runs']['native'];require(r.get('run_id')==p['run_id'],'run differs')
++ require(r.get('task_scope')==p['task_scope'] and r.get('evaluation_scope')==p['evaluation_scope'],'task/full-source/excerpt scope differs')
+  require(r.get('NFE')==20 and r.get('Euler_updates')==20 and r.get('routed_blocks')==0,'Native execution differs')
+  require(r.get('valid_frames')==p['valid_frames'] and r.get('evaluation_crop_xywh')==p['crop_xywh'],'physical interval/crop differs')
+  v=r['video'];safe_path(v['file'],'output');s=v['properties'];geom=p['geometry']
+--- R92/scripts/consume_native.py
++++ R93/scripts/consume_native.py
+@@ -9,6 +9,6 @@
+  p=argparse.ArgumentParser();p.add_argument('--source',choices=SOURCES,required=True);p.add_argument('--attempt',required=True);p.add_argument('--ffmpeg',default='/opt/homebrew/bin/ffmpeg');p.add_argument('--ffprobe',default='/opt/homebrew/bin/ffprobe');p.add_argument('--font');p.add_argument('--output',type=Path);a=p.parse_args()
+  bind(a.attempt);s=status(a.source)
+  if s['status']!='PASSED_GATE':print(json.dumps(s));return 3
+- collected=collect(a.source);out=a.output or Path('/Users/researcher/Downloads')/f'H3_R92_{a.source}_普通编辑预览_20261018.html';result=render(a.source,a.ffmpeg,a.ffprobe,choose_font(a.font),out)
++ collected=collect(a.source);out=a.output or Path('/Users/researcher/Downloads')/f'H3_R93_{a.source}_普通编辑预览_20261018.html';result=render(a.source,a.ffmpeg,a.ffprobe,choose_font(a.font),out)
+  print(json.dumps({'status':'NATIVE_MEDIA_READY','source_id':a.source,'collection':collected,**result},ensure_ascii=False));return 0
+ if __name__=='__main__':raise SystemExit(main())
+--- R92/scripts/render_native.py
++++ R93/scripts/render_native.py
+@@ -54,14 +54,17 @@
+  require(m['mode']=='Native-only' and m['columns']==['source','native'],'presentation is not Native-only')
+  for v in m['videos']+m['contact_sheets']:require(sha(dest/v['file'])==v['sha256'],'presentation media changed')
+  video=m['videos'][0];uri='data:video/mp4;base64,'+base64.b64encode((dest/video['file']).read_bytes()).decode();task=html.escape(p['original_task']['edit_prompt']);prompt=html.escape(p['prompt']);pictures=''.join('<details><summary>'+str(len(x['physical_frame_indices']))+'个同帧时刻</summary><img src="data:image/jpeg;base64,'+base64.b64encode((dest/x['file']).read_bytes()).decode()+'"></details>' for x in m['contact_sheets'])
+- text=f'''<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>R92 {source} 普通编辑预览 Native-only</title><style>body{{background:#111;color:#eee;font:17px system-ui;margin:28px auto;max-width:1700px;padding:0 16px}}video,img{{width:100%;height:auto}}h1{{font-size:25px}}p{{line-height:1.65}}details{{margin:16px 0}}pre{{white-space:pre-wrap;font:14px system-ui}}</style><h1>R92 {source} · 普通编辑预览（Native-only）</h1><p>任务：{task}</p><p>两栏为参考视频与普通编辑。展示完整有效{p['valid_frames']}帧、24fps，使用相同帧号与统一裁剪。完整生成{p['geometry']['frames']}帧另行归档。原始视频时间映射保存在 provenance。当前页面供检查编辑任务与动作；引导结果尚未纳入。</p><video controls loop playsinline src="{uri}"></video>{pictures}<details><summary>实际提示词</summary><pre>{prompt}</pre></details><p>IVEBench素材片段探索，固定5个来源；本页仅展示这一条已通过实际Native门的普通编辑。完整实验分母及guide/skip由生产台账保留。</p></html>'''
++ scope=('官方完整原片' if p['evaluation_scope']=='official_source_full_extent' else '官方素材的六秒片段')
++ group=('独立风格编辑扩展' if p['task_scope']=='style_extension' else '主体或动作相关物体编辑')
++ clip=p['clip'];source_range=f"原片帧 {clip['start_frame']}–{clip['end_frame_inclusive']}（含末帧）"
++ text=f'''<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>R93 {source} 普通编辑预览 Native-only</title><style>body{{background:#111;color:#eee;font:17px system-ui;margin:28px auto;max-width:1700px;padding:0 16px}}video,img{{width:100%;height:auto}}h1{{font-size:25px}}p{{line-height:1.65}}details{{margin:16px 0}}pre{{white-space:pre-wrap;font:14px system-ui}}</style><h1>R93 {source} · 普通编辑预览（Native-only）</h1><p>任务：{task}</p><p>{group}；{scope}，{source_range}。</p><p>两栏为参考视频与普通编辑。展示完整有效{p['valid_frames']}帧、24fps，使用相同帧号与统一裁剪。完整生成{p['geometry']['frames']}帧另行归档。原始视频时间映射保存在 provenance。当前页面供检查编辑任务与动作；引导结果尚未纳入。</p><video controls loop playsinline src="{uri}"></video>{pictures}<details><summary>实际提示词</summary><pre>{prompt}</pre></details><p>R93固定5个来源：4条主体或物体编辑与1条独立风格编辑扩展，其中3条为完整原片、2条为六秒片段。本页展示已通过实际Native门的普通编辑；全部来源及guide/skip结果由生产台账保留。</p></html>'''
+  output=Path(output);output.parent.mkdir(parents=True,exist_ok=True);tmp=output.with_name(output.name+'.tmp');tmp.write_text(text);tmp.replace(output);return bound(output)
+ 
+ def render(source,ffmpeg,ffprobe,font,output):
+  validate_static();verify_intake(source);p=info(source);dest=ROOT/'showcase'/source
+  if not dest.exists():
+   staging=ROOT/'audit/render_staging'/f'{source}_{time.time_ns()}';staging.mkdir(parents=True);inputs=[ROOT/p['source']['file'],ROOT/'incoming'/source/'native.mp4'];media=render_files(inputs,staging,p['geometry']['frames'],p['valid_frames'],font,ffmpeg,ffprobe)
+-  save(staging/'PRESENTATION.json',{'schema':'r92-native-only-presentation-v1','source_id':source,'mode':'Native-only','columns':['source','native'],'gate':bound(ROOT/'incoming'/source/'NATIVE_RUNTIME_GATE.json'),'collection':bound(ROOT/'incoming'/source/'COLLECTION.json'),'inputs':[bound(x) for x in inputs],'timeline':{'fps':24,'valid_frames':p['valid_frames'],'total_frames':p['geometry']['frames'],'crop_xywh':p['crop_xywh'],'provenance':p['provenance']},'original_task':p['original_task'],'prompt_version':p['prompt_version'],'fixed_source_denominator':5,'quality_review':'PENDING visual review','method':config()['method'],**media});dest.parent.mkdir(exist_ok=True);staging.rename(dest)
++  save(staging/'PRESENTATION.json',{'schema':'r93-native-only-presentation-v1','source_id':source,'mode':'Native-only','columns':['source','native'],'gate':bound(ROOT/'incoming'/source/'NATIVE_RUNTIME_GATE.json'),'collection':bound(ROOT/'incoming'/source/'COLLECTION.json'),'inputs':[bound(x) for x in inputs],'timeline':{'fps':24,'valid_frames':p['valid_frames'],'total_frames':p['geometry']['frames'],'crop_xywh':p['crop_xywh'],'provenance':p['provenance']},'original_task':p['original_task'],'task_scope':p['task_scope'],'evaluation_scope':p['evaluation_scope'],'source_clip':p['clip'],'prompt_version':p['prompt_version'],'fixed_source_denominator':5,'quality_review':'PENDING visual review','method':config()['method'],**media});dest.parent.mkdir(exist_ok=True);staging.rename(dest)
+  else:
+   m=read(dest/'PRESENTATION.json');require(m['collection']['sha256']==sha(ROOT/'incoming'/source/'COLLECTION.json'),'render bound to different intake')
+  return {'presentation':bound(dest/'PRESENTATION.json'),'html':publish(source,dest,output)}
+--- R92/tests/media_fixture.py
++++ R93/tests/media_fixture.py
+@@ -18,5 +18,5 @@
+ assert left[0]>240 and left[1]<10 and left[2]<10
+ assert right[2]>240 and right[0]<10 and right[1]<10
+ assert max(bottom)<10
+-report={'scope':'SYNTHETIC FIXTURE ONLY. Two flat color inputs, no model inference. Not actual R92 results.','passed':True,'total_fixture_frames':20,'valid_fixture_frames':18,'central_pixels':{'source_left':left,'native_right':right,'bottom_caption_canvas':bottom},'media':result}
++report={'scope':'SYNTHETIC FIXTURE ONLY. Two flat color inputs, no model inference. Not actual R93 results.','passed':True,'total_fixture_frames':20,'valid_fixture_frames':18,'central_pixels':{'source_left':left,'native_right':right,'bottom_caption_canvas':bottom},'media':result}
+ (O/'FIXTURE_RESULT.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n');print(json.dumps({'fixture_passed':True,'file':str(O/'FIXTURE_RESULT.json')}))
+--- R92/tests/test_consumer.py
++++ R93/tests/test_consumer.py
+@@ -8,13 +8,24 @@
+ 
+ class GateTests(unittest.TestCase):
+  def setUp(self):
+-  self.source='long_0047';p=c.info(self.source);conf=c.config();self.owner={'pid':123,'identity':{'uid':1016,'start_ticks':'42','cmdline':'exact'},'gpu_uuid':'g','port':1}
+-  run=p['run_id'];self.g={'schema':'r92-native-runtime-gate-v1','passed':True,'source_id':self.source,'prompt_version':p['prompt_version'],'runs':{'native':{'run_id':run,'NFE':20,'Euler_updates':20,'routed_blocks':0,'valid_frames':p['valid_frames'],'evaluation_crop_xywh':p['crop_xywh'],'video':{'file':conf['producer_remote']+'/output/native.mp4','sha256':'a'*64,'properties':{'width':1312,'height':736,'nb_read_frames':str(p['geometry']['frames']),'avg_frame_rate':'24/1'}},'job_sha256':'b'*64,'history_sha256':'c'*64,'binding_artifacts':{f'configs/graphs/{run}.json':p['graph_sha256'],f'logs/{run}_job.json':'b'*64,f'logs/{run}_history.json':'c'*64}}},'checks':dict.fromkeys(c.REQUIRED_CHECKS,True),'runtime_profile_sha256':conf['producer_runtime_sha256'],'runtime_profile':c.read(c.ROOT/'configs/producer_runtime.json'),'service_owner':{'pid':123,'identity':self.owner['identity']}}
++  self.source='short_0370';p=c.info(self.source);conf=c.config();self.owner={'pid':123,'identity':{'uid':1016,'start_ticks':'42','cmdline':'exact'},'gpu_uuid':'g','port':1}
++  run=p['run_id'];self.g={'schema':'r93-native-runtime-gate-v1','passed':True,'source_id':self.source,'prompt_version':p['prompt_version'],'runs':{'native':{'run_id':run,'task_scope':p['task_scope'],'evaluation_scope':p['evaluation_scope'],'NFE':20,'Euler_updates':20,'routed_blocks':0,'valid_frames':p['valid_frames'],'evaluation_crop_xywh':p['crop_xywh'],'video':{'file':conf['producer_remote']+'/output/native.mp4','sha256':'a'*64,'properties':{'width':1312,'height':736,'nb_read_frames':str(p['geometry']['frames']),'avg_frame_rate':'24/1'}},'job_sha256':'b'*64,'history_sha256':'c'*64,'binding_artifacts':{f'configs/graphs/{run}.json':p['graph_sha256'],f'logs/{run}_job.json':'b'*64,f'logs/{run}_history.json':'c'*64}}},'checks':dict.fromkeys(c.REQUIRED_CHECKS,True),'runtime_profile_sha256':conf['producer_runtime_sha256'],'runtime_profile':c.read(c.ROOT/'configs/producer_runtime.json'),'service_owner':{'pid':123,'identity':self.owner['identity']}}
+  def reject(self,edit):
+   g=copy.deepcopy(self.g);edit(g)
+   with self.assertRaises(ValueError):c.verify_gate(g,self.source,self.owner)
++ def test_scope_mismatch_rejected(self):self.reject(lambda g:g['runs']['native'].update(task_scope='style_extension'))
++ def test_excerpt_mismatch_rejected(self):self.reject(lambda g:g['runs']['native'].update(evaluation_scope='IVEBench素材片段探索'))
++ def test_missing_scope_rejected(self):self.reject(lambda g:g['runs']['native'].pop('evaluation_scope'))
++ def test_exact_five_registered_domains(self):
++  ps=[c.info(x) for x in c.SOURCES]
++  self.assertEqual([p['valid_frames'] for p in ps],[89,144,144,120,91]);self.assertEqual([p['geometry']['frames'] for p in ps],[90,158,158,124,107])
++  self.assertEqual(sum(p['evaluation_scope']=='official_source_full_extent' for p in ps),3);self.assertEqual([p['source_id'] for p in ps if p['task_scope']=='style_extension'],['short_0203'])
++ def test_all_registered_native_gate_shapes(self):
++  for source in c.SOURCES:
++   with self.subTest(source=source):
++    p=c.info(source);g=copy.deepcopy(self.g);run=p['run_id'];g['source_id']=source;r=g['runs']['native'];r.update(run_id=run,task_scope=p['task_scope'],evaluation_scope=p['evaluation_scope'],valid_frames=p['valid_frames'],binding_artifacts={f'configs/graphs/{run}.json':p['graph_sha256'],f'logs/{run}_job.json':'b'*64,f'logs/{run}_history.json':'c'*64});r['video']['properties']['nb_read_frames']=str(p['geometry']['frames']);c.verify_gate(g,source,self.owner)
+  def test_actual_native_schema(self):self.assertIs(c.verify_gate(self.g,self.source,self.owner),self.g)
+- def test_no_pair_substitution(self):self.reject(lambda g:g.update(schema='r92-paired-runtime-gate-v1'))
++ def test_no_pair_substitution(self):self.reject(lambda g:g.update(schema='r93-paired-runtime-gate-v1'))
+  def test_no_third_column(self):self.reject(lambda g:g['runs'].update(forced=g['runs']['native']))
+  def test_failed_gate(self):self.reject(lambda g:g.update(passed=False))
+  def test_missing_required_check(self):self.reject(lambda g:g['checks'].pop('native_actual_noise_cache'))
+@@ -22,7 +33,7 @@
+  def test_new_unknown_failure_check(self):self.reject(lambda g:g['checks'].update(extra=False))
+  def test_generation_changed(self):self.reject(lambda g:g['service_owner']['identity'].update(start_ticks='43'))
+  def test_runtime_changed(self):self.reject(lambda g:g.update(runtime_profile_sha256='0'*64))
+- def test_wrong_source(self):self.reject(lambda g:g.update(source_id='long_0123'))
++ def test_wrong_source(self):self.reject(lambda g:g.update(source_id='long_0163'))
+  def test_wrong_prompt(self):self.reject(lambda g:g.update(prompt_version='P0'))
+  def test_guidance_claim_rejected(self):self.reject(lambda g:g['runs']['native'].update(routed_blocks=450))
+  def test_wrong_valid_domain(self):self.reject(lambda g:g['runs']['native'].update(valid_frames=107))
+@@ -59,7 +70,7 @@
+ class EvidenceTests(unittest.TestCase):
+  def test_actual_job_history_and_output_hash(self):
+   with tempfile.TemporaryDirectory() as d:
+-   path=Path(d);source='long_0047';p=copy.deepcopy(c.info(source));owner={'pid':123,'identity':{'uid':1016,'start_ticks':'42','cmdline':'exact'}};graph={'5':{'class_type':'Text','inputs':{'prompt':'SYNTHETIC TEST ONLY'}}};(path/'native_graph.json').write_text(json.dumps(graph));p['graph_sha256']=c.sha(path/'native_graph.json');(path/'native.mp4').write_bytes(b'SYNTHETIC NONMEDIA EVIDENCE FIXTURE')
++   path=Path(d);source='short_0370';p=copy.deepcopy(c.info(source));owner={'pid':123,'identity':{'uid':1016,'start_ticks':'42','cmdline':'exact'}};graph={'5':{'class_type':'Text','inputs':{'prompt':'SYNTHETIC TEST ONLY'}}};(path/'native_graph.json').write_text(json.dumps(graph));p['graph_sha256']=c.sha(path/'native_graph.json');(path/'native.mp4').write_bytes(b'SYNTHETIC NONMEDIA EVIDENCE FIXTURE')
+    job={'status':'success','name':p['run_id'],'service_pid':123,'service_identity':owner['identity'],'graph_sha256':p['graph_sha256'],'prompt_id':'fixture-prompt'}
+    history={'status':{'completed':True,'status_str':'success'},'prompt':[0,'fixture-prompt',graph],'outputs':{'14':{'images':[{'filename':'test.mp4','subfolder':'','type':'output'}]}}};g={'runs':{'native':{'video':{'file':c.config()['producer_remote']+'/output/test.mp4','sha256':c.sha(path/'native.mp4')}}}}
+    (path/'native_job.json').write_text(json.dumps(job));(path/'native_history.json').write_text(json.dumps(history))

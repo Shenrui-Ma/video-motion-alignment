@@ -1,0 +1,24 @@
+Operator candidate screen, 2026-10-17. Read-only literature work during R27 live. No new operator selected or run.
+
+A possible balanced temporal reference-attention transport was considered as a way to constrain aggregate frame reads while correcting local timing. Generic Sinkhorn normalization and attention transport are already established. A new temporal use would need an explicit failure mechanism and matched controls; no novelty follows from adding Sinkhorn.
+
+Sinkformers: https://arxiv.org/abs/2110.11773
+Primary abstract inspected. Doubly stochastic attention is established. Do not describe row/column normalization as a new architecture principle.
+
+ASAG: https://arxiv.org/html/2511.07499v1, Methods Eqs12-13/Algorithms1-2; published https://ojs.aaai.org/index.php/AAAI/article/download/37488/41450
+Primary methods inspected. It reverses query-key similarity transport cost to construct a deliberately degraded attention branch, then guides with original minus degraded prediction. The paper explicitly connects softmax and Sinkhorn. This occupies training-free diffusion guidance with an OT attention operator. The displayed Algorithm1 loop inequality appears inconsistent with its initialized infinite delta; implementation not inspected, no claim about executable behavior.
+
+STORM (spatial, not the video-LLM paper of the same acronym): https://arxiv.org/html/2503.22168v1, sections4.2-4.4
+Primary methods inspected. Object cross-attention maps are treated as distributions; text spatial relations define target positions and transport cost, then latent gradient updates improve layout. Generic attention-map transport for controllability is occupied. A physical-time reference-video mapping is a narrower task distinction, with usefulness and novelty still unproven.
+
+HALO: Controlling Motion Transfer in Diffusion Transformers via Attention Heads, https://arxiv.org/abs/2607.11081
+Official code/README inspected: https://github.com/SunYJ-hxppy/HALO-Official-code
+The authors identify motion heads using cross-frame correspondence and structure heads with low entropy. Semantic DIFT correspondences refine displacement; selected structural heads receive reference features. README specifies CogVideoX5B/2B, SD2.1 DIFT, fixed guidance range[50,38],50samplingsteps,5optimizationsteps,structure blocks15..26. This makes generic motion-head selection or entropy-based injection existing methods. Repository executable files need a pinned code audit before baseline deployment; no local installation/run occurred.
+
+QWERTY: https://arxiv.org/abs/2607.01869
+Primary abstract inspected only. User warps/optical flow transform a frame-invariant semantic query subspace; warped predictions provide self-guidance for latent optimization. Exact formulas/code remain to be read. Generic query warping and original-versus-warped self-guidance are not new.
+
+AQUA official project https://sunyj-hxppy.github.io/AQUA/
+Project methodology inspected only. Adaptive reference/target query fusion and multi-frame aggregation address reference bias/flicker. The later Query-Aligned Selective Injection title on author homepage points back to homepage, so no full method can be inferred from that placeholder.
+
+Current priority remains actual R27/R28 automatic control and new-source fixed actuator controls. These entries prevent unsupported future operator novelty claims; they do not cancel a method because it shares a component.

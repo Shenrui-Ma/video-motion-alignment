@@ -1,0 +1,136 @@
+--- v1/PROTOCOL.json
++++ v2/PROTOCOL.json
+@@ -1,5 +1,5 @@
+ {
+-  "schema": "robust-coverage-necessity-pilot-v1",
++  "schema": "robust-coverage-necessity-pilot-v2-rawscore-compatibility",
+   "date": "2026-10-17",
+   "stage": "protocol and synthetic tests only; actual evaluation requires separate reviewed binding and root authorization",
+   "scope": "R26 three final Native pose sequences and R27 two complete twenty-endpoint cases after RUN_GATE and complete archive only; no live policy changes",
+@@ -129,7 +129,7 @@
+   "measurement_assumptions": [
+     "observed unit vectors conditioned as exact; confidence not calibrated error bound",
+     "independent unknown distance relaxation is conservative for unit-vector shared geometry",
+-    "unit norm checked within1e-6; finite confidence must be in[0,1]",
++    "unit norm checked within1e-6; raw detector scores must be finite; known metric weights use the original min(raw confidence).clip(0,1), no calibrated-probability interpretation",
+     "wrist/body coordinates excluded",
+     "source motion existence/amplitude and periodic hidden aliases not certified",
+     "no missing-at-random assumption"
+@@ -176,5 +176,11 @@
+       "origin": "/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/scripts/scan_current_pose.py",
+       "sha256": "db6cb40c30d88ae7b4ce4892a90be16483d903a1aeee2a634f1dedc9cd63c814"
+     }
++  },
++  "compatibility_revision": {
++    "root_authorized": true,
++    "scope": "only raw detector score interface; frozen confidence thresholds, gain/residual, missing cap1 and interval mathematics unchanged",
++    "reason": "actual finite DWPose raw scores up to1.2453231811523438; original metric already clips weights",
++    "previous_protocol_sha256": "a6a70ec9bfb7c7fdb58e4be99c53af2966c2a952a3058c8c9a036a536ff8f5f9"
+   }
+ }
+--- v1/evaluate.py
++++ v2/evaluate.py
+@@ -87,6 +87,14 @@
+             yield [start,start+length-1]
+ 
+ 
++def metric_weight(raw_scores):
++    if len(raw_scores)!=3 or not all(math.isfinite(c) for c in raw_scores):
++        raise ValueError('three finite raw detector scores required')
++    # Original pairwise_gain: min(sc,pc,nc).clip(0,1). Heatmap peaks
++    # can exceed one; the clipped metric weight is not a probability.
++    return min(1.,max(0.,min(raw_scores)))
++
++
+ def rows_for_null(source,target,window,lag,null_lag,feature,np):
+     conf_name={'arm_direction':'arm_conf','left_arm_direction':'left_arm_conf','right_arm_direction':'right_arm_conf'}[feature]
+     frames=list(range(window[0],window[1]+1))
+@@ -108,8 +116,7 @@
+             weight=None
+             if all(finite):
+                 cs=[float(source[conf_name][t,b]),float(target[conf_name][t+lag,b]),float(target[conf_name][t+null_lag,b])]
+-                if not all(math.isfinite(c) and 0<=c<=1 for c in cs):raise ValueError('invalid raw confidence')
+-                weight=min(cs)
++                weight=metric_weight(cs)
+             slots.append({'frame':t,'proposal':dp,'null':dn,'weight':weight})
+     return slots
+ 
+--- v1/test_intake.py
++++ v2/test_intake.py
+@@ -6,6 +6,19 @@
+ def digest(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ 
+ class IntakeTest(unittest.TestCase):
++    def test_original_clip_semantics_on_actual_raw_range(self):
++        # Values from metadata-only RAW_SCORE_RANGE_DIAGNOSTIC, not lag output.
++        self.assertEqual(evaluate.metric_weight([1.2188950777053833,1.2453231811523438,1.20608651638031]),1.)
++        self.assertEqual(evaluate.metric_weight([.9,1.2453231811523438,.7]),.7)
++        self.assertEqual(evaluate.metric_weight([-.1,.9,.8]),0.)
++
++    def test_legal_unit_interval_weights_unchanged(self):
++        import itertools
++        for values in itertools.product((0.,.3,.5,.8,1.),repeat=3):
++            self.assertEqual(evaluate.metric_weight(values),min(values))
++        for value in (float('nan'),float('inf'),-float('inf')):
++            with self.assertRaises(ValueError):evaluate.metric_weight([.9,value,.9])
++
+     def fixture(self,root):
+         (root/'PROTOCOL.json').write_text('{}')
+         (root/'FREEZE.json').write_text('{"files":{}}')
+--- v1/integration_smoke.py
++++ v2/integration_smoke.py
+@@ -9,7 +9,7 @@
+ 
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ 
+-def synthetic_pose(delay=0,missing=False):
++def synthetic_pose(delay=0,missing=False,raw_score=.9):
+     frames=[]
+     for t in range(141):
+         phase=t-delay
+@@ -20,7 +20,7 @@
+             b=.006*phase*phase+.3*math.cos(.117*phase)+offset
+             xy[elbow]=[xy[shoulder][0]+80*math.cos(a),xy[shoulder][1]+80*math.sin(a)]
+             xy[wrist]=[xy[elbow][0]+65*math.cos(b),xy[elbow][1]+65*math.sin(b)]
+-        score=[.9]*17
++        score=[raw_score]*17
+         if missing and 58<=t<=64:score[9]=.4
+         frames.append({'frame':t,'time_s':t/24,'selected_person':0,
+                        'persons':[{'coco17_xy':xy,'coco17_score':score}]})
+@@ -65,6 +65,19 @@
+             if tight['proposal_cost_upper']>coarse['proposal_cost_upper']+1e-12:raise AssertionError('tight residual weakened')
+             readouts.append({'confidence':c,'synthetic_missing_common_slots':tight['common_slots'],'expected_slots':32,
+                              'tight_certified':tight['certified'],'coarse_certified':coarse['certified']})
++        highsrc=root/'high_source.json';hightgt=root/'high_target.json'
++        highsrc.write_text(json.dumps(synthetic_pose(raw_score=1.2188950777053833)))
++        hightgt.write_text(json.dumps(synthetic_pose(4,raw_score=1.2453231811523438)))
++        for c in (.3,.5):
++            hs=m.load_pose(highsrc,c);ht=m.load_pose(hightgt,c)
++            old=compare(hs,ht,[50,65],4,'arm_direction')
++            for e in range(-2,3):
++                slots=evaluate.rows_for_null(hs,ht,[50,65],4,e,'arm_direction',np)
++                if not all(s['weight']==1. for s in slots):raise AssertionError('actual rawrange clip mismatch')
++                new=bounds.interval(slots,'confidence_completion',True)
++                oldrow=next(x for x in old['null_comparisons'] if x['null_lag']==e)
++                if abs(new['proposal_cost_upper']-oldrow['proposal_cost'])>1e-12 or abs(new['null_cost_lower']-oldrow['null_cost'])>1e-12:
++                    raise AssertionError('high raw confidence differs from old metric')
+         # Small full186-window integration via the unchanged evaluator. Inputs
+         # remain synthetic; this tests serialization and both-threshold routing.
+         case={'case_id':'synthetic_shift4','run_id':'synthetic','endpoint':'final',
+@@ -75,6 +88,7 @@
+         checks={'actual_numpy_loader':True,'fixed_geometry_time_validation':True,
+                 'known_plus4_three_parts_two_conf':True,'complete_confidence_metric_equal_old':True,
+                 'partial_threshold_mask_and_tightening':True,'full186_synthetic_evaluator_and_json':True,
++                'actual_raw_score_range_matches_original_clip':True,
+                 'torch_not_imported':'torch' not in sys.modules,'actual_target_inputs_read':False}
+     return {'passed':all(v for k,v in checks.items() if k!='actual_target_inputs_read'),'checks':checks,
+             'readouts':readouts,'elapsed_seconds':time.time()-started,'numpy_version':np.__version__,
+--- v1/README.txt
++++ v2/README.txt
+@@ -22,3 +22,6 @@
+ 
+ Unverified boundary
+ The standard-library tests cover algebra, partial information, correlated unit-vector completions, signed-shift proposals, multiple basins, unknown/invalid cases, both-confidence/all-null gates and archive-intake rejection. Actual NumPy pose-loader integration has not run yet; it will require the normal CPU lock and a tiny synthetic real-loader check before any real batch. No claims about recovered index5 or actual certificate counts are made.
++
++V2 raw-score compatibility, 2026-10-17
++Actual attempt1 stopped in metadata validation because remote source path differs; exact SHA unchanged, administrative binding v2 corrected it. Attempt2 reached the first numeric case but rejected raw DWPose scores>1, before a case result was written. All six source/target score sets are finite; range .0498194694519043..1.2453231811523438. Original metric clips min confidence to[0,1]. Root authorized adapter compatibility only, retaining both thresholds and all interval formulae. V1 source/protocol/freeze/logs are archived in versions/v1. V2 uses identical original clipping, still refuses nonfinite scores;22 stdlib tests PASS. No confidence score is a calibrated probability. Integration revalidation and one corrected actual batch await independent review; no actual result has been completed.

@@ -1,0 +1,65 @@
+H3 endpoint 反馈入口与 codec residual 对照：独立只读审计
+
+结论
+当前冻结 Euler20 / BasicGuider 路径支持通过 sampler_post_cfg_function 修改本步视频 denoised，再由原 Euler 更新使用。index6 的 endpoint→下一 state 系数为0.00876422668967511，与被审计说明一致。现有被动 readout callback 的位置晚于 to_d；它适合记录，返回值不会回写采样。
+残差对照包审查通过：5个封存文件、15个父输入文件一致，8项CPU测试重跑通过；独立重建非均匀时间中心和插值后，四个非identity输出与声明公式逐位相同。GPU运行与视觉效果另由实际实验决定。
+
+1. 当前 denoised 的含义与尺度
+comfy/model_base.py:2150–2166 的 H3 process_latent_in/out 只对packed音频乘/除 audio_scale。独立补取的实际 comfy/latent_formats.py:622–676 显示 MiniMaxH3Video/AV 的scale_factor=1，继承的process_in/out分别乘/除1。
+因此视频 denoised 与R65 x0_step006.pt中的video数值处于相同VAE归一化latent空间：[1,24,47,48,72]，float32。它是当前sigma下的clean endpoint预测，不是当前带噪state，也不是最终成片已经实现的latent。
+MiniMaxH3VideoVAE.encode 使用 (mean−latents_mean)/latents_std；decode使用z*latents_std+latents_mean。Comfy VAE外层将RGB输入[0,1]换至内部[-1,1]，decode输出[0,1]。现有process_latent_out没有重复做这组mean/std。
+由同一原VAE重编码得到的视频latent可直接作为视频endpoint候选。对其再次除std或套用audio×4会改变尺度。
+
+2. sigma 与 Euler 的对应
+ModelType.FLOW_AV 组合 CONST 和 ModelSamplingAV；model_base._apply_model 最终调用 calculate_denoised(sigma,model_output.float(),x)。CONST.calculate_denoised为 z0=x−sigma*v_C，其中v_C指Comfy实际返回的速度；H3网络原始head的符号转换已在其forward内完成。
+视频model timestep=sigma_video*1000。outer sample_euler使用同一sigma_video处理完整AV packed state。音频自己的sigma通过shift转换为 sigma_audio=sigma_video/(4−3*sigma_video)，H3.forward另将音频state与速度转换到这个公共video schedule。
+index6: sigma_video=0.9655172228813171，sigma_next_video=0.9570552110671997，sigma_audio=0.8749999392312051。Euler分母应使用sigma_video，音频自身sigma不能代入视频更新式。
+实际数值依据 inputs/manifest.json，而非把配置里的十进制字符串当作无舍入实数。
+
+3. 精确接线顺序
+BasicGuider继承CFGGuider，cfg默认1，仅设置positive。CFGGuider.predict_noise → sampling_function → calc_cond_batch → cfg_function → 按列表执行sampler_post_cfg_function → 返回denoised → KSamplerX0Inpaint → sample_euler.to_d → callback → Euler更新。
+post-CFG hook 的返回值会赋回cfg_result，因此在本次Euler调用中生效；没有必要额外再执行一次DiT来使它进入本步更新。
+若以后引入denoise_mask，KSamplerX0Inpaint会在hook之后重新套mask，此时最终有效修正需考虑该mask。当前受审reference-only图未配置此类mask。
+H3X0Readout.record取x0、复制至CPU、调用process_latent_out再保存；Euler已在之前算完d。若加新hook，readout默认看到的是修改后的endpoint。要分析干预本身，需要独立保留hook前、hook后的endpoint和实际下一state差值。
+
+4. endpoint 与直接state编辑
+令 Delta=z_corr−z0，hook返回 z0'=z0+lambda*Delta。
+原式：d=(x−z0)/sigma；x_next=x+(sigma_next−sigma)*d。
+代入得到：d'=d−lambda*Delta/sigma；x_next'=x_next+lambda*(sigma−sigma_next)/sigma*Delta。
+index6系数c=0.00876422668967511；float32复算为0.008764226920902729。lambda=1时，下一state只获得0.8764226689675111%的Delta。
+若仅在同一步完成后向state加eta*Delta，与上述endpoint操作代数等价的lambda为eta/c；eta=1对应约114.1002。这里仅解释尺度关系，没有据此选择增益。
+直接在模型预测前重排当前带噪state会同时移动信号和噪声，并改变随后网络的非线性预测。它与只改clean endpoint没有上述简单等价关系。直接用干净z_corr替换带噪x还会改变当前噪声层级。
+小系数不等于最终视频一定没有变化：Delta本身的幅度和后续网络响应仍会影响轨迹。单步endpoint干预结果弱，也不能单独证明时间估计无效。
+
+5. 音频保持范围
+返回原 packed 音频切片，并保持原dtype/device/形状/逐位值，则本步音频的denoised、d和下一音频state保持原值。不要把readout保存的audio直接回填；它已经除过4，如回填需要恢复sampler尺度。
+后续H3采用联合AV计算，视频state变化可能间接改变未来音频预测。因此“本步原样保留音频切片”仅保证本步直接更新，不保证整段音频输出或AV同步恒等。
+pack/unpack按 model.latent_shapes工作。utils.unpack_latents会静默忽略额外packed尾部，未来hook应像现有readout那样先校验总元素数、两路形状和float32，再检查重组音频逐位相等。
+
+6. hook次数与重复引导
+当前BasicGuider/CFG1优化仅计算positive；post-CFG列表在条件聚合后执行一次，不是对每个Transformer block或每个cond分块各执行一次。固定Euler20意味着预期20次post-CFG进入，index6干预一次。
+set_model_sampler_post_cfg_function采用“原列表+[fn]”，重复注册同一hook会按顺序应用两次；cloned model可能继承已有hook。CFG1不自动消除重复注册。
+应绑定一次采样的run身份、严格20步网格、当前sigma和唯一hook身份，记录实际调用计数。未来换多次model evaluation的sampler，或其他PREDICT_NOISE wrapper重复调用，同sigma可能出现多次；单凭sigma命中不能保证只引导一次。
+本审计核定当前Euler/BasicGuider调用链，没有部署新hook或控制器。
+
+7. codec residual 算子审查
+定义 e_id=E(D(z))，e_phi=E(W_phi(D(z)))，L_phi为冻结的名义latent时间插值。
+anchor=z+(e_phi−e_id)
+transport=L_phi(z)+(e_phi−L_phi(e_id))
+transport在精确算术中等于 e_phi+L_phi(z−e_id)，浮点执行的括号顺序沿封存实现。
+当前identity分支在 latent_positions逐元素等于0..46，且e_phi与e_id相等时直接clone z；逐位测试包括负零。这证明工程identity约定，没有证明新公式或独立重复VAE编码的确定性。
+非identity的shift3/offline_mapping没有额外分支；我用独立索引插值而非operators.interpolate重算，两种映射×两种公式共4项实际输出逐位相等。
+
+8. 四次decode的输入与时间映射边界
+z确认为原R65 Native的index6 x0，video raw SHA=33d8d678915e2fccf8b4e9ca2c4b63e737b5b9156639b19df4924121793cc4b6。
+e_id、e_shift3、e_offline来自已完成R70原始三次encode，实际文件hash与张量signature均检查。父RESULT确认为3encode/6decode且无fallback；父root释放回执已绑定同PID并确认进程/CUDA退出。
+当前offline_mapping仍来自最终Native视频拟合的旧phi，施加于当前index6 z。它与新建current_x0_phase_fit的phi分开。此对照能检查重编码误差补偿，不能据此声称已完成在线自反馈。
+47个名义中心为17*floor(j/5)+[0,2.5,6.5,10.5,14.5][j mod5]，最后155.5。独立复算与封存坐标完全相同；shift3读取t+3使对应动作提前，offline尾部144..157恢复identity。
+这些是输出分箱的名义中心，不是VAE实际感受野中心或DiT RoPE坐标。帧145–148的bin跨越147有效帧边界，decoder块重叠仍有影响。现有共同valid/cross17/overlap评测掩码需完整保留。
+run_codec按shift3-anchor、shift3-transport、offline-anchor、offline-transport顺序只decode4次；0新增encode、0DiT。输入全在CPU校验并生成，实际CUDA须root的exact ready/go。新增输出与旧输出比较统一RGB8尺度，原float误差表单独保留。
+
+证据文件
+COEFFICIENT_RECOMPUTATION.json：实际sigma和独立数值复算。
+RESIDUAL_TESTS.log：8项CPU测试。
+RESIDUAL_INDEPENDENT_CHECK.json：实际四项公式与坐标独立复核、封存SHA。
+SOURCE_BINDINGS.json：审计源码hash与现有冻结来源绑定。

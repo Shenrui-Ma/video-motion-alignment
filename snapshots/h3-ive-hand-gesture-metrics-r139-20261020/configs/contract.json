@@ -1,0 +1,90 @@
+{
+  "schema": "r139-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-hand-gesture-r139-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_hand_gesture_r139_20261020",
+  "producer_seal_sha256": "5c663b12da5050ba81b5065efa01d9bb5d5c40f9c4ffa30a277434304e608252",
+  "producer_contract_sha256": "90b8c65f9545ec4494535e680ffd714b0fcabf9fc6f8830e9b3704cf627f2380",
+  "producer_runtime_sha256": "e1a630154047393921626c00988cfeffb4de3d2bb0d9443970dce22288a593c8",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "long_0191"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0191",
+      "run_id": "r139_long_0191_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nMove the man to the right side of the room\n\nretention_analysis:\n<Video 1>: partially_preserved - Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.\n",
+      "original_task": {
+        "id": 191,
+        "src_video_name": "long_0191.mp4",
+        "category": "attribute_editing",
+        "subcategory": "position change",
+        "source_prompt": "A man in a black leather jacket and a black shirt with red circles on it is standing in a dark room with blue lights in the background. He is gesturing with his hands as if he is explaining something.",
+        "edit_prompt": "Move the man to the right side of the room",
+        "target_prompt": "A man in a black leather jacket and a black shirt with red circles on it is standing on the right side of a dark room with blue lights in the background. He is gesturing with his hands as if he is explaining something.",
+        "target_span": "right side",
+        "target_phrase": "right side of the room"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 105,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "4375/999",
+        "end_exclusive_rational": "22/5",
+        "duration_rational": "22/5"
+      },
+      "task_scope": "subject_position_edit",
+      "evaluation_scope": "IVEBench官方长片0–4.4秒连续片段探索",
+      "forced_run_id": "r139_long_0191_seed2026101701_forced",
+      "valid_frames": 106,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/long_0191_video.mp4",
+        "sha256": "f4f9d8358e2495328e37f6ac579fbd9a82ea037e537d24d776d968ee3b1b5402",
+        "bytes": 11113529
+      },
+      "provenance": {
+        "file": "inputs/long_0191_provenance.json",
+        "sha256": "d3a7885ba25472a06803af314af3ed6bd63ca8964a1b2094ea8b74d50fc6d2fc",
+        "bytes": 23895
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-hand-gesture-metrics-r139-20261020/inputs/long_0191_original.mp4",
+        "sha256": "99977e7a91a950b4187e56be0c3632273d950235e7ffc3539625dc9cbd78dce4"
+      },
+      "graph_sha256": "50fb6880f67b09d442e9f0807639878580911b40a3efd232a4c3be6ff13cb01f",
+      "forced_graph_sha256": "f5deb7a6fb6cc3ca021b9c7fbcc4131bfdb8096738be7f9f8fa8b3af65126eab",
+      "expected_prompt_sha256": "d1ef0bf8827196c2633c6724c8ffe8605d48b9e5ecba71e14dd43f0341be8b6a"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true,
+  "namespace": "r139",
+  "display_description": "人物位置编辑；完整106有效帧核对场景、位置与同一手势序列四阶段；源事件仅评测。"
+}

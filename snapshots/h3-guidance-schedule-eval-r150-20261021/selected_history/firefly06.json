@@ -1,0 +1,461 @@
+{
+  "candidate_id": "firefly06",
+  "source_id": "06_anime_eye_insert",
+  "source_group": "06_anime_eye_insert",
+  "task": "角色替换—流萤复现动画书记舞",
+  "basic_edit_status": "PASS_IDENTITY_ACTION_MICROEVENT_MISSING",
+  "selection_status": "legacy_baseline_reusable_new_samebin_required",
+  "media": {
+    "source": {
+      "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/inputs/06_anime_eye_insert.mp4",
+      "exists_local": true,
+      "sha256": "f8dff750e79eea857b2d787b4990fcd29838727ea51f0fa7392ac188a8404952",
+      "bytes": 1293674
+    },
+    "native": {
+      "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/outputs/06_anime_eye_insert_a_s2_00001_.mp4",
+      "exists_local": true,
+      "sha256": "182ea5fed1f99df1a96bc3af23626999261d107547ab4eeb078c52001d0f8d10",
+      "bytes": 2452472
+    },
+    "legacy_weight3": {
+      "file": "/Users/researcher/DevProjects/h3-event-emphasis-factor3-20261014/outputs/06_seed2_emphasis3_00001_.mp4",
+      "exists_local": true,
+      "sha256": "70e3c1955d90c1ae7230d2eb214ae389c28036fcb37c36c1f7f3bf838bff1a06",
+      "bytes": 2460278
+    },
+    "fixed": null
+  },
+  "valid_frames": 141,
+  "fps": 24,
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "sampled_frames": 141,
+    "crop_xywh": [
+      0,
+      0,
+      1312,
+      736
+    ]
+  },
+  "seed": 2026101312,
+  "prompt": "subject_definitions:\n<Subject 1>: The character shown in <Picture 1>; use this image only for appearance, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with <Subject 1> from <Picture 1>. Preserve her recognizable silver-white hair with pale teal ends, headband and wing-shaped hair ornament, and black-and-white sleeveless dress. Adapt her pose to the complete original performance. Preserve every original action, gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, background, camera and composition. Use the reference picture only for character appearance; do not copy its static pose or neutral background. Keep the output in a coherent 2D anime style.\nretention_analysis:\n<Video 1>: Preserve source motion, action timing, person, objects, camera and background; apply only the requested appearance change.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+  "prompt_sha256": "d1058c4ef3ff9df54ac7b1fb894b786007c0e9f3ff254e8cf15c898aba68ca23",
+  "graphs": {
+    "native": {
+      "graph": {
+        "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/configs/06_anime_eye_insert_a_s2.json",
+        "exists_local": true,
+        "sha256": "5c886b341dde62dd66ce7d990bf4ea55c15aca791702e5b19ad6400e2281a7dd",
+        "bytes": 5021
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: The character shown in <Picture 1>; use this image only for appearance, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with <Subject 1> from <Picture 1>. Preserve her recognizable silver-white hair with pale teal ends, headband and wing-shaped hair ornament, and black-and-white sleeveless dress. Adapt her pose to the complete original performance. Preserve every original action, gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, background, camera and composition. Use the reference picture only for character appearance; do not copy its static pose or neutral background. Keep the output in a coherent 2D anime style.\nretention_analysis:\n<Video 1>: Preserve source motion, action timing, person, objects, camera and background; apply only the requested appearance change.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "d1058c4ef3ff9df54ac7b1fb894b786007c0e9f3ff254e8cf15c898aba68ca23",
+      "seed": 2026101312,
+      "noise_registration": {
+        "noise_seed": 2026101312,
+        "audit_dir": "/data5/researcher/h3_runs/short_event_switching_20261013/audit",
+        "run_id": "06_anime_eye_insert_a_s2",
+        "pair_id": "06_anime_eye_insert_s2"
+      },
+      "condition_registration": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data5/researcher/h3_runs/short_event_switching_20261013/audit",
+        "run_id": "06_anime_eye_insert_a_s2",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      },
+      "recipe_nodes": {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": {
+            "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "weight_dtype": "default"
+          }
+        },
+        "2": {
+          "class_type": "CLIPLoader",
+          "inputs": {
+            "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "type": "minimax",
+            "device": "default"
+          }
+        },
+        "3": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+          }
+        },
+        "4": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+          }
+        },
+        "41": {
+          "class_type": "MiniMaxH3SigmaShift",
+          "inputs": {
+            "model": [
+              "1",
+              0
+            ],
+            "shift_video": 12.0,
+            "shift_audio": 3.0
+          }
+        },
+        "8": {
+          "class_type": "KSamplerSelect",
+          "inputs": {
+            "sampler_name": "euler"
+          }
+        },
+        "9": {
+          "class_type": "ManualSigmas",
+          "inputs": {
+            "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+          }
+        }
+      },
+      "input_nodes": {
+        "21": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "firefly_neutral_reference.png"
+          }
+        },
+        "22": {
+          "class_type": "LoadVideo",
+          "inputs": {
+            "file": "06_anime_eye_insert.mp4"
+          }
+        }
+      }
+    },
+    "legacy_weight3": {
+      "graph": {
+        "file": "/Users/researcher/DevProjects/h3-event-emphasis-factor3-20261014/configs/06_seed2_emphasis3.json",
+        "exists_local": true,
+        "sha256": "a0d2c1563842c01c2b32cc8575178d4bde573302622ed3630859217e9cb39a8c",
+        "bytes": 5380
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: The character shown in <Picture 1>; use this image only for appearance, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with <Subject 1> from <Picture 1>. Preserve her recognizable silver-white hair with pale teal ends, headband and wing-shaped hair ornament, and black-and-white sleeveless dress. Adapt her pose to the complete original performance. Preserve every original action, gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, background, camera and composition. Use the reference picture only for character appearance; do not copy its static pose or neutral background. Keep the output in a coherent 2D anime style.\nretention_analysis:\n<Video 1>: Preserve source motion, action timing, person, objects, camera and background; apply only the requested appearance change.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "d1058c4ef3ff9df54ac7b1fb894b786007c0e9f3ff254e8cf15c898aba68ca23",
+      "seed": 2026101312,
+      "noise_registration": {
+        "noise_seed": 2026101312,
+        "audit_dir": "/data5/researcher/h3_runs/event_emphasis_factor3_20261014/audit",
+        "run_id": "06_seed2_emphasis3",
+        "pair_id": "06_anime_eye_insert_s2"
+      },
+      "condition_registration": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data5/researcher/h3_runs/event_emphasis_factor3_20261014/audit",
+        "run_id": "06_seed2_emphasis3",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      },
+      "recipe_nodes": {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": {
+            "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "weight_dtype": "default"
+          }
+        },
+        "2": {
+          "class_type": "CLIPLoader",
+          "inputs": {
+            "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "type": "minimax",
+            "device": "default"
+          }
+        },
+        "3": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+          }
+        },
+        "4": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+          }
+        },
+        "41": {
+          "class_type": "MiniMaxH3SigmaShift",
+          "inputs": {
+            "model": [
+              "1",
+              0
+            ],
+            "shift_video": 12.0,
+            "shift_audio": 3.0
+          }
+        },
+        "8": {
+          "class_type": "KSamplerSelect",
+          "inputs": {
+            "sampler_name": "euler"
+          }
+        },
+        "9": {
+          "class_type": "ManualSigmas",
+          "inputs": {
+            "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+          }
+        },
+        "50": {
+          "class_type": "H3EventEmphasis",
+          "inputs": {
+            "model": [
+              "41",
+              0
+            ],
+            "positive": [
+              "5",
+              0
+            ],
+            "factor": 3,
+            "start_frame": 39,
+            "end_frame": 44,
+            "run_id": "06_seed2_emphasis3",
+            "audit_dir": "/data5/researcher/h3_runs/event_emphasis_factor3_20261014/audit/emphasis"
+          }
+        }
+      },
+      "input_nodes": {
+        "21": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "firefly_neutral_reference.png"
+          }
+        },
+        "22": {
+          "class_type": "LoadVideo",
+          "inputs": {
+            "file": "06_anime_eye_insert.mp4"
+          }
+        }
+      }
+    }
+  },
+  "noise_metadata": {
+    "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/06_anime_eye_insert_a_s2_noise.json",
+    "exists_local": true,
+    "sha256": "de913082c4fb06ea0263dc965850911bb0e5ce2546c18e3ed0e4b524db0b2683",
+    "bytes": 991
+  },
+  "noise_record": {
+    "schema": "h3-event-noise-v1",
+    "run_id": "06_anime_eye_insert_a_s2",
+    "pair_id": "06_anime_eye_insert_s2",
+    "signature": {
+      "seed": 2026101312,
+      "nested": true,
+      "shapes": [
+        [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          235
+        ]
+      ],
+      "dtypes": [
+        "torch.float32",
+        "torch.float32"
+      ],
+      "batch_index": null
+    },
+    "actual_noise_streams": [
+      {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "1e7c621f6a38997298a6be4d2dbc33fbde6461a1d8591d92df40d235b24c5621"
+      },
+      {
+        "shape": [
+          1,
+          32,
+          2,
+          235
+        ],
+        "dtype": "torch.float32",
+        "sha256": "b0494969c750d000ff789a3a42e1691881f5b0c3213aa75d2bd24535908aae5b"
+      }
+    ],
+    "cache_file": "/data5/researcher/h3_runs/short_event_switching_20261013/audit/06_anime_eye_insert_s2_noise.pt"
+  },
+  "condition_metadata": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/06_anime_eye_insert_a_s2_conditioning.json",
+      "exists_local": true,
+      "sha256": "1ea603b090cb3dad3558e94235c84083952b46ae42c231a40661b8713a370d4e",
+      "bytes": 27120
+    }
+  ],
+  "historical_fixed_method": null,
+  "legacy_method": "selected reference K/V duplicated twice (logits+ln3), all20steps/all50blocks; not same-bin7–15",
+  "new_requirement": "Root-approved same-bin7–15 reference required before schedule comparison; never relabel weight3 as fixed.",
+  "edit_evidence": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/REPORT.txt",
+      "exists_local": true,
+      "sha256": "7ea8bcd56f7f7b91e698249035f48dd351468e6989c6fd5ba1edbb38ed58ead9",
+      "bytes": 12014
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-event-emphasis-factor3-20261014/REPORT.txt",
+      "exists_local": true,
+      "sha256": "d27790103e1deee75bd927fd96f38f168e3d617c285e68cc320fb8981a93a6c8",
+      "bytes": 3865
+    }
+  ],
+  "qualification": "seed1312可辨流萤，黑边保留；39–44早期手眼插入被低位手势代替，原三倍未恢复。",
+  "official_MF": {
+    "status": "not_located_in_completed_official_MF_records",
+    "native": null,
+    "fixed": null
+  },
+  "review_frame": {
+    "file": "/Users/researcher/DevProjects/h3-event-emphasis-factor3-20261014/review/compact/compact_frames_041-043.png",
+    "exists_local": true,
+    "sha256": "a16b79cc68fa45e6af902597add115bf155b37a5ee5ac95f53b4870435180f80",
+    "bytes": 1596425
+  },
+  "same_source_as_current_Sam": false,
+  "rank_by_existing_edit_evidence": 10,
+  "evaluation_task_id": "firefly06",
+  "actual_new_producer_binding": null,
+  "new_output_status": "AWAITING_ACTUAL_PRODUCER_CONTRACT",
+  "frozen_events": {
+    "candidate_id": "firefly06",
+    "source_id": "06_anime_eye_insert",
+    "valid_frames": 141,
+    "search_frame_domain": [
+      0,
+      140
+    ],
+    "detail_window": [
+      30,
+      80
+    ],
+    "native_timing_status": "early_local_action_relation_missing",
+    "events": [
+      {
+        "id": "early_eye_insert",
+        "label": "第一次短暂手—眼/上脸插入",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          39,
+          44
+        ],
+        "native_interval_inclusive": null,
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action"
+      },
+      {
+        "id": "later_v_pose_and_leg_raise",
+        "label": "随后较长眼旁V形手势与抬腿",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          54,
+          68
+        ],
+        "native_interval_inclusive": [
+          52,
+          67
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action"
+      }
+    ],
+    "native_absence_evidence": "A seed1312在36–41为较低胸肩旁手势、42–46向外指；其手—眼关系缺失，不将较低手势填成延后眼旁动作。",
+    "evidence": [
+      {
+        "file": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/REPORT.txt",
+        "sha256": "7ea8bcd56f7f7b91e698249035f48dd351468e6989c6fd5ba1edbb38ed58ead9"
+      }
+    ],
+    "legacy_weight3_is_not_fixed": true
+  },
+  "root_selection": {
+    "record": {
+      "file": "/Users/researcher/DevProjects/h3-guidance-schedule-eval-r150-20261021/SELECTED_TASKS.json",
+      "sha256": "ce0e55a264e3c9290b71f46f3862b9304376a025c1609b5469415aa0a4eba1b0"
+    },
+    "approved": true,
+    "overrides_older_candidate_selection_status": true
+  },
+  "required_new_roles": [
+    "fixed",
+    "early",
+    "late",
+    "split",
+    "global_weak"
+  ],
+  "fixed_role_rule": "Await new same-bin 7–15 output; legacy_weight3 remains a separate historical role"
+}

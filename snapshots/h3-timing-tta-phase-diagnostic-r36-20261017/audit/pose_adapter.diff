@@ -1,0 +1,55 @@
+--- vendor/pose_probe_frozen.py
++++ scripts/pose_probe_tta.py
+@@ -65,6 +65,7 @@
+ 
+ def main():
+     p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--r36-view', choices=('flip', 'pad16'), required=True)
+     p.add_argument('--video', action='append', required=True)
+     p.add_argument('--output-dir', required=True)
+     p.add_argument('--aux-root', default=DEFAULT_AUX)
+@@ -80,6 +81,7 @@
+         os.environ[name] = str(args.threads)
+     import cv2
+     import numpy as np
++    from math_core import transform_rgb
+     import onnxruntime as ort
+     import torch
+     torch.set_num_threads(args.threads)
+@@ -154,6 +156,7 @@
+         records, pending, previous, missed = [], [], None, 0
+         detector_seconds, pose_seconds = 0.0, 0.0
+         overlay_images = {}
++        r36_preprocess_checks = []
+ 
+         def flush_batch():
+             nonlocal pose_seconds
+@@ -185,7 +188,17 @@
+                 break
+             if index < args.frame_start or (index-args.frame_start) % args.stride:
+                 continue
+-            rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
++            original_rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
++            rgb = transform_rgb(original_rgb, args.r36_view)
++            identity_pre, identity_ratio = detector.preprocess(original_rgb, (640, 640))
++            view_pre, view_ratio = detector.preprocess(rgb, (640, 640))
++            r36_preprocess_checks.append({
++                'frame': index, 'view': args.r36_view,
++                'view_rgb_shape': list(rgb.shape),
++                'identity_preprocessed_sha256': hashlib.sha256(np.ascontiguousarray(identity_pre).tobytes()).hexdigest(),
++                'view_preprocessed_sha256': hashlib.sha256(np.ascontiguousarray(view_pre).tobytes()).hexdigest(),
++                'identity_ratio': float(identity_ratio), 'view_ratio': float(view_ratio),
++                'note': 'comparison only; frozen detect() separately performs the actual identical preprocessing'})
+             t0 = time.monotonic()
+             people = detect(rgb)
+             detector_seconds += time.monotonic()-t0
+@@ -226,6 +239,9 @@
+         result = {'schema': 'h3_cpu_pose_v1', 'video': metadata, 'provenance': provenance,
+                   'extraction': {'start': args.frame_start, 'end': args.frame_end, 'stride': args.stride},
+                   'joint_order': COCO17, 'statistics': stats, 'frames': records}
++        result['r36_view'] = args.r36_view
++        result['r36_preprocess_checks'] = r36_preprocess_checks
++        result['r36_coordinates'] = 'view coordinates; original input geometry in video metadata; inverse artifact separate'
+         write_json(destination, result)
+         edges = [(5, 6), (5, 7), (7, 9), (6, 8), (8, 10), (5, 11), (6, 12),
+                  (11, 12), (11, 13), (13, 15), (12, 14), (14, 16)]

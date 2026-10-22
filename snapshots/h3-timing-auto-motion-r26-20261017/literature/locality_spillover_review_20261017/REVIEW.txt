@@ -1,0 +1,98 @@
+局部注意力干预的跨时间传播：输出残差掩码与逐层原生恢复的先例核对
+日期：2026-10-17。范围：只读论文、官方实现与数学审查；未改实验、未启动模型/GPU。
+
+结论
+可以把“注意力只改少量query，却在最终速度/后续视频其他时刻产生变化”做成可检验机制问题；当前不能把最终速度掩码或逐层窗外特征恢复称为新的计算原语。FlowDirector已在视频编辑的最终差分速度上乘时空mask，PFB-Diff明确逐网络层恢复非编辑区的源特征。DiffEdit已通过同一噪声输入的两种条件预测差估计编辑支持；因此“两个分支之差可定位影响”也已有直接基础。
+本次核读范围未发现把“当前同一目标身份/同一实际状态的Native与参考路由Full差、在线局部动作风险窗、跨物理时间spillover实测”作为完整相同系统的证据。这是有限未发现，不能证明原创。即使补齐这个组合，贡献仍须由修复与保真权衡、必要对照及跨样例结果建立。
+R33错位5bin也改善主动作，说明现有支持未呈现强事件特异性；这不证明传播有害，更不证明正确时间窗已经无用。跨时刻身体协调可能正是修复所需。
+
+证据表（每行只陈述已核文本/代码；下面所有方法均不需要为单次编辑训练生成模型）
+
+方法 | 已核操作与代码位置 | 对候选的直接覆盖和边界
+1. FlowDirector V1/V2 | V1 §3.3 Eq4: V_edit乘源/目标关键词attention mask的union。官方V1 commit cecd56e3，wan/text2video.py:830–845构造相关但通常不同的source/target状态并预测；874–906差分、mask后Euler。V2 §3.3 Eq8仍在方向修正后乘soft mask。| 最直接的视频最终velocity差分限制先例。它编辑源→目标语义，通常不是同一个实际target state上的Native/attention-Full分叉；mask是词语区域，不是动作时延风险。V1源码DAG全子集平均抵消的问题保留，但不否定有效执行的乘mask；不能用该缺陷为我们制造优势。V2论文算法不当作已公开V2源码。
+论文 https://arxiv.org/html/2506.05046v1#S3.SS3
+新版 https://arxiv.org/html/2506.05046v2#S3.SS3
+代码 https://github.com/Westlake-AGI-Lab/FlowDirector/blob/cecd56e30820b279f35acaa18597f4da25fa4f42/wan/text2video.py#L830
+
+2. SAM-Flow | Eq20差分velocity，Eq34对候选状态做source-anchor+softmask投影；Eq40单独构成最终visible latent。官方commit81679786，sam_flow/sam_flow_flux.py:567–618逐项确认相关状态、差分、累积mask、源anchor投影。| 图像局部flow控制与跨步源锚定直接已有；此文的temporal accumulation指去噪步骤，不是视频物理时间。与我们的same-current-target Native锚点不同。默认soft slack、ring和visible/model双状态不等于处处硬零残差。
+论文 https://arxiv.org/html/2606.06228v1#S3
+代码 https://github.com/chwbob/Sam-Flow/blob/8167978666e6df11e987a453934b89ec422bd3a4/sam_flow/sam_flow_flux.py#L567
+
+3. PFB-Diff | §4.2 Eq10: blended feature=(1-mask)*source_feature+mask*edited_feature，再送下层。官方commita60a4b89，openaimodel.py:724–727 fusion_func；800–829 encoder/middle/decoder指定位置调用；ddim.py:407–413先算reference features再送fusion。| 逐层窗外恢复的仿射公式直接重合。它是图像U-Net、源DDIM状态与编辑状态、用户粗mask；不是同一个当前状态的两种attention forward。实际指定层与拟H3全block不同，但把层数/模型名替换不自动形成机制贡献。
+论文 https://arxiv.org/html/2306.16894v2#S4.SS2
+代码 https://github.com/CMACH508/PFB-Diff/blob/a60a4b89caf1a450b7582fc94c0d5b9dcb8e1209/ldm/modules/diffusionmodules/openaimodel.py#L724
+
+4. Blended Diffusion / DiffEdit | Blended作者commit86ed6ced，optimization/image_editor.py:213–219在每次采样后用mask混合预测与对应噪声源图。DiffEdit已核作者介绍及Diffusers v0.35.1官方库实现：1020–1054同noisy-input复制进两条件分支并以预测差生成mask；1517–1520采样后混合DDIM inverted latents。| latent/状态局部化与同状态预测差作为支持估计均已有。DiffEdit库代码不是作者原仓库复现；本次arXiv全文接口失败、OpenReview challenge，故未冒称重读全文。两者不构成当前动作风险mask的完整实现。
+Blended论文 https://arxiv.org/abs/2111.14818
+作者代码 https://github.com/omriav/blended-diffusion/blob/86ed6cedb7af745f9297f714a5f9b0e2dfe3390f/optimization/image_editor.py#L213
+DiffEdit作者 https://gcouairon.github.io/2022/11/30/diffedit.html
+DiffEdit库 https://github.com/huggingface/diffusers/blob/v0.35.1/src/diffusers/pipelines/stable_diffusion_diffedit/pipeline_stable_diffusion_diffedit.py#L1020
+
+5. TokenFlow / PnP-video实现 | TokenFlow §4逐步关键帧编辑与原视频feature对应传播；官方commit5dd6a696 tokenflow_utils.py:49–96注入residual conv feature，114–132将source Q/K注入编辑分支，325–396按原分支NN对应传播关键帧attention输出。| training-free多分支与逐层替换明确已有。目标是跨视频对应一致性，不是隔离事件外影响；它甚至主动跨帧传播。不能把这里的PnP来源/编辑三batch描述成同state Native/Full两预测，也不能说其保证事件外精确不变。
+论文 https://arxiv.org/html/2307.10373v1#S4
+代码 https://github.com/omerbt/TokenFlow/blob/5dd6a696277e9d18c23adc034dc4c052ccd64cb5/tokenflow_utils.py#L49
+PnP原作 https://pnp-diffusion.github.io/
+
+6. MotionFlow | arXiv2412.05275 §3.3 Eq1源attention阈值mask，Eq2–4由cross/self/temporal attention损失优化noisy latent。| 局部运动attention约束已有；损失局部并不等于梯度/最后速度只在同一位置非零。已读全文；此轮未确认与该论文相符的官方代码。Antares5/MotionFlow是另一篇人体动作生成，不能借来作实现证据。
+论文 https://arxiv.org/html/2412.05275v1#S3.SS3
+
+7. FlowMotion | §3.3 Eq4–5 clean预测与时间差分对齐，§3.4 Eq7–9沿累计velocity分解并衰减正交项。官方f5b4dcfc run.py:141–150分解；255–285对target latent作motion loss优化。| 已有teacher-free motion/velocity约束；投影是通道方向而非物理时间mask。源码未见本候选same-state Native-Full事件外残差归零。这不证明所有版本均没有。它不能作为“任意局部梯度=局部输出保证”的依据。
+论文 https://arxiv.org/html/2603.06289v2#S3
+代码 https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py#L141
+
+8. 同帧参考与DIAL | Wan-Animate-2官方3ad2fef7 wan_animate_2_model.py:581–603生成q_frame==kv_frame的reference mask，同时允许基础self attention。它是训练后的双流架构。DIAL §3.3 logγ乘空间mask加入reference logits。| 同帧参考路由和局部query增强均有明确先例，均不保证影响不经过下一层target/self/ref流传播。当前H3 Full保原组质量的重写不改变这一边界。DIAL只按已读论文，不冒称查到作者实现。
+同帧论文 https://arxiv.org/html/2608.06009v2#S3
+同帧代码 https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L581
+DIAL https://arxiv.org/html/2609.11507v1#S3.SS3
+
+数学范围：必须分开三种“局部”
+A. 当前状态的一步输出局部。令x为完整实际状态、sigma>0，v_N=f_N(x,sigma,c)，v_F=f_F(x,sigma,c)，δv=v_F-v_N；两个分支同x/sigma/已处理条件/随机状态，仅Full算子不同。候选v_P=v_N+M⊙δv。二值M是坐标子空间的正交投影；soft M仅是坐标收缩，不应也称严格投影。
+FM clean端点为x0=x-sigma*v时，δx0=-sigma*δv。故直接mask clean端点差与mask velocity差数学等价，不能再算两个创新。视频/音频分别按模型真实输出坐标核对；如声称仅视频事件修正，音频输出取Native并报告差异，不能忽略audio反馈通路。
+Euler中x_next=x+(sigma_next-sigma)*v；等价x_next=(sigma_next/sigma)x+(1-sigma_next/sigma)x0。于是当前同状态的一步差精确为(1-sigma_next/sigma)*M⊙δx0，M=0位置本次无直接差。BF16/实际solver应另验容差/原位写行为，不以公式替代实现门。
+B. 网络内局部。缓存同actual x的Native各层h_N，Full每层之后做h_P=M*h_F+(1-M)*h_N，是PFB式层融合。在H3若只恢复target视频、reference/audio/text改变仍可经下一层间接影响。若目标是每层支持外一致，须明确完整token补集、残差/FFN后放置、终端head/unpatchify是否跨位置混合。只改attention输出后让后续层自由更新，不满足全层保证。
+C. 原始Native轨迹/最终RGB局部。A和B都不保证。下一步Native(x_P)已不是Native(x_N)，全时空网络的Jacobian能把事件内状态差传到事件外；解码器亦混合时间/空间。最简单反例v(x1,x2)=(0,x1)：仅改变坐标1后，下一步原生场使坐标2分叉。若每步把支持外状态投回单独维护的原生轨迹，才建立latent轨迹锚定；这又是已知masked diffusion/state anchoring，仍需VAE边界检查，不能宣称RGB逐像素不变。
+H3的17RGB→5latent相位使一个latent bin不是独立单RGB帧。risk window对应bin support、decoder影响域与源物理窗应分别留档；不得把querybins13..17直接当44..59之外全RGB不变。
+
+只保留一个可检验方向：终端局部性是否改善动作修复/非目标损伤的权衡
+第一步不新增GPU：如果现有同状态Native/Full endpoint archive完备，先读实际sigma及未重标的video/audio，计算每latent时间bin E_j=||δx0_j||²（FP32），rho_out=sum_{j outside S}E_j/sum_all E_j。零总能量保留undefined。相同sigma下velocity能量比相同；同时报告实际一步剂量(1-sigma_next/sigma)²E_j。分别用原Auto支持和R33移位支持，绝不从能量峰重新选窗。这是原始算子影响范围诊断，非最终有害程度/动作因果归因。
+若源archive只有单支或非同state，不能拿不同轨迹最终片相减替代，需要明确最小新capture。当前任务未运行上述计算。
+
+最小因果比较（先预注册，不在本轮实现）
+固定一个现有分叉状态与一次index4干预，之后都按相同Native继续；原动作risk支持S原样。比较：
+1 原Full完整δ；2 terminal M_S⊙δ；3 全局缩放 aδ，其中a=||M_S⊙δ||/||δ||，只用同状态张量计算，无质量调参。这样2与3具有相同本步残差L2/一步Euler差范数，能排除仅“减弱总干预”的解释；若δ=0或投影为0，按预定义退化分支报告。
+引用既有Native与原Full作为实际父对照，严验common prefix。新增成本按实际NFE/内存列出。先不同时加逐层clamp、姿态warp或新阈值，以免无法分解作用。
+判别结果：若2维持事件时序/形状而降低固定外窗与全片扫描损伤，且3未获得同等收益，支持终端局部化的独立因果用途；若2与3相当，只支持剂量解释；若2失去时序修复，说明窗外传播可能是该算子修复的必要组成；若只降低代数rho_out而实际质量无差，不构成质量贡献。重影需盲图/完整动态检查，pose lag小不等于ghost变少。正常样例不删除，UNKNOWN保留。
+既有R33移位同宽query也成功，是事件特异性反例。若要进一步主张risk support优于任意support，再预注册第二个移位相同大小terminal mask，而不是把当前正确窗成功直接称自动定位正确。先验证三个核心臂，避免一次堆多组件。
+
+可主张与不可主张
+可争取：在多模态in-context视频编辑的参考动作修复中，测量单步干预跨物理时间的直接输出作用，验证终端残差局部化相对同范数全局减弱的独立保真收益，并明确其跨步/VAE边界。与在线风险控制结合是否有效另需固定/自动窗和多例实验。
+不能现阶段声称：首创masked velocity、逐层原生恢复、首次双分支差定位、保证整片窗外不变、已经解决ghost、已有架构创新或事件支持因果必要。前述近邻不是自动否决探索；它们规定必须比较什么、创新应由何种独立机制证据支持。
+
+检索与复核限界
+本轮读到了FlowDirector V1/V2、SAM-Flow、PFB-Diff、TokenFlow、MotionFlow、FlowMotion、Wan-Animate-2原文对应段和列表中的小源码；Blended读作者源码，DiffEdit读作者介绍+官方库实现，全文访问失败已保留说明。PnP的视频变体通过TokenFlow官方实现核对，并非重新跑PnP。DIAL引用既有完整审查。未部署任何作者代码、未下载权重、未做性能或画质验证。全部小源码SHA见source_inventory.json；这不是穷尽性新颖性证明。
+
+
+追加：从“局部修复”转向“稀疏早期条件锚定”的假设审查
+新增事实仅按root提供的直接端点诊断记录，未在本任务重算：Full−Native同状态差在42/42 latent bins非零；Auto选5bins时窗外能量81.8%，移位5bins为67.6%。窗外有37bins，均匀每bin能量时窗外已占88.1%；所以这些总比例证明广泛非零传播，不证明窗外每bin更强，更不能直接称质量损害。按所给比例推得选中bin的平均能量约为窗外平均的1.65×/3.55×，只是分母校正，不是新的模型测量。
+
+最近先例
+A. Frame Guidance（ICLR2026，arXiv2506.07177v2）§4.2、Fig4(c)明确比较单帧指导在早/晚阶段对邻时刻latent的影响。Eq2以少数clean预测帧上的loss梯度更新全视频latent；早期确定性更新形成全局布局，后期另用time travel。§4.3明确梯度通过denoiser传播到整个视频。官方agwmon/frame-guidance commit e9719c0bcec45800932099b25ac8d7e8ce5b9210，pipelines/pipeline_wan_i2v.py:620–650局部解码与选定帧L2 loss，690–702全latent梯度更新，965–1004 backward/调度。已读这条I2V实现，未运行。
+https://arxiv.org/html/2506.07177v2#S4.SS2
+https://github.com/agwmon/frame-guidance/blob/e9719c0bcec45800932099b25ac8d7e8ce5b9210/pipelines/pipeline_wan_i2v.py#L620
+直接重合：稀疏帧控制、早期较强的跨时刻传播及全局协调。待区分：H3一次attention参考读出脉冲、无梯度/无需目标RGB关键帧、依据已存在的原视频动作时序校正。不同不能只用“没有梯度”证明贡献，需实际效果/成本/信息依赖证据。
+
+B. PhaseLock（arXiv2606.06361v1）§4.2–4.3 Eq1–3、Algorithm1：同noise先2步生成全序列motion prior，再给完整采样过程的后续所有帧加相邻latent delta残差，固定区间线性衰减。其早期低步先验与后续运动保持已有；它不是少数物理时刻query锚点，也没有证明两个动作之间的源视频绝对帧时延被锁定。Fourier phase和可观测动作lag必须分开。此次读论文，不宣称代码审计。
+https://arxiv.org/html/2606.06361v1#S4
+https://arxiv.org/html/2606.06361v1#A4.SS1
+
+C. TokenFlow §4.1–4.2的少数keyframes→整段对应feature传播（上表已有pin）已覆盖稀疏编辑锚点带动全片一致性这一一般思想。它显式NN传播，而H3是attention干预经过既有网络传播；这是一项计算机制差异，不自动意味着创新成功。
+
+更符合现有证据的窄假设
+“在某些已有全片参考条件的编辑失败轨迹上，一次早期、少量目标时间query的正确参考读出可使之后未干预时段的动作时序共同改善。”这比“检测到哪里错就只修哪里”更符合R33位置必要性失败，但还不是“最少锚点全片相位锁定”。现有H3输入包含完整参考视频，selected ref K/V经过上下文混合；5bins×全943空间×50层也不是只有5个独立motion token。因此必须称稀疏干预支持，不能称仅凭稀疏参考输入重建全片动作。
+
+必要反证与最小设计边界
+1. 全片性：当前主窗13→1/2不足以证明全片锁定。先复用完整扫描及固定外窗，检验多个不同事件是否共同靠近原时刻、形状/幅度仍保留；若仅主窗获益或其他窗错位/动作改写，拒绝全片相位锁定叙述。周期alias、UNKNOWN和边界窗口全部保留。
+2. 时间信息必要性：在同一早期state、同样query支持/数量、同样组质量及可比本步修正范数下，比正确时间reference读出与预注册错误时间读出。若错误时间同样修复，不能说正确时间锚点在锁相；更可能是一般条件增强/状态扰动。旧±offset实验不同schedule，不能直接当本一次脉冲的这一因果门已过。
+3. 位置/数量：R33已否定当前“只有自动选中5bin有效”的强版本。不同5bin均有效可支持宽容锚定，但不能推导1bin足够或5bin最少；如继续才冻结0/1/5等有限数量与等范数对照，正常样例同步保留。不要用生成结果挑最有效锚点再叫自动选择。
+4. 提前/延后域：只观察正lag被改善不能称signed phase controller。若统一强拉源时序只是改变动作幅度或全局姿态，需按原shape指标和各事件排序拒绝解释。
+建议先用已有端点/成片作第1项和能量分母核查，再决定上述一个时间内容反证是否值得GPU。当前这条研究方向可以保留，但Frame Guidance应成为直接近邻；最少锚点数、跨动作一致校时、源时间内容的必要性三项目前均未证实。未设计或实现新控制器。

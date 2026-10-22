@@ -1,0 +1,350 @@
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/analysis/postrun/verify_pair.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/analysis/postrun/verify_pair.py
+@@ -6,7 +6,7 @@
+ sys.path.insert(0,str(ROOT/'scripts'))
+ import torch
+ from capture_checks import inspect_capture,checked_snapshot,inspect_blob,condition_files,signature,expected_routing
+-from r121_contract import read,sha,require,registry,validate_job,SOURCES,geometry,latent_shapes,routing_layout
++from r123_contract import read,sha,require,registry,validate_job,SOURCES,geometry,latent_shapes,routing_layout
+ from execution_gate import atomic,persist_gate
+ 
+ def semantic_condition(c):
+@@ -39,7 +39,7 @@
+  owner=read(root/'processes/service.json');checks['actual_runtime_device']=(owner['gpu_uuid']==runtime['gpu_uuid'] and owner['port']==runtime['port'])
+  pair=[run for run in order if jobs[run]['source_id']==source];require(len(pair)==2,'paired registry differs')
+  if native_only:pair=pair[:1]
+- result={'schema':'r121-native-runtime-gate-v1' if native_only else 'r121-paired-runtime-gate-v1','source_id':source,'prompt_version':'official_edit_prompt','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'Two existing sources under verbatim official edit_prompt; all valid frames reviewed for requested edit, scene preservation and separately visible action timing.','condition_tensor_files':[],'service_owner':{'pid':owner['pid'],'identity':owner['identity']}}
++ result={'schema':'r123-native-runtime-gate-v1' if native_only else 'r123-paired-runtime-gate-v1','source_id':source,'prompt_version':'official_edit_prompt_with_task_reference_envelope','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'One source with verbatim official edit sentence and minimal reference/task envelope; all valid frames reviewed for requested edit, scene preservation and separately visible action timing.','condition_tensor_files':[],'service_owner':{'pid':owner['pid'],'identity':owner['identity']}}
+  conditions={};noises={};manifests={};seen=set()
+  for run in pair:
+   row=validate_job(run,root);arm=row['arm'];case=row['case'];forced=arm=='forced';graph=read(root/'configs/graphs'/f'{run}.json');grid=torch.tensor([float(x) for x in graph['9']['inputs']['sigmas'].split(',')],dtype=torch.float32).tolist()
+@@ -47,8 +47,8 @@
+   checks[arm+'_history']=(hist['status']['completed'] is True and hist['status']['status_str']=='success' and hist['prompt'][2]==graph and hist['prompt'][1]==job['prompt_id'] and job['status']=='success' and job['name']==run)
+   checks[arm+'_service']=(job['service_pid']==owner['pid'] and job['service_identity']==owner['identity'] and job['graph_sha256']==row['graph_sha256'])
+   c=read(root/'audit'/f'{run}_conditioning.json');n=read(root/'audit'/f'{run}_noise.json');conditions[arm]=c;noises[arm]=n
+-  shared=root/'audit'/f'r121_{source}_shared_conditioning.json';shared_value=read(shared)
+-  checks[arm+'_shared_conditions']=(c['run_id']==run and c['pair_snapshot']['verified'] is True and c['pair_snapshot']['source_run_id']==f'r121_{source}_shared' and c['pair_snapshot']['source_manifest_sha256']==sha(shared) and c['prompt']==case['prompt'])
++  shared=root/'audit'/f'r123_{source}_shared_conditioning.json';shared_value=read(shared)
++  checks[arm+'_shared_conditions']=(c['run_id']==run and c['pair_snapshot']['verified'] is True and c['pair_snapshot']['source_run_id']==f'r123_{source}_shared' and c['pair_snapshot']['source_manifest_sha256']==sha(shared) and c['prompt']==case['prompt'])
+   require(len(condition_files(c))==6,'expected six condition tensor blobs')
+   for record in walk_blobs(shared_value):
+    if record['tensor_file'] not in seen:
+@@ -59,9 +59,11 @@
+   checks[arm+'_actual_layout']=(router['first_attention']['qkv_shape']==[1,56,seq,128] and plan['frame_rows']==rows and plan['latent_interval_half_open']==route['latent_interval_half_open'] and plan['position_bin_coverage_inclusive']==route['position_bin_coverage_inclusive'] and plan['pixel_interval_inclusive']==route['pixel_interval_inclusive'] and plan['query_interval_half_open']==[plan['target_video_segment'][0],plan['target_video_segment'][0]+bins*rows] and plan['key_interval_half_open']==[plan['reference_video_segment'][0],plan['reference_video_segment'][0]+bins*rows] and plan['target_video_segment'][1]-plan['target_video_segment'][0]==t*rows and plan['reference_video_segment'][1]-plan['reference_video_segment'][0]==t*rows and plan['signature'][1:]==[t,46,82,shapes['audio'][-1]] and plan['reference_image_segments']==[])
+   checks[arm+'_sampled_finite']=all(x.get('sampled_finite',True) for x in router['forward_summaries'])
+   m,files,prefix=inspect_capture(root/'audit/x0'/run,run,grid,row['seed'],case);manifests[arm]=m
+-  pair_id=f'r121_{source}_seed2026101701';cache=root/'audit'/f'{pair_id}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True)
++  pair_id=f'r123_{source}_seed2026101701';cache=root/'audit'/f'{pair_id}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True)
+   hashes=[{k:signature(t)[k] for k in ('shape','dtype','sha256')} for t in saved['tensors']]
+   checks[arm+'_actual_noise_cache']=(n['run_id']==run and n['pair_id']==pair_id and n['signature']['seed']==row['seed'] and len(hashes)==2 and [tuple(x.shape) for x in saved['tensors']]==[shapes[k] for k in ('video','audio')] and saved['signature']==n['signature'] and saved['hashes']==hashes==n['actual_noise_streams'])
++  parent_noise=read(root/'configs/parent_noise.json')
++  checks[arm+'_r121_initial_noise_equal']=(sha(cache)==parent_noise['source_sha256'] and hashes==parent_noise['actual_noise_streams'] and n['signature']==parent_noise['signature'])
+   video=output_file(root,hist);properties=video_properties(video,case)
+   result['runs'][arm]={'run_id':run,'video':{'file':str(video),'sha256':sha(video),'properties':properties},'valid_frames':case['valid_frame_count'],'evaluation_crop_xywh':case['evaluation_crop_xywh'],'NFE':20,'Euler_updates':20,'routed_blocks':router['routed_calls'],'job_wall_seconds':job['observed_unix']-job['submitted_unix'],'snapshots':files,'capture_seconds':sum(x['capture_seconds'] for x in m['captures']),'router_file_sha256':sha(root/'audit/router'/f'{run}.json'),'history_sha256':sha(root/'logs'/f'{run}_history.json'),'job_sha256':sha(root/'logs'/f'{run}_job.json')}
+   result['runs'][arm]['task_scope']=case.get('task_scope');result['runs'][arm]['evaluation_scope']=case.get('evaluation_scope')
+@@ -81,7 +83,7 @@
+  try:
+   result=verify(a.root,a.source,a.native_only);result=persist_gate(dest,result)
+  except BaseException as e:
+-  atomic(dest.with_name(dest.stem+'_FAILURE.json'),{'schema':'r121-pair-verifier-error-v1','passed':False,'source_id':a.source,'error':repr(e),'unix':time.time()});raise
++  atomic(dest.with_name(dest.stem+'_FAILURE.json'),{'schema':'r123-pair-verifier-error-v1','passed':False,'source_id':a.source,'error':repr(e),'unix':time.time()});raise
+  print(json.dumps({'receipt':str(dest),'sha256':sha(dest),'passed':result['passed'],'checks':result['checks']},indent=2))
+  if not result['passed']:raise SystemExit(2)
+ if __name__=='__main__':main()
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/audit/root_run_batch.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/audit/root_run_batch.py
+@@ -4,7 +4,7 @@
+ ROOT=Path(__file__).resolve().parents[1]
+ sys.path.insert(0,str(ROOT/'scripts'))
+ import service
+-from r121_contract import read, require, registry, sha, SOURCES
++from r123_contract import read, require, registry, sha, SOURCES
+ 
+ def live_peers(paths):
+     peers=[]
+@@ -39,6 +39,17 @@
+         require(not any(r['pid']==entry['pid'] for r in rows),'peer contains reused child PID')
+         rows.append(entry)
+     service.write_json(path,value)
++
++def readonly_peer_policy(root=ROOT):
++    """Allow this exact user service without modifying or signalling it."""
++    spec=read(Path(root)/'configs/readonly_peer.json')
++    actual=service.external_identity(spec['pid'])
++    if actual is None:return []
++    require(actual==spec['identity'] and actual['uid']==os.getuid(),'existing user service identity changed')
++    for row in service.compute_processes():
++        if row['pid']==spec['pid']:require(row['gpu_uuid']==spec['gpu_uuid'],'existing user service GPU changed')
++    require(spec['gpu_uuid']!=service.GPU,'existing user service occupies requested GPU')
++    return [{'pid':spec['pid'],'identity':actual}]
+ 
+ def wait_until(fn,seconds,message,interval=2):
+     deadline=time.monotonic()+seconds
+@@ -110,8 +121,10 @@
+         from predecessor import check as check_predecessors
+         service.write_json(audit/'PREDECESSORS_RELEASED.json',check_predecessors(ROOT,args.predecessor_attempt))
+         peers=live_peers(args.peer_root)
+-        require(not peers,'R121 host41 permits one own H3 and requires official MF to finish before loading')
+-        admission={'ready_for_launch':True,'scope':'own_user_video_jobs','existing_comfy_port':None,'permitted_compute_processes':peer_policy(peers)}
++        require(not peers,'this lane allows only the registered read-only user service')
++        from parent_noise import prepare as prepare_noise
++        service.write_json(audit/'PARENT_NOISE_REUSED.json',prepare_noise(ROOT))
++        admission={'ready_for_launch':True,'scope':'own_user_video_jobs','existing_comfy_port':None,'permitted_compute_processes':peer_policy(peers)+readonly_peer_policy()}
+         service.write_json(ROOT/'configs/admission.json',admission)
+         service.wait_admission_snapshot(admission,{'queue_running':[],'queue_pending':[]})
+         run(['python3','scripts/execution_gate.py','approve-screen','--root-admitted','--free-mib','40960'])
+@@ -120,7 +133,7 @@
+         require(ready['pid']==owner['pid'] and ready['identity']==service.external_identity(owner['pid']),'preCUDA child identity mismatch')
+         require(ready['supervisor']['identity']==service.external_identity(ready['supervisor']['pid']),'preCUDA supervisor identity mismatch')
+         peers=live_peers(args.peer_root);entry={'pid':owner['pid'],'identity':ready['identity']}
+-        admission['permitted_compute_processes']=peer_policy(peers)
++        admission['permitted_compute_processes']=peer_policy(peers)+readonly_peer_policy()
+         service.write_json(ROOT/'configs/admission.json',admission)
+         service.wait_admission_snapshot(admission,{'queue_running':[],'queue_pending':[]})
+         for peer in peers:update_peer(peer,entry)
+@@ -162,7 +175,7 @@
+             if row['status']=='paired':successful.append(row['forced_run']);paired.append(row['source_id'])
+             else:native_only.append(row['source_id'])
+         all_done=len(rows)==len(SOURCES) and (first_guided(ROOT) is None or first_guided_reviewed(ROOT))
+-        result={'schema':'r121-screen-completion-v1','passed':True,'all_sources_reviewed':all_done,'terminal_sources':rows,'successful_runs':successful,'native_only_sources':native_only,'guided_sources':paired,'remaining_sources':list(SOURCES[len(rows):]),'controller_state':state,'GPU_released':True,'first_guided_capacity_verified':first_guided(ROOT) is not None,'first_guided_quality_reviewed':first_guided(ROOT) is not None and first_guided_reviewed(ROOT),'unreviewed_native_results':[s for s in SOURCES if (ROOT/'analysis/postrun'/s/'NATIVE_RUNTIME_GATE.json').exists() and s not in [x['source_id'] for x in rows]],'unix':time.time()}
++        result={'schema':'r123-screen-completion-v1','passed':True,'all_sources_reviewed':all_done,'terminal_sources':rows,'successful_runs':successful,'native_only_sources':native_only,'guided_sources':paired,'remaining_sources':list(SOURCES[len(rows):]),'controller_state':state,'GPU_released':True,'first_guided_capacity_verified':first_guided(ROOT) is not None,'first_guided_quality_reviewed':first_guided(ROOT) is not None and first_guided_reviewed(ROOT),'unreviewed_native_results':[s for s in SOURCES if (ROOT/'analysis/postrun'/s/'NATIVE_RUNTIME_GATE.json').exists() and s not in [x['source_id'] for x in rows]],'unix':time.time()}
+         service.write_json(audit/('COMPLETE.json' if all_done else 'RELEASED_PENDING_REVIEW.json'),result)
+     except BaseException as error:
+         owner=failure_cleanup(audit,error,owner,token)
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/scripts/execution_gate.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/scripts/execution_gate.py
+@@ -1,7 +1,7 @@
+ """Root decisions for Native-first screening; all scientific graphs stay registered."""
+ import argparse,hashlib,json,os,time,uuid
+ from pathlib import Path
+-from r121_contract import ROOT,read,sha,registry,require,SOURCES
++from r123_contract import ROOT,read,sha,registry,require,SOURCES
+ 
+ def atomic(path,value):
+  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_name(path.name+'.'+uuid.uuid4().hex+'.tmp');tmp.write_text(json.dumps(value,indent=2)+'\n');os.replace(tmp,path)
+@@ -23,7 +23,7 @@
+ 
+ def approval(root=ROOT):
+  root=Path(root);a=read(root/'audit/ROOT_SCREEN_APPROVAL.json');runtime=read(root/'configs/runtime.json');_,order=registry(root)
+- require(a.get('schema')=='r121-native-screen-approval-v1' and a.get('root_approved') is True,'root screening approval pending')
++ require(a.get('schema')=='r123-native-screen-approval-v1' and a.get('root_approved') is True,'root screening approval pending')
+  require(a['runtime_profile_sha256']==sha(root/'configs/runtime.json') and a['main_gpu_uuid']==runtime['gpu_uuid'],'runtime/device changed')
+  require(a['registered_runs']==order and a['required_free_bytes']>=40*1024**3 and a['reserve_vram_gib']==8,'registered scope or headroom changed')
+  return a
+@@ -33,8 +33,8 @@
+ 
+ def native_binding(root,source):
+  root=Path(root);require(source in SOURCES,'unknown source');file=root/'analysis/postrun'/source/'NATIVE_RUNTIME_GATE.json';gate=read(file)
+- run='r121_'+source+'_seed2026101701_native'
+- require(gate.get('schema')=='r121-native-runtime-gate-v1' and gate.get('passed') is True and gate['source_id']==source and set(gate['runs'])=={'native'},'actual Native gate incomplete')
++ run='r123_'+source+'_seed2026101701_native'
++ require(gate.get('schema')=='r123-native-runtime-gate-v1' and gate.get('passed') is True and gate['source_id']==source and set(gate['runs'])=={'native'},'actual Native gate incomplete')
+  require(gate['runtime_profile_sha256']==sha(root/'configs/runtime.json') and gate['service_owner']==owner_binding(root),'Native owner/runtime differs')
+  require(gate['runs']['native']['run_id']==run and gate['runs']['native']['NFE']==20 and gate['runs']['native']['routed_blocks']==0,'Native execution scope differs')
+  artifacts=gate['runs']['native']['binding_artifacts']
+@@ -46,23 +46,23 @@
+ def decision(root,source):
+  root=Path(root);file=root/'audit/decisions'/(source+'.json')
+  if not file.exists():return None
+- value=read(file);require(value.get('schema')=='r121-root-native-decision-v1' and value.get('root_reviewed') is True and value['choice'] in ('guide','skip'),'invalid root decision')
++ value=read(file);require(value.get('schema')=='r123-root-native-decision-v1' and value.get('root_reviewed') is True and value['choice'] in ('guide','skip'),'invalid root decision')
+  require(value['binding']==native_binding(root,source),'decision bound to different actual Native evidence')
+  require(isinstance(value.get('reason'),str) and bool(value['reason'].strip()),'decision reason required');return value
+ 
+ def ledger(root=ROOT):
+- root=Path(root);file=root/'audit/SCREEN_LEDGER.json';value=read(file) if file.exists() else {'schema':'r121-screen-ledger-v1','rows':[]};rows=value['rows']
+- require(value['schema']=='r121-screen-ledger-v1' and len(rows)<=len(SOURCES),'invalid screen ledger')
++ root=Path(root);file=root/'audit/SCREEN_LEDGER.json';value=read(file) if file.exists() else {'schema':'r123-screen-ledger-v1','rows':[]};rows=value['rows']
++ require(value['schema']=='r123-screen-ledger-v1' and len(rows)<=len(SOURCES),'invalid screen ledger')
+  for i,row in enumerate(rows):
+   source=SOURCES[i];require(row['source_id']==source,'terminal source order changed');d=decision(root,source);require(d is not None and row['decision_sha256']==sha(root/'audit/decisions'/(source+'.json')),'terminal decision differs')
+   require(row['native_gate_sha256']==d['binding']['native_gate_sha256'],'terminal Native differs')
+   if d['choice']=='skip':
+    require(row['status']=='native_only' and row['forced_run'] is None and row['pair_gate_sha256'] is None,'skip fabricated forced result')
+-   run='r121_'+source+'_seed2026101701_forced'
++   run='r123_'+source+'_seed2026101701_forced'
+    require(not (root/'logs'/(run+'_job.json')).exists() and not (root/'analysis/postrun'/source/'PAIR_RUNTIME_GATE.json').exists(),'skip has forced submission or pair gate')
+   else:
+    gatefile=root/'analysis/postrun'/source/'PAIR_RUNTIME_GATE.json';g=read(gatefile)
+-   require(row['status']=='paired' and row['forced_run']=='r121_'+source+'_seed2026101701_forced' and g['passed'] is True and g['source_id']==source and set(g['runs'])=={'native','forced'} and g['service_owner']==owner_binding(root) and row['pair_gate_sha256']==sha(gatefile),'paired terminal evidence differs')
++   require(row['status']=='paired' and row['forced_run']=='r123_'+source+'_seed2026101701_forced' and g['passed'] is True and g['source_id']==source and set(g['runs'])=={'native','forced'} and g['service_owner']==owner_binding(root) and row['pair_gate_sha256']==sha(gatefile),'paired terminal evidence differs')
+  return value
+ 
+ def first_guided(root=ROOT):
+@@ -74,7 +74,7 @@
+  file=root/'audit/FIRST_GUIDED_REVIEW.json'
+  if not file.exists():return False
+  v=read(file)
+- require(v.get('schema')=='r121-first-guided-review-v1' and v.get('root_reviewed') is True and v['source_id']==first['source_id'] and v['pair_gate_sha256']==first['pair_gate_sha256'] and v['service_owner']==owner_binding(root) and v['runtime_profile_sha256']==sha(root/'configs/runtime.json'),'first guided review differs')
++ require(v.get('schema')=='r123-first-guided-review-v1' and v.get('root_reviewed') is True and v['source_id']==first['source_id'] and v['pair_gate_sha256']==first['pair_gate_sha256'] and v['service_owner']==owner_binding(root) and v['runtime_profile_sha256']==sha(root/'configs/runtime.json'),'first guided review differs')
+  return True
+ 
+ def admitted_job(run,root=ROOT):
+@@ -86,28 +86,28 @@
+ def finish_source(root,source):
+  root=Path(root);value=ledger(root);require(len(value['rows'])<len(SOURCES) and SOURCES[len(value['rows'])]==source,'terminal source out of order');d=decision(root,source);require(d is not None,'decision missing')
+  paired=d['choice']=='guide';gate=root/'analysis/postrun'/source/'PAIR_RUNTIME_GATE.json'
+- row={'source_id':source,'status':'paired' if paired else 'native_only','native_run':d['binding']['native_run'],'forced_run':'r121_'+source+'_seed2026101701_forced' if paired else None,'native_gate_sha256':d['binding']['native_gate_sha256'],'pair_gate_sha256':sha(gate) if paired else None,'decision_sha256':sha(root/'audit/decisions'/(source+'.json')),'reason':d['reason'],'created_unix':time.time()}
++ row={'source_id':source,'status':'paired' if paired else 'native_only','native_run':d['binding']['native_run'],'forced_run':'r123_'+source+'_seed2026101701_forced' if paired else None,'native_gate_sha256':d['binding']['native_gate_sha256'],'pair_gate_sha256':sha(gate) if paired else None,'decision_sha256':sha(root/'audit/decisions'/(source+'.json')),'reason':d['reason'],'created_unix':time.time()}
+  # Validate the candidate without replacing the old ledger until all referenced facts pass.
+  if paired:
+   g=read(gate);require(g['passed'] is True and g['source_id']==source and g['service_owner']==owner_binding(root),'guided pair failed')
+  else:
+-  require(not (root/'logs'/('r121_'+source+'_seed2026101701_forced_job.json')).exists() and not gate.exists(),'skip after forced execution refused')
++  require(not (root/'logs'/('r123_'+source+'_seed2026101701_forced_job.json')).exists() and not gate.exists(),'skip after forced execution refused')
+  value['rows'].append(row);atomic(root/'audit/SCREEN_LEDGER.json',value);ledger(root);return row
+ 
+ def write_decision(root,source,choice,reason):
+  root=Path(root);approval(root);rows=ledger(root)['rows'];require(len(rows)<len(SOURCES) and source==SOURCES[len(rows)],'only current Native can be reviewed');require(first_guided_reviewed(root),'first guided review pending');require(choice in ('guide','skip') and bool(reason.strip()),'choice/reason required')
+- value={'schema':'r121-root-native-decision-v1','root_reviewed':True,'choice':choice,'reason':reason,'binding':native_binding(root,source),'created_unix':time.time()};exclusive(root/'audit/decisions'/(source+'.json'),value);return value
++ value={'schema':'r123-root-native-decision-v1','root_reviewed':True,'choice':choice,'reason':reason,'binding':native_binding(root,source),'created_unix':time.time()};exclusive(root/'audit/decisions'/(source+'.json'),value);return value
+ 
+ def write_first_review(root):
+- root=Path(root);approval(root);first=first_guided(root);require(first is not None,'no actual guided pair exists');value={'schema':'r121-first-guided-review-v1','root_reviewed':True,'source_id':first['source_id'],'pair_gate_sha256':first['pair_gate_sha256'],'service_owner':owner_binding(root),'runtime_profile_sha256':sha(root/'configs/runtime.json'),'created_unix':time.time()};exclusive(root/'audit/FIRST_GUIDED_REVIEW.json',value);return value
++ root=Path(root);approval(root);first=first_guided(root);require(first is not None,'no actual guided pair exists');value={'schema':'r123-first-guided-review-v1','root_reviewed':True,'source_id':first['source_id'],'pair_gate_sha256':first['pair_gate_sha256'],'service_owner':owner_binding(root),'runtime_profile_sha256':sha(root/'configs/runtime.json'),'created_unix':time.time()};exclusive(root/'audit/FIRST_GUIDED_REVIEW.json',value);return value
+ 
+ def seal(root=ROOT):
+  root=Path(root);require(not(root/'processes/service.json').exists(),'service registry exists; producer seal locked');paths=[]
+  for folder in ('scripts','extensions','configs/graphs','configs/parent_graphs','configs/R54_evidence','configs/source_selection','configs/prompts','design','analysis/postrun','tests','source_snapshot'):
+   paths.extend(p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
+- paths.extend(root/'configs'/n for n in ('runtime.json','queue.json','scientific_contract.json','input_hashes.json','runtime_kernel_hashes.json','parent_core_hashes.json','expected_checkpoint_hashes.json','storage_policy.json','parent_bindings.json','predecessor.json','cgroup_policy.json'))
++ paths.extend(root/'configs'/n for n in ('runtime.json','queue.json','scientific_contract.json','input_hashes.json','runtime_kernel_hashes.json','parent_core_hashes.json','expected_checkpoint_hashes.json','storage_policy.json','parent_bindings.json','predecessor.json','cgroup_policy.json','readonly_peer.json','parent_noise.json'))
+  paths.extend((root/'PREPARED_INPUTS_MANIFEST.json',root/'audit/root_run_batch.py',root/'audit/INHERITED_BYTE_BINDINGS.json',root/'audit/remote_cpu_validate.py',root/'audit/check_cpu_imports.py'))
+- value={'schema':'r121-producer-seal-v1','files':{str(p.relative_to(root)):{'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(paths)},'mutable_root_owned':['configs/admission.json','audit/ROOT_SCREEN_APPROVAL.json','audit/decisions/*.json','audit/FIRST_GUIDED_REVIEW.json'],'created_unix':time.time()};atomic(root/'deploy_manifest.json',value);return value
++ value={'schema':'r123-producer-seal-v1','files':{str(p.relative_to(root)):{'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(paths)},'mutable_root_owned':['configs/admission.json','audit/ROOT_SCREEN_APPROVAL.json','audit/decisions/*.json','audit/FIRST_GUIDED_REVIEW.json'],'created_unix':time.time()};atomic(root/'deploy_manifest.json',value);return value
+ 
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('action',choices=['seal','approve-screen','decide','review-first-guided']);p.add_argument('--root-admitted',action='store_true');p.add_argument('--root-reviewed',action='store_true');p.add_argument('--source',choices=SOURCES);p.add_argument('--choice',choices=['guide','skip']);p.add_argument('--reason');p.add_argument('--free-mib',type=int,default=40960);a=p.parse_args()
+@@ -115,7 +115,7 @@
+  else:
+   require(ROOT==Path(read(ROOT/'configs/runtime.json')['remote_root']),'actual remote root required')
+   if a.action=='approve-screen':
+-   require(a.root_admitted and a.free_mib>=40960,'root hardware admission >=40GiB required');_,order=registry();v={'schema':'r121-native-screen-approval-v1','root_approved':True,'runtime_profile_sha256':sha(ROOT/'configs/runtime.json'),'main_gpu_uuid':read(ROOT/'configs/runtime.json')['gpu_uuid'],'registered_runs':order,'required_free_bytes':a.free_mib*1024**2,'reserve_vram_gib':8,'created_unix':time.time()};exclusive(ROOT/'audit/ROOT_SCREEN_APPROVAL.json',v)
++   require(a.root_admitted and a.free_mib>=40960,'root hardware admission >=40GiB required');_,order=registry();v={'schema':'r123-native-screen-approval-v1','root_approved':True,'runtime_profile_sha256':sha(ROOT/'configs/runtime.json'),'main_gpu_uuid':read(ROOT/'configs/runtime.json')['gpu_uuid'],'registered_runs':order,'required_free_bytes':a.free_mib*1024**2,'reserve_vram_gib':8,'created_unix':time.time()};exclusive(ROOT/'audit/ROOT_SCREEN_APPROVAL.json',v)
+   else:
+    require(a.root_reviewed,'root actual quality review required');import service;service.assert_owned(read(ROOT/'processes/service.json'))
+    if a.action=='decide':require(a.source and a.choice and a.reason,'source/choice/reason required');v=write_decision(ROOT,a.source,a.choice,a.reason)
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/scripts/predecessor.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/scripts/predecessor.py
+@@ -1,7 +1,7 @@
+ """Read-only exact release gate. Root supplies actual completed attempt names."""
+ import json,re
+ from pathlib import Path
+-from r121_contract import ROOT,read,sha,require
++from r123_contract import ROOT,read,sha,require
+ 
+ def attempts(values,keys):
+  result={}
+@@ -77,7 +77,7 @@
+  mf=None
+  if config.get('mf_final_release_path'):
+   path=Path(config['mf_final_release_path']);value=read(path)
+-  flags=('passed','all_spawned_trackers_released','exact_processes_absent','exact_CUDA_allocations_absent','fresh_own_cuda_absent')
++  flags=('passed','all_spawned_trackers_released','exact_processes_absent','exact_CUDA_allocations_absent','fresh_task_cuda_absent')
+   require(all(value.get(k) is True for k in flags), 'official MF final release incomplete')
+   identities=value['wrapper_identities']+value['tracker_identities']
+   require(identities, 'official MF identity list empty')
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/scripts/preflight.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/scripts/preflight.py
+@@ -1,7 +1,7 @@
+ """CPU contracts; production requires new actual same-profile capacity evidence."""
+ import argparse,json
+ from pathlib import Path
+-from r121_contract import ROOT,read,sha,require,registry,validate_job,ROUTER
++from r123_contract import ROOT,read,sha,require,registry,validate_job,ROUTER
+ 
+ def check(root=ROOT,live=False):
+  root=Path(root);s=read(root/'configs/scientific_contract.json');jobs,order=registry(root);runtime=read(root/'configs/runtime.json')
+@@ -13,6 +13,7 @@
+  require(runtime['reserve_vram']==8 and runtime['memory_mode']=='normal','memory profile differs')
+  if live:
+   require(root.resolve()==Path(runtime['remote_root']),'exact remote root required')
++  c=read(root/'configs/parent_noise.json');require(sha(root/'audit'/c['destination_filename'])==c['source_sha256'],'existing R121 noise not copied exactly')
+   from check_storage import check as check_storage
+   from execution_gate import atomic
+   atomic(root/'audit/STORAGE_STARTUP.json',check_storage(root))
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/scripts/r121_contract.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/scripts/r123_contract.py
+@@ -1,13 +1,12 @@
+-"""Two existing IVE sources with verbatim official edit_prompt and paired guidance."""
++"""One IVE source with approved minimal prompt envelope and paired guidance."""
+ import copy, hashlib, json
+ from pathlib import Path
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+-SOURCES = ('short_0252', 'short_0358')
++SOURCES = ('short_0358',)
+ ARMS = ('native', 'forced')
+-SOURCE_LENGTHS = {'short_0252': (107, 98), 'short_0358': (107, 105)}
+-PROMPTS = {'short_0252': 'Replace the man with an elderly woman',
+-           'short_0358': 'Add a pair of glasses to the man.'}
++SOURCE_LENGTHS = {'short_0358': (107, 105)}
++PROMPTS = {'short_0358': 'subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.'}
+ ROUTER = {'mode':'mass_preserve','alpha':1.0,'blocks':[0,50],'steps':[6,15],
+           'physical_frames':'[0,valid_frame_count-1] per source',
+           'query_support':'all spatial queries in each position bin overlapping valid physical time; pure-pad bins remain native',
+@@ -42,10 +41,10 @@
+     g=copy.deepcopy(read(root/case['parent_graph']));run=case['run_id'];source=case['source_id']
+     for node,key,suffix in [('5','audit_dir','audit'),('6','audit_dir','audit'),('50','audit_dir','audit/router'),('51','source_audit_dir','audit'),('52','output_dir','audit/x0')]:
+         g[node]['inputs'][key]=str(remote/suffix)
+-    shared='r121_'+source+'_shared';g['5']['inputs'].update(run_id=shared,prompt=case['prompt'])
++    shared='r123_'+source+'_shared';g['5']['inputs'].update(run_id=shared,prompt=case['prompt'])
+     g['51']['inputs']['source_run_id']=shared
+     for node in ('6','50','51','52'):g[node]['inputs']['run_id']=run
+-    g['6']['inputs'].update(pair_id='r121_'+source+'_seed2026101701',noise_seed=2026101701)
++    g['6']['inputs'].update(pair_id='r123_'+source+'_seed2026101701',noise_seed=2026101701)
+     g['14']['inputs']['filename_prefix']=run
+     g['50']['inputs'].update(mode='native' if case['arm']=='native' else 'mass_preserve',
+                             alpha=1.,radius=0,time_offset=0,start_frame=0,
+@@ -55,8 +54,8 @@
+ 
+ def registry(root=ROOT):
+     root=Path(root);s=read(root/'configs/scientific_contract.json')
+-    order=['r121_'+source+'_seed2026101701_'+arm for source in SOURCES for arm in ARMS]
+-    require(s['case_order']==order and len(s['cases'])==4 and s['source_ids']==list(SOURCES) and s['arms']==list(ARMS),'two-source registry changed')
++    order=['r123_'+source+'_seed2026101701_'+arm for source in SOURCES for arm in ARMS]
++    require(s['case_order']==order and len(s['cases'])==2 and s['source_ids']==list(SOURCES) and s['arms']==list(ARMS),'one-source registry changed')
+     require(read(root/'configs/queue.json')=={'jobs':order,'finalize':True},'queue changed')
+     frozen=root/'design/SOURCE_DEFINITIONS.json'
+     require(sha(frozen)==s['source_definitions_sha256'],'source definitions changed')
+@@ -69,8 +68,8 @@
+         require(case['reference_video_count']==1 and case['reference_image_count']==0,'reference scope changed')
+         require(case['original_task']==d['original_task'],'official task record changed')
+         prompt=root/'configs/prompts'/(source+'.txt')
+-        require(case['prompt_version']==s['prompt_version']=='official_edit_prompt','prompt label changed')
+-        require(prompt.read_text()==case['prompt']==case['original_task']['edit_prompt']==PROMPTS[source],'official edit_prompt must be verbatim')
++        require(case['prompt_version']==s['prompt_version']=='official_edit_prompt_with_task_reference_envelope','prompt label changed')
++        require(prompt.read_text()==case['prompt']==PROMPTS[source] and case['prompt'].splitlines()[-1]==case['original_task']['edit_prompt'],'official edit_prompt must be verbatim')
+         require(sha(prompt)==case['prompt_sha256'],'prompt digest changed')
+         for key in ('video','provenance','original_source'):
+             require(case[key]==d[key] and case[key+'_sha256']==d[key+'_sha256'],'source media binding changed')
+--- /Users/researcher/DevProjects/h3-timing-ive-official-positive-recheck-r121-20261020/scripts/verify_input_timeline.py
++++ /Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-r123-20261020/scripts/verify_input_timeline.py
+@@ -1,7 +1,7 @@
+ """CPU ffprobe of actual source bytes and physical PTS; no float decoder expectations."""
+ import json,subprocess
+ from fractions import Fraction
+-from r121_contract import ROOT,read,require,sha
++from r123_contract import ROOT,read,require,sha
+ from execution_gate import atomic
+ 
+ def inspect(path,count,fps,width=None,height=None):
+@@ -14,7 +14,7 @@
+ 
+ def main():
+  rows=[]
+- for source,count,valid in [('short_0252',102,98),('short_0358',109,105)]:
++ for source,count,valid in [('short_0358',109,105)]:
+   case=next(c for c in read(ROOT/'configs/scientific_contract.json')['cases'] if c['source_id']==source)
+   p=read(ROOT/'inputs'/case['provenance']);original=ROOT/'inputs'/case['original_source'];prepared=ROOT/'inputs'/case['video']
+   require(sha(original)==p['source_sha256'] and sha(prepared)==p['video_sha256']==case['video_sha256'],'source bytes differ')
+@@ -24,7 +24,7 @@
+   require(p['decoded_pixel_mapping_exact'] is True and all(p['input_frame_md5'][i]==p['original_transformed_frame_md5'][j] for i,j in enumerate(mapping)), 'frozen input pixel mapping differs')
+   require(all(abs(t-i/25)<0.000002 for i,t in enumerate(p['original_pts'])) and len(p['original_pts'])==count,'original provenance PTS differs')
+   rows.append({'source_id':source,'original':inspect(original,count,25),'prepared':inspect(prepared,107,24,1312,736),'valid_frames':valid,'evaluation_indices':list(range(valid)),'frozen_decoded_pixel_mapping_exact':True})
+- report={'passed':True,'rows':rows,'GPU_started':False,'policy':'Each source retains the prepared bytes and valid physical timeline of its parent experiment. Official edit_prompt is the only new scientific condition.'}
+- atomic(ROOT/'audit/INPUT_TIMELINE_ACTUAL.json',report);print(json.dumps({'passed':True,'sources':len(rows),'valid_frames':[98,105]}))
++ report={'passed':True,'rows':rows,'GPU_started':False,'policy':'Each source retains the prepared bytes and valid physical timeline of its parent experiment. Only the minimal task/reference envelope changes the official edit sentence input.'}
++ atomic(ROOT/'audit/INPUT_TIMELINE_ACTUAL.json',report);print(json.dumps({'passed':True,'sources':len(rows),'valid_frames':[105]}))
+ 
+ if __name__=='__main__':main()

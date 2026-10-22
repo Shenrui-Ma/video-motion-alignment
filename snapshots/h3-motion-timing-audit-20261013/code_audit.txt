@@ -1,0 +1,95 @@
+H3 timing pipeline code audit
+
+No explicit 15–16-frame prefix delay or video time stretch found in H3 reference preprocessing, VAE temporal shape arithmetic, token packing, saved native PackedLayout coordinates, actual current reused Core load/export code, graph FPS settings or task-local adapters. This is not proof that all ComfyUI/model-side timing is correct: learned temporal distortion, official-implementation convention mismatch, quantization influence and untraced internal tensors remain open.
+
+Shape helper checks: 22 passed.
+Archived actual layout/graph checks: 16 passed.
+
+frame_grid [verified_code_and_manifests]
+All 12 switching outputs request/input/prepare 141 frames, and all 4 fast-motion outputs use107. Both are17k+5 legal lengths, so the native floor/cap of reference frames and ceil of target length have no effect on these clips; no head crop is performed. Invalid lengths generally could create source/target duration mismatch, but that specific risk does not occur here.
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy_extras/nodes_minimax_h3.py:37-50
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy_extras/nodes_minimax_h3.py:324-343
+
+vae_packing [verified_scalar_arithmetic_not_pixel_timing]
+Encoder processes chronological17-frame chunks, repeats only final tail when short, then drops last3 latent tokens.141 ->9*5-3=42 latents;107 ->7*5-3=32. Decoder removes3 raw frames from each20/8 raw-frame subchunk and blends shared5 frames in place, emits8*17+5=141 or6*17+5=107. It does not prepend a17-frame block. Learned VAE reconstruction can still blur or alter event localization; content alignment needs the separate pixel audit.
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/vae.py:327-355
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/vae.py:544-557
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/vae.py:573-607
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/vae.py:640-664
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/vae.py:448-471
+
+patch_order [verified_source_logic]
+Video patchify/unpatchify are inverse B,C,T,H,W <-> T,H,W rows; temporal patch size1. Final output selects target video segment, unpatchifies and crops from temporal index0. Reference rows are never included as leading output frames.
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/model.py:42-56
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/model.py:767-784
+
+rope_actual [verified_actual_archived_tensor_values]
+All16 archive coordinate storages pass SHA; reference andtarget have identical nonuniform latent-time increments (1,4,4,4,4)*5/3, no target scaling. Target starts after reference span:235 units for141 frames,178.333333 for107. This is packed attention coordinate offset, not physical MP4 prefix padding. Reference->target same-time correspondence is learned, not forced by equal RoPE absolute timestamps. Matching current training/official convention still requires external implementation parity checks. Evidence boundary: saved position_ids are the audit node’s native PackedLayout object built from actual conditioning/shapes, not a per-DiT-step capture. model_base rebuilds with same fields; target latent H/W46x82 are even so its patch rounding does not alter layout. This supports internal consistency by code plus archive, not a full runtime trace.
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/model.py:95-130
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/model.py:353-370
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy/ldm/minimax/model.py:395-450
+See actual_archive_layout_checks; positions read from original stored tensors.
+
+semantic_sampling [verified_source_hash_and_actual_manifest]
+Native semantic path samples indices0,12,... at24FPS, assigns seconds index/24, then pairs adjacent sampled frames and labels each pair by mean timestamp rounded to1decimal.141 ->12 frames/6blocks;107 ->9 frames padded atlast/5blocks. Dense reference VAE retains all141/107frames. These sparse semantic samples may lose short information, but neither the timestamp string nor 2FPS sampling mechanically slows the dense video or proves the causal source of observed delay.
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy_extras/nodes_minimax_h3.py:336-349
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy/text_encoders/minimax.py:179-191
+Tokenizer SHA0e16e44100d6db2bdfd1292eafd1b2f8d71147c546f49afe292fe4d2cdcefe8a matches actual prior runtime provenance.
+
+audit_proxy [verified_source_and_runtime_binding]
+At semantic_fps2/phase0 the custom node verifies native frame/timestamp exact equality and passes original tokenization kwargs unchanged; VAE proxy delegates native encode and only records tensors; no reference frame shift is added.
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/extensions/H3EventAudit/__init__.py:64-82
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/extensions/H3EventAudit/__init__.py:95-102
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/extensions/H3EventAudit/__init__.py:127-155
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/extensions/H3EventAudit/__init__.py:178-216
+
+fps_wiring [verified_graph_not_complete_io_execution]
+Every formal graph: LoadVideo -> GetVideoComponents IMAGE -> audit/native H3; decoded output -> CreateVideo fps24 -> SaveVideo. No temporal resize/interpolation/trim node, no output length mismatch setting. The loader fps output is not wired because H3 assumes24FPS; therefore non24/VFR source would be hazardous generally. Actual file PTS/rate/frame ordering are assigned to independent media audit; equal FPS metadata alone cannot rule out a pipeline bug.
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/configs/05_real_megumi_v_a_s1.json:1
+All16 graphs inspected programmatically.
+
+task_adapters [verified_source_logic]
+PyAV16 adapter patches color enums/properties and delegates original load/components initialization; does not set timebase/FPS/PTS or change frame list. INT8 guard chunks a flattened row tensor in order and copies each result back into identical row index, then restores shape; no token/time reorder operation. This does not prove arbitrary numerical effects absent, but it is not a hard temporal offset transform.
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/scripts/compatibility_bootstrap.py:63-133
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/scripts/int8_row_chunking.py:71-85
+
+actual_video_io [verified_current_reused_Core_source]
+Actual LoadVideo constructs VideoFromFile with start_time0,duration0. Decoder iterates packet.decode frames in presentation order, appends each retained frame, then stacks; no FPS resampler or prepend loop. With default duration0 it reads to EOF. Source frame PTS<0 or decoder errors could be discarded in principle, so actual PTS and content equivalence still belong to media/pixel audit. CreateVideo stores the unchanged images tensor and Fraction(fps), default codec none. SaveVideo delegates VideoFromComponents.save_to. That path creates rate24 stream and enumerates one video frame per tensor image in order; generated audio is trimmed to video duration, not the reverse. H.264 packet reordering is codec behavior, not evidence of an output-content phase shift.
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_extras/nodes_video.py:249-261
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_extras/nodes_video.py:330-366
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_extras/nodes_video.py:194-201
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_api/latest/_input_impl/video_types.py:241-250
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_api/latest/_input_impl/video_types.py:461-571
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_api/latest/_input_impl/video_types.py:595-620
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy_api/latest/_input_impl/video_types.py:1143-1205
+
+actual_vae_wrapper [verified_current_reused_Core_source]
+Actual sd.py H3 branch constructs MiniMaxH3VideoVAE with default chunk17/drop3, declares latent_dim3 and exact17k+5<->5k+2 scale. Input is4D[T,H,W,C]; crop covers dimensionsH/W, not first-axisT. Channel moves convert to[1,C,T,H,W]; batch loop runs B=1 not frame batches. Chunk-aware decode allocates exact video shape, calls first_stage_model.decode and returns channel-last tensor. Spatial tiling paths are owned by this same VAE. No frame-rate parameter, no temporal reindexing or start offset in this wrapper.
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy/sd.py:1005-1022
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy/sd.py:1115-1127
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy/sd.py:1230-1262
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy/sd.py:1287-1309
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/comfy/sd.py:1371-1419
+
+reference_conditioning_not_hard_time_copy [verified_graph_and_source_semantics]
+The configured task is full-noise Ref2VA regeneration: _empty_av_latent creates an empty target grid; SamplerCustomAdvanced receives that target plus paired random AV noise, and sigma starts1. The source clip is a separate conditioning block. The graph does not initialize the target from source latents, invert source noise, apply a per-frame source preservation mask, or use explicit keyframe/control-video constraints. Therefore source motions/timing are requested and conditioned rather than mechanically locked. This is a property of this tested workflow, not evidence of a wiring bug and not proof of which model component caused any observed error. It is materially different from a video editor that preserves a source diffusion trajectory.
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy_extras/nodes_minimax_h3.py:84-90
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy_extras/nodes_minimax_h3.py:289-291
+/Users/researcher/DevProjects/h3-event-emphasis-pilot-20261013/source_snapshot/comfy_extras/nodes_minimax_h3.py:343-363
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/configs/05_real_megumi_v_a_s1.json nodes5,6,9,10
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/extensions/H3EventAudit/__init__.py:188-216
+/Users/researcher/DevProjects/h3-short-event-switching-20261013/extensions/H3EventAudit/__init__.py:224-262
+
+actual_VAEDecode_bridge [verified_current_reused_Core_source]
+VAEDecode selects latent.unbind()[0] from the joint nested AV tensor, i.e. video stream, calls the video VAE, and reshapes[batch,time,height,width,channels]to[batch*time,height,width,channels]. For this batch1 workflow that preserves chronological frames, with no FPS change, leading crop, repeated frames or offset. This closes the remaining inspected code bridge between sampler latent and CreateVideo.
+/Users/researcher/DevProjects/h3-motion-timing-audit-20261013/source_snapshot/nodes.py:333-341
+Actual fetched nodes.py SHA256 dddf275f6dbcbd1a9cbdc02ebee2bad86bf022cc968c58a3f14cb26a2d08926e verified.
+
+LIMITATIONS
+Actual current reused Core video loader/export, sd.py wrapper and nodes.py VAEDecode bridge are now inspected and all supplied snapshot hashes verified. Historical formal runtime did not individually hash every IO file; current inspection is not a time-machine proof of all old bytes.
+Scalar shape tests do not simulate learned CNN/ViT pixels; separate source/prepared/VAE reconstruction motion alignment is needed.
+No comparison with official native H3 implementation/weights or full-precision H3; a common integration convention or quantization influence is not excluded.
+No output event content analyzed here; cannot infer all outputs are slow or uniformly delayed from source code.
+RoPE coordinate offset is not time latency; changing it to align reference/target without trained-convention evidence would be an experimental intervention, not a proven bug fix.
+No-edit/no-op generation would isolate requested edit versus generic regeneration drift but would not by itself establish official implementation equivalence.
+Saved coordinate tensors were audit copies built with real inputs using native helper, not captured at every DiT step; model_base equivalent construction is source-verified, but actual per-step internals were not traced.

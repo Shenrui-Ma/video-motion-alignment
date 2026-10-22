@@ -1,0 +1,95 @@
+{
+  "schema": "r130-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-caption-ablation-r130-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_caption_ablation_r130_20261020",
+  "producer_seal_sha256": "89e7168d98d12e9a6b8b29e77ce6a70dacd72fc867863eba461877d60f6e93e4",
+  "producer_contract_sha256": "89a161c97e134f91235400007516bf650f535b5ccd3dcdacdd7971e81129f187",
+  "producer_runtime_sha256": "818a7fedd9049324849dfdbf9883ee6bcb33fac0ee89c2b1947ebdea618c2d00",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "long_0163"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0163",
+      "run_id": "r130_long_0163_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 158,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-subject-bound-edit-no-caption-narrative-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\n<Subject 1> is the person wearing the light blue suit in <Video 1>.\n<Subject 2> is the other person in <Video 1>.\n<Subject 3> is the office scene, desk, laptop, and documents in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nChange the light blue suit to black\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] The edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 163,
+        "src_video_name": "long_0163.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "A professional office setting where two individuals are engaged in a discussion. One person, wearing a light blue suit, is seated at a desk with a laptop, while the other stands and hands over documents.",
+        "edit_prompt": "Change the light blue suit to black",
+        "target_prompt": "A professional office setting where two individuals are engaged in a discussion. One person, wearing a black suit, is seated at a desk with a laptop, while the other stands and hands over documents.",
+        "target_span": "black",
+        "target_phrase": "black suit",
+        "origin_mapping": {
+          "source_name": "part_018_b2_95_b2953cab5b093eeed4b6179a023a06bb",
+          "order_name": "long_0163",
+          "type": "long",
+          "url": "",
+          "start frame": "",
+          "end_frame": ""
+        }
+      },
+      "clip": {
+        "start_frame": 52,
+        "end_frame_inclusive": 201,
+        "start_pts_rational": "52/25",
+        "end_pts_rational_inclusive": "201/25",
+        "end_exclusive_rational": "202/25",
+        "duration_rational": "6"
+      },
+      "task_scope": "main_subject_attribute",
+      "evaluation_scope": "IVEBench素材片段探索",
+      "forced_run_id": "r130_long_0163_seed2026101701_forced",
+      "valid_frames": 144,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/long_0163_video.mp4",
+        "sha256": "749b6025a9122fc116de6a7b064ac90bc90d5fff651bac309823ed71ad67119e",
+        "bytes": 21518334
+      },
+      "provenance": {
+        "file": "inputs/long_0163_provenance.json",
+        "sha256": "c217990575b12e61c3f67b4f1dabef7a5e1fffa2830915a896765d650f4c219e",
+        "bytes": 27005
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-caption-ablation-metrics-r130-20261020/inputs/long_0163_original.mp4",
+        "sha256": "19becf07df66dd91f62cf9c9aca716f3101765fe30eecbd0ff4da21d2bf55709"
+      },
+      "graph_sha256": "d43ce84892c416d46acdbdf5e4a4ec57224513e4d25e405cfa5726b2577e1491",
+      "forced_graph_sha256": "6538a2f9bcf1bf3d3be9a8d3ddda2665edaea4cfca06af4848d0cd32c1dcce80"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

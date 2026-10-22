@@ -1,0 +1,22 @@
+from pathlib import Path
+import json,hashlib,copy,time,os
+B=Path('/Users/researcher/DevProjects');R=B/'h3-benchmark-all-results-showcase-20261018';A=Path(__file__).parent
+H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+p=R/'inventory/ivebench.json';old=H(p);assert old=='232e171b0143f8a46007c39754ed5b88278955dcc75958fe861f37c1d31c90db'
+x=json.loads(p.read_text());(A/'ivebench_before.json').write_bytes(p.read_bytes());r=copy.deepcopy(next(v for v in x['items'] if v['id']=='r125_long_0031_full_context'))
+c=B/'h3-ive-book-color-metrics-r128-20261020';producer=B/'h3-timing-ive-book-color-r128-20261020';src='short_0362';inc=c/'incoming'/src;show=c/'showcase'/src
+pres=show/'PRESENTATION.json';a=json.loads(pres.read_text());review=c/'audit/full_frame_review'/src/'native/REVIEW.json';assert H(review)=='e96fa81ccf898cb6c1a1a7f4edf3a339adcc0055dde6829d2923e7d189b71bec';b=json.loads(review.read_text());assert b['examined_frames']==list(range(65))
+r.update(id='r128_short_0362_full_context',source_id=src,variant='R128 · 完整Context-IR · 普通编辑',title='读书谈话 · 蓝书封改红',task=a['original_task']['edit_prompt'],display_task='读书谈话 · 蓝书封改红',pair_group='IVEBench完整短片探索',valid_frames=65,generated_frames=73,source_clip=a['source_clip'],original_task=a['original_task'],review_status=b['summary_zh'],review_summary=b['summary_zh'],display_summary=b['summary_zh'],key_same_frame_indices=[19,54],judgment_source='continue_r90_r104完整65有效帧两列审阅；root复核15–19与50–54帧。',full_frame_review_path=str(review))
+r['event_review']={'file':str(review),'sha256':H(review),'events':b['events'],'scope':'全部65有效帧审阅；纸页升降阶段的可见区间重叠。'}
+r['execution_seconds']={'native_sampling':984.8,'native_comfy_job':1119,'sampling_steps':20,'native_sampling_mean_per_step':49.24,'source':'actual ComfyUI progress log'}
+for key,v in zip(['reference_video_path','ordinary_video_path'],a['inputs']):assert H(v['file'])==v['sha256'];r[key]=v['file']
+r['comparison_video_path']=str(show/a['videos'][0]['file']);assert H(r['comparison_video_path'])==a['videos'][0]['sha256'];r['media_sha256']={k:H(r[k]) for k in ['reference_video_path','ordinary_video_path','comparison_video_path']}
+graph=inc/'native_graph.json';hist=inc/'native_history.json';g=json.loads(graph.read_text());prompt=g['5']['inputs']['prompt'];assert all(a['original_task'][k] in prompt for k in ['source_prompt','edit_prompt','target_prompt']);assert json.loads((inc/'native_router.json').read_text())['routed_calls']==0
+r['prompt']=prompt;r['prompt_protocol'].update(actual_prompt=prompt,official_edit_prompt=a['original_task']['edit_prompt']);r['actual_prompt_by_column']={'ordinary':{'text':prompt,'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(),'protocol':a['prompt_version'],'exact_official_edit_prompt':False,'graph_bindings':[{'graph':str(graph),'graph_sha256':H(graph),'node_id':'5','field':'inputs.prompt'}],'actual_history':str(hist),'actual_history_sha256':H(hist),'scope':'实际提交图与Comfy history绑定，三官方字段逐字包含。'}}
+r['quantitative_metrics']={'motion_fidelity':{'native':None,'guided':None,'delta':None,'status':'pending','higher_is_better':True,'protocol':'IVEBench official MF','valid_frames':65,'evaluation_frames':65,'evaluation_fps':24}}
+evid=[pres,review,review.parent/'FRAME_LEDGER.json',review.parent/'ROOT_NATIVE_SPOT_CHECK.json',inc/'NATIVE_RUNTIME_GATE.json',inc/'COLLECTION.json',c/'prepared'/src/'native/MF_INPUTS.json',graph,hist,inc/'native_job.json',inc/'native_router.json',producer/'audit/decisions/short_0362.json',producer/'audit/SOURCE_EVENTS_BEFORE_OUTPUT.json']
+for n in ['ROOT_EXIT_RECEIPT.json','COMPLETE.json']:
+ f=producer/'audit/root_book_color_attempt1'/n;assert json.loads(f.read_text())['passed'];evid.append(f)
+r['evidence_paths']=[str(e) for e in evid];r['evidence_sha256']={str(e):H(e) for e in evid};assert not any(v['id']==r['id'] for v in x['items']);x['items'].append(r);rows=x['items'];x['updated_unix']=time.time();x['counts'].update(items=len(rows),unique_sources=len({v['source_id'] for v in rows}),native_only=sum(v.get('comparison_kind')=='native_only' for v in rows))
+assert H(p)==old;t=p.with_suffix('.tmp');t.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n');os.replace(t,p)
+v={'before_sha256':old,'after_sha256':H(p),'added':[r['id']],'ive_counts':x['counts'],'total_versions':len(rows)+31,'created_unix':time.time()};(A/'RECEIPT.json').write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n');print(json.dumps(v,ensure_ascii=False,indent=2))

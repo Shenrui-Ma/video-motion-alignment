@@ -1,0 +1,31 @@
+0358 饮水加眼镜：官方 Motion Fidelity 实测恢复
+
+结果：普通编辑 0.8497030733038422；固定时序引导 0.8571153094098591；差值 +0.007412236106016934。
+三份参考/普通/引导分别完成 fresh CoTracker3 跟踪，再由原官方 Motion Fidelity 函数在 CPU 计算。全部使用 .41 同一 Python、GPU型号、checkpoint、100点网格与离线60帧窗口配置。共105有效帧，24fps；从107帧H3成片去掉2帧尾pad，crop到1280×720。未做时延校正、重采样对齐或ROI筛点。源原25fps→H3 24fps映射沿已完成R89输入记录保留；这里为本实际H3有效域上的官方公式评分。
+
+科学解释：这次整体MF小幅增加。已有完整105帧人工审查显示首次降瓶和再举到嘴边略提前，末段离嘴仍晚；两种结果应并列，不将MF提升改写为时间错位完全修复。
+原三事件区间（24fps）：
+首次降瓶：参考14–18；普通28–33；引导22–26。
+瓶口到嘴：参考37–40；普通50–53；引导47–50。
+离嘴：参考80–84；普通94–97；引导94–97。
+事件来自R89既有visual_review_short0358/REVIEW.json，不参与tracker、匹配或引导参数。
+
+效率与资源：
+source/native/forced GPU跟踪分别1.620/0.831/0.906s；模型加载及原报告计时8.514/6.630/7.128s；加输入核验、preCUDA注册、退出清理后每条24.730/24.692/25.245s。
+三份peak allocated10.104GiB、reserved12.043GiB；真实MaxRSS2.385/2.393/2.392GiB。
+共享user.slice在0.5秒采样中最高87.340GiB，high100GiB；high/max/oom/oom_kill事件增量均0。这个峰包括并行R96与其他共享内存，不能归因到单tracker。MaxRSS为单tracker进程实测。
+
+生命周期：CPU supervisor1005158；source1005165/native1005390/forced1005807。每份ready前无CUDA，精确PID/UID/start/cmdhash登记R96 mutable admission后GO；退出确认进程与CUDA都不存在才删除该条目。最终admission和首次注册前逐项相同，R96原service951112/start10923395仍存活。最终独立检查通过；GPU1已释放。
+
+输入与实现：
+- INPUTS.json：gate、原片/processed source、真实两份成片、三份评分媒体的SHA与帧MD5。
+- inputs/PAIR_RUNTIME_GATE.json：R89实际配对门，SHA963d11b3e95861cf55801ad037140794fbaa58159f0b5522eebdfcdccccc924c。
+- runtime/metric_runtime/run_tracks.py、score_cached_tracks.py及官方61文件保持R73父包原字节；新scripts仅作单例绑定、资源/生命周期管理。
+- checkpoint SHA da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df；官方commit2dcf8900ee65197f43854c76f61c66a32bb8dbfc。
+- tracks/{source,native,forced}/REPORT.json与tracks.npz：真实结果和shape [1,105,100,2]。
+- results/native.json、forced.json：原官方CPU结果；SUMMARY.json为对比；RESOURCE_SUMMARY.json为实际资源。
+- audit/COMPLETE.json、INDEPENDENT_EXIT_CHECK.json及controls/*保存实际命令、身份、GO、统计、peer修改前后和退出证据。
+
+准备阶段发现并解决两项行政问题：第一次部署省略原vendor manifest中的14个历史pyc，被CPU校验拒绝后按原字节补齐；R96服务身份为文本cmdline，改为使用其原process_identity先验证service_record，再取得hashed_record用于peer。两项都在CUDA前修复，原失败/旧seal保留。最终86文件seal27f41d97e2e533d00915e047252fc89b5831f19896820da6024ee05fe4004c43，实际host三份CPU check-only通过。无新依赖、无H3重推理或生产科学代码修改。
+
+对照此前oxygen0252：官方MF0.8026777861879288→0.8024124040915745，差−0.0002653820963543；已有手臂方向物理时序测量在探索性32–63帧窗为+16→+1帧。继续保留这组指标分歧，原time-calibration证据与报告在READ_ONLY_PLAN.txt中列出。

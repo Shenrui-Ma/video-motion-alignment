@@ -1,0 +1,288 @@
+--- R46/extensions/H3AttentionStateProbe/__init__.py
++++ R48/extensions/H3AttentionStateProbe/__init__.py
+@@ -6,6 +6,7 @@
+ from .core import State, Block, TerminalSampler, KEY
+ from .signatures import rng_state, assert_rng
+ from .head import output_head_contract
++from .sigma_guard import timestep_evidence, check_timestep, head_evidence, check_head
+ 
+ 
+ def install(model, positive, source, output, *, require_cuda=True):
+@@ -36,6 +37,8 @@
+ 
+     def __enter__(self):
+         model, state = self.model, self.state
++        self.handles = []
++        self.timestep = None
+         heads = output_head_contract(model.diffusion_model.final_layer)
+         self.had_own = 'extra_conds' in vars(model)
+         self.original = model.extra_conds
+@@ -50,21 +53,34 @@
+             state.audit['materialization_rng_unchanged'] = True
+             return result
+         model.extra_conds = types.MethodType(count, model)
++        def diffusion_entry(module, args, kwargs):
++            actual = args[1] if len(args) > 1 else kwargs.get('timestep')
++            require(state.active and state.entry_sigma is not None, 'diffusion outside authorized Native')
++            evidence, expected = timestep_evidence(state.entry_sigma, actual, model.model_sampling)
++            state.audit['sigma_path'] = evidence
++            state.write()  # Preserve actual bits before any value assertion can fail.
++            require(self.timestep is None, 'duplicate diffusion entry')
++            check_timestep(state.entry_sigma, actual, expected, state.source.s['full_grid'])
++            self.timestep = actual.detach().clone()
+         def output_head(module, args):
+             require(state.active and len(args) == 7, 'output head outside authorized Native/interface')
+             _, _, _, _, sigma, grid, shifts = args
+-            require(grid.dtype == torch.float32 and grid.detach().cpu().tolist() == state.source.s['full_grid'],
+-                    'actual output head full grid changed')
+-            require(int((grid - sigma).abs().argmin()) == 4 and float(sigma) == state.source.s['full_grid'][4]
+-                    and tuple(map(float, shifts)) == (12.0, 3.0), 'actual head sigma/index/shifts changed')
++            require(self.timestep is not None, 'output head missing actual diffusion timestep')
++            evidence, expected = head_evidence(sigma, self.timestep, grid, shifts)
++            state.audit['sigma_path'].update(evidence)
++            state.write()
++            check_head(sigma, expected, grid, shifts, state.source.s['full_grid'], evidence)
+             require(output_head_contract(module) == heads, 'loaded head contract changed')
+             state.output_head_calls += 1
+             require(state.output_head_calls == 1, 'duplicate output head')
+             state.audit['output_head'] = dict(index=4, sigma=float(sigma), sigma_next=float(grid[5]),
+                                             shifts=list(shifts), **heads)
+         try:
+-            self.handle = model.diffusion_model.final_layer.register_forward_pre_hook(output_head)
++            self.handles.append(model.diffusion_model.register_forward_pre_hook(diffusion_entry, with_kwargs=True))
++            self.handles.append(model.diffusion_model.final_layer.register_forward_pre_hook(output_head))
+         except BaseException:
++            for handle in self.handles:
++                handle.remove()
+             self._restore()
+             raise
+         return self
+@@ -76,7 +92,8 @@
+             delattr(self.model, 'extra_conds')
+ 
+     def __exit__(self, kind, value, traceback):
+-        self.handle.remove()
++        for handle in self.handles:
++            handle.remove()
+         self._restore()
+ 
+ 
+--- R46/extensions/H3AttentionStateProbe/core.py
++++ R48/extensions/H3AttentionStateProbe/core.py
+@@ -30,9 +30,10 @@
+         self.next_block = self.completed_blocks = self.attention_calls = 0
+         self.active = False
+         self.entered = self.complete = False
++        self.entry_sigma = None
+         self.extra_conds_calls = self.output_head_calls = self.probe_calls = 0
+         self.audit = {'schema': 'r46-single-state-report-v1', 'label': source.label,
+-                      'run_id': 'r46_' + source.label + '_index4', 'status': 'installed',
++                      'run_id': 'r48_' + source.label + '_index4', 'status': 'installed',
+                       'source_run': source.s['source_run'], 'seed': source.s['seed'],
+                       'source_binding_sha256': sha(ROOT/'configs/sources.json'),
+                       'protocol_sha256': sha(ROOT/'configs/SCIENCE_PROTOCOL.json'),
+@@ -170,6 +171,7 @@
+         require(not self.require_cuda or x.device.type == 'cuda', 'production Native requires CUDA')
+         expected = src.endpoint()
+         sigma = sigmas[4] * x.new_ones([1]); sigma_before = sigma.clone()
++        s.entry_sigma = sigma.detach().clone()
+         before = rng_state(x.device); x_sig = readout.tensor_signature(x)
+         s.active = True; synchronize(x.device); started = time.perf_counter()
+         s.audit.update(status='predicting', DiT_NFE=1, attempted_forwards=1)
+--- R46/scripts/build_manifest.py
++++ R48/scripts/build_manifest.py
+@@ -12,7 +12,7 @@
+     files={str(p.relative_to(r)):{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(paths)}
+     path=r/'deploy_manifest.json'
+     if path.exists():raise FileExistsError('preserve prior seal; explicit version required')
+-    path.write_text(json.dumps({'schema':'r46-immutable-v1','files':files,'mutable_admin':['configs/admission.json','configs/runtime_provenance.json','audit/root_resource_approval.json'],
++    path.write_text(json.dumps({'schema':'r48-immutable-v1','files':files,'mutable_admin':['configs/admission.json','configs/runtime_provenance.json','audit/root_resource_approval.json'],
+         'queue_finalize_change':'not permitted in this two-state diagnostic; use bounded hold or exact-owner service stop'},indent=2)+'\n')
+     tar=r/'audit/runtime_bundle_v1.tar.gz'
+     with tarfile.open(tar,'w:gz') as archive:
+--- R46/scripts/job.py
++++ R48/scripts/job.py
+@@ -92,7 +92,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-attention-observer-r46-20261017'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-attention-observer-r48-20261017'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- R46/scripts/preflight.py
++++ R48/scripts/preflight.py
+@@ -6,8 +6,8 @@
+ 
+ def check(root=ROOT,live=False):
+     root=Path(root);p=read(root/'configs/SCIENCE_PROTOCOL.json');rt=read(root/'configs/runtime.json')
+-    require(rt=={'remote_root':'/data5/researcher/h3_runs/timing_attention_observer_r46_20261017',
+-                'gpu_uuid':'GPU-REDACTED','port':8508},'resource location changed')
++    require(rt=={'remote_root':'/data5/researcher/h3_runs/timing_attention_observer_r48_20261017',
++                'gpu_uuid':'GPU-REDACTED','port':8510},'resource location changed')
+     require(p['total_DiT_NFE']==2 and p['per_state_DiT_NFE']==1 and
+             all(p[k]==0 for k in ['Euler_updates','ordinary_callbacks','VAE_calls','Qwen_calls']), 'two terminal Native states only')
+     require(p['source_binding_sha256']==sha(root/'configs/sources.json') and p['index']==4 and
+--- R46/scripts/r46_contract.py
++++ R48/scripts/r46_contract.py
+@@ -3,7 +3,7 @@
+ import json
+ from pathlib import Path
+ ROOT = Path(__file__).resolve().parents[1]
+-ORDER = ['r46_bad_index4', 'r46_normal_index4']
++ORDER = ['r48_bad_index4', 'r48_normal_index4']
+ 
+ 
+ def read(path):
+--- R46/scripts/verify_completed.py
++++ R48/scripts/verify_completed.py
+@@ -1,5 +1,5 @@
+ """Independent CPU audit of two terminal predictions and passive readouts."""
+-import argparse,json,math,sys
++import argparse,json,math,struct,sys
+ from pathlib import Path
+ import torch
+ from r46_contract import ROOT,read,sha,require,registry,validate_job,identity_schema
+@@ -23,13 +23,33 @@
+     require(report['Native_AV_bitwise_equal'] is True and report['input_sigma_grid_condition_RNG_unchanged'] is True and
+             report['original_UUID_restored'] is True and report['materialization_rng_unchanged'] is True, 'runtime exact gates incomplete')
+     require(report['actual_sigma']==source['full_grid'][4] and report['full_grid']==source['full_grid'],'grid/sigma differs')
+-    head=report['output_head'];require(head['index']==4 and head['sigma']==source['full_grid'][4] and head['sigma_next']==source['full_grid'][5] and
++    validate_sigma_path(report,source)
++    head=report['output_head'];require(head['index']==4 and head['sigma']==report['sigma_path']['actual_head_sigma']['values'][0] and head['sigma_next']==source['full_grid'][5] and
+         head['pdd_active'] is False and head['bank_size']==1 and head['shifts']==[12.,3.], 'actual output head gate differs')
+     p=report['probe'];q=p['quality']
+     require(p['block']==25 and p['heads']==[0,14,28,42] and p['queries_per_head']==1050 and q['status']=='PASS' and
+             set(q['gates'])=={'finite','group_lse','subset_lse','probability_sum','query_lse_unchanged'} and all(v is True for v in q['gates'].values()) and q['additional_attention_calls']==43 and q['clamped'] is False,'probe quality/count differs')
+     require(p['selected_original_QKV_output_exact'] is True and p['global_rng_unchanged'] is True and
+             p['original_output_not_passed_to_statistics'] is True and p['full_QKV_copy'] is False,'passive probe gate differs')
++
++
++def validate_sigma_path(report,source):
++    """Independently bind recorded exact checks; do not emulate CUDA math on CPU."""
++    evidence=report['sigma_path']
++    require(evidence['exact_official_timestep'] is True and evidence['exact_official_head_sigma'] is True,
++            'same-device sigma mapping runtime gate incomplete')
++    for key in ['entry_sigma','actual_timestep','expected_timestep','actual_head_sigma','expected_head_sigma','actual_grid']:
++        row=evidence[key]
++        require(row['tensor'] is True and row['dtype']=='torch.float32' and not row['nonfinite_indices'] and
++                row['numel']==len(row['values'])==len(row['raw_bits_hex']), 'sigma evidence schema '+key)
++        require(row['raw_bits_hex']==[struct.pack('>f',v).hex() for v in row['values']], 'sigma raw bits/value mismatch '+key)
++    require(evidence['actual_timestep']==evidence['expected_timestep'] and
++            evidence['actual_head_sigma']==evidence['expected_head_sigma'], 'sigma exact record differs')
++    entry=evidence['entry_sigma'];time=evidence['actual_timestep'];head=evidence['actual_head_sigma'];grid=evidence['actual_grid']
++    require(entry['shape']==time['shape']==[1] and head['shape']==[] and grid['shape']==[21] and
++            entry['device']==time['device']==head['device'] and entry['values']==[source['full_grid'][4]] and
++            grid['values']==source['full_grid'] and evidence['actual_index']==4 and evidence['actual_shifts']==[12.,3.],
++            'sigma path entry/grid/index/shifts differs')
+ 
+ 
+ def validate_payload(payload,report):
+--- R46/tests/real_comfy_cpu_smoke.py
++++ R48/tests/real_comfy_cpu_smoke.py
+@@ -16,10 +16,10 @@
+     assert not torch.cuda.is_initialized()
+     root=Path(__file__).resolve().parents[1]
+     sys.path[:0]=[a.comfy_root,str(root/'extensions'),str(root/'tests')]
+-    sys.argv=['r46_cpu','--cpu','--disable-dynamic-vram','--use-pytorch-cross-attention']
++    sys.argv=['r48_cpu','--cpu','--disable-dynamic-vram','--use-pytorch-cross-attention']
+     import comfy.options
+     comfy.options.enable_args_parsing()
+-    spec=importlib.util.spec_from_file_location('r46_frozen_compat',a.compat_bootstrap)
++    spec=importlib.util.spec_from_file_location('r48_frozen_compat',a.compat_bootstrap)
+     compat=importlib.util.module_from_spec(spec);spec.loader.exec_module(compat);compat.install();compat.install_video_compat()
+     import nodes
+     saved=list(sys.path)
+@@ -49,7 +49,7 @@
+     model.diffusion_model=diffusion;model.model_sampling=model_sampling(None,ModelType.FLOW_AV)
+     model.model_sampling.set_parameters(shift=12,audio_shift=3);model.latent_format=MiniMaxH3Video()
+     shapes=source_module.SHAPES;model.latent_shapes=list(shapes);model.manual_cast_dtype=torch.float32;model.concat_keys=()
+-    diffusion.dtype=torch.float32;diffusion.hidden_size=8
++    diffusion.dtype=torch.float32;diffusion.hidden_size=8;model.current_patcher=None
+     base=ModelPatcher(model,torch.device('cpu'),torch.device('cpu'),size=1)
+     reference=torch.zeros(shapes[0]);portrait=torch.zeros((1,24,1,76,50))
+     positive=[[torch.zeros(1,6960,8),{'minimax_token_tags':torch.zeros(6960,dtype=torch.int64),'pooled_output':None,
+@@ -82,7 +82,7 @@
+             'actual_endpoint_normalization_verified':True,'processed_GPU_condition_and_endpoint_pending':True})
+         del actual_source,actual_positive,actual_guider,actual_x,actual_noise,actual_endpoint
+     rows=[];env=dict(os.environ)
+-    with tempfile.TemporaryDirectory(prefix='r46-real-comfy-') as tmp:
++    with tempfile.TemporaryDirectory(prefix='r48-real-comfy-') as tmp:
+         for case in ('bad','normal','endpoint_mismatch'):
+             label='bad' if case=='bad' else 'normal'
+             i=0 if label=='bad' else 1
+@@ -93,7 +93,7 @@
+             assert type(processed['minimax_payload'].cond['layout']).__name__=='PackedLayout'
+             original.conds={'positive':[dict(original.original_conds['positive'][0],model_conds=processed)]}
+             condition=signatures.condition_signature(original)
+-            x=noise*0.125+i*0.03125;expected=x*0.25+0.015625
++            x=noise*0.125+i*0.03125;expected=x.clone()
+             raw=[v.clone() for v in unpack_latents(expected,shapes)]
+             src=types.SimpleNamespace(label=label,condition=condition,s={'source_run':'synthetic_'+label,'seed':seed,'full_grid':sigmas.tolist(),
+                  'noise':{'packed_signature':core.readout.tensor_signature(noise)},
+@@ -122,15 +122,23 @@
+             state.capture=types.MethodType(capture,state)
+             def prediction(this,raw_x,sigma,model_options=None,seed=None):
+                 calls.append(core.readout.tensor_signature(raw_x))
++                # Official BaseModel._apply_model performs the actual FLOW_AV timestep
++                # conversion, then invokes the diffusion module and its entry hook.
++                return model._apply_model(raw_x,sigma,c_crossattn=positive[0][0],
++                    transformer_options=model_options['transformer_options'])
++            def diffusion_prediction(this,raw_x,timestep,context=None,control=None,transformer_options=None,**kwargs):
+                 packed=guider.conds['positive'][0]['model_conds']['minimax_payload'].cond['layout']
+-                patches=model_options['transformer_options']['patches_replace']['dit']
++                patches=transformer_options['patches_replace']['dit']
+                 for block in range(50):
+-                    args={'layout':packed,'transformer_options':dict(model_options['transformer_options'],block_index=block,minimax_h3_layout=packed)}
++                    args={'layout':packed,'transformer_options':dict(transformer_options,block_index=block,minimax_h3_layout=packed)}
+                     def original_block(local):
+                         return local['transformer_options']['optimized_attention_override'](attention_pytorch,q,q/2,q.cos(),56,skip_reshape=True)
+                     patches[('double_block',block)](args,{'original_block':original_block})
+-                final(head_x,head_t,(1,3,0),(4,6,1),sigma.reshape(()),model_options['transformer_options']['sample_sigmas'],(12.,3.))
+-                return raw_x*0.25+0.015625
++                # Literal frozen MiniMaxH3Model._forward head mapping, not entry sigma.
++                head_sigma=(timestep.flatten()[0]/1000.0).float().clamp(min=1e-6)
++                final(head_x,head_t,(1,3,0),(4,6,1),head_sigma,transformer_options['sample_sigmas'],(12.,3.))
++                return torch.zeros_like(raw_x)
++            diffusion.forward=types.MethodType(diffusion_prediction,diffusion)
+             guider.predict_noise=types.MethodType(prediction,guider)
+             before=torch.random.get_rng_state().clone();started=time.perf_counter()
+             caught=None
+@@ -153,20 +161,22 @@
+             assert len(calls)==1 and len(captured)==1
+             assert state.completed_blocks==state.attention_calls==50 and state.extra_conds_calls==state.output_head_calls==1
+             assert signatures.condition_signature(guider)==condition and torch.equal(before,torch.random.get_rng_state())
+-            assert 'extra_conds' not in vars(model) and not final._forward_pre_hooks
++            assert 'extra_conds' not in vars(model) and not final._forward_pre_hooks and not diffusion._forward_pre_hooks
++            assert state.audit['sigma_path']['exact_official_timestep'] and state.audit['sigma_path']['exact_official_head_sigma']
+             # Exception path restores official extra_conds and head hooks too.
+             with patch.object(model,'extra_conds',model.extra_conds):
+                 saved=model.extra_conds
+                 try:
+                     with module.ModelAudit(model,state):raise ValueError('intentional pre-forward failure')
+                 except ValueError:pass
+-                assert model.extra_conds==saved and not final._forward_pre_hooks
++                assert model.extra_conds==saved and not final._forward_pre_hooks and not diffusion._forward_pre_hooks
+             rows.append({'case':case,'state':label,'DiT_NFE':1,'Euler_updates':0,'callbacks':0,'blocks':50,'probe_calls':1,'extra_conds':1,
+                 'actual_PackedLayout_rows':87592,'actual_model_head':'MixedPrecisionOps.Linear','Native_endpoint_exact':case!='endpoint_mismatch','intentional_mismatch_aborted_with_cost':case=='endpoint_mismatch',
+                 'actual_position_mapping':True,'original_UUID_and_processed_condition_exact':True,'RNG_unchanged':True,
++                'official_BaseModel_apply_model_and_FLOW_AV_timestep':True,'sigma_path':state.audit['sigma_path'],
+                 'noise_scaling_not_called':True,'hook_exception_cleanup':True,'seconds':time.perf_counter()-started})
+     assert dict(os.environ)==env and not torch.cuda.is_initialized()
+-    print('R46_REAL_COMFY_CPU='+json.dumps({'passed':True,'CUDA_initialized':False,'actual_directory_loader':True,'cases':rows,'historical_CPU_inputs':historical,
++    print('R48_REAL_COMFY_CPU='+json.dumps({'passed':True,'CUDA_initialized':False,'actual_directory_loader':True,'cases':rows,'historical_CPU_inputs':historical,
+         'scope':'actual Comfy interfaces and H3 condition/head/position structures; synthetic QKV/DiT, no weights, no actual source endpoint GPU proof',
+         'source_sha256':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for d in ('extensions','scripts','tests') for p in (root/d).rglob('*.py')}}))
+ if __name__=='__main__':main()
+--- R46/tests/test_evidence.py
++++ R48/tests/test_evidence.py
+@@ -17,6 +17,8 @@
+            'probe':{'block':25,'heads':[0,14,28,42],'queries_per_head':1050,
+                     'quality':{'status':'PASS','gates':{k:True for k in ['finite','group_lse','subset_lse','probability_sum','query_lse_unchanged']},'additional_attention_calls':43,'clamped':False},
+                     'selected_original_QKV_output_exact':True,'global_rng_unchanged':True,'original_output_not_passed_to_statistics':True,'full_QKV_copy':False}}
++        from test_sigma_guard import fixture
++        r['sigma_path']=fixture()[-1]
+         return r,s
+     def test_matching_schema(self):r,s=self.valid();validate_report(r,'bad',s)
+     def test_failed_or_wrong_source_counts(self):

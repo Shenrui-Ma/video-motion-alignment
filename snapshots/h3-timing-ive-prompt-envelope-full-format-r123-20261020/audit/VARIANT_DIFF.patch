@@ -1,0 +1,268 @@
+--- retention/analysis/postrun/verify_pair.py
++++ full_context/analysis/postrun/verify_pair.py
+@@ -39,7 +39,7 @@
+  owner=read(root/'processes/service.json');checks['actual_runtime_device']=(owner['gpu_uuid']==runtime['gpu_uuid'] and owner['port']==runtime['port'])
+  pair=[run for run in order if jobs[run]['source_id']==source];require(len(pair)==2,'paired registry differs')
+  if native_only:pair=pair[:1]
+- result={'schema':'r123-native-runtime-gate-v1' if native_only else 'r123-paired-runtime-gate-v1','source_id':source,'prompt_version':'official_edit_prompt_with_task_reference_and_generic_retention','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'One source with verbatim official edit sentence and minimal reference/task envelope; all valid frames reviewed for requested edit, scene preservation and separately visible action timing.','condition_tensor_files':[],'service_owner':{'pid':owner['pid'],'identity':owner['identity']}}
++ result={'schema':'r123-native-runtime-gate-v1' if native_only else 'r123-paired-runtime-gate-v1','source_id':source,'prompt_version':'official_context_ir_with_benchmark_captions_and_subject_binding','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'One source with verbatim official edit sentence and minimal reference/task envelope; all valid frames reviewed for requested edit, scene preservation and separately visible action timing.','condition_tensor_files':[],'service_owner':{'pid':owner['pid'],'identity':owner['identity']}}
+  conditions={};noises={};manifests={};seen=set()
+  for run in pair:
+   row=validate_job(run,root);arm=row['arm'];case=row['case'];forced=arm=='forced';graph=read(root/'configs/graphs'/f'{run}.json');grid=torch.tensor([float(x) for x in graph['9']['inputs']['sigmas'].split(',')],dtype=torch.float32).tolist()
+--- retention/configs/graphs/r123_short_0358_seed2026101701_forced.json
++++ full_context/configs/graphs/r123_short_0358_seed2026101701_forced.json
+@@ -52,11 +52,11 @@
+         "23",
+         0
+       ],
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit",
+       "run_id": "r123_short_0358_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101701,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit",
+       "run_id": "r123_short_0358_seed2026101701_forced",
+       "pair_id": "r123_short_0358_seed2026101701"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r123_short_0358_seed2026101701_forced",
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit",
+       "source_run_id": "r123_short_0358_shared",
+       "run_id": "r123_short_0358_seed2026101701_forced"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r123_short_0358_seed2026101701_forced",
+-      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- retention/configs/graphs/r123_short_0358_seed2026101701_native.json
++++ full_context/configs/graphs/r123_short_0358_seed2026101701_native.json
+@@ -52,11 +52,11 @@
+         "23",
+         0
+       ],
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit",
+       "run_id": "r123_short_0358_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101701,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit",
+       "run_id": "r123_short_0358_seed2026101701_native",
+       "pair_id": "r123_short_0358_seed2026101701"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r123_short_0358_seed2026101701_native",
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit",
+       "source_run_id": "r123_short_0358_shared",
+       "run_id": "r123_short_0358_seed2026101701_native"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r123_short_0358_seed2026101701_native",
+-      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- retention/configs/predecessor.json
++++ full_context/configs/predecessor.json
+@@ -3,9 +3,9 @@
+   "required": [
+     {
+       "key": "R123",
+-      "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020",
+-      "producer_seal_sha256": "a0a596ff72906e7899e482dba2ff09930eaa8a492dce43330700b2429fe9edc7",
+-      "runtime_sha256": "7e564d23d2c2cb5ca1987042f5a8bd430dfe6ac4b9546f3ce4b1637e0466e200",
++      "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020",
++      "producer_seal_sha256": "cde712babb4c32bea646741fe5015cff6c6207f436143d104101804d51defdf4",
++      "runtime_sha256": "6d0e7ae2deef45510a874d289c904be0fb7d49d4a3edac107e7444da0285e186",
+       "kind": "screen",
+       "required_sources": [
+         "short_0358"
+--- retention/configs/prompts/short_0358.txt
++++ full_context/configs/prompts/short_0358.txt
+@@ -1,9 +1,26 @@
+ subject_definitions:
+-<Video 1> is the source video for this edit.
++<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.
++Source caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.
++<Subject 1> is the man drinking a beer in <Video 1>.
++<Subject 2> is the other man listening attentively in <Video 1>.
++<Subject 3> is the diner scene and table in <Video 1>.
+ 
+ summary:
+ [video editing] The target video is an edited version of <Video 1>.
+ Add a pair of glasses to the man.
+ 
+ retention_analysis:
+-<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.+<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.
++<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.
++<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.
++<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.
++
++detailed_description:
++[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.
++The two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.
++
++overall_soundscape:
++The benchmark specifies no audio edit.
++
++non_diegetic_music:
++The benchmark specifies no music edit.--- retention/configs/runtime.json
++++ full_context/configs/runtime.json
+@@ -1,7 +1,7 @@
+ {
+   "status": "CPU_PREPARED_ROOT_LAUNCH_PENDING",
+   "host": "H3_SERVER_B",
+-  "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020",
++  "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020",
+   "gpu_uuid": "GPU-REDACTED",
+   "port": 8587,
+   "lane": "single",
+@@ -9,10 +9,10 @@
+   "python": "/data3/researcher/ComfyUI/.venv/bin/python",
+   "dependencies": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps",
+   "models": "/data3/researcher/ComfyUI-H3/models",
+-  "profile_scope": "R123 generic retention text variant, reused original numerical runner.",
++  "profile_scope": "R123 full official Context-IR using verbatim benchmark captions; original numerical runner reused.",
+   "kj_nodes": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/custom_nodes/ComfyUI-KJNodes",
+   "uid": 1004,
+-  "profile": "host41_gpu2_r123_generic_retention",
++  "profile": "host41_gpu2_r123_full_context_ir",
+   "reserve_vram": 8,
+   "memory_mode": "normal",
+   "expected_gpu_index": 2
+--- retention/configs/scientific_contract.json
++++ full_context/configs/scientific_contract.json
+@@ -55,7 +55,7 @@
+       "run_id": "r123_short_0358_seed2026101701_native",
+       "source_id": "short_0358",
+       "seed": 2026101701,
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+       "parent_graph": "configs/parent_graphs/short_0358_native.json",
+       "parent_graph_sha256": "9f9cd2cbfc225b2976e0521e11c37019e43d3d82131f829a5ec6ca4d0ea40d6c",
+       "video": "short_0358_video.mp4",
+@@ -90,10 +90,10 @@
+       ],
+       "original_source": "short_0358_original.mp4",
+       "arm": "native",
+-      "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
+-      "parent_semantics": "R123 exact graph numerics and R121 actual noise; only generic retention text added.",
++      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
++      "parent_semantics": "R123 exact numerical graph and R121 actual noise; only full official Context-IR prompt changes.",
+       "original_source_sha256": "42b3b299e92ae723965f58c6c5c333623afb380ccf39181481f05629478a532d",
+-      "prompt_sha256": "6c04241c70933e5953ece3ce89abc95656db78d22cd55627c652a328b819a754",
++      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+       "evaluation_indices": [
+         0,
+         1,
+@@ -208,7 +208,7 @@
+       "run_id": "r123_short_0358_seed2026101701_forced",
+       "source_id": "short_0358",
+       "seed": 2026101701,
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+       "parent_graph": "configs/parent_graphs/short_0358_native.json",
+       "parent_graph_sha256": "9f9cd2cbfc225b2976e0521e11c37019e43d3d82131f829a5ec6ca4d0ea40d6c",
+       "video": "short_0358_video.mp4",
+@@ -243,10 +243,10 @@
+       ],
+       "original_source": "short_0358_original.mp4",
+       "arm": "forced",
+-      "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
+-      "parent_semantics": "R123 exact graph numerics and R121 actual noise; only generic retention text added.",
++      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
++      "parent_semantics": "R123 exact numerical graph and R121 actual noise; only full official Context-IR prompt changes.",
+       "original_source_sha256": "42b3b299e92ae723965f58c6c5c333623afb380ccf39181481f05629478a532d",
+-      "prompt_sha256": "6c04241c70933e5953ece3ce89abc95656db78d22cd55627c652a328b819a754",
++      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+       "evaluation_indices": [
+         0,
+         1,
+@@ -368,7 +368,7 @@
+   "pair_keys": [
+     "short_0358"
+   ],
+-  "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
++  "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+   "router": {
+     "mode": "mass_preserve",
+     "alpha": 1.0,
+@@ -393,6 +393,6 @@
+     "root_final_close_releases": true,
+     "failure_releases_exact_owned": true
+   },
+-  "scope_note": "R123 task/reference envelope plus generic retention; same R121 actual noise and numerical files. Independent variant root with original registered run IDs.",
++  "scope_note": "R123 full official Context-IR with verbatim benchmark source/edit/target captions and approved drinking-man subject binding; original numerical files and actual R121 noise reused.",
+   "source_definitions_sha256": "cb4f1ea350e1124aa246bf29ef658a7fd75c04d876261f4b51f7b90e00aa0532"
+ }
+--- retention/scripts/r123_contract.py
++++ full_context/scripts/r123_contract.py
+@@ -6,7 +6,7 @@
+ SOURCES = ('short_0358',)
+ ARMS = ('native', 'forced')
+ SOURCE_LENGTHS = {'short_0358': (107, 105)}
+-PROMPTS = {'short_0358': "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary."}
++PROMPTS = {'short_0358': "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit."}
+ ROUTER = {'mode':'mass_preserve','alpha':1.0,'blocks':[0,50],'steps':[6,15],
+           'physical_frames':'[0,valid_frame_count-1] per source',
+           'query_support':'all spatial queries in each position bin overlapping valid physical time; pure-pad bins remain native',
+@@ -68,7 +68,7 @@
+         require(case['reference_video_count']==1 and case['reference_image_count']==0,'reference scope changed')
+         require(case['original_task']==d['original_task'],'official task record changed')
+         prompt=root/'configs/prompts'/(source+'.txt')
+-        require(case['prompt_version']==s['prompt_version']=='official_edit_prompt_with_task_reference_and_generic_retention','prompt label changed')
++        require(case['prompt_version']==s['prompt_version']=='official_context_ir_with_benchmark_captions_and_subject_binding','prompt label changed')
+         require(prompt.read_text()==case['prompt']==PROMPTS[source] and case['prompt'].split('\n\nretention_analysis:')[0].splitlines()[-1]==case['original_task']['edit_prompt'],'official edit_prompt must be verbatim')
+         require(sha(prompt)==case['prompt_sha256'],'prompt digest changed')
+         for key in ('video','provenance','original_source'):

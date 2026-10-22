@@ -1,0 +1,18 @@
+Sam Altman 两段真人书记舞：执行完成
+
+四条正式推理均成功：舞房05、床边07，各未加权和三倍加权一版。每条原始输出141帧、24fps、1312×736。种子2026101311，Euler20步、shift12/3，无LoRA、无Sage；模型权重未训练/微调。
+
+每组内部实际噪声和条件编码匹配，普通版0次注意力覆盖、三倍版1000次覆盖。第一版计算共享条件、第二版复用缓存；batch_verification.json完整通过，零错误/缺失。全部四次在.9GPU2同一进程运行，严格在前序Musk07结束并清理之后启动。
+
+05人为选取源帧50–65，对应位置槽[14,20)、覆盖47–67；07选54–69，对应[16,22)、覆盖52–72。各选5658个参考K/V行与相应输出query，在所有50个DiT block和20步中附加两份相同K/V，等价于对应logits加ln3。它是未归一化注意力质量三倍，不是纯动作特征或最终概率三倍。
+
+按用户要求只输出40–100帧的短动作对照：每组61帧、24fps、约2.542秒，三列参考/普通编辑/三倍加权编辑，中文底栏。只做技术校验与每组一张关键帧预览抽查；未做全面动作、身份相似度或整体画质评估，不在此报告中宣称总体改善。短窗不能证明某动作在完整141帧输出中完全缺失。
+
+推理服务26472、supervisor26416、controller31621、watchdog31617均已退出，端口8452关闭，GPU2恢复8MiB基线占用。完整清理证据见analysis/final_resource_verification.json。
+
+四组Musk/Sam短片已统一保存：
+/Users/researcher/Downloads/H3_四组短动作对照_Musk_Sam_20261015/index.html
+/Users/researcher/Downloads/H3_四组短动作对照_Musk_Sam_20261015.zip
+ZIP SHA256: 64ad049785706a82bb74451d851abf038ff415a4d6a31b76a1cde35c2a071122
+
+configs/plan.json保留执行前冻结计划；实际完成情况以logs/*_history.json、batch_verification.json和runtime_summary.json为准。原始输出在outputs/；输入、实际噪声与张量证据在inputs/、audit/；共享模型未修改。参考照片和两段舞蹈来源见inputs/CREDITS.txt。

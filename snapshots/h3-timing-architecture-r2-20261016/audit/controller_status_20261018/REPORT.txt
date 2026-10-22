@@ -1,0 +1,26 @@
+Controller status audit — 2026-10-18, read-only science review
+
+1. R59-execution has not run on GPU.
+Its audit/PAUSED_FOR_R63.json records GPU_launched=false and no formal deployment seal; configs/runtime.json is PENDING_ACTUAL_R57_AND_ROOT_GPU_GATES; scientific_contract.json is CPU_CANDIDATE. Neither current .41 nor .9 run-root inventory contains this execution directory. Therefore this is an implemented CPU-tested candidate, not an observed online experimental result. Previously actual automatic experiments were R50 (delay only) and R55 (signed delay/advance), whose saved results must retain their own implementation labels.
+
+2. What R59 changes, and what it retains.
+scripts/scan_current_pose.py:8-12 actually imports arm_features, replacing the old global torso/hip eligibility gate. arm_features.py:8-29 constructs shoulder→elbow and elbow→wrist unit vectors for left/right/both whole-arm descriptors. A visible arm can be measured when the torso is missing. This broadens observation eligibility; it is accurate to say numeric thresholds were not lowered, but inaccurate to imply the eligibility rule is wholly unchanged.
+The R59 timing_metrics.py, pairwise_gain.py, delayed_window_policy.py, automatic_window_policy.py are byte-identical to R55 (EVIDENCE.json gives all four hashes). Confidence 0.3 and 0.5; coverage >=0.8; at least 8 points; windows 16/32 frames with stride4; lags ±24; dual-confidence lag agreement <=2; nonzero candidate beyond ±2; residual <=0.5; common-support normalized gain >0.5; separated lag basin gap >=0.05; sameframe improvement >=0.05; reject search boundary. These are inherited exploratory engineering settings, not calibrated statistical confidence guarantees.
+Persistent activation requires same sign, shared observed arm, and overlap/min(window lengths)>=0.5 across consecutive denoising observations. Current qualified windows merge by overlap; each group keeps the strongest absolute-gain representative. Missing/UNKNOWN/currently unqualified evidence clears the previous candidate. R59 selector.py:63-98 operates on every index0..19; spatial_support remains all_spatial_queries, not a body-part attention mask.
+The optional weak fallback is a separate arm: alpha0.25, fixed indices6..14, whole valid timeline, only when complete window×descriptor enumeration is all baseline UNKNOWN. Partial observability, aligned observations, and merely insufficient gain do not authorize fallback. Weak-only has the same fixed guidance with no observer. None of these R59 arms has a GPU result here.
+
+3. R60/R61/R62 are offline diagnostics.
+R60 REPORT.md tests upper-arm-only and forearm-only descriptors, retaining thresholds, on synthetic shifts and old trajectories. It exposes semantic mismatch false triggers. No single-bone descriptor was integrated into the live producer.
+R61 REPORT.md tests independent reverse correspondence (A) and direction first-difference evidence (B) on fixed known shifts/cross-source pairs. AB retains false cross-source matches; it is not an adopted online policy.
+R62 REPORT.md replays original/A/B/AB on saved R55/R50 trajectories. After a policy divergence the subsequent measurements still belong to the old generated trajectory, so replay cannot establish effects of a new controller. Technical failure/missing observations are separately recorded, not coerced into UNKNOWN.
+
+4. R73 uses fixed guidance; R79 is prepared with the same strategy.
+Both scientific_contract.json files set online_observer=false. Their graph contracts attach H3TemporalRouter with mode native or mass_preserve, alpha1, blocks[0,50), steps[6,15), time_offset0/radius0, all valid source-time bins; pure padding bins remain unchanged. The registered graph has no online pose scan/automatic-window node.
+Actual R73 short0252 logs prove 20 forwards, Native0 routed blocks, forced450; routed_by_forward is [0×6,50×9,0×5]. This is actual execution evidence, not just a configuration. R79 has only passive deployment and CPU evidence; it is now held by root and has no GPU output.
+
+5. Later-candidate check.
+R77 is a later endpoint-feedback CPU candidate, not an online automatic successor: configs/SCIENCE.json says CPU_CORE_READY_RUNTIME_LIFECYCLE_UNMEASURED; ROOT_HANDOFF documents a fixed single index6 hook and untested GPU lifecycle/provider integration. Current remote inventories of registered R59+ directories contain fixed-route or prompt-pair executions, plus offline diagnostics, and no later executed adaptive controller. This claim is bounded to the inspected local packages and .41/.9 registered run roots; registry-file existence alone was never treated as a running process.
+
+Inventory and source hashes: HOST41_INVENTORY.json, HOST9_INVENTORY.json, EVIDENCE.json. Actual routing summary: R73_ACTUAL_EXECUTION.json.
+
+Task-scope update from user: FlexiAct target-image scene transfer is allowed when requested character replacement and source-motion transfer succeed. It should not be excluded wholesale as task-incompatible; task fidelity, scene instructions and actual action preservation are evaluated per registered task. This update changes interpretation only, not frozen experiments.

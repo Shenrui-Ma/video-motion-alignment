@@ -1,0 +1,20 @@
+CPU 部署范围（等待 root 对本包审查）
+
+local: /Users/researcher/DevProjects/h3-timing-ive-basketball-framing-repair-r117-20261019
+host: H3_SERVER_A
+remote: /home/researcher/h3_runs/timing_ive_basketball_framing_repair_r117_20261019
+GPU0，port8580；2026-10-19 只读查询未监听该端口。实际启动再次检查。
+
+tar 清单：deploy_manifest.json 内的82个文件、deploy_manifest.json 本身、configs/admission.json、inputs/ 中3个封存输入、audit/ROOT_CPU_DEPLOYMENT_REVIEW.json。目标解包后逐文件SHA；创建空logs/processes/output/input目录。
+
+目标验证命令（隐藏 CUDA）：
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /home/researcher/miniconda3/envs/comfyui/bin/python audit/remote_cpu_validate.py
+其内部依次核验本包hash、输入hash、实际core；import-only检查、preflight、原始与输入PTS、120项CPU测试。模块导入前设置CPU模式，验证CUDA未初始化；不会加载模型。
+
+root 调度执行命令：
+python3 -u audit/root_run_batch.py --execute --attempt ACTUAL_ATTEMPT --predecessor-attempt R104=ACTUAL_R104_ATTEMPT --predecessor-attempt R115=ACTUAL_R115_ATTEMPT [--peer-root ACTUAL_LIVE_OWN_PEER]
+启动前还要求 audit/GPU_DEPLOYMENT_REVIEW.json 的 approved=true、producer_seal_sha256 与本包一致；R115两条与R104实际成功完成并精确释放；fresh显存准入。此文档不构成GPU放行。
+
+Native成片消费入口：analysis/postrun/short_0114/NATIVE_RUNTIME_GATE.json。
+root逐帧验收后：scripts/execution_gate.py decide --root-reviewed --source short_0114 --choice guide|skip --reason TEXT。
+forced完成后：analysis/postrun/short_0114/PAIR_RUNTIME_GATE.json；root复核后 execution_gate.py review-first-guided --root-reviewed，controller正常释放并写COMPLETE。

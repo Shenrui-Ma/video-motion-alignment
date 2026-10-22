@@ -1,0 +1,409 @@
+R16 后续质量执行器审查 — 2026-10-16
+状态：定向文献已核实；以下只读几何盘点规则先于计算结果写入。不是运行协议或 GPU 授权。
+
+只保留一个候选：全空间 Full 的参考时间读取保持不变；在可靠旧前臂遮住、而目标姿态要求恢复躯干的区域，追加同一物理时刻 target→target 躯干读出。此处不做背景擦除。
+
+预先固定的 CPU 必要条件盘点（仅几何支持，不评估视频效果）：
+- 只用 R16/configs/source_pose.json 与已经哈希桥接的 native x0 index5 pose；不读最后输出拟 mask。
+- 窗50..65，网格23×41，patch32px，中心(32(c+.5),32(r+.5))。分别完整报告置信0.3与0.5，不能选较有利阈值。
+- 躯干多边形按 COCO17 [5,6,12,11]；两端四点均可靠；选中人物不得歧义。
+- 为检验最保守可用区，query patch四角全部落在source与native躯干多边形交集中；中心离至少一条native前臂线段≤32px，离两条source目标前臂线段均>64px。
+- donor patch四角全在native躯干内部，中心离native两条前臂与source两条前臂均>64px；这是粗几何的未遮挡代理，不等于衣服语义纯净。
+- source/native的左右肘腕四点都须通过对应confidence，否则该帧UNKNOWN，不能把未识别右手当不存在。
+- 只统计每RGB帧的query数、donor数、二者均非空帧数。此RGB盘点是对实际latent-bin可执行性的乐观上界；尚未按17→5编码区间取保守交集。
+- 若此宽松前置盘点已无同时非空区，不值得为本候选启动GPU；若有，仅允许继续设计bin支持，不能宣称有质量改善或应强上。无新模型、无feature优化、无新阈值搜索。
+
+只读CPU盘点结果（按以上固定规则）：
+{
+  "input_sha256": {
+    "/Users/researcher/DevProjects/h3-timing-local-route-r16-20261016/configs/source_pose.json": "e0795dc6c9fc652d82b5353f1de18711adffc053920928f2d4687fd195031852",
+    "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/pose/x0/s05_full_seed1_native_x0/x0_step005.pose.json": "0926fbd82302153f953fc2967c20dc5362d63c144ec3241232976431edc0c310"
+  },
+  "rows": [
+    {
+      "confidence": 0.3,
+      "frame": 50,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 51,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 52,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 53,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 54,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 55,
+      "status": "geometry_evaluable",
+      "query_patches": 0,
+      "donor_patches": 0,
+      "both_nonempty": false
+    },
+    {
+      "confidence": 0.3,
+      "frame": 56,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 57,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 58,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 59,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 60,
+      "status": "geometry_evaluable",
+      "query_patches": 0,
+      "donor_patches": 0,
+      "both_nonempty": false
+    },
+    {
+      "confidence": 0.3,
+      "frame": 61,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 62,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 63,
+      "status": "geometry_evaluable",
+      "query_patches": 0,
+      "donor_patches": 0,
+      "both_nonempty": false
+    },
+    {
+      "confidence": 0.3,
+      "frame": 64,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.3,
+      "frame": 65,
+      "status": "geometry_evaluable",
+      "query_patches": 0,
+      "donor_patches": 3,
+      "both_nonempty": false
+    },
+    {
+      "confidence": 0.5,
+      "frame": 50,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 51,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 52,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 53,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 54,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 55,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 56,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 57,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 58,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 59,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 60,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 61,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 62,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 63,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 64,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    },
+    {
+      "confidence": 0.5,
+      "frame": 65,
+      "status": "unknown",
+      "query_patches": null,
+      "donor_patches": null
+    }
+  ],
+  "summary": {
+    "0.3": {
+      "evaluable_frames": 4,
+      "unknown_frames": 12,
+      "both_nonempty_frames": 0
+    },
+    "0.5": {
+      "evaluable_frames": 0,
+      "unknown_frames": 16,
+      "both_nonempty_frames": 0
+    }
+  }
+}
+
+审查结论
+
+保留一个可检验结构假说：参考分支负责把整身体势推向正确时刻；目标同帧分支在可信的旧臂独占区域恢复应存在的目标躯干内容。它不同于再次缩小 Full 的 query mask，也不同于把目标邻时刻特征搬过来。原语与已有前景/背景注意力重定向高度接近，现阶段只配称机制候选。
+
+但是，本次先于计算冻结的最保守 pose-only 支持盘点未过：confidence0.3 仅55/60/63/65四帧可判，四帧query支持均为0，只有65帧有3个donor；confidence0.5全窗unknown。因此当前具体候选不宜直接启动整条推理。这个结论否定的是当前网格、保护区与观测支持下的实现前提；不证明目标内部不存在可用躯干信息，也不否定改用更可靠分割后可能成立。不能为了让它运行而看结果后缩小保护半径、只采宽松confidence或补猜右臂位置。
+
+一、哪些现有结果真正约束本候选
+
+R16 source-only ROI与每bin均匀缩放都没有继承Full的时序修复：direction13/13、wrist12/12，而相同R3 Full方向1/1。腿部native12/12、Full0/0、ROI13/13、uniform12/12。这支持“前臂局部化没有保住整身体势控制”；不能单独区分缺空间覆盖、总修正量不足、身体协同或它们的组合。uniform仅匹配sum(alpha)，不匹配sum(alpha*m_ref)、修正向量范数或实际Euler作用量。
+
+R16 final_geometry_mask_coverage.json 与 prefix005_geometry_mask_coverage.json 表明source前臂mask覆盖source很好，但native前臂大部分落在外面。实际干预前index5左臂confidence0.3有效16/16，平均alpha约.158；右臂仅4/16可靠，不能据此构造稳定右臂mask。final几何只是事后诊断，不作为新方法的oracle输入。x0姿态位置也不自动等于DiT隐特征内“手臂token”的位置。
+
+因此候选保留Full全空间的原参考修正，以免再次把腿和躯干协同移除；只增加一个目标内容清理分支。它也不默认当前ghosting一定来自target self注意力。重影可能来自参考跨身份内容、VAE解码、原latent残留/残差连接，或多个因素；新分支必须通过因果对照检验。
+
+已读本地依据：
+- R16/analysis/pose/final_geometry_mask_coverage.json
+- R16/analysis/pose/prefix005_geometry_mask_coverage.json
+- R16/configs/IMPLEMENTATION.txt
+- R3/extensions/H3TemporalRouter/README.md
+- R3/analysis/pose/R3_FOUR_ARM_REVIEW.md
+- R4/analysis/target_path_feasibility/COMPACT_RESULT.json
+- R0/analysis/pose/pilot/FULL_HARD_1312_REVIEW.md
+其中R0=h3-timing-autoresearch-20261016，R3=h3-timing-spatial-r3-20261016，R4=h3-timing-target-path-r4-20261016，R16=h3-timing-local-route-r16-20261016，全部位于/Users/researcher/DevProjects。
+
+二、唯一候选的精确计算位置与公式
+
+在H3单流attention的实际Q/K/V已归一化、已施加RoPE之后，输出投影W_O之前操作。不改Q/K/V内容、不改RoPE、不改噪声/solver。保持当前Full的窗50..65→query bins14..19、零起始indices6..14、全50层，先不同时改停止策略或层选择。
+
+对每个head/query q=(t,s)，令原全序列注意力为a(q,j)，参考视频组R的原质量m_R及条件输出z_R；z_R,same是现有同bin参考读出。Full输出：
+  O_F(q)=O(q)+m_R(q)[z_R,same(q)-z_R(q)].
+
+再单独取目标视频同一个latent bin的key集合H_t（不包括参考视频、参考图、文本、音频或目标其他bin）：
+  m_H(q)=sum_{j in H_t} a(q,j),
+  z_H(q)=sum_{j in H_t} a(q,j)V_j / m_H(q).
+
+D_t是当前native clean端点几何支持的、同bin未被手臂遮挡的目标躯干donor子集；其条件读出：
+  z_D(q)=softmax_{j in D_t}[Q_q K_j^T/sqrt(d)] V_j.
+
+E_t(s)只在“当前旧前臂覆盖、目标姿态要求是躯干、donor可靠”的query位置非零，0≤E≤1。候选：
+  O_C(q)=O_F(q)+E_t(s)*m_H(q)[z_D(q)-z_H(q)].
+
+这是同帧目标内容重定向，不是从另一时间取Y(t+delta)，也不是把source衣服V复制进目标。m_H是原全softmax的实际子组质量，不能误用target-only条件softmax质量。m_H=0、donor为空/非有限、身份选择歧义、身体区域不能判定时此附加项必须为0，Full本身按原协议运行；unknown不等于已修复。
+
+在单个固定输入层上，它保持R总质量m_R与H_t总质量m_H；H_t外其他目标keys、其他模态的贡献不变。E=0应走原Full精确快路。0≤E≤1时H_t内部是原分布与donor分布的凸混合，因此这一步没有DC-split的signed系数。此性质不是新定理，也不保证多层网络/视频质量稳定。随着轨迹改变，后续层的QKV与所有质量仍会改变，不能宣传“其他模态整体完全不受影响”。
+
+为什么H_t只取目标同bin：若把整个target组重定向到同bin，会同时改变目标的时间支持，难以识别是否只是又一个同帧mask修复；局限在原同bin子组内更干净地检验“旧局部内容竞争”。它也有明确弱点：目标其他时刻的旧手臂、残差流和FFN仍可能保留旧姿态，这个候选没有承诺全部消除。
+
+三、必须区分躯干、背景和未知，不能把旧臂一律擦成背景
+
+当前只允许躯干内部恢复。定义旧前臂支持C、目标前臂支持D、保守躯干内部T、可靠当前躯干donorU。可执行query集合E=C intersect T minus D；donor来自U，且排除当前与目标手臂包络。胸前旧手臂属于这个躯干恢复问题，绝不能用背景keys补。
+
+目标背景旧轮廓只凭17关键点无法可靠辨认。source与target体型、宽松衣服、背包和头发均可能在骨架包络外；“不在骨架上”不等于背景。当前没有可靠目标人体分割的这部分一律UNKNOWN，不实现背景擦除。即使未来有分割，也要分别定义E_body和E_background并配对应donor，不能统一相减人体mask后全部背景化。
+
+实际token是32px patch且H3 VAE有17RGB→5槽位结构。映射mask应按对应编码覆盖区间做保守支持，而不能把某帧pose直接当整bin精确语义边界。上面CPU盘点尚是RGB级乐观上界；即使通过，还需对bin内所有覆盖帧保护目标肢体/躯干并检查donor。不能用source/target不同的PyAV预处理或最终输出pose替换本轮native端点几何。最初pose置信本身是原始DWPose分数，并非概率校准。
+
+四、与最直接已有工作的逐项核对
+
+1. MotionFollower：问题解释与区域拆分已直接覆盖。
+原论文§2.3 Eq4–7定义原人体与目标人体非重叠区域M_body=M_original*(1−M_desired)，明确针对旧姿态残影/模糊；用body不相似与background互补项做latent梯度修正。不能把“旧位置要擦掉、空出来要补内容”叫新发现。
+https://arxiv.org/html/2405.20325v1
+正式ICCV版本同样讨论这些项：
+https://openaccess.thecvf.com/content/ICCV2025/papers/Tu_MotionFollower_Editing_Video_Motion_via_Score-Guided_Diffusion_ICCV_2025_paper.pdf
+本次直接读取官方commit292128b7c3dfe1e423fa0c42a170b7d077ed3277，src/pipelines/motion_editor.py：588–592构建mask_over/mask_body；640–665计算body/overlap/complement；667–669计算latent梯度并以target mask混合。它操作的是重建/编辑分支特征与latent梯度，本候选操作同forward目标同bin读出；两者是否能带来实际不同效果，需要实验，不能只凭架构名称区分。
+https://github.com/Francis-Rings/MotionFollower/blob/292128b7c3dfe1e423fa0c42a170b7d077ed3277/src/pipelines/motion_editor.py#L588
+
+2. Attentive Eraser：目标自身注意力擦除的直接原语先例。
+Eq11–17用key屏蔽与可选logit缩放，减少待删除区读取自身并转向其他区域；Eq18用改后与原预测差做SARG。本文明确没有权利声称首次通过目标self-attention抑制旧内容。
+https://arxiv.org/html/2412.12974v1
+官方当前commit e5a19e0603355553b43a4c73be7a06f26f15816c，AAS/AAS.py 的54–68/266–281实现key mask、ss_scale与softmax；108–112/315–319按query mask合并。与本候选最小不同是：它把对象删除后朝背景重定向，本候选保留完整人物和Full时序执行器，仅在可靠躯干内部朝同帧目标躯干子集重定向，并保留原子组质量。后两点属于可测工程/结构适配，不是天然论文创新。
+https://github.com/Alibaba-VELLDEPTH/AttentiveEraser/blob/e5a19e0603355553b43a4c73be7a06f26f15816c/AAS/AAS.py#L266
+
+3. MasaCtrl：按query区域选不同key/value内容已有直接实现。
+§4.2将目标前景/背景分别读取source相应区域。官方masactrl.py的MutualSelfAttentionControlMask.attn_batch做sim_fg/sim_bg两次masked softmax，forward以target mask合并。故“内容角色分组读出”“query mask选择donor”的数学家族已存在。其源/目标跨分支外观迁移不等于这里的同帧目标躯干恢复，但不能把换成H3就当独立创新。
+https://arxiv.org/html/2304.08465v1
+https://github.com/TencentARC/MasaCtrl/blob/main/masactrl/masactrl.py
+本次实际读了该官方文件；main URL未固定commit，精确实现引用应在未来baseline移植前再pin，不借此声称可复现已经运行。
+
+4. FreeMask与TeleMorpher：双位置mask和形状适配思想已覆盖。
+FreeMask§4.2 Eq2–8按层/时间选择mask，§4.3 Eq9–11融合不同区域attention，讨论source mask与编辑后形状不匹配。
+https://arxiv.org/html/2409.20500v1#S4
+TeleMorpher§4.3 Eq3–6明确人体交集/对称差及对应bodypart，随后warp；§4.4将protagonist条件注入attention的K/V。它不是此处同forward两组质量分解，但双姿态区域本身不新。
+https://arxiv.org/html/2606.19676v1#S4.SS3
+这里核的是论文全文；没有把未找到的公开实现当作已经审过。
+
+5. DIAL：动态query局部化不是区别来源。
+§3.3 Eq6/7与Algorithm1用上一步ISGM对当前video-query→reference-key logits加bias；AppendixC说明提取单层空间信号。局部mask、前一步反馈、空间/全局对照已有。其已读式子不包含本候选的同帧target-torso donor支路；这仅说明具体实现不同，不能推出该支路此前不存在。
+https://arxiv.org/html/2609.11507v1
+
+五、为什么不重复本项目已经失败/不足的项
+
+R0 hard与mass都修到0，说明保组质量不是必要创新。普通hard会改变其他组相对质量；它没有单独检验target同帧旧臂读出是否导致ghosting。
+R3 DC在参考V上去时间均值，SP保参考空间边缘再换同帧V，都没有本候选target同帧躯干分支。DC在R3能修时序但无确定质量优势，SP较差；不能把本方案再包装成“去静态保运动”。
+R4 C/Y路径在indices6/10/14全选恒等，gain0，自由NN也无改善，否定原表示中的目标跨时间路径投影。本候选没有拟合Full C到target邻时刻Y，也没有时间插值；它只在同一目标时刻取空间躯干内容，因此未被R4逻辑上直接否定。但“目标V更保身份”也仍是待验证假说，不是由R4或训练免费自动保证。
+
+六、只有支持门通过后才值得做的最小因果对照
+
+当前支持门失败，所以以下是未来恢复条件，不是要求现在追加GPU：
+A. 复用同机同输入Full。新增Full+上述target躯干支路；只增加该项，保持原全空间Full、schedule、noise、sigmas、seed、全部条件。
+B. 一个关键位置对照：同样Full与同样query/增益，donor改为同bin目标的非躯干、非人体安全背景。若两者都一样改善，只能说一般内容抑制/平滑，不能主张躯干角色匹配必要；若背景对照损坏衣服且躯干支路保持，才支持内容角色区别。安全背景无可靠支持时不能执行这个对照，更不能偷用衣服当背景。
+C. 对思想近邻的最低实现基线：同一旧区域mask、同一schedule的AAS式目标key排除，不引入角色donor；记录实际改动质量与修正范数。它不是完整重现Attentive Eraser/SARG，需要准确称“按其原语移植的AAS基线”。只有超过这个简单抑制，才能支持具体子组/内容选择有独立价值。MotionFollower完整训练模型不可假装直接移植为相同backbone基线；可以做其body/complement思想的可运行适配，但须额外协议。
+D. 若未来另做source∪current姿态局部Full，必须同时保留全身体势支持/腿部检查和实际剂量记录。该union-only基线能回答R16是否只缺覆盖，但不能替代B/C证明target新支路必要，也不能因未跑union就把本候选成功归为双分支优越。
+
+这些是组件必要性比较，不需要同时扫层/半径/强度。先判断最便宜的支持条件，再由root安排最小可执行差异。未获GPU执行授权，本审查没有启动任何相关运行。
+
+七、若未来得到结果，可主张与不可主张
+
+第一成功门必须同时保住原Full主窗phase（原冻结direction/wrist各阈值结果与unknown全部保留），减少固定55/86/105及连续窗中的重复轮廓/肢体重影，且不把躯干衣服变背景、不删正确手臂。腿部、躯干、窗前/窗后、身份/服饰均要检查；静态躯干lag单独不可靠，不应拿它替代形状与可见质量。不能仅凭更低pose误差宣称无ghosting，也不能只挑一个最好截帧。
+
+若Full+target支路只把动作抹弱而时序指标下降，或只改变pose检测选中的那条重影，不能算质量修复。若Full+AAS与候选同样改善，主要贡献应定位简单旧内容抑制适配，保组质量/躯干donor必要性未证。若新增分支在正常样例损坏服饰/肢体，应保留失败，不能称通用保真。
+
+实质可争取的贡献是：对冻结多参考video DiT识别参考时间矫正与目标旧局部内容的具体竞争，给出经过必要性消融的内容角色限制支路，并在预先固定跨源开发案例与新验证集上证明时序/可见质量收益。训练免费、没有新大模型、注意力可改写为bias、两个已知组件组合，均不能单独确立或否定论文贡献。当前没有这样的实验结果；本次只提供一个精确候选及其当前不可执行的支持证据。
+
+本报告未改实验/评估/已有结果，未运行GPU、远程或新模型；只做primary全文/官方代码阅读及32条固定几何记录的轻量本地盘点。检索范围为直接近邻，不构成空白证明。父任务仍继续；这里暂停的是这个尚无可靠执行区的局部清理候选。
+
+补充盘点协议（父任务新授权，先于晚期数据计算落盘）
+
+index5不能执行不代表Full起效后仍无合法区域。本补充只问：既有晚期native姿态能否支持相同的躯干恢复操作；不以是否出现非零选择时间/半径，不评价干预效果。固定读R12 index10，以及R15保存的R10 native indices11/12/13/14。原窗50..65、置信0.3/0.5、32px整patch、query距当前前臂≤32、避目标前臂>64、donor离两端前臂>64、source/native躯干交集与unknown规则全部不变。五个端点全报告，不更改index5失败历史。
+
+此解释将唯一候选限定为Full已生效后的质量附加修复：Full原6..14全空间保持，附加分支只能在实际当前native端点可靠时启动；已有R10/R12姿态是可观测性证据，不是另一轨迹可直接偷用的oracle。真实上线仍须同状态native观测，不能预贴档案mask。此次无实施授权，也不新增候选。
+
+补充盘点实测结果：
+{"path": "/Users/researcher/DevProjects/h3-timing-native-observer-r12-20261016/analysis/pose/early/results/x0_step010.pose.json", "sha256": "4e74ad89d84b07f602df0c4f96bdc77ec1d2d929d9709644f82f6efeff8f9cbe", "video": {"path": "/data5/researcher/h3_runs/timing_native_observer_r12_20261016/analysis/pose/early/raw/x0_step010.mp4", "sha256": "16d3a874225c3f07f5c6aa03f46ac6b29ac216200b7832c2727389f1d42f1038", "fps": 24.0, "container_frame_count": 141, "width": 1312, "height": 736}}
+{"confidence": 0.3, "evaluable_frames": 16, "unknown_frames": 0, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 54, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 1, "both_nonempty": false}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}]}
+{"confidence": 0.5, "evaluable_frames": 14, "unknown_frames": 2, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 54, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}]}
+{"path": "/Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/pose/r10_native_step011.pose.json", "sha256": "24955cb5b93ea665027417100688e4b7120eab9725eb030673fce971eb93ac15", "video": {"path": "/data5/researcher/h3_runs/timing_pose_observer_r15_20261016/analysis/x0_decoded/r10_native_step011.mp4", "sha256": "f1e2f906f6a3452560d39cdd1cf96f7cdd66e78b15033ce53028dd27b3975c69", "fps": 24.0, "container_frame_count": 141, "width": 1312, "height": 736}}
+{"confidence": 0.3, "evaluable_frames": 16, "unknown_frames": 0, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 53, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 54, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}]}
+{"confidence": 0.5, "evaluable_frames": 12, "unknown_frames": 4, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 53, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 54, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 55, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}]}
+{"path": "/Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/pose/r10_native_step012.pose.json", "sha256": "a5382709f1c129f0e26e061c481a09101462dfc0a79970ab1aec74ad30d9e8d8", "video": {"path": "/data5/researcher/h3_runs/timing_pose_observer_r15_20261016/analysis/x0_decoded/r10_native_step012.mp4", "sha256": "4f53c1ec2d6e6c203ed802dc312f9f2bc2c28d99d8b15c5fc864da53bc3811a8", "fps": 24.0, "container_frame_count": 141, "width": 1312, "height": 736}}
+{"confidence": 0.3, "evaluable_frames": 16, "unknown_frames": 0, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 54, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 1, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}]}
+{"confidence": 0.5, "evaluable_frames": 14, "unknown_frames": 2, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 54, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 1, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}]}
+{"path": "/Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/pose/r10_native_step013.pose.json", "sha256": "439a780a4dbc9ac8486d50e16d5323838ce43cc40dc0482c0b8c5602eba795b1", "video": {"path": "/data5/researcher/h3_runs/timing_pose_observer_r15_20261016/analysis/x0_decoded/r10_native_step013.mp4", "sha256": "6f66cca2e3867dbc08a1588253b85e3ac8cf1454200036a1e8bef6583fbd1db1", "fps": 24.0, "container_frame_count": 141, "width": 1312, "height": 736}}
+{"confidence": 0.3, "evaluable_frames": 16, "unknown_frames": 0, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 54, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 1, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}]}
+{"confidence": 0.5, "evaluable_frames": 14, "unknown_frames": 2, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 54, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 1, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}]}
+{"path": "/Users/researcher/DevProjects/h3-timing-pose-observer-r15-20261016/analysis/pose/r10_native_step014.pose.json", "sha256": "d600f54159345411d8ab70dcbe34065e3fa5128ec174ba2bc04bf3b34cd9b69f", "video": {"path": "/data5/researcher/h3_runs/timing_pose_observer_r15_20261016/analysis/x0_decoded/r10_native_step014.mp4", "sha256": "64d964f72ad9cca7653a14794a20708e55a228e2b13901d5704dbf814ba7f2cd", "fps": 24.0, "container_frame_count": 141, "width": 1312, "height": 736}}
+{"confidence": 0.3, "evaluable_frames": 16, "unknown_frames": 0, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 54, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}]}
+{"confidence": 0.5, "evaluable_frames": 13, "unknown_frames": 3, "both_nonempty_frames": 0, "records": [{"frame": 50, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 51, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 52, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 0, "both_nonempty": false}, {"frame": 53, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 54, "status": "unknown", "query_patches": null, "donor_patches": null}, {"frame": 55, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 56, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 2, "both_nonempty": false}, {"frame": 57, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 58, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 59, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}, {"frame": 60, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 61, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 4, "both_nonempty": false}, {"frame": 62, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 63, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 64, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 5, "both_nonempty": false}, {"frame": 65, "status": "geometry_evaluable", "query_patches": 0, "donor_patches": 3, "both_nonempty": false}]}
+
+晚期补充结论（覆盖此前仅index5的可执行性判断）
+
+R12 native10及R10 native11/12/13/14的confidence0.3全16帧可靠，0.5分别14/12/14/14/13帧可靠；但五个端点在两种confidence下均无合法query patch。donor已经出现：0.3有10/12/14/14/15帧非空，0.5有9/11/12/12/12帧非空，故晚期主要不是“完全看不清身体”或“没有目标躯干特征位置”，而是当前32px整patch、source/native躯干交集与64px目标前臂保护规则没有剩下可安全操作的旧臂query。
+
+这增加了一个实际限制：DWPose给出的通常是选中骨架，可能跟随较强轮廓，而非为每条重影分别标位置。pose已经接近目标时，旧的第二条轮廓仍可能存在，却不在选中骨架里。零合法区既不能证明无ghosting，也不能用来声称target self分支与ghosting无因果关系；它说明当前pose-only构造不足以安全定位要清掉的内容。
+
+依最新固定条件，唯一候选仍不建议实施。没有临时降低半径、换confidence或偷用最终mask。若下一轮继续此方向，缺的是能识别实际残留轮廓并区分衣服/背景的可靠观测与token支持，不是再扫Full强度。当前报告没有提供这种新观测器，也没有获准新增它。可以在其他已有实验继续时保留此结构假说，但不能把没有可执行支持的公式当已形成方法。

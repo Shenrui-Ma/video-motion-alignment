@@ -1,0 +1,26 @@
+R44 root-only deployment / model-free GPU gate / launch
+
+1. Passive deploy audit/runtime_bundle_v1.tar.gz to /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017. Verify every deploy_manifest.json files[name].sha256 and the exact tar inventory. Copy from R42 formal inputs/ the three filenames in configs/input_hashes.json (source_28289_video.mp4, source_28289_portrait.jpg, source_28289_provenance.json); verify their bytes. Do not overwrite a live service directory.
+
+Metadata-only (stdlib, no GPU):
+python3 /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/scripts/preflight.py --metadata-only
+
+2. Root first independently admits idle GPU2 and max2 own GPU accounting. New kernel gate has0DiT/0VAE/0NFE and no model weights, but allocates CUDA tensors. If an automatic peer is live, root must register this exact gated same-PID command before it initializes CUDA. The script itself requires selected GPU has no compute processes before initialization; an existing target CUDA service is not accepted. Preserve all failed attempts separately; output must not exist.
+
+Exact bounded command (run ONLY by root after GPU admission):
+timeout --signal=TERM --kill-after=15s 240s env CUDA_VISIBLE_DEVICES=GPU-REDACTED OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps /home/researcher/miniconda3/envs/comfyui/bin/python -u /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/scripts/gpu_dynamic_union_smoke.py --root-admitted --output /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/audit/gpu_dynamic_union_gate.json
+
+Redirect full stdout/stderr to a unique audit/gpu_dynamic_union_gate_attemptN.log. Read summary only. Root must inspect exit, exact PID absent and own compute absence after command, including timeout. Gate schema h3-r27-kernel-gate-v1 is inherited; protocol/source SHA must be R44. Required actual case: shape[1,56,87366,128], seq_len87366, frame_rows943, latent interval[0,42], query[47760,87366], reference[7684,47290]. Empty/local/full must all pass; all42 exact sealedFull, zero rows exactNative, QKV/RNG unchanged, finite, tiny BF16 dense tolerances and measured peaks are in JSON. The gate does not prove H3 parent co-residence or current trajectory.
+
+3. Root writes audit/resource_admission.json from configs/RESOURCE_ADMISSION_TEMPLATE.json with real current evidence, not estimated positive claims. The five positive integer fields are model_resident_measured_bytes, routing_increment_bound_bytes, decoder_peak_reserved_bytes, total_memory_bytes, estimated_combined_bytes. Keep required_free_before_decoder_mib>=12288 and exact scope string. Bind current kernel SHA, inherited actual R27 known_endpoint_bridge SHA, inheritance/kernel_inheritance/protocol SHA, and >=2 evidence file SHA records. Decoder guard still enforces actual free memory and exact parent process every observation. Old87361 kernel is implementation evidence only.
+
+4. Root writes current configs/admission.json permitted exact peer PID/UID/start/cmdline SHA and root_live_review_required=false only after actual inventory. No stale peer record is copied from this handoff. Root verifies R43 current owner or absence, port8506 free, R42 exact release. Full preflight:
+python3 /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/scripts/preflight.py
+
+5. Root-only service phase:
+python3 -u /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/scripts/launch_remote.py --service-only
+
+This R40 lifecycle starts the CUDA service before returning HTTPready; it is NOT an intrinsic preCUDA pause. If peer automatic observer is live, use root's already-proven same-PID preCUDA gate wrapper/registration procedure, or wait for it. Do not confuse --service-only with preCUDA readiness. Current intended peer R43 is Native. After HTTPready, take processes/service.json and independently verify exact actual owner. Register into any peer requiring it, then:
+python3 -u /data5/researcher/h3_runs/timing_auto_source28289_r44_20261017/scripts/start_controller.py --pid ACTUAL_SERVICE_PID --start-ticks ACTUAL_START_TICKS
+
+Default queue contains only r44_source28289_seed2026101701_auto, finalize=false, bounded resident hold. Root owns final cleanup. No second consumer is started here. Parent final video and pose are assessment evidence, never input to the online window selector.

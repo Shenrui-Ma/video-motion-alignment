@@ -1,0 +1,19 @@
+R61 复核方式
+
+环境：现有 /Users/researcher/DevProjects/diffsynth-h3-pr-study-20261013/.venv/bin/python
+统一设置：PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+没有安装依赖。
+
+1. 原目录中可直接执行 python -m unittest test_gates -v；该命令只读冻结协议、源码和合成数据。
+2. 读 PROTOCOL_SEAL.json 校验 PROTOCOL.json；按 bindings 校验冻结代码、输入及原始文件。
+3. 完整重跑请另建空目录，复制 PLAN.txt、gates.py、study.py、test_gates.py、verify_results.py、residual_diagnostic.py、PROTOCOL.json、PROTOCOL_SEAL.json、frozen/、inputs/、prior/。保留原目录供原始 SHA 检查。不要复制 results/、VERIFIED_RESULTS.json、RESIDUAL_CASE_DIAGNOSTIC.json。
+4. 在新目录中按顺序执行已知shift、固定cycle、追加配对。每组 whole_arm 和 upper 可独立运行：
+   python study.py --family whole_arm --group known_shift
+   python study.py --family upper --group known_shift
+   python study.py --family whole_arm --group fixed_cycle
+   python study.py --family upper --group fixed_cycle
+   python study.py --family whole_arm --group additional_ordered_pairs
+   python study.py --family upper --group additional_ordered_pairs
+5. python verify_results.py 重放全部决定并核对60份旧结果；python residual_diagnostic.py 提取残余失败。
+
+结果目录、汇总和审计均使用排他创建，防止覆盖已经完成的证据。gzip文件的头部时间与CPU运行时长会改变，不要求重新运行产物字节哈希相同；应比较实际数值、决策和原数据绑定。FINAL_MANIFEST.json 绑定本次实际归档。

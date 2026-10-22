@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>H3 研究决策时间轴 · 2026.10.07–21</title>
+<style>
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#172a35;background:#f7f8fa;font-size:16px;line-height:1.6}*{box-sizing:border-box}body{margin:0}main{max-width:1510px;margin:auto;padding:38px 34px 70px}.masthead{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:1px solid #dbe1e5;padding-bottom:23px}.eyebrow{color:#647580;letter-spacing:.08em;font-size:12px;margin:0 0 8px}h1{font-weight:650;letter-spacing:-.04em;font-size:32px;line-height:1.25;margin:0}h1 span{font-weight:400;font-size:21px;margin-left:12px;color:#647580}.period{font-size:14px;color:#647580;white-space:nowrap;margin:10px 0 0}.chart-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:22px 0 12px}.chart-head p{margin:0;font-size:14px;color:#576a77}.legend{display:flex;gap:20px;font-size:12px;color:#576a77;flex-wrap:wrap}.legend span{display:flex;align-items:center;gap:6px}.legend i{display:block;width:18px;height:7px;background:var(--c);border-radius:2px}.chart-scroll{overflow-x:auto;background:#fff;border:1px solid #e0e5e8}.timeline{display:block;width:100%;min-width:1080px;height:auto}.timeline text{font-family:"Arial Unicode MS","PingFang SC","Microsoft YaHei",sans-serif}.timeline a{cursor:pointer;text-decoration:none}.timeline a:focus-visible rect.bar{stroke:#192d3a;stroke-width:3}.timeline a.selected rect.bar{stroke:#19384b;stroke-width:2}.timeline a:hover rect.bar{filter:brightness(.97)}.current{display:flex;gap:18px;align-items:baseline;padding:15px 0 24px;font-size:14px;border-bottom:1px solid #dbe1e5}.current strong{color:#146c64;white-space:nowrap}.current p{margin:0;color:#405863}.details-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:28px 0 0}h2{font-size:20px;line-height:1.4;margin:0;font-weight:600}button{font:inherit;font-size:13px;background:#fff;border:1px solid #bdc8ce;border-radius:5px;padding:6px 12px;color:#294351;cursor:pointer}button:hover{background:#edf2f5}.records{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:38px;padding:0;margin:4px 0 0}.record{padding:24px 0;border-bottom:1px solid #dbe1e5;break-inside:avoid}.record-meta{display:flex;align-items:center;gap:12px;font-size:12px;margin-bottom:8px}.record time{font-variant-numeric:tabular-nums;font-weight:600;color:#647580}.state{padding:1px 7px;border-radius:3px;color:#31566b;background:#eaf0f4}.state.stopped{color:#8c523a;background:#f7eee9}.state.candidate{color:#68568b;background:#f0edf6}.state.current{border:0;margin:0;display:inline;padding:1px 7px;font-size:12px;line-height:inherit;color:#12645d;background:#e6f4ef}h3{margin:0 0 12px;font-size:19px;font-weight:600;line-height:1.45}.record dl{margin:0}.record dl>div{display:grid;grid-template-columns:38px 1fr;gap:10px;margin:7px 0}.record dt{font-size:12px;color:#75838d;padding-top:2px}.record dd{margin:0;font-size:14px;line-height:1.7}.record .decision{font-weight:500;color:#203f4f}.note{font-size:12px;line-height:1.6;color:#75838d;margin:12px 0 0}footer{margin-top:30px;font-size:12px;color:#8a969e}
+@media(max-width:800px){main{padding:24px 16px 45px}.masthead{display:block}h1{font-size:28px}h1 span{display:block;margin:8px 0 0;font-size:18px}.chart-head{display:block}.legend{margin-top:12px}.current{display:block}.current p{margin-top:5px}.records{grid-template-columns:1fr}.details-head{align-items:flex-start}}
+@media print{body{background:white}main{padding:0}.chart-scroll{overflow:visible}.timeline{min-width:0}.chart-head p,button{display:none}.record{break-inside:avoid}}
+</style>
+</head>
+<body><main>
+<header class="masthead"><div><p class="eyebrow">RESEARCH DECISIONS</p><h1>H3 动作时序研究<span>关键决策时间轴</span></h1></div><p class="period">2026.10.07 — 10.21</p></header>
+<div class="chart-head"><p>点击条带，查看这一方向的尝试、结果与去向。</p><div class="legend"><span><i style="--c:#aac4d6"></i>研究主线／已完成</span><span><i style="--c:#e1c3b2"></i>停止／未沿用</span><span><i style="--c:#c5badc"></i>保留候选</span><span><i style="--c:#62a99b"></i>当前优先</span></div></div>
+<div class="chart-scroll">__TIMELINE__</div>
+<div class="current"><strong>当前进展</strong><p>保留同时间 Attention 引导；十组对比中全程弱引导领先。双向 Attention 留作结构候选。</p></div>
+<section id="records-section" aria-label="关键决策记录"><div class="details-head"><h2 id="records-title">引导区间</h2><button id="show-all" type="button">查看全部 23 个节点</button></div><ol class="records" id="records"></ol></section>
+<footer>截至 2026年10月21日 · 按实验记录与实际决策整理</footer>
+</main>
+<script id="timeline-data" type="application/json">__DATA__</script>
+<script>
+const data=JSON.parse(document.getElementById('timeline-data').textContent);
+const names={background:'背景泄漏',question:'问题定义与转向',attention:'Attention 引导',automatic:'自动窗口与启停',latent:'latent 观察器',benchmark:'公开数据与评测',spatial:'空间参考特征',phase:'RoPE 时间相位',schedule:'引导区间与强度',reciprocal:'双向 Attention'};
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function stateClass(state){return /停止|未沿用/.test(state)?'stopped':/候选/.test(state)?'candidate':/当前/.test(state)?'current':''}
+function selectGroup(group,scroll=false){
+ const events=group==='all'?data.events:data.events.filter(x=>x.group===group);
+ document.getElementById('records-title').textContent=(group==='all'?'全部关键决策':names[group])+' · '+events.length+' 个节点';
+ document.getElementById('records').innerHTML=events.map(e=>`<li class="record" id="${e.id}"><div class="record-meta"><time>${escapeHTML(e.date)}</time><span class="state ${stateClass(e.state)}">${escapeHTML(e.state)}</span></div><h3>${escapeHTML(e.title)}</h3><dl><div><dt>尝试</dt><dd>${escapeHTML(e.attempt)}</dd></div><div><dt>结果</dt><dd>${escapeHTML(e.result)}</dd></div><div><dt>去向</dt><dd class="decision">${escapeHTML(e.decision)}</dd></div></dl>${e.note?`<p class="note">${escapeHTML(e.note)}</p>`:''}</li>`).join('');
+ document.querySelectorAll('.timeline a[data-group]').forEach(a=>{const active=a.dataset.group===group;a.classList.toggle('selected',active);if(active)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')});
+ document.getElementById('show-all').hidden=group==='all';
+ if(scroll)document.getElementById('records-section').scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.querySelectorAll('.timeline a[data-group]').forEach(a=>a.addEventListener('click',event=>{event.preventDefault();selectGroup(a.dataset.group,true)}));
+document.getElementById('show-all').addEventListener('click',()=>selectGroup('all'));
+selectGroup('schedule');
+</script></body></html>

@@ -1,0 +1,20 @@
+已完成实际引导对照的 CPU 汇总
+
+One inventory version ordinary/primary guided pair. Repeated source videos, prompts, methods and seeds are retained. This is a retrospective exploration ledger, not independent test-set sampling. Extra stored control scores already represented elsewhere are not counted again.
+
+计数单位是实验版本，同源重跑和不同方法版本保留；此表用于阶段判断。普通/引导均已成片，guidance_activation=active；零触发、提示词、solver 对照与仅普通成片列在排除清单。
+
+flexiact: 17 组版本 / 7 个原源视频；MF 上升 10、下降 7、相同 0。
+任务/内容验收：{"UNKNOWN": 3, "FAIL": 5, "PARTIAL": 7, "PASS": 2}
+验收分组内的 MF 方向：{"PASS": {"up": 2}, "PARTIAL": {"up": 4, "down": 3}, "FAIL": {"down": 3, "up": 2}, "UNKNOWN": {"up": 2, "down": 1}}
+已有逐帧/抽帧审阅结论：{"no_clear_improvement": 12, "task_invalid": 5}
+
+ivebench: 31 组版本 / 23 个原源视频；MF 上升 8、下降 23、相同 0。
+任务/内容验收：{"PASS": 21, "FAIL": 8, "PARTIAL": 2}
+验收分组内的 MF 方向：{"PASS": {"down": 17, "up": 4}, "PARTIAL": {"down": 2}, "FAIL": {"down": 4, "up": 4}, "UNKNOWN": {}}
+已有逐帧/抽帧审阅结论：{"local_timing_improvement": 2, "task_invalid": 8, "no_clear_improvement": 16, "local_timing_improvement_repeated_source": 1, "small_phase_change_partial_task": 1, "unwanted_action_removed": 1, "no_clear_whole_event_improvement": 1, "regression_changed_action": 1}
+
+现有明确局部时间改善落在 IVE 的氧气面罩和饮酒两个源；坐姿人物额外手势减少属于动作内容改善。篮球仅约 1 帧的局部相位变化，基础构图仍有偏差，单列。FlexiAct 当前审阅尚无清楚新增时序改善。
+MF 与这些人工结论方向可不同：面罩 MF 轻微下降、坐姿额外动作消除后 MF 下降；饮酒局部改善时 MF 上升。任务失败版本也可能 MF 上升，故保留任务验收与事件审阅两列。
+R97 原始全帧记录包含普通/延长版区间，确认早段局部改善仍保留，但相对原固定版无额外收益；它与 R89 饮酒是同一源、同一个普通视频，重复版本单列。R111 改变路径且事件不可比，保留负结果。
+源帧覆盖、遮挡和视角限制沿每条原 review_summary；PASS 并不代表全部像素/细动作都已验收。不同方法和版本混合的数值方向计数不作为最终方法平均效果。

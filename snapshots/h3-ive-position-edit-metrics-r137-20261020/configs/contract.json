@@ -1,0 +1,90 @@
+{
+  "schema": "r137-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-position-edit-r137-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_position_edit_r137_20261020",
+  "producer_seal_sha256": "ea359c1310acd03034a79a0a5c37b822def8b28b56639d0458f465092f08f524",
+  "producer_contract_sha256": "ca89ca98be500f77c80e1d601b018ec945202dd2cbe1f99f8804211ff1b1552a",
+  "producer_runtime_sha256": "ce01c71086b4228777a73f2133ef52b7b467e388486a703c88a3c15c22b18118",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "long_0116"
+  ],
+  "sources": [
+    {
+      "source_id": "long_0116",
+      "run_id": "r137_long_0116_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 158,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nMove the muscular man to the left side of the frame\n\nretention_analysis:\n<Video 1>: partially_preserved - Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.\n",
+      "original_task": {
+        "id": 116,
+        "src_video_name": "long_0116.mp4",
+        "category": "attribute_editing",
+        "subcategory": "position change",
+        "source_prompt": "A muscular man is performing push-ups outdoors during sunset. He is shirtless, wearing a cap, and appears to be in a park or open area with trees in the background.",
+        "edit_prompt": "Move the muscular man to the left side of the frame",
+        "target_prompt": "A muscular man is performing push-ups outdoors during sunset. He is shirtless, wearing a cap, and appears to be on the left side of a park or open area with trees in the background.",
+        "target_span": "left side",
+        "target_phrase": "left side of a park or open area"
+      },
+      "clip": {
+        "start_frame": 34,
+        "end_frame_inclusive": 183,
+        "start_pts_rational": "34/25",
+        "end_pts_rational_inclusive": "183/25",
+        "end_exclusive_rational": "184/25",
+        "duration_rational": "6"
+      },
+      "task_scope": "subject_position_edit",
+      "evaluation_scope": "IVEBench官方长片1.36–7.36秒连续片段探索",
+      "forced_run_id": "r137_long_0116_seed2026101701_forced",
+      "valid_frames": 144,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/long_0116_video.mp4",
+        "sha256": "dd14b02a657a59b1a4f904c963b540ae7982734df036712ffd116999b60239a7",
+        "bytes": 27366520
+      },
+      "provenance": {
+        "file": "inputs/long_0116_provenance.json",
+        "sha256": "f98cce2abfcbae86ac64d2f0f100f3bde01fb64982c8f74cc10dac5e9f744e95",
+        "bytes": 25854
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-position-edit-metrics-r137-20261020/inputs/long_0116_original.mp4",
+        "sha256": "5f1bca7328778c7ba269b5cd2492ff67e54a4c3fe96d59e77579727eab8d4ea8"
+      },
+      "graph_sha256": "9a7ff68b283b86187697808ff607aea73e0200bd061281f47de3c90bfda162d4",
+      "forced_graph_sha256": "95d5a395bf4856d3b80feca86e3832501462f3527e863ed8dd687d68818a2ca0",
+      "expected_prompt_sha256": "dca7a142094793cda0fe075d9fc55a1ffbb20729a315c6e28509eb0b82f229ac"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true,
+  "namespace": "r137",
+  "display_description": "R137单来源人物位置编辑；参考原片1.36–7.36秒，144有效帧，动作与构图分别验收。"
+}

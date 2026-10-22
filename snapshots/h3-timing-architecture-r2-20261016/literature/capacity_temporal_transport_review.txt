@@ -1,0 +1,146 @@
+参考视频时间容量传输：有界原文与数学审查
+2026-10-16；只写本文。没有改变 GPU、队列、模型、扩展或冻结实验。
+
+判断
+
+保留一个条件候选：在已有 radius1 soft-band 参考读取之上，对多个目标 query 共享的参考时间列设置容量上界，做最小 KL 投影，逐 query 保留原 m_ref。它是现有熵正则 OT / balanced attention 的特定编辑器读出应用，不是新 Sinkhorn 算法。当前没有证据证明它比独立行 soft-band 有用，也没有找到足以宣称新架构的结果。
+
+关键因果限制：现有 full 同帧读取已满足下面的容量上界。因此 full 的重影不能归因于多个目标时刻过度占用同一个参考时刻。合理待验假设仅是：放开邻时刻上下文可能减轻硬同帧读出的副作用，但又可能引入多时刻集中读取；容量项能否在 soft-band 的质量与时序取舍上再贡献独立收益。必须先看正在准备的 radius1 简单基线。不能将“更软所以更自然”的收益归给容量。
+
+一、最接近的原始工作与准确重合范围
+
+1. Sinkformers，AISTATS 2022。
+原论文：https://proceedings.mlr.press/v151/sander22a.html
+PDF：https://proceedings.mlr.press/v151/sander22a/sander22a.pdf
+作者代码：https://github.com/michaelsdr/sinkformers
+把 attention 的行 softmax 改成双随机归一化；Sinkhorn 求行列同时约束的非负矩阵。因此“跨 query 耦合”“避免少数 key 占用过多”“双边归一化”都不能单独作为本工作首创。这里的潜在差别是冻结多模态编辑器的原 refmass、参考物理时间分组、局部作用域和必要对照，不是数学求解器。
+
+2. Slot-ID，arXiv 2601.01352，§3.2.3、§3.3。
+原文：https://arxiv.org/html/2601.01352v1
+最危险的任务近邻：参考视频 VAE 及时间差分经编码后，以 learned identity slots 作 query，对视频 tokens 用温度退火 Sinkhorn 读取，均匀双边边缘防集中，然后 GRU 更新 slots；另训练 encoder / LoRA。它已经直接做“参考视频读取＋容量平衡”。当前候选不是身份 slot 汇聚，而是现有生成 query 的实际 reference-group 权重投影，列是参考时间组。但不能把这一应用差异夸大成新的容量原理。本次原文有公式，未定位可核实的完整官方实现；不能声称完成逐行代码排除。
+
+3. Order-Preserving Wasserstein Distance，CVPR 2017。
+原文：https://openaccess.thecvf.com/content_cvpr_2017/html/Su_Order-Preserving_Wasserstein_Distance_CVPR_2017_paper.html
+PDF：https://openaccess.thecvf.com/content_cvpr_2017/papers/Su_Order-Preserving_Wasserstein_Distance_CVPR_2017_paper.pdf
+本轮读取 PDF §3–4：运输多面体 T1=α、Tᵀ1=β；熵正则用矩阵缩放求解；时间 prior 和 inverse-difference-moment 偏好相近时间。故“内容成本＋时间带／先验＋双边 OT”的数学骨架已有。该文计算序列距离，不在 frozen DiT 内改 reference readout。采用秒而非归一序号可改善定义，但不是独立数学首创。
+
+4. VAVA / Learning to Align Sequential Actions in the Wild，CVPR 2022。
+原文：https://arxiv.org/html/2111.09301v1 ，§3.1–3.3。
+双边 OT 对视频帧表示作匹配，时间先验允许局部变速／非单调，虚拟帧吸收无法匹配片段，用其训练表征。它说明容量不能保证正确动作对应、完整匹配也并非自然规律。本候选不训练对齐表示、不产生 video-to-video alignment ground truth；仅在已有同步编辑任务限制读出。若后来加入动态对齐代价、dustbin 和学习匹配器，需要重新对照其完整方法。
+
+5. FreeMix / Zero-shot Customized Video Editing with Diffusion Feature Transfer，ICCV 2025 Workshop。
+原文：https://openaccess.thecvf.com/content/ICCV2025W/Findings/html/Chen_Zero-shot_Customized_Video_Editing_with_Diffusion_Feature_Transfer_ICCVW_2025_paper.html
+作者托管 PDF：https://assets.amazon.science/16/f5/d2bb45914554867704d991582b8b/scipub-approval152134-36779642-zeroshot-customized-video-editing-with-diffusion-feature-transfer.pdf
+沿用本轮此前对 Eq.7–8 的原文审查：相邻源帧 masked spatial tokens 之间求熵正则 OT，建立对应、warp / 融合编辑特征，并注入 attention 输出。它直接覆盖“视频编辑＋OT＋特征注入”；当前列约束对象是多个生成时间对参考时间的累计读取，不是相邻帧空间匹配。此次 CVF PDF 文本解析仅得到部分图注，未据此声称新完成全代码审查；未找到完整官方实现。此前准确核对记录见 innovation_assessment.txt。
+
+6. Capacity-Controlled Multi-View Stylization of 3D Gaussian Splatting，ECCV 2026。
+作者页：https://vcc2310.github.io/SceneStyler/
+原文：https://arxiv.org/html/2606.26754v1 ，§3、Appendix A，Eq.21–24。
+本轮新增且必须记录：其半平衡 OT 精确保行和，列边缘以 KL 惩罚，防 many-to-one 风格特征复用；形式为 min <T,C>−εH(T)+τ KL(Tᵀ1||b)，列更新指数 τ/(τ+ε)。它优化 3DGS 风格损失，而非 video DiT reference attention，但“守行质量＋控制列容量＋避免抢用特征”的机制已有直接形式。采用硬上界代替软 KL 是标准优化变体，不能单凭此当创新。
+
+7. TokenFlow 与 FRESCO。
+TokenFlow 原文：https://arxiv.org/html/2307.10373v1
+实际代码：https://github.com/omerbt/TokenFlow/blob/5dd6a696277e9d18c23adc034dc4c052ccd64cb5/tokenflow_utils.py#L325
+源特征 cosine 最近邻对应用于 gather / 混合编辑后的关键帧 attention 输出，核查位置335–390。不是跨生成 query 的参考时间列预算，但“保持上下文而传播编辑特征”已有。
+FRESCO 原文：https://arxiv.org/html/2403.12962v1 ，§3.3–3.4。
+实际代码：https://github.com/williamyang1991/FRESCO/blob/736a7140f30d622ba8b62584445c8f6c2d9d9fe0/src/diffusion_hacked.py
+其空间 guided attention、去重跨帧读取、沿 optical-flow 对应的时间聚合及 feature optimization 没有本文的参考时间容量约束。其空间对应机制也提示：把邻帧不同位置的肢体平均，可能加重而非减轻重影。
+
+8. TST 与 TCR。
+TST 原文：https://arxiv.org/html/2609.08505v1
+代码：https://github.com/lytang63/temporal-state-transport/blob/1b2f68207230a6d62b518a0feadb04fb75867759/tst/core.py
+本轮重新读取 main/core.py。正文用谱／行熵差控制 query 温度；公开实现返回1+τ_eff·q_tst（非正文带符号指数式）。二者都未实施本候选的参考时间列容量，不能把名称 transport 当作 Sinkhorn。但它是注意力混合程度控制的必要近邻，比较时说明复现哪一版。
+TCR 原文：https://arxiv.org/html/2609.02367v1 ，§3.3 Eq.1–4。
+B_ij=−β(t_i−c_j)²/(2r_j²) 加在视频／音频到文本 logits，使用脚本物理时间且训练 LoRA。它是本候选时间 prior 的近邻，没有共享列容量。这使 rowwise soft-band / Gaussian time prior 成为必需基线，不能只对 native 宣称改善。
+
+9. 同帧读取本身。
+Vidu S2：https://arxiv.org/html/2609.11638v1 ，§3.2。
+Wan-Animate-2：https://arxiv.org/html/2608.06009v2 ，§3.4；官方实现：
+https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L566
+已有训练后的对应帧 reference attention。保原 group mass 的 H3 适配需实测价值，不能将 same-bin 宣称新机制。DIAL 的参考 logits 偏置也是计算家族近邻，但原方法没有本候选跨 query 容量约束：
+https://arxiv.org/html/2609.11507v1 。
+
+本轮在以上原始公式／明确代码路径中没有确认“冻结 H3 内原逐 query refmass＋参考时间列上界＋radius1 条件读出”的完整同构应用。这个结论仅限定查阅集合；不证明空白，不等于保证论文贡献。一般 OT 形式确实已同构。
+
+二、只保留的一套候选定义
+
+以一层一头为单位；不同头不互相借预算。Q 为既有作用区间14..19的全部目标 query，R_j为参考时间bin j的全部空间 keys。保持原来的层／采样区间，不能同时搜索层、时间、容量和带宽。先不加自动检测器、姿态模型、额外训练、外观分解或空间轨迹。
+
+原全序列注意力 A；m_q=Σ_{k∈R}A_qk；P_qj=Σ_{k∈R_j}A_qk。m_q=0的行保持不变。
+
+必须先测的简单基线：radius1，同 query 当前 bin 与前后各1bin。
+H_qj=1[|j−i(q)|≤1]。
+B_qj=m_q P_qj H_qj / Σ_r P_qr H_qr。
+此处 B 是真实每个 query 先截带再归一，不是对平均分布截带。带内依原始 QK 竞争，不额外 Gaussian、不额外温度。当前 latent 网格不等距，应由已验证的 position-bin 映射报告每条边的物理距离；radius1不应被误写成恒定秒数的窗口。它保留每 query 原 m_ref，可能保持更多时序上下文，但质量收益尚待输出验证。
+
+容量预算只约束内部列14..19，取：
+  c_j = Σ_{q:i(q)=j} m_q； U_j=1.5 c_j。
+比例1.5沿用此前容量候选的透明探索设置，不是理论最优值，不扫描。
+外侧可达列13、20分别只有一个边界query时间能访问，设其自然上界 U_j=Σ_{q:H_qj=1}m_q；不设零容量。这样保留radius1的边界上下文，避免偷偷把边界截回same-bin。
+没有下界；准确名称是防过占容量，不是保证每个短动作被覆盖。如果 c_j=0，当前所有对应时刻 m 都为0；该时间不能靠此结构恢复读取，记录限制，不增加人为噪声质量。
+
+求一个严格凸的最小改动投影：
+  X* = argmin_{X≥0} Σ_{qj}[X_qj log(X_qj/B_qj)−X_qj+B_qj]
+  subject to X1=m，Xᵀ1≤U，support(X)⊆support(B)。
+这是标准熵正则／KL容量投影，不是新损失。full的同帧矩阵 Xfull_qj=m_q 1[j=i(q)] 可行，因此可行性由构造保证（真实same-bin正支持成立时）。B已满足容量时，X*=B，严格不需要干预。
+
+正支持下 KKT 为 X_qj=u_q B_qj v_j，0<v_j≤1，u恢复行和；列上界未激活时v_j=1，激活时其列和达到U_j。可用 log-domain 的带上界迭代缩放，必须检查最终行／列误差，不能最后随手row-normalize后还声称列约束成立。存在结构mask零时不能用epsilon悄悄扩展支持。
+
+提升回实际token权重：
+  A'_qk = X_qj A_qk/P_qj，k∈R_j；其余key权重不动。
+于是该次 attention 内逐query原refmass不变、每个参考帧内部空间条件分布不变；物理时间分配发生改变。O'=O+Σ_j(X_qj−P_qj) z_qj，z_qj是该query对该参考帧内V的条件读出。仅计算时保这些量，不能外推到下游所有层或最终身份保持。实际BF16差分路径还需数值验证。
+
+耦合不是新的静态单行mask：其他query对某列的需求改变，可改变本query的v_j和读取分配。它也可写成共享列logits势＋行校正；可重写不取消其作用，但这种耦合本身已由Sinkhorn/Slot-ID/容量OT覆盖。剩余贡献必须来自该问题的必要性和实用效果。
+
+三、它可能无效或反而变差的具体情况
+
+- full已经没有跨时刻过占。其重影可能来自该层reference值与编辑状态不兼容、空间对应、量化／预处理差异或单块纠正累积。容量不能凭定义修复这些原因。
+- radius1本身已同时达到相同lag和更好画质；容量项无必要性，优先保留简单方法及其效率。
+- B从未超过U：投影数学上恒等。不能看到这一结果后降低U直到制造活跃，再称发现问题。
+- 全画面列预算主要由背景满足，主体小动作仍分配错；全局coverage改善不能等同动作恢复。
+- 保列量不保证时间方向。交换邻帧可保持所有列量，却使动作错时；band只限制最大局部错配，不保证正确语义。
+- 邻时刻的不同姿态V被非负平均，仍可能形成双手／双腿；非负convex组合并不保证去重影。它只给固定V集合的局部范数界，不给整个DiT稳定性保证。
+- 加严格单调非交叉约束且同时间网格／相同边缘，时间级计划可能退化到same-bin。此次明确不加单调硬约束。
+- 若用时间bin平均矩阵做Sinkhorn，再分回query并恢复行和，列容量一般不再成立。只修改proxy却宣称actualattention容量守恒不成立。
+
+四、现有6×42 temporal_readout能做什么
+
+本轮实际读取：
+/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/extensions/H3TemporalRouter/core.py:155
+源码SHA256 5cd842280a5cd47c5a1a741c4a02c3b8ca09fca4f3a36a2721acfb38c88aec69
+/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_native_provenance/router_audit.json
+SHA256 81e8d4b57b40fca8120ba04c8b795d99575e7b604567c4ed94e1b9c4d9563899
+
+函数只采8个头、中心周围8个空间位置；每个query先在全部参考keys上做softmax并按时间bin汇总，随后对头和空间取平均。保存的是6×42条件概率，未保存各query的m_ref、未平均的行、逐帧条件V读出。
+
+因此：
+  mean(normalize(H⊙p_q)) != normalize(H⊙mean(p_q))，一般不相等。
+同样，容量投影与平均不交换；Σm_q p_qj不能从mean(p_qj)恢复。单独的reference_mass_mean也不能恢复m和时间分布的相关性。已有C/Y只给full反事实差分，也不能恢复所有z_qj。
+
+这份记录可检查数学支持、边界预算和一个粗代理是否发生明显过占；不能成为“真实token容量必要性通过”的门，也不能用它无效来否定未平均头／动作ROI中的可能过占。此前正常低分辨率视频已有巨大head-average时间偏移，更说明不能把该读数当lag检测器。
+
+本次只做一个CPU代理算术检查，未读新的R4目标特征：对每个保存时刻，六行假设m=1，先对已平均的概率截radius1后归一，再用内部列上限1.5、外侧列上限1求上述KL投影。该假设与真实执行器不同，结果仅用于防止凭空宣称粗读数已有容量证据。
+
+step | radius1代理最大内部列和 | 上界1.5是否激活 | 平均行TV变化
+0    | 1.1647194             | 否              | 0
+5    | 1.2831740             | 否              | 0
+10   | 1.1897328             | 否              | 0
+15   | 1.2280095             | 否              | 0
+19   | 1.4012729             | 否              | 约1.85e−17
+
+最终行误差≤2.23e−16。全部代理投影恒等。它没有提供支持容量项的正证据；也不是细粒度no-go证据。本次不要求补GPUcapture，不以这些数据估计最佳容量阈值，不追加复杂求解器部署。
+
+五、最小必要性诊断与下一步决策
+
+当前可执行的最小决定是先比较已排队的同配置native / full / radius1，保持seed、输入实际指纹、层、采样区间、原m_ref处理一致，记录lag、固定关键帧重影、编辑身份/外观、背景、尾段及耗时。该检验独立于容量假说，是现有算子消融。
+
+只有radius1在质量上有收益但在时序上仍明显不稳，且未来已有的更细逐query证据显示上界确实活跃，才值得让容量进入单一最小实验。真正CPU必要性门需要未平均的P_qj及m_q；如要确认对读出有实质影响，还需要z_qj或同QKV重算。当前6×42记录不足，本轮不为满足它专门追加采样。
+
+有这些数据时的唯一必要性检查：在预固定头／时间／空间集合上，以同一radius1和同一U求X，验证 (a) baseline确有过占；(b)投影实际守行和、列上界且支持相同；(c)在另一组query需求变化时本query响应改变，确认耦合作用；(d)X相对B的差异没有被最终BF16输出舍入完全消掉。若(a)不成立或(d)为零，不启动容量生成实验。这个门只证明算子有作用，不证明动作正确。
+
+若进入生成阶段，最低必要对照为full、radius1、radius1+capacity；所有新增成本计入耗时。候选必须在保持时序效果的同时改善重影／编辑保真，或在相近质量下稳定改善时序；只让列量更均匀不算成功。还应以匹配校正范数的radius1/弱full检查是否仅减弱干预；成功后第二seed与未挑选片段检验，再讨论评测或效率互补贡献。
+
+目前建议：保留容量作为有明确先例和否证标准的后续候选；先完成radius1与C/Y门。没有现成证据支持马上叠加容量，更没有理由把仍未验证的耦合模块写成创新已成立。
+
+核查范围
+本轮定向检索Sinkhorn/balanced attention、video editing temporal OT、reference-video capacity及时间先验；重新读取Slot-ID、TST、TCR、FRESCO、VAVA、SceneStyler原文/指定代码，OPW PDF§3–4；TokenFlow使用固定commit。FreeMix的详细公式采用本会话此前primary全文审查并显式披露本轮PDF解析限制。未遍历全部时序检索/视频修复/OT文献，不声称不存在完全同构的未检出工作。没有新增GPU或训练结果。

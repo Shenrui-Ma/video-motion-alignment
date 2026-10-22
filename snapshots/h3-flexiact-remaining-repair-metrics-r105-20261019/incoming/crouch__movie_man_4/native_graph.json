@@ -1,0 +1,259 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  },
+  "41": {
+    "class_type": "MiniMaxH3SigmaShift",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift_video": 12.0,
+      "shift_audio": 3.0
+    }
+  },
+  "5": {
+    "class_type": "H3EventAuditReference",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "ref_video": [
+        "23",
+        0
+      ],
+      "prompt": "subject_definitions:\n<Subject 1> is the bare-chested muscular man in <Picture 1>, with short swept dark-brown hair, light facial stubble and fitted dark-blue swim shorts. His identity, clothing and visual style come from <Picture 1>.\n<Subject 2> is the blue sea, level distant horizon and pale blue sky shown behind the man in <Picture 1>.\n<Subject 3> is the complete two-repetition squat sequence performed by the person in <Video 1>. This label supplies motion only; the source performer's tied-back hair, gray jacket and black exercise trousers are replaced by <Subject 1>.\n<Video 1> supplies the continuous shot structure, body orientation, motion order and physical timing for the target sequence.\n\nsummary:\n[reference generation] Generate <Subject 1> performing <Subject 3> in <Subject 2>, following the complete visible motion sequence and timing of <Video 1>. The target image determines the character and environment.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - preserve the short swept dark hair, stubbled male face, muscular bare torso and dark-blue swim shorts from <Picture 1> throughout the visible motion.\n<Subject 2> (appears in [Shot 1]): fully_preserved - retain the environment and visual appearance defined by <Picture 1> throughout the shot.\n<Subject 3> (appears in [Shot 1]): attribute_transfer - transfer the complete visible action to <Subject 1>, including orientation, limb coordination, visible contacts, direction, range, order and timing.\n<Video 1> (continuous shot and motion timing): fully_preserved - follow the reference clip's continuous view and complete temporal progression within the motion role defined above.\n\ndetailed_description:\nThe target video uses the photographic coastal setting and daylight of <Picture 1>. The character retains the target identity and clothing throughout the continuous action.\n[Shot 1] The camera shows <Subject 1> standing in the side-facing orientation of the first source frame, with the arms initially low, within <Subject 2>. His appearance is defined by the short swept dark hair, stubbled male face, muscular bare torso and dark-blue swim shorts. Keep the exposed shoulders, chest and arms consistent with the target man. His dark-blue swim shorts follow the flexion at the hips. His short swept hair and light stubble remain consistent during the side-facing movement, and the visible torso retains the proportions and skin appearance of the image. The target portrait supplies his appearance while <Subject 3> supplies the changing posture.\nHe begins upright, then brings his hands forward as his hips move back and his knees bend. Continue into the first low squat following the source trajectory. His upper body inclines with the hips, and the elbows bend so the hands remain together in front of the upper chest. Follow the first low hold for the same part of the reference motion, including the small adjustments of the torso and hands visible there.\nHe then extends his knees and hips to rise again. As in the source, the hands remain near the chest during the upright interval. After that interval, he bends into the second squat, follows its low hold, and rises again toward the final pose of the reference clip. Keep the two repetitions and the intervening upright phase in the source order. The feet maintain the reference placement while his weight moves down and up; the body does not change its screen-facing direction between repetitions.\nThe blue water, distant horizon and pale sky from the target image remain the surrounding backdrop. Daylight on his face and exposed torso remains consistent with that image. Use the reference motion to determine the moving lower-body pose and viewing scale; the target image supplies the appearance of the portions it shows. Preserve the reference clip's continuous view, screen-facing direction and overall framing through the action. The duration of each visible preparation, movement, pause and transition follows <Video 1>. Keep the same character recognizable across the sequence as the torso and limbs change pose. The final visible rise continues to the pose shown at the end of the source clip.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "width": 1152,
+      "height": 768,
+      "length": 158,
+      "audit_dir": "/home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019/audit",
+      "run_id": "r105_crouch__movie_man_4_shared",
+      "semantic_fps": 2,
+      "phase_frames": 0,
+      "ref_image": [
+        "21",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "H3EventAuditNoise",
+    "inputs": {
+      "noise_seed": 2026101701,
+      "audit_dir": "/home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019/audit",
+      "run_id": "r105_crouch__movie_man_4_seed2026101701_native",
+      "pair_id": "r105_crouch__movie_man_4_seed2026101701"
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": [
+        "52",
+        0
+      ],
+      "conditioning": [
+        "51",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "9": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+    }
+  },
+  "10": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "6",
+        0
+      ],
+      "guider": [
+        "7",
+        0
+      ],
+      "sampler": [
+        "8",
+        0
+      ],
+      "sigmas": [
+        "9",
+        0
+      ],
+      "latent_image": [
+        "51",
+        1
+      ]
+    }
+  },
+  "11": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "13": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "11",
+        0
+      ],
+      "audio": [
+        "12",
+        0
+      ],
+      "fps": 24.0,
+      "bit_depth": 8
+    }
+  },
+  "14": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "13",
+        0
+      ],
+      "filename_prefix": "r105_crouch__movie_man_4_seed2026101701_native",
+      "format": "mp4",
+      "codec": "h264",
+      "codec.encoding": "re-encode",
+      "codec.encoding.crf": 16.0
+    }
+  },
+  "21": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "source_crouch_portrait.jpg"
+    }
+  },
+  "22": {
+    "class_type": "LoadVideo",
+    "inputs": {
+      "file": "source_crouch_video.mp4"
+    }
+  },
+  "23": {
+    "class_type": "GetVideoComponents",
+    "inputs": {
+      "video": [
+        "22",
+        0
+      ]
+    }
+  },
+  "50": {
+    "class_type": "H3TemporalRouter",
+    "inputs": {
+      "model": [
+        "41",
+        0
+      ],
+      "positive": [
+        "51",
+        0
+      ],
+      "mode": "native",
+      "alpha": 1.0,
+      "radius": 0,
+      "time_offset": 0,
+      "start_frame": 0,
+      "end_frame": 146,
+      "block_start": 0,
+      "block_end": 50,
+      "step_start": 6,
+      "step_end": 15,
+      "run_id": "r105_crouch__movie_man_4_seed2026101701_native",
+      "audit_dir": "/home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019/audit/router"
+    }
+  },
+  "51": {
+    "class_type": "H3PairConditionSnapshot",
+    "inputs": {
+      "positive": [
+        "5",
+        0
+      ],
+      "target": [
+        "5",
+        1
+      ],
+      "source_audit_dir": "/home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019/audit",
+      "source_run_id": "r105_crouch__movie_man_4_shared",
+      "run_id": "r105_crouch__movie_man_4_seed2026101701_native"
+    }
+  },
+  "52": {
+    "class_type": "H3X0Readout",
+    "inputs": {
+      "model": [
+        "50",
+        0
+      ],
+      "run_id": "r105_crouch__movie_man_4_seed2026101701_native",
+      "output_dir": "/home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019/audit/x0",
+      "width": 1152,
+      "height": 768,
+      "length": 158
+    }
+  }
+}

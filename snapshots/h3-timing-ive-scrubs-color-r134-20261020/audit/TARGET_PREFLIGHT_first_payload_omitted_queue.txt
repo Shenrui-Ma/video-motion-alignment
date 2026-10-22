@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/researcher/h3_runs/timing_ive_scrubs_color_r134_20261020/scripts/preflight.py", line 27, in <module>
+    p=argparse.ArgumentParser();p.add_argument('--live',action='store_true');a=p.parse_args();print(json.dumps(check(live=a.live),indent=2))
+  File "/home/researcher/h3_runs/timing_ive_scrubs_color_r134_20261020/scripts/preflight.py", line 7, in check
+    root=Path(root);s=read(root/'configs/scientific_contract.json');jobs,order=registry(root);runtime=read(root/'configs/runtime.json')
+  File "/home/researcher/h3_runs/timing_ive_scrubs_color_r134_20261020/scripts/r134_contract.py", line 44, in registry
+    q=read(root/'configs/queue.json');require(set(q)=={'jobs','finalize'} and q['jobs']==order and type(q['finalize']) is bool,'fixed paired queue changed')
+  File "/home/researcher/h3_runs/timing_ive_scrubs_color_r134_20261020/scripts/r134_contract.py", line 9, in read
+    def read(path):return json.loads(Path(path).read_text())
+  File "/home/researcher/miniconda3/envs/comfyui/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/home/researcher/miniconda3/envs/comfyui/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/home/researcher/h3_runs/timing_ive_scrubs_color_r134_20261020/configs/queue.json'

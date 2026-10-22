@@ -1,0 +1,193 @@
+--- /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/scripts/bind_execution.py
++++ /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/bind_execution.py
+@@ -10,8 +10,11 @@
+  started=data[names[3]]['value'];owner=data[names[4]]['value'];runtime=data[names[2]]['value']
+  require(started.get('owner')==owner and started.get('controller') and started.get('unix'),'root STARTED owner/controller missing or changed')
+  require(owner['gpu_uuid']==runtime['gpu_uuid'] and owner['port']==runtime['port'],'actual device/port mismatch')
+- require(owner['identity']['start_ticks'] and str(root/'scripts/service_entry.py') in owner['identity']['cmdline'],'service identity incomplete')
+- save(ROOT/'audit/EXECUTION_BINDING.json',{'schema':'r85-media-root-execution-binding-v1','producer_seal_sha256':c['producer_seal_sha256'],'producer_remote':str(root),'owner':owner,'attempt':attempt,'root_receipts':data,'bound_unix':time.time(),'scope':'CPU media only; permits retrospective consumption after exact service exits'})
++ require(owner['identity']['uid']==runtime['uid'] and owner['identity']['start_ticks'] and str(root/'scripts/service_entry.py') in owner['identity']['cmdline'],'service identity incomplete')
++ dest=ROOT/'audit/EXECUTION_BINDING.json'
++ if dest.exists():
++  prior=read(dest);require(prior['owner']==owner and prior['attempt']==attempt and prior['producer_seal_sha256']==c['producer_seal_sha256'],'different execution binding exists');return bound(dest)
++ save(ROOT/'audit/EXECUTION_BINDING.json',{'schema':'r94-media-root-execution-binding-v1','producer_seal_sha256':c['producer_seal_sha256'],'producer_remote':str(root),'owner':owner,'attempt':attempt,'root_receipts':data,'bound_unix':time.time(),'scope':'CPU media only; permits retrospective consumption after exact service exits'})
+  return bound(ROOT/'audit/EXECUTION_BINDING.json')
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--attempt',required=True);a=p.parse_args();print(json.dumps(bind(a.attempt)))
+--- /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/scripts/collect_pair.py
++++ /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/collect_pair.py
+@@ -14,6 +14,8 @@
+  verify_gate(g,pair);return {'pair':pair,'status':'PASSED_GATE','gate':data[names[2]],'binding':binding}
+ 
+ def collect(pair):
++ dest=ROOT/'incoming'/pair
++ if dest.exists():verify_intake(pair);return bound(dest/'COLLECTION.json')
+  s=status(pair);require(s['status']=='PASSED_GATE','actual gate is not ready');g=s['gate']['value'];root=Path(config()['producer_remote']);dest=ROOT/'incoming'/pair
+  require(not dest.exists(),'intake already exists; preserve previous attempt');staging=ROOT/'audit/collection_staging'/f'{pair}_{time.time_ns()}';staging.mkdir(parents=True)
+  save(staging/'PAIR_RUNTIME_GATE.json',g)
+@@ -23,12 +25,12 @@
+   row=g['runs'][arm];run=row['run_id'];video=safe_output(row['video']['file']);fetch(video,staging/(arm+'.mp4'));require(sha(staging/(arm+'.mp4'))==row['video']['sha256'],'actual video changed')
+   for kind,p,digest in [('job',root/'logs'/f'{run}_job.json',row['job_sha256']),('history',root/'logs'/f'{run}_history.json',row['history_sha256']),('router',root/'audit/router'/f'{run}.json',row['router_file_sha256']),('graph',root/'configs/graphs'/f'{run}.json',pair_info(pair)['runs'][arm]['graph_sha256'])]:
+    dst=staging/f'{arm}_{kind}.json';fetch(p,dst);require(sha(dst)==digest,kind+' evidence changed')
+-  verify_job(read(staging/f'{arm}_job.json'),arm,pair,s['binding']['owner'],g)
++  verify_small_evidence(staging,arm,pair,s['binding']['owner'],g)
+  for role in ['source','target','provenance']:
+   source=ROOT/pair_info(pair)[role]['file'];require(sha(source)==pair_info(pair)[role]['sha256'],role+' input changed')
+  # Confirm the same receipt and generation after reads, without requiring CUDA still alive.
+  again=status(pair);require(again['status']=='PASSED_GATE' and again['gate']['sha256']==s['gate']['sha256'],'gate/generation changed during intake')
+- save(staging/'COLLECTION.json',{'schema':'r85-media-intake-v1','pair':pair,'execution_binding_sha256':sha(ROOT/'audit/EXECUTION_BINDING.json'),'gate_sha256':s['gate']['sha256'],'files':{p.name:sha(p) for p in staging.iterdir() if p.is_file()},'full_output_frames':158,'display_valid_frames':147,'source_fps':8,'display_fps':24,'GPU_started':False})
++ save(staging/'COLLECTION.json',{'schema':'r94-media-intake-v1','pair':pair,'execution_binding_sha256':sha(ROOT/'audit/EXECUTION_BINDING.json'),'gate_sha256':s['gate']['sha256'],'files':{p.name:sha(p) for p in staging.iterdir() if p.is_file()},'full_output_frames':158,'display_valid_frames':147,'source_fps':8,'display_fps':24,'GPU_started':False})
+  dest.parent.mkdir(exist_ok=True);staging.rename(dest);return bound(dest/'COLLECTION.json')
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--pair',choices=PAIRS,required=True);p.add_argument('--status',action='store_true');a=p.parse_args();print(json.dumps(status(a.pair) if a.status else collect(a.pair)))
+--- /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/scripts/common.py
++++ /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/common.py
+@@ -1,8 +1,8 @@
+-"""R85 media-only contract and actual evidence validation, adapted from R74."""
++"""R94 media-only contract and actual evidence validation, adapted from R74."""
+ import hashlib,json,os
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-PAIRS=('one_leg__movie_man_9','crouch__movie_man_5','rotate__game_girl_1')
++PAIRS=('fitness__game_man_5',)
+ METHODS=('native','forced');INDICES=list(range(0,147,3))
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+@@ -21,13 +21,13 @@
+ def pair_info(pair):
+  require(pair in PAIRS,'unknown pair');return next(x for x in config()['pairs'] if x['pair_key']==pair)
+ def validate_static():
+- c=config();require(c['pair_order']==list(PAIRS),'fixed three pair order differs')
++ c=config();require(c['pair_order']==list(PAIRS),'fixed single pair differs')
+  require(sha(ROOT/'configs/producer_scientific_contract.json')==c['producer_contract_sha256'],'scientific contract changed')
+  for name,digest in read(ROOT/'CONSUMER_FREEZE.json')['files'].items():require(sha(ROOT/name)==digest,'consumer static file changed: '+name)
+  return c
+ 
+ def verify_gate(g,pair):
+- p=pair_info(pair);require(g.get('schema')=='r85-paired-runtime-gate-v1' and g.get('passed') is True,'actual pair gate is not passed')
++ p=pair_info(pair);require(g.get('schema')=='r94-paired-runtime-gate-v1' and g.get('passed') is True,'actual pair gate is not passed')
+  require(g.get('source_id')==g.get('pair_key')==pair,'pair key differs')
+  for k in ['motion_source_id','original_pair_id','group','prompt_version']:require(g.get(k)==p[k],'gate '+k+' differs')
+  checks=g.get('checks');require(isinstance(checks,dict) and checks and all(v is True for v in checks.values()),'actual gate check missing/failed')
+@@ -39,6 +39,13 @@
+   require(r['valid_frames']==147 and r['NFE']==20 and r['Euler_updates']==20 and r['routed_blocks']==(0 if arm=='native' else 450),'execution count differs')
+   require(r['evaluation_indices']==INDICES and r['evaluation_fps']==8 and r['evaluation_crop_xywh']==[0,0,1152,768],'physical frame mapping differs')
+   props=r['video']['properties'];require(props['width']==1152 and props['height']==768 and int(props['nb_read_frames'])==158 and props['avg_frame_rate']=='24/1','output properties differ')
++ require(set(g.get('runs',{}))==set(METHODS),'exact fresh pair required')
++ require(g.get('runtime_profile')==read(ROOT/'configs/producer_runtime.json'),'actual runtime content differs')
++ for arm in METHODS:
++  for suffix in ['history','shared_conditions','actual_execution_counts','actual_layout','sampled_finite','actual_noise_cache']:
++   require(checks.get(arm+'_'+suffix) is True,'mandatory actual check missing: '+arm+'_'+suffix)
++ prefix=g.get('prefix_tensor_comparison');require(isinstance(prefix,list) and len(prefix)==6,'six actual prefix comparisons required')
++ require([x.get('step_zero_based') for x in prefix]==list(range(6)) and all(x.get(k) is True for x in prefix for k in ['video','audio']),'actual prefix tensors differ')
+  return g
+ 
+ def safe_output(path):
+@@ -56,5 +63,18 @@
+  require(receipt['pair']==pair and receipt['execution_binding_sha256']==sha(ROOT/'audit/EXECUTION_BINDING.json'),'intake execution binding differs')
+  for name,digest in receipt['files'].items():require(sha(path/name)==digest,'intake changed: '+name)
+  g=verify_gate(read(path/'PAIR_RUNTIME_GATE.json'),pair)
+- for arm in METHODS:require(sha(path/(arm+'.mp4'))==g['runs'][arm]['video']['sha256'],'intake output differs')
++ for arm in METHODS:
++  require(sha(path/(arm+'.mp4'))==g['runs'][arm]['video']['sha256'],'intake output differs')
++  verify_small_evidence(path,arm,pair,read(ROOT/'audit/EXECUTION_BINDING.json')['owner'],g)
+  return g
++
++
++def verify_small_evidence(path,arm,pair,owner,g):
++ p=pair_info(pair);job=read(path/(arm+'_job.json'));history=read(path/(arm+'_history.json'));graph=read(path/(arm+'_graph.json'))
++ verify_job(job,arm,pair,owner,g)
++ require(sha(path/(arm+'_graph.json'))==p['runs'][arm]['graph_sha256'],'actual graph file differs')
++ require(history['status']['completed'] is True and history['status']['status_str']=='success' and history['prompt'][1]==job['prompt_id'] and history['prompt'][2]==graph,'history graph/output not exact successful execution')
++ images=history['outputs']['14']['images'];require(len(images)==1 and images[0].get('type')=='output','single actual output required')
++ entry=images[0];relative=Path(entry.get('subfolder',''))/entry['filename'];require(not relative.is_absolute() and '..' not in relative.parts,'unsafe output')
++ require(str(Path(config()['producer_remote'])/'output'/relative)==g['runs'][arm]['video']['file'],'actual history output differs')
++ require(sha(path/(arm+'.mp4'))==g['runs'][arm]['video']['sha256'],'actual video differs')
+--- /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/scripts/make_showcase.py
++++ /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/make_showcase.py
+@@ -1,4 +1,4 @@
+-"""Embed all available real comparisons, retaining the fixed denominator of three."""
++"""Embed all available real comparisons, retaining the fixed denominator of one."""
+ import argparse,base64,html,mimetypes,shutil
+ from common import *
+ def data_uri(path):
+@@ -22,7 +22,7 @@
+    r=read(review);require(r['pair']==pair and r['collection_sha256']==sha(incoming/'COLLECTION.json'),'human review binding differs')
+    row.update({k:r[k] for k in ['task_success','timing_effect']});row['review']=r
+   rows.append(row)
+- return {'schema':'r85-media-summary-v1','fixed_denominator':3,'distinct_motion_sources':3,'new_motion_sources':0,'completed_pairs':sum(x['generation']=='COMPLETE' for x in rows),'media_ready_pairs':sum(x['media']=='READY' for x in rows),'method':'fixed steps6..14; no online observer','rows':rows}
++ return {'schema':'r94-media-summary-v1','fixed_denominator':1,'distinct_motion_sources':1,'new_motion_sources':0,'completed_pairs':sum(x['generation']=='COMPLETE' for x in rows),'media_ready_pairs':sum(x['media']=='READY' for x in rows),'method':'fixed steps6..14; no online observer','rows':rows}
+ 
+ def build(output):
+  validate_static();report=summary();blocks=[];downloads=Path(output).parent
+@@ -35,14 +35,14 @@
+     src=parent/v['file'];label='完整有效片段 · 6.125秒' if v['name']=='full_valid' else '前2秒'
+     body+=f'<h3>{label}</h3><video controls playsinline preload="metadata" src="{data_uri(src)}"></video>'
+     if v['name']=='full_valid':
+-     dest=downloads/f'H3_FlexiAct_R85_{pair}_完整有效片段_三栏对照_20261018.mp4'
++     dest=downloads/f'H3_FlexiAct_R94_{pair}_完整有效片段_三栏对照_20261018.mp4'
+      if not dest.exists():shutil.copy2(src,dest)
+      require(sha(dest)==v['sha256'],'Downloads video conflicts with existing file')
+    body+=f'<details><summary>六个固定时刻</summary><img class="sheet" src="{data_uri(parent/pr["six_times"]["file"])}"></details>'
+   quality='<p>任务完成与时序效果：待人工检查。</p>' if r['task_success']=='UNREVIEWED' else '<p>'+html.escape(str(r['task_success']))+'；'+html.escape(str(r['timing_effect']))+'</p>'
+   blocks.append(f'<section><h2>{html.escape(pair)} · {r["prompt_version"]}</h2><div class="target"><img src="{data_uri(target)}"><div>目标人物参考图<br>生成状态：{r["generation"]}<br>{quality}</div></div>{body}<details><summary>本组实际提示词</summary><pre>{html.escape(p["prompt"])}</pre></details></section>')
+- document='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FlexiAct R85 三组固定时序引导</title><style>body{margin:0;padding:24px;background:#090a0e;color:#eee;font:18px/1.6 system-ui}main{max-width:2200px;margin:auto}h1{font-size:32px}h2{font-size:25px}h3{font-size:18px;color:#ccc}section{padding-top:28px;margin:35px 0;border-top:1px solid #30313b}video,.sheet{display:block;width:100%;background:#000}p{color:#ccc}.target{display:flex;gap:24px;align-items:center;margin-bottom:22px}.target img{max-width:230px;max-height:190px;object-fit:contain}details{margin-top:20px}pre{white-space:pre-wrap;font:14px/1.5 monospace}summary{cursor:pointer}</style><main><h1>FlexiAct · 三组固定时序引导对照</h1><p>三列依次为参考视频、普通编辑、时序引导。同组两次推理使用相同提示词、输入和初始噪声；时序引导固定作用于去噪索引6–14。one_leg 使用P0，crouch和rotate使用P1。</p><p>每列展示相同的147帧有效片段，24fps、6.125秒。参考动作原为49帧、8fps，经重复原帧转换到24fps，原动作时间精度为125毫秒。全部三组与待完成状态均保留；完整158帧成片另存于归档。</p>'+''.join(blocks)+'</main></html>'
++ document='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FlexiAct R94 fitness 固定时序引导</title><style>body{margin:0;padding:24px;background:#090a0e;color:#eee;font:18px/1.6 system-ui}main{max-width:2200px;margin:auto}h1{font-size:32px}h2{font-size:25px}h3{font-size:18px;color:#ccc}section{padding-top:28px;margin:35px 0;border-top:1px solid #30313b}video,.sheet{display:block;width:100%;background:#000}p{color:#ccc}.target{display:flex;gap:24px;align-items:center;margin-bottom:22px}.target img{max-width:230px;max-height:190px;object-fit:contain}details{margin-top:20px}pre{white-space:pre-wrap;font:14px/1.5 monospace}summary{cursor:pointer}</style><main><h1>FlexiAct · fitness 固定时序引导对照</h1><p>三列依次为参考视频、普通编辑、时序引导。同组两次推理使用相同提示词、输入和初始噪声；时序引导固定作用于去噪索引6–14。本组使用同一P1提示词，两条均为本轮新生成。</p><p>每列展示相同的147帧有效片段，24fps、6.125秒。参考动作原为49帧、8fps，经重复原帧转换到24fps，原动作时间精度为125毫秒。本组完整结果与待完成状态均保留；完整158帧成片另存于归档。</p>'+''.join(blocks)+'</main></html>'
+  output=Path(output);output.parent.mkdir(parents=True,exist_ok=True);output.write_text(document);save(output.with_suffix('.json'),report,replace=True);save(ROOT/'results/SUMMARY.json',report,replace=True)
+- return {'html':bound(output),'completed_pairs':report['completed_pairs'],'media_ready_pairs':report['media_ready_pairs'],'fixed_denominator':3}
++ return {'html':bound(output),'completed_pairs':report['completed_pairs'],'media_ready_pairs':report['media_ready_pairs'],'fixed_denominator':1}
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--output',required=True);a=p.parse_args();print(json.dumps(build(a.output)))
+--- /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/scripts/prepare_freeze.py
++++ /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/prepare_freeze.py
+@@ -1,8 +1,8 @@
+-"""Bind finalized R85 scientific files and small local reference assets."""
++"""Bind finalized R94 scientific files and small local reference assets."""
+ import argparse,shutil
+ from common import *
+-PRODUCER=Path('/Users/researcher/DevProjects/h3-timing-flexiact-expanded-r85-20261018')
+-EXPECTED='5c8be2ee6202a479dbeca4a541851b2364270e827f023d749824a43644111afd'
++PRODUCER=Path('/Users/researcher/DevProjects/h3-timing-flexiact-fitness-pair-r94-20261018')
++EXPECTED='ce0f3f802bd6a4fd65ddd299cf859b831945e52510f769a40dccdc0d37ed5a09'
+ def prepare():
+  require(sha(PRODUCER/'deploy_manifest.json')==EXPECTED,'final producer seal differs')
+  contract=read(PRODUCER/'configs/scientific_contract.json');runtime=read(PRODUCER/'configs/runtime.json')
+@@ -23,11 +23,11 @@
+   if not dst.exists():shutil.copy2(original,dst)
+   require(sha(dst)==sha(original),'original video differs');row['source_original_8fps']={'file':str(dst.relative_to(ROOT)),'sha256':sha(dst)}
+   rows.append(row)
+- save(ROOT/'configs/contract.json',{'schema':'r85-media-consumer-contract-v1','producer_local':str(PRODUCER),'producer_remote':runtime['remote_root'],'producer_seal_sha256':EXPECTED,'producer_contract_sha256':sha(PRODUCER/'configs/scientific_contract.json'),'producer_runtime_sha256':sha(PRODUCER/'configs/runtime.json'),'pair_order':list(PAIRS),'pairs':rows,'only_media':True,'GPU_launches':False},replace=True)
++ save(ROOT/'configs/contract.json',{'schema':'r94-media-consumer-contract-v1','producer_local':str(PRODUCER),'producer_remote':runtime['remote_root'],'producer_seal_sha256':EXPECTED,'producer_contract_sha256':sha(PRODUCER/'configs/scientific_contract.json'),'producer_runtime_sha256':sha(PRODUCER/'configs/runtime.json'),'pair_order':list(PAIRS),'pairs':rows,'only_media':True,'GPU_launches':False},replace=True)
+ 
+ def freeze():
+  paths=[p for folder in ['scripts','configs','inputs','tests'] for p in (ROOT/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts]
+- save(ROOT/'CONSUMER_FREEZE.json',{'schema':'r85-media-consumer-freeze-v1','producer_seal_sha256':EXPECTED,'files':{str(p.relative_to(ROOT)):sha(p) for p in sorted(paths)}},replace=True)
++ save(ROOT/'CONSUMER_FREEZE.json',{'schema':'r94-media-consumer-freeze-v1','producer_seal_sha256':EXPECTED,'files':{str(p.relative_to(ROOT)):sha(p) for p in sorted(paths)}},replace=True)
+  return bound(ROOT/'CONSUMER_FREEZE.json')
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--freeze-only',action='store_true');a=p.parse_args()
+--- /Users/researcher/DevProjects/h3-flexiact-expanded-metrics-r85-20261018/scripts/render_pair.py
++++ /Users/researcher/DevProjects/h3-flexiact-fitness-pair-metrics-r94-20261018/scripts/render_pair.py
+@@ -1,4 +1,4 @@
+-"""Same-frame R85 display; Pillow caption pattern inherited from R73."""
++"""Same-frame R94 display; Pillow caption pattern inherited from R73."""
+ import argparse,io,shutil,subprocess,time
+ from PIL import Image,ImageDraw,ImageFont
+ from common import *
+@@ -23,6 +23,7 @@
+  return im
+ 
+ def command(inputs,caption,destination,count,ffmpeg):
++ require(len(inputs)==3,'exact source/native/forced columns required')
+  require(count in (48,147),'display length not preregistered')
+  cmd=[ffmpeg,'-v','error','-nostdin','-n']
+  for p in inputs:cmd+=['-threads','2','-i',str(p)]
+@@ -50,7 +51,7 @@
+    im.paste(Image.open(io.BytesIO(data)).convert('RGB'),(col*576,row*430));label=LABELS[col];draw.text((col*576+(576-draw.textlength(label,font=ft))/2,row*430+404),label,font=ft,fill='white')
+   draw.text((8,row*430+386),f'{frame/24:.3f}s',font=ImageFont.truetype(str(font),14),fill='#bbb')
+  im.save(staging/'six_times.jpg',quality=94)
+- save(staging/'PRESENTATION.json',{'schema':'r85-same-physical-frame-presentation-v1','pair':pair,'gate':bound(incoming/'PAIR_RUNTIME_GATE.json'),'collection':bound(incoming/'COLLECTION.json'),'inputs':[bound(x) for x in paths],'original_media':infos,'target':p['target'],'prompt_version':p['prompt_version'],'method':'fixed mass-preserving routing, zero-based denoising steps6..14, alpha1, all50blocks; online_observer=false','videos':videos,'six_times':{'file':'six_times.jpg','sha256':sha(staging/'six_times.jpg'),'physical_frame_indices':frames},'source_temporal_resolution':'49 original frames@8fps repeated3 times to24fps; 147 valid frames displayed; final11pad frames retained only in original158 archive','fixed_denominator':3})
++ save(staging/'PRESENTATION.json',{'schema':'r94-same-physical-frame-presentation-v1','pair':pair,'gate':bound(incoming/'PAIR_RUNTIME_GATE.json'),'collection':bound(incoming/'COLLECTION.json'),'inputs':[bound(x) for x in paths],'original_media':infos,'target':p['target'],'prompt_version':p['prompt_version'],'method':'fixed mass-preserving routing, zero-based denoising steps6..14, alpha1, all50blocks; online_observer=false','videos':videos,'six_times':{'file':'six_times.jpg','sha256':sha(staging/'six_times.jpg'),'physical_frame_indices':frames},'source_temporal_resolution':'49 original frames@8fps repeated3 times to24fps; 147 valid frames displayed; final11pad frames retained only in original158 archive','fixed_denominator':1})
+  staging.rename(dest);return bound(dest/'PRESENTATION.json')
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--pair',choices=PAIRS,required=True);p.add_argument('--ffmpeg',default='ffmpeg');p.add_argument('--ffprobe',default='ffprobe');p.add_argument('--font');a=p.parse_args();print(json.dumps(render(a.pair,a.ffmpeg,a.ffprobe,choose_font(a.font))))

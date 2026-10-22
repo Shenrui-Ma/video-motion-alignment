@@ -1,0 +1,213 @@
+{
+  "registered_unix": 1791866863.781518,
+  "status": "admitted_and_locked_before_formal",
+  "user_correction": "Study a brief distinct gesture embedded between changing larger actions; previous continuousbreakdance is not this target.",
+  "sources": [
+    {
+      "clip_id": "05_real_megumi_v",
+      "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+      "event": {
+        "label": "one brief right-hand V/face-framing gesture, followed by release into an outward arm spread",
+        "type": "brief face gesture amid distinct arm and body action switches",
+        "transition_frames_inclusive": [
+          50,
+          65
+        ],
+        "decisive_frames_inclusive": [
+          53,
+          61
+        ],
+        "expected_count": 1,
+        "full_event_duration_seconds": 0.6666666666666666,
+        "decisive_pose_duration_seconds": 0.375,
+        "duration_stratum": "secondary_0.6_to_0.8_seconds",
+        "boundary_uncertainty_frames": 2,
+        "surrounding_actions": [
+          {
+            "frames_half_open": [
+              0,
+              43
+            ],
+            "action": "bent-knee side stepping with both wrists drooped in front of torso; one brief earlier hand flick occurs within this phase"
+          },
+          {
+            "frames_half_open": [
+              43,
+              50
+            ],
+            "action": "right arm extends to point outward; brief transition immediately before target"
+          },
+          {
+            "frames_half_open": [
+              66,
+              90
+            ],
+            "action": "hand/arm release, then bilateral arms rise and cross overhead"
+          },
+          {
+            "frames_half_open": [
+              90,
+              141
+            ],
+            "action": "bilateral overhead-to-side spread, alternating lateral lean/leg extension"
+          }
+        ]
+      },
+      "task": "text_guided_garment_recolor"
+    },
+    {
+      "clip_id": "06_anime_eye_insert",
+      "sha256": "f8dff750e79eea857b2d787b4990fcd29838727ea51f0fa7392ac188a8404952",
+      "event": {
+        "label": "brief right-hand eye-framing insertion before outward pointing",
+        "type": "short distinct gesture amid switching body/arm actions",
+        "transition_frames_inclusive": [
+          39,
+          44
+        ],
+        "decisive_frames_inclusive": [
+          41,
+          42
+        ],
+        "expected_count": 1,
+        "context_before": "bent-knee side-step with drooped wrists",
+        "context_after": "outward point;later distinct longer eyeV-sign withleglift;overhead reachandspread",
+        "boundary_uncertainty_frames": 1,
+        "full_event_duration_seconds": 0.25,
+        "decisive_pose_duration_seconds": 0.08333333333333333
+      },
+      "task": "reference_image_character_replacement"
+    },
+    {
+      "clip_id": "07_real_ary_v",
+      "sha256": "46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11",
+      "event": {
+        "label": "one brief right-hand V across eye/nose level, followed by release while one leg is bent backward",
+        "type": "brief face gesture amid distinct arm and body action switches",
+        "transition_frames_inclusive": [
+          54,
+          69
+        ],
+        "decisive_frames_inclusive": [
+          60,
+          62
+        ],
+        "expected_count": 1,
+        "full_event_duration_seconds": 0.6666666666666666,
+        "decisive_pose_duration_seconds": 0.125,
+        "duration_stratum": "secondary_0.6_to_0.8_seconds",
+        "boundary_uncertainty_frames": 2,
+        "surrounding_actions": [
+          {
+            "frames_half_open": [
+              0,
+              8
+            ],
+            "action": "tail of finger-near-chin pose; context only, not a fully retained action"
+          },
+          {
+            "frames_half_open": [
+              8,
+              36
+            ],
+            "action": "bend knees and lean/step sideways with palms down in front"
+          },
+          {
+            "frames_half_open": [
+              36,
+              54
+            ],
+            "action": "bilateral sweeping arm raise while straightening and shifting stance"
+          },
+          {
+            "frames_half_open": [
+              70,
+              91
+            ],
+            "action": "lower and then raise both arms overhead, spreading outward"
+          },
+          {
+            "frames_half_open": [
+              91,
+              141
+            ],
+            "action": "lateral lean with arms wide, then forward leg extension and return"
+          }
+        ]
+      },
+      "task": "text_guided_garment_recolor"
+    }
+  ],
+  "independent_recordings": 3,
+  "choreography_families": 1,
+  "cross_domain_effect_claim": false,
+  "matrix": {
+    "arms": [
+      "A generic retention",
+      "B explicit local-event retention"
+    ],
+    "seeds": [
+      2026101311,
+      2026101312
+    ],
+    "formal_runs": 12,
+    "all_outcomes_reported": true
+  },
+  "recipe": {
+    "host": ".9",
+    "attention": "native PyTorch SDPA",
+    "steps": 20,
+    "sampler": "Euler",
+    "video_audio_shift": [
+      12,
+      3
+    ],
+    "lora": null,
+    "frames": 141,
+    "fps": 24,
+    "width": 1312,
+    "height": 736,
+    "semantic_fps": 2,
+    "semantic_phase": 0,
+    "large_int8_row_guard": {
+      "max_chunk_rows": 16384,
+      "trigger": "signed32 input/output offset risk only",
+      "scope": "runtime correctness;not scientific intervention",
+      "small_GPU_equivalence": "exact in4testedcases",
+      "large_GPU_shape_checked": [
+        87583,
+        5376,
+        28672
+      ]
+    }
+  },
+  "sampling_control": "Paired actual AV initial noise tensors, identical source/image/dense references and seed-driven native reference augmentation within each A/B pair.",
+  "gates": [
+    "Correct inputs and event clearly visible in normalized source.",
+    "Actual native prepared and VAE reconstruction inspected for event relation and fine handshape separately.",
+    "Short benchmark confirms compatible actual recipe and acceptable steady sampling; cold loading separate."
+  ],
+  "if_VAE_event_is_absent": "Do not score as downstream event omission with available dense evidence; label encoding-limited diagnostic separately and record any change before formal generation.",
+  "scoring": [
+    "appearance edit/reference identity success",
+    "brief event occurrence, count, position in sequence and approximate time",
+    "surrounding distinct broad actions and rhythm",
+    "fine hand topology/contact visibility separate"
+  ],
+  "stop": "Fixed matrix only; do not add seeds/sources/parameters in response to observed failure or success.",
+  "limits": [
+    "Real0.67s secondary events and anime0.25s event are separate duration strata.",
+    "Same choreography family and different edit task bydomain;notdomainablation.",
+    "Animation60FPSrepost upstream processingunknown.",
+    "No mechanism or novelty claim from this screen."
+  ],
+  "runtime_amendment": {
+    "unix": 1791867571.263365,
+    "reason": "No .41card capacity after newotheruser8GPUtasks; no formal output yet.",
+    "previous_attempt": "attempts/rtx41",
+    "formal_outputs_before_amendment": 0
+  },
+  "kernel_amendment_before_formal_unix": 1791870169.021545,
+  "admitted_unix": 1791871920.111974,
+  "queue_sha256": "d50db7c1607b774b0cd28c228a32d87256fec130af4df537e2bdd6e55b2cc15e"
+}

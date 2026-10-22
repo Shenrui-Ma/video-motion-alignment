@@ -1,0 +1,25 @@
+R98 Ref2VA 采样默认值审查（只读，2026-10-19）
+
+结论
+1. CFG1 与视频/音频 shift 12/3 有明确一手依据。MiniMax 模型卡说明已发布 CFG 蒸馏权重；官方推荐的 SGLang 将 guidance_scale 固定为1、仅执行条件分支。MiniMax 自身仓库的两个 scheduler 配置分别写12与3。当前 R98 BasicGuider 与12/3匹配。R98手写21个sigma精确对应20次Euler更新的shift12曲线，最大舍入差小于6e-13。
+2. 20步有官方推荐 Comfy 模板依据，但不是所有官方推荐框架的统一默认。SGLang 当前固定版本默认为50步，MiniMax可复现Ref2VA请求没有显式传steps，因此在该SGLang版本会用50步；此处未声称它复现了官方历史服务器的所有配置。Comfy模板Full分支为20步，sampler为res_multistep；R98为20步Euler。两条明确的可比较差异是步数和采样器，尚没有证据说明它们造成身份失败或动作延后。
+3. 已核参考配置没有发现明确漏接的必需项：R98图已连接图像、视频、VisualVAE，且实际缓存审计证明图像/视频latent和Qwen参考均进入；语义视频采样2fps与已核框架代码一致。Comfy官方模板本身使用同名INT8 ConvRot DiT与NVFP4 AWQ文本编码器、ref_image_size=match。R98用FP16视频VAE，模板用INT8 VAE，这也是部署精度差异，不能当作遗漏或原因。R98任务没有请求参考音频，audio_vae参考输入缺省不会丢弃图像/视频条件。
+
+准确出处
+A. MiniMax官方模型卡固定HF版本42ed227ee7df40d41602854ae760620d6eb651fe（已有本地model_card.md）
+https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md
+模型卡的Local Deployment说明CFG蒸馏；原权重BF16，明确推荐SGLang、Diffusers、ComfyUI。原可复现请求脚本不含steps/CFG/shift显式值。
+B. MiniMax官方仓库固定d21241f0a4b3acbb34c97dae47fa417b7065e438
+https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/scheduler/scheduler_config.json
+https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/audio_scheduler/scheduler_config.json
+已本地存official_scheduler.json / official_audio_scheduler.json。代码主体公开VAE/配置，未发现MiniMax仓库内单独的原生50/20步Ref2VA采样循环，不能把DiffSynth默认50步冒充MiniMax原始默认。
+C. 官方推荐SGLang框架固定4ec19ca27f08f7ce44bbe1da70ce964731940eb2，commit日期2026-10-18
+https://github.com/sgl-project/sglang/blob/4ec19ca27f08f7ce44bbe1da70ce964731940eb2/python/sglang/multimodal_gen/configs/sample/minimax_h3.py#L29
+本地sglang_sample.py:35=50steps、39=CFG1；sglang_pipeline_config.py:70–71条件单分支；sglang_task_profiles.py:228–229=12/3；sglang_timestep.py:150–155缺省50。sglang_reference_encoding.py:734–760=2fps视频语义采样。
+D. MiniMax模型卡直接链接的Comfy-Org模板，固定e7cd011d4ded3411c2f481200544f0be6fdc962e，日期2026-09-28
+https://github.com/Comfy-Org/workflow_templates/blob/e7cd011d4ded3411c2f481200544f0be6fdc962e/templates/video_minimax_h3_r2v.json
+节点143 Full=20，经switch142到scheduler124；节点123=res_multistep；126=BasicGuider；127/128为同名量化DiT/文本权重；136=match。4步Turbo是可选另一路，不能说正常20步必须加载它。该模板例子提供两张图，不能以示例中视频口为空否定视频参考功能。
+
+当前边界与最小诊断建议
+尚不能从这些配置差异判定当前推理有bug；基础角色替换质量仍需由相同任务结果验证。若下一轮专门排查采样，最小单因素对照是同一任务/图/视频/prompt/seed/权重/20步sigmas，把Euler替换为模板的res_multistep，先只跑普通编辑。若要检验50步，应另列同Euler的50步，不能同时改sampler与steps后归因。此报告不授权或执行任何新推理。
+此外R98量化图与官方BF16完整框架并非逐位等价。当前证据足以确认CFG与shift匹配、20步为推荐Comfy配方；不足以证明所有原生参考处理和数值内核完全等价，也没有发现额外必须的“参考强度开关”。

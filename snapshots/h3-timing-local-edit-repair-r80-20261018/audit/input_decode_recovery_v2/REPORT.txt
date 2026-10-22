@@ -1,0 +1,17 @@
+R80 输入像素核验修复记录（CPU）
+
+原 gate 的唯一失败项为 actual_original_input_pixels。shape90×736×1312×3、float32一致，hash不同。
+原期望来自 R54/.41，经 R69 保存后沿用到了 .9。真实Comfy VideoFromFile.get_components在两机CPU重放，同一MP4分别精确得到原期望f9120e…和实际e43665…。
+两边MP4 SHA、90帧原始YUV420像素MD5、PTS、time_base、直接rgb24转换SHA均相同。每一帧YUV还与输入准备记录精确一致。帧选择和物理时间完整保留。
+差异发生在实际Comfy使用的gbrpf32le转换输出。PyAV分别17.0.0/16.0.1，Comfy源码SHA和兼容脚本SHA相同，FFmpeg各库版本号相同；本次未继续追到解码库内部具体实现分支。
+固定16像素网格、全部90帧的1,018,440个RGB采样值，平均绝对差0.000844，最大0.040879（10.42/255）。这些是网格样本统计，不能称全片最大误差或仅末位浮点误差。跨host颜色差异可能影响生成；旧.41与新.9结果继续作描述性对照。
+
+恢复方式
+旧gate(false)、旧expected文件、旧58seal及修改前代码均保留于audit/input_decode_recovery_v2/ancestry。原canonical gate不覆盖。
+新增configs/expected_input_pixels_host9_v2.json，从固定MP4独立进行实际Comfy CPU解码生成，未从模型条件捕获抄写hash。0230为生成后的独立复验；0352在尚无job时预冻结。shape/dtype/valueSHA要求精确相等，零容差。
+verify_native_host9_v2.py还核查输入MP4、独立replay文件SHA、实际decoder源码、原始YUV逐帧MD5和全部90个24fps物理时间。
+原verify_native默认仍读取旧期望；只新增显式expected_input_file参数。execution_gate首条审核可显式承接通过且绑定旧失败gate的新v2收据。所有科学图、模型、采样、路由、source/noise设置保持原字节。
+旧seal351555…3712；新61seal e2b2904e032c6a210693a75a4e6e3b268a8990ff0f0a50d33ba1307c6b971616。
+本机37项CPU测试通过。实际0230完整轨迹v2复验另看ACTUAL_0230_V2_VERIFY.txt与新收据。
+
+维护限制：当前61seal已包含新增host9_v2期望文件。旧execution_gate.seal()枚举尚未维护该新增配置，禁止无审查再次调用旧seal()。恢复通过独立audit脚本执行，冻结生产者文件保持不变。

@@ -1,0 +1,41 @@
+.....Receipt write failed: /audit/FAILURE.json: OSError('disk full')
+Receipt write failed: /audit/CLEANUP_FAILURE.json: OSError('disk full')
+.Receipt write failed: /audit/FAILURE.json: OSError('disk full')
+........................E....E....................................................
+======================================================================
+ERROR: test_direct_route_equals_previous_full_math (test_first_pair.MathematicsTests.test_direct_route_equals_previous_full_math)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019/tests/test_first_pair.py", line 41, in test_direct_route_equals_previous_full_math
+    a=ast.parse((ROOT/'extensions/H3TemporalRouter/core.py').read_text());b=ast.parse((ROOT/'source_snapshot/r59/sealed_r3_core.py').read_text())
+                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019/source_snapshot/r59/sealed_r3_core.py'
+
+======================================================================
+ERROR: test_old_controller_dies_on_same_first_timeout (test_http_wait.ControllerWait.test_old_controller_dies_on_same_first_timeout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019/tests/test_http_wait.py", line 92, in test_old_controller_dies_on_same_first_timeout
+    states,service,job,error=self.exercise(['timeout','success'],original=True)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019/tests/test_http_wait.py", line 72, in exercise
+    module=load(HERE/('source_snapshot/http_original' if original else 'scripts')/'run_queue.py','controller_under_test')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019/tests/test_http_wait.py", line 16, in load
+    spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1132, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1190, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/researcher/DevProjects/h3-timing-flexiact-p1-repair-r103-20261019/source_snapshot/http_original/run_queue.py'
+
+----------------------------------------------------------------------
+Ran 88 tests in 1.144s
+
+FAILED (errors=2)

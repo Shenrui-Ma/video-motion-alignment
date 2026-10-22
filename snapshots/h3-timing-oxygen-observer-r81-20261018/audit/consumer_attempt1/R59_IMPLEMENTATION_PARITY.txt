@@ -1,0 +1,40 @@
+R81 与现有 R59 执行候选的一致性核对
+
+结论：观测数学与策略一致；目标人物筛选和本例输入登记需要随新执行包接入。
+
+本次实际调用当前 h3-timing-visible-feedback-r59-execution-20261017 的 Controller，在 CPU 上逐步消费 R81 保存的 20 份完整 observation。未重新估计姿态。9 个 scanner/features/metric/gain/policy/geometry 文件与 R81 vendor 逐字相等，SHA 见 R59_IMPLEMENTATION_PARITY.json。
+visible_only 与 visible_fallback 两种 Controller 的原 Policy 字段均与 R81 精确相同。两者 ON indices 均为 [2,3,6,7,10,11,12,13,14,15,16,17,18,19]；本例 weak_fallback 次数为 0，因为每步仍有可判读行。
+
+输入和物理时间
+- 1312×736、107 帧、24fps；valid 物理帧 0–97，尾部 98–106 为 padding。所有帧保留原索引与 PTS。
+- 当前 R59 Geometry 可接受此形状，窗口从全部 valid 域生成：16/32 帧，stride4，包含末端窗口，共 40 个物理窗口、120 条 window×descriptor 行。
+- 首次 ON 选中物理帧 [44,59]，映射 latent 半开区间 [13,18)，即 bins 13..17；实际位置格覆盖物理帧 43..59。选择物理窗口和执行完整位置格的粒度差异已记录。
+
+目标人物
+- R81 scripts/contract.py:50 的 adult_only 沿原 largest-area/IoU 人物追踪，然后检查 selected_person 的 bbox 水平中心落在 [0.40W,0.75W]。超出范围置 None，保留原始多人检测，未选择替代儿童。规则来自源画面布局，应用于 source 和所有 20 个 x0。
+- R59 scripts/pose_live_child.py:25 直接把 pose_probe 的 selected_person 送入 scanner，当前尚无上述成年人范围筛选。
+- 下一包应复用相同 source-based actor rule 及已绑定 source adult pose，分别存 raw/adult pose 与排除计数。它是本例多人目标定位的输入适配；窗口和阈值保持现有算法。
+
+每步决策
+- confidence .3/.5、coverage .8、minimum8、lag±24、两置信门 lag 差≤2、非零候选超过±2、原 residual/歧义/边界门、共同支持 gain>0.5 全部继承。
+- 每次真实去噪 index0..19 都先做当前状态 Native prediction。得到完整 pose/scan 后，Policy 更新一次；技术失败应保留失败，不能填作 UNKNOWN。
+- 同方向、共有手臂、物理窗口重叠/较短窗口长度≥.5 的连续代表才触发。相邻 index 的 lag 数值未另设稳定门。
+- index1 首候选 lag11/11；index2 首 ON lag15/15。index4/5/8/9 暂停源于最强代表在左/右臂之间切换，原 shared-arm persistence 被重置。
+- R59 selector.py 的选择生成 alpha1、50层、选中时间 bins 的所有空间 query。它按可见手臂观测作决策，执行空间仍覆盖整幅画面。
+
+在线与离线证据边界
+- R59 core.py:292–385 的 PredictionProbe 在同一 x、sigma、condition、seed 上先得到 Native，再按当前观测决定是否重算 Full，最后返回所选分支给唯一一次 Euler 更新。
+- R81 的全部观测来自旧 Native 轨迹。因此首次假设 ON 之后的 17 步只能说明旧轨迹下的策略决策；新的闭环轨迹必须重新观测，不能预填这14个 ON index，也不能预设第3步必触发。
+- 现有 R59-execution 仍为 CPU 候选：runtime.json 状态 PENDING_ACTUAL_R57_AND_ROOT_GPU_GATES，audit/PAUSED_FOR_R63.json 记录 GPU_launched=false。旧包注册的是原五条任务，不含 short0252。
+- 新执行包需要本例原始视频/提示词/AV初始噪声/条件、107/98形状、精确 source pose、host/runtime 和实际资源身份绑定。观察器、策略和 attention 数学可原字节继承。
+
+环境与容量
+- R81 x0 在 .9 Torch2.5.1 生成，在 .41 Torch2.11.0 用同 SHA 的 VAE/Core 解码；CPU pose 在 .9 原依赖运行。线上改为单机前须保持或明确这些环境边界。
+- 已测 full107 VAE decoder peak reserved = 6,027,214,848 bytes；这只证明该独立解码子进程的实测用量，未包含 H3 主模型。
+- 20 次 decode 共 323.368 秒；20 次 CPU pose 共 1845.174 秒，每步约 86–100 秒。R59 现有 CPU pose+scan 240 秒预算在这次测量中有余量，资源共享引起的实际运行时间仍需记录。
+- root 已确认 decoder PID/CUDA 释放；本次 Controller 核对调用 GPU 次数为 0。
+
+复核入口
+audit/check_r59_parity.py：纯 CPU 复核脚本。
+audit/consumer_attempt1/R59_IMPLEMENTATION_PARITY.json：全部输入 SHA、9 文件继承 SHA、20 步两种 Controller 决策及映射。
+audit/consumer_attempt1/REPORT.txt：完整 R81 结果。

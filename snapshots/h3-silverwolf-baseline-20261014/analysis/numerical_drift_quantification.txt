@@ -1,0 +1,30 @@
+SilverWolf cross-environment numerical drift (CPU, archived raw storages)
+Difference: baseline .41 minus factor3 .9. No causal efficacy claim.
+
+Prepared source video, all 141 frames: MAE=0.00223479402, RMS=0.00483499183, max=0.0705882311 (0–1 units).
+  8-bit equivalent: MAE=0.569872, RMS=1.23292, max=18; >1 level=13.738329%.
+Prepared source video, event frames 39–44: MAE=0.00229956098, RMS=0.00493223542, max=0.0470588505 (0–1 units).
+  8-bit equivalent: MAE=0.586388, RMS=1.25772, max=12; >1 level=14.105477%.
+Prepared reference image: MAE=0, RMS=0, max=0 (0–1 units).
+  8-bit equivalent: MAE=0, RMS=0, max=0; >1 level=0.000000%.
+source_video_vae_latent: error RMS=0.0611690269, parent RMS=1.1269064, relative RMS=5.428049%, max=1.43578464.
+reference_image_vae_latent: error RMS=0.00129337161, parent RMS=1.08276018, relative RMS=0.119451%, max=0.136171699.
+
+Event frame detail (MAE / RMS / max, 8-bit equivalents):
+  39: 0.587598 / 1.26009 / 12
+  40: 0.586407 / 1.2569 / 12
+  41: 0.585907 / 1.25756 / 12
+  42: 0.587122 / 1.25986 / 12
+  43: 0.58643 / 1.25823 / 12
+  44: 0.584865 / 1.25366 / 12
+
+Adjacent downsample best-offset counts: {"0": 141}
+These neighbor results do not establish global temporal alignment.
+Decoded input_video hashes differ; no saved decoded-input storage exists to quantify that stage directly.
+Peak resident memory: 226.9 MiB; elapsed: 2.61 s.
+
+Raw ZIP data storages and byteorder entries only; data.pkl was not opened and no tensor object was deserialized.
+Same-index per-frame metrics do not prove global temporal alignment; adjacent matching is a bounded spatially downsampled diagnostic.
+8-bit equivalent means floating-point error multiplied by 255; it is not a comparison of independently re-encoded images.
+VAE relative RMS is error RMS divided by parent factor3 latent RMS; it is a numerical metric, not a semantic quality score.
+Different preprocessing and runtime environments remain confounded. These measurements do not isolate PyAV, PyTorch, CUDA, kernels, or a causal attention benefit.

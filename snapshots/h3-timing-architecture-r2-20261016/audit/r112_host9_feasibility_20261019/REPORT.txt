@@ -1,0 +1,9 @@
+R112 .9 独立执行可行性（只读环境检查）
+
+R96 Native实际执行在H3_SERVER_B GPU2（RTX，UUID GPU-REDACTED），PyTorch2.11.0/Triton3.6.0/AV17/Transformers5.5.3。原R112显式要求same_host_numerical_runtime、R107同GPU、历史条件及前6步逐值一致。H3_SERVER_A GPU0为NVIDIA A100 80GB PCIe，PyTorch2.5.1+cu121/Triton3.1.0/AV16.0.1/Transformers4.57.3；两机9个绑定H3核心源文件hash一致。不同环境的实际数值等值不能由源码hash推定。
+
+.9已存在R92 long_0174输入，SHA69e866b1939333f2156732a560aa241e04930d02d2043f65b56bcf81f30a0b2d、30322412bytes，与R112完全相同。R92该样例没有output、job/history或x0。R96/R107 /data4生产根在.9不存在。四模型文件在/data5/researcher/ComfyUI/models，尺寸/mtime与已登记模型一致；本次未重新哈希42GB权重，沿用此前绑定。
+
+按用户随后明确要求，避免为环境差异追加推理。root已授权独立R115：仅fixed_one_bin与matched_one_bin两条，原R96视频保留历史来源，记录环境参数，不做环境影响实验，不要求跨host前6步相等。两新臂同环境、同输入/seed/条件/噪声/sigma；两臂前6步与50层bank严格相同。R112数学核和诊断7文件逐字冻结；新binding及生命周期单独封存。首臂prefix gate仅验证自身tensor文件完整性；第二臂再比较实际两臂前6步。
+
+原R112、R103、R113封存未变；仅R115新目录CPU准备，未GPU启动。计划R105完整释放后，由root安排短MF结束再用GPU0。实际权限依root GPU_DEPLOYMENT_REVIEW精确绑定R115 seal。

@@ -1,0 +1,83 @@
+参考视频与输出画布的物理时间映射审查
+2026-10-18；R85 one_leg/movie_man_9、R89 short0131/0343、R73 short0252。
+
+结论
+
+四例的 same-bin 都对应相同的相对物理时间网格。没有发现把角色图当视频、视频首帧编号偏一、8fps误作24fps、2fps语义抽帧误传入VAE、或参考/画布RoPE网格缩放不一致的接线错误。R85目前观察到的前段延后不能由这些已检查的坐标机制解释。
+
+这一结论有完整位置数组的证据：从已冻结的真实H3 model.py提取原始PackedLayout及其helper，在CPU重建四例两臂的position_ids。8份全部字节SHA与实际运行conditioning记录一致；各router又与已通过PAIR_RUNTIME_GATE中保存的router SHA一致。没有载入大PT、模型权重，未调用VAE或GPU。
+
+same-bin对齐的是H3定义的时间位置。它不保证该位置中的运动语义正确，也不能证明模型内部某个动作只存在于这一bin。VAE感受野、DiT特征混合和动作生成误差仍需与坐标检查区分。
+
+实际布局
+
+案例                 输入/有效帧  reference/output latent T  视频ref index  frame_rows  引导bin范围
+R85 one_leg/movie9    158/147     47 / 47                     1              864         [0,44)
+R89 short0131         56/43       17 / 17                     0              943         [0,13)
+R89 short0343         73/61       22 / 22                     0              943         [0,19)
+R73 short0252         107/98      32 / 32                     0              943         [0,29)
+
+每例的目标与参考video latent T/H/W相同。四例两臂实际radius=0、time_offset=0，完整时间与空间坐标对应关系均通过。每帧空间patch数为(H/2)×(W/2)，H3 patchify按time-major展开；_aligned_attention把query reshape回每个时间bin，并取reference视频段同index的一整帧空间K/V。
+
+R85的真实packed序列
+
+text       [0,7030)
+角色图      [7030,7894)，864 tokens，reference index0
+参考视频    [7894,48502)，47×864 tokens，reference index1
+输出audio   [48502,49028)，263×2 tokens
+输出video   [49028,89636)，47×864 tokens
+
+router依据metadata.refs中的kind/index重建并验证整个segment表，而不是把名为ref_img的第一个段一律当视频。R85视频keys从7894起，角色图已排除。三个IVE例只有一个视频引用，reference index0与各自完整视频段一致。
+
+RoPE与物理时间
+
+令s_k为(1,4,4,4,4)循环序列，S_k=sum_{j<k}s_j。
+reference时间坐标 = reference_origin + (5/3)×S_k。
+output时间坐标 = output_origin + (5/3)×S_k。
+各自减去origin后除以40，即S_k/24秒。
+
+R85 reference_origin=7031，output_origin=7294.333333333333。两者差263.333333333333=(158/24)×40。这个常量来自H3把参考段安排在目标段前的原生位置编码；画布视频的物理零时刻仍是其自身origin。角色图占一个位置单位，同时平移后续参考和目标origin，因此没有给视频内部插入一帧。输出audio在序列中占526行，但它与输出video共用同一个时间origin，不会再把画布视频整体顺延263帧。
+
+另三例output_origin-reference_origin分别为56×5/3、73×5/3、107×5/3。重建全部bin后，参考/画布相对时间差最大仅float64运算舍入量，均<1e-10坐标单位；相同bin的空间坐标逐位相等。
+
+当前路由使用局部bin index匹配，保留原模型已施加的RoPE；它没有把reference和target的绝对RoPE坐标强行改为相等。因此原生跨段距离仍可影响attention大小。这里验证的是索引和相对时基，不能用此推断attention一定足够强。
+
+8fps重复3次与首帧
+
+R85官方源49帧@8fps，实际源PTS为0..6秒。准备后的有效帧0..146满足prepared[j]=source[floor(j/3)]，每个原帧i首次出现在prepared[3i]，其时刻3i/24=i/8严格相等。0,3,…144的官方评测采样点保留原49个时刻。重复帧是零阶保持；它没有让每个新动作统一推迟一个原帧。原始8fps自身的观测分辨率仍是125ms。
+
+实际H3 VAE调用接收完整158帧，包含147有效帧与11尾部重复帧。没有把角色参考图附加成这158帧中的首帧。Reference节点按24fps约定解释frame数组；frame数组不携带容器fps。实际qwen_presentation中2fps采样为0,12,24,…156，timestamps为对应index/24。VAE拿到完整158帧而非14张Qwen抽样图。
+
+VAE压缩与leading-frame处理
+
+实际VAE源码clip_length=17、时间压缩因子4。每个17帧编码块产生5个latent，拼接后末尾drop3个latent；158帧形成ceil(158/17)×5−3=47个latent。目标画布同为47个latent。不是简单把158连续除以4。
+
+H3原生位置bin采用每组[1,4,4,4,4]：bin0对应名义RGB帧[0,1)，bin1[1,5)，bin2[5,9)，之后每17帧重新开始一组。VAE encoder有因果卷积及块边界，decoder有时间块重叠/混合，所以这些名义区间不能当成互不重叠的精确感受野。
+
+decoder的frame_pre_padding=3是其原生每块输出裁剪逻辑，配合5-token块、2-token overlap、5-frame blend及末尾裁剪。直接执行源码中的纯帧数规划方法，56/73/107/158输入对应17/22/32/47 latent，均规划回原56/73/107/158帧；完整坐标SHA也匹配。没有发现外加首帧或单侧省略leading-frame规则。
+
+本审查没有重建one_leg源VAE视频，因此不能排除这一具体素材在VAE重建后出现姿态/相位偏差。帧数规划与坐标一致只排除接线/编号问题，不能替代这项像素级测量。
+
+padding的明确影响范围
+
+R85：最后受引导bin43的名义RGB范围[145,149)，其中145、146有效，147、148为padding。纯padding bin44、45、46保持Native；对应149..157。
+R89 short0343：最后受引导bin18覆盖[60,64)，60有效，61..63 padding；纯padding bin19..21保持Native。
+R89 short0131：有效区结束在bin12末尾42，未混入padding；纯padding bin13..16。
+R73 short0252：有效区结束在bin28末尾97，未混入padding；纯padding bin29..31。
+
+这是“只要bin与有效物理时间重叠就纳入”的既定规则。R85尾部混入2张重复帧可能影响末尾表现；它不会使前面的bin编号平移，也不足以作为前段延后的坐标解释。尾部padding依然存在于原生全序列attention中，因此不能声称其内容对全片完全没有影响。
+
+可复核入口
+
+EVIDENCE.json：四例两臂全部bin的名义时间、query/key绝对行区间、完整position SHA、gate/router/source绑定、repeat3证明。
+ACTUAL_JSON_BINDINGS.json与actual/：从.9读取的8份真实conditioning小JSON及远端路径/SHA。
+VAE_FRAME_PLAN.json：从真实VAE源码提取的纯帧数规划结果。
+source/：实际model.py、nodes_minimax_h3.py、vae.py快照；SHA分别与四个producer冻结core binding一致。
+audit_mapping.py：CPU复核入口；只构造小型坐标数组，CUDA_initialized=false。
+check_vae_frame_plan.py：纯帧数规划入口。
+
+关键源码位置
+model.py:42–58 patchify/unpatchify；95–106时间跨度与网格；350–470 PackedLayout；442–449输出audio/video共用origin。
+nodes_minimax_h3.py:314–348 完整参考视频与Qwen抽样分支。
+vae.py:337–355参数；544–556编码分块/尾drop；609–666解码分块与leading裁剪。
+R85 extensions/H3TemporalRouter/layout.py:119–203 segment重建与范围；core.py:53–83 same-bin操作，226–246读取实际video段，338–352实际layout验证。

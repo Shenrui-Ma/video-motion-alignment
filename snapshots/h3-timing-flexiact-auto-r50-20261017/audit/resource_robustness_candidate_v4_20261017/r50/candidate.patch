@@ -1,0 +1,523 @@
+--- a/extensions/H3AutomaticWindowRouter/transport.py
++++ b/extensions/H3AutomaticWindowRouter/transport.py
+@@ -61,7 +61,7 @@
+  if execution_started_path is not None:
+   marker=inside(str(Path(execution_started_path).absolute()),ROOT/'audit/observations')
+   require(not marker.exists(),'execution marker already exists')
+-  require(isinstance(execution_timeout,(int,float)) and 0<execution_timeout<=180,'invalid child execution timeout')
++  require(isinstance(execution_timeout,(int,float)) and 0<execution_timeout<=780,'invalid child execution timeout')
+  def check_execution_budget():
+   nonlocal execution_start
+   if marker is None:return
+@@ -88,7 +88,7 @@
+     check_execution_budget()
+     if time.monotonic()-start>timeout:raise TimeoutError(label+' total timeout')
+     time.sleep(.2)
+-   if proc.returncode:raise RuntimeError(label+' exit '+str(proc.returncode)+'; see '+str(log))
++   if proc.returncode:raise ChildExitError(label+' exit '+str(proc.returncode)+'; see '+str(log),{'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode,'execution_start':execution_start})
+    check_execution_budget()
+    if marker is not None:require(execution_start is not None,'successful child lacks execution start evidence')
+  finally:
+@@ -150,58 +150,110 @@
+  except (FileNotFoundError,ProcessLookupError):return None
+  return identity(pid) if uid==os.getuid() else {'pid':pid,'uid':uid}
+ 
+-def validate_separate_decoder(parent,uuid,gpu,processes,lookup=resource_process_identity):
+- snapshot={'observed_unix':time.time(),'gpu':dict(gpu),'expected_parent':parent,'processes':[]}
++def decoder_memory_profile(*,bootstrap=False):
++ path=ROOT/'configs/decoder_memory_profile.json';p=read_json(path)
++ require(p.get('schema')=='h3-decoder-memory-profile-v4','decoder memory profile schema')
++ require(p.get('safety_margin_bytes')==2*1024**3,'decoder memory margin differs')
++ if p.get('status')=='PENDING':
++  require(bootstrap and p.get('geometry')=={'frames':90,'height':736,'width':1312,'fps':24},'measured decoder memory profile required')
++  require(p.get('bootstrap_required_free_bytes')==16*1024**3,'bootstrap budget differs')
++  return dict(p,required_free_bytes=16*1024**3,profile_sha256=sha(path),profile_scope='unprofiled standalone full90 bootstrap')
++ require(p.get('status')=='MEASURED','decoder profile is not measured')
++ evidence=inside(str((ROOT/p['evidence_file']).absolute()),ROOT/'configs/decoder_memory_evidence')
++ require(sha(evidence)==p['evidence_sha256'],'decoder memory evidence changed')
++ gate=read_json(evidence);d=gate['decode'];g=p['geometry']
++ require(gate.get('passed') is True and gate.get('NFE')==0 and gate.get('model_forward_calls')==0,'decoder memory gate failed')
++ require(d.get('status')=='complete' and d.get('decoded_shape')==[g['frames'],g['height'],g['width'],3] and d.get('fps')==g['fps'],'decoder memory geometry differs')
++ require(d.get('vae_sha256')==p['vae_sha256'] and d['fallback_guard']['calls']==0,'decoder memory model/fallback differs')
++ peak=d['max_memory_reserved_bytes'];allocated=d['max_memory_allocated_bytes']
++ require(type(peak) is int and type(allocated) is int and 0<allocated<=peak,'decoder memory measurement invalid')
++ require(p['peak_reserved_bytes']==peak and p['required_free_bytes']==peak+p['safety_margin_bytes'],'decoder budget differs from measurement plus margin')
++ return dict(p,profile_sha256=sha(path),profile_scope='measured full-shape decoder plus2GiB')
++
++def validate_resource_capacity(uuid,gpu,processes,required_bytes,*,parent=None,lookup=resource_process_identity):
++ snapshot={'observed_unix':time.time(),'gpu':dict(gpu),'expected_parent':parent,'required_free_bytes':required_bytes,'processes':[]}
++ if uuid!=DECODER_UUID or gpu['uuid']!=uuid or uuid==MAIN_UUID:
++  raise AdmissionIntegrityError('wrong isolated decoder GPU',snapshot)
+  entries={}
+  for row in processes:
+   try:entry=lookup(row['pid'])
+   except (PermissionError,ProcessLookupError,FileNotFoundError):entry=None
+-  entries[row['pid']]=entry
+-  snapshot['processes'].append(dict(row,identity=entry))
+- actual=lookup(parent['pid'])
+- snapshot['actual_parent']=actual
+- if uuid!=DECODER_UUID or uuid==MAIN_UUID or gpu['uuid']!=DECODER_UUID:
+-  raise AdmissionIntegrityError('wrong isolated decoder GPU',snapshot)
+- if parent['uid']!=os.getuid() or actual!=parent:
+-  raise AdmissionIntegrityError('stale/reused/missing main parent',snapshot)
+- if any(row['gpu_uuid']==DECODER_UUID for row in processes):
+-  raise ResourceUnavailable('decoder GPU has active compute',snapshot)
+- main=[row for row in processes if row['gpu_uuid']==MAIN_UUID]
+- if len(main)!=1 or main[0]['pid']!=parent['pid']:
+-  raise ResourceUnavailable('foreign/duplicate/missing main compute',snapshot)
++  entries[row['pid']]=entry;snapshot['processes'].append(dict(row,identity=entry))
++ if parent is not None:
++  actual=lookup(parent['pid']);snapshot['actual_parent']=actual
++  if parent['uid']!=os.getuid() or actual!=parent:
++   raise AdmissionIntegrityError('stale/reused/missing main parent',snapshot)
++  if not any(row['gpu_uuid']==MAIN_UUID and row['pid']==parent['pid'] for row in processes):
++   raise ResourceUnavailable('main parent compute not yet visible',snapshot)
+  if any(entry is None for entry in entries.values()):
+   raise ResourceUnavailable('compute process ownership unavailable',snapshot)
+  owned={row['gpu_uuid'] for row in processes if entries[row['pid']]['uid']==os.getuid()}
+- if owned!={MAIN_UUID}:
+-  raise ResourceUnavailable('isolated decoder needs the second owned GPU slot',snapshot)
+- if gpu['memory_used_mib']>1024 or gpu['memory_free_mib']<45000 or gpu['utilization_percent']!=0:
+-  raise ResourceUnavailable('decoder GPU lacks idle headroom',snapshot)
+- return dict(gpu,main_compute_parent=parent,planned_owned_GPUs=sorted([MAIN_UUID,DECODER_UUID]),owned_GPU_cards=sorted(owned),resource_snapshot=snapshot)
+-
+-def separate_decoder_admission(parent,uuid=DECODER_UUID):
++ planned=owned|{DECODER_UUID}|({MAIN_UUID} if parent is not None else set())
++ if len(planned)>2:raise ResourceUnavailable('planned decoder exceeds two owned GPU cards',snapshot)
++ if gpu['memory_free_mib']*1024**2<required_bytes:
++  raise ResourceUnavailable('decoder GPU lacks measured memory headroom',snapshot)
++ return dict(gpu,main_compute_parent=parent,planned_owned_GPUs=sorted(planned),owned_GPU_cards=sorted(owned),required_free_bytes=required_bytes,resource_snapshot=snapshot)
++
++def standalone_decoder_admission(uuid):
++ profile=decoder_memory_profile(bootstrap=True)
++ gpu,processes,snapshot=query_resource_state(uuid)
++ try:result=validate_resource_capacity(uuid,gpu,processes,profile['required_free_bytes'])
++ except (ResourceUnavailable,AdmissionIntegrityError) as error:
++  error.snapshot.update(snapshot);raise
++ return dict(result,memory_profile_sha256=profile['profile_sha256'],memory_profile_scope=profile['profile_scope'])
++
++def validate_separate_decoder(parent,uuid,gpu,processes,lookup=resource_process_identity):
++ profile=decoder_memory_profile()
++ result=validate_resource_capacity(uuid,gpu,processes,profile['required_free_bytes'],parent=parent,lookup=lookup)
++ return dict(result,memory_profile_sha256=profile['profile_sha256'],memory_profile_scope=profile['profile_scope'])
++
++def query_resource_state(uuid):
+  snapshot={'observed_unix':time.time(),'requested_gpu':uuid,'gpu_raw':None,'compute_raw':None}
+  try:
+-  text=subprocess.check_output(['nvidia-smi','--id='+uuid,'--query-gpu=uuid,memory.used,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True,timeout=10)
+-  snapshot['gpu_raw']=text
+-  raw=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader,nounits'],text=True,timeout=10)
+-  snapshot['compute_raw']=raw
++  text=subprocess.check_output(['nvidia-smi','--id='+uuid,'--query-gpu=uuid,memory.used,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True,timeout=10);snapshot['gpu_raw']=text
++  raw=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader,nounits'],text=True,timeout=10);snapshot['compute_raw']=raw
+  except (subprocess.TimeoutExpired,subprocess.CalledProcessError) as error:
+-  snapshot['query_error']=str(error)
+-  raise ResourceUnavailable('GPU query temporarily unavailable',snapshot) from error
++  snapshot['query_error']=str(error);raise ResourceUnavailable('GPU query temporarily unavailable',snapshot) from error
+  try:
+   rows=[v.strip().split(',') for v in text.splitlines() if v.strip()]
+   if len(rows)!=1 or len(rows[0])!=4:raise ValueError('GPU row shape')
+   gpu={'uuid':rows[0][0].strip(),'memory_used_mib':int(rows[0][1]),'memory_free_mib':int(rows[0][2]),'utilization_percent':int(rows[0][3])}
++  if min(gpu['memory_used_mib'],gpu['memory_free_mib'],gpu['utilization_percent'])<0 or gpu['utilization_percent']>100:raise ValueError('GPU quantities')
+   processes=[]
+   for line in raw.splitlines():
+    if line.strip():
+     u,pid=[v.strip() for v in line.split(',')];processes.append({'gpu_uuid':u,'pid':int(pid)})
+- except ValueError as error:
+-  raise AdmissionIntegrityError('unexpected GPU query schema',snapshot) from error
++ except ValueError as error:raise AdmissionIntegrityError('unexpected GPU query schema',snapshot) from error
++ return gpu,processes,snapshot
++
++def separate_decoder_admission(parent,uuid=DECODER_UUID):
++ gpu,processes,snapshot=query_resource_state(uuid)
+  try:return validate_separate_decoder(parent,uuid,gpu,processes)
+  except (ResourceUnavailable,AdmissionIntegrityError) as error:
+-  error.snapshot.update(gpu_raw=text,compute_raw=raw)
+-  raise
++  error.snapshot.update(snapshot);raise
++
++# Dedicated exit code plus bound typed-CUDA-OOM proof distinguishes retriable
++# allocator exhaustion from data, numerical, driver and child-lifetime failures.
++CUDA_OOM_EXIT=86
++class ChildExitError(RuntimeError):
++ def __init__(self,message,result):super().__init__(message);self.result=result
++
++def typed_cuda_oom(error,oom_type):
++ chain=[];seen=set();current=error
++ while current is not None and id(current) not in seen and len(chain)<12:
++  seen.add(id(current));chain.append({'type':type(current).__name__,'message':str(current)})
++  if oom_type is not None and isinstance(current,oom_type) and 'cuda' in str(current).lower() and 'out of memory' in str(current).lower():return chain
++  current=current.__cause__ if current.__cause__ is not None else current.__context__
++ return None
++
++def validate_oom_proof(path,child,r,request_sha):
++ p=read_json(path)
++ require(child['returncode']==CUDA_OOM_EXIT and p.get('schema')=='h3-typed-cuda-oom-v4','unclassified decoder child failure')
++ require(p.get('identity')==child['process'] and p.get('request_sha256')==request_sha,'OOM proof identity/request changed')
++ for key in ('endpoint_file_sha256','seed','geometry'):
++  require(p.get(key)==r.get(key),'OOM proof input changed: '+key)
++ require(p.get('typed_cuda_oom') is True and isinstance(p.get('exception_chain'),list) and p['exception_chain'],'typed CUDA OOM evidence missing')
++ return p
+ 
+ def record_resource_event(path,record):
+  if path is None:return
+@@ -245,7 +297,8 @@
+  require(response.get('decoder_released_before_pose') is True,'decoder lifecycle incomplete')
+  admission=response['decoder_admission']
+  require(admission['uuid']==DECODER_UUID and admission['main_compute_parent']==r['parent'],'response decoder/main placement differs')
+- require(admission['memory_free_mib']>=45000 and admission['memory_used_mib']<=1024 and admission['utilization_percent']==0,'response decoder admission invalid')
++ profile=decoder_memory_profile()
++ require(admission['memory_profile_sha256']==profile['profile_sha256'] and admission['required_free_bytes']==profile['required_free_bytes'] and admission['memory_free_mib']*1024**2>=profile['required_free_bytes'],'response decoder memory admission invalid')
+  released=response['after_decoder_release']
+  require(released['schema']=='h3-own-decoder-release-v1' and released['gpu_uuid']==DECODER_UUID,'response release schema/device differs')
+  require(released['child_identity']==response['decoder']['process'] and released['original_generation_absent'] is True,'response original decoder generation remains')
+--- a/scripts/run_observer.py
++++ b/scripts/run_observer.py
+@@ -1,34 +1,59 @@
+-"""One immutable observation; waits for GPU without holding the CPU lock."""
+-import argparse,json,os,subprocess,sys,time
++"""One immutable observation; bounded memory wait and typed CUDA OOM retries."""
++import argparse,json,os,sys,time
+ from pathlib import Path
+ from observer_import import t,ROOT
+ 
+-def own_gpus():
+- raw=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader,nounits'],text=True,timeout=10)
+- result=[]
+- for line in raw.splitlines():
+-  gpu,pid=[p.strip() for p in line.split(',')];result.append({'gpu_uuid':gpu,'pid':int(pid)})
+- return result
++def decode_with_retries(r,request_path,d,b,own,record,*,clock=time.monotonic):
++ from gpu_release_gate import wait_own_child_released
++ start=clock();resource_deadline=start+600;phase_deadline=start+780
++ record['decoder_attempts']=[];record['outer_admission_wait_seconds']=0
++ admission=t.admission_document(approved=True)
++ record['admission_sha256']=t.sha(ROOT/'configs/admission.json');record['admission_record']=admission
++ for number in range(1,4):
++  t.require(t.sha(request_path)==record['request_sha256'],'request changed before decoder retry')
++  t.require(t.request(request_path)==r,'immutable request changed before decoder retry')
++  if clock()>=phase_deadline:raise TimeoutError('decoder stage exceeded780seconds')
++  wait_start=clock()
++  admitted=t.wait_decoder_admission(r['parent'],deadline=resource_deadline,audit_path=d/'observer_admission.jsonl')
++  record['outer_admission_wait_seconds']+=clock()-wait_start
++  label='decoder_attempt%03d'%number;attempt=d/label;attempt.mkdir(exist_ok=False)
++  marker=attempt/'decoder_cuda_started.json'
++  env=dict(os.environ,CUDA_VISIBLE_DEVICES=t.DECODER_UUID,OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4',H3_DECODER_RESOURCE_DEADLINE=str(resource_deadline),H3_DECODER_EXECUTION_MARKER=str(marker),H3_DECODER_ATTEMPT_DIRECTORY=str(attempt))
++  args=[sys.executable,str(ROOT/'scripts/decode_live_child.py'),r['endpoint_file'],'--request',str(request_path),'--parent-json',json.dumps(own),'--core',b['comfy'],'--runtime-deps',b['runtime_deps'],'--vae',b['vae'],'--expected-vae-sha256',b['vae_sha256'],'--gpu-uuid',t.DECODER_UUID,'--output',str(attempt/'native.mp4')]
++  row={'attempt':number,'directory':str(attempt),'admission':admitted};record['decoder_attempts'].append(row)
++  # Waiting and execution share one780s stage. Shared GPU compute may take
++  # longer than180s; each retry receives only the original stage's remainder.
++  budget=phase_deadline-clock()
++  try:
++   child=t.run_child(args,env,d,label,budget,own,execution_started_path=marker,execution_timeout=budget)
++  except t.ChildExitError as error:
++   child=error.result;row['child']=child
++   if child['returncode']!=t.CUDA_OOM_EXIT:raise
++   proof=t.validate_oom_proof(attempt/'decoder_oom.json',child,r,record['request_sha256'])
++   row['oom_proof']=proof;row['status']='typed_cuda_oom'
++   row['release']=wait_own_child_released(t.DECODER_UUID,child,t.identity,audit_path=d/(label+'_release.jsonl'),allow_cuda_oom=True)
++   t.record_resource_event(d/'decoder_retry.jsonl',row)
++   if clock()>phase_deadline:raise TimeoutError('decoder stage exceeded780seconds')
++   if number==3:raise RuntimeError('decoder CUDA OOM after3bounded attempts') from error
++   continue
++  row['child']=child;row['status']='complete'
++  released=wait_own_child_released(t.DECODER_UUID,child,t.identity,audit_path=d/(label+'_release.jsonl'));row['release']=released
++  if clock()>phase_deadline:raise TimeoutError('decoder stage exceeded780seconds')
++  decoded=t.read_json(attempt/'native.json')
++  t.require(decoded.get('status')=='complete' and decoded.get('request_sha256')==record['request_sha256'],'successful decoder result binding differs')
++  t.require(decoded['snapshot_sha256']==r['endpoint_file_sha256'],'successful decoder endpoint changed')
++  for suffix in ('.mp4','.json'):os.link(attempt/('native'+suffix),d/('native'+suffix))
++  record.update(decoder=child,decoder_admission=decoded['gpu_admission'],owned_GPU_cards=admitted['owned_GPU_cards'],after_decoder_release=released,decoder_released_before_pose=True,decoder_stage_seconds=clock()-start)
++  t.record_resource_event(d/'decoder_retry.jsonl',row)
++  return
++ raise RuntimeError('decoder retry loop exhausted')
+ 
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('--request',required=True);a=p.parse_args();r=t.request(a.request);d=Path(a.request).parent
+  t.install_lifetime_guard(r['parent']);b=t.bindings(external=True);own=t.identity(os.getpid());start=time.monotonic();record={'status':'running','request_sha256':t.sha(a.request)}
+  try:
+-  resource_deadline=time.monotonic()+600
+-  record['decoder_admission']=t.wait_decoder_admission(r['parent'],deadline=resource_deadline,audit_path=d/'observer_admission.jsonl')
+-  admission=t.admission_document(approved=True)
+-  record['admission_sha256']=t.sha(ROOT/'configs/admission.json')
+-  record['admission_record']=admission
+-  record['owned_GPU_cards']=record['decoder_admission']['owned_GPU_cards']
+-  record['gpu_wait_seconds']=time.monotonic()-start
+-  env=dict(os.environ,CUDA_VISIBLE_DEVICES=t.DECODER_UUID,OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4',H3_DECODER_RESOURCE_DEADLINE=str(resource_deadline),H3_DECODER_EXECUTION_MARKER=str(d/'decoder_cuda_started.json'))
+-  args=[sys.executable,str(ROOT/'scripts/decode_live_child.py'),r['endpoint_file'],'--request',a.request,'--parent-json',json.dumps(own),'--core',b['comfy'],'--runtime-deps',b['runtime_deps'],'--vae',b['vae'],'--expected-vae-sha256',b['vae_sha256'],'--gpu-uuid',t.DECODER_UUID,'--output',str(d/'native.mp4')]
+-  decoder_budget=max(0,resource_deadline-time.monotonic())+180
+-  record['decoder']=t.run_child(args,env,d,'decoder',decoder_budget,own,execution_started_path=d/'decoder_cuda_started.json',execution_timeout=180)
+-  from gpu_release_gate import wait_own_child_released
+-  record['after_decoder_release']=wait_own_child_released(t.DECODER_UUID,record['decoder'],t.identity,audit_path=d/'decoder_release.jsonl')
+-  record['decoder_released_before_pose']=True
+-  env['CUDA_VISIBLE_DEVICES']=''
++  decode_with_retries(r,a.request,d,b,own,record)
++  env=dict(os.environ,CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4')
+   record['pose_process']=t.run_child([sys.executable,str(ROOT/'scripts/pose_live_child.py'),'--request',a.request,'--parent-json',json.dumps(own)],env,d,'pose',840,own)
+   for key,path in {'decode':d/'native.json','pose':d/'pose/native.pose.json','observer':d/'observer.json'}.items():record[key]={'file':str(path),'sha256':t.sha(path)}
+   record.update(condition_sha256=r['condition_sha256'],reference_sha256=r['reference_sha256'],seed=r['seed'],sigma=r['sigma'])
+--- a/scripts/decode_live_child.py
++++ b/scripts/decode_live_child.py
+@@ -28,22 +28,9 @@
+ 
+ 
+ def assert_idle_gpu(uuid):
+-    if not uuid or not uuid.startswith("GPU-") or any(c.isspace() for c in uuid):
+-        raise ValueError("an explicit full GPU UUID is required")
+-    text = subprocess.check_output([
+-        "nvidia-smi", "--id=" + uuid,
+-        "--query-gpu=uuid,memory.used,memory.free,utilization.gpu", "--format=csv,noheader,nounits"], text=True)
+-    rows = [row.strip().split(",") for row in text.splitlines() if row.strip()]
+-    if len(rows) != 1 or rows[0][0].strip() != uuid:
+-        raise RuntimeError("GPU UUID did not resolve exactly")
+-    if int(rows[0][1]) > 1024 or int(rows[0][2]) < 45000 or int(rows[0][3]) != 0:
+-        raise RuntimeError("GPU is not idle; refusing offline decode")
+-    processes = subprocess.check_output([
+-        "nvidia-smi", "--id=" + uuid, "--query-compute-apps=pid",
+-        "--format=csv,noheader,nounits"], text=True).strip()
+-    if processes:
+-        raise RuntimeError("GPU has a compute process; refusing offline decode")
+-    return {"uuid": uuid, "memory_used_mib": int(rows[0][1]), "memory_free_mib": int(rows[0][2]), "utilization_percent": int(rows[0][3])}
++    # Retained interface for standalone bridge; admission now uses actual free
++    # memory and the own-user card cap, while foreign users may coexist.
++    return t.standalone_decoder_admission(uuid)
+ 
+ 
+ def load_snapshot(path, core):
+@@ -146,10 +133,19 @@
+     global REQUEST, REQUEST_SHA
+     t.install_lifetime_guard(json.loads(args.parent_json))
+     REQUEST=t.request(args.request);REQUEST_SHA=t.sha(args.request)
+-    t.require(args.output.resolve()==args.request.parent.resolve()/'native.mp4','Unexpected output path')
++    global ATTEMPT_DIRECTORY
++    ATTEMPT_DIRECTORY=args.request.parent.resolve()
++    attempt=os.environ.get('H3_DECODER_ATTEMPT_DIRECTORY')
++    if attempt is not None:
++        import re
++        ATTEMPT_DIRECTORY=t.inside(attempt,t.ROOT/'audit/observations')
++        t.require(ATTEMPT_DIRECTORY.parent==args.request.parent.resolve() and re.fullmatch(r'decoder_attempt00[1-3]',ATTEMPT_DIRECTORY.name),'Unexpected decoder attempt directory')
++    t.require(args.output.resolve()==ATTEMPT_DIRECTORY/'native.mp4','Unexpected output path')
+     frozen=t.bindings(external=False)
+     t.require(args.core.resolve()==Path(frozen['comfy']) and args.runtime_deps.resolve()==Path(frozen['runtime_deps']) and args.vae.resolve()==Path(frozen['vae']), 'Decoder runtime path differs')
+     t.require(args.gpu_uuid==t.DECODER_UUID and args.expected_vae_sha256==frozen['vae_sha256'],'Decoder GPU/model differs')
++    profile=t.decoder_memory_profile(bootstrap=ATTEMPT_DIRECTORY.name.startswith('known_endpoint_'))
++    t.require(profile['geometry']==REQUEST['geometry'] and profile['vae_sha256']==frozen['vae_sha256'],'Decoder profile geometry/model differs')
+     task_root = Path(__file__).resolve().parents[1]
+     sys.path.insert(0, str(task_root / "extensions"))
+     reader_core = importlib.import_module("H3X0Readout.core")
+@@ -171,7 +167,7 @@
+     if args.expected_vae_sha256 and vae_hash != args.expected_vae_sha256:
+         raise ValueError("VAE checkpoint SHA mismatch")
+     resource_deadline = float(os.environ.get('H3_DECODER_RESOURCE_DEADLINE', time.monotonic()+600))
+-    admission = t.wait_decoder_admission(REQUEST['parent'],args.gpu_uuid,deadline=resource_deadline,audit_path=args.request.parent/'decoder_admission.jsonl')
++    admission = t.wait_decoder_admission(REQUEST['parent'],args.gpu_uuid,deadline=resource_deadline,audit_path=ATTEMPT_DIRECTORY/'decoder_admission.jsonl')
+     # Comfy chooses its device at import. Scope it to one admitted physical GPU.
+     import torch
+     if torch.cuda.is_initialized():
+@@ -182,13 +178,13 @@
+             raise FileNotFoundError("runtime-deps directory missing")
+         sys.path.insert(0, str(args.runtime_deps.resolve()))
+     sys.path.insert(0, str(core_path))
+-    admission = t.wait_decoder_admission(REQUEST['parent'],args.gpu_uuid,deadline=resource_deadline,audit_path=args.request.parent/'decoder_admission.jsonl')
++    admission = t.wait_decoder_admission(REQUEST['parent'],args.gpu_uuid,deadline=resource_deadline,audit_path=ATTEMPT_DIRECTORY/'decoder_admission.jsonl')
+     t.require(t.sha(args.request)==REQUEST_SHA,'request changed during resource wait')
+     t.request(args.request)  # revalidate endpoint/data binding immediately before CUDA
+     marker = os.environ.get('H3_DECODER_EXECUTION_MARKER')
+     if marker is not None:
+         marker = t.inside(marker,t.ROOT/'audit/observations')
+-        t.require(marker==args.request.parent.resolve()/'decoder_cuda_started.json','execution marker outside current observation')
++        t.require(marker==ATTEMPT_DIRECTORY/'decoder_cuda_started.json','execution marker outside current observation')
+         own_identity = t.identity(os.getpid())
+         t.require(own_identity is not None,'decoder execution identity unavailable')
+         t.write_new(marker,{'schema':'h3-child-execution-start-v1','identity':own_identity,'started_monotonic':time.monotonic()})
+@@ -267,7 +263,17 @@
+ from observer_import import t
+ REQUEST = None
+ REQUEST_SHA = None
++ATTEMPT_DIRECTORY = None
+ FALLBACK = {"calls": 0, "installed": []}
+ 
+ if __name__ == "__main__":
+-    raise SystemExit(main())
++    try:
++        raise SystemExit(main())
++    except BaseException as error:
++        torch_module=sys.modules.get('torch')
++        oom_type=getattr(getattr(torch_module,'cuda',None),'OutOfMemoryError',None)
++        chain=t.typed_cuda_oom(error,oom_type)
++        if chain is not None and REQUEST is not None and ATTEMPT_DIRECTORY is not None:
++            t.write_new(ATTEMPT_DIRECTORY/'decoder_oom.json',{'schema':'h3-typed-cuda-oom-v4','typed_cuda_oom':True,'exception_chain':chain,'identity':t.identity(os.getpid()),'request_sha256':REQUEST_SHA,**{key:REQUEST[key] for key in ('endpoint_file_sha256','seed','geometry')}})
++            raise SystemExit(t.CUDA_OOM_EXIT) from error
++        raise
+--- a/scripts/gpu_release_gate.py
++++ b/scripts/gpu_release_gate.py
+@@ -24,11 +24,11 @@
+    sleep(min(.25,timeout-(clock()-start)))
+ 
+ 
+-def wait_own_child_released(uuid,child,identity,*,timeout=10.0,clock=time.monotonic,sleep=time.sleep,compute_pids=None,audit_path=None):
++def wait_own_child_released(uuid,child,identity,*,timeout=10.0,clock=time.monotonic,sleep=time.sleep,compute_pids=None,audit_path=None,allow_cuda_oom=False):
+  """Check our reaped generation and NVML tail; unrelated work may continue."""
+  import json,os
+  if not 0<timeout<=10:raise ValueError('release wait must be positive and at most10seconds')
+- if child['returncode']!=0:raise RuntimeError('decoder did not exit successfully')
++ if child['returncode']!=0 and not (allow_cuda_oom and child['returncode']==86):raise RuntimeError('decoder exit is neither success nor verified CUDA OOM')
+  entry=child['process'];start=clock();attempts=[]
+  def query():
+   raw=subprocess.check_output(['nvidia-smi','--id='+uuid,'--query-compute-apps=pid','--format=csv,noheader,nounits'],text=True,timeout=2)
+--- a/scripts/service.py
++++ b/scripts/service.py
+@@ -83,7 +83,7 @@
+ def compute_processes():
+     output = subprocess.run(['nvidia-smi', '--query-compute-apps=gpu_uuid,pid,used_memory',
+                              '--format=csv,noheader,nounits'],
+-                            capture_output=True, text=True, check=True).stdout
++                            capture_output=True, text=True, check=True, timeout=10).stdout
+     rows = []
+     for line in output.splitlines():
+         if line.strip():
+@@ -102,29 +102,63 @@
+ def check_admission(admission, processes, queue):
+     from observer_import import t
+     t.admission_document(approved=True)
+-    cards={row['gpu_uuid'] for row in processes if proc_uid(row['pid'])==os.getuid()}
+-    if len(cards|{GPU})>2:raise RuntimeError('own GPU limit exceeded')
+-    if cards-{GPU,'GPU-REDACTED'}:raise RuntimeError('unapproved second own GPU')
+-    allowed = {int(row['pid']): row['identity']
+-               for row in admission['permitted_compute_processes']}
++    allowed={int(row['pid']):row['identity'] for row in admission['permitted_compute_processes']}
++    owned=[]
+     for row in processes:
+-        if row['gpu_uuid'] == t.DECODER_UUID:
+-            raise RuntimeError('R50 isolated decoder GPU has active compute')
+-        if row['gpu_uuid'] != GPU and proc_uid(row['pid']) == os.getuid():
+-            raise RuntimeError('R50 reserves both owned GPU slots for main model and isolated decoder')
+-        if row['gpu_uuid'] == GPU:
+-            raise RuntimeError('Selected GPU has active compute; refusing to start')
+-        if admission.get('scope') == 'own_user_video_jobs':
+-            uid = proc_uid(row['pid'])
+-            if uid is not None and uid != os.getuid():
+-                # The user's process cap excludes other users. This does not
+-                # classify their jobs as non-video or inspect their arguments.
+-                continue
+-        actual = external_identity(row['pid'])
+-        if row['pid'] not in allowed or (actual is not None and actual != allowed[row['pid']]):
+-            raise RuntimeError(f"Unexpected host compute PID {row['pid']}; refusing to start")
++        uid=proc_uid(row['pid'])
++        if uid is None:raise t.ResourceUnavailable('compute process ownership unavailable',{'processes':processes})
++        if uid!=os.getuid():continue
++        owned.append(row)
++        actual=external_identity(row['pid'])
++        if row['pid'] not in allowed or actual!=allowed[row['pid']]:
++            raise RuntimeError('Unexpected own compute identity '+str(row['pid']))
++    if len({row['gpu_uuid'] for row in owned}|{GPU,t.DECODER_UUID})>2:
++        raise t.ResourceUnavailable('planned service exceeds two owned GPU cards',{'processes':processes})
+     if queue['queue_running'] or queue['queue_pending']:
+         raise RuntimeError('Existing Comfy service has queued/running work; refusing to start')
++
++
++def main_memory_profile():
++    from observer_import import t
++    path=RUN/'configs/main_memory_profile.json';p=t.read_json(path)
++    t.require(p.get('schema')=='h3-main-memory-profile-v4' and p.get('status')=='MEASURED_BOUND','main memory profile pending')
++    evidence=t.inside(str((RUN/p['evidence_file']).absolute()),RUN/'configs/main_memory_evidence')
++    t.require(t.sha(evidence)==p['evidence_sha256'],'main memory evidence changed')
++    r=t.read_json(evidence)
++    t.require(r.get('root_approved') is True and r['main_gpu_uuid']==GPU,'main capacity certificate device/approval differs')
++    required=r['main_native_peak_sampled_bytes']+r['routing_increment_bound_bytes']+r['main_margin_bytes']
++    t.require(r['main_margin_bytes']>=1024**3 and p['required_free_bytes']==r['main_estimated_peak_bytes']>=required,'main capacity bound differs')
++    return dict(p,profile_sha256=t.sha(path))
++
++
++def gpu_readiness(admission,queue,*,clock=time.monotonic,sleep=time.sleep):
++    from observer_import import t
++    p=main_memory_profile();start=clock();deadline=start+600
++    audit=RUN/'logs/service_resource_admission.jsonl'
++    while True:
++        state={'observed_unix':time.time(),'memory_profile_sha256':p['profile_sha256'],'required_free_bytes':p['required_free_bytes']}
++        try:
++            processes=compute_processes();state['processes']=processes
++            check_admission(admission,processes,queue)
++            result=subprocess.run(['nvidia-smi','--id='+GPU,'--query-gpu=uuid,memory.used,memory.free,utilization.gpu,temperature.gpu','--format=csv,noheader,nounits'],capture_output=True,text=True,check=True,timeout=10)
++            state.update(gpu_raw=result.stdout,gpu_stderr=result.stderr)
++            rows=[line.strip().split(',') for line in result.stdout.splitlines() if line.strip()]
++            t.require(len(rows)==1 and len(rows[0])==5 and rows[0][0].strip()==GPU and not result.stderr.strip(),'exact main GPU query invalid')
++            used,free,util,temperature=[float(x) for x in rows[0][1:]]
++            t.require(used>=0 and free>=0 and 0<=util<=100 and 0<=temperature<85,'main GPU health invalid')
++            state.update(memory_free_mib=free,memory_used_mib=used,utilization_percent=util,temperature_c=temperature)
++            if free*1024**2<p['required_free_bytes']:raise t.ResourceUnavailable('main GPU lacks certified memory headroom',state)
++            state['status']='admitted'
++        except (t.ResourceUnavailable,subprocess.TimeoutExpired,subprocess.CalledProcessError) as error:
++            state.update(status='waiting',reason=str(error),snapshot=getattr(error,'snapshot',None))
++        except BaseException as error:
++            state.update(status='hard_failure',reason=type(error).__name__+': '+str(error))
++            with audit.open('a') as handle:handle.write(json.dumps(state,sort_keys=True)+'\n')
++            raise
++        with audit.open('a') as handle:handle.write(json.dumps(state,sort_keys=True)+'\n')
++        if clock()>deadline:raise TimeoutError('main resource admission exceeded600seconds')
++        if state['status']=='admitted':return state
++        sleep(min(1,deadline-clock()))
+ 
+ 
+ def command(cache_none=False):
+@@ -159,6 +193,7 @@
+         processes = compute_processes()
+         queue = queue_at(admission.get('existing_comfy_port', 8189))
+         check_admission(admission, processes, queue)
++        hardware = gpu_readiness(admission,queue)
+         memory = dict(line.split(':', 1) for line in Path('/proc/meminfo').read_text().splitlines())
+         available_kib = int(memory['MemAvailable'].split()[0])
+         if available_kib < 20 * 1024 * 1024:
+@@ -180,7 +215,7 @@
+             raise RuntimeError('Service exited during startup; inspect logs/comfyui.log')
+         record = {'pid': process.pid, 'gpu_uuid': GPU, 'port': PORT, 'started_unix': started,
+                   'command': args, 'identity': identity(process.pid), 'cache_none': cache_none,
+-                  'host_available_kib': available_kib, 'admission': admission,
++                  'host_available_kib': available_kib, 'admission': admission, 'gpu_readiness':hardware,
+                   'preexisting_compute_processes': processes, 'existing_comfy_queue': queue,
+                   'state': 'started_readiness_unverified'}
+         write_json(RUN / f'processes/service_{process.pid}.json', record)
+--- a/scripts/prelaunch_gates.py
++++ b/scripts/prelaunch_gates.py
+@@ -45,7 +45,9 @@
+     for rel,digest in spec['unchanged_scientific_files'].items():inherited_file(root,rel,digest)
+     require(current['resources']['main_uuid']=='GPU-REDACTED' and current['resources']['decoder_uuid']=='GPU-REDACTED','engineering device placement changed')
+     require(current['resources']['single_gpu_isolated_decoder'] is False and current['resources']['maximum_own_GPUs']==2,'engineering resource mode changed')
+-    require(current['resources']['decoder_idle_min_free_MiB']>=45000 and current['resources']['decoder_idle_max_used_MiB']<=1024,'decoder admission weakened')
++    from observer_import import t
++    profile=t.decoder_memory_profile()
++    require(current['resources']['decoder_memory_profile_sha256']==profile['profile_sha256'] and current['resources']['decoder_required_free_MiB']*1024**2>=profile['required_free_bytes'],'decoder measured memory admission differs')
+     return spec
+ 
+ def check(root):
+@@ -75,7 +77,9 @@
+     require(r['main_margin_bytes']>=1024**3,'main safety margin below1GiB')
+     require(r['main_estimated_peak_bytes']>=r['main_native_peak_sampled_bytes']+r['routing_increment_bound_bytes']+r['main_margin_bytes'] and r['main_estimated_peak_bytes']<=r['main_total_memory_bytes'],'main device capacity estimate failed')
+     require(r['decoder_peak_reserved_bytes']>=decoded['decode']['max_memory_reserved_bytes'] and r['decoder_peak_reserved_bytes']<=r['decoder_total_memory_bytes'],'dedicated decoder capacity estimate failed')
+-    require(r['required_free_before_decoder_mib']>=45000,'dedicated decoder headroom weakened')
++    from observer_import import t
++    profile=t.decoder_memory_profile()
++    require(r['decoder_memory_profile_sha256']==profile['profile_sha256'] and r['required_free_before_decoder_mib']*1024**2>=profile['required_free_bytes'],'dedicated decoder measured headroom differs')
+     require(r['scope']=='GPU3 main model; GPU2 isolated full158 decoder; maximum2 owned GPUs','resource scope differs')
+     require(isinstance(r['evidence'],list) and len(r['evidence'])>=3,'missing actual memory evidence')
+     for row in r['evidence']:require(sha(Path(row['file']))==row['sha256'],'resource evidence changed')
+--- a/scripts/known_endpoint_158_gate.py
++++ b/scripts/known_endpoint_158_gate.py
+@@ -6,7 +6,7 @@
+ import sys
+ import time
+ from observer_import import t, ROOT
+-from gpu_release_gate import wait_after_child
++from gpu_release_gate import wait_own_child_released
+ 
+ def main():
+     parser=argparse.ArgumentParser()
+@@ -65,7 +65,7 @@
+                  '--vae',bindings['vae'],'--expected-vae-sha256',bindings['vae_sha256'],'--gpu-uuid',t.DECODER_UUID,
+                  '--output',str(directory/'native.mp4')]
+         record['decoder']=t.run_child(command,env,directory,'decoder',840,owner)
+-        record['GPU_after_decoder']=wait_after_child(t.DECODER_UUID,record['decoder'],live.assert_idle_gpu,t.identity)
++        record['GPU_after_decoder']=wait_own_child_released(t.DECODER_UUID,record['decoder'],t.identity)
+         decoded=t.read_json(directory/'native.json')
+         previous=t.read_json(ROOT/'configs/engineering_v2/previous_decoder_gate.json')['decode']
+         checks={'revision1_RGB_exact':decoded['preencode_rgb24_frame_sha256']==previous['preencode_rgb24_frame_sha256'],

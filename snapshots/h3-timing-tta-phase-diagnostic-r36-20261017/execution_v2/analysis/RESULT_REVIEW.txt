@@ -1,0 +1,29 @@
+R36 frozen fixed-candidate TTA diagnostic — execution complete; independent labels pending
+
+Evidence: 10 new CPU pose phases + fixed evaluation completed, no GPU. All 11 COMPLETE manifests and their exact attempt inventories/SHA/VALIDATED records passed local post-download verification. Freeze c9730dc55a218369a2f3c029a4bb495619214fc34d3cdd4018f07f2c7f421e3a. Evaluation COMPLETE 17ef35150420fb5a4ff42771a5ec803200bd60f8fd3d47b7d7022405b87652e9.
+
+Every view covered 141 frames. Flip and pad16 changed the actual detector-preprocessing tensor on 141/141 frames in every item. Padding also changes resize/content scale; it is not a pure-translation equivariance guarantee. Existing identity records and model/video hashes remained bound. Resource-busy returns were retained; no completed pose was rerun.
+
+Counts below cover 198 correlated rows per endpoint (12 fixed-window part rows + 186 overlapping scan rows), not independent samples.
+endpoint | A ON/UNKNOWN | B ON/UNKNOWN | C ON/UNKNOWN | D ON/UNKNOWN | E ON/UNKNOWN
+bad_004 | 1/152 | 1/153 | 4/152 | 4/152 | 3/153
+bad_005 | 0/116 | 0/116 | 0/116 | 0/116 | 0/116
+normal_004 | 0/66 | 0/66 | 2/66 | 2/66 | 0/68
+normal_005 | 0/61 | 0/61 | 2/61 | 2/61 | 1/62
+
+A/B use relative gain > .5 on the same all-view support; C/D use zero signed advantage; E requires positive advantage for every source-view/target-view pair against every null lag -2..2. All share frozen identity candidate, common support/weights, dual-confidence, coverage and residual gates.
+
+Observed contrasts:
+1. Averaging alone (A→B and C→D) produced no additional dual-confidence ON rows. A→B did move bad004 left-arm 24–55 from NO_ON to UNKNOWN because the two confidence thresholds straddle .5. This is not an accuracy gain.
+2. E added bad004 left-arm 20–51 and 24–55 relative to A; the shared A/E ON row is left-arm 28–59. These are overlapping source-time intervals in one endpoint. E rejected the weak C/D-only right-arm 100–115 when one view/null advantage became negative at .5.
+3. On the known-final-normal development trajectory, E made both index4 delayed proposals UNKNOWN; at index5 it accepted left-arm 24–39 (lag4, worst signed advantage 0.001610777) while A/B remained NO_ON. The current endpoint has no independent label here; do not call this a measured false positive or true correction. It demonstrates that finite-view sign consistency can accept a very small effect.
+4. Across recorded indices4→5, E has zero jointly-ON rows in both cases. C/D have two persistent rows in the normal trajectory (left-arm20–35 and24–39). No arm has persistent ON in the bad trajectory. These are comparisons of existing states, not policy outcomes.
+
+Predeclared fixed windows:
+Bad index4: all 12 part/window rows are UNKNOWN after both confidence thresholds. At primary50–65 the left-arm .3 result is ON for all arms but .5 common support fails; combined/right identity candidate is unavailable. Bad index5 primary50–65 remains UNKNOWN; its left-arm secondary identity candidate is unavailable. Thus the planned primary stop-side question remains unanswerable. Normal primary50–65 is ALIGNED at both endpoints for all three parts and all arms. Full four-window tables and all unknown reasons are retained in COMPACT_RESULTS.json and immutable raw results.
+
+Decision boundary: this diagnostic does not establish superiority over gain>.5, an error probability, a conformal guarantee, learned thresholds, improved lag selection, or real-time closed-loop benefit. Identity chose the candidate on the same data, transformations are dependent, all-view support is strict, and residual/coverage/consistency thresholds remain fixed. The new two bad004 ON intervals require independent current-endpoint evidence before being described as useful detections. The normal005 small-margin ON likewise needs independent review. No threshold, window, transform, candidate or subset was changed after observing these results.
+
+Disposition: retain the complete result as a bounded development diagnostic. Do not promote E into the production controller from these counts. Independent blind endpoint labels remain UNKNOWN. Source07 and fresh-source validation remain pending. The unchanged archived trajectories cannot support a claim that this new gate would retain the earlier control success.
+
+Efficiency: new-pose complete wall sum 750.969s; fixed evaluation complete wall 14.186s. These record CPU costs without a speed diagnosis. No DiT/VAE call was made.

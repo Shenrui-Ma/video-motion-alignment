@@ -1,0 +1,292 @@
+--- R55/extensions/H3AutomaticWindowRouter/transport.py
++++ R59/extensions/H3AutomaticWindowRouter/transport.py
+@@ -2,11 +2,11 @@
+ import hashlib,json,os,signal,subprocess,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+-PROTOCOL_SHA='b09311241ad27916430a1065537b06ea2ff0b6960c756aa4459f43e139285389'
++PROTOCOL_SHA='5bc5e998e274d06623f3d31b195721218f89f6a1e779ebfa6d4dfd0fb68a69df'
+ DECODER_UUID='GPU-REDACTED'
+ MAIN_UUID='GPU-REDACTED'
+ SECOND_TASK_UUID=DECODER_UUID
+-REMOTE_ROOT=Path('/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017')
++REMOTE_ROOT=Path('/data3/researcher/h3_runs/timing_visible_feedback_r59_20261017')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def sha(path):
+@@ -98,7 +98,7 @@
+  return {'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode,'execution_start':execution_start}
+ def require_parent_closure(root=ROOT):
+  root=Path(root);c=read_json(root/'configs/PARENT_CLOSURE.json')
+- require(c.get('ready') is True and c.get('status')=='READY','R55 WAITING_R54_ACTUAL_ARCHIVES')
++ require(c.get('ready') is True and c.get('status')=='READY','R59 WAITING_R57_ACTUAL_ARCHIVES')
+  cases=read_json(root/'configs/protocol.json')['cases']
+  require(set(c['cases'])=={v['source_id'] for v in cases},'five-case parent closure incomplete')
+  for case in cases:
+--- R55/extensions/H3AutomaticWindowRouter/selector.py
++++ R59/extensions/H3AutomaticWindowRouter/selector.py
+@@ -1,32 +1,100 @@
+-"""Frozen policy adapter. Technical failure aborts; reliable absence remains visible."""
++"""Four preregistered arms; only a complete all-UNKNOWN scan permits fallback."""
+ from .automatic_window_policy import Policy
+ from .dynamic_support import bins_for, bin_coverage
+ from .geometry import LEGACY
+ 
++ARMS = ('native', 'visible_only', 'visible_fallback', 'weak_only')
++FEATURES = ('arm_direction', 'left_arm_direction', 'right_arm_direction')
++WEAK_INDICES = tuple(range(6, 15))
++WEAK_ALPHA = 0.25
++
++
++def observation_rows(index, measurement, geometry):
++    if not isinstance(measurement, dict) or measurement.get('status') != 'complete':
++        raise ValueError('observer execution failed or missing current measurement')
++    if measurement.get('physical_index') != index:
++        raise ValueError('current response physical index mismatch')
++    observer = measurement['observer']
++    if (observer.get('schema') != 'r27-whole-timeline-observation-v1'
++            or observer.get('physical_index') != index):
++        raise ValueError('observer schema/current physical index mismatch')
++    if observer.get('status') not in ('measured', 'unknown_visibility'):
++        raise ValueError('invalid scientific observer status')
++    if observer.get('observation_domain') != geometry.domain_record:
++        raise ValueError('observer valid-domain mismatch')
++    expected = {(tuple(w), f) for w in geometry.windows() for f in FEATURES}
++    rows = observer['windows']
++    actual = [(tuple(row['window']), row['feature']) for row in rows]
++    if len(actual) != len(expected) or set(actual) != expected:
++        raise ValueError('complete window/descriptor enumeration required')
++    proof = observer.get('complete_scan', {})
++    if proof != {'descriptor_version': 'r56-arm-bone-unit-v1',
++                 'expected_rows': len(expected), 'actual_rows': len(rows), 'complete': True}:
++        raise ValueError('complete visible scan proof differs')
++    allowed = ('unknown', 'aligned', 'delayed_candidate', 'advanced_candidate')
++    for row in rows:
++        bins_for([row['window']], geometry)
++        if row['baseline'] not in allowed:
++            raise ValueError('invalid baseline classification')
++        if row['baseline'] in ('unknown', 'aligned'):
++            if row.get('status') != 'baseline_' + row['baseline']:
++                raise ValueError('baseline row status disagrees')
++        elif row.get('status') not in ('measured', 'unknown'):
++            raise ValueError('candidate comparison status invalid')
++    all_unknown = bool(rows) and all(row['baseline'] == 'unknown' for row in rows)
++    if observer['status'] == 'unknown_visibility' and not all_unknown:
++        raise ValueError('unknown visibility contradicts reliable rows')
++    return observer, rows, all_unknown
++
++
+ class Controller:
+-    def __init__(self,geometry=LEGACY):self.policy=Policy(.5);self.geometry=geometry
+-    def select(self,index,measurement):
+-        if not isinstance(measurement,dict) or measurement.get('status')!='complete':
+-            raise ValueError('observer execution failed or missing current measurement')
+-        observer=measurement['observer']
+-        if observer.get('schema')!='r27-whole-timeline-observation-v1' or observer.get('physical_index')!=index:
+-            raise ValueError('observer schema/current physical index mismatch')
+-        if observer.get('status') not in ('measured','unknown_visibility'):
+-            raise ValueError('invalid scientific observer status')
+-        domain=observer.get('observation_domain')
+-        if domain is not None and domain!=self.geometry.domain_record:
+-            raise ValueError('observer valid-domain mismatch')
+-        if domain is None and self.geometry!=LEGACY:
+-            raise ValueError('new geometry requires explicit observer domain')
+-        rows=observer['windows']
+-        for row in rows:bins_for([row['window']],self.geometry)
+-        if observer['status']=='unknown_visibility' and rows:
+-            raise ValueError('unknown visibility cannot contain measured proposals')
+-        decision=self.policy.update(index,rows)
+-        bins,mapping=bins_for(decision['physical_intervals'],self.geometry)
+-        decision.update(chosen_full=bool(bins),latent_bins=bins,mapping=mapping,
+-                        bin_coverage=bin_coverage(bins,self.geometry),
+-                        measurement_status=observer['status'],measurement_reasons=observer.get('reasons',[]),
+-                        response_sha256=measurement.get('response_sha256'),request_sha256=measurement.get('request_sha256'))
+-        if observer['status']=='unknown_visibility':decision['reason']='unknown_visibility'
++    def __init__(self, geometry=LEGACY, *, arm='visible_only'):
++        if arm not in ARMS:
++            raise ValueError('unknown preregistered arm')
++        self.arm = arm
++        self.geometry = geometry
++        self.policy = Policy(.5)
++        self.last_index = -1
++
++    @property
++    def needs_observation(self):
++        return self.arm in ('visible_only', 'visible_fallback')
++
++    def select(self, index, measurement=None):
++        if type(index) is not int or index != self.last_index + 1 or not 0 <= index < 20:
++            raise ValueError('decisions must cover consecutive physical indices0..19')
++        all_unknown = False
++        if self.needs_observation:
++            observer, rows, all_unknown = observation_rows(index, measurement, self.geometry)
++            decision = self.policy.update(index, rows)
++            bins, mapping = bins_for(decision['physical_intervals'], self.geometry)
++            decision.update(observation_complete=True, all_unknown=all_unknown,
++                            reliable_rows=sum(r['baseline'] != 'unknown' for r in rows),
++                            total_rows=len(rows), candidate_groups=len(decision['groups']),
++                            measurement_status=observer['status'],
++                            measurement_reasons=observer.get('reasons', []),
++                            response_sha256=measurement.get('response_sha256'),
++                            request_sha256=measurement.get('request_sha256'))
++        else:
++            if measurement is not None:
++                raise ValueError('Native/Weak-only decisions do not consume an observer')
++            bins, mapping = [], []
++            decision = {'index': index, 'groups': [], 'selected': [],
++                        'physical_intervals': [], 'active': False, 'reason': 'fixed_arm',
++                        'observation_complete': False, 'all_unknown': None,
++                        'reliable_rows': None, 'total_rows': None, 'candidate_groups': None,
++                        'measurement_status': 'not_requested'}
++        state, alpha = ('visible', 1.0) if bins else ('native', 0.0)
++        if (not bins and index in WEAK_INDICES
++                and (self.arm == 'weak_only' or (self.arm == 'visible_fallback' and all_unknown))):
++            bins = list(range(self.geometry.latent_bins))
++            state = 'weak_only' if self.arm == 'weak_only' else 'weak_fallback'
++            alpha = WEAK_ALPHA
++            decision['reason'] = state
++        decision.update(arm=self.arm, chosen_full=bool(bins), latent_bins=bins, mapping=mapping,
++                        bin_coverage=bin_coverage(bins, self.geometry),
++                        control_state=state, route_alpha=alpha,
++                        execution_support='all_canvas_bins' if state.startswith('weak') else 'selected_time_bins',
++                        spatial_support='all_spatial_queries', blocks=list(range(50)))
++        self.last_index = index
+         return decision
+--- R55/extensions/H3AutomaticWindowRouter/__init__.py
++++ R59/extensions/H3AutomaticWindowRouter/__init__.py
+@@ -1,7 +1,7 @@
+ """Native-first current-step observer gate with optional same-state Full."""
+ from .core import Config, State, BlockPatch, PredictionProbe, SamplerAudit, KEY, POLICIES
+ from .guards import extract_reference
+-from .transport import case_for
++from .transport import case_for, require_parent_closure
+ 
+ class H3AutomaticWindowRouter:
+     @classmethod
+@@ -17,8 +17,9 @@
+     def apply(self, model, positive, run_id, audit_dir):
+         import comfy.ldm.minimax.model as h3
+         from comfy.patcher_extension import WrappersMP
++        require_parent_closure()
+         case=case_for(run_id);g=case['geometry']
+-        config = Config(run_id,audit_dir,g['width'],g['height'],g['frames'],valid_frames=case['valid_frame_count'])
++        config = Config(run_id,audit_dir,g['width'],g['height'],g['frames'],policy=case['arm'],valid_frames=case['valid_frame_count'])
+         diffusion = model.get_model_object('diffusion_model')
+         if not isinstance(diffusion, h3.MiniMaxH3Model) or (tuple(diffusion.patch_size), diffusion.latents_dim, len(diffusion.blocks)) != ((1, 2, 2), 24, 50):
+             raise ValueError('requires frozen H3 architecture')
+--- R55/extensions/H3AutomaticWindowRouter/core.py
++++ R59/extensions/H3AutomaticWindowRouter/core.py
+@@ -19,7 +19,7 @@
+ 
+ KEY = 'H3AutomaticWindowRouter/current-pose-v1'
+ ELIGIBLE_STEPS = tuple(range(20))
+-POLICIES = ('automatic_windows',)
++POLICIES = ('native', 'visible_only', 'visible_fallback', 'weak_only')
+ INPUT_STEPS = (6, 10, 14)
+ 
+ 
+@@ -30,7 +30,7 @@
+     width: int = 1312
+     height: int = 736
+     length: int = 141
+-    policy: str = 'automatic_windows'
++    policy: str = 'visible_only'
+     fixed_indices: str = ''
+     valid_frames: int = None
+ 
+@@ -117,7 +117,7 @@
+         self.reference = reference.detach().to('cpu', copy=True).contiguous()
+         self.reference_signature = readout.tensor_signature(self.reference)
+         self.observer = observer
+-        self.controller = Controller(config.geometry)
++        self.controller = Controller(config.geometry, arm=config.policy)
+         self.query_gain = None
+         self.active_bins = []
+         self.live_observer = LivePoseObserver()
+@@ -140,7 +140,9 @@
+         self.audit['counterfactual'] = {'schema': 'h3-automatic-window-current-step-v1',
+             'diagnostic_only': True, 'new_method_claim': False,
+             'policy': config.policy, 'fixed_indices': list(config.indices),
+-            'observer_controls_selection': 'external_frozen_RGB_pose_only',
++            'observer_controls_selection': self.controller.needs_observation,
++            'observer_descriptor_version': 'r56-arm-bone-unit-v1',
++            'weak_schedule': {'indices': list(range(6,15)), 'alpha': 0.25, 'all_bins': 27},
+             'eligible_full_indices': list(ELIGIBLE_STEPS), 'full_physical_indices': self.full_indices,
+             'input_archive_indices': list(INPUT_STEPS),
+             'expected_euler_updates': 20, 'expected_model_nfe': '20+active_count',
+@@ -175,7 +177,9 @@
+         if branch == 'full' and (not self.active_bins or self.query_gain is None):
+             raise ValueError('Full requires immutable nonempty selected-bin union')
+         self.phase = {'physical_index': physical, 'branch': branch, 'latent_bins': list(self.active_bins) if branch == 'full' else [],
+-                      'active': branch == 'full', 'nfe_index': self.forward_index + 1}
++                      'active': branch == 'full', 'nfe_index': self.forward_index + 1,
++                      'route_alpha': self.alpha if branch == 'full' else 0.0,
++                      'control_state': self.transaction.get('decision', {}).get('control_state', 'native')}
+ 
+     def finish_forward(self):
+         super().finish_forward()
+@@ -352,7 +356,7 @@
+                 s.pair_gate.branch(s, x, output, row)
+                 if branch == 'native':
+                     measurement = None
+-                    if True:
++                    if s.controller.needs_observation:
+                         guard = parent_guard(s, x, timestep, output)
+                         measurement = s.live_observer(s, row)
+                         if parent_guard(s, x, timestep, output) != guard:
+@@ -365,6 +369,7 @@
+                         s.audit['counterfactual']['measurements'].append(measurement)
+                     s.transaction['decision'] = s.controller.select(n, measurement)
+                     s.active_bins = s.transaction['decision']['latent_bins']
++                    s.alpha = s.transaction['decision']['route_alpha']
+                     s.query_gain = make_gain(s.active_bins,geometry=s.config.geometry) if s.active_bins else None
+                     s.pair_gate.decision(s, n, s.transaction['decision'])
+                     s.transaction['decision']['native_nfe_index'] = row['nfe_index']
+@@ -442,8 +447,9 @@
+             result = executor(model_wrap, sigmas, extra_args, record, noise,
+                               latent_image, denoise_mask, disable_pbar)
+             nfe = 20 + len(s.full_indices)
+-            if len(s.audit['counterfactual']['measurements']) != 20 or 0 in s.full_indices or len(s.full_indices)>19:
+-                raise ValueError('requires20 current native observations and persistence from index0')
++            expected_observations = 20 if s.controller.needs_observation else 0
++            if len(s.audit['counterfactual']['measurements']) != expected_observations or s.controller.last_index != 19 or 0 in s.full_indices or len(s.full_indices)>19:
++                raise ValueError('observer count/controller sequence/physical intervention contract differs')
+             s.pair_gate.finish(s)
+             if s.callback_count != 20 or s.audit['completed_forward_calls'] != nfe or s.audit['completed_calls'] != 50 * nfe or s.audit['routed_calls'] != 50 * len(s.full_indices) or s.transaction is not None:
+                 raise ValueError('incomplete variable-NFE sampling')
+--- R55/scripts/scan_current_pose.py
++++ R59/scripts/scan_current_pose.py
+@@ -4,7 +4,8 @@
+ import sys
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"extensions"))
+ from H3AutomaticWindowRouter.geometry import LEGACY,Geometry
+-from pose_domain import validate_pose,features
++from pose_domain import validate_pose
++from arm_features import features
+ import timing_metrics as m
+ from pairwise_gain import compare
+ FEATURES=('arm_direction','left_arm_direction','right_arm_direction')
+@@ -24,12 +25,7 @@
+     loaded={}
+     for name,path in [('source',source),('target',target)]:
+         for c in CONFIDENCE:
+-            try:loaded[name,c]=features(raw[name],geometry,c)
+-            except ValueError as e:
+-                if str(e)!='Insufficient reliable torso anchors for scale normalization':raise
+-                result['reasons'].append({'input':name,'confidence':c,'reason':str(e)})
+-    if result['reasons']:
+-        return result|{'status':'unknown_visibility','scan_seconds':time.monotonic()-start}
++            loaded[name,c]=features(raw[name],geometry,c)
+     for window in geometry.windows():
+         for feature in FEATURES:
+             ds={str(c):m.local_diagnostic(loaded['source',c],loaded['target',c],window,24,feature) for c in CONFIDENCE}
+@@ -46,6 +42,9 @@
+                 else:out.update(status='measured',min_gain=min(d['min_gain'] for d in gain.values()))
+             else:out['status']='baseline_'+baseline
+             result['windows'].append(out)
++    result['complete_scan']={'descriptor_version':'r56-arm-bone-unit-v1',
++                             'expected_rows':len(list(geometry.windows()))*len(FEATURES),
++                             'actual_rows':len(result['windows']),'complete':True}
+     result['scan_seconds']=time.monotonic()-start
+     return m.clean(result)
+ 

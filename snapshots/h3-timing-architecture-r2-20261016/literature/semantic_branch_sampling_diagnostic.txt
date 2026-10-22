@@ -1,0 +1,27 @@
+更新：全历史核查确认此2×2实验已经完成。旧表述仅覆盖20261013 pilot目录，已被20261016 autoresearch的实际history证据取代。请勿把phase0/6重新作为未做实验排队。
+
+实际 source05 / Sam / seed2026101311 四臂 A=P0T0、B=P6T6、C=P0T6、D=P6T0 的主窗方向lag依次为13、5、13、13，两置信阈值一致。预登记的两个一致主效应门均未通过；观察到的−8交互只适用于该素材/种子。P移动0.25秒、格式化文字T移动0.3秒仍有量化差异，不能把B单格改善归因于两个时钟失配。四臂packed布局、token_tags和长度相同，但条件hidden states变化。GPU0/GPU2 Native重放五组AV张量及141帧RGB完全一致。
+
+证据：analysis/semantic_sampling_history_inventory.txt；analysis/semantic_token_time_mapping.txt；../h3-timing-autoresearch-20261016/analysis/pose/semantic_factorial/full_factorial_complete/summary.json。较高semantic FPS在此次所查成功history中未发现，范围声明保留。
+
+直接先例还包括Baton Relative Semantic RoPE（2605.25195），VideoCanvas分数latent物理时间坐标（2510.08555），MOVA多采样率及首帧偏置对齐（2602.08794）。完整旧审查见 ../h3-timing-autoresearch-20261016/literature/semantic_address_prior_art.txt。当前H3全Qwen条件经TokenRefiner后按序列索引进入DiT，坐标事实不能独立证明动作时延原因。下一步由R24正常与引导对照结果决定，不重复这四臂。
+
+以下保留先前窄范围候选记录，用于说明核查过程，其“尚未运行/下一门槛”状态已被上文取代。
+
+语义分支取帧相位：候选诊断，尚未运行
+
+当前目标是检查H3稀疏语义条件与稠密VAE视频条件的交互。现有H3EventAudit代码已支持固定2fps下改变取帧起点并同步传递真实时间戳；141帧时phase0为0,12,...132，phase6为6,18,...138，两者均12个实际帧。VAEProxy保持完整141帧编码，ClipProxy只改Qwen呈现。需要完整核验最终token长度与时间戳token差异，等帧数不保证全token完全同数。
+
+旧20261013 preregistered_plan.json已把higher semantic FPS及可行时的等数量phase干预登记为条件诊断。定向检查该项目configs、remote_configs、logs、audit未检出semantic_fps4/6/8/12/24或正phase值；这只能说明所查范围内没有命中，尚不能声称所有历史都未运行。不得重复称这一设想为新架构贡献。
+
+若后续需要检验，可先固定一个已观察的开发样例、相同noise与全部VAE条件，比较phase0/6的原生推理。这是分支输入因果诊断，新增可学模块或自动采样策略不在本项内。不能把稀疏2fps直接当作动作丢失的原因，也不能仅凭某相位改善就说明算法普遍有效。当前R24全部保持phase0，不追加任务。
+
+原始工作边界：Sound Sparks Motion (arXiv2605.15307v1,2026-05-14)在冻结LTX2 Retake中优化音频latent和文本条件残差，以冻结Qwen2.5-VL的动作yes/no分数及保真正则作推理时优化。其监督视频采用均匀或中央更密取帧，论文明确讨论取帧对动作时间强调和速度的影响。因此多模态条件控制运动、VLM反馈、改变监督取帧强调时间都有前例。H3编码前采样相位与该论文的输出监督采样位置不同，单凭位置差异仍不足以构成贡献。
+https://arxiv.org/html/2605.15307v1
+
+PhaseFusion(arXiv2610.08649v1)的时间相位枚举和后验融合已在reference_time_shift_calibration_review.txt核对。需要区分输入语义条件采样、VLM输出监督采样和视频VAE分块相位三件事，各自的干预位置/时间戳/表示不同。
+
+网页论坛关于H3高fps效果的经验只作线索，未作为科学证据。MiniMax官方参考提示词指南可说明任务接口；它不提供此次时延的因果证明。
+https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/docs/VIDEO_PROMPT_WRITING_GUIDE_ref_en.md
+
+下一门槛：全项目历史查询确认是否已有结果，冻结实际H3文本分支实现定位和最接近文献，再由新素材结果决定此诊断是否值得GPU预算。当前没有收益、新颖性或因果结论。

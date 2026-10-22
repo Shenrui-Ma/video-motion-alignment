@@ -1,0 +1,12 @@
+R105 CPU 准备完成，实际远端为 /home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019。
+.9 GPU0，端口8569；模型、Comfy、依赖仍为现有 /data5 路径。
+先等待 R102 和 R108 完整 COMPLETE 与精确释放。启动 audit/root_run_batch.py --attempt 实际新名称 --predecessor-attempt r102=实际完成attempt --predecessor-attempt r108=实际完成attempt。GPU3若仍有本组服务，加其真实 --peer-root。只允许 /home/researcher/h3_runs 与 /data5/researcher/h3_runs 直属服务根，仍验 exact UID/PID/start_ticks/cmdline/runtime/GPU，own卡最多2张。
+
+固定3条：human2animal_2__movie_man_11（盘腿前屈，深蓝西装年长男子，目标图室外）；crouch__movie_man_4（两轮下蹲，泳裤男子，目标图海面）；human2animal_3__game_man_4（低位前倾、屈腿抬升，绿披肩动漫男子，目标图白背景）。第二条为官方原配对，第一/第三条是官方素材交叉配对。每条原49@8，展示147有效24fps帧；总生成158帧，11尾垫不评分。
+
+每条先 Native，root 完整审核角色、环境、动作顺序；通过才选择 guide，否则 skip，全部留台账。guided 使用已知 fixed6..14、alpha1、全部有效时间位置，无自动观察器。第一条 guided 也须 root 审阅。
+
+consumer 路径：h3-flexiact-remaining-repair-metrics-r105-20261019。scripts/consume_native.py 或 consume_pair.py，--source 样本ID --attempt 实际attempt。实际 gate 后才收集出片，黑底中文两/三栏，全有效帧，另准备 official FlexiAct49@8 MF 输入。当前没有 R105 实际推理或分数。
+
+本地/目标 producer 各117个CPU测试通过，consumer51个；2/3栏媒体合成fixture通过。目标 imports CUDA未初始化、模型未载入。103文件seal、12个input与9项corehash全部通过。
+旧/data4本地包保留于 audit/PASSIVE_BUNDLE.tar.gz，/home初版与最终包均留档；最终可部署包 audit/PASSIVE_BUNDLE_HOME_FINAL.tar.gz。仅新建本用户/h3_runs与本任务目录，4KiB临时探针写入fsync读回一致后已删除；共享盘未修改。

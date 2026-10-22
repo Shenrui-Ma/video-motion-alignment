@@ -1,0 +1,24 @@
+--- evaluate.py
++++ evaluate_seed2026101611.py
+@@ -22,7 +22,7 @@
+  check(t.device.type=='cpu' and tuple(t.shape)==(1,24,42,46,82) and t.dtype==torch.float32 and torch.isfinite(t).all().item(),'video shape/dtype/finite');return t[0].permute(1,0,2,3).reshape(42,-1).numpy().astype(np.float64)
+ def main():
+  started=time.time();lock=Path('/data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB);torch.set_num_threads(1)
+- check(not torch.cuda.is_initialized(),'CUDA initialized');check(not(HERE/'RESULTS.json').exists(),'existing result must not be overwritten');p=read(HERE/'PROTOCOL.json');f=read(HERE/'FREEZE.json')
++ check(not torch.cuda.is_initialized(),'CUDA initialized');check(not(HERE/'RESULTS_seed2026101611.json').exists(),'existing result must not be overwritten');p=read(HERE/'PROTOCOL_seed2026101611.json');f=read(HERE/'FREEZE_seed2026101611.json')
+  for n,d in f['files'].items():check(sha(HERE/n)==d,'frozen file changed '+n)
+  check(sha(HERE/'observer_frozen.py')==p['frozen_function_source_sha256']=='c84cca34903c9476adc36fa2af0c9e3507b736031efac5bf361187a2c63de075','function hash');check(sha(HERE/'observer_protocol.json')==p['frozen_reject_protocol_sha256']=='e84af137304d6b950e3bba078a96d1631c665a7fdcce84ef6c93d7e9551f4a16','reject hash')
+  names=set(p['functions']);body=[n for n in ast.parse((HERE/'observer_frozen.py').read_text()).body if isinstance(n,ast.FunctionDef) and n.name in names];check({n.name for n in body}==names,'frozen funcs');ns={'np':np};exec(compile(ast.Module(body=body,type_ignores=[]),'<frozen gap5>','exec'),ns);limits=read(HERE/'observer_protocol.json')['reject_rules'];results={}
+@@ -39,9 +39,9 @@
+   for r in rows:r['would_trigger_coarse_start']=r['accepted'] and r['best'] is not None and r['best']['lag_frames']>=4
+   check(sha(fp)==cp['snapshot_file_sha256'] and sha(rp)==cp['reference_file_sha256'] and sha(condpath)==cp['condition_sha256'],'input changed during read')
+   results[cid]={'run_id':run,'actual_snapshot_file':str(fp),'actual_snapshot_file_sha256':sha(fp),'actual_snapshot_metadata':meta,'reference_file':str(rp),'reference_file_sha256':sha(rp),'reference_tensor':ts(ref),'condition_sha256':sha(condpath),'rows':rows}
+- result={'protocol_sha256':sha(HERE/'PROTOCOL.json'),'freeze_sha256':sha(HERE/'FREEZE.json'),'script_sha256':sha(__file__),'cases':results,'limits':limits,'geometry':{'bin_widths':widths.tolist(),'bin_centers':centers.tolist(),'gap5_physical_edge_times':a[0].tolist(),'gap5_span_physical_frames':17},'elapsed_seconds':time.time()-started,'CUDA_initialized':torch.cuda.is_initialized(),'limitations':['Gap5 spans17physicalframes and is a coarse global signed derivative.','Final near-synchronous pose is not index005 same-endpoint truth. A positive early readout may represent temporary early deviation that native later resolves, not proven estimator error.','No endpoint decoding, no new encoding, no controller, no threshold/ROI/window tuning.']}
+- with (HERE/'RESULTS.json').open('x') as out:json.dump(result,out,indent=2,allow_nan=False);out.write('\n')
+- print(json.dumps({'saved':str(HERE/'RESULTS.json'),'seconds':result['elapsed_seconds'],'rows':{k:[{'window':r['window_inclusive'],'accepted':r['accepted'],'best':r['best'],'rejection_reasons':r['rejection_reasons'],'would_trigger_coarse_start':r['would_trigger_coarse_start']} for r in v['rows']] for k,v in results.items()}}))
++ result={'protocol_sha256':sha(HERE/'PROTOCOL_seed2026101611.json'),'freeze_sha256':sha(HERE/'FREEZE_seed2026101611.json'),'script_sha256':sha(__file__),'cases':results,'limits':limits,'geometry':{'bin_widths':widths.tolist(),'bin_centers':centers.tolist(),'gap5_physical_edge_times':a[0].tolist(),'gap5_span_physical_frames':17},'elapsed_seconds':time.time()-started,'CUDA_initialized':torch.cuda.is_initialized(),'limitations':['Gap5 spans17physicalframes and is a coarse global signed derivative.','Final near-synchronous pose is not index005 same-endpoint truth. A positive early readout may represent temporary early deviation that native later resolves, not proven estimator error.','No endpoint decoding, no new encoding, no controller, no threshold/ROI/window tuning.']}
++ with (HERE/'RESULTS_seed2026101611.json').open('x') as out:json.dump(result,out,indent=2,allow_nan=False);out.write('\n')
++ print(json.dumps({'saved':str(HERE/'RESULTS_seed2026101611.json'),'seconds':result['elapsed_seconds'],'rows':{k:[{'window':r['window_inclusive'],'accepted':r['accepted'],'best':r['best'],'rejection_reasons':r['rejection_reasons'],'would_trigger_coarse_start':r['would_trigger_coarse_start']} for r in v['rows']] for k,v in results.items()}}))
+ if __name__=='__main__':
+  try:main()
+  except BlockingIOError:print('CPU_LOCK_BUSY');raise SystemExit(75)

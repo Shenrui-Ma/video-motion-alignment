@@ -1,0 +1,23 @@
+R85 one_leg引导成片：一次CPU DWPose后验测量
+
+完成147个有效帧（0…146），线程2，CUDA_VISIBLE_DEVICES为空。
+实际生成history success及158帧24fps的MP4闭合后才测量。程序退出0，COMPLETE.json确认CUDA未初始化。
+source/Native/guided使用同一pose_probe.py、DWPose权重、检测/姿态代码、Torch/OpenCV/ONNXRuntime与参数；guided和source provenance逐字段一致。
+guided测量用时114.7793秒，无缺人/多人/选择歧义。
+
+沿root原summarize_events.py、不调整阈值或持续长度：
+事件                         参考                 普通编辑             固定时序引导
+双腕持续高于鼻子             39帧 / 1.625s        138帧 / 5.750s       137帧 / 5.7083s
+双上臂向上分量均>0.7          48帧 / 2.000s        有效片段未检出        有效片段未检出
+置信阈值0.3与0.5得到相同事件时间；持续要求6个24fps输出帧。
+
+引导后的双腕事件比普通编辑提前1输出帧（41.67ms）。源视频原始采样8fps，重复3次到24fps，源时间分辨率125ms。该1帧差不支持明显时序改善。
+源至两种输出的首次阈值跨越分别差4.125s与4.0833s；它们是描述性的事件差，姿态幅度、投影和动作形状也会改变越阈时刻，不能直接解释为整段统一延迟。
+双上臂阈值事件在两种输出都未检出；需要结合完整画面判断是未充分抬臂、投影差别或动作阶段变化。此处没有新增控制逻辑或官方benchmark指标。
+
+可见性逐视频/双阈值统计见VISIBILITY.json；人物跟踪完整不等于每个关节在每帧均高置信。
+旧source/Native事件表和汇总保存在before_summary_update；更新后已验证它们的事件记录和CSV逐字不变。
+
+Mac统一入口：audit/root_one_leg_pose_diagnostic/POSE_EVENT_SUMMARY.json
+引导pose：audit/root_one_leg_pose_diagnostic/poses/r85_one_leg__movie_man_9_seed2026101701_forced_00001_.pose.json
+本次实际STARTED/COMPLETE/run.log、测量脚本与输入SHA位于audit/root_one_leg_guided_pose_diagnostic。

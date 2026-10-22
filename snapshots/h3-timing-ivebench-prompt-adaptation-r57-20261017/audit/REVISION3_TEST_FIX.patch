@@ -1,0 +1,23 @@
+--- v2/tests/test_prompt_control.py
++++ v3/tests/test_prompt_control.py
+@@ -1,5 +1,5 @@
+ """Falsifiable preparation checks; no model, CUDA or remote service."""
+-import copy,json,sys,unittest
++import copy,json,sys,unittest,tempfile
+ from pathlib import Path
+ from unittest.mock import patch
+ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
+@@ -47,8 +47,11 @@
+   self.assertNotIn('H3AutomaticWindowRouter',args)
+  def test_pending_blocks_actual_launch(self):
+   with self.assertRaisesRegex(ValueError,'root must verify'):preflight.check(ROOT,live=True)
+- def test_mac_input_materialization_refused(self):
+-  with self.assertRaisesRegex(ValueError,'remote materialization'):materialize_inputs.materialize(ROOT)
++ def test_nonremote_input_materialization_refused(self):
++  with tempfile.TemporaryDirectory(prefix='r57-nonremote-fixture-') as folder:
++   self.assertNotEqual(Path(folder).resolve(),materialize_inputs.REMOTE.resolve())
++   with self.assertRaisesRegex(ValueError,'remote materialization'):
++    materialize_inputs.materialize(Path(folder))
+  def test_paired_noise_requires_actual_signature(self):
+   folder=ROOT/'configs/parents/short_0210'
+   reference=c.read(folder/'r54_short_0210_shared_conditioning.json');noise=c.read(folder/'r54_short_0210_seed2026101701_native_noise.json')

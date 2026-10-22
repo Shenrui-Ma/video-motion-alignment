@@ -1,0 +1,328 @@
+{
+  "case": "05_real_megumi_v",
+  "runtime": ".9 corrected INT8 row-chunk runtime; actual auxiliary encode/decode diagnostic",
+  "reviewed_local": "2026-10-13T14:05:12.732693+08:00",
+  "reviewer": "AI independent framewise visual inspection",
+  "human_review": false,
+  "native_speed_playback_claimed": false,
+  "history_status": "success",
+  "history_prompt_id": "d24fa2cf-31d4-4c1c-be87-5771f5754785",
+  "history_path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/logs/05_real_megumi_v_a_s1_benchmark2_history.json",
+  "history_sha256": "733e34262e557d610863a19bd8382433f4ac17f1c08e74484f696ec662bfc5a3",
+  "audit_path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/05_real_megumi_v_a_s1_benchmark2_conditioning.json",
+  "audit_sha256": "b4a6e5ba50f75daf71030fb467b05b27f17d4c79337955c9f384f64e17044082",
+  "files": {
+    "source": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/inputs/05_real_megumi_v.mp4",
+      "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+      "probe": {
+        "width": 1312,
+        "height": 736,
+        "r_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "decoded_frames": 141,
+      "sheets": [
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/source_all_p1.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/source_all_p2.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/source_all_p3.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/source_all_p4.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/source_all_p5.jpg"
+      ]
+    },
+    "prepared": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/outputs/05_real_megumi_v_actual_prepared_reference_00001_.mp4",
+      "sha256": "bc4bc33ab8d1986d8e2da2160e439b82466bc868890a3382a2140dd674467108",
+      "probe": {
+        "width": 1312,
+        "height": 736,
+        "r_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "decoded_frames": 141,
+      "sheets": [
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/prepared_all_p1.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/prepared_all_p2.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/prepared_all_p3.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/prepared_all_p4.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/prepared_all_p5.jpg"
+      ]
+    },
+    "vae": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/outputs/05_real_megumi_v_reference_vae_reconstruction_00001_.mp4",
+      "sha256": "720ad3430d0d39228cae4b25a4c81193d0b6c041fd91f719e434b3f113ebad18",
+      "probe": {
+        "width": 1312,
+        "height": 736,
+        "r_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "decoded_frames": 141,
+      "sheets": [
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/vae_all_p1.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/vae_all_p2.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/vae_all_p3.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/vae_all_p4.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/vae_all_p5.jpg"
+      ]
+    }
+  },
+  "executed_encoding": {
+    "vae_loader_node3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
+    },
+    "reference_node5_class": "H3EventAuditReference",
+    "reference_node5_inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "ref_video": [
+        "23",
+        0
+      ],
+      "prompt": "subject_definitions:\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Change only the main performer's black dress to bright red, preserving its shape, white collar and cuffs, and existing ribbon. Preserve the same person, face, hair, accessories, skin, body proportions, room, objects, background, camera, composition and all original motion. Preserve every original gesture, expression, action order, speed, timing and rhythm. Keep the same realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve source motion, action timing, person, objects, camera and background; apply only the requested appearance change.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "width": 1312,
+      "height": 736,
+      "length": 141,
+      "audit_dir": "/data5/researcher/h3_runs/short_event_switching_20261013/audit",
+      "run_id": "05_real_megumi_v_a_s1_benchmark2",
+      "semantic_fps": 2,
+      "phase_frames": 0
+    },
+    "reconstruction_decode_node30": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "5",
+          3
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "reconstruction_create_node31": {
+      "class_type": "CreateVideo",
+      "inputs": {
+        "images": [
+          "30",
+          0
+        ],
+        "fps": 24.0,
+        "bit_depth": 8
+      }
+    },
+    "reconstruction_save_node32": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": [
+          "31",
+          0
+        ],
+        "filename_prefix": "05_real_megumi_v_reference_vae_reconstruction",
+        "format": "mp4",
+        "codec": "h264",
+        "codec.encoding": "re-encode",
+        "codec.encoding.crf": 16.0
+      }
+    },
+    "prepared_create_node33": {
+      "class_type": "CreateVideo",
+      "inputs": {
+        "images": [
+          "5",
+          2
+        ],
+        "fps": 24.0,
+        "bit_depth": 8
+      }
+    },
+    "prepared_save_node34": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": [
+          "33",
+          0
+        ],
+        "filename_prefix": "05_real_megumi_v_actual_prepared_reference",
+        "format": "mp4",
+        "codec": "h264",
+        "codec.encoding": "re-encode",
+        "codec.encoding.crf": 16.0
+      }
+    },
+    "native_video_vae_call": {
+      "prepared_frames": {
+        "shape": [
+          141,
+          736,
+          1312,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42",
+        "tensor_file": "tensor_blobs/532e627d9c11e45b43df9686a1bc980d4df7a5f973ac04912fcb26ec15fe1f37.pt"
+      },
+      "latent": {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734",
+        "tensor_file": "tensor_blobs/136e1302edb9e4f245d085b21584e8bfa54942c77a30758e7c3f227078cde97a.pt"
+      }
+    },
+    "input_video": {
+      "shape": [
+        141,
+        736,
+        1312,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "348c749921d1dd415293d3a80e61ab9dbe55fd1b092eb8ddaf716e89139dcf3e"
+    },
+    "model_weight_file_hash_independently_verified": false,
+    "path_scope": "Actual normalized frames and native reference latent decoded by same VAE loader; benchmark generation is not reference reconstruction and was not inspected."
+  },
+  "coverage": {
+    "source_all141": true,
+    "prepared_all141_new_dot9": true,
+    "vae_all141_new_dot9": true,
+    "dense_aligned_window_half_open": [
+      45,
+      71
+    ],
+    "dense_pages_viewed": [
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p1.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p2.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p3.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p4.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p5.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p6.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p7.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p8.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/05_real_megumi_v/aligned_detail_p9.jpg"
+    ]
+  },
+  "visibility_levels": {
+    "hand_eye_relation": {
+      "decision": "pass",
+      "complete_occurrence_count": 1,
+      "full_event_frames_half_open": [
+        50,
+        66
+      ],
+      "decisive_frames_half_open": [
+        53,
+        62
+      ],
+      "strongest_eye_adjacent_evidence_frames_half_open": [
+        53,
+        61
+      ],
+      "full_duration_seconds": 0.6666666666666666,
+      "decisive_duration_seconds": 0.375,
+      "duration_class": "secondary_0.6_to_0.8_seconds",
+      "boundary_uncertainty_frames": 2,
+      "observation": "Point/extended arm f45–49 transitions across the face f50–52; a spread V-like hand lies at eye/temple f53–60, begins lifting away f61, is clearly away f62–64, and opens laterally f65–66. This reach/eye relation/departure persists once in prepared and VAE at corresponding indices. The bent-back raised leg is also visible during the eye pose.",
+      "temporal_difference": "No material categorical boundary shift or deletion observed at matched indices; onset/release uncertainty remains approximately two frames."
+    },
+    "finger_shape": {
+      "decision": "recognizable_V_like_but_exact_topology_uncertain",
+      "observation": "Spread finger/V-like silhouette near the eye remains visible, including f55–60, but source finger edges already blur and VAE softens skin/finger boundaries further. Exact digit count, contact and separation cannot be certified.",
+      "not_equivalent_to_omission": true
+    }
+  },
+  "surrounding_actions": [
+    {
+      "frames_approx": [
+        0,
+        43
+      ],
+      "act": "bent-knee side steps and lean with drooped wrists",
+      "vae": "retained; an earlier separate hand-to-mouth/cheek flick around f34–38 is visible and is not the selected target"
+    },
+    {
+      "frames_approx": [
+        45,
+        49
+      ],
+      "act": "outward point immediately before selected eye gesture",
+      "vae": "retained; brief transition, not counted as an independent substantive >=0.4-second category alone"
+    },
+    {
+      "frames_approx": [
+        66,
+        71
+      ],
+      "act": "arms open and lower as raised leg returns",
+      "vae": "retained"
+    },
+    {
+      "frames_approx": [
+        72,
+        90
+      ],
+      "act": "bilateral forward/crossing arm rise to overhead",
+      "vae": "retained"
+    },
+    {
+      "frames_approx": [
+        90,
+        140
+      ],
+      "act": "wide spread with lateral lean and leg extension",
+      "vae": "retained at coarse category/timing level"
+    }
+  ],
+  "sampling_context": {
+    "actual_indices": [
+      0,
+      12,
+      24,
+      36,
+      48,
+      60,
+      72,
+      84,
+      96,
+      108,
+      120,
+      132
+    ],
+    "target_full_event_sample_overlap": [
+      60
+    ],
+    "target_core_sample_overlap": [
+      60
+    ],
+    "label": "sampled_at_core",
+    "limit": "Unlike anime short insertion, this real gesture is sampled. Sparse sampling alone cannot be claimed to omit it; reconstruction does not prove downstream use."
+  },
+  "decision": "Encoding visibility passes for one complete eye-adjacent excursion; V-like form recognizable but exact finger anatomy/contact remains uncertain. This is the explicitly secondary ~0.67-second event.",
+  "limitations": [
+    "Framewise AI review; no independent human rating or native-speed playback claimed.",
+    "Source hand blur, source resolution and MP4 reencoding limit precise anatomy and small temporal differences.",
+    "Earlier near-mouth/cheek motion must not be incorrectly scored as an extra selected eye-V event.",
+    "Real and anime sources share choreography; not independent action categories across unrelated activities.",
+    "No benchmark-generated pixels viewed or scored."
+  ],
+  "gate_final_for_current_runtime": true
+}

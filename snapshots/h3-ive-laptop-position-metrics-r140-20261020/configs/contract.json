@@ -1,0 +1,90 @@
+{
+  "schema": "r140-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-laptop-position-r140-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_laptop_position_r140_20261020",
+  "producer_seal_sha256": "5213d909cbc499907f971186497ecbfa1f847edc1b983fb0678034561045691d",
+  "producer_contract_sha256": "78fcb6fac82209b849ebc0cd2d6f102af7dc975c3e95cf5e1f5bc02d673ca48e",
+  "producer_runtime_sha256": "91500b28042a72b0e3a462a30cc06ac96714fab2b35b5d0f682cf756bc11c6b4",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0163"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0163",
+      "run_id": "r140_short_0163_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nMove the person pointing at the laptop screen to the other side of the laptop\n\nretention_analysis:\n<Video 1>: partially_preserved - Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.\n",
+      "original_task": {
+        "id": 163,
+        "src_video_name": "short_0163.mp4",
+        "category": "attribute_editing",
+        "subcategory": "position change",
+        "source_prompt": "The video depicts a professional setting where two individuals are engaged in a collaborative discussion around a laptop. The scene captures a moment of interaction, with one person pointing at the laptop screen, another leaning in closely.",
+        "edit_prompt": "Move the person pointing at the laptop screen to the other side of the laptop",
+        "target_prompt": "The video depicts a professional setting where two individuals are engaged in a collaborative discussion around a laptop. The scene captures a moment of interaction, with one person (who was originally pointing at the laptop screen) now on the other side of the laptop pointing at it, another leaning in closely.",
+        "target_span": "other side",
+        "target_phrase": "person pointing at the laptop screen on other side"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 71,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "71/25",
+        "end_exclusive_rational": "72/25",
+        "duration_rational": "72/25"
+      },
+      "task_scope": "subject_position_edit",
+      "evaluation_scope": "IVEBench官方完整短片",
+      "forced_run_id": "r140_short_0163_seed2026101701_forced",
+      "valid_frames": 70,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/short_0163_video.mp4",
+        "sha256": "87ea3dceb98071c6e9897058995ace656857bea7be19621ab5c6881a8e5dde77",
+        "bytes": 16866246
+      },
+      "provenance": {
+        "file": "inputs/short_0163_provenance.json",
+        "sha256": "9968a90fdecb928f701f9e1b3d3308779cf11ed9411255569e1516ef5f61718a",
+        "bytes": 12284
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-laptop-position-metrics-r140-20261020/inputs/short_0163_original.mp4",
+        "sha256": "ab0c9f1256cbe1eb3924e634d3cea95aeded591bce1bf6378167f1c0bdc9bf4a"
+      },
+      "graph_sha256": "540067a6c38164d9f7e72a94f55d7e69d2c5d8dedf452d43816f3d8b3126d01f",
+      "forced_graph_sha256": "bc8aa813233add95cd037629bdcbe12522feb35569fa57a2267761492015ef17",
+      "expected_prompt_sha256": "5877e59f7ee691d7a2fc02f9c10fd592164df2db62c15a83d60f8e1ce1adb25c"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true,
+  "namespace": "r140",
+  "display_description": "人物相对笔记本位置编辑；全70有效帧核对五阶段，排除70至72纯padding；不使用人体自动观察器。"
+}

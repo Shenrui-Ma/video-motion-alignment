@@ -1,0 +1,13 @@
+one_leg → movie_man_9 的 P1 普通编辑控制
+
+结论：现有归档中没有同一 one_leg / movie_man_9 / seed 2026101701 已完成的 P1 Native。R72 已经写过完整 P1，但停机归档确认对应 job 和 history 均不存在；实际只完成 P0。R66 的 one_leg 使用 movie_man_11 和通用 P0；R65/R49 使用 movie_man_2，均不能代替本任务的 P1。R84、当前 R85 的 one_leg 继续沿用 R72 P0。
+
+候选直接复用 R72 预先写好的 P1，逐字复制到 one_leg__movie_man_9_P1_candidate.txt。候选文件字节 SHA256 为 11efbddcdd973499bea0f716f55429f789a5c0275462bc82d6c5fd925cd2207f。已有成片尚未用于修改这份候选。
+
+P0 与 P1 都要求：图像提供人物身份、外观和场景；视频提供完整动作、时间、方向和幅度。P1 把这些对应关系写成官方六部分结构，定义 Subject 1/2、Picture 1、Video 1、[reference generation] 和 [Shot 1]，并加入官方 one_leg 动作文字：双手举过头顶，同时右脚贴向左膝。人物描述来自目标图和官方 caption。没有要求保留源视频场景，也没有指定某几帧干预或改写动作发生时间。
+
+因此这属于结构、参考编号和动作文字一起变化的提示协议控制。若 P1 普通编辑已缩小时差，应据实衡量固定引导相对于这个更明确提示的增益；仅凭 P0 加引导改善，尚不能排除提示表达造成的弱对照。
+
+最小后续控制是在 R85 所用 .9 后端完成一次 P1 Native，使用相同素材、158 总帧/147 有效帧、24 fps、同实际初始 AV noise 和数值配置。P1 使用独立文本条件缓存；原始素材和 VAE 参考可以核同值，含文本的联合 embedding 与 x0 应允许不同。随后一起看 P0 普通编辑、P0 固定引导和 P1 普通编辑，保留身份实现、完整动作与物理时间三方面结果。
+
+来源：R72 design/official_ref-en.txt，第 1/2/3/4/5 节；官方 snapshot commit d21241f0a4b3acbb34c97dae47fa417b7065e438。R72 design/PAIR_DEFINITIONS.json 保留官方 source/target caption 和素材哈希。R72 的已核停机归档在 EVIDENCE.json 中逐项引用。R85 87 个封存文件再次核对全部一致。本任务只新增 audit 文本。

@@ -1,0 +1,160 @@
+H3PhaseRoPE independent read-only code review
+Date: 2026-10-16. Reviewer: /root/h3_timing_prior_art_20261016.
+Scope: staged operator, actual archived H3/kitchen implementations, CPU test
+source, and a subsequent read-only review of the proposed GPU smoke script.
+No implementation edits, GPU launches, or duplicate CPU test execution.
+
+DECISION
+No confirmed implementation defect that blocks a bounded GPU tensor smoke
+was found. This is source review, not evidence of a successful GPU test or
+useful/controllable action timing. The staged operator is an oracle diagnostic;
+this review makes no novelty or research-success claim.
+
+FILES ACTUALLY READ
+Workspace root:
+/Users/researcher/DevProjects/h3-timing-autoresearch-20261016
+  extensions_staged/H3PhaseRoPE/core.py
+  extensions_staged/H3PhaseRoPE/__init__.py
+  extensions_staged/H3PhaseRoPE/audited_flash.py
+  extensions_staged/H3PhaseRoPE/layout.py
+  extensions_staged/H3PhaseRoPE/DESIGN.md
+  tests/test_phase_rope.py
+  scripts/gpu_phase_rope_smoke.py
+
+Actual implementation snapshots, read directly from archives without edits:
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+  ./comfy/ldm/minimax/model.py
+  ./comfy/ldm/modules/attention.py
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/runtime_deps_snapshot.tar.gz
+  runtime_deps/comfy_kitchen/backends/eager/rope.py
+  runtime_deps/comfy_kitchen/backends/triton/rms_rope.py
+
+SOURCE EVIDENCE AND CORRECTNESS CHECKS
+1. Channel convention and sign.
+   H3 rope_freqs constructs [t,h,w,t,h,w] with 16 checkpoint frequencies per
+   coordinate. rope_rotation_table constructs [[cos,-sin],[sin,cos]]. Native
+   attention normalizes Q/K, rotates their first 96 of 128 channels, then
+   presents [B,H,N,D] tensors to the attention override. Kitchen's partial
+   split-half implementation pairs the first 48 channels with the next 48;
+   its Triton partial-rotary path delegates to this eager implementation.
+   Therefore temporal pairs are 0:16 with 48:64. core.py:46-49 applies the
+   correct positive additional rotation. Spatial pairs and channels 96:128
+   are not changed by the extra rotation.
+
+2. Units and checkpoint frequency.
+   Native H3 FRAME_PER_TOKEN=(1,4,4,4,4), FRAME_RESCALE=5/3, with cumulative
+   physical-frame spans defining video temporal coordinates. Multiplication
+   of physical delta_frames by 5/3 is correct, and is not a latent-bin shift.
+   __init__.py:50 copies diffusion.rope.inv_freq into state; core.py:19-32
+   requires 16 finite floating entries and copies the actual buffer to CPU.
+   Values/dtype/raw-byte SHA are recorded. No assumed base is synthesized.
+
+3. Reference-only interaction and mass decomposition.
+   Only selected output query rows are cloned and temporally rotated.
+   The entire reference-video K/V segment is retained, excluding the identity
+   image. Input Q/K/V are not written. Original full attention is computed;
+   original and rotated conditional reference attention are computed on the
+   same reference keys; exp(L_ref_original-L_all) gives original group mass.
+   O'=O+alpha*m_ref*(O_ref_rotated-O_ref_original) is correct. For alpha in
+   [0,1], this is a convex replacement of the within-reference distribution.
+   Other key contributions are unchanged in exact arithmetic at this layer's
+   fixed input. Subsequent hidden states, later attention masses, and the
+   final output outside the selected time window can change. No stronger
+   invariance is established.
+
+4. Loader/state guards.
+   Loader checks H3 class, patch size, latent channels, block count, temporal
+   constants, backend entry-point name, and conflicting block patches. Runtime
+   checks heads/dimension, layout, selected coordinate origins, ordered block
+   calls and a fixed 20-forward sigma schedule. These match the frozen setup.
+   Audit completion describes 20 complete DiT forwards, not successful video
+   serialization. State is intentionally one-run; use a new run ID/state for
+   subsequent sampling. Source hashes are documented below, but the loader
+   does not itself hash the live H3/kitchen implementation; deployment must
+   retain/check the reviewed runtime provenance separately.
+
+IMPORTANT LIMITS / GPU ACCEPTANCE CONDITIONS
+A. Zero-offset exactness is backend-relative.
+   core.py:77 computes explicit aten Flash even for zero delta/alpha.
+   The passed native attention_pytorch function is checked, not invoked.
+   Actual attention_pytorch dispatches through scaled_dot_product_attention;
+   generic Core can select a different backend. Therefore the zero path is
+   exact relative to the frozen same-Flash baseline, not automatically bitwise
+   identical to every original Core backend. Either compare against the
+   actual native baseline used in the experiment or state the same-Flash
+   scope explicitly. This is not a blocker for the existing explicit-Flash
+   baseline, but wording such as arbitrary-native bitwise equivalence is not
+   supported.
+
+B. BF16 composition and subtraction are approximate.
+   Extra rotation computes in FP32 and casts to input dtype. Starting from an
+   already quantized native Q and rotating again is not bitwise equivalent to
+   recomputing native RoPE once at t+delta. Full/original-reference/rotated-
+   reference Flash outputs have already been rounded to BF16 before FP32
+   differencing. FP32 mass/correction arithmetic is appropriate but cannot
+   recover lost precision. Test both small nonzero delta and near-one reference
+   mass against an independent FP32 dense probability oracle. Log-sum-exp
+   excess is clamped at zero and exposed in statistics. Same-layer exact
+   arithmetic conservation must not be described as a bitwise GPU guarantee.
+
+C. Algebraic sign is not behavioral phase controllability.
+   Positive delta adds to query time coordinates. Cross-stream origins,
+   periodic frequencies, content and later layers prevent interpreting this
+   directly as advancing the output gesture by delta frames. Opposite signed
+   interventions need independent observed timing responses, with pose-lag
+   sign calibration and quality controls. A correct operator can fail this
+   scientific gate.
+
+GPU SMOKE SCRIPT REVIEW
+Script: scripts/gpu_phase_rope_smoke.py (read only; not executed by reviewer).
+Verdict: suitable as an initial bounded tensor smoke, not complete numerical
+acceptance. No confirmed blocking script error found.
+
+Covered:
+- Explicit GPU UUID, pre-CUDA idle memory/utilization/process admission check;
+  reads only the checkpoint frequency buffer; no DiT/model forward.
+- Uses real checkpoint inv_freq, records its hash and PyTorch version.
+- BF16 Q/K/V, actual 56 heads and head dimension 128, explicit Flash/LSE path.
+- Delta 0, -12, +12 physical frames; exact zero vs same-Flash output.
+- All Q/K/V unchanged; unselected query rows bitwise equal to same-Flash output.
+- Whole output finite check; unchanged spatial and other rotation channels.
+- Nonzero result vs explicit FP32 dense reference-probability replacement
+  (with the actual BF16-rounded rotated Q), checking max error <0.01 and
+  RMS error <0.002.
+
+Not covered / limits:
+- It compares zero with flash_attention_lse itself, not the actual Core
+  attention_pytorch/SDPA dispatch. Rename/interpret its zero_delta_exact_native
+  field as exact_same_explicit_flash_baseline unless separately established.
+- Dense oracle reuses TemporalRotation. It therefore checks attention
+  decomposition but cannot independently catch that operator's time-channel
+  or rotation-sign mistakes. Source review and CPU toy support those, but an
+  actual kitchen one-pass coordinate rotation vs the staged composition
+  comparison (with documented BF16 tolerance) remains useful.
+- Random Q/K with 148/256 keys in the reference group does not enforce a
+  near-one reference mass. There is no high-mass stress case.
+- Only +/-12 are nonzero; no small nonzero delta, alpha=0, or intermediate
+  alpha GPU case. Existing CPU tests cover alpha behavior, not GPU rounding.
+- Sequence length 256 is bounded and intentional. This does not measure
+  full-H3 length performance/memory or exercise the live block wrapper/layout.
+- Successful preflight does not reserve a shared GPU; the script is small
+  and bounded, but concurrent admission changes remain external to it.
+
+Recommended gate: initial smoke may run as written with the above scope.
+Before treating the numerical path as fully checked, add independent actual-
+kitchen rotation validation and small-delta/high-reference-mass coverage, or
+explicitly carry those as untested limitations. Before video claims, run
+matched zero/native and signed oracle arms; tensor tests cannot prove action
+timing correction.
+
+READ-SNAPSHOT SHA256
+core.py: 83f0fffeac265d0c77d540c8ed730a8b9c639ca73660877aaba72425be88b395
+__init__.py: 6e99abbc7a6fd9d57cbeed53467dda0dbf802f305594247683d516503904e125
+audited_flash.py: 05f706d155bee540f4fd804554361ba22149affdf8df23052709cbd496177bba
+layout.py: bf2aac3b639bcc1b48e0733640d693d8b229cb7c9e270d54d608609322cbbafe
+test_phase_rope.py: c5878d019a38a4fa721c396fa16f5bb0649017860933b1950a57ad81cab8aa9e
+gpu_phase_rope_smoke.py: 77be2c9ad0b4790f59d8cdbd8d393bcb8488c4c56924da01f6951b30a1bba3b6
+archive ./comfy/ldm/minimax/model.py: 0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe
+archive ./comfy/ldm/modules/attention.py: 9cafaafaf93ff53e8cbefb5e4a204014019985df2da8c1996bf40f1235fc2960
+archive runtime_deps/comfy_kitchen/backends/eager/rope.py: aee33a18bb5fe75ce24ebad389b830c9d5775d52723fc7df4864598547b2257c
+archive runtime_deps/comfy_kitchen/backends/triton/rms_rope.py: 68a5760334a9cfd72717374f2107d5260d3b86683b9b6205bbc2f00c1ad08e6e

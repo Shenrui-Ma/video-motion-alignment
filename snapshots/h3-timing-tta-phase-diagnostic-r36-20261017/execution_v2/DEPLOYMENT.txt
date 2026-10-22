@@ -1,0 +1,22 @@
+R36 execution_v2: complete CPU executor, initially unauthorized
+
+Purpose: fixed-identity-candidate start-side gate diagnostic. The main50–65 stop endpoint remains UNKNOWN in the existing feasibility evidence. No transformed output has been used to choose a candidate, threshold, input or view. No probability calibration, new architecture, lag-selection or real-time closed-loop validation is claimed.
+
+Local root: /Users/researcher/DevProjects/h3-timing-tta-phase-diagnostic-r36-20261017/execution_v2
+Remote root: /data5/researcher/h3_runs/timing_tta_phase_diagnostic_r36_20261017/execution_v2
+Remote python: /home/researcher/miniconda3/envs/comfyui/bin/python
+Sources are the five exact existing R27 paths in INPUTS.json. No video/model downloads or new VAE decode. Old source's historic script exception is explicit; generated caches have their exact original script/provenance.
+
+Before actual execution: root independently reviews FREEZE/protocol; verify all immutable hashes; copy the frozen executor and authorization into the exact remote root. Run scripts/preflight.py locally and scripts/preflight.py --remote remotely (stdlib/read-only, no model). AUTHORIZATION.json defaults approved=false and phases=[]; root must bind exact FREEZE/PROTOCOL SHA and allocate explicit phases. No actualpose may start from this handoff alone.
+
+Ten prescribed phases are PHASE_PLAN.json in fixed order: source05,bad004,bad005,normal004,normal005, each flip thenpad16. All inputs retained regardless of support; no window/case subset. Each explicit command:
+  python3 scripts/one_phase.py --phase pose:source05:flip --execute
+Substitute only the next allocated phase from PHASE_PLAN. After all ten complete, explicit --phase evaluate --execute. No daemon or autonomous wait. Exit75 means locked/onlineposepending: return to root scheduling. Each actual pose is <=4CPU threads/CUDAhidden. NoGPU/DiT/VAE/newdependency.
+
+Locks/lifetime: local unique driver -> Mac global CPU lock -> remote global CPU lock; online R27/R32/R35 observer priority checked immediately before each remotephase. Remote child inherits the remote lock so loss of its coordinator cannot allow concurrent pose. PID/UID/start_ticks/cmdsha detects a surviving same attempt before retry. Failed/partial attempts stay in attempts/attemptNNN, never overwrite. Every driver call has separate START/result/failure journal. No completion record is accepted until entire video/identity/model/provenance/frame/preprocessing/inverse artifact and exact inventory validate. A complete phase is reused only after rechecking everySHA and current model/code bytes. Evaluation completion also pins all ten view completions and every original input; changed upstream inputs are rejected before reuse. A validated-but-not-final-committed attempt can be recovered without a second pose. A technical failure is distinct from scientific UNKNOWN.
+
+Artifacts: results/views/<input>/<view>/COMPLETE.json points to one fully hashed attempt. Attempts preserve raw detector poses/allpersons, inverse/correspondence masks, logs, timing, exit, identity/view detector-preprocessing hashes. results/evaluation/COMPLETE.json binds fourendpoint results, all198rows each, original full49 identity curves, five-arm statuses, two-recorded-endpoint persistence andsummary. All independent truth remains UNKNOWN pending root current-endpoint blind labels. Do not use finalnormal status as an earlylabel.
+
+Coordinate boundary: padding16 shifts pixels into a larger1344x768canvas and changes effective detector resize; it is not exact scale-preserving translation. Flip swaps COCO anatomicalleft/right labels. Inverse selectedbbox IoU>=.5 plus ambiguity/canvasmask gates are frozen. New views may reduce support further. No support relaxation or dropped transformation is allowed after results.
+
+Scientific comparison: d* is fixed from .3 originalidentity reliablelag and .5consistency only. All5arms andboth thresholds reuse it. Sharedsupport is candidate+five-null across9viewpairs, identicalweights. A/B compare identity/mean at samecandidate, A/C andB/D expose threshold relaxation, D/E tests finite-viewenvelope. This cannot test ensemblelagselection; identitysame-dataargminbias remains. No new policy trajectory is produced.

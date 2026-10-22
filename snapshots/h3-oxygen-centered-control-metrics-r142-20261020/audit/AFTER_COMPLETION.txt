@@ -1,0 +1,44 @@
+Use the actual producer attempt name; this file does not invent a generation.
+
+1. On the completed R142 producer host, after its runtime gate and exact release:
+
+python /path/to/export_bundle.py \
+  --producer-root /home/researcher/h3_runs/timing_oxygen_centered_control_r142_20261020 \
+  --attempt ACTUAL_ATTEMPT \
+  --out /home/researcher/h3_runs/timing_oxygen_centered_control_r142_20261020/audit/consumer_bundle
+
+Transfer only that bundle to this consumer's incoming/staged. export_bundle.py
+must be byte-identical to the sealed local script. The script performs no network
+transfer itself. It exports no x0 tensor or complete per-window pose scan.
+
+2. On the Mac, from /Users/researcher/DevProjects/h3-oxygen-centered-control-metrics-r142-20261020:
+
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py check
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py bind --started incoming/staged/STARTED.json
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/consume.py intake --bundle incoming/staged
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/media.py
+
+Review all showcase/full98 pages, plus static_pose_004_010_019.jpg. Complete a
+new audit/INDEPENDENT_REVIEW.json from audit/REVIEW_TEMPLATE.json. Preserve
+collection binding. Inspect all frames0..97 and the static subrange4..19;
+explicitly record if final centeredauto worsens static pose preservation.
+
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/evaluate.py --review audit/INDEPENDENT_REVIEW.json
+
+3. Prepare exact official MF input only:
+
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/prepare_mf.py \
+  --remote-root /data4/researcher/h3_runs/ive_oxygen_centered_control_mf_r142_20261020
+
+The generated mf/ directory uses the existing R138 tracker/score/admission tools.
+Root must arrange fresh resource/coexistence review, seal-bound execution review,
+one centeredauto tracker, exact process release and verified result collection.
+Use mf/audit/REMOTE_REUSE_PLAN.json and DEPLOY_FILES.txt to reuse host41 runtime
+and cached source; no model or source-video download is required.
+No launch command is executed by this consumer preparation.
+
+After mf/audit/RESULTS_VERIFIED.json and FINAL_RELEASE_VERIFIED.json are collected:
+
+/Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python scripts/finish.py
+
+Final result: audit/REPORT_HANDOFF.json. No HTML/mainreport mutation.

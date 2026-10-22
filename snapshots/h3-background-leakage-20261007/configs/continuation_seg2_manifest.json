@@ -1,0 +1,398 @@
+{
+  "status": "prepared_not_submitted",
+  "created_at_utc": "2026-10-07T17:12:41.708992+00:00",
+  "purpose": "Conditional continuation diagnostic: repeat historical seg2 using fixed full-visible historical seg1 latent, varying current character-reference background only.",
+  "execution_authority": "Root agent must independently validate graph and decide whether to run. No GPU/service/API mutations were performed by this preparation task.",
+  "host": "H3_SERVER_A",
+  "comfy_root": "/data5/researcher/ComfyUI",
+  "comfy_commit": "6f7cd7f",
+  "input_directory": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input",
+  "output_directory": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/output",
+  "historical_builder": "/data5/researcher/h3_runs/h3_cli_a800_runtime/scripts/h3-cli/src/h3_cli/graph.py",
+  "historical_sidecar": "/data5/researcher/h3_runs/yaoguang_formal_continuation_577f_20260824/seg2/sidecar.json",
+  "fixed_previous_latent": {
+    "path": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input/historical_seg1_latent.safetensors",
+    "sha256": "f59fbf423cc2789f1449c16627c6bf63f7b7c913176ef98eee3729561bd17036",
+    "metadata_without_prompt": {
+      "height": "768",
+      "seed": "214235573447273430",
+      "width": "1344",
+      "audio_vae": "minimax_h3_audio_vae_fp32.safetensors",
+      "schema": "minimax-h3-av-latent-v1",
+      "trim_frames": "0",
+      "fps": "24.0",
+      "transformer": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "visible_frames": "158",
+      "context_end_frame": "158",
+      "video_vae": "minimax_h3_video_vae_fp16.safetensors"
+    },
+    "video": {
+      "dtype": "F32",
+      "shape": [
+        1,
+        24,
+        47,
+        48,
+        84
+      ],
+      "data_offsets": [
+        67328,
+        18259712
+      ]
+    },
+    "audio": {
+      "dtype": "F32",
+      "shape": [
+        1,
+        32,
+        2,
+        263
+      ],
+      "data_offsets": [
+        0,
+        67328
+      ]
+    },
+    "full_pixel_frames": 158,
+    "published_interval_start_inclusive": 0,
+    "published_interval_end_exclusive": 158,
+    "hidden_tail_frames": 0,
+    "selected_context_pixel_interval": [
+      136,
+      158
+    ],
+    "selected_video_token_interval": [
+      40,
+      47
+    ],
+    "historical_source_path": "/data5/researcher/h3_runs/yaoguang_formal_continuation_577f_20260824/seg1/latent.safetensors"
+  },
+  "sampling": {
+    "seed": 1459903066845096071,
+    "sample_frames": 192,
+    "visible_frames": 158,
+    "fps": 24.0,
+    "width": 1344,
+    "height": 768,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "denoise": 1.0,
+    "context_frames": 22,
+    "audio_context_frames": 24,
+    "continue_audio": true,
+    "trim_frames": 22,
+    "published_sample_interval": [
+      22,
+      180
+    ],
+    "trailing_unpublished_frames": 12,
+    "lora": null,
+    "ref_image_size": "match",
+    "source_video_audio_connected": false,
+    "context_audio_from_previous_latent": true
+  },
+  "model_stack": {
+    "transformer": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "text_encoder": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "clip_projection": null,
+    "video_vae": "minimax_h3_video_vae_fp16.safetensors",
+    "audio_vae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "prompt_sha256": "3a3c183c678220df4506354e76fe11647c12d856fbb4a08843408b56cedf64f2",
+  "reference_inputs": {
+    "source_seg2.mp4": {
+      "path": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input/source_seg2.mp4",
+      "sha256": "3a065fcb5e7918ed6f0495ce0c55a612b24b878da8693d89cb9e89f21ad44e22",
+      "bytes": 41612448
+    },
+    "yaoguang_reference.png": {
+      "path": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input/yaoguang_reference.png",
+      "sha256": "6c0c38fc5832e6c813e0312f43c7c53c3c091155fcb87cf681866c7adfab8789",
+      "bytes": 5167167
+    },
+    "yaoguang_neutral.png": {
+      "path": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input/yaoguang_neutral.png",
+      "sha256": "a42e9424b0cac4676c5cc2b6b36a0aca95cfce604b2946998c86dd92a8d7cc3c",
+      "bytes": 3370500
+    }
+  },
+  "graph_files": {
+    "original": {
+      "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/continuation_seg2_original.json",
+      "sha256": "a0076f1bcc7bec22e9580d4a73fbfdcc0f3b12b9a0ac6e5a2b1efbfb28ea1aa7",
+      "bytes": 15228
+    },
+    "neutral": {
+      "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/continuation_seg2_neutral.json",
+      "sha256": "4cf71a47c5de4cd537b0ad9d96dfb6a905032cd50a6b9c79acd23de551f46f9b",
+      "bytes": 15224
+    }
+  },
+  "paired_graph_differences": [
+    {
+      "node_id": "137",
+      "class_type": "LoadImage",
+      "field": "image",
+      "original": "yaoguang_reference.png",
+      "neutral": "yaoguang_neutral.png"
+    },
+    {
+      "node_id": "92",
+      "class_type": "SaveVideo",
+      "field": "filename_prefix",
+      "original": "continuation_seg2_original_seed1459903066845096071",
+      "neutral": "continuation_seg2_neutral_seed1459903066845096071"
+    },
+    {
+      "node_id": "155",
+      "class_type": "SaveMiniMaxH3AVLatent",
+      "field": "filename_prefix",
+      "original": "h3_latents/continuation_seg2_original_seed1459903066845096071",
+      "neutral": "h3_latents/continuation_seg2_neutral_seed1459903066845096071"
+    }
+  ],
+  "differences_from_fresh_seg2_graph": [
+    "Target sampled length changes 158 to 192; same seed therefore does not preserve target noise across fresh versus continuation.",
+    "Added LoadMiniMaxH3AVLatent for fixed historical seg1 sampler AV latent.",
+    "Added MiniMaxH3MotionContext at conditioning only: 22 picture frames as never-denoised keyframe rows, 24 audio frames appended as timeline reference.",
+    "Guider uses augmented conditioning; sampler continues to use empty target latent from Ref2VA.",
+    "Added TrimMiniMaxH3MotionContext to publish precisely decoded frames [22:180] and corresponding audio.",
+    "Added SaveMiniMaxH3AVLatent to retain full 192-frame sampler latent with visible interval metadata.",
+    "Output prefixes are unique to continuation diagnostic."
+  ],
+  "differences_from_historical_builder": [
+    "Graph node identifiers differ but wiring and specified sampling/model/continuation inputs reproduce the existing historical builder.",
+    "Reference input names relocated to task-owned input directory; original image/video SHA256 match historical staged asset hashes.",
+    "Output prefixes/directories relocated to task-owned run, with matching canonical latent saving.",
+    "Neutral arm intentionally replaces only current reference image, keeping original historical seg1 context fixed.",
+    "Current core/custom-node revisions and runtime attention/memory/custom-node whitelist settings may differ from the August run; this is a configured replay, not a bit-exact historical reproduction claim.",
+    "Fixed seg1 latent will be copied unchanged to owned input directory; loader and saved metadata point to owned copy. Hash equality required before submission."
+  ],
+  "confounds_and_boundaries": [
+    "Original seg1 context is fixed in both arms and itself was generated using the original background image; neutral arm is not a complete neutralized chain.",
+    "Source reference-video soundtrack remains disconnected as in actual historical builder, although original prompt mentions Audio 1; context audio still enters from previous latent.",
+    "Reference video remains 158 frames while target sampling is 192 and published output starts at sample frame 22; preserving historical timing may introduce temporal alignment effects.",
+    "Continuation tail is not source-video frames; it contains historically generated identity, scene and possible pre-existing errors.",
+    "Current neutral preprocessing changes both Qwen and VAE input content, not a branch-isolated intervention.",
+    "Saved seg2 latent contains 12 unpublished trailing frames: do not use its absolute tail for future published-video continuation without accounting for context_end_frame=180."
+  ],
+  "required_custom_node_whitelist": [
+    "H3MotionContextOfficial",
+    "HermesH3Continuation"
+  ],
+  "whitelist_cli": [
+    "--disable-all-custom-nodes",
+    "--whitelist-custom-nodes",
+    "H3MotionContextOfficial",
+    "HermesH3Continuation"
+  ],
+  "required_custom_classes": {
+    "H3MotionContextOfficial": [
+      "MiniMaxH3MotionContext"
+    ],
+    "HermesH3Continuation": [
+      "LoadMiniMaxH3AVLatent",
+      "TrimMiniMaxH3MotionContext",
+      "SaveMiniMaxH3AVLatent"
+    ]
+  },
+  "import_audit": {
+    "method": "Read source and parse top-level AST only; did not import these packages or test runtime execution.",
+    "package_files_have_no_prestartup_script": true,
+    "dependencies": [
+      "Python standard library",
+      "torch",
+      "safetensors",
+      "numpy",
+      "torchaudio (optional import; existing native H3 already depends on it)",
+      "ComfyUI internal modules"
+    ],
+    "import_time_effects": [
+      "Class/function/constants definitions",
+      "Logger acquisition and registration info logging",
+      "Node mapping dictionaries updated with optional seam-probe class",
+      "Marker attributes set on local wrapper functions; no core class replacement at import"
+    ],
+    "first_motion_context_execution_effects": [
+      "Lazily self-checks and wraps PackedLayout.__init__ in process memory",
+      "Lazily self-checks and wraps MiniMaxH3.extra_conds in process memory",
+      "Wrappers gate their changes on motion-context markers; no disk patch or dependency installation"
+    ],
+    "whitelist_flag_source": "comfy/cli_args.py:211; nodes.py:2359",
+    "source_sha256": {
+      "/data5/researcher/ComfyUI/custom_nodes/H3MotionContextOfficial/__init__.py": "36c5b90ea8497cf3217371cf3c7c3358808fb652c8e87b0549116ac0e50c3055",
+      "/data5/researcher/ComfyUI/custom_nodes/H3MotionContextOfficial/nodes.py": "8ea0e2d29a92fe727ff83c79a001c7d0f9c6e4b68fce1e78756c0a96363c43c3",
+      "/data5/researcher/ComfyUI/custom_nodes/H3MotionContextOfficial/patch_layout.py": "302b13b42bc6d9440e54d8030a22828a5f8b84b10c9c6727cdfcac583c6a6840",
+      "/data5/researcher/ComfyUI/custom_nodes/H3MotionContextOfficial/patch_payload.py": "0b05b6ac154044bd4abad7ac7236a3bd9b1e9c887a74170f9bf44e182a07ce49",
+      "/data5/researcher/ComfyUI/custom_nodes/H3MotionContextOfficial/probe_node.py": "010c90ce94b60def081ded592b449bb2e57f85d9dbada6889a1232755c3108ce",
+      "/data5/researcher/ComfyUI/custom_nodes/HermesH3Continuation/__init__.py": "edf270a641808282f5d3ff51a260518821a59ad1dffcd27e23e6f6794787c573",
+      "/data5/researcher/h3_runs/h3_cli_a800_runtime/scripts/h3-cli/src/h3_cli/graph.py": "4a1d2771f8fa0c68226f8bbcf87fdbea16ecf55737f262be84e653aaa1be45c6"
+    }
+  },
+  "static_checks": {
+    "original_prompt_matches_seg2_sidecar": true,
+    "model_settings_match_sidecar": true,
+    "seg1_visible_end_equals_full_tail": true,
+    "source_asset_hashes_match_historical": true,
+    "paired_differences_only_image_and_output_prefixes": true,
+    "graph_links_reference_existing_nodes": true,
+    "custom_inputs_checked_against_source": true,
+    "api_schema_validation_performed": false,
+    "inference_performed": false,
+    "custom_inputs_ast_literal_schema_validation": true
+  },
+  "custom_class_schema_evidence": {
+    "MiniMaxH3MotionContext": {
+      "schema": {
+        "required": {
+          "conditioning": [
+            "CONDITIONING"
+          ],
+          "vae": [
+            "VAE"
+          ],
+          "latent": [
+            "LATENT"
+          ],
+          "context_length": [
+            [
+              "22",
+              "5",
+              "39",
+              "56"
+            ],
+            {
+              "default": "22",
+              "tooltip": "Frames of the previous clip's picture to carry over. Only these lengths are whole numbers of latent steps, so only these are offered. 5 is just barely fluid, 22 is nearly seamless. Longer windows pin more motion but come off the front of the delivered clip, so 56 spends 2.3 seconds of the render on frames you throw away."
+            }
+          ],
+          "audio_context_length": [
+            "INT",
+            {
+              "default": 24,
+              "min": 0,
+              "max": 240,
+              "tooltip": "Frames of tail audio to pin, independent of the picture window. 0 follows it. The window is END-aligned with the pinned video, so this only controls how far back the sound reaches. Multiples of 3 land exactly on the 40 Hz audio grid and multiples of 24 are whole seconds: 24 pins the last second. Off-grid values are widened to the nearest whole step."
+            }
+          ]
+        },
+        "optional": {
+          "context_frames": [
+            "IMAGE",
+            {
+              "tooltip": "Decoded frames of the previous clip. Used when no context_latent is wired. When one is, the picture comes from it instead and this is ignored."
+            }
+          ],
+          "context_latent": [
+            "LATENT",
+            {
+              "tooltip": "Previous clip's SAMPLER OUTPUT latent (the same one you wire into the decode nodes). Supplies both picture and sound, sliced straight out, skipping the decode and re-encode that cost a little quality at every link of a chain. Must be the same resolution as the clip being generated."
+            }
+          ],
+          "audio_vae": [
+            "VAE",
+            {
+              "tooltip": "H3 audio VAE. Supply with context_audio to carry the previous clip's tail sound across the join. Not needed when context_latent is wired."
+            }
+          ],
+          "context_audio": [
+            "AUDIO",
+            {
+              "tooltip": "Audio of the previous clip. The tail matching the pinned frames is encoded and pinned alongside them. Ignored when context_latent is wired."
+            }
+          ]
+        }
+      },
+      "source": "/data5/researcher/ComfyUI/custom_nodes/H3MotionContextOfficial/nodes.py",
+      "line": 347
+    },
+    "SaveMiniMaxH3AVLatent": {
+      "schema": {
+        "required": {
+          "samples": [
+            "LATENT"
+          ],
+          "filename_prefix": [
+            "STRING",
+            {
+              "default": "h3_latents/ComfyUI"
+            }
+          ],
+          "visible_frames": [
+            "INT",
+            {
+              "default": 243,
+              "min": 1
+            }
+          ],
+          "trim_frames": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0
+            }
+          ],
+          "metadata_json": [
+            "STRING",
+            {
+              "default": "{}",
+              "multiline": true
+            }
+          ]
+        }
+      },
+      "source": "/data5/researcher/ComfyUI/custom_nodes/HermesH3Continuation/__init__.py",
+      "line": 62
+    },
+    "LoadMiniMaxH3AVLatent": {
+      "schema": {
+        "required": {
+          "latent_path": [
+            "STRING",
+            {
+              "default": ""
+            }
+          ]
+        }
+      },
+      "source": "/data5/researcher/ComfyUI/custom_nodes/HermesH3Continuation/__init__.py",
+      "line": 125
+    },
+    "TrimMiniMaxH3MotionContext": {
+      "schema": {
+        "required": {
+          "images": [
+            "IMAGE"
+          ],
+          "audio": [
+            "AUDIO"
+          ],
+          "trim_frames": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0
+            }
+          ],
+          "visible_frames": [
+            "INT",
+            {
+              "default": 243,
+              "min": 1
+            }
+          ],
+          "fps": [
+            "FLOAT",
+            {
+              "default": 24.0,
+              "min": 0.001
+            }
+          ]
+        }
+      },
+      "source": "/data5/researcher/ComfyUI/custom_nodes/HermesH3Continuation/__init__.py",
+      "line": 224
+    }
+  }
+}

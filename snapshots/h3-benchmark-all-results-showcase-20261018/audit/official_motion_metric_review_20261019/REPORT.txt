@@ -1,0 +1,25 @@
+立即推荐：继续分别计算两个 benchmark 自己的官方 Motion Fidelity，逐对展示 MF(source, Native)、MF(source, guided)、差值。现成视频即可；有轨迹缓存时评分为 CPU，无需重新生成。新视频缺轨迹时，由 root 调度已有 CoTracker 权重做一次提取。两种同名 MF 公式不同，分表报告，均不能直接解释为毫秒时差。
+
+FlexiAct
+论文 §4.2 以点轨迹衡量非对齐视频的运动相似，并明确空间布局会影响 MF。公开代码将每条轨迹的逐帧位移除以其模长，得到方向单位向量 u；对输出点 i 与源点 j 取 Sij=mean_t dot(u_edit_i(t),u_source_j(t))。实际聚合为 mean_i max_j(Sij - 1[i=j])；原代码的对角减1必须保留。它并非固定同一关节匹配，也没有幅度误差项，默认不使用tracker visibility。零位移除法可产生 NaN，现有适配器保留 undefined 和分母，不擅加epsilon。
+官方代码读全视频帧，未统一强制8fps/49帧；本项目这些官方动作原素材恰为49帧@8fps，所以沿已冻结适配：H3完整158帧中取0,3,…144共49帧，和源j/8秒对应，尾部padding排除；评分输入1152×768，官方tracker内部缩放到384×512。grid55×55，CoTracker stride4/window8权重。目标身份图和提示词不参与MF，身份未换成也可能得高分。
+源码：https://github.com/shiyi-zh0408/FlexiAct/blob/de9fe1d536732c4d1a384577b5ae54f8fc1730d7/eval/motion_fidelity/motion_fidelity.py#L13-L39
+论文：https://arxiv.org/html/2505.03730v1#S4.SS2
+
+IVEBench
+论文§4.3及附录B、公开实现：CoTracker3 offline（grid10×10，window60，首帧query，backward=False）；轨迹对相似度由0.7/(1+位置距离/平均轨迹跨度)+0.3/(1+位移差/平均轨迹跨度)组成，再按visibility加权。source/target点之间以Hungarian一对一匹配，最终仅平均相似度>0.3的匹配；无合格匹配返回0。与Flex公式无数值互换关系。
+输入是两个视频或帧目录；默认读取全部帧，无强制评测FPS/统一512×512。官方README允许按被测方法上限预处理，但必须声明。我们现成适配在source和两输出中都取各自相同有效24fps前缀，去掉16/8画布pad，实际内容1280×720；内部tracker模型分辨率384×512。各源长度不同，保留完整有效域；同host/软件/GPU型号约束用于可比性。
+官方interpolate_track先按visibility>0.5删除帧，再把留下的位置均匀重铺到[0,1]时间轴；即使两输入同长度也执行。遮挡可压缩或抹去真实时间位置，分数不能当动作精确时差。匹配点无身体语义约束，背景、合法身份/构图变化也影响分数。代码对subject_motion_editing、camera_motion_editing和event effect返回-1跳过；后续任务必须保留这个适用范围。
+源码：https://github.com/RyanChenYN/IVEBench/blob/2dcf8900ee65197f43854c76f61c66a32bb8dbfc/metrics/fidelity/motion_fidelity.py#L183-L348
+论文：https://arxiv.org/html/2510.11647v1#A2
+
+当前可直接复用的工具与已完成分数
+- Flex R65：runtime/official_metric/{run_tracks.py,metric_adapter.py,score_pair.py}及scripts/score_one.py；R66同数值支持action+target键。R65已有2对4分；R66已有8对16分。
+- IVE R64/R73：runtime/metric_runtime/{run_tracks.py,score_cached_tracks.py}，原official_source/metrics/fidelity/motion_fidelity.py，scripts/score_one.py。R64已有4对8分；R73本机已有0252/0344/0065共3对6分；其余需按实际tracker收据核对待补。
+- R85与R89目前是媒体消费者，本机没有score_one或正式MF结果；应在独立新评分包继承上述原数值函数和权重，绑定对应真实gate/有效帧/源像素/提示版本，完成同环境source+两个target轨迹后算分。不能把R65/R66同名旧视频分数填入R85，也不能直接向旧case受限CLI塞新ID。
+
+最小报告口径
+所有已完成配对列官方MF及差值，同时独立列身份/元素编辑、场景保留、动作内容是否完成。显示总配对数和finite/适用分母；unknown/undefined保留；不只选改善视频。跨身份/跨场景配对使用各自官方MF，合法外观或布局变化造成的影响明确解释。相同动作换多个target按pair计，但另报独立动作源数。
+额外时序证据使用现有保留原frame index/PTS的事件时间区间或可见骨段/整臂lag，注明本项目补充指标。只有同事件、足够可见且幅度/形状支持时解释lag；遮挡或动作改变为UNKNOWN。视频内部的Motion Smoothness/Temporal Consistency衡量平滑稳定，不能替代source–edited动作保持。所有上述数值可与视觉结果并列；“肉眼无明显收益”不免除正式跑分。
+
+本轮仅核实论文/代码与本机工具，没有安装依赖、启动tracker或更改官方公式。

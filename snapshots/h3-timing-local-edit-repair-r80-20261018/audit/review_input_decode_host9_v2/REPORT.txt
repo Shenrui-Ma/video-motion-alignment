@@ -1,0 +1,4 @@
+已核R80 host9输入解码v2行政修订。61文件seal逐项一致；只修改verify_native显式期望文件参数和execution_gate收据选择，新增独立expectation、v2核验器与4项回归。独立重跑37项CPU测试全部通过。
+读取实际Comfy VideoFromFile.get_components CPU重放脚本，未引用模型conditioning，CUDA始终未初始化。0230本地独立重放JSON与v2期望的input tensor/MP4/90帧PTS/YUV以及整文件SHA逐项一致；旧false收据保留。0352预冻结独立replay通过seal绑定，未下载其大型网格JSON。正式全轨迹HOST9_v2收据待root实际执行。
+.41与.9浮点颜色张量不等；这次只建立.9自身严格输入核验，不能由此声称旧跨机结果可作严格单变量对照。
+维护提示：旧seal()枚举缺少新增host9期望文件，当前实际61seal已包含它；作者已收到避免直接重跑旧枚举的提醒。

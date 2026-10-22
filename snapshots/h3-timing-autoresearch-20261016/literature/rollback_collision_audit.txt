@@ -1,0 +1,115 @@
+Adaptive rollback after late detection: independent collision and mechanism audit
+Date: 2026-10-16. Bounded primary-source search; no GPU, implementation, or remote operation. Source versions are pinned below. A failure to locate an exact method is not evidence of absence.
+
+DECISION
+检测失败后回退、需要时多算、正常样例直接通过、无需生成教师，这些本身均不是空白。Ctrl-Z、DiffRS、ABCD、CS-VGB 已覆盖自适应回退/候选接受；DiffEditor 已覆盖确定性回退并重复局部编辑引导；TBS 已把“视频轨迹早期确定、晚期难改”作为明确动机。精确恢复同一次采样保存的完整状态，与这些方法的重新加噪、DDIM 近似逆推、物理视频前缀重启不完全相同，但仅用缓存代替重建状态通常是实现选择，不足以构成架构贡献。
+
+可以继续验证一个更窄的经验机制：某类参考动作相位错误的可靠可观测时刻晚于有效干预窗口；基于迟到诊断的重放能以可计量额外成本，保留正常样例的原始轨迹并修复失败样例。这个“可观测性—可控性间隔”目前只是候选分析，不是新发现证明，TBS 等已有相近早期承诺论述。
+
+1. NEW H3 EVIDENCE: WHAT IT DOES AND DOES NOT SHOW
+
+Parent reports: at late11 the lag is reliably visible; routing activated from late11 leaves lag about 11/12 frames, whereas all-step routing gives about 0. This supports “the tested late schedule was insufficient.” It does not yet prove irreversible commitment, a precise latest controllable step, that all late actuators fail, or a general gap between observability and controllability.
+Confounds: all-step versus late-only differs in duration, integrated intervention strength, early state distribution, and possibly nonlinear path dependence. Late decoded x0 visibility may reflect the pose readout's weakness rather than the model containing no earlier timing information. A late-only negative result is specific to the tested actuator, strength, layers, event ROI, solver, seed, and geometry.
+
+2. CLOSEST PRIMARY METHODS
+
+(1) Ctrl-Z Sampling — strongest generic collision
+https://arxiv.org/html/2506.20294v3 , §3–4, Eq.(4), Algorithm 1.
+It evaluates an intermediate clean estimate with a reward model. When progress fails a threshold, it explores progressively noisier states and accepts improved candidates. Its backward proposal is a Gaussian forward-noising transition, not loading the exact historical latent:
+ x_(t+Δ)=sqrt(α_(t+Δ)/α_t)x_t+sqrt(1−α_(t+Δ)/α_t)ε.
+The inspected algorithm restricts exploration to a configured early window; escalation depth and candidate count are bounded. Hence conditional rollback, dynamic depth, retaining a good candidate, and avoiding exploration when unnecessary already exist. Different: no source-video signed phase diagnostic or exact cached-trajectory restoration was identified in this method. It is a sampling procedure on pretrained models, not new teacher training.
+Official repository https://github.com/ShunqiM/Ctrl-Z-Sampling currently exposes README with code-coming-soon; this audit relies on primary equations/pseudocode, not a reproduced implementation.
+
+(2) DiffEditor — deterministic rollback with local editing guidance
+https://openaccess.thecvf.com/content/CVPR2024/papers/Mou_DiffEditor_Boosting_Accuracy_and_Flexibility_on_Diffusion-based_Image_Editing_CVPR_2024_paper.pdf , Time travel paragraph, Algorithm 1.
+https://arxiv.org/abs/2402.02583
+To refine image edits while avoiding random-noise-induced content changes, it uses deterministic DDIM inversion for rollback and repeats regional score guidance within a prescribed sampling interval; the paper uses three repetitions. This is already a training-free recurrent correction mechanism with local edit/content constraints. DDIM inversion is not the same as restoring a byte-identical earlier full solver state. Its fixed interval/repetition and image-edit objective differ from a late pose-triggered H3 rewind, but “deterministic rollback preserves editing better than random restart” is not a new premise.
+Official source cited by authors: https://github.com/MC-E/DragonDiffusion . Code was not executed or independently traced in this bounded pass.
+
+(3) Temporal Backtracking Search (TBS) — closest VIDEO motivation; different time axis
+https://arxiv.org/html/2606.13861v1 , Fig.1, §3.2–3.3, Algorithm 1.
+It explicitly reports early diffusion commitment of video trajectories and difficulty repairing them with later denoising. A verifier localizes failure in physical video time, retains a valid prefix, and resamples suffixes from an aligned restart anchor R=τ floor((F−1)/τ). The generator is finetuned for variable-K clean-prefix conditioning. Thus generate–verify–restart, useful-prefix preservation, and targeted extra compute already exist in video. Unlike the proposed H3 experiment, its rollback is along physical frames, not an exact earlier denoising checkpoint for the same whole clip. Do not cite TBS as proof that all denoising-axis corrections must fail: its task/model/actuator differ.
+Project: https://sejoonjun.github.io/TBS/ . No implementation execution in this audit.
+
+(4) Restart Sampling — basic denoise/re-noise cycles
+https://arxiv.org/html/2306.14878v2 , §4.1 Eq.(3–4), Appendix B Algorithm 2.
+At a scheduled low-noise point, add Gaussian noise to reach a higher-noise level, then integrate the reverse ODE; repeat a specified number of times. This aims to contract accumulated sampling errors. It does not use a late motion verifier or restore the original historical state. It is a pretrained-model sampler; its stochastic return and predefined intervals distinguish it from an exact replay, but returning to a more editable noise level is established.
+Official code: https://github.com/Newbeeer/diffusion_restart_sampling . Not run here.
+
+(5) RePaint — conditional regional repair plus repeated earlier noise levels
+https://arxiv.org/html/2201.09865v4 , §4.1–4.2, Algorithm 1.
+It combines model-generated unknown pixels with known-image regions at matching noise levels. It repeatedly forward-noises and denoises to harmonize the boundary and condition before proceeding; jump length controls how far it returns. The method explicitly motivates repetition by declining correction flexibility at later steps. This is scheduled stochastic resampling, not exact checkpoint replay triggered by a pose error. It nevertheless precludes novelty claims for “late steps cannot fix everything, so return and reapply local constraints.”
+Official repository: https://github.com/andreas128/RePaint . Not run here.
+
+(6) Diffusion Rejection Sampling (DiffRS), ICML 2024 — good samples continue, poor ones get variable extra effort
+https://arxiv.org/html/2405.17880v1 , §3.1–3.4, Algorithm 1–3.
+https://proceedings.mlr.press/v235/na24a.html
+A trained time-dependent discriminator estimates density ratios L_t. Candidate transition acceptance uses L_t/(M_t L_(t+1)). Rejected samples are reinitialized by forward noising, with recursive rejection able to increase return depth. This directly covers sample-dependent acceptance/rework, but targets transition-distribution correction, not reference-action timing. The generator stays fixed; the discriminator training means the complete method is not “no new training.” It does not simply load a previously saved entire solver state.
+Official code: https://github.com/aailabkaist/DiffRS . Primary paper checked; code not run.
+
+(7) Feynman–Kac steering / SMC — intermediate scoring and resampling already general
+https://arxiv.org/html/2501.06848v2 , §3, intermediate rewards and interval resampling.
+It propagates multiple diffusion particles and reweights/resamples them using potentials derived from intermediate reward estimates, including decoded clean predictions. It is an inference-time framework on fixed generators; pretrained or separately learned rewards are possible. In the basic construction particles move monotonically toward the clean endpoint, so this is not the same as late single-path checkpoint rewind. However, replacing a generic reward with pose timing and using a smaller particle pool is not automatically architectural novelty.
+Official code: https://github.com/zacharyhorvitz/Fk-Diffusion-Steering . Not run here.
+
+(8) ABCD — adaptive depth and termination of cyclic search
+https://arxiv.org/html/2505.14036v2 , §3, Algorithm 1.
+https://openreview.net/pdf?id=jkCH6iwFZm
+It denoises particle candidates, keeps top-K, copies them, and re-noises copies to a pool of go-back timesteps before denoising again. Selection allocates effort across exploration depths. A convergence rule stops cycles based on repeated selection of low-temperature candidates. This directly covers instance-adaptive return depth and stopping; it does not rely on exact historical state restoration or a source-video correspondence actuator. Training-free use of a pretrained diffusion generator is already part of this inference-search family.
+Project: https://lee-gyubin.github.io/ABCD_project_page/ . Primary paper/algorithm read; not implemented.
+
+(9) CS-VGB — very recent continuous-state verifier-guided backtracking
+https://arxiv.org/html/2610.15281v1 , §2, Appendix B.2–B.3, Algorithm 1; submitted 2026-10-11.
+It constructs recurrent denoising/renoising between checkpoints, retains a direction state and candidate pools, and uses reverse insertion of a previous state to preserve a specified stationary target under stated transition assumptions. These are sampled transitions plus retained candidates, not simply restoring a fixed original trajectory after detecting motion lag. Its checkpoints are noise levels, and verifier-guided backward moves are direct prior art. The practical search implementation explicitly relaxes some exact-target corrections; do not import its theoretical guarantee into our heuristic rewind.
+Official code linked in paper: https://github.com/KraitGit/CS_VGB . Full code not audited here. This new preprint alone is enough to rule out a broad “first verifier-driven checkpoint backtracking” claim.
+
+(10) Diffusion ReRoll — closest LOCAL physical-window re-noising
+https://arxiv.org/html/2607.19919v1 , §3, Appendix A/B.
+A schedule matrix gives tokens different noise levels. When a chunk reaches a reset threshold, selected sequence regions receive new noise while other regions continue denoising. It supports planning, actions, and video–action sequences. The backbone must accept per-token noise levels, and the paper explicitly finds training with matching linear noise chunks necessary for effective deployment. This is not an off-the-shelf local rollback for H3. It directly cautions against splicing early-noise and late-noise temporal windows under a single common sigma and calling the result a valid replay.
+Project: https://seonsoo-p1.github.io/DiffusionReRoll/ . Paper inspected; no implementation execution.
+
+Additional name collision, excluded from semantic-motion method comparison:
+DRIFT https://arxiv.org/html/2604.09073v1 §5.3 stores GEMM activations and restores masked values after checksum-detected hardware faults. It is genuine checkpoint-based selective restoration, but of faulty activations, not whole diffusion sampler rollback for generative semantic error. Its abstract wording is broader than the actual mechanism. DisBack is training-trajectory distillation, not inference-state rewind; TimeRewind refers to reverse physical-time synthesis. These names do not establish the proposed exact mechanism.
+
+3. THE DETERMINISTIC EQUIVALENCE THAT LIMITS NOVELTY
+
+Use increasing denoising step index i=0…N. Let full sampler state S_i include noisy latents, solver history, RNG, and schedule context; U_i^a is one update under actuator a. Suppose a native run reaches detection at d and restores its exact cached S_r, r<d. If the subsequent actuator schedule a_r…a_(N−1), inputs, and RNG match a conventional run that was native until r and then used that same schedule, their final outputs must match up to implementation numerical effects:
+  replay(S_r,a_r:N) = scheduled_run(native_0:r, a_r:N).
+
+Restoration itself creates no new controllability. What the late diagnostic contributes is information for choosing the branch, ROI, schedule, or correction sign AFTER that information becomes reliable. If those choices are fixed in advance, rollback is merely extra work to reproduce an existing schedule. Exact restore + no change + deterministic continuation should reproduce the original failure; improvement in that null test is evidence of a replay/state bug or uncontrolled stochasticity, not a desirable repair mechanism.
+
+Accordingly, a possible contribution is a calibrated selective-computation policy tied to reference phase error and the recoverability of earlier states. It remains an inference control policy, not a neural backbone innovation. To be more than combining known parts, it must demonstrate why its timing/branch decision is necessary and better than fixed early correction, generic reward-triggered re-noising, or another seed at matched cost. Merely citing no teacher and no training does not create that distinction.
+
+4. MINIMUM DISCRIMINATING EXPERIMENT — FIRST REJECT THE PREMISE CHEAPLY
+
+Gate A: identify an effective early interval before building a rollback system.
+Use the same known failure, exact fixed content/seed/geometry/actuator/backend. Native, all-step route, and late11 route are already available subject to provenance matching. Add:
+- Early-only routing for a predeclared interval, followed by native remainder. Choose an interval with the same count as late-only first; report both step indices and actual sigma span, since equal step counts do not imply equal denoising integration span.
+- One earlier start r>0 with routing to the end. If it fails, try r=0 only as the existing all-step positive control; do not pretend that restoring initial noise provides a new scientific positive.
+If only all-step works, the result may be cumulative/path-dependent rather than a narrow early window. If early-only works, it supports temporal specificity of the tested intervention, not a general no-late-control theorem. Independent event measurements should distinguish signed lag, amplitude, visibility and identity/edit compliance.
+
+Gate B: exact replay correctness before repair.
+Save actual pre-update noisy S_r; a stored predicted x0 is NOT S_r. Restore the complete native state and continue WITHOUT intervention. Compare with uninterrupted native latent/output. Then resume WITH the predeclared correction and compare with a fresh ordinary native-until-r/route-after-r run. They should agree. These are integrity/equivalence controls, not evidence of innovation.
+
+Gate C: only then test the selective-decision value.
+At a fixed detection point d, use a source-relative pose diagnostic with prespecified confidence/tolerance to select bad cases. Freeze this rule using separate calibration cases; do not use final-output labels to route the test set. Include normal cases and intended-action edits. Compare:
+(a) native;
+(b) always-on early/fixed routing;
+(c) detect-and-replay exact S_r with localized correction;
+(d) detect-and-re-noise with comparable depth and the SAME correction;
+(e) matched-budget independent resampling/selection when feasible.
+At minimum, a failure and a known-good case are needed for feasibility; several held-out seeds/clips are needed before claiming a reliable selective policy. Compare false positives, missed failures, recovery rate, event shape and edit compliance, not only best recovered examples. If always-on early routing preserves good cases just as well and costs less, the rewind policy lacks its claimed practical advantage.
+
+Strongest minimal falsifier: the successful replay is numerically identical to the fixed early-routing arm, and its detector does not improve the quality/cost tradeoff over that fixed arm. In that case retain the early-schedule observation but reject rollback as the new mechanism. Likewise, if re-noising or another seed at equal compute works as well, exact historical restoration has no demonstrated necessity.
+
+5. STATE, LOCALITY, AND COST CONSTRAINTS
+
+Full restore must include video and audio packed/NestedTensor state, exact pre/post-step convention, solver multistep history where present, RNG/noise streams, original global sigma schedule, original step/PDD-head context, conditioning and all patch/cache state relevant to predictions. Truncating the schedule or resetting counters can change H3 semantics. Restoring a decoded x0 or re-noised x0 is a different intervention and must be named accordingly.
+
+Prefer whole sampler-state rewind with a local ATTENTION actuator. Replacing only event-window noisy latents with an earlier-noise version while leaving other windows late introduces mixed noise levels; a single sigma no longer describes the tensor. It also changes temporal attention and VAE context. H3 per-token noise support and checkpoint training compatibility would need separate evidence. ReRoll's requirements show this is not a free optimization. Replaying only selected frames while holding the rest to the cached trajectory is an inpainting-like method with its own conditional consistency problem.
+
+Let d be completed model evaluations before detection, N the normal total, r the cached earlier evaluation index, one call per step for illustration. A stopped-and-replayed failure costs d+(N−r)=N+(d−r), plus preview/pose/checkpoint overhead. A normal accepted trajectory costs N plus monitoring overhead, even if model NFE is unchanged. If the first candidate is completed to N before deciding, failure costs N+(N−r). Multiple branches, rejected trials, extra denoiser passes and forward/backward guidance all count. Report measured total generator calls, decoder/pose calls, wall time, peak VRAM and storage; do not hide earlier experimental runs or compare only the accepted suffix. Exact numbers must come from actual sampler instrumentation, not this illustrative formula.
+
+6. CLAIM GATE
+
+Current verdict: feasible engineering hypothesis, high prior collision, no strong architecture novelty established. A narrow defensible research question is whether reliable reference-phase diagnosis arrives after a demonstrable correction window, and whether state-preserving selective replay offers a better motion/edit/compute tradeoff than fixed early correction and generic restart. The proposal should be rejected or reframed if its only success reproduces the already available all-step route. No same-paper match to the entire “H3 source-pose lag -> exact cached noisy state -> local reference-time operator” combination was identified in this bounded search. That is a limited search observation, not a novelty certificate.

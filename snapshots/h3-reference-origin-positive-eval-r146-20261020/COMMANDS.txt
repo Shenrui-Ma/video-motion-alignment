@@ -1,0 +1,37 @@
+R146 独立评估准备；相位版尚未接收，无完成结论。
+
+目录：
+/Users/researcher/DevProjects/h3-reference-origin-positive-eval-r146-20261020
+
+使用已安装的 bundled Python（含 Pillow；不安装依赖）：
+PY=/Users/researcher/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3
+EVAL=/Users/researcher/DevProjects/h3-reference-origin-positive-eval-r146-20261020
+
+测试：
+"$PY" -m unittest discover -s "$EVAL" -p 'test_validation.py'
+
+实际成片后：将下列路径替换为已回收的同一 run 视频、gate、COMPLETE、ROOT_EXIT 和 root 已审 producer seal。
+不能使用历史 R132 gate，也不能用另一 case 的 release。第一次仅验证：
+"$PY" "$EVAL/prepare_comparison.py" --case short_0252 \
+  --phase /absolute/actual/reference_origin.mp4 \
+  --gate /absolute/actual/REFERENCE_ORIGIN_RUNTIME_GATE.json \
+  --complete /absolute/actual/COMPLETE.json \
+  --release /absolute/actual/ROOT_EXIT_RECEIPT.json \
+  --seal /absolute/approved/deploy_manifest.json --validate-only
+
+验证通过后，使用相同参数去掉 --validate-only，并加 --panels 4。
+这将生成 source / Native / fixed / reference_origin 的同帧四列视频和全部有效帧。
+--panels 3 生成 source / Native / reference_origin。
+饮酒改 --case short_0358；默认分别只渲染98/105有效帧，排除107帧尾部padding。
+--frames 42,50,72 可仅导出指定帧截图，但视频仍保留完整有效域。
+输出位置 review/<source_id>/<3|4>panels/PRESENTATION.json。
+黑底中文仅在下方；视频title元数据说明研究任务和方法，不加顶部标题。
+同目录已有结果时拒绝覆盖。验收后再单独填写人工全帧评审，不自动推断任务/事件成立。
+
+预登记比较：
+1. 编辑成立、人物/非目标/场景/动作链完整性先验收。
+2. 复用 EVALUATION_MANIFEST.json 的原事件定义和区间；缺失事件记null。
+3. 三事件同时报告有符号/绝对误差；两相邻阶段用相同source时刻计算区间。
+4. R141b和R123已有官方MF直接复用，新reference_origin仍pending，之后只追踪新成片。
+5. 运行耗时采用实际sampler起止时间，另列capture/loading/decode；job_wall/20不可称采样每步。
+6. 本准备未启动GPU、未运行RGB观察器、未下载/复制媒体、未修改手改报告。

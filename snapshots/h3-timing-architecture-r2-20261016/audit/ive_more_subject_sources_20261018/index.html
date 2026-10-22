@@ -1,0 +1,74 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>IVEBench新增原片筛选</title><style>body{max-width:1450px;margin:35px auto;padding:0 22px;font:17px/1.65 system-ui;background:#101318;color:#e8edf2}h1{font-size:27px}h2{margin-top:55px}a{color:#8ac5ff}img{width:100%;height:auto}video{width:min(100%,1000px);display:block}section{border-top:1px solid #4c5360;padding-top:12px}blockquote{background:#202631;padding:12px 20px;margin:10px 0}small{color:#abb4c1}code{overflow-wrap:anywhere}</style><h1>IVEBench新增原片筛选</h1><p>8条源内容复核：1条优先，3条候补，4条本轮不推荐。这里展示待测原片；生成与干预效果尚未测试。</p><p>已按source_name、非空URL及平台原视频ID去重。短片0235与short0217、long0046同源；0362缺原始URL。建议窗口按源视频动作选取，属于IVEBench素材片段探索。</p>
+<section><h2>long_0039 · 优先</h2>
+<blockquote>Adjust the color of book to blue</blockquote>
+<p>前景女子把手从键盘移向橙色书，触碰书封，再拿起并打开。改书封颜色与保留这段动作直接兼容。 只改运动中物体颜色，动作语义保留；背景人物不能混入主动作评估。</p>
+<p>前景人物上半身、操作手与书清楚；背景有数位同事，须明确绑定前景书与人物。</p>
+<small>完整原视频：356帧，25/1 fps，14.24秒。<a href="sources/long_0039.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_long/long_0039.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/long_0039.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/long_0039.jpg"></details>
+<p>建议源窗口 [0, 6) 秒；原帧 0…149。以下24帧用于查看源动作。</p>
+<img loading="lazy" src="contact_sheets/long_0039_suggested_window.jpg">
+<p>目前最适合新增的一条。</p></section>
+<section><h2>long_0035 · 候补：手部操作</h2>
+<blockquote>Remove the headphones from the DJ</blockquote>
+<p>双手拿起耳机并移出画面，随后手回到唱盘；两个可辨认阶段之间存在较长画外间隔。 官方任务删除被操作的耳机；可以检验剩余手部路径与返回唱盘时刻，但抓握接触语义会随物体删除改变。</p>
+<p>主要可见腰部与双手，头部和肩肘不在画面；不适合现有人体双臂观察器。</p>
+<small>完整原视频：575帧，25/1 fps，23.0秒。<a href="sources/long_0035.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_long/long_0035.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/long_0035.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/long_0035.jpg"></details>
+<p>建议源窗口 [5, 11) 秒；原帧 125…274。以下24帧用于查看源动作。</p>
+<img loading="lazy" src="contact_sheets/long_0035_suggested_window.jpg">
+<p>可作手物操作扩展，动作在画外期间标为不可观测。</p></section>
+<section><h2>long_0060 · 候补：逆光接触</h2>
+<blockquote>Remove the cigarette from the scene</blockquote>
+<p>手带香烟靠近嘴部，停留后离开；逆光下手与脸边界可辨，肩肘细节很暗。 官方删除香烟，保留身体路径可以评估；烟雾和被删除物体本身不宜作时间误差依据。</p>
+<p>人物侧面上半身可见，强逆光形成剪影；手到嘴距离可人工判断，姿态自动测量可靠性待测。</p>
+<small>完整原视频：644帧，25/1 fps，25.76秒。<a href="sources/long_0060.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_long/long_0060.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/long_0060.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/long_0060.jpg"></details>
+<p>建议源窗口 [62/5, 92/5) 秒；原帧 310…459。以下24帧用于查看源动作。</p>
+<img loading="lazy" src="contact_sheets/long_0060_suggested_window.jpg">
+<p>动作转折少，优先级低于书本案例。</p></section>
+<section><h2>short_0185 · 候补：未编辑人物动作</h2>
+<blockquote>Replace the character lying on the floor with a small animated teddy bear</blockquote>
+<p>中间站立角色多次抬落手臂，末段拿到音响；官方要替换的是前景趴地角色，该角色大部分时间静止。 可评估局部替换后其余角色动作是否保留；不能作为被替换主体自身运动继承的直接证据。</p>
+<p>多角色动画；站立角色手臂可见，被替换的趴地角色手臂大多不可见。</p>
+<small>完整原视频：100帧，24/1 fps，4.166667秒。<a href="sources/short_0185.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_short/short_0185.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/short_0185.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/short_0185.jpg"></details>
+<p>建议源窗口 [0, 25/6) 秒；原帧 0…99。以下24帧用于查看源动作。</p>
+<img loading="lazy" src="contact_sheets/short_0185_suggested_window.jpg">
+<p>保留为原场景中未编辑动作保持的扩展任务。</p></section>
+<section><h2>long_0088 · 本轮不推荐</h2>
+<blockquote>Replace the mug with a book</blockquote>
+<p>举杯、嘴边停留、放下杯子的阶段清楚，但官方任务把杯子替换成书。 杯子换书会改变饮用动作的合理性，动作变化难直接解释成不受控时序错误。</p>
+<p>女子上半身与杯子可见。</p>
+<small>完整原视频：365帧，25/1 fps，14.6秒。<a href="sources/long_0088.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_long/long_0088.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/long_0088.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/long_0088.jpg"></details>
+<p>主要拒绝原因是任务与保留饮用动作存在语义冲突。</p></section>
+<section><h2>short_0039 · 本轮不推荐</h2>
+<blockquote>Replace the seagull with a pelican</blockquote>
+<p>海鸥从低头位置抬头，随后主要站立和小幅转头；没有连续多次动作切换。 海鸥换鹈鹕伴随明显头喙形状变化，应另设计非人体评估。</p>
+<p>全身鸟类可见，现有人体观察器不适用。</p>
+<small>完整原视频：70帧，25/1 fps，2.8秒。<a href="sources/short_0039.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_short/short_0039.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/short_0039.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/short_0039.jpg"></details>
+<p>动作密度不足，暂不作为当前扩展。</p></section>
+<section><h2>short_0235 · 本轮不推荐</h2>
+<blockquote>Change the white sea otter to green</blockquote>
+<p>海獭漂浮并小幅梳理毛发，手爪与脸附近运动较细，水体带来整体漂移。 可以作动物毛色编辑，但难用于当前明确手臂阶段与时序评价。</p>
+<p>手爪部分被毛发遮挡，非人体。</p>
+<small>完整原视频：112帧，30000/1001 fps，3.737067秒。<a href="sources/short_0235.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_short/short_0235.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/short_0235.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/short_0235.jpg"></details>
+<p>动作幅度和可见性不足；且与short_0217/long_0046属于同一YouTube原视频。</p></section>
+<section><h2>short_0362 · 本轮不推荐</h2>
+<blockquote>Change the book with a blue cover to a red cover</blockquote>
+<p>人物低头阅读，蓝色书封和手的位置基本保持，未见清楚翻页或举落阶段。 改书封颜色任务清楚，但源动作不足以检验明显时序偏移。</p>
+<p>两位人物上半身可见，视频分辨率较低。</p>
+<small>完整原视频：67帧，25/1 fps，2.68秒。<a href="sources/short_0362.mp4">打开原片</a> · <a href="https://huggingface.co/datasets/Coraxor/IVEBench/resolve/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_short/short_0362.mp4">官方固定版本</a></small>
+<video controls preload="none" src="sources/short_0362.mp4"></video>
+<details><summary>全片固定16帧</summary><img loading="lazy" src="contact_sheets/short_0362.jpg"></details>
+<p>动作过少；官方映射缺少URL，独立原视频身份仅能按source_name登记。</p></section>
+<p><a href="REPORT.txt">完整说明</a> · <a href="metadata/VISUAL_REVIEW.json">结构化观察记录</a> · <a href="metadata/SOURCE_RECEIPTS.json">原片SHA/LFS</a> · <a href="metadata/TIMEBASE.json">原始时间轴</a></p></html>

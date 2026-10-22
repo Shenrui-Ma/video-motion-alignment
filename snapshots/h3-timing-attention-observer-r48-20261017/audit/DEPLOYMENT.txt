@@ -1,0 +1,16 @@
+R48 root-only handoff; no deployment or CUDA by builder.
+Local /Users/researcher/DevProjects/h3-timing-attention-observer-r48-20261017
+Remote /data5/researcher/h3_runs/timing_attention_observer_r48_20261017
+GPU3 GPU-REDACTED, port8510 (fresh live check mandatory).
+Protocol SHA d389782185752f244977c213329b75c828103566bc6ebfc455835056d64018a2
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+
+1. After independent review, extract audit/runtime_bundle_v1.tar.gz; check all deploy_manifest.json files. Create configs/admission.json from false local template; only root fills live identities. No old ready/go/process files are included. Historical7PT perstate remain exact R33/R37 roots in configs/sources.json; preflight --live rehashes them. No media/model downloads or encoder execution.
+2. Offline: PYTHONDONTWRITEBYTECODE=1 python3 scripts/preflight.py (needs existing torch Python if runtime import requires it).
+3. Optional/new-device model-free gate (0DiT): set CUDA_VISIBLE_DEVICES to exactGPU3, PYTHONPATH to existing runtime_deps, then run existing Python scripts/gpu_probe_smoke.py --control-dir audit/gpu_probe_attempt1 --output audit/gpu_probe_gate.json. It waits before first CUDA at ready.json. Root verifies actual PID/UID/start_ticks(decimal STRING)/raw cmdSHA, registers exact peer if any, copies ready JSON atomically to go.json. Final child-exit/compute-absent receipt required. Probe script/math unchanged from R46; priorGPU2 gate is inherited algorithm evidence, not claimed GPU3 run.
+4. Root writes audit/root_resource_approval.json approved=true only after actual free/resource/gate review. No guessed memory margin; final first-forward peak/endpoint still mandatory.
+5. python3 scripts/launch_remote.py --service-only. It returns exact future CUDA service identity at processes/cuda_gate_ready.json. Register this actualPID in active peer if any, then atomically copy ready to processes/cuda_gate_go.json. Wait HTTP /object_info/H3AttentionStateProbe. Then python3 scripts/start_controller.py.
+6. Exactly r48_bad_index4 followed by r48_normal_index4; failure stops. Never retry with relaxed guard, recompute20steps, substitute R46 failedoutput or change sealed queue. root may exact-stop after archive, else600s hold cleanup.
+7. Under shared CPU locks and online priority: CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 existing-Python scripts/verify_completed.py --allow-resident --output analysis/READOUT_GATE.json. After exact cleanup repeat without --allow-resident. This is CPU archive verification, no model. Keep all attention.pt/report.json/endpoint_raw.pt in audit/probe/bad andnormal plus job/history, actual sigma_path evidence, failed attempts, cost, resource/identity/cleanup.
+
+No observation CUDA subprocess or VAE/Qwen load. Same-model/native endpoint equality, not just head guard, is required before any readout interpretation.

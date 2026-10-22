@@ -1,0 +1,28 @@
+R70 known codec-residual controls: CPU consumer
+
+Scope: four completed native VAE decodes of the existing saved x0 and original
+frozen maps. Consume only after root's exact PID/UID/start/cmd identity receipt
+confirms process absent and CUDA allocation absent. No GPU operations here.
+
+Every old/new video must have its actual file SHA, geometry, 158 decoded RGB24
+frame hashes verified. Recompute normalized RGB8 absolute channel error for all
+methods against the same direct RGB-warp target. Sum signed-int16 channel
+differences in int64 and divide by channel count*255. No float-vs-byte mixing.
+Original float32 comparisons are retained verbatim in a separate historical JSON.
+
+Reuse the original exact coordinate maps and masks: common valid147,
+cross17/within17, decoder overlap, padding and shared144 domain. Preserve every
+per-frame value. Report actual continuous errors and relative change to plain
+RGB encode/decode and latent warp; no tuned success threshold.
+
+Presentation: same-frame 24fps videos, equal 576x384 panes, captions below the
+canvas. Per map: target/plain latent/transport, target/RGB reencode/anchor,
+target/RGB reencode/transport. Six times fixed in advance: 0,.5,1,1.5,2,2.5s;
+block boundaries 16,17,18,33,34,35. Entire 158-frame videos retained. Quantized
+presentation videos are additional viewing copies; score original RGB24 only.
+
+Interpretation: codec reconstruction and temporal rearrangement fidelity.
+Photometric error does not measure semantic action synchronization. Offline phi
+was fitted to final Native output; this is a development operator diagnostic.
+The residual technique is inherited from LookingGlass / LongE2V, as already
+recorded in the frozen producer contract. These formulas are not a new claim.

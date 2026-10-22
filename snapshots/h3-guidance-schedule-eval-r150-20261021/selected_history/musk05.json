@@ -1,0 +1,543 @@
+{
+  "candidate_id": "musk05",
+  "source_id": "05_real_megumi_v",
+  "source_group": "05_real_megumi_v",
+  "task": "角色替换—Musk复现书记舞",
+  "basic_edit_status": "PASS_RECOGNIZABLE_IDENTITY_WITH_ARTIFACTS",
+  "selection_status": "legacy_baseline_reusable_new_samebin_required",
+  "media": {
+    "source": {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/inputs/05_real_megumi_v.mp4",
+      "exists_local": true,
+      "sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+      "bytes": 1470409
+    },
+    "native": {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/outputs/05_musk_s1_baseline_00001_.mp4",
+      "exists_local": true,
+      "sha256": "f05d0ae4a8c5e837698e0a8765020f418b0378658c5bea88be87f7eae1d422b0",
+      "bytes": 2141668
+    },
+    "legacy_weight3": {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/outputs/05_musk_s1_weight3_00001_.mp4",
+      "exists_local": true,
+      "sha256": "9eece54efe560e6282e6a82f04fee82402d247e2bf067b3dc849f7ca2388df76",
+      "bytes": 2127090
+    },
+    "fixed": null
+  },
+  "valid_frames": 141,
+  "fps": 24,
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "sampled_frames": 141,
+    "crop_xywh": [
+      0,
+      0,
+      1312,
+      736
+    ]
+  },
+  "seed": 2026101311,
+  "prompt": "subject_definitions:\n<Subject 1>: Elon Musk as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Elon Musk from <Picture 1>. Preserve his recognizable facial features, short swept-back dark brown hair, navy jacket with black lapels and white open-collar shirt without a tie. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original letterbox borders. Use the portrait only for appearance; do not copy its static pose or light gray background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+  "prompt_sha256": "a25b7fa7947fe1202bb279cb62344acb4eaf9e392aca8d4df3d217cd5f97a23b",
+  "graphs": {
+    "native": {
+      "graph": {
+        "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/configs/05_musk_s1_baseline.json",
+        "exists_local": true,
+        "sha256": "0ce0ebd422e9a3dbd31d5395c8d25b5a6fd0da12c55f7eaa5e619002807dd97f",
+        "bytes": 5904
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: Elon Musk as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Elon Musk from <Picture 1>. Preserve his recognizable facial features, short swept-back dark brown hair, navy jacket with black lapels and white open-collar shirt without a tie. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original letterbox borders. Use the portrait only for appearance; do not copy its static pose or light gray background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "a25b7fa7947fe1202bb279cb62344acb4eaf9e392aca8d4df3d217cd5f97a23b",
+      "seed": 2026101311,
+      "noise_registration": {
+        "noise_seed": 2026101311,
+        "audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit",
+        "run_id": "05_musk_s1_baseline",
+        "pair_id": "05_megumi_musk_s1"
+      },
+      "condition_registration": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit",
+        "run_id": "05_musk_shared_conditioning",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      },
+      "recipe_nodes": {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": {
+            "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "weight_dtype": "default"
+          }
+        },
+        "2": {
+          "class_type": "CLIPLoader",
+          "inputs": {
+            "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "type": "minimax",
+            "device": "default"
+          }
+        },
+        "3": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+          }
+        },
+        "4": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+          }
+        },
+        "41": {
+          "class_type": "MiniMaxH3SigmaShift",
+          "inputs": {
+            "model": [
+              "1",
+              0
+            ],
+            "shift_video": 12.0,
+            "shift_audio": 3.0
+          }
+        },
+        "8": {
+          "class_type": "KSamplerSelect",
+          "inputs": {
+            "sampler_name": "euler"
+          }
+        },
+        "9": {
+          "class_type": "ManualSigmas",
+          "inputs": {
+            "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+          }
+        },
+        "50": {
+          "class_type": "H3EventEmphasis",
+          "inputs": {
+            "model": [
+              "41",
+              0
+            ],
+            "positive": [
+              "51",
+              0
+            ],
+            "factor": 1,
+            "start_frame": 50,
+            "end_frame": 65,
+            "run_id": "05_musk_s1_baseline",
+            "audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit/emphasis"
+          }
+        },
+        "51": {
+          "class_type": "H3PairConditionSnapshot",
+          "inputs": {
+            "positive": [
+              "5",
+              0
+            ],
+            "target": [
+              "5",
+              1
+            ],
+            "source_audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit",
+            "source_run_id": "05_musk_shared_conditioning",
+            "run_id": "05_musk_s1_baseline"
+          }
+        }
+      },
+      "input_nodes": {
+        "21": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "elon_musk_royal_society.jpg"
+          }
+        },
+        "22": {
+          "class_type": "LoadVideo",
+          "inputs": {
+            "file": "05_real_megumi_v.mp4"
+          }
+        }
+      }
+    },
+    "legacy_weight3": {
+      "graph": {
+        "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/configs/05_musk_s1_weight3.json",
+        "exists_local": true,
+        "sha256": "13955039eca96f6ffcae7033fc0a89a2e7f5b7e6d7a8e99632c9ae60c2976ca9",
+        "bytes": 5900
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: Elon Musk as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Elon Musk from <Picture 1>. Preserve his recognizable facial features, short swept-back dark brown hair, navy jacket with black lapels and white open-collar shirt without a tie. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original letterbox borders. Use the portrait only for appearance; do not copy its static pose or light gray background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "a25b7fa7947fe1202bb279cb62344acb4eaf9e392aca8d4df3d217cd5f97a23b",
+      "seed": 2026101311,
+      "noise_registration": {
+        "noise_seed": 2026101311,
+        "audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit",
+        "run_id": "05_musk_s1_weight3",
+        "pair_id": "05_megumi_musk_s1"
+      },
+      "condition_registration": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit",
+        "run_id": "05_musk_shared_conditioning",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      },
+      "recipe_nodes": {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": {
+            "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "weight_dtype": "default"
+          }
+        },
+        "2": {
+          "class_type": "CLIPLoader",
+          "inputs": {
+            "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "type": "minimax",
+            "device": "default"
+          }
+        },
+        "3": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+          }
+        },
+        "4": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+          }
+        },
+        "41": {
+          "class_type": "MiniMaxH3SigmaShift",
+          "inputs": {
+            "model": [
+              "1",
+              0
+            ],
+            "shift_video": 12.0,
+            "shift_audio": 3.0
+          }
+        },
+        "8": {
+          "class_type": "KSamplerSelect",
+          "inputs": {
+            "sampler_name": "euler"
+          }
+        },
+        "9": {
+          "class_type": "ManualSigmas",
+          "inputs": {
+            "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+          }
+        },
+        "50": {
+          "class_type": "H3EventEmphasis",
+          "inputs": {
+            "model": [
+              "41",
+              0
+            ],
+            "positive": [
+              "51",
+              0
+            ],
+            "factor": 3,
+            "start_frame": 50,
+            "end_frame": 65,
+            "run_id": "05_musk_s1_weight3",
+            "audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit/emphasis"
+          }
+        },
+        "51": {
+          "class_type": "H3PairConditionSnapshot",
+          "inputs": {
+            "positive": [
+              "5",
+              0
+            ],
+            "target": [
+              "5",
+              1
+            ],
+            "source_audit_dir": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit",
+            "source_run_id": "05_musk_shared_conditioning",
+            "run_id": "05_musk_s1_weight3"
+          }
+        }
+      },
+      "input_nodes": {
+        "21": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "elon_musk_royal_society.jpg"
+          }
+        },
+        "22": {
+          "class_type": "LoadVideo",
+          "inputs": {
+            "file": "05_real_megumi_v.mp4"
+          }
+        }
+      }
+    }
+  },
+  "noise_metadata": {
+    "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/audit/05_musk_s1_baseline_noise.json",
+    "exists_local": true,
+    "sha256": "444187937aec47ceafd4323321c11351af708226491b80331aca6d0167de33bc",
+    "bytes": 975
+  },
+  "noise_record": {
+    "schema": "h3-event-noise-v1",
+    "run_id": "05_musk_s1_baseline",
+    "pair_id": "05_megumi_musk_s1",
+    "signature": {
+      "seed": 2026101311,
+      "nested": true,
+      "shapes": [
+        [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          235
+        ]
+      ],
+      "dtypes": [
+        "torch.float32",
+        "torch.float32"
+      ],
+      "batch_index": null
+    },
+    "actual_noise_streams": [
+      {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96"
+      },
+      {
+        "shape": [
+          1,
+          32,
+          2,
+          235
+        ],
+        "dtype": "torch.float32",
+        "sha256": "ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3"
+      }
+    ],
+    "cache_file": "/data3/researcher/h3_runs/musk_real_dance_pair_20261014/audit/05_megumi_musk_s1_noise.pt"
+  },
+  "condition_metadata": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/audit/05_musk_s1_baseline_conditioning.json",
+      "exists_local": true,
+      "sha256": "f9c27a910beb1d80fec8b20884cce23e1370d5aac3f89c7c6c4c7e1fcd4f7e66",
+      "bytes": 31555
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/audit/05_musk_shared_conditioning_conditioning.json",
+      "exists_local": true,
+      "sha256": "19a093e32ba5f12cb6c0550f069b0eb07311e70b9c2477133e474ec5d3617858",
+      "bytes": 28517
+    }
+  ],
+  "historical_fixed_method": null,
+  "legacy_method": "selected reference K/V duplicated twice (logits+ln3), all20steps/all50blocks; not same-bin7–15",
+  "new_requirement": "Root-approved same-bin7–15 reference required before schedule comparison; never relabel weight3 as fixed.",
+  "edit_evidence": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/REPORT.txt",
+      "exists_local": true,
+      "sha256": "4c563b63a77e76d5581d2469b863dfeebdb71ea409d2bafbee75a3be54547bf8",
+      "bytes": 3954
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/REPORT.txt",
+      "exists_local": true,
+      "sha256": "4c563b63a77e76d5581d2469b863dfeebdb71ea409d2bafbee75a3be54547bf8",
+      "bytes": 3954
+    }
+  ],
+  "qualification": "完整既有审阅确认Musk替换与舞蹈；普通开头0–1帧额外掌状残影，精细手形限制保留。",
+  "official_MF": {
+    "status": "not_located_in_completed_official_MF_records",
+    "native": null,
+    "fixed": null
+  },
+  "review_frame": {
+    "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/review/all_frames/frames_111-113.jpg",
+    "exists_local": true,
+    "sha256": "2fe52cab255979f7971e2f6a8acde9703e7e86a1076662bb1664237a681303dc",
+    "bytes": 672017
+  },
+  "same_source_as_current_Sam": true,
+  "rank_by_existing_edit_evidence": 9,
+  "evaluation_task_id": "musk05",
+  "actual_new_producer_binding": null,
+  "new_output_status": "AWAITING_ACTUAL_PRODUCER_CONTRACT",
+  "frozen_events": {
+    "candidate_id": "musk05",
+    "source_id": "05_real_megumi_v",
+    "valid_frames": 141,
+    "search_frame_domain": [
+      0,
+      140
+    ],
+    "detail_window": [
+      35,
+      105
+    ],
+    "native_timing_status": "clear_delay",
+    "events": [
+      {
+        "id": "face_sweep",
+        "label": "手臂横过脸部",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          50,
+          55
+        ],
+        "native_interval_inclusive": [
+          60,
+          64
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action",
+        "uncertainty_frames": 1
+      },
+      {
+        "id": "temple_adjacent_hand",
+        "label": "手靠近眼侧/太阳穴",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          56,
+          61
+        ],
+        "native_interval_inclusive": [
+          65,
+          69
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action",
+        "uncertainty_frames": 1
+      },
+      {
+        "id": "hand_release",
+        "label": "手离开头部",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          62,
+          71
+        ],
+        "native_interval_inclusive": [
+          70,
+          78
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action",
+        "uncertainty_frames": 1
+      }
+    ],
+    "evidence": [
+      {
+        "file": "/Users/researcher/DevProjects/h3-musk-real-dance-pair-20261014/analysis/pair_visual_review.json",
+        "sha256": "56e8c4b06df589ecc26dbd4fba81aa1b8963d9d7e701b6f3b9a8dba11b6ca16e"
+      }
+    ],
+    "legacy_weight3_is_not_fixed": true
+  },
+  "root_selection": {
+    "record": {
+      "file": "/Users/researcher/DevProjects/h3-guidance-schedule-eval-r150-20261021/SELECTED_TASKS.json",
+      "sha256": "ce0e55a264e3c9290b71f46f3862b9304376a025c1609b5469415aa0a4eba1b0"
+    },
+    "approved": true,
+    "overrides_older_candidate_selection_status": true
+  },
+  "required_new_roles": [
+    "fixed",
+    "early",
+    "late",
+    "split",
+    "global_weak"
+  ],
+  "fixed_role_rule": "Await new same-bin 7–15 output; legacy_weight3 remains a separate historical role"
+}

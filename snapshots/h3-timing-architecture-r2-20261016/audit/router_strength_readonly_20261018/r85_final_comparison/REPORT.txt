@@ -1,0 +1,32 @@
+R85 one_leg 与 R89 short0131：最终Attention修正量级
+
+两条均20次forward、450次实际路由，indices6…14，每步50层。
+R85最终router原文件SHA：982bad7be7ef21de4dc05c331a48b33e606cc16d76e0261ce1d8d634f7c272ba
+
+450个层/步记录等权平均：
+                         R85 one_leg       R89 short0131
+参考视频m_ref            0.0839093          0.1955800
+写回修正RMS/原Attention  0.1150989          0.2195439
+单层/步修正比最大值      0.4158211          0.7470924
+
+R85逐步m_ref从index6的0.089029降至index14的0.080428；修正比从0.127126降至0.103959。
+逐step及逐step/block完整数值见BY_STEP.tsv、BY_STEP_AND_BLOCK.tsv；按block跨9步平均值见COMPARISON.json/per_block。
+
+R85的参考视频注意力占比约为R89的43%，修正相对幅度约为52%。这些特征量级与“R85可供重新分配的参考视频预算更小”相符；当前修正仍明显非零。它们不能证明one_leg动作未改善由预算较小导致，或提高预算就能改善。
+R89普通编辑本来已同步，因此该案例可提供另一任务的量级参照，不能当干预有效样本或成功阈值。
+
+图像与视频参考是否分开？
+当前m_ref只针对参考视频，不包含角色参考图。R85的实际layout：
+  text [0,7030)
+  reference image [7030,7894)，864tokens
+  reference video [7894,48502)，40608tokens
+  output audio [48502,49028)
+  output video [49028,89636)
+虽然packed segments里图和参考视频都叫ref_img，router通过metadata明确选reference_index=1、kind=video；记录的m_ref来自[7894,48502)，并未把864个角色图token混进去。
+日志没有单独的m_image或m_image+video，因此也无法判断“角色图把视频注意力挤走了”。1−m_video还同时包含text、image、output audio和output video key的质量。R89仅有参考视频，缺少角色图；它与R85在文本长度、参考长度、时长、动作和任务方面均不同。
+
+解释范围
+correction_ratio是cast回BF16后的RMS(O'−O)/RMS(O)，位于out_proj和gate_msa之前，采样最多8heads×128queries×16channels。采样沿展平token走，未绑定人物手臂；日志没有全量/主体区域修正，也没有投影、门控、后续去噪后的残留幅度。不能将这些比值换算成动作误差或跨层累加。
+本轮one_leg成片中，后验双腕事件只提前1输出帧，双上臂事件仍未检出；结合视觉可记录固定方法未明显改善。本表提供下一项控制实验的线索，未增加任何参数或新干预。
+
+只读当前小JSON，未读取大tensor、解码x0或改运行文件。

@@ -1,0 +1,68 @@
+H3 时间平移重编码参考库：窄范围先例与前置门审查
+日期：2026-10-16。范围：4 个最相关论文/作者实现，另列 H3 实现事实；未做 GPU、远程操作或实现。有限检索的“未见”不证明不存在。
+
+结论
+该候选值得先做编码/匹配必要性验证，不能先称新架构。最直接重合的是 AF-LDM 已用平移输入再编码构造不同采样相位的 latent，并比较输入变换与 latent 变换；APS 已使采样相位成为显式结构变量；PhaseFusion 已对多个时间起点进行推理聚合。我们尚可检验的窄差别，是在冻结、非时间平移等变的分块视频 VAE 中，用真实 RGB 时移后的编码字典而不是对单次 latent 做插值，识别局部物理延迟并允许拒判。它只是一个候选观察器；需要证明比 gap5 等现有观察器更准确、尤其能分清 0/2/4 帧且不增加误停，才有控制价值。
+
+一、已有事实与问题边界
+本地 literature/vae_phase_observer_prior_art.txt、analysis/vae_temporal_controls/run1/RESULTS.json、analysis/vae_phase_calibration/cross_identity/SUMMARY.txt 已记录：H3 同一 RGB 帧重复编码后相邻 latent 仍有差异，隔 5 bin 相同；真实 RGB delay4/delay8 可被朴素相邻差分错读成 0 或 ±17。gap5 在可判样本较好，但差分跨 17 RGB，约 0.708 秒，不能据此声称已实现细时延计。
+FastVideo 维护者实现说明 H3 clip_length 帧的编码独立、无跨 clip 状态：
+https://haoailab.com/FastVideo/api/fastvideo/models/vaes/minimax_h3_parallel/
+本地实际 frozen H3 源码确认 17 RGB→5 latent、末端裁剪。这里讨论编码器块相位，不是 Qwen 稀疏采样时间标签，也不是 DiT temporal RoPE。名义五槽覆盖与真实网络感受野仍须区别；这并不证明 H3 生成错误由 VAE 造成。
+
+二、4 个最直接近邻
+
+1. AF-LDM，CVPR 2025：Alias-Free Latent Diffusion Models
+论文：https://arxiv.org/html/2503.09419v1
+作者代码：https://github.com/SingleZombie/AFLDM
+精确位置：Fig.2 用平移输入图像、分别编码得到 fractional-shift latents，再组合成高分辨率 latent；§3.3 Eq.4 是 masked encoder equivariance loss ||E(T_delta x)−T_(delta/k)E(x)||²。官方 afldm/trainers/vae_trainer.py:187–210 分别真实调用 shifted-image encoder 与 latent shift，并训练编码器/解码器。
+https://github.com/SingleZombie/AFLDM/blob/main/afldm/trainers/vae_trainer.py
+覆盖：非等变 VAE 的相位问题、shift-and-reencode、有效区域 mask 均有明确先例，不能称首次。
+区别：它主要处理空间分数平移，训练 alias-free VAE/U-Net；所读公式和实现不以冻结 H3 的 17 帧分块相位建立物理延迟候选库，也不输出局部动作 lag/unknown。差别是应用对象与观察器用途，不是新平移运算。它还提醒：简单地把 latent 当连续可平移信号正是需要检验的假设。
+
+2. APS / APS-U，2021：Truly Shift-Invariant CNNs / adaptive polyphase upsampling
+论文：https://arxiv.org/html/2011.14214v2
+作者库：https://github.com/achaman2/truly_shift_invariant_cnns
+实际代码 models/aps_models/apspool.py:63–89 将 stride2 的四个 polyphase component 显式展开，再按 L2 范数选一个；返回相位索引，供上下采样结构使用。默认 circular padding，不能把其严格性质移到非循环 H3 边界。
+https://github.com/achaman2/truly_shift_invariant_cnns/blob/main/models/aps_models/apspool.py
+覆盖：采样相位显式化、比较多相位、记录相位索引本来就是经典多速率/等变网络方法。
+区别：APS 更改下采样结构以维持等变性；候选保持现成编码器，只构建其实际响应字典以作时延匹配。17 RGB 相位与 5 个输出槽不是普通 stride5 decimation，不能直接宣称有 APS 的等变保证。也不应把“用 17 个相位”算作新的数学形式。
+
+3. PhaseFusion，arXiv 2026：Stable Scores, Unstable Answers
+论文：https://arxiv.org/html/2610.08649v1
+§3.1 Eq.1 把 S 个时间起点的均匀取帧视作密集 Sb 网格的 polyphase；§3.2 Eq.2 对各相位的选项后验等权平均。原文明确称经典多视图测试时算子。本文页面末尾说明 passes/audit 待发布，本次没有声称查到完整官方代码。
+覆盖：改变时间采样起点产生多个视图、再作无训练融合并测稳定性，已有直接视频先例。
+区别：对象是稀疏 RGB→VLM 多选问题，目标是边缘化起点；本候选的物理时移是要估计的参数，必须保留候选身份。若把各相位 latent 或匹配结果无条件平均，就可能抹掉要测的短动作，不能借 PhaseFusion 直接保证有效。未在其所读方法中见 dense VAE phase-matched delay bank。
+
+4. FlowMotion，arXiv 2026
+论文：https://arxiv.org/html/2603.06289v2
+作者代码：https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+当前实际代码 :118–139 构建相邻及全时间对的绝对 latent 差；:238–255 选择 source clean latent 或 source 预测端点；:270–279 对 target clean 预测计算 latent alignment 与 difference alignment MSE，再优化。它是现成 training-free 运动 latent 指标/引导的必要近邻。
+覆盖：用 source 与 target clean latent、时间差分比较运动，不是新思想。
+区别：已读 run.py 没有对原始 reference RGB 做多物理时移重编码的候选库或 H3 槽位校准。但代码当前用 Wan，不能拿 H3 原始差分失败直接否定它；应移植相应完整观测定义为对照，再比较 H3 编码感知观察器。
+
+三、候选的最小准确定义，不承诺算法效果
+设 E 是冻结的实际 H3 编码器；S_d 是真实 RGB 时移，正 d 表示内容延后，即 (S_d R)[t]=R[t−d]，对移出范围的值必须单独标记，不让填充成为证据。
+对预先规定整数候选 d∈D，计算 B_d=E(S_d R)。目标的 native clean 预测为 Y。对同一编码槽/同一数组位置 k 比较 F(Y)_k 与 F(B_d)_k：
+  score(d) = distance_M(F(Y), F(B_d)),  d_hat=argmin_d score(d).
+M 是所有候选共有、远离填充影响的有效支持；F 可以复用已冻结运动读出，但必须承认它仍可能被身份、背景或编码相位污染。搜索结果有足够可辨别运动及形状/支持证据才允许输出，否则 unknown。这个式子本身就是标准模板库匹配，不能宣称新公式。
+关键差别是 B_d 不用 T_(5d/17)E(R) 代替。对任意 RGB 时移，非线性、分块边界、第一槽特殊性使这两个量通常不等。
+若为了开销只建 17 个 residue 相位，再以 d=17q+r 对应 5q 个 latent 槽移位，可提出“独立完整 chunk 的内部平移复用”性质，但必须实际验证 sign、padding、末端 token trimming 和共同有效支持。不能直接把短输入切段独立 encode 当成全片 E(S_dR)，也不能先做跨槽线性插值后声称保留物理相位。
+候选 bank 记录的是输入对一个固定编码器的响应，不会恢复编码器已经抹掉的信息；同一目标 latent 可能对应多个短动作/时延。target x0 也不是 E(真实目标 RGB) 的保证等价物，早期必须独立检验。
+
+四、最小需要排除的替代解释
+A. 同身份的 exact delay control：若 target=E(S_dR) 又直接拿同一 B_d 作查询，返回 d 很可能只是重用相同张量，是管线自检，不是泛化证据。必须保留独立 origin/crop、未参与规则设计的已知位移或 cross-identity/重建误差对照。
+B. 最少比较：原始相邻差分；现 gap5；仅对单次 E(R) 作 latent shift/插值；实际 RGB shift-and-reencode bank。所有方法用同一预先固定窗口、candidate 范围及共同支持；不能让 bank 多看帧/更宽窗口后归因相位处理。
+C. 短时分辨率：应能区分既有 2 帧容差边界两侧的 0/2/4 帧控制，并在独立姿态评估上验证；只分开 0 与 17 不能支持改善停止判据。必须保留 amplitude、遮挡和恒定片的拒判；恒定片所有相位相似时取 argmin=0 不是成功。
+D. 边界：重复第一帧/最后帧的填充产生可匹配的人工脉冲；仅去掉单个端点不足，应按实际编码依赖排除受影响 chunk，并令所有候选用同一支持。循环 shift 会在尾首制造不真实动作，不宜用作主要物理控制。
+E. 跨身份/空间变化：reference bank 不变成身份无关运动表示；source 和 Sam 的服装/体型、空间位置、背景均可能压过时间信息。拒判增加不得隐藏，报告覆盖与误差，不能只统计可判中的成功率。
+F. 多候选搜索：增加 phase/lag 数能增加偶然尖峰；原 gap5 经验误差余量不能不加验证地继承到 bank。独立 origin phase、真实周期动作、不同短事件用于检验 ±17 alias 和第二峰歧义。
+G. native x0 与本步 Full x0 要分开；bank 不能解决已经证明的干预端点直通误差。先用 native endpoint 验证细时延读出，再谈闭环停止；不能一面把 observer 输出选到最好，一面用它证明最终同步。
+
+五、当前可保留的贡献层次与实施前条件
+可保留：冻结分块视频编码器上的物理时间读出校准、可辨识性/拒判协议，以及若成功得到的 encoder-aware observer。若它能在不增加反向传播/教师模型的条件下改进闭环误停和最终编辑质量，可与已知注意力路由组合构成方法/评估贡献。
+不能保留为首创：shift-bank、polyphase、多视图推理、latent 差分、模板 argmin；不能声称 H3 新架构已经成立，也不能用四篇未覆盖来保证无人做过。
+建议先复用已有 phase calibration 输入与 cached endpoints 作设计/管线门，再用未被见过的 source origin/identity 条件检查是否有 2–4 帧辨别能力。如果只在同身份 identical encoding 上识别出 bank 索引，或 cross-identity 下仍靠 gap5 宽平滑才能稳定，此路线尚不能承担更准确停止，应如实保留为编码诊断，不急于接新 GPU 闭环。
+
+检索边界
+本次核对上述原文、作者仓库实际函数及 H3 维护者文档，补充定向查询 video VAE temporal shift equivariance、video latent reference shift bank、temporal alignment polyphase。未发现本次已读材料中完全等同于“冻结 H3 分块相位库＋原始物理延迟候选＋局部拒判”的完整方案；这不是排他性新颖性结论。AFLDM 的 shift-and-reencode 与 APS 的显式相位已是最应正面承认的机制先例。

@@ -1,0 +1,30 @@
+.41 容量依据审查：限定四个既有 own-run 目录
+
+结论：未找到“90/107/124帧、normal/reserve8、服务启动实际free≤33GiB仍完整success”的.41记录。四个目录的5个实际服务代次，启动free全部48494MiB（47.36GiB），原门40GiB。R71属于.9，已排除。此次没有改变任何服务、GPU、准入门或旧生产文件。
+
+已确认的完整运行：
+R64：73帧四条、107帧两条、124帧两条均success；107帧Native/forced约1029.6/1046.8s，124帧约1308.5/1348.8s。
+R69：90帧八条全部success。0230 Native/forced916.7/769.1s；0352 750.3/768.9s；0263 1237.1/768.8s；0370 753.1/769.7s。
+R72：158帧三条success，约2275.7/1771.2/2004.3s；R74：158帧一条success2282.3s。这两组的形状不是此次90/107/124目标，不能充当对应容量成功证据。
+
+实际显存记录：
+R64 own residency离散采样最大36452MiB，运行中device memory.used采样最大43237MiB。
+R69 own residency离散采样最大34530MiB，device采样最大41939MiB。
+R72 own residency离散采样最大27402MiB，device采样最大44823MiB。
+R74仅有启动阶段own residency样本最大386MiB，无法据此推断推理驻留量；device运行采样最大35309MiB。
+上述device值可能包含同卡其他进程，采样也不是严格peak。检查的小日志没有torch max_memory_allocated/reserved完整峰值记录，因此不以这些值声称最小显存需求或硬上界。
+
+实际装载/offload：
+四组均normal/reserve8、disable-dynamic-vram。Comfy日志显示Qwen约14960.20MB加载后有partial unload；DiT均记录19996.14MB完整加载。R64 DiT usable27330.27MB，R69 usable28329.24/28355.55MB，R72/R74 usable30889.41MB。没有这四目录里DiT在≤33GiB初始free下部分装载完成的实证。全部匹配“48GB卡接近空闲时启动”的现有配置。
+
+对调度的含义：
+.9 R63低余量成功是同一模型/normal配置能够层offload的直接证据，但设备、Torch/runtime和实际启动加载过程与.41不同。它可以支持提出一个新的.41受控容量试跑，不能把它写成.41已有验证通过。若root安排新trial，建议先90帧普通编辑、原normal/reserve8、单条完整轨迹，记录cold encode/Qwen/DiT/decode各段与真实peak；失败精确退出，不自动改变条件。现有40GiB门未修改。
+
+取证范围：
+/data3/researcher/h3_runs/timing_ivebench_heldout_r64_20261018
+/data3/researcher/h3_runs/timing_ivebench_remaining_r69_20261018
+/data3/researcher/h3_runs/timing_flexiact_prompt_pair_r72_20261018
+/data3/researcher/h3_runs/timing_flexiact_official_six_r74_20261018
+仅读各configs/runtime/scientific_contract，processes/service*.json，logs/*_job/*_history及service_resource_admission/resources/residency/comfyui小日志；没有读取张量/模型或无关目录。
+
+完整逐服务、逐任务、装载日志行号在SUMMARY.json；原始小证据及文件SHA在ACTUAL_EVIDENCE.jsonl。collect.py为实际只读采集入口。

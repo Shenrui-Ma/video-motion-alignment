@@ -1,0 +1,46 @@
+SECOND WAN BASELINE IMPLEMENTATION CHECK
+Read-only audit, 2026-10-17. No dependencies installed, weights downloaded, or model inference run.
+
+Decision
+FlowDirector V1 is the best second candidate in this bounded check, alongside the previously checked FlowMotion. Its official repository includes an actual Wan2.1-T2V-1.3B source-video editing pipeline, not just a project page. It is a candidate for a subsequent environment/smoke gate, not a deployment success. A material V1 guidance degeneracy and its explicit V2 release gap must accompany any comparison. DynaEdit is deferred for missing verified official implementation; Sync-LoRA is a trained LTX-family method rather than a training-free Wan baseline. Only FlowDirector was added as an alternative.
+
+DynaEdit
+Paper: https://arxiv.org/html/2603.17989v1 , sections5 and6.1–6.3.
+Official project: https://dynaedit.github.io/
+It uses frozen pretrained flow models: source/target velocity differences, similarity-guided aggregation and annealed noise correlation. Its principal implementation is Wan2.1 14B 480p I2V, with Hunyuan1.5 I2V supplemental results. Inputs include source video, source/target descriptions, and an edited first frame when required. Reported clips are49–81frames,832x480,16fps. It permits intentional action/dynamics changes while preserving unrelated motion, which is a broader task than mandatory synchronization.
+Official site repository dynaedit/dynaedit.github.io main commit3d1805f10708a271de67300352265c3cdde6288e (2026-03-23) has index.html and media, no executable inference package. The account repository list returns only that website. Project/paper links did not identify another official implementation in this bounded check. This is an availability finding, not proof that no private or differently named implementation exists. It also does not establish same-backbone compatibility with Wan1.3B T2V. No runnable code license or minimum VRAM verified.
+
+Sync-LoRA
+Paper: https://arxiv.org/html/2512.03013v1 , sections3.2–3.3,4 and supplementary6.2.
+Official repo: https://github.com/SagiPolaczek/Sync-LoRA/tree/3868f06a19ba88eee1e37059f7884f9f45f37071
+The paper fine-tunes a rank128 LoRA on LTX-Video, using512 curated paired videos and5000 training steps. It conditions on the source video and edited first frame. Wan2.1 generates training pairs; it is not the editing backbone. Evaluation uses81frames/20fps; training uses512x512 and an A6000 48GB, which is not an inference VRAM measurement.
+At this commit the repository contains LICENSE(MIT), README and assets, without a complete inference source package. However it DOES link released author weights: https://huggingface.co/SagiPolaczek/LTX-2.3-Sync-LoRA . HF revision2a4f86a02ec58145db0239b04cbfc5b9fcc37dd1 contains a trained rank256 LTX-2.3 22B adapter and model card. That card supplies an LTX-2 IC-LoRA pipeline sketch, constant token3d1t, edited first frame/reference conditioning,8+3 distilled stages, and a separate distillation LoRA. It is a newer trained variant, not the paper's rank128 configuration or a Wan implementation. HF license is other; GitHub MIT is not an automatic license grant for all model weights. No exact inference VRAM verified. Therefore exclude from the same-Wan/training-free primary comparison while retaining it as a task-relevant trained reference.
+
+One alternative: FlowDirector V1
+Official paper/project/code chain:
+https://arxiv.org/html/2506.05046v1
+https://flowdirector-edit.github.io/
+https://github.com/Westlake-AGI-Lab/FlowDirector
+Pinned main commit: cecd56e30820b279f35acaa18597f4da25fa4f42 (2025-12-12).
+The complete, nontruncated tree includes edit.py, wan model/VAE/text encoder/schedulers, requirements, sample launchers and example source clips. README explicitly labels this V1 and says V2 is forthcoming. The CVPR2026 paper includes Direction-Aware and Motion-Appearance-Decoupling flow corrections; those cannot be claimed reproduced by this V1 release. Issue4 reports the missing components, but its replies are not maintainer confirmation; the README and actual source are the primary release evidence.
+
+Concrete runnable-source evidence (static, not executed)
+edit.py accepts source video, source and target prompts, edited keyword spans, seed, geometry, and sampling settings; it calls WanT2V.edit and writes video. wan/text2video.py freezes the model and executes editing under no_grad: source/target conditioned and unconditioned forwards, attention-derived masks, stochastic velocity aggregation, Euler updates, VAE decode. No LoRA or task-specific trained weights are loaded. The source loader reads all frames and directly resizes them; it neither truncates to frame_num nor resamples FPS. Output config is16fps. Preprocess once to an exact shared frame count/timebase; do not mistake playback speed changes for model lag. Longer inputs use temporal latent windows(11,stride8). Source/target words must actually tokenize to valid prompt spans.
+The sample script selects Wan2.1-T2V-1.3B,832x480,41frames,50 grid steps,n_max40,n_min0,n_avg4,worse_avg2,shift12 and seed42. Its checkpoint path is a user-specific placeholder. The README spells the launcher with underscores but the actual filename uses hyphens. Those are mechanical launch details, not permission to alter the scientific algorithm. The model config is30layers/12heads with UMT5 and Wan2.1 VAE. Requirements and implementation exist; environment compatibility is untested. The v1 paper reports a single4090, not a measured guarantee for our longer clips. The newer CVPR paper's H20 141GB setting belongs to a different version/configuration.
+
+Important source-level findings
+1. License mismatch: README says MIT, while the actual LICENSE and GitHub license detection say Apache-2.0. Preserve the actual LICENSE and separately verify upstream model terms; do not report MIT unqualified.
+2. DAG degeneracy in the released V1. Pinned wan/text2video.py lines887–903 computes mean V over n candidates, enumerates ALL k-element subsets, averages each subset, then averages mean(V)-subset_mean. Each candidate occurs C(n-1,k-1) times, so the mean subset mean is exactly mean(V):
+   mean_S[(1/k) sum_(i in S) V_i] = (C(n-1,k-1)/(k C(n,k))) sum_i V_i = mean(V).
+   Thus its mean trend is zero in exact arithmetic for every1<=k<=n. The final pre-mask velocity Vbar+(omega-1)*trend reduces to Vbar; floating-point residuals may remain. This is an independent algebraic inference about the inspected code, not an empirical performance claim.
+   Pure stdlib Fraction example actually executed: V=[1,3,5,11],mean5,k2; subset means[2,3,6,4,7,8]; trends[3,2,-1,1,-2,-3]; trend mean0; omega2.75 produces5. No model or new dependency used.
+3. The computed conflict_mask in lines848–851 is not applied to the subsequent update; the active update uses the softened attention union. Do not describe dormant helpers as implemented V2 components.
+4. Existing issue1 reports successful sampling followed by failed video export. This is historical user evidence, not our reproduction. Any future smoke gate must decode/ffprobe the actual file and cannot accept exit/log text alone.
+
+How to compare fairly later
+Name the baseline “official FlowDirector V1, commit cecd56e…” and match exact Wan2.1-T2V-1.3B checkpoint weights with FlowMotion, accounting for original-versus-Diffusers packaging. Verify original author demos first, then shared physical input frames/FPS, geometry, edited information, prompt policy, seeds and predefined evaluation. Neither T2V code has H3's separate portrait-input interface; an identity-image advantage cannot be left exclusive to our method. Keep timing accuracy, edit success and visual quality together, with UNKNOWN/failures and normal cases.
+Report actual model evaluations, CFG branches, temporal windows, optimization calls, walltime and memory: the V1 example has40 active grid steps times4 noise samples times4 forwards per window, i.e.640 model forwards for its single-window setting, not50NFE. This is static counting conditional on that script/path, not a measured runtime.
+The original V1 should remain intact and reported. Its DAG cancellation makes it inappropriate to win by silently exploiting a weak/broken baseline. A later documented diagnostic may compare original V1 with a justified correction (e.g. the V2 paper's selected nonuniform subset construction), but that is a labeled author-algorithm reimplementation until actual V2 source/reproduction is verified. Do not silently replace V1 and call it the official CVPR method. No such correction or deployment was done here. If the comparison requires complete current-paper fidelity, retain FlowDirector as provisional and wait for V2/author clarification; this bounded audit has not established two verified current-paper deployments.
+
+Evidence boundaries
+Actual checks: official full papers/project pages, current GitHub complete trees and pinned source, author HF card/metadata, source-file hashes, one exact-rational CPU example. No dependency import or GPU smoke. Source code is stronger availability evidence than a website, but it does not prove a clean installation, expected video quality, or equivalence to another codebase's numerical kernels. Existing FlowMotion/TempoControl/MotionEcho records are reused, not newly revalidated wholesale.

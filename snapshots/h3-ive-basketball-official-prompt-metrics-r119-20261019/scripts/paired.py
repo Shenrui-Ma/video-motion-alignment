@@ -6,7 +6,7 @@ PAIR_CHECKS=REQUIRED_CHECKS+tuple(x.replace('native_','forced_',1) for x in REQU
 def verify_pair_gate(g,source,owner):
  c=config();p=info(source)
  require(g.get('schema')=='r119-paired-runtime-gate-v1' and g.get('passed') is True,'paired gate not passed')
- require(g.get('source_id')==source and g.get('prompt_version')==p['prompt_version'],'source/prompt differs')
+ require(g.get('source_id')==source and g.get('prompt_version')==c['producer_gate_prompt_version'],'source/prompt differs')
  require(set(g.get('runs',{}))=={'native','forced'},'actual Native and guided runs required')
  checks=g.get('checks');require(isinstance(checks,dict) and all(x is True for x in checks.values()),'failed actual paired check')
  require(all(checks.get(x) is True for x in PAIR_CHECKS),'required paired check missing')

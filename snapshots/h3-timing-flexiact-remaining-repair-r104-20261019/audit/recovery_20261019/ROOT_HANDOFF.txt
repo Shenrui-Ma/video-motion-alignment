@@ -1,0 +1,18 @@
+R104：3 条既有 FlexiAct 角色替换任务的提示词修复
+
+生产者已被动部署；目标机 CPU 验证通过，未启动服务。
+顺序：fitness__game_man_4、human2animal_1__movie_man_11、crouch__movie_man_5。
+每条先生成 Native，完整 147 有效帧检查角色、动作和目标图环境要求，再由 root 选择 guide / skip。第一条 guided 也须检查；此后继续。
+既定引导：去噪索引 6–14，全部有效视频时间，alpha=1；自动观察器关闭。固定引导实验，用于验证基础编辑完成后的时序作用。
+本批保持原来失败的素材，分母固定为 3；第二条为官方资产交叉配对，其余为官方原配对。
+
+启动需要 R101 与 R90 的真实 COMPLETE / ROOT_EXIT_RECEIPT / 精确 PID 已释放，参数分别为 --predecessor-attempt r101=实际attempt --predecessor-attempt r90=实际attempt。
+生产目录 /data5/researcher/h3_runs/timing_flexiact_remaining_repair_r104_20261019，.9 GPU3，端口 8568。启动前重新检查显存、内存、存储和至多两张自己的卡；如 .9 GPU0 仍有我们的服务，要提供其真实 --peer-root。
+root wrapper：audit/root_run_batch.py --attempt 实际新名称 加以上前置参数。
+已有 mutable queue.json 与 admission.json；admission 仍为 false。
+
+Mac consumer：scripts/consume_native.py --attempt 实际名称 --source 样本ID；paired 使用 scripts/consume_pair.py。
+两者只认实际 runtime gate，自动收集视频、生成中文黑底全有效时长 HTML、准备 official FlexiAct 49@8fps MF 输入。当前没有实际 R104 视频或评分。
+
+验证：生产者本地/目标机各 113 个 CPU 测试；consumer 51 个；两/三列 synthetic media fixture 通过。
+被动包问题与修复：tar 空目录初始 0644 缺执行位，已仅对本任务创建目录设 0755；初始包漏掉 mutable queue/admission 已补。完整重建脚本 audit/recovery_20261019/build_passive_bundle.py，文件 PASSIVE_BUNDLE_FINAL.tar.gz 包含 sealed 文件、12 个输入及 initial queue/admission；历史包和失败日志保留。

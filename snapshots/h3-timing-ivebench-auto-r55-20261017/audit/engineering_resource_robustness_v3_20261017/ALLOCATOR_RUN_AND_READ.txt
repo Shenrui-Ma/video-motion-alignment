@@ -1,0 +1,21 @@
+执行前：R55 五条 actual parent conditioning 已完成绑定；root 确认 GPU1 可用。将 route_allocator_probe.py 和 ALLOCATOR_SOURCE_BINDING.json 放入远端同名 audit 子目录。每条命令只调用一次 routing，建议各开一个新进程，保持三条顺序运行。output-dir 必须是新的目录。
+
+r55_root=/data3/researcher/h3_runs/timing_ivebench_auto_r55_20261017
+r55_audit="$r55_root/audit/engineering_resource_robustness_v3_20261017"
+r55_python=/data3/researcher/ComfyUI/.venv/bin/python
+r55_gpu=GPU-REDACTED
+
+CUDA_VISIBLE_DEVICES="$r55_gpu" PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$r55_python" "$r55_audit/route_allocator_probe.py" --root-admitted --variant native --output-dir "$r55_audit/allocator_native_attempt1"
+CUDA_VISIBLE_DEVICES="$r55_gpu" PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$r55_python" "$r55_audit/route_allocator_probe.py" --root-admitted --variant local --output-dir "$r55_audit/allocator_local_attempt1"
+CUDA_VISIBLE_DEVICES="$r55_gpu" PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$r55_python" "$r55_audit/route_allocator_probe.py" --root-admitted --variant full --output-dir "$r55_audit/allocator_full_attempt1"
+
+脚本读取实际五条 packed_layout，取最大 seq_len；相同长度时按 protocol 顺序取第一条。三种方法使用相同 seed、shape、BF16 QKV；local 覆盖 bins0,14..19,26，与现有 GPU gate 一致，full 覆盖全部27 bins。单次调用包含 routing 内部 diagnostics 和第一次 QueryGain.on 的缓存创建。输入生成在测量之前；finite 检查和资源回收在峰值记录之后。没有预热或第二次 sealed Full 调用。
+
+RESULT.json 的 measurement.before / after 给出 current allocated、reserved、active、driver free/total；max_allocated/max_reserved 在紧邻调用前 reset 后读取。increment_peak_allocated = max_allocated - before.allocated，表示本次调用相对已存在QKV的新增峰值，包含输出和routing自身临时量。Native/full/local 使用不同进程，其increment之差能描述同形状算子的额外分配；reserved差值还受allocator粒度影响。after.allocated-before.allocated 是调用返回时仍活跃的输出/缓存，通常低于峰值。
+
+这些数值对应独立算子与合成QKV，不含DiT/TE/VAE权重、FFN和真实推理其他张量。与NVML 46353MiB直接相加会混淆allocator缓存和live张量。实际容量判断应同时看驻留模型的allocated/reserved及driver free，并给碎片和非PyTorch分配留余量。现有gpu_dynamic_union_smoke仍负责数值正确性；本脚本仅补显存口径。前者的comparisons峰值覆盖额外finite/bits/第二次sealed Full检查，本脚本在这些外部操作之前冻结峰值。
+
+脚本只操作自身分配，拒绝目标卡已有其他compute或新增后超过两张本UID GPU。退出释放本进程CUDA context；root照常记录进程退出及显存回收。启动时的资源检查与CUDA分配之间仍存在共享服务器竞争窗口。
+
+本地CPU定向验证（不import torch、不查询GPU）：
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s audit/engineering_resource_robustness_v3_20261017 -p test_route_allocator_probe.py -v

@@ -1,0 +1,29 @@
+Musk 真人书记舞：未加权／三倍参考加权对照
+
+实验目的
+将原真人 Megumi 书记舞片段的表演者替换成 Elon Musk，比较普通参考编辑与手—脸动作时段的人工注意力加权。只运行一组固定种子的正式对照，不按结果重新挑种子。两步技术测试单独保存，不纳入正式质量比较。
+
+冻结条件
+源视频05_real_megumi_v.mp4，1312×736、141帧、24fps、5.875秒。种子2026101311；实际视频/音频噪声从已有缓存加载并逐字节核验。Musk参考为Royal Society肖像；提示词在两版完全相同。Euler20步，视频/音频shift12/3；不加载Turbo LoRA，不使用Sage attention，原生PyTorch SDPA。两版在.41 GPU5、同一ComfyUI进程依次运行。
+
+输入一致性
+原生H3参考节点5先计算共享的图像、视频和文本条件；各正式任务的节点51返回原对象，同时检查实际embedding、token tags、参考latent、目标形状、PackedLayout位置哈希。必须由最终Comfy history的execution_cached记录确认节点5复用，不能仅凭相同seed或提示词宣称一致。输入张量另存为原始存储并独立复核SHA256。
+
+干预位置与含义
+人工选取零起始源帧50–65；对应latent位置槽[14,20)，位置坐标覆盖约47–67帧。这个位置覆盖不等同于严格的VAE感受野或最终影响范围。选择5658个参考视频K/V行与5658个对应输出视频query；采用post-QKNorm、post-RoPE的原生注意力，附加两份相同的选定K/V，重算选定query输出。等价于对这组key的logits加ln(3)，即未归一化注意力质量变成三倍；不代表最终概率或纯动作特征变成三倍。包含这些时段的全部空间token，不是人物或手部掩码。覆盖所有50个DiT block和20次采样前向；Token Refiner不改动。未加权版factor1直接调用原始block，应有0次注意力覆盖；三倍版应有1000次覆盖。
+
+运行与核验
+Torch2.11.0+cu130；native CUDA INT8 linear实际调用由只读dispatch记录证明。启用Triton的启动标志不能代替实际后端证据；日志是进程累计记录，不据此声称每一版独立的精确调用数。模型文件复用前次完整SHA证据，并检查当前大小和mtime一致，未再次扫描全部42GB模型。13项CPU测试在本机与.41通过。
+
+评价和展示
+源片全部141帧先于生成结果审查并预登记动作边界；不预设旧红裙样例的15帧延迟。依次检查外伸、越脸、眼旁手势、离脸、低位交叉、举过头顶、分开手臂等阶段，并单独检查面貌、手部、背景和黑边。结果采用非盲AI逐帧目视分析，不是人类标注或自动动作评分。完整同帧对照保留原时间；40–100帧补充正常速度和6fps四分之一速度，不插帧、不移动某一列时间、不独立放大画面。
+
+解释边界
+同一源片和单一种子的样本级结果不能估计总体改善率、失败率或论文创新性。动作延后、持续时间改变、形状不准和全片未观察到该动作分别记录；同帧不匹配不能直接称为动作丢失。
+
+来源
+肖像：Debbie Rowe / The Royal Society，Wikimedia Commons，CC BY-SA3.0；原始JPEG未修改。
+https://commons.wikimedia.org/wiki/File:Elon_Musk_Royal_Society.jpg
+舞蹈：Megumi原上传视频37.0–42.875秒，已有实验输入。
+https://www.youtube.com/watch?v=3vd5c8XMP9c
+Musk两版均为AI人物替换实验视频。详细来源见inputs/CREDITS.txt与reference_provenance.json。

@@ -1,0 +1,34 @@
+Non-blind AI frame review: source / Musk baseline / Musk weight3
+Zero-based frames, 24 fps, 141 frames each, native 1312×736. No human score or video-playback claim.
+
+Finding: weight3 is substantially closer to source timing in this matched pair. Both outputs already contain the target action. Baseline target phases are roughly 8–11 frames late, while weight3 phases are approximately 1–3 frames early; this exceeds the roughly ±1-frame boundary uncertainty. This is temporal correction, not recovery of an absent action. Exact hand/finger geometry improvement is not established.
+
+Coverage: source and baseline all 141 frames were inspected previously and frozen in their separate reports. Weight3 all 141 full-frame rows, every native subject-crop frame 35–105, and native hand/face detail 50–85 were inspected. Full-frame context is primary; fixed equal native crops were used for details (subject x320/y70/w640/h600; hand x480/y100/w420/h330). No temporal alignment or separate crop resizing was applied.
+
+Inclusive intervals (source | baseline | weight3; counts are sampled frames):
+outward_reach: 45–49 (5) | 56–59 (4) | 44–48 (5); boundary uncertainty approximately ±1 frame(s).
+face_sweep: 50–55 (6) | 60–64 (5) | 49–52 (4); boundary uncertainty approximately ±1 frame(s).
+compound_hand_face_and_bent_leg_core: 53–61 (9) | 63–69 (7) | 52–59 (8); boundary uncertainty approximately ±1 frame(s).
+temple_adjacent_hand: 56–61 (6) | 65–69 (5) | 53–59 (7); boundary uncertainty approximately ±1 frame(s).
+bent_leg: 53–66 (14) | 63–73 (11) | 52–64 (13); boundary uncertainty approximately ±1 frame(s).
+hand_release: 62–71 (10) | 70–78 (9) | 60–71 (12); boundary uncertainty approximately ±1 frame(s).
+low_wrist_cross: 72–76 (5) | 79–83 (5) | 72–75 (4); boundary uncertainty approximately ±1 frame(s).
+face_cross: 77–81 (5) | 84–87 (4) | 76–80 (5); boundary uncertainty approximately ±1 frame(s).
+overhead_cross: 82–85 (4) | 88–91 (4) | 81–85 (5); boundary uncertainty approximately ±1 frame(s).
+uncross: 86–90 (5) | 92–95 (4) | 86–90 (5); boundary uncertainty approximately ±1 frame(s).
+open_arms: 91–113 (23) | 96–114 (19) | 91–113 (23); boundary uncertainty approximately ±2 frame(s).
+side_tilt: 114–129 (16) | 115–129 (15) | 114–129 (16); boundary uncertainty approximately ±2 frame(s).
+late_direction_change: 130–140 (11) | 130–140 (11) | 130–140 (11); boundary uncertainty approximately ±2 frame(s).
+
+Weight3 detail: face sweep 49–52; eye/brow crossing most evident 50–51; temple-adjacent hand 53–59; separation/release visible at 60. Rear bent leg is clear about 53–64. Low cross begins about 72 and uncross about 86. Source release starts at 62, so source 66–71 is only its later release segment.
+Weight3 core duration is about 8 sampled frames, source 9 and baseline 7; temple subphase is about 7, source 6 and baseline 5. These small duration differences are not a reliable quality score. Weight3 is slightly early, its face sweep shorter, and its target is not perfectly synchronized.
+Earlier separate near-face pass: source about 35–36, baseline about 48–51 (clearest 50–51), weight3 about 34–35. This correspondence has lower confidence. Timing changes extend before the target. Neither full clip shows an extra independent target repetition or a sequence-order swap.
+
+Geometry/quality: both preserve the coarse upper-face/temple hand, opposite-arm and rear-bent-leg combination, followed by release and the crossing sequence. Exact finger identity, V shape and precise eye contact remain uncertain. Both maintain the intended Musk-like face, short dark hair, dark suit and white shirt over the inspected sequence; no gross identity collapse or large new background failure was observed in weight3. Room layout, objects, black bars and top-right watermark remain strongly retained. The moving source cat is not automatically a generation artifact.
+Opening: baseline frames 0–1 have a confirmed extra detached palm-like fragment near the viewer-left waist/lower torso while two hands are raised (native evidence intro_source_baseline_000-001.png). Weight3 full-frame sheets show two lower hands and no comparably obvious fragment, but absence of that small artifact has not been confirmed in a matching native opening crop. Weight3 fine-detail absence is unresolved.
+
+Controls: analysis/pair_verification.json reports PASS, errors/missing empty; parent reports all 130 checks passed. Same process/GPU and 20 steps, exact actual conditioning/noise, cached node 5 verified; baseline 0 overrides versus weight3 1000. This reviewer relies on that execution verification rather than independently re-auditing every check. The visible timing improvement is evidence for this fixed clip/seed/reference pair, not repeatability, general benefit or an optimal factor.
+
+Evidence: analysis/source_landmarks.json/.txt; analysis/baseline_visual_review.json/.txt; analysis/visual_evidence/baseline_evidence_manifest.json and weight3_evidence_manifest.json. Strongest details: weight3_hand_face_050-061.png, weight3_hand_face_062-073.png, weight3_hand_face_074-085.png and their baseline equivalents. Parent has same-index 55–57/64–66 triplets; no new representative PNG was created during finalization.
+
+Finalization wrote only analysis/pair_visual_review.json and analysis/pair_visual_review.txt; frozen source/baseline findings were preserved. No further inspection or diagnostics performed in this finalization step.

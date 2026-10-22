@@ -1,0 +1,283 @@
+--- R65_namespace_normalized/scripts/service.py
++++ R66/scripts/service.py
+@@ -165,7 +165,7 @@
+     if RUNTIME['memory_mode'] in ('lowvram','novram'):
+         args.append('--'+RUNTIME['memory_mode'])
+     if cache_none:
+-        raise ValueError('R66 Native job requires the existing default model/node cache')
++        raise ValueError('R66 paired job requires the existing default model/node cache')
+     return args
+ 
+ 
+--- R65_namespace_normalized/scripts/execution_gate.py
++++ R66/scripts/execution_gate.py
+@@ -1,7 +1,7 @@
+ """Explicit root-approved first-pair capacity trial, followed by measured-pair review."""
+ import argparse,json,os,time
+ from pathlib import Path
+-from r66_contract import ROOT,read,sha,registry,require
++from r66_contract import ROOT,read,sha,registry,require,PAIR_KEYS
+ 
+ def atomic(path,value):
+  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(value,indent=2)+'\n');os.replace(tmp,path)
+@@ -19,10 +19,10 @@
+  if run in a['allowed_runs']:return True
+  p=root/'audit/CONTINUE_AFTER_FIRST_PAIR.json'
+  if not p.exists():return False
+- c=read(p);gate=root/'analysis/postrun/fitness/PAIR_RUNTIME_GATE.json'
++ c=read(p);gate=root/'analysis/postrun'/PAIR_KEYS[0]/'PAIR_RUNTIME_GATE.json'
+  require(c.get('root_approved') is True and c.get('schema')=='r66-continue-after-first-pair-v1','continuation approval invalid')
+  require(c['runtime_profile_sha256']==a['runtime_profile_sha256'] and c['pair_gate_sha256']==sha(gate),'continuation runtime/evidence changed')
+- report=read(gate);require(report['passed'] is True and report['runtime_profile_sha256']==a['runtime_profile_sha256'] and report['source_id']=='fitness','first pair evidence incomplete')
++ report=read(gate);require(report['passed'] is True and report['runtime_profile_sha256']==a['runtime_profile_sha256'] and report['source_id']==PAIR_KEYS[0],'first pair evidence incomplete')
+  require(c['allowed_runs']==order[2:],'remaining fixed queue changed')
+  return True
+ 
+@@ -30,9 +30,9 @@
+  root=Path(root);require(not(root/'processes/service.json').exists(),'service registry exists; producer seal locked')
+  files={}
+  paths=[]
+- for folder in ('scripts','extensions','configs/graphs','configs/parent_graphs','configs/R49_evidence'):
+-  paths.extend(p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
+- paths.extend(root/'configs'/n for n in ('runtime.json','scientific_contract.json','input_hashes.json','runtime_kernel_hashes.json','parent_core_hashes.json'))
++ for folder in ('scripts','extensions','configs/graphs','configs/parent_graphs','configs/R49_evidence','configs/source_selection','analysis/postrun'):
++  paths.extend(p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and (folder!='analysis/postrun' or p.suffix=='.py'))
++ paths.extend(root/'configs'/n for n in ('runtime.json','scientific_contract.json','input_hashes.json','runtime_kernel_hashes.json','parent_core_hashes.json','source_selection_hashes.json'))
+  for p in sorted(paths):files[str(p.relative_to(root))]={'sha256':sha(p),'bytes':p.stat().st_size}
+  value={'schema':'r66-producer-seal-v1','files':files,'mutable_root_owned':['configs/admission.json','audit/ROOT_FIRST_PAIR_APPROVAL.json','audit/CONTINUE_AFTER_FIRST_PAIR.json','configs/queue.json'],'created_unix':time.time()};atomic(root/'deploy_manifest.json',value);return value
+ 
+@@ -47,7 +47,7 @@
+    require(a.free_mib>=20480,'first capacity trial requires >=20GiB free')
+    v={'schema':'r66-first-pair-capacity-trial-v1','root_approved':True,'runtime_profile_sha256':sha(root/'configs/runtime.json'),'main_gpu_uuid':read(root/'configs/runtime.json')['gpu_uuid'],'allowed_runs':order[:2],'required_free_bytes':a.free_mib*1024**2,'reserve_vram_gib':8,'capacity_status':'ACTUAL_FULL_TRAJECTORY_PENDING','created_unix':time.time()};atomic(root/'audit/ROOT_FIRST_PAIR_APPROVAL.json',v)
+   else:
+-   approval(root);gate=root/'analysis/postrun/fitness/PAIR_RUNTIME_GATE.json';require(read(gate)['passed'] is True,'first pair evidence pending')
++   approval(root);gate=root/'analysis/postrun'/PAIR_KEYS[0]/'PAIR_RUNTIME_GATE.json';require(read(gate)['passed'] is True,'first pair evidence pending')
+    v={'schema':'r66-continue-after-first-pair-v1','root_approved':True,'runtime_profile_sha256':sha(root/'configs/runtime.json'),'pair_gate_sha256':sha(gate),'allowed_runs':order[2:],'created_unix':time.time()};atomic(root/'audit/CONTINUE_AFTER_FIRST_PAIR.json',v)
+  print(json.dumps({'action':a.action,'files':len(v.get('files',{})),'allowed_runs':v.get('allowed_runs')},indent=2))
+ if __name__=='__main__':main()
+--- R65_namespace_normalized/scripts/r66_contract.py
++++ R66/scripts/r66_contract.py
+@@ -1,10 +1,14 @@
+-"""Two original FlexiAct development pairs, same-host Native followed by fixed-ON; twenty Euler predictions."""
++"""Eight frozen action+target pairs; one Native/forced pair per cache identity."""
+ import copy,hashlib,json,re
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-SOURCES=('fitness','one_leg')
++PAIR_KEYS=('human2animal_1__movie_man_11','human2animal_1__game_man_4','fitness__game_man_4','one_leg__movie_man_11','human2animal_3__movie_man_11','human2animal_3__game_man_4','human2animal_2__movie_man_11','human2animal_2__game_man_4')
++# Retain the inherited CLI/API spelling; every element is a pair key, not an independent motion source.
++SOURCES=PAIR_KEYS
+ ARMS=('native','forced');GEOMETRY={'width':1152,'height':768,'frames':158,'fps':24}
+ SHAPES={'video':(1,24,47,48,72),'audio':(1,32,2,263)}
++PREPARED_SHA='39e1f8c996605320869a789565d7eb18e36b392d33d5bf482fa0130c7d24619a'
++SELECTED_SHA='8e6d23998ed289c8f4bbff6bf50daf77d4c2b5a121dc56b0660561e1f615a257'
+ def read(path):return json.loads(Path(path).read_text())
+ def sha(path):
+  h=hashlib.sha256()
+@@ -15,26 +19,40 @@
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def expected_graph(root,case):
+- root=Path(root);remote=Path(read(root/'configs/runtime.json')['remote_root']);g=copy.deepcopy(read(root/case['parent_graph']));run=case['run_id'];source=case['source_id']
++ root=Path(root);remote=Path(read(root/'configs/runtime.json')['remote_root']);g=copy.deepcopy(read(root/case['parent_graph']));run=case['run_id'];pair=case['pair_key']
+  for node,key,suffix in [('5','audit_dir','audit'),('6','audit_dir','audit'),('50','audit_dir','audit/router'),('51','source_audit_dir','audit'),('52','output_dir','audit/x0')]:g[node]['inputs'][key]=str(remote/suffix)
+- shared='r66_'+source+'_shared';g['5']['inputs']['run_id']=shared;g['51']['inputs']['source_run_id']=shared
++ shared='r66_'+pair+'_shared';g['5']['inputs']['run_id']=shared;g['51']['inputs']['source_run_id']=shared
+  for node in ('6','50','51','52'):g[node]['inputs']['run_id']=run
+- g['6']['inputs']['pair_id']='r66_'+source+'_seed2026101701'
++ g['6']['inputs']['pair_id']='r66_'+pair+'_seed2026101701'
+  g['14']['inputs']['filename_prefix']=run
++ g['21']['inputs']['image']=case['portrait'];g['22']['inputs']['file']=case['video']
+  g['50']['inputs'].update(mode='native' if case['arm']=='native' else 'mass_preserve',alpha=1.,radius=0,time_offset=0,start_frame=0,end_frame=146,block_start=0,block_end=50,step_start=0 if case['arm']=='native' else 6,step_end=20 if case['arm']=='native' else 15)
+  return g
+ 
++def frozen_pairs(root):
++ folder=Path(root)/'configs/source_selection'
++ require(sha(folder/'PREPARED_8_PAIRS.json')==PREPARED_SHA and sha(folder/'SELECTED_8_MANIFEST.json')==SELECTED_SHA,'frozen source-only selection changed')
++ p=read(folder/'PREPARED_8_PAIRS.json');q=read(folder/'QUEUE_RECOMMENDATION.json');require(q['prepared_pairs_sha256']==PREPARED_SHA,'queue ancestry changed')
++ rows={x['pair_id']:x for x in p['pairs']};require(len(rows)==8 and len(q['pair_order'])==8 and set(q['pair_order'])==set(rows),'pair inventory changed')
++ ordered=[rows[k] for k in q['pair_order']]
++ require(tuple(x['action']+'__'+Path(x['target']['official_path']).stem for x in ordered)==PAIR_KEYS,'pair priority/cache identity changed')
++ return ordered
++
+ def registry(root=ROOT):
+- root=Path(root);s=read(root/'configs/scientific_contract.json');order=['r66_'+source+'_seed2026101701_'+arm for source in SOURCES for arm in ARMS]
+- require(s['case_order']==order and len(s['cases'])==4 and s['arms']==list(ARMS) and s['source_ids']==list(SOURCES),'fixed two paired case registry changed')
++ root=Path(root);s=read(root/'configs/scientific_contract.json');order=['r66_'+pair+'_seed2026101701_'+arm for pair in PAIR_KEYS for arm in ARMS]
++ require(s['case_order']==order and len(s['cases'])==16 and s['arms']==list(ARMS) and s['source_ids']==s['pair_keys']==list(PAIR_KEYS),'fixed eight paired case registry changed')
+  q=read(root/'configs/queue.json');require(set(q)=={'jobs','finalize'} and q['jobs']==order and type(q['finalize']) is bool,'fixed paired queue changed')
+- jobs={}
+- for case,run in zip(s['cases'],order):
+-  require(case['run_id']==run and case['prompt_version']=='R49_original' and case['seed']==2026101701 and case['geometry']==GEOMETRY,'source/seed/original-prompt/geometry changed')
+-  parent=root/case['parent_graph'];require(sha(parent)==case['parent_graph_sha256'],'R49 graph changed')
++ frozen=frozen_pairs(root);shapes=read(root/'configs/source_selection/EXPECTED_SHAPES.json')['reference_images'];jobs={}
++ for i,(case,run) in enumerate(zip(s['cases'],order)):
++  p=frozen[i//2];pair=PAIR_KEYS[i//2];portrait=Path(p['target']['prepared_local_path']).name
++  require(re.fullmatch(r'[a-z0-9_]+',pair) and case['source_id']==case['pair_key']==pair and case['arm']==ARMS[i%2],'safe pair/arm identity changed')
++  require(case['run_id']==run and case['prompt_version']=='R49_original' and case['seed']==2026101701 and case['geometry']==GEOMETRY,'seed/prompt/geometry changed')
++  bindings={'motion_source_id':p['action'],'original_pair_id':p['pair_id'],'group':p['group'],'source_is_new_motion_content':p['source_is_new_motion_content'],'video':Path(p['source']['video']).name,'portrait':portrait,'provenance':Path(p['source']['provenance']).name,'identity':p['target']['official_path'],'video_sha256':p['source']['video_sha256'],'portrait_sha256':p['target']['prepared_sha256'],'provenance_sha256':p['source']['provenance_sha256'],'prompt':p['prompt_exact'],'valid_frame_count':147,'evaluation_indices':list(range(0,147,3)),'evaluation_crop_xywh':[0,0,1152,768],'reference_image_expected':shapes[portrait]}
++  require(all(case.get(k)==v for k,v in bindings.items()),'frozen pair input or metadata changed: '+pair)
++  parent=root/case['parent_graph'];require(case['parent_graph']=='configs/parent_graphs/r65_native_graph_template.json' and sha(parent)==case['parent_graph_sha256'],'R65 graph template changed')
+   require(read(parent)['5']['inputs']['prompt']==case['prompt'],'original R49 prompt changed')
+   graph=root/'configs/graphs'/(run+'.json');require(read(graph)==expected_graph(root,case),'graph numerical inputs changed')
+-  jobs[run]={'case':case,'source_id':case['source_id'],'seed':case['seed'],'arm':case['arm'],'graph_sha256':sha(graph)}
++  jobs[run]={'case':case,'source_id':pair,'pair_key':pair,'motion_source_id':p['action'],'seed':case['seed'],'arm':case['arm'],'graph_sha256':sha(graph)}
+  return jobs,order
+ 
+ def validate_job(run,root=ROOT):
+--- R65_namespace_normalized/scripts/preflight.py
++++ R66/scripts/preflight.py
+@@ -7,10 +7,11 @@
+  root=Path(root);s=read(root/'configs/scientific_contract.json');jobs,order=registry(root);runtime=read(root/'configs/runtime.json')
+  require(s['geometry']==GEOMETRY and s['NFE_per_job']==s['callback_count']==20 and s['online_observer'] is False,'geometry/count/observer contract changed')
+  require(s['router']=={'mode':'mass_preserve','alpha':1.0,'blocks':[0,50],'steps':[6,15],'physical_frames':[0,146],'query_support':'all44 temporal bins overlapping valid physical frames; all spatial queries'},'fixed scientific route changed')
++ for path,digest in read(root/'configs/source_selection_hashes.json').items():require(sha(root/path)==digest,'source selection evidence changed')
+  for run in order:validate_job(run,root)
+  for path,digest in read(root/'configs/input_hashes.json').items():require(sha(root/'inputs'/path)==digest,'original input bytes changed')
+  for path,row in read(root/'configs/runtime_kernel_hashes.json').items():require(sha(root/path)==row['current_sha256'],'R49 numerical kernel changed')
+- require(runtime['reserve_vram']==8 and runtime['memory_mode'] in ('normal','lowvram','novram'),'memory profile differs')
++ require(runtime['reserve_vram']==8 and runtime['memory_mode']=='normal','memory profile differs')
+  if live:
+   require(root.resolve()==Path(runtime['remote_root']),'exact remote root required')
+   import service
+@@ -19,6 +20,6 @@
+   require((root/'deploy_manifest.json').is_file(),'formal producer seal pending')
+   for path,row in read(root/'deploy_manifest.json')['files'].items():require(sha(root/path)==row['sha256'],'sealed file changed: '+path)
+   for path,digest in read(root/'configs/parent_core_hashes.json').items():require(sha(Path(runtime['core'])/path)==digest,'actual Comfy core differs')
+- return {'passed':True,'jobs':order,'first_pair':order[:2],'sources':2,'NFE_per_job':20,'Euler_updates':20,'online_observations':0,'route_steps':list(range(6,15)),'launch_admitted':live}
++ return {'passed':True,'jobs':order,'first_pair':order[:2],'pairs':8,'distinct_motion_sources':5,'new_motion_sources':3,'NFE_per_job':20,'Euler_updates':20,'online_observations':0,'route_steps':list(range(6,15)),'launch_admitted':live}
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('--live',action='store_true');a=p.parse_args();print(json.dumps(check(live=a.live),indent=2))
+--- R65_namespace_normalized/tests/test_pair_verifier.py
++++ R66/tests/test_pair_verifier.py
+@@ -7,7 +7,7 @@
+ 
+ class PairVerifierTests(unittest.TestCase):
+  def setUp(self):
+-  self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name);self.source='fitness';self.runs=[f'r66_{self.source}_seed2026101701_{a}' for a in ('native','forced')];self.jobs={};self.shapes={'video':(1,2),'audio':(1,3)}
++  self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name);self.source=verify.SOURCES[0];self.runs=[f'r66_{self.source}_seed2026101701_{a}' for a in ('native','forced')];self.jobs={};self.shapes={'video':(1,2),'audio':(1,3)}
+   r=self.root
+   for p in ('configs/graphs','processes','logs','output','audit/router','audit/tensor_blobs'): (r/p).mkdir(parents=True,exist_ok=True)
+   self.put(r/'configs/runtime.json',{'gpu_uuid':'GPU-test','port':8529})
+@@ -18,10 +18,10 @@
+   for i in range(8):
+    value=torch.full((2,),float(i));file=f'tensor_blobs/blob{i}.pt';torch.save(value,r/'audit'/file);sig=cap.signature(value);blobs.append({**{k:sig[k] for k in ('shape','dtype','sha256')},'tensor_file':file})
+   shared=r/'audit'/f'r66_{self.source}_shared_conditioning.json';self.put(shared,{'blobs':blobs})
+-  sig={'seed':2026101701,'nested':True};noise=[torch.zeros((2,)),torch.ones((3,))];hashes=[{k:cap.signature(x)[k] for k in ('shape','dtype','sha256')} for x in noise];pair_id=f'r66_{self.source}_seed2026101701';torch.save({'signature':sig,'hashes':hashes,'tensors':noise},r/'audit'/f'{pair_id}_noise.pt')
++  sig={'seed':2026101701,'nested':True};noise=[torch.zeros((1,2)),torch.ones((1,3))];hashes=[{k:cap.signature(x)[k] for k in ('shape','dtype','sha256')} for x in noise];pair_id=f'r66_{self.source}_seed2026101701';torch.save({'signature':sig,'hashes':hashes,'tensors':noise},r/'audit'/f'{pair_id}_noise.pt')
+   for arm,run in zip(('native','forced'),self.runs):
+    full=arm=='forced';graph={'9':{'inputs':{'sigmas':','.join(map(str,self.grid))}}};self.put(r/'configs/graphs'/f'{run}.json',graph)
+-   row={'arm':arm,'source_id':self.source,'seed':2026101701,'graph_sha256':verify.sha(r/'configs/graphs'/f'{run}.json'),'case':{'prompt':'P0','valid_frame_count':147,'evaluation_crop_xywh':[0,0,1152,768],'evaluation_indices':list(range(0,147,3))}};self.jobs[run]=row
++   row={'arm':arm,'source_id':self.source,'seed':2026101701,'graph_sha256':verify.sha(r/'configs/graphs'/f'{run}.json'),'case':{'motion_source_id':'human2animal_1','original_pair_id':'extension/human2animal_1/movie_man_11','group':'official_assets_crosspair_extension','prompt':'P0','valid_frame_count':147,'evaluation_crop_xywh':[0,0,1152,768],'evaluation_indices':list(range(0,147,3))}};self.jobs[run]=row
+    video=r/'output'/f'{run}.mp4';video.write_bytes(b'fixture-video')
+    self.put(r/'logs'/f'{run}_history.json',{'status':{'completed':True,'status_str':'success'},'prompt':[0,'prompt-'+run,graph],'outputs':{'14':{'images':[{'type':'output','filename':video.name}]}}})
+    self.put(r/'logs'/f'{run}_job.json',{'service_pid':101,'service_identity':owner['identity'],'status':'success','name':run,'prompt_id':'prompt-'+run,'graph_sha256':row['graph_sha256'],'submitted_unix':1.,'observed_unix':2.})
+@@ -34,7 +34,7 @@
+     for k,v in values.items():record[k]=cap.signature(v)
+     metadata={k:v for k,v in record.items() if k not in ('file','capture_seconds')};torch.save({**values,'metadata':metadata},folder/record['file'])
+    self.put(folder/'manifest.json',m)
+-  self.patches=[patch.object(verify,'registry',return_value=(self.jobs,self.runs)),patch.object(verify,'validate_job',side_effect=lambda run,root:self.jobs[run]),patch.object(verify,'video_properties',return_value={'width':1152,'height':768,'nb_read_frames':'158','avg_frame_rate':'24/1'}),patch.object(cap,'SHAPES',self.shapes)]
++  self.patches=[patch.object(verify,'registry',return_value=(self.jobs,self.runs)),patch.object(verify,'validate_job',side_effect=lambda run,root:self.jobs[run]),patch.object(verify,'video_properties',return_value={'width':1152,'height':768,'nb_read_frames':'158','avg_frame_rate':'24/1'}),patch.object(cap,'SHAPES',self.shapes),patch.object(verify,'SHAPES',self.shapes),patch.object(verify,'reference_geometry_matches',return_value=True)]
+   for p in self.patches:p.start()
+  def tearDown(self):
+   for p in reversed(self.patches):p.stop()
+--- R65_namespace_normalized/tests/test_first_pair.py
++++ R66/tests/test_first_pair.py
+@@ -3,7 +3,7 @@
+ from unittest.mock import patch
+ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
+ import execution_gate as gate,preflight
+-from r66_contract import registry,read,sha
++from r66_contract import registry,read,sha,PAIR_KEYS
+ 
+ class ContractTests(unittest.TestCase):
+  def test_graph_static(self):self.assertTrue(preflight.check(ROOT)['passed'])
+@@ -33,7 +33,7 @@
+     a={'schema':'r66-first-pair-capacity-trial-v1','root_approved':True,'runtime_profile_sha256':sha(root/'configs/runtime.json'),'main_gpu_uuid':'GPU-test','allowed_runs':order[:2],'required_free_bytes':20*1024**3,'reserve_vram_gib':8,'capacity_status':'ACTUAL_FULL_TRAJECTORY_PENDING'}
+     gate.atomic(root/'audit/ROOT_FIRST_PAIR_APPROVAL.json',a)
+     self.assertTrue(gate.admitted_job('native0',root));self.assertTrue(gate.admitted_job('forced0',root));self.assertFalse(gate.admitted_job('native1',root))
+-    receipt=root/'analysis/postrun/fitness/PAIR_RUNTIME_GATE.json';gate.atomic(receipt,{'passed':True,'runtime_profile_sha256':a['runtime_profile_sha256'],'source_id':'fitness'})
++    receipt=root/'analysis/postrun'/PAIR_KEYS[0]/'PAIR_RUNTIME_GATE.json';gate.atomic(receipt,{'passed':True,'runtime_profile_sha256':a['runtime_profile_sha256'],'source_id':PAIR_KEYS[0]})
+     c={'schema':'r66-continue-after-first-pair-v1','root_approved':True,'runtime_profile_sha256':a['runtime_profile_sha256'],'pair_gate_sha256':sha(receipt),'allowed_runs':order[2:]};gate.atomic(root/'audit/CONTINUE_AFTER_FIRST_PAIR.json',c)
+     self.assertTrue(gate.admitted_job('native1',root));receipt.write_text('{}')
+     with self.assertRaises(ValueError):gate.admitted_job('forced1',root)
+--- R65_namespace_normalized/tests/test_flex_support.py
++++ R66/tests/test_flex_support.py
+@@ -10,11 +10,12 @@
+   jobs,order=registry(ROOT)
+   for run in order:
+    c=jobs[run]['case'];old=read(ROOT/c['parent_graph']);new=read(ROOT/'configs/graphs'/f'{run}.json')
+-   for node in ('1','2','3','4','41','7','8','9','10','11','12','13','21','22','23'):self.assertEqual(old[node],new[node])
++   for node in ('1','2','3','4','41','7','8','9','10','11','12','13','23'):self.assertEqual(old[node],new[node])
+    for key in ('prompt','width','height','length','semantic_fps','phase_frames','ref_image','ref_video'):self.assertEqual(old['5']['inputs'][key],new['5']['inputs'][key])
+    self.assertEqual(old['6']['inputs']['noise_seed'],new['6']['inputs']['noise_seed'])
+    self.assertEqual(new['50']['inputs']['end_frame'],146)
+    self.assertEqual(c['evaluation_indices'],list(range(0,147,3)))
++   self.assertEqual(new['22']['inputs']['file'],c['video'])
+  def test_reference_image_is_loaded_and_hashed(self):
+   jobs,order=registry(ROOT)
+   for run in order:
+--- R65_namespace_normalized/analysis/postrun/verify_pair.py
++++ R66/analysis/postrun/verify_pair.py
+@@ -6,7 +6,7 @@
+ sys.path.insert(0,str(ROOT/'scripts'))
+ import torch
+ from capture_checks import inspect_capture,checked_snapshot,inspect_blob,condition_files,signature,expected_routing
+-from r66_contract import read,sha,require,registry,validate_job,SOURCES,GEOMETRY
++from r66_contract import read,sha,require,registry,validate_job,SOURCES,GEOMETRY,SHAPES
+ from execution_gate import atomic
+ 
+ def semantic_condition(c):
+@@ -18,6 +18,20 @@
+   for v in value.values():yield from walk_blobs(v)
+  elif isinstance(value,list):
+   for v in value:yield from walk_blobs(v)
++
++def reference_geometry_matches(c,case,plan):
++ """Check both reference modalities and the actual packed layout for this target image."""
++ image=case['reference_image_expected'];w,h=image['expected_native_ref_image_size_match_width_height']
++ image_shape=image['expected_clean_reference_latent_shape'];tokens=image['expected_DiT_visual_patch_tokens']
++ calls=c['native_vae_calls'];require(len(calls)==2,'expected image then video VAE calls')
++ shapes_ok=(calls[0]['prepared_frames']['shape']==[1,h,w,3] and calls[0]['latent']['shape']==image_shape and calls[1]['prepared_frames']['shape']==[158,768,1152,3] and calls[1]['latent']['shape']==list(SHAPES['video']) and c['target_latent_shapes']==[list(SHAPES[k]) for k in ('video','audio')])
++ actual=c['pair_snapshot']['actual'];refs=actual['references']
++ shapes_ok=shapes_ok and [x['kind'] for x in refs]==['image','video'] and [x['clean_latent']['shape'] for x in refs]==[image_shape,list(SHAPES['video'])] and actual['target_latent_shapes']==c['target_latent_shapes']
++ segments=c['packed_layout']['segments'];require(len(segments)==5,'unexpected silent image+video packed layout')
++ sizes=[segments[0][1],tokens,40608,526,40608];labels=['text','ref_img','ref_img','audio','video'];offset=0;expected=[]
++ for size,label in zip(sizes,labels):expected.append([offset,offset+size,label]);offset+=size
++ layout_ok=(segments[0][0]==0 and segments[0][1]>0 and segments==expected and c['packed_layout']['seq_len']==offset and actual['packed_layout']['segments']==segments and actual['packed_layout']['seq_len']==offset and plan['reference_image_segments']==[segments[1][:2]] and plan['reference_video_segment']==segments[2][:2] and plan['target_video_segment']==segments[4][:2])
++ return shapes_ok and layout_ok
+ 
+ def output_file(root,history):
+  images=history['outputs']['14']['images'];require(len(images)==1,'expected one final video')
+@@ -38,7 +52,7 @@
+  checks={};checks['producer_seal']=all(sha(root/p)==v['sha256'] for p,v in seal['files'].items())
+  owner=read(root/'processes/service.json');checks['actual_runtime_device']=(owner['gpu_uuid']==runtime['gpu_uuid'] and owner['port']==runtime['port'])
+  pair=[run for run in order if jobs[run]['source_id']==source];require(len(pair)==2,'paired registry differs')
+- result={'schema':'r66-paired-runtime-gate-v1','source_id':source,'prompt_version':'R49_original','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'separate official MF and human edit/motion assessment','condition_tensor_files':[]}
++ result={'schema':'r66-paired-runtime-gate-v1','source_id':source,'pair_key':source,'motion_source_id':jobs[pair[0]]['case']['motion_source_id'],'original_pair_id':jobs[pair[0]]['case']['original_pair_id'],'group':jobs[pair[0]]['case']['group'],'prompt_version':'R49_original','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'separate official MF and human edit/motion assessment','condition_tensor_files':[]}
+  conditions={};noises={};manifests={};seen=set()
+  for run in pair:
+   row=validate_job(run,root);arm=row['arm'];case=row['case'];forced=arm=='forced';graph=read(root/'configs/graphs'/f'{run}.json');grid=torch.tensor([float(x) for x in graph['9']['inputs']['sigmas'].split(',')],dtype=torch.float32).tolist()
+@@ -56,11 +70,12 @@
+   checks[arm+'_actual_execution_counts']=all(router.get(k)==v for k,v in expect.items())
+   plan=router['validated_layout'];seq=c['packed_layout']['seq_len']
+   checks[arm+'_actual_layout']=(router['first_attention']['qkv_shape']==[1,56,seq,128] and plan['frame_rows']==864 and plan['latent_interval_half_open']==[0,44] and plan['position_bin_coverage_inclusive']==[0,148] and plan['query_interval_half_open']==[plan['target_video_segment'][0],plan['target_video_segment'][0]+44*864] and plan['key_interval_half_open']==[plan['reference_video_segment'][0],plan['reference_video_segment'][0]+44*864] and len(plan['reference_image_segments'])==1)
++  checks[arm+'_reference_geometry']=reference_geometry_matches(c,case,plan)
+   checks[arm+'_sampled_finite']=all(x.get('sampled_finite',True) for x in router['forward_summaries'])
+   m,files,prefix=inspect_capture(root/'audit/x0'/run,run,grid,row['seed']);manifests[arm]=m
+   pair_id=f'r66_{source}_seed2026101701';cache=root/'audit'/f'{pair_id}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True)
+   hashes=[{k:signature(t)[k] for k in ('shape','dtype','sha256')} for t in saved['tensors']]
+-  checks[arm+'_actual_noise_cache']=(n['run_id']==run and n['pair_id']==pair_id and n['signature']['seed']==row['seed'] and len(hashes)==2 and saved['signature']==n['signature'] and saved['hashes']==hashes==n['actual_noise_streams'])
++  checks[arm+'_actual_noise_cache']=(n['run_id']==run and n['pair_id']==pair_id and n['signature']['seed']==row['seed'] and len(hashes)==2 and [x['shape'] for x in hashes]==[list(SHAPES[k]) for k in ('video','audio')] and saved['signature']==n['signature'] and saved['hashes']==hashes==n['actual_noise_streams'])
+   video=output_file(root,hist);properties=video_properties(video)
+   result['runs'][arm]={'run_id':run,'video':{'file':str(video),'sha256':sha(video),'properties':properties},'valid_frames':case['valid_frame_count'],'evaluation_crop_xywh':case['evaluation_crop_xywh'],'evaluation_indices':case['evaluation_indices'],'evaluation_fps':8,'NFE':20,'Euler_updates':20,'routed_blocks':router['routed_calls'],'job_wall_seconds':job['observed_unix']-job['submitted_unix'],'snapshots':files,'capture_seconds':sum(x['capture_seconds'] for x in m['captures']),'router_file_sha256':sha(root/'audit/router'/f'{run}.json'),'history_sha256':sha(root/'logs'/f'{run}_history.json'),'job_sha256':sha(root/'logs'/f'{run}_job.json')}
+   del prefix,saved
+@@ -73,7 +88,7 @@
+  result['passed']=all(checks.values());return result
+ 
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('--source',choices=SOURCES,required=True);p.add_argument('--root',type=Path,default=ROOT);a=p.parse_args();dest=a.root/'analysis/postrun'/a.source/'PAIR_RUNTIME_GATE.json'
++ p=argparse.ArgumentParser();p.add_argument('--pair','--source',dest='source',choices=SOURCES,required=True,help='action+target pair key; not a motion-only ID');p.add_argument('--root',type=Path,default=ROOT);a=p.parse_args();dest=a.root/'analysis/postrun'/a.source/'PAIR_RUNTIME_GATE.json'
+  try:result=verify(a.root,a.source)
+  except BaseException as e:
+   atomic(dest.with_name('PAIR_RUNTIME_GATE_FAILURE.json'),{'schema':'r66-pair-verifier-error-v1','passed':False,'source_id':a.source,'error':repr(e),'unix':time.time()});raise

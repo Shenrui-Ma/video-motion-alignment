@@ -1,0 +1,689 @@
+{
+  "schema": "h3-fast-motion-runtime-readmission-v1",
+  "created_at_utc": "2026-10-13T02:01:51.833823+00:00",
+  "status": "readmission_checks_passed",
+  "preferred_host": "192.0.2.1",
+  "recommendation": {
+    "host": "192.0.2.1",
+    "gpu_uuid": "GPU-REDACTED",
+    "retain_same_gpu_as_previous": false,
+    "recipe": "Same verified native PyTorch SDPA plus Triton quantization, no Turbo/LoRA, Euler20 steps, video12/audio3; new base-directory and new port8444.",
+    "reason": "Preserve backend and hardware comparability with the previous16-output experiment. Other UIDs are not treated as a host-wide blocker.",
+    "new_remote_base": "/data5/researcher/h3_runs/fast_motion_followup_20261013",
+    "new_port": 8444,
+    "root_confirmed_selection": true
+  },
+  "issues": [],
+  "host_probes": {
+    "192.0.2.1": {
+      "host": "192.0.2.1",
+      "observed_unix": 1791856911.798773,
+      "ssh_authenticated": true,
+      "route_vpn_currently_usable": true,
+      "uid": 1016,
+      "gpus": [
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA A100 80GB PCIe",
+          "driver": "535.129.03",
+          "memory_total_mib": 81920,
+          "memory_used_mib": 70824,
+          "memory_free_mib": 10226,
+          "utilization_gpu_percent": 99,
+          "temperature_c": 69,
+          "mig_mode": "Disabled",
+          "processes": [
+            {
+              "pid": 22016,
+              "uid": 1015,
+              "type": "C",
+              "used_memory": "17538 MiB"
+            },
+            {
+              "pid": 22017,
+              "uid": 1015,
+              "type": "C",
+              "used_memory": "17752 MiB"
+            },
+            {
+              "pid": 27118,
+              "uid": 1015,
+              "type": "C",
+              "used_memory": "17752 MiB"
+            },
+            {
+              "pid": 32568,
+              "uid": 1015,
+              "type": "C",
+              "used_memory": "17752 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": false
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA A100 80GB PCIe",
+          "driver": "535.129.03",
+          "memory_total_mib": 81920,
+          "memory_used_mib": 4,
+          "memory_free_mib": 81046,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 34,
+          "mig_mode": "Disabled",
+          "processes": [],
+          "idle_candidate": true,
+          "compute_idle_with_display_only": false
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA A100 80GB PCIe",
+          "driver": "535.129.03",
+          "memory_total_mib": 81920,
+          "memory_used_mib": 8,
+          "memory_free_mib": 81042,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 36,
+          "mig_mode": "Disabled",
+          "processes": [],
+          "idle_candidate": true,
+          "compute_idle_with_display_only": false
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA A100 80GB PCIe",
+          "driver": "535.129.03",
+          "memory_total_mib": 81920,
+          "memory_used_mib": 4,
+          "memory_free_mib": 81046,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 35,
+          "mig_mode": "Disabled",
+          "processes": [],
+          "idle_candidate": true,
+          "compute_idle_with_display_only": false
+        }
+      ],
+      "own_video_or_comfy_candidates": [],
+      "unclassified_own_gpu_processes": [],
+      "other_user_process_policy": "Other UIDs do not block admission by themselves. Selected GPU must still be idle. No other-user cmdline was retained.",
+      "resources": {
+        "cpu_logical_count": 64,
+        "loadavg_1_5_15": [
+          6.06,
+          6.08,
+          4.53
+        ],
+        "memory_total_kib": 263573844,
+        "memory_available_kib": 238315780,
+        "swap_total_kib": 68157436,
+        "swap_free_kib": 53773736,
+        "glibc": "2.17"
+      },
+      "port_8444": {
+        "listeners": [],
+        "available_at_probe": true
+      },
+      "old_task_processes": {
+        "service": {
+          "old_pid": 43842,
+          "old_start_ticks": "2585207701",
+          "current": null,
+          "original_os_process_still_present": false,
+          "old_identity_exited": true
+        },
+        "controller": {
+          "old_pid": 44457,
+          "old_start_ticks": "2585269446",
+          "current": null,
+          "original_os_process_still_present": false,
+          "old_identity_exited": true
+        },
+        "watchdog": {
+          "old_pid": 59086,
+          "old_start_ticks": "2585221791",
+          "current": null,
+          "original_os_process_still_present": false,
+          "old_identity_exited": true
+        }
+      },
+      "required_paths": {
+        "core": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI",
+          "exists": true,
+          "is_directory": true,
+          "resolved": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI"
+        },
+        "runtime_deps": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps",
+          "exists": true,
+          "is_directory": true,
+          "resolved": "/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps"
+        },
+        "python": {
+          "path": "/home/researcher/miniconda3/envs/comfyui/bin/python",
+          "exists": true,
+          "is_directory": false,
+          "resolved": "/home/researcher/miniconda3/envs/comfyui/bin/python3.10"
+        },
+        "model_directory": {
+          "path": "/data5/researcher/ComfyUI/models",
+          "exists": true,
+          "is_directory": true,
+          "resolved": "/data5/researcher/ComfyUI/models"
+        },
+        "bootstrap": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/scripts/compatibility_bootstrap.py",
+          "exists": true,
+          "is_directory": false,
+          "resolved": "/data5/researcher/h3_runs/short_event_pilot_20261013/scripts/compatibility_bootstrap.py"
+        },
+        "custom_node": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/H3EventAudit/__init__.py",
+          "exists": true,
+          "is_directory": false,
+          "resolved": "/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/H3EventAudit/__init__.py"
+        }
+      },
+      "runtime_file_hash_recheck": {
+        "bootstrap": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/scripts/compatibility_bootstrap.py",
+          "exists": true,
+          "sha256": "03790fcbaa6a3c09808175c71b4293cfc4b75c903089ac8d569774e09da48a01",
+          "previous_sha256": "03790fcbaa6a3c09808175c71b4293cfc4b75c903089ac8d569774e09da48a01",
+          "matches_previous_sha256": true
+        },
+        "custom_node": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/H3EventAudit/__init__.py",
+          "exists": true,
+          "sha256": "2627d10958c174b8daec52e20601d1f0677713f8515fedcfe391e96a14a62999",
+          "previous_sha256": "2627d10958c174b8daec52e20601d1f0677713f8515fedcfe391e96a14a62999",
+          "matches_previous_sha256": true
+        },
+        "core:comfy_extras/nodes_minimax_h3.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy_extras/nodes_minimax_h3.py",
+          "exists": true,
+          "sha256": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+          "previous_sha256": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+          "matches_previous_sha256": true
+        },
+        "core:comfy/text_encoders/minimax.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/text_encoders/minimax.py",
+          "exists": true,
+          "sha256": "0e16e44100d6db2bdfd1292eafd1b2f8d71147c546f49afe292fe4d2cdcefe8a",
+          "previous_sha256": "0e16e44100d6db2bdfd1292eafd1b2f8d71147c546f49afe292fe4d2cdcefe8a",
+          "matches_previous_sha256": true
+        },
+        "core:comfy/ldm/minimax/model.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/ldm/minimax/model.py",
+          "exists": true,
+          "sha256": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+          "previous_sha256": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+          "matches_previous_sha256": true
+        },
+        "core:comfy/sample.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/sample.py",
+          "exists": true,
+          "sha256": "d274ed5b6abf83707b52b87d25d1716f072d5444954cf23ac0ed31a3b803ee1c",
+          "previous_sha256": "d274ed5b6abf83707b52b87d25d1716f072d5444954cf23ac0ed31a3b803ee1c",
+          "matches_previous_sha256": true
+        },
+        "core:comfy_extras/nodes_custom_sampler.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy_extras/nodes_custom_sampler.py",
+          "exists": true,
+          "sha256": "b0ba1521c72475e06fed15db004274ed7c8bb2bf73f1d58849faf6f9f9d264fe",
+          "previous_sha256": "b0ba1521c72475e06fed15db004274ed7c8bb2bf73f1d58849faf6f9f9d264fe",
+          "matches_previous_sha256": true
+        },
+        "core:comfy/ldm/modules/attention.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/ldm/modules/attention.py",
+          "exists": true,
+          "sha256": "9cafaafaf93ff53e8cbefb5e4a204014019985df2da8c1996bf40f1235fc2960",
+          "previous_sha256": "9cafaafaf93ff53e8cbefb5e4a204014019985df2da8c1996bf40f1235fc2960",
+          "matches_previous_sha256": true
+        },
+        "core:comfy/quant_ops.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/quant_ops.py",
+          "exists": true,
+          "sha256": "196e45349f46e5ca69f6b2251bbe01d4f8eb5d26f8ad38d62b1c002d80fb2089",
+          "previous_sha256": "196e45349f46e5ca69f6b2251bbe01d4f8eb5d26f8ad38d62b1c002d80fb2089",
+          "matches_previous_sha256": true
+        },
+        "core:comfy/model_management.py": {
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/comfy/model_management.py",
+          "exists": true,
+          "sha256": "ef3f3af0657c1b022ad69b25928fa52dd429db9aed9cb688e89c7fbe68ab50cd",
+          "previous_sha256": "ef3f3af0657c1b022ad69b25928fa52dd429db9aed9cb688e89c7fbe68ab50cd",
+          "matches_previous_sha256": true
+        }
+      },
+      "package_entry_file_recheck": {
+        "torch": {
+          "previous_version": "2.5.1+cu121",
+          "path": "/home/researcher/miniconda3/envs/comfyui/lib/python3.10/site-packages/torch/__init__.py",
+          "exists": true,
+          "sha256": "e1b5bf4151bd246a21e3ac5318f6edfcf2e6ef0fd4f233bfb77a264698ec1319",
+          "matches_previous_sha256": true
+        },
+        "triton": {
+          "previous_version": "3.1.0",
+          "path": "/home/researcher/miniconda3/envs/comfyui/lib/python3.10/site-packages/triton/__init__.py",
+          "exists": true,
+          "sha256": "f825d615162aee11d1fcf00cc67220857ce57862db0054730933b93220543ffd",
+          "matches_previous_sha256": true
+        },
+        "av": {
+          "previous_version": "16.0.1",
+          "path": "/home/researcher/miniconda3/envs/comfyui/lib/python3.10/site-packages/av/__init__.py",
+          "exists": true,
+          "sha256": "bf25589a65fa4966cb815484c2481a715fa8055b8502560c24374b53be1404db",
+          "matches_previous_sha256": true
+        },
+        "comfy_kitchen": {
+          "previous_version": "0.2.33",
+          "path": "/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps/comfy_kitchen/__init__.py",
+          "exists": true,
+          "sha256": "e19ad20021eb35986c9cfce19c4ee2fdc813f2783aeeae46559d62b649744117",
+          "matches_previous_sha256": true
+        },
+        "comfy_aimdo": {
+          "previous_version": "0.5.3",
+          "path": null,
+          "namespace_paths_exist": {
+            "/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps/comfy_aimdo": true,
+            "/home/researcher/miniconda3/envs/comfyui/lib/python3.10/site-packages/comfy_aimdo": true
+          }
+        }
+      },
+      "model_metadata_recheck": {
+        "diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors": {
+          "path": "/data5/researcher/ComfyUI/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "exists": true,
+          "previous_sha256": "9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779",
+          "sha256_recomputed": false,
+          "inode": 304351436,
+          "device": 2064,
+          "bytes": 20970379616,
+          "mtime_ns": 1785988936000000000,
+          "size_matches_previous": true,
+          "mtime_matches_previous": true,
+          "inode_baseline_available": false
+        },
+        "text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors": {
+          "path": "/data5/researcher/ComfyUI/models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "exists": true,
+          "previous_sha256": "35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6",
+          "sha256_recomputed": false,
+          "inode": 304351422,
+          "device": 2064,
+          "bytes": 15687142551,
+          "mtime_ns": 1785953619894982504,
+          "size_matches_previous": true,
+          "mtime_matches_previous": true,
+          "inode_baseline_available": false
+        },
+        "vae/minimax_h3_video_vae_fp16.safetensors": {
+          "path": "/data5/researcher/ComfyUI/models/vae/minimax_h3_video_vae_fp16.safetensors",
+          "exists": true,
+          "previous_sha256": "7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522",
+          "sha256_recomputed": false,
+          "inode": 304351423,
+          "device": 2064,
+          "bytes": 5207808496,
+          "mtime_ns": 1785953890000000000,
+          "size_matches_previous": true,
+          "mtime_matches_previous": true,
+          "inode_baseline_available": false
+        },
+        "vae/minimax_h3_audio_vae_fp32.safetensors": {
+          "path": "/data5/researcher/ComfyUI/models/vae/minimax_h3_audio_vae_fp32.safetensors",
+          "exists": true,
+          "previous_sha256": "8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48",
+          "sha256_recomputed": false,
+          "inode": 304351424,
+          "device": 2064,
+          "bytes": 605254808,
+          "mtime_ns": 1785954746259358845,
+          "size_matches_previous": true,
+          "mtime_matches_previous": true,
+          "inode_baseline_available": false
+        }
+      },
+      "own_read_only_log_observers": [
+        {
+          "pid": 2019,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2162224682",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/silverwolf_after_yaoguang_events.jsonl /data5/researcher/h3_runs/silverwolf_formal_continuation_577f_20260825/events.jsonl ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 13159,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2187070709",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_20260827/service/comfy_lowvram.log ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 24848,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2187238506",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_v2_20260827/service/comfy.log ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 26852,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2162339081",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/yidi_postprocess_20260825/yaoguang/yaoguang_events.jsonl /data5/researcher/h3_runs/silverwolf_formal_continuation_577f_20260825/events.jsonl ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 30589,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2187027441",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_20260827/service/comfy.log ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 35700,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2194220255",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_v2_20260827/remaining_controller.log ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 40300,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2186909670",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_20260827/events.jsonl /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_20260827/controller.log ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        },
+        {
+          "pid": 55973,
+          "uid": 1016,
+          "state": "S",
+          "ppid": 1,
+          "start_ticks": "2186999969",
+          "cmdline": "tail -n 0 -F /data5/researcher/h3_runs/bushi_zuiguo_silverwolf_native_20260827/controller.log ",
+          "classification": "read_only_monitor_not_video_inference",
+          "exclusion_reason": "Executable is a log/system observation tool and PID has no recorded GPU allocation"
+        }
+      ]
+    },
+    "192.0.2.1": {
+      "host": "192.0.2.1",
+      "observed_unix": 1791856910.7771132,
+      "ssh_authenticated": true,
+      "route_vpn_currently_usable": true,
+      "uid": 1004,
+      "gpus": [
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 4605,
+          "memory_free_mib": 43904,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 29,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            },
+            {
+              "pid": 2978,
+              "uid": 1011,
+              "type": "C",
+              "used_memory": "4582 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": false
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 16,
+          "memory_free_mib": 48493,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 27,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 15,
+          "memory_free_mib": 48494,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 27,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 15,
+          "memory_free_mib": 48494,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 28,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 15,
+          "memory_free_mib": 48494,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 29,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 15,
+          "memory_free_mib": 48494,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 26,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 15,
+          "memory_free_mib": 48494,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 28,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        },
+        {
+          "uuid": "GPU-REDACTED",
+          "name": "NVIDIA GeForce RTX 4090",
+          "driver": "580.126.20",
+          "memory_total_mib": 49140,
+          "memory_used_mib": 16,
+          "memory_free_mib": 48493,
+          "utilization_gpu_percent": 0,
+          "temperature_c": 28,
+          "mig_mode": "N/A",
+          "processes": [
+            {
+              "pid": 2968,
+              "uid": 128,
+              "type": "G",
+              "used_memory": "4 MiB"
+            }
+          ],
+          "idle_candidate": false,
+          "compute_idle_with_display_only": true
+        }
+      ],
+      "own_video_or_comfy_candidates": [],
+      "unclassified_own_gpu_processes": [],
+      "other_user_process_policy": "Other UIDs do not block admission by themselves. Selected GPU must still be idle. No other-user cmdline was retained.",
+      "resources": {
+        "cpu_logical_count": 88,
+        "loadavg_1_5_15": [
+          0.18,
+          0.24,
+          0.2
+        ],
+        "memory_total_kib": 263979800,
+        "memory_available_kib": 249976168,
+        "swap_total_kib": 2097148,
+        "swap_free_kib": 2051752,
+        "glibc": "2.35"
+      },
+      "port_8444": {
+        "listeners": [],
+        "available_at_probe": true
+      },
+      "fallback_required_paths": {
+        "core": {
+          "path": "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI",
+          "exists": true
+        },
+        "runtime_deps": {
+          "path": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps",
+          "exists": true
+        },
+        "python": {
+          "path": "/data3/researcher/ComfyUI/.venv/bin/python",
+          "exists": true
+        },
+        "model_directory": {
+          "path": "/data3/researcher/ComfyUI-H3/models",
+          "exists": true
+        }
+      },
+      "own_read_only_log_observers": []
+    }
+  },
+  "local_old_archive_vs_remote_source": {
+    "bootstrap": {
+      "local_old_archive_path": "/Users/researcher/DevProjects/h3-short-event-pilot-20261013/scripts/compatibility_bootstrap.py",
+      "local_sha256": "03790fcbaa6a3c09808175c71b4293cfc4b75c903089ac8d569774e09da48a01",
+      "matches_remote_sha256": true
+    },
+    "custom_node": {
+      "local_old_archive_path": "/Users/researcher/DevProjects/h3-short-event-pilot-20261013/extensions/H3EventAudit/__init__.py",
+      "local_sha256": "2627d10958c174b8daec52e20601d1f0677713f8515fedcfe391e96a14a62999",
+      "matches_remote_sha256": true
+    }
+  },
+  "mandatory_new_run_boundaries": [
+    "Create a new base-directory, process registration and queue. Never restart the previous16-job controller or write into the old archive.",
+    "Existing H3EventAudit audit_root explicitly allows only the old short_event_pilot_20261013 component; use a new isolated copy with the new task allowlist, rather than directing new audit outputs into the old task.",
+    "Recheck GPU admission immediately before launch; this is a read-only point-in-time observation and no GPU/port has been reserved.",
+    ".41 own-task cap is at most one simultaneous video inference process across our tasks; unrelated UIDs may run normally."
+  ],
+  "limitations": [
+    "Model weights were not reread/rehashed. Existing SHA values are carried from the previous full verification after size/mtime checks; matching metadata is not a new cryptographic content check.",
+    "Previous model manifest does not contain inode baselines. Current inode/device are recorded, but inode equality to the old run cannot be claimed.",
+    "No full environment dump or other-user private command lines were retained. No GPU work or services were started.",
+    "Package entry files were rehashed against prior provenance; no new in-process module introspection or kernel throughput test was performed."
+  ],
+  "classification_notes": [
+    "Name matching originally selected eight tail -F processes on .9. Their executables and absence of GPU allocations establish they are read-only log observers, not video inference; they do not block this task.",
+    ".41 has seven compute-idle GPUs with only the existing display process and15-16MiB baseline. They are separately reported as compute_idle_with_display_only, not silently called strictly process-free. This fallback is unnecessary while .9 has three strictly idle A10080GB GPUs.",
+    "The previously used .9 physical GPU is now occupied by another UID; recommendation selects another same-model A10080GB and records that hardware UUID change. No other-user process was inspected beyond PID/UID/GPU memory/type metadata."
+  ],
+  "admission_scope": "Point-in-time resource and prior-runtime integrity checks only; new task integration and its first inference are not yet verified.",
+  "root_owned_remaining_integration": "Root will adapt the new task-owned H3EventAudit allowlist and copied scripts, test them, and launch only the new queue. This probe did not modify those files."
+}

@@ -1,0 +1,59 @@
+R16 builder completion after actual environment gates
+
+All63 sealed files match audit/deploy_manifest_v1.json. Manifest SHA256:
+d77fc1ad49cd4e05c3a7555f4839bfb22e99fbcf20cd899464f20ceba7326f98
+Bundle audit/deploy_v1.tar.gz SHA256:
+d4111276367ed04a7511b9597c038925836553ccac747a4a804a8ea3fea2d517
+No sealed source/config/test/script was changed after this verification.
+
+Implementation readiness evidence
+----------------------------------
+Local tests:7/7PASS in0.194s, tests/local_attempt2.log.
+Actual .9 Comfy CPU: audit/cpu_loader_attempt2.log,14.376976542s,
+CUDA_initialized=false. Five cases Full/zero/one/ROI/UNIFORM each20modelcalls,
+20Eulerupdates/20callbacks/1000blocks, real ModelPatcher clone/shared state,
+real BasicGuider/Euler/loader, actual clean R3reference hash, real small native
+preprocessing, four reference outputs, PairSnapshot, cached noise, path guards.
+Zero/native and one/Full are bitwise equal on this CPU fixture. QKV/reference/
+noise/sigmas/RNG/environment unchanged. ROI/UNIFORM independent x0 capture passed.
+The failed first attempt was the test's false same-size RGB identity assertion;
+official Lanczos quantization was identified, documented and independently
+checked. Runtime numerical operator did not change for this fix.
+
+Root-run GPU numeric gate: audit/gpu_kernel_attempt1.json, torch2.5.1+cu121,
+CUDA12.1. Small69token BF16 cases,56heads,128dim, both ordinary and >.999reference
+mass: native=forcedFlash, zero=native, one=sealedFull bitwise; dense convex
+reference redistribution error passed max.03/RMS.003 thresholds. Largest observed
+max/RMS were0.006513/0.000453. Actual shape [1,56,87592,128] with frozen ROI and
+UNIFORM both finite, outside interval and zero-gain rows bitwise native, QKV and
+global CUDA RNG unchanged. Actual large-shape gate took3.54947s; peakallocated
+13,195,105,792bytes. Full-shape test does not include dense attention materialization
+or another full-shape zero/one test. This is an operator test with no model weights
+and0modelNFE; it is not a video efficacy result.
+audit/gpu_kernel_cleanup1.json records child64153 exited0 and selectedGPU returned
+to8MiB,0% with no compute processes. Root performed admission/execution/cleanup.
+
+Execution handoff
+------------------
+Two formal graphs are ready: configs/r16_s05_roi_6to14.json and
+configs/r16_s05_uniform_6to14.json. Queue is sealed and serial. Root copied inputs
+and verified their SHAs, wrote warmup_reuse_gate.json binding prior R3 same-shape
+evidence, and owns formal upload/launch/admission/cleanup. Both formal jobs must
+record20modelNFE/20Eulerupdates/20callbacks,450selected block applications and
+actual parent-matched conditioning/noise/preparedRGB/ref/core/models/backend.
+The local node checks the actual75140c3c... clean reference before installing.
+No further implementation edits are needed for the formal run; retain evidence
+and isolate a new revision if a true runtime failure appears.
+
+Scientific limits retained
+---------------------------
+ROI vs UNIFORM matches per-bin sum query coefficients, not mref-weighted dose or
+correction norm. Zero-mask invariance applies to the current attention readout;
+later blocks/decoder may propagate changes outside the source ROI. Source pose
+may not overlap the generated subject's delayed arms. Source/window/radii are
+frozen before output. Evaluate independent arm timing and visual duplication,
+plus lower-limb/torso timing/amplitude/common-valid support. Equal coverage does
+not ensure matching joint support across arms. This is one already-viewed source
+and seed, an implementation/mechanism diagnostic for known local-control ideas;
+no novelty or video-quality success is established by these gates. Record runtime
+cost, then judge both formal outputs with the independent frozen evaluation.

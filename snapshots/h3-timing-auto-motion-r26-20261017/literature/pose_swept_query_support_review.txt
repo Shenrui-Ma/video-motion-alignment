@@ -1,0 +1,81 @@
+Pose-aligned swept query support: bounded prior-art and experiment review
+Date: 2026-10-17. Research/design only. No code, model, GPU, live policy, or evaluation threshold changed.
+Status: CONDITIONAL CANDIDATE. Freeze a CPU prerequisite before deciding whether any GPU experiment is informative. Await R27/R30 final evidence and root decision. This is a specific support-selection hypothesis, not an established architecture contribution.
+
+1. What current evidence actually says
+R16 prefix005_geometry_mask_coverage.json reports left-arm mean soft alpha=.1578808 at confidence .3, 16/16 valid physical frames50..65. The fraction of sampled arm points with alpha>0 is .2113095. Thus .158 is mean mask gain, not15.8% geometric coverage. At .5, left-arm valid13/16 and mean alpha=.1943148; the right arm is entirely UNKNOWN. These are21-point decoded-clean-endpoint proxies for a32px query grid, not measured body-part semantics of contextual hidden query features. R16's failure also permits insufficient whole-body coordination: Full corrected legs/torso while a forearm-only route did not. It does not prove misplaced support alone caused failure or that Full ghosting is caused by overly broad support.
+
+2. Exact close mechanisms and access boundary
+A. Motion by Queries, arXiv2412.07750v3, B.10/B.11.
+https://arxiv.org/html/2412.07750v3#A2.SS10
+https://research.nvidia.com/labs/par/projects/motionbyqueries/
+B.10 predicts clean x0 each sampling step, segments the subject and thresholds the mask, then restricts cross-shot K/V sharing to matching physical-frame indices. Its attention concatenates other-shot and own-frame K/V and applies a masked joint softmax. B.11 derives nearest-neighbor Q correspondences from vanilla videos and interpolates consistent-branch Q at those spatial locations. Dynamic x0-based support, matching-frame attention, and separating correspondence from injected content are therefore established. Our candidate does not replace or warp Q; its distinction would be the pose-derived support estimator and preserved reference-group mass. Paper/appendices read; no author implementation located in the inspected official project links. Code equivalence remains unverified.
+
+B. DIAL, arXiv2609.11507v1, §3.2–3.3 Eqs4–7/Alg1.
+https://arxiv.org/html/2609.11507v1#S3.SS3
+It aggregates video-query attention over each reference subject, normalizes the preceding-step spatial map, and adds log(gamma_k)*S(q,k) to that reference's logits. Dynamic query-local reference enhancement is directly prior. The algorithm starts after initial20% of sampling, operating during final80%; it does not wait until80% has elapsed. The spatial guide is attention grounding, whereas the proposed guide uses current pose and same-time reference pose. Its uniform-within-reference bias changes group mass; Full instead fixes group mass and changes its conditional temporal distribution. Those are exact operator differences, not proof that composing pose masks with Full is novel. Full text read; no pinned author implementation inspected here.
+
+C. Motion Guidance, ICLR2024, §3.2–3.3 Eqs2–4.
+https://arxiv.org/abs/2401.18085
+https://dangeng.github.io/motion_guidance/
+It compares estimated flow from source image to current predicted clean image with user-desired dense flow, adds warped color consistency, and backpropagates to noisy latent. §3.3 constructs the edit mask from positions that moving pixels leave OR enter; outside it, noisy source content is copied. Thus covering both old and desired locations is explicitly prior. Our sweep adds an interior geometric region and only gates a reference readout; it does not perform flow-loss optimization or source-latent replacement. An interior sweep is not inherently better: image synthesis is not physical transport through intermediate positions.
+Official code pin923ab5ace4db98b407c1fdd95f5cd8b73cb89b15:
+https://github.com/dangeng/motion_guidance/blob/923ab5ace4db98b407c1fdd95f5cd8b73cb89b15/losses.py#L26-L74
+https://github.com/dangeng/motion_guidance/blob/923ab5ace4db98b407c1fdd95f5cd8b73cb89b15/ldm/models/diffusion/ddim_with_grad.py#L167-L184
+Official PDF and code read. The code has optional occlusion-masked color loss and an edit-mask input. No execution performed.
+
+D. FlowMotion, arXiv2603.06289v2, §3.3–3.4 Eqs4–9.
+https://arxiv.org/html/2603.06289v2#S3.SS3
+L=alpha||source_x0−target_x0||²+beta||Delta(source_x0)−Delta(target_x0)||². Predicted flow velocity is regularized by projecting onto accumulated velocity and shrinking the orthogonal component. The released implementation optimizes target latent with Adam and computes absolute adjacent/frame-to-all differences. This already provides training-free motion feedback from endpoints, but its inspected method does not construct body-relative swept query support or keep a reference attention-group mass while rerouting time. Direct endpoint motion guidance must remain a baseline family; geometric query support is a different intervention variable.
+Code pinf5b4dcfc2ac00d21c05e2290111dde468ddb1d9d:
+https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py#L118-L140
+https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py#L224-L310
+Full text and targeted implementation read.
+
+E. TeleMorpher, arXiv2606.19676v1, §4.3–4.4 Eqs3–14.
+https://arxiv.org/html/2606.19676v1#S4.SS3
+Source/target segmentation intersection and symmetric difference isolate structural discrepancy; anatomical skeletons establish matching body-part regions. Curve fitting or region-level redistribution warps appearance into target shape; the result blends into selected attention K/V channels and input images. Pose discrepancy regions and part correspondence are very close prior. Our proposed sweep does not warp appearance, synthesize missing pixels, or overwrite K/V. The paper's added warping is training-free, while its overall MotionEditor-based workflow is one-shot; do not describe the entire pipeline as a frozen-model controller. Full method read. No author repository located by the bounded official-page/exact-title check, so implementation details cannot be independently confirmed.
+
+F. QueryWarp, original arXiv2402.12099v1 §3.2.2.
+https://arxiv.org/pdf/2402.12099v1
+Pose-derived appearance flow and occlusion confidence give Q_i^f=m_i*warp(Q_{i−1},flow)+(1−m_i)*Q_i, followed by attention to anchor K/V. This is a direct pose→spatial attention mechanism. Our candidate's mask changes where a fixed readout correction applies, not where Q content is sampled. Avoid claiming pose-driven attention or query-space motion conditioning as new. Version caution: the unversioned arXiv PDF now reads TokenWarping and warps Q/K/V; this audit separately read the pinned original v1. Its v1 PDF SHA is d2171f1ac20e5729462d72f4adbdab215c7e6fccb7917f1f612624d310838aa7. No official code verified here.
+Additional reproducible alignment primitive: MotionEditor alignment.py rescales pose rasters using source/target person boxes and translates their foot anchors. Pin7da2c5bc14441b76e3a752efd284f46d54526f62:
+https://github.com/Francis-Rings/MotionEditor/blob/7da2c5bc14441b76e3a752efd284f46d54526f62/data_preparation/alignment.py#L100-L160
+It is preprocessing, not a current-clean-endpoint torso/sweep controller. Body-coordinate alignment itself is not a new primitive.
+
+3. One precise candidate definition (provisional design freeze, no implementation)
+Use the existing local-lag controller to supply physical-frame window W and anatomical part p. At a permitted sampler index n, use the SAME actual state's unmodified/native clean endpoint to obtain target pose y_n(f), and the preserved-motion source pose r(f). Desired pose uses the SAME physical frame f, not f+estimated_lag: the lag selects need/time/part; shifting reference again would double-compensate.
+Fit a non-reflective 2D similarity transform T_f(z)=s_f R_f z+b_f by least squares between reference and current shoulder/hip anchors. Reject missing/ambiguous identity, zero-scale or degenerate anchors; use the existing .3/.5 visibility conventions and require the strict .5 anchor/limb evidence for geometric construction. Do not interpolate missing poses or silently switch sides. For a selected arm, anchor the desired limb at its CURRENT target shoulder a_y:
+    d_j(f)=a_y(f)+s_f R_f[r_j(f)−a_r(f)], j in {elbow,wrist}.
+This transfers reference-relative arm geometry into target body coordinates. It assumes the current torso frame is meaningful. It preserves a possibly delayed/wrong torso orientation and source-to-target scaled bone-length mismatch; neither issue is solved by this formula.
+For each bone b with endpoints u,v, define the ruled sweep
+    S_b(f)={ (1−eta)[(1−lambda)y_u+lambda*d_u]
+             +eta[(1−lambda)y_v+lambda*d_v] : eta,lambda in[0,1] }.
+The proposed region is the union of these sweeps for the selected upper arm AND forearm, rather than only wrist disks. Inflate with the already used32px solid/64px zero linear falloff, without tuning radius on results. This is a geometric envelope, not evidence of the true physical trajectory or occlusion order. Endpoint crossings/occlusion remain explicit risks.
+Map these physical-frame masks into H3 query bins using the frozen actual17RGB→5latent mapping and the existing bin support rule. Within each bin use the union/max over valid contributing frames; retain valid-frame denominators. Missing frames contribute no inferred support. Rasterize to the actual23×41=943 query rows with the frozen32px patch convention, then apply
+    O_new(q)=O(q)+a_n(q)*m_ref(q)*(O_same_ref(q)−O_ref(q)), 0<=a<=1.
+Outside selected output queries the wrapper is unchanged. Current/desired overlap on the torso is NOT labeled background and receives no erasure operation. This limits an existing correction; it cannot guarantee removal of an old limb, reconstruction of hidden clothes, or reduction of ghosting.
+
+4. Exact equivalence and genuinely distinct variables
+For native conditional reference weights p_j, same-bin subset S, Z=sum_{j in S}p_j, Full's masked interpolation has
+    p'_j=(1−a)p_j+a*1[j in S]*p_j/Z.
+It remains a nonnegative distribution with unchanged total m_ref. Equivalently, add to reference logits log((1−a)+a*1[j in S]/Z), leaving other weights unchanged after the corresponding exact normalization. Therefore this candidate adds no new attention primitive. At a=1 it is hard same-bin routing; a=0 is native. A pose mask equal to the old spatial mask after tokenization gives exactly the old operator.
+DIAL's per-query uniform reference bias b instead gives m'_ref=exp(b)*m_ref/(1−m_ref+exp(b)*m_ref), preserving the within-group p. This is not Full's temporal redistribution, but that distinction was already present before the new pose mask.
+The remaining testable claim is narrow: body-aligned, two-endpoint interior support selects more useful correction locations at equal query budget, improving the timing/shape trade-off beyond current-limb ROI, source dilation, or endpoint union. A shared mathematical representation as logit bias does not disprove useful support selection; successful metrics alone would not prove a new architectural principle either.
+
+5. Mandatory zero-GPU prerequisite and matched controls
+Before a new run, freeze inputs as already archived native clean endpoints and source poses, prior to viewing new intervention outcomes. Record exact pose/source/endpoint hashes, coordinate preprocessing, each rejection and all943-row masks. Current R16 endpoint005 has only limited high-confidence geometry; do not substitute final target poses and call them online evidence.
+CPU prerequisite: for every chosen index/bin report valid anchor/limb frame counts; sum(a); K=#{a>0}; pairwise IoU and L1 difference AFTER943-token rasterization; 21-point current/reference/mapped-desired bone coverage with denominators; torso/leg proxy intersections. Separately compare raw-source ROI, aligned-desired ROI, unaligned endpoint sweep, aligned endpoint union, and aligned sweep. This distinguishes the torso transform from filling the sweep interior at the actual token resolution. If the sweep collapses to the same token mask as a control, or reliable anchors never yield a meaningful region, it cannot justify a new GPU arm. Desired-bone coverage is largely by construction, not independent success evidence. No new numeric cutoffs should be tuned to obtain a nonempty mask.
+Required matched supports per bin:
+  C1 source-dilation: rank query centers by distance to the original source selected bones.
+  C2 current-target ROI: rank by distance to the current native selected bones.
+  C3 aligned two-endpoint union: rank by distance to current OR mapped-desired bones, excluding an explicitly filled interior sweep.
+Take the candidate's positive coefficient multiset, sort it, and assign that same multiset to the first K control rows (deterministic row-index tie breaking). This matches BOTH K and sum(alpha), indeed the entire alpha histogram, after discretization. C1 is equal-count source dilation, not a hand-chosen larger radius. C3 tests whether the interior sweep adds anything beyond Motion Guidance's old/new endpoint support. Preserve the unmasked Full reference as the timing upper comparator.
+These controls do NOT match sum(alpha*m_ref) or the norm of the actual correction vector. Log both quantities if an intervention is eventually authorized; do not call query-gain matching equal effective dose. A whole-body coordinated correction remains a distinct alternative explanation if every arm-local mask loses Full's leg/torso timing benefit.
+
+6. Minimal causal test and stopping decision
+Only after R27/R30 final results and CPU prerequisite support a meaningful comparison should root authorize a small paired test. Keep model, seed, condition, sampler, layer schedule and temporal/part selections identical. To isolate support geometry first, freeze the same temporal activation record across mask arms before new outputs; this is a support ablation, not proof of an adaptive online policy. Each arm may derive current geometry from its own current native endpoint with identical extraction/rejection rules; report resulting support changes. A subsequent fully online comparison would additionally change future decisions and must be labeled accordingly.
+Success requires preserving Full-level physical timing within the frozen2-frame tolerance on common support while improving independently judged limb shape/ghosting and retaining identity/background; also report every predefined leg/torso/other-arm window and UNKNOWN. Equal-budget controls must fail to explain the gain. One case supplies mechanism evidence only; new-source/seed checks remain necessary. If ordinary current-target ROI or source dilation performs equally, retain the cheaper support estimator and abandon the swept-geometry necessity claim. If endpoint union equals sweep, drop the interior. If all local supports fail while Full succeeds, broaden the hypothesis to coordinated whole-body information rather than tuning mask radius. If masks become almost whole-frame, there is no localization claim.
+
+7. Conclusion and search limit
+The old/new support principle, pose correspondence, dynamic x0 masking and motion-dependent attention are all covered by close prior art. The inspected texts/code do not contain this exact combination of torso-aligned current-to-desired bone sweep with native-mass-preserving H3 same-time reference readout, but this bounded check cannot establish absence. It is worth a cheap discretized-mask prerequisite; it does not yet justify implementation or an architecture novelty claim. Any contribution would need the independent, equal-budget spatial support effect and its interaction with the already tested timing controller, not a new name for masking.

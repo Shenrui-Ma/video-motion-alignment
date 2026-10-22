@@ -1,0 +1,92 @@
+R26–R53 后续方法审计
+2026-10-18；只读实验记录、论文与作者代码。未实现新控制器，未运行 GPU。
+
+建议：先完成 Flex fitness / one_leg 的同机 Native→固定引导成片与评分。这一对照决定执行器是否值得继续自动化。当前已有自动引导的开发例成功，公开素材上的有效触发和动作改善尚不足。以下只保留两个有条件候选；均沿用先前已审查、尚未建立成片收益的具体假设，避免重新包装旧实验。
+
+一、已有证据实际支持什么
+
+1. 固定同时间参考读取在若干开发例有效。
+R30 的四格比较中，source05/Sam 主窗双臂方向 lag：Native13帧、Full1帧、reverse BLOCK8帧、Full+BLOCK1帧。后者后续窗延后更多；所有可用共同支持比较均比 Full 误差高。反向反馈切断已做过，本轮不再作为新组件重跑。
+证据：[E01] R30 analysis/postrun/OWNER_SUMMARY.txt。
+
+2. 自动版的局部时间窗还没有独立必要性证据。
+R33 同时刻、同样5个bin，移位窗也把主动作13→1帧，原Auto为13→2帧；移位窗全片共同支持误差还更低。两者参考质量/最终修正范数并不相等。R39 保持实际Auto调用时刻[2,4,5,6]，把支持扩到全片，主窗也修到0帧；全片误差与Auto接近。这支持“引导有用”，未建立“必须精确选中错误事件的query”。
+证据：[E02] R33 root_R33_CONCLUSION.json；[E03] R39 FINAL_REVIEW.txt。
+
+3. 起停与有符号触发已有实际能力，不能重新作为首次实现。
+R35 床边例 Native主窗约+15帧，Auto约−1帧、固定Full约−1帧；Auto只执行3次Full，但后续提前仍保留。R40/R41 篮球场例左臂主窗15→Auto3、人工固定−1；Auto全片共同支持误差接近人工版，主窗仍有差距。R45 正常例20步均OFF，最终AV latent与原生一致。R52 已加入提前/延后同号持续判定；R53恢复成片在64..95双臂−3→−2、左臂−4→−2，尾窗双臂仍−4；全片共同支持误差下降。R53原运行失败与恢复评估分开记录。
+证据：[E04–E08] R35/R41/R45最终审查，R52报告，R53恢复TIMING_TABLE和SUMMARY。
+
+4. 观测器的主要缺口是可靠对应与覆盖。
+R48 好坏种子的同bin概率、attention中心和熵很接近，不能据此直接设动作错误阈值。已有 phase-shape v3 在63个真实端点中57个K0；96.11%的重叠候选因共同支持不足UNKNOWN，合成遮挡反例仍有错误方向窗口。去persistence重放已改变R27/R32/R35的选择，但尚未证明去掉或保留此门会改善实际成片。R27人体扫掠区域在14个可算bin中13个与简单端点并集正支持相同，不能把复杂扫掠几何作为新收益。
+证据：[E09–E12] R48读出审查、phase-shape v3实际报告、persistence重放、R27 query support诊断。
+
+5. Flex的五条普通编辑已经给出测试边界。
+fitness与one_leg前2秒的可测手臂延后250–375ms，目标外观在既定六帧中实现；两者是现有开发诊断子集。one_leg腿部出画，不能把手臂结果写成独脚动作保真。chest MF约0.988却没有完成身份替换；crouch姿态/背景改写且手臂测量全UNKNOWN；rotate当前未建立明显时延。R50 chest已完成Auto且20步全OFF，不能支持修复能力。
+证据：[E13–E15] R49 NATIVE_FIVE_SUMMARY与EDIT_ATTAINMENT_ROOT_NOTE、R50 chest实际SUMMARY。
+
+6. 新R63首条IVE提供了实际ON负例。
+Native/ON均20NFE；ON在6..14共450次路由，采样attention输出改变约0.106（RMS相对比）。MF为0.808374→0.805743，下降0.002631。两条都将站立舞台演讲改成室内坐姿；官方任务仅要求女人换男人。这个失败涉及动作/场景重建，当前同时间路由未恢复。其attention改变不能当动作改善指标。
+证据：[E16–E18] R63 RESULT_SUMMARY、QUALITATIVE_0210、R63_ACTUAL_WITH_EFFICIENCY。
+
+二、按Flex结果决定下一步
+
+若两条固定引导均改善可见动作时差，同时目标外观保持：保留当前执行器，先在原五条中报告全分母，再用一个已知正常例检查副作用。自动版的验收目标是接近固定版并完成自动选择；不要求超过固定版。需要先确认哪些端点具备可靠的同一动作对应，再恢复自动控制。候选A的意义是减少已触发却无效/有害的更新。
+
+若只有一条改善：按素材机制分层。保持成功例与失败例两者，不通过新增时间段、层、种子搜索把平均值调成成功。候选A可检查是否存在可辨的有用响应；候选B仅在读出诊断支持时考虑。
+
+若两条都无改善，且450次路由/实际attention变化成立：当前自动阈值不是首要解释。先看同一步Native/Full读出的动作响应，确定是否存在有用但未保持的修正。若各步均无可见改善，接受门无法凭空创造有效方向；优先暂停此执行器扩展。候选B是一个低成本、可否决的算子前置检查，不直接追加整视频搜索。
+
+若生成外观失败、人体改成另一姿势或拍摄视角严重改变：记录任务完成与几何误差，时间lag只在确有可对应动作的区域解释。MF仍按官方配方报告；不把高MF当作完成编辑的证据。
+
+三、候选A：在同一状态检验引导是否真的改善动作，再接受更新
+
+适用条件：固定引导已有成功，同时部分步骤/素材出现副作用。当前Auto只看Native端点决定是否计算Full，计算后直接采用；增加的环节是对本步实际Full端点作同一测量并允许保留Native。
+
+保持原错误检测得到的物理范围和可见肢体，取源R、本步Native预测N、本步Full预测F的共同可见支持。分别保留全部lag误差曲线，计算时间偏离 |lag_N|、|lag_F|，再比较各自时间对齐后的形状残差。接受需要：对应关系可辨；F时间偏离更小；形状/可见性/任务要求保留的外观没有被该增益抵消。不可测保持UNKNOWN并保留N。这里的“形状不恶化”容差必须由独立校准给出，尚无已验证数值，不能直接用pose score充当概率。
+
+这个候选不重设denoising时段、层或alpha。首先做二元N/F接受，避免同时引入强度搜索。端点线性混合不等于把各层alpha缩弱，若以后引入第三强度需真正评价该预测。
+
+最小验证顺序：
+1. 对已经保存的同状态Native/Full端点核实库存和条件绑定；优先R53早期实际ON及尾窗仍错位的端点。已有pose则CPU评价；只有latent则解码/pose成本另计，由root安排。不同完整轨迹的最终视频差不能替代同状态响应。
+2. 若看不到“有用与有害Full响应可由同一规则区分”，不接入线上。若存在可辨差异，冻结规则后只做一个真实轨迹接受实验，并保留原Auto、固定引导和Native。首个分叉后的旧观测重放只描述规则，无法预测新轨迹。
+3. 最终验证时间误差、姿态/幅度、编辑完成、UNKNOWN比例及实际开销。仅当拒掉有害更新且保留有效修复，才具备方法价值。
+
+先例边界（本次重新打开一手论文及列出的作者代码）：
+Dynamic CFG §3.3已复用条件/无条件预测并在线选择尺度，其评估器经过训练。Free²Guide Algorithm2及作者path_integral_video.py已有候选下一状态→clean视频解码→reward选优，使用现成评价器。MotionEcho §3.4已有损失历史触发和达标停止。因此“动态决定引导/无教师/先评价再选择”均已有基础；当前可检验差别是冻结H3同状态路由响应的物理时间、姿态和任务约束，贡献需要来自它排除的具体错误。
+https://arxiv.org/html/2509.16131v2#S3.SS3
+https://arxiv.org/html/2411.17041v2
+https://github.com/kjm981995/free2guide_code/blob/d0c732b2532199b5e7440c0fd2959dc6c1bd2afa/path_integral_video.py
+https://arxiv.org/html/2506.19348v2#S3.SS4
+
+四、候选B：只在硬同时间读取失败时，检查软时间与空间对应的联合约束
+
+此候选承接既有 temporal_residual_operator_review 中尚未实际验证的“非退化软目标”。旧的V沿时间减均值就是R2 dynamic_residual/R3 DC；严格同时间且保持空间边缘就是R3 SP。两者已经做过。这里仅考虑软时间目标，使空间位置与时间的联合分布仍有自由度。
+
+对一个固定query/head，令a(t,p)为参考组内原attention，h(t)=Σ_p a，c(p)=Σ_t a；m为原参考组总质量。用一个预先固定的0<λ<1构造g=(1−λ)h+λδ_same，并求：
+ b*=argmin_b KL(b||a)，s.t. b≥0，Σ_p b(t,p)=g(t)，Σ_t b(t,p)=c(p)。
+实际输出为 O'=O+mΣ_(t,p)[b*−a]V。
+这属于标准IPF/Sinkhorn矩阵缩放。λ=0退回原生，λ=1精确退回SP；不能靠λ调参把同一族说成新机制。
+
+必须同时保留的强对照：b_mix=(1−λ)a+λδ_same c。它具有完全相同的时间/空间边缘与组质量，且无需IPF。候选能多提供的只有更接近原联合耦合的分布；如果两者value读出相同，或者效果只等于弱化Full，结束该候选。
+
+最小验证顺序：先用小矩阵核约束、退化与masked支持；再读取现有真实Q/K/V子集，固定λ及单个state比较Full/SP/b_mix/b*的value读出差、边缘残差和代价。当前已有component_probe只保存摘要，无法重建joint a/QKV；若没有完整缓存，须在下一次已安排forward被动采集，不能声称本次已经做过诊断。只有明确存在实质读出差且失败与空间对应改变相符，才考虑一个实际成片对照。不能从“保空间边缘”推导画面保身份：源人物移动后，旧空间边缘可能指向背景。
+
+先例边界：Sinkformers已建立Sinkhorn attention；ASAG已把OT attention用于training-free diffusion引导，使用破坏相似性的反向代价。DIAL给参考logits空间偏置，当前Full可等价成受归一化约束的特定token偏置，不能说与logit控制数学上完全无关。HALO已分motion/structure heads并选择性注入reference value；QWERTY已有语义/时间通道分解与query warp。当前候选的具体约束对象是单query下参考组的时间×空间分布，区别需要靠相同边缘的简单混合对照证明价值。
+https://proceedings.mlr.press/v151/sander22a.html
+https://arxiv.org/html/2511.07499v1
+https://arxiv.org/html/2609.11507v1#S3.SS3
+https://arxiv.org/html/2607.11081v1
+https://arxiv.org/html/2607.01869v1
+
+五、限制重复工作的结论
+
+R2/R3的DC/SP、R25/R30反向读边、R33错位窗、R34早期脉冲、R39匹配时刻全片支持、R48简单attention阈值均有直接记录，不能换名重做。已核Frame Guidance §4.2/4.3与作者Wan代码：稀疏帧早期引导经网络传播全片已有先例；“只改几个query却全片变化”本身不构成独特机制。若以后研究稀疏条件锚定，应先做正确时间内容相对错误时间内容的等剂量检验，旧错位query窗实验没有完成这个检验；这属于当前执行器的机制对照，不另列第三个新方法。
+https://arxiv.org/html/2506.07177v2#S4.SS2
+https://github.com/agwmon/frame-guidance/blob/e9719c0bcec45800932099b25ac8d7e8ce5b9210/pipelines/pipeline_wan_i2v.py
+
+FlowMotion的预测clean latent、跨帧差分与velocity投影也已重新核原文及run.py；改成“依据flow自动选择时机”仍需新增可验证的检测和执行机制。V值去均值、flow velocity与光流、Fourier phase与动作发生时刻应分别表述。
+https://arxiv.org/html/2603.06289v2
+https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py
+
+目前没有足够证据宣布一个新的架构已验证成功。本审计把下一轮缩成有明确停止条件的两项候选，并让新Flex固定对照决定先走哪一项。新颖性结论限于本文核查的一手范围；全部实验与输入证据SHA见EVIDENCE.json，线上检索范围见PRIMARY_CHECKS.json。

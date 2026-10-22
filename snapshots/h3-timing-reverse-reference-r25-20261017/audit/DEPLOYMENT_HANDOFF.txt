@@ -1,0 +1,42 @@
+R25 SEALED HANDOFF — builder has not started GPU or any Comfy service.
+
+Local bundles:
+/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/lanes/reverse_block_runtime_bundle.tar.gz
+/Users/researcher/DevProjects/h3-timing-reverse-reference-r25-20261017/lanes/reverse_same_runtime_bundle.tar.gz
+Per-lane seal records: audit/reverse_block_seal.json and reverse_same_seal.json.
+65 immutable files each; tar and lane files all rehashed PASS.
+
+Exact remote roots:
+/data5/researcher/h3_runs/timing_reverse_reference_r25_20261017/reverse_block
+/data5/researcher/h3_runs/timing_reverse_reference_r25_20261017/reverse_same
+Ports8486/8487; candidate GPU2/GPU3. R24 release/archive and live health/ownership
+remain root responsibilities. No overwrite of a previous formal directory.
+
+Extract respective tar into exact new remote root. It includes the13MB input
+assets. Rehash deploy_manifest.json files and python3 scripts/preflight.py.
+Administrative admission.json is deliberately not sealed: only root readiness
+and exact permitted other-service identities may change; selected GPU remains
+empty before startup, total owned GPUs≤2. queue.json only finalize can change.
+
+Optional model-free kernel gate, root-admitted empty selected GPU,0 modelNFE:
+CUDA_VISIBLE_DEVICES=<exact UUID> PYTHONPATH=/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python <lane>/scripts/gpu_reverse_smoke.py --output <lane>/audit/gpu_kernel_gate.json
+The gate checks current official Comfy attention vs historical R3 Flash bitwise,
+small dense BF16 oracle, actual87592×56×128 geometry, row/QKV/RNG invariance.
+Do not widen numeric limits if it fails. GPU memory/own-process cleanup afterward.
+
+Root launches each admitted lane with:
+python3 <lane>/scripts/launch_remote.py
+Each queue has exactly1 frozen job,20 NFE, and1800s bounded resident hold.
+First5/6NFE actual005 AV SHA gate must pass before call6 first intervention.
+The root may set queue.finalize=true after archival to release exact owned service.
+
+Final CPU integrity, with shared CPU lock and1thread:
+CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python <lane>/scripts/verify_completed.py --output <lane>/analysis/integrity.json
+Default parent-root is the actual .9 R3 directory. Quality/pose remains separate.
+
+Evidence: configs/CPU_EVIDENCE.json; audit/real_comfy_cpu_attempt4.log PASS;
+audit/local_tests_final.log28PASS. Early missing-embedding and cold-noise RNG test
+assumptions are preserved in previous logs and corrected in final test scope;
+no production math change was made to make those tests pass. Historical clean
+embedding has SHA but no retained bytes; runtime current Pair hash and005 gate
+remain mandatory. Historical postaugmentation tree unavailable, not fabricated.

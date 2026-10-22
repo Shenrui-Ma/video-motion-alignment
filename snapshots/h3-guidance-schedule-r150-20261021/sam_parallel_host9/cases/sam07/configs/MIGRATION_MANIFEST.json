@@ -1,0 +1,93 @@
+{
+  "schema": "r150-planned-parallel-segments-v1",
+  "source_id": "sam07",
+  "created_unix": 1792529504.8761978,
+  "segments": {
+    "prefix": {
+      "segment_id": "sam07_prefix_gpu3",
+      "host": "H3_SERVER_A",
+      "remote_root": "/home/researcher/h3_runs/guidance_schedule_r150_host9_20261021/cases/sam07",
+      "roles": [
+        "native",
+        "fixed",
+        "early",
+        "late"
+      ],
+      "run_ids": [
+        "r150_sam07_seed2026101311_native",
+        "r150_sam07_seed2026101311_fixed",
+        "r150_sam07_seed2026101311_early",
+        "r150_sam07_seed2026101311_late"
+      ],
+      "gpu_index": 3,
+      "aggregate_gate": "analysis/postrun/sam07/SCHEDULE_RUNTIME_GATE.json",
+      "aggregate_schema": "r149-fixed-schedule-segment-gate-v1",
+      "COMPLETE_schema": "r149-schedule-segment-completion-v1"
+    },
+    "tail": {
+      "segment_id": "sam07_tail_gpu2",
+      "host": "H3_SERVER_A",
+      "remote_root": "/home/researcher/h3_runs/guidance_schedule_r150_sam_tail_host9_20261021/cases/sam07",
+      "roles": [
+        "split",
+        "global_weak"
+      ],
+      "run_ids": [
+        "r150_sam07_seed2026101311_split",
+        "r150_sam07_seed2026101311_global_weak"
+      ],
+      "gpu_index": 2,
+      "aggregate_gate": "analysis/postrun/sam07/SCHEDULE_RUNTIME_GATE.json",
+      "aggregate_schema": "r149-fixed-schedule-segment-gate-v1",
+      "COMPLETE_schema": "r149-schedule-segment-completion-v1"
+    }
+  },
+  "previous_unstarted_full_seal_sha256": "ebd1cf87931a379cac0a0bbfd3c152257fec8361022813547c123604b4a166a3",
+  "all_roles": [
+    "native",
+    "fixed",
+    "early",
+    "late",
+    "split",
+    "global_weak"
+  ],
+  "all_run_ids": [
+    "r150_sam07_seed2026101311_native",
+    "r150_sam07_seed2026101311_fixed",
+    "r150_sam07_seed2026101311_early",
+    "r150_sam07_seed2026101311_late",
+    "r150_sam07_seed2026101311_split",
+    "r150_sam07_seed2026101311_global_weak"
+  ],
+  "science": {
+    "scientific_contract_sha256": "fc5ce094b81197bfd8c529d95ce2402dadd44b0f65bc00605fc884a5b18ee965",
+    "condition_cache_sha256": "e4830de8dbe0b0b26701948847ba4498d33c57d0042462f475ea190f8f14f643",
+    "condition_description_sha256": "24ff73471f23f8b809c4012bbfacd2bd300da2111c79dbae4daa4792dcf7e962",
+    "noise_file_sha256": "5f9543cbc54f890e1eee8168f5c49ac4722e29f1a9ab15ea3e2e27b3488e4d40",
+    "native_run_id": "r150_sam07_seed2026101311_native",
+    "source_graph_sha256": {
+      "native": "9b2afd8093a73b3f51c31502b088144020b70e3ef17b6d2606b10a2a8d2d742a",
+      "fixed": "02048a6ed49d643377ce995b0e5acabab59eaa2320eed8ff128520a29f229680",
+      "early": "f51cddabe9ea7ec853db680e27c10e560dea6aab691d5d68d8451e896d684516",
+      "late": "fbf1d6a5b0a586b763a964af9d812610620b5df416c7193d332c159e7b1d72a0",
+      "split": "d788514cf22030f07b809ec734b9cae83ca8bc661bf80f114d980dedd9a29810",
+      "global_weak": "3c7b867691dd0a43036f9f2f006444c9acda191f59613983aa15d3471832554c"
+    },
+    "tail_graph_sha256": {
+      "native": "fcd3345f1e5ba66882c44b64d1320773bae3a4ca13d79a99aeb80580ed264487",
+      "fixed": "66755ab472d66a555e3b61e4ffd15b9bda81f1193a012e74f28ece3b11b0551d",
+      "early": "b4a087421c475cd4bb1d609c6cf0e656ba628da11441c29b069638fa3eb6f654",
+      "late": "1f4d9fad02ee80a9e34cb834c26baa69a3dbd60100e0c8454c66172fa2953b65",
+      "split": "739bfbc8fd26c9c6a2b197fe40a380697123dd93ac6a816f50faf3c696c3ccf3",
+      "global_weak": "57acded040c4fe87a1c041e5c196acdfc8ce9184460f8988580f62a0b7bb8a2e"
+    }
+  },
+  "tail_admission": {
+    "Musk_actual_COMPLETE_and_exact_release": true,
+    "matching_cache_native_visual_pass_required": true,
+    "prefix_may_still_be_running": true,
+    "own_host9_max_GPU_cards": 2,
+    "tail_once_only": true
+  },
+  "completion": "Two real segment aggregates and exact releases cover six unique roles."
+}

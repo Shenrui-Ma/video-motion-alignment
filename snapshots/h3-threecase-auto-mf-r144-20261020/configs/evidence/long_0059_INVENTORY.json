@@ -1,0 +1,536 @@
+{
+  "id": "r126_long_0059_full_context",
+  "benchmark": "IVEBench",
+  "source_id": "long_0059",
+  "variant": "R126 · 完整Context-IR · 同提示词时序引导",
+  "title": "擦眼动作 · 手中添加白手帕",
+  "task": "Add a white handkerchief in the man's hand",
+  "display_task": "擦眼动作 · 手中添加白手帕",
+  "reference_image_used": false,
+  "reference_image_path": null,
+  "reference_video_path": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/inputs/long_0059_video.mp4",
+  "ordinary_video_path": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native.mp4",
+  "comparison_video_path": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/showcase_pairs/long_0059/source_native_guided_full_valid.mp4",
+  "guided_video_path": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced.mp4",
+  "alternative_video_path": null,
+  "comparison_kind": "guided_pair",
+  "column_labels": [
+    "1.参考视频",
+    "2.普通编辑",
+    "3.时序引导"
+  ],
+  "guidance_activation": "fixed_active",
+  "guidance_decision": "guide",
+  "guided_status": "complete",
+  "actual_routed_blocks": 450,
+  "routed_block_calls": 450,
+  "method_label": "固定6–14步时序引导",
+  "pair_group": "IVEBench素材片段探索",
+  "valid_frames": 144,
+  "generated_frames": 158,
+  "fps": 24,
+  "seed": 2026101701,
+  "source_clip": {
+    "start_frame": 175,
+    "end_frame_inclusive": 324,
+    "start_pts_rational": "7",
+    "end_pts_rational_inclusive": "324/25",
+    "end_exclusive_rational": "13",
+    "duration_rational": "6"
+  },
+  "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.\n<Subject 1> is the hand of the bald man in the black shirt in <Video 1>.\n<Subject 2> is the bald man, including his face and black shirt, in <Video 1>.\n<Subject 3> is the remaining source scene and objects in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a white handkerchief in the man's hand\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+  "prompt_version": "IVEBench-official-fields-full-Context-IR-v1",
+  "original_task": {
+    "id": 59,
+    "src_video_name": "long_0059.mp4",
+    "category": "subject_editing",
+    "subcategory": "add new subject",
+    "source_prompt": "A man with a bald head and a black shirt is looking down and wiping his eye with his hand.",
+    "edit_prompt": "Add a white handkerchief in the man's hand",
+    "target_prompt": "A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand",
+    "target_span": "white handkerchief",
+    "target_phrase": "a white handkerchief",
+    "origin_mapping": {
+      "source_name": "4588469",
+      "order_name": "long_0059",
+      "type": "long",
+      "url": "https://videos.pexels.com/video-files/4588469/4588469-uhd_3840_2160_25fps.mp4",
+      "start frame": "",
+      "end_frame": ""
+    }
+  },
+  "review_status": "两版均成功添加白手帕，保留人物、场景和擦眼动作。抬手与触眼接近参考，撤手均约晚16帧；固定时序引导未缩短这段延后。",
+  "review_status_code": "PASS_CORE_EDIT",
+  "review_summary": "两版均成功添加白手帕，保留人物、场景和擦眼动作。抬手与触眼接近参考，撤手均约晚16帧；固定时序引导未缩短这段延后。",
+  "display_summary": "两版均成功添加白手帕，保留人物、场景和擦眼动作。抬手与触眼接近参考，撤手均约晚16帧；固定时序引导未缩短这段延后。",
+  "count_as_complete_task_success": true,
+  "clear_temporal_support": false,
+  "support_for_clear_whole_event_repair": false,
+  "action_alignment_bool": false,
+  "action_alignment_by_method": {
+    "native": false,
+    "guided": false
+  },
+  "guidance_effect": "NO_CLEAR_BENEFIT",
+  "key_same_frame_indices": [
+    107,
+    120
+  ],
+  "judgment_source": "continue_r90_r104完整144有效帧三列审阅；root复核8页。",
+  "event_review": {
+    "file": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/REVIEW.json",
+    "sha256": "abda2deee395679e2b2943f5c3335eff7c50402740e73e6be04062ce684ddce1",
+    "events": [
+      {
+        "name": "hand_approaches_eye",
+        "original_frame_cue": [
+          196,
+          220
+        ],
+        "prepared_frame_cue": [
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43
+        ],
+        "source": {
+          "status": "OBSERVED",
+          "frames": [
+            15,
+            17
+          ],
+          "notes": "Hand first rises visibly from the lower edge; coarse earlier cue was only a search range."
+        },
+        "native": {
+          "status": "OBSERVED",
+          "frames": [
+            15,
+            17
+          ],
+          "notes": "Hand with cloth starts rising at the same stage."
+        },
+        "forced": {
+          "status": "OBSERVED",
+          "frames": [
+            15,
+            17
+          ],
+          "notes": "Raised hand/cloth enters at same stage as source and Native."
+        },
+        "native_delay_frames_interval": [
+          -2,
+          2
+        ],
+        "native_delay_frames_midpoint": 0.0,
+        "forced_delay_frames_interval": [
+          -2,
+          2
+        ],
+        "forced_delay_frames_midpoint": 0.0
+      },
+      {
+        "name": "eye_wiping_contact",
+        "original_frame_cue": [
+          220,
+          269
+        ],
+        "prepared_frame_cue": [
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90
+        ],
+        "source": {
+          "status": "OBSERVED",
+          "frames": [
+            28,
+            31
+          ],
+          "notes": "Entry into eye-wiping contact; fingers reach the lower eyelid/eye region."
+        },
+        "native": {
+          "status": "OBSERVED",
+          "frames": [
+            28,
+            31
+          ],
+          "notes": "Cloth reaches the eye region; material changes the visible contact boundary, so compare semantic contact rather than finger pixels."
+        },
+        "forced": {
+          "status": "OBSERVED",
+          "frames": [
+            28,
+            31
+          ],
+          "notes": "Cloth reaches the eye region; semantic contact boundary overlaps source and Native."
+        },
+        "native_delay_frames_interval": [
+          -3,
+          3
+        ],
+        "native_delay_frames_midpoint": 0.0,
+        "forced_delay_frames_interval": [
+          -3,
+          3
+        ],
+        "forced_delay_frames_midpoint": 0.0
+      },
+      {
+        "name": "hand_leaves_face",
+        "original_frame_cue": [
+          269,
+          294
+        ],
+        "prepared_frame_cue": [
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114
+        ],
+        "source": {
+          "status": "OBSERVED",
+          "frames": [
+            95,
+            98
+          ],
+          "notes": "Sustained withdrawal downward from the eye region."
+        },
+        "native": {
+          "status": "OBSERVED",
+          "frames": [
+            111,
+            114
+          ],
+          "notes": "Cloth/hand finally withdraw downward from the eye region."
+        },
+        "forced": {
+          "status": "OBSERVED",
+          "frames": [
+            111,
+            114
+          ],
+          "notes": "Sustained downward withdrawal overlaps Native and remains late relative to source."
+        },
+        "native_delay_frames_interval": [
+          13,
+          19
+        ],
+        "native_delay_frames_midpoint": 16.0,
+        "forced_delay_frames_interval": [
+          13,
+          19
+        ],
+        "forced_delay_frames_midpoint": 16.0
+      }
+    ],
+    "phase_durations_frames": {
+      "eye_contact_to_withdrawal_frames": {
+        "source_interval": [
+          64,
+          70
+        ],
+        "native_interval": [
+          80,
+          86
+        ],
+        "forced_interval": [
+          80,
+          86
+        ],
+        "source_midpoint": 67,
+        "native_midpoint": 83,
+        "forced_midpoint": 83
+      },
+      "meaning": "Eye-contact entry overlaps the source while sustained release occurs about 16 frames later in both edits."
+    },
+    "additional_observations": [
+      {
+        "name": "hand_exits_bottom_of_frame",
+        "source": {
+          "status": "OBSERVED",
+          "frames": [
+            105,
+            107
+          ],
+          "notes": "Lowering completes; raised hand exits the bottom edge."
+        },
+        "native": {
+          "status": "OBSERVED",
+          "frames": [
+            119,
+            121
+          ],
+          "notes": "Hand and cloth disappear below bottom edge."
+        },
+        "evaluation_scope": "Exploratory confirmation of the pre-registered withdrawal event, not a new primary endpoint.",
+        "forced": {
+          "status": "OBSERVED",
+          "frames": [
+            122,
+            124
+          ],
+          "notes": "At frame 122 a small cloth edge remains; it has left by 123–124. Lowering finishes slightly later than Native."
+        },
+        "forced_minus_native_midpoint_frames": 3
+      },
+      {
+        "name": "head_turn_during_wipe",
+        "notes": "Both edits keep the head downward for longer during the wipe and turn later than the source."
+      }
+    ],
+    "scope": "全部144有效帧，三项既有事件与探索性手部出画阶段分别记录。"
+  },
+  "full_frame_review_path": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/REVIEW.json",
+  "release_status": "COMPLETE_EXACT_RELEASE",
+  "quantitative_metrics": {
+    "motion_fidelity": {
+      "native": 0.8050170051044884,
+      "guided": 0.8037195712200009,
+      "delta": -0.0012974338844874422,
+      "status": "complete",
+      "higher_is_better": true,
+      "protocol": "IVEBench official MF",
+      "valid_frames": 144,
+      "evaluation_frames": 144,
+      "evaluation_fps": 24,
+      "source_files": [
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/RESULTS_VERIFIED.json",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/QUALIFIED_RESULTS.json",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/native.json",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/native/RELEASED.json",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/guided.json",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/guided/RELEASED.json"
+      ],
+      "scope": "官方IVEBench MF；任务验收与逐帧事件时刻分别记录。",
+      "source_sha256": {
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/RESULTS_VERIFIED.json": "339a6fa9ae07ab45abf10d7da92254ad6a2678c0b4760fd218361115f2b7faaf",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/QUALIFIED_RESULTS.json": "867bca098ac1493f1b4ec544bbf24bd442e4ed12fe80e5442ae7885123639907",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json": "c631474a02f0762136c539c941b8fc8a0236a8c05b306ad1abaa326cb790c9d9",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/native.json": "e6249b014cc40f88b941e44b815aca64f5117d417c2b5c66f5714a83e0d41eec",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/native/RELEASED.json": "52e76560ed2aae0fd774a2d96e025c24baf6b1c7b25cdf7a5d57eb0372969a1b",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/guided.json": "6406f355b82d89742620df41fef7a877000429735ce933650d865d0d163ddb02",
+        "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/guided/RELEASED.json": "27539db338b2ab308c1ea15a323c96ded37700b3631324d8fa03142846570057"
+      }
+    }
+  },
+  "prompt_protocol": {
+    "kind": "official_context_ir_with_benchmark_captions",
+    "label": "官方source/edit/target三字段适配完整Context-IR；指定饮酒者消歧单独记录",
+    "official_edit_prompt": "Add a white handkerchief in the man's hand",
+    "actual_prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.\n<Subject 1> is the hand of the bald man in the black shirt in <Video 1>.\n<Subject 2> is the bald man, including his face and black shirt, in <Video 1>.\n<Subject 3> is the remaining source scene and objects in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a white handkerchief in the man's hand\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+    "verbatim": false,
+    "official_edit_prompt_preserved_verbatim": true
+  },
+  "actual_prompt_by_column": {
+    "ordinary": {
+      "text": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.\n<Subject 1> is the hand of the bald man in the black shirt in <Video 1>.\n<Subject 2> is the bald man, including his face and black shirt, in <Video 1>.\n<Subject 3> is the remaining source scene and objects in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a white handkerchief in the man's hand\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "protocol": "IVEBench-official-fields-full-Context-IR-v1",
+      "exact_official_edit_prompt": false,
+      "graph_bindings": [
+        {
+          "graph": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_graph.json",
+          "graph_sha256": "fc469517b61a87f724bba83c58505dc00208294cfde957125839f7f0d9a89213",
+          "node_id": "5",
+          "field": "inputs.prompt"
+        }
+      ],
+      "actual_history": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_history.json",
+      "actual_history_sha256": "98b25c207e4a5cd34c5c1de53541ce5e458dd414fc7365d973e7239194994379",
+      "scope": "实际提交图与Comfy history文本逐字相同；原benchmark source/edit/target三字段完整保留。"
+    },
+    "guided": {
+      "text": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.\n<Subject 1> is the hand of the bald man in the black shirt in <Video 1>.\n<Subject 2> is the bald man, including his face and black shirt, in <Video 1>.\n<Subject 3> is the remaining source scene and objects in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a white handkerchief in the man's hand\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "protocol": "IVEBench-official-fields-full-Context-IR-v1",
+      "exact_official_edit_prompt": false,
+      "graph_bindings": [
+        {
+          "graph": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_graph.json",
+          "graph_sha256": "d456c9e05c016208c099af3fdb8a3317c376aee1561c6f0dc78de784b92a6ceb",
+          "node_id": "5",
+          "field": "inputs.prompt"
+        }
+      ],
+      "actual_history": "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_history.json",
+      "actual_history_sha256": "4f734104b20f97d49f2f45ed73f42e4ca1444e1361bc3a8ed26a720f0d9475f6",
+      "scope": "实际提交图与Comfy history文本逐字相同；原benchmark source/edit/target三字段完整保留。"
+    }
+  },
+  "evidence_paths": [
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/showcase_pairs/long_0059/PRESENTATION.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/REVIEW.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/FRAME_LEDGER.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/ROOT_SPOT_REVIEW.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/PAIR_RUNTIME_GATE.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/COLLECTION.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/prepared/long_0059/paired/MF_INPUTS.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/actual_release/HANDOFF.json",
+    "/Users/researcher/DevProjects/h3-timing-ive-handkerchief-full-context-r126-20261020/audit/ACTUAL_PAIR_SUBMISSION.json",
+    "/Users/researcher/DevProjects/h3-timing-ive-handkerchief-full-context-r126-20261020/audit/ACTUAL_EFFICIENCY_LOG_EXCERPT.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_history.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_job.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_router.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_history.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_job.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_router.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/actual_release/ROOT_EXIT_RECEIPT.json",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/actual_release/COMPLETE.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/RESULTS_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/QUALIFIED_RESULTS.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/native.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/native/RELEASED.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/guided.json",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/guided/RELEASED.json"
+  ],
+  "evidence_sha256": {
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/showcase_pairs/long_0059/PRESENTATION.json": "c148387a6f6b011ed79dbbb540f9de9e036540a804922580b01104ba1fe7a367",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/REVIEW.json": "abda2deee395679e2b2943f5c3335eff7c50402740e73e6be04062ce684ddce1",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/FRAME_LEDGER.json": "2302ea50881a7e8a8b773ae20c77830a98cfe625f8c7868a5290aaaf108e6b08",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/full_frame_review/long_0059/paired/ROOT_SPOT_REVIEW.json": "06f79ec075ae4f6bdc35b5e01a5ade99c96d7b2eb51269dddf75076434e0b158",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/PAIR_RUNTIME_GATE.json": "00e21a6c73654be1eafaafc08a278a3f1c7a3827ac08b9938e1603a6e1daa55b",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/COLLECTION.json": "1ffe571375f8d1beca34243fd227044f1d786223906ff38765fda1bc6bf134c8",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/prepared/long_0059/paired/MF_INPUTS.json": "5fe4fa9f76bbc69c9dfdbe4354fa0bee359cf40d5d60528ab22fe94dd40d3192",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/actual_release/HANDOFF.json": "3f92d822d6bc9f1ac53cca9f967ffb2b159cb39dfb510e609f52b11f3dbafde2",
+    "/Users/researcher/DevProjects/h3-timing-ive-handkerchief-full-context-r126-20261020/audit/ACTUAL_PAIR_SUBMISSION.json": "2a24e2b67019bf5f73f0131de91342e8fe365698785c0063f0fc501ed8ce1875",
+    "/Users/researcher/DevProjects/h3-timing-ive-handkerchief-full-context-r126-20261020/audit/ACTUAL_EFFICIENCY_LOG_EXCERPT.json": "a6901d6b168bd190420006ca80357dd9d58cdc71534272ff40d32de202b5ab11",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_graph.json": "fc469517b61a87f724bba83c58505dc00208294cfde957125839f7f0d9a89213",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_history.json": "98b25c207e4a5cd34c5c1de53541ce5e458dd414fc7365d973e7239194994379",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_job.json": "3e986f271a78f78e3dde5768401cddfd3527ff9386be05f146ea6797fb201a1c",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/native_router.json": "b6efbbed042f7f13c476c79422a8b5574282b31b9e24ea98a367f53949c9a498",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_graph.json": "d456c9e05c016208c099af3fdb8a3317c376aee1561c6f0dc78de784b92a6ceb",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_history.json": "4f734104b20f97d49f2f45ed73f42e4ca1444e1361bc3a8ed26a720f0d9475f6",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_job.json": "179c64455a1742bc878b182a272c6980498215ba8328b6b2c0197ed92b2e8aeb",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/forced_router.json": "6296127187df9737508787630a7c91d1c799aa031f0fcbf7d4411519d58d4e49",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/actual_release/ROOT_EXIT_RECEIPT.json": "1c08f60f9f92909bb6a8d5ac4f9efac40358c0b9cf342fde308edf49284b11f9",
+    "/Users/researcher/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/audit/actual_release/COMPLETE.json": "d041ea62cbc07037fc9b41a7d12375ce50e144befaf167655eefbb6c8c26a09d",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/RESULTS_VERIFIED.json": "339a6fa9ae07ab45abf10d7da92254ad6a2678c0b4760fd218361115f2b7faaf",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/QUALIFIED_RESULTS.json": "867bca098ac1493f1b4ec544bbf24bd442e4ed12fe80e5442ae7885123639907",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json": "c631474a02f0762136c539c941b8fc8a0236a8c05b306ad1abaa326cb790c9d9",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/native.json": "e6249b014cc40f88b941e44b815aca64f5117d417c2b5c66f5714a83e0d41eec",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/native/RELEASED.json": "52e76560ed2aae0fd774a2d96e025c24baf6b1c7b25cdf7a5d57eb0372969a1b",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/results/long_0059/guided.json": "6406f355b82d89742620df41fef7a877000429735ce933650d865d0d163ddb02",
+    "/Users/researcher/DevProjects/h3-ive-reference-phase-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/long_0059/guided/RELEASED.json": "27539db338b2ab308c1ea15a323c96ded37700b3631324d8fa03142846570057"
+  },
+  "media_sha256": {
+    "reference_video_path": "d8d60f728e4d4e7a8d06566689a12f7816383765f610b467476a5fe955056c79",
+    "ordinary_video_path": "7850f1c84cfe24a597c59f7694d733e81c625a9016e858a1aaec6bab9227ea2c",
+    "guided_video_path": "b46c6bb18f28ffbdcd26f2bf72c2625d999ebeead7fc371c8761d4eb5a0c5daf",
+    "comparison_video_path": "f94be6d229954c37a912548e4a66f31b4f35cf3da1430ae64483bb4bcaa10d48"
+  },
+  "execution_seconds": {
+    "native_sampling": 3635,
+    "guided_sampling": 3901,
+    "native_comfy_job": 3863,
+    "guided_comfy_job": 3956,
+    "sampling_steps": 20,
+    "scope": "Actual ComfyUI log elapsed; shared GPU conditions retained."
+  },
+  "task_acceptance_by_method": {
+    "native": {
+      "status": "PASS_CORE_EDIT",
+      "requested_edit": "White handkerchief is clearly held in the raised hand and used at the eye.",
+      "original_scene_and_framing": "PASS: same man, black shirt, plain background and close framing.",
+      "action_sequence": "PASS_SEQUENCE_WITH_LATE_RELEASE: raise hand, wipe eye, lower hand.",
+      "motion_amplitude": "Main hand raise retained; wiping duration is longer and head turning later.",
+      "notes": "Handkerchief occludes the eye as expected for the requested edit. Minor facial/hand appearance changes are present."
+    },
+    "guided": {
+      "status": "PASS_CORE_EDIT",
+      "requested_edit": "White handkerchief is clearly held in the raised hand and used at the eye.",
+      "original_scene_and_framing": "PASS: same man, black shirt, plain background and close framing.",
+      "action_sequence": "PASS_SEQUENCE_WITH_LATE_RELEASE: raise hand, wipe eye, lower hand.",
+      "motion_amplitude": "Main hand raise retained; wiping duration is longer and head turning later.",
+      "notes": "White handkerchief, same man/black shirt/background and raise-wipe-lower sequence preserved. Cloth remains by the eye longer than the source; withdrawal timing overlaps Native."
+    }
+  }
+}

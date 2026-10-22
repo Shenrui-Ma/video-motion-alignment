@@ -1,0 +1,49 @@
+H3 时间映射与 source3/game 顺序核查（R65/R66，2026-10-18）
+
+结论
+1. 当前实际代码、47-bin 捕获与 router 索引一致。没有发现158→47、patchify/unpatchify、分块拼接或同索引路由发生倒序/错一块的证据。
+2. source3/game 的动作阶段相反确实存在于 Native 和 ON 原始生成视频。原始素材→158帧输入→实际VAE捕获→Qwen采样顺序已核对；交付三栏视频的列与时间位置也已核对。参考前段蹲伏、后段抬腿至倒立；两条生成结果前段倒立、后段落腿。这是动作顺序/阶段错误，不能概括成一个固定时间延后。
+3. “同一个 bin”只保证相同的名义相对时间坐标。参考特征的动作相位是否被正确提取、生成特征是否表达相同动作，仍取决于模型；该路由本身不能保证语义对应。
+
+158 RGB → 47 latent 时间位置
+nodes_minimax_h3.py:37 的规则是RGB帧数17k+5，对应5k+2 latent。158=17×9+5，因此47=5×9+2。VAE的时间压缩层积为4，但编码分块长度17：十块分别编码成5个latent；最后一块仅5帧，复制其尾帧补足17，然后从整段尾部删除3个latent，留下47。
+源码：source_snapshot/comfy/ldm/minimax/vae.py:324、544；source_snapshot/comfy_extras/nodes_minimax_h3.py:37、320。
+
+解码与边界
+47个latent按每次前进5、每块读取7个时间位置解码。每块28帧切成20+8，分别移除前3帧，得到17+5；下一块开头5帧与前块5帧做线性融合，九块输出153帧并附上末尾5帧，共158帧。写入位置单调递增。
+独立CPU结构探针执行了原始分块方法，替身decoder只将latent编号重复4次；输出158帧保持单调，符合[1,4,4,4,4]重复的名义bin宽度（浮点最大误差1.91e-6）。这是分块索引验证。没有运行训练后VAE的重建实验。
+实际VAE decoder每块具有跨7个时间位置的Transformer attention。因此bin覆盖范围描述位置坐标，不能当作精确像素感受野；尾部latent可能经decoder及后续DiT attention影响更早的有效画面。
+源码：vae.py:448、559–668；ViT3DDecoder约263–318。
+
+valid bin 44 的准确含义
+有效帧索引0–146，共147帧；额外147–157为末尾复制。router选[0,44)，即bin0–43。
+  bin40: RGB136
+  bin41: RGB137–140
+  bin42: RGB141–144
+  bin43: RGB145–148（有效145–146，填充147–148）
+  bin44: RGB149–152（未直接路由）
+  bin45: RGB153（未直接路由）
+  bin46: RGB154–157（未直接路由）
+所以44是数量/排他上界；最后一个被选bin混合有效与填充位置。当前选择与声明“覆盖所有有效帧的重叠bin”一致，无法在这个bin内部只路由其中两帧。NOMINAL_BIN_MAP.json给出完整47项。
+
+DiT 与 router
+patch_size=(1,2,2)，时间patch大小为1，空间每2×2 latent合为一行；每时间位置864行（24×36），按时间顺序展开。实际source3/game视频reference行区间[7306,47914)，target区间[48440,89048)，均47×864行。
+原生坐标宽度是(5/3)×[1,4,4,4,4]重复。实际reference起点6737，target起点7000.333333333333，两者绝对RoPE时间坐标相差263.333333333333；减各自起点后的相对坐标误差9.09e-13，空间坐标完全相同。
+radius=0,time_offset=0使target bin j访问reference bin j的空间keys。q/k已带原始RoPE，路由没有把参考与输出的绝对位置坐标强改成相等。R65/R66 router core和layout逐字节相同（R65_R66_ROUTER_IDENTITY.json）。
+源码：model.py:42、95、350；extensions/H3TemporalRouter/layout.py:22、109；core.py:53、204。
+
+实际媒体顺序证据
+官方原片49帧@8fps；当前prepared每原帧顺序重复3次成为147帧@24fps，再复制最后一帧11次。官方原片SHA等于固定HF LFS SHA；prepared SHA=71677e14648a94bf4fd9300ed557525f9b427b215b1798957d7fe0eca63dc143。既有158个frame MD5与声明的原帧映射全部匹配。
+本次用生成服务同一PyAV17路径重新按顺序解码；解码浮点tensor SHA与输入审计完全一致。复现原生Lanczos量化后，158帧逐像素与实际VAE入口捕获完全一致；全部PTS为i/24。Qwen14个实际输入逐像素等于VAE入口的[0,12,…,156]帧。actual position_ids也与原生时间坐标函数一致。
+原始Native、ON、source皆158帧且PTS正确。交付视频147帧PTS正确；六个预定时刻、三列画面与各自原视频同帧吻合：重编码RGB平均绝对差0.64–2.20/255。与反向帧相比，17个可区分检查均更接近同帧；第72帧参考因原始重复帧与反向74帧相同而打平。哈希绑定已记录。
+
+复现环境提示
+本次首次用裸venv的PyAV16解码出现颜色数值差；证据保留于INITIAL_AV16_DIFFERENCE.json。生成服务PYTHONPATH优先runtime_deps，实际加载PyAV17.0.0。改用同一依赖路径后输入浮点SHA与158帧均完全匹配。此差异来自独立核查环境，原视频/捕获/生产代码均未修改。后续精确RGB核查须沿用实际服务的依赖路径。
+
+证据文件
+ACTUAL_CPU_PROBE.json：实际CPU核查，25.05秒，无GPU/模型权重。
+SOURCE_PREPARATION_CHAIN.json：官方原片与预处理链。
+R65_R66_ROUTER_IDENTITY.json：两批router代码相同。
+NOMINAL_BIN_MAP.json：全部位置范围。
+source_snapshot/：实际源代码及其SHA见ACTUAL_CPU_PROBE.json。
+本核查可以排除已覆盖的输入、时间索引、展示顺序问题；它没有定位模型在encoder、各DiT层或learned decoder中何处形成动作阶段反转。

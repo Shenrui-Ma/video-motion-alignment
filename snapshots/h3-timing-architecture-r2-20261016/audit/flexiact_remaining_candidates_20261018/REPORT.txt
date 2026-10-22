@@ -1,0 +1,23 @@
+旧8条FlexiAct候选：源片与目标图审查
+
+优先3条：crouch/movie9、rotate/game4、chest/movie7。备用1条：rotate/game1。四对共3种已经使用过的原片，新增原片数为0。它们是有清晰阶段的循环练习，不能记为密集的不同动作序列。
+
+原8条中R85包含crouch/movie5与one_leg/movie9；R85的rotate/gamegirl1不在旧8条中。余6条中fitness/game5和chest/game5已有实际成片，因此未生成配对仅4条。目标图可见性/人体比例用于挑输入，身份保持成功仍由实际Native验证。
+
+1. crouch__movie_man_9 (priority)
+两次下蹲—低位—站起；约1.5–2.0秒及4.5–5.0秒在低位，3.0和6.0秒回高位。全身、膝髋和脚均可见。目标为完整西装人体，白色廊柱场景有平整地面；深色裤装可能限制关节检测。官方此行正确写squats，旧候选的器械caption警告误贴到此行。
+图：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/flexiact_remaining_candidates_20261018/crouch__movie_man_9_source_target.png
+
+2. rotate__game_man_4 (priority)
+合手在胸前，连续左右转体并回中；可核方向顺序及回中时间。源与目标全身可见，目标为正常人体比例动漫人物，绿色斗篷与腿部装具提供身份特征；斗篷可能遮肘。白底场景适合原地转体。官方brown coat文字与图中主要灰衣/绿斗篷有差别，动作caption一致。
+图：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/flexiact_remaining_candidates_20261018/rotate__game_man_4_source_target.png
+
+3. chest__movie_man_7 (priority)
+两轮手臂展开—收至身体前下方—再展开，约1.5–2.0及4.5–5.0秒收至低位。目标躯干和手臂裸露、正常人体比例；腿部不全，不能记全身。源手部会出边界，后段构图移动。目标水边缺少源片器械，保持持索接触关系需额外场景适配，风险较高。
+图：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/flexiact_remaining_candidates_20261018/chest__movie_man_7_source_target.png
+
+4. rotate__game_man_1 (reserve)
+与rotate/game4完全相同原片。红帽、蓝背带裤、白手套、浅底场景让身份容易辨认；短肢和较大头身比增加运动几何迁移难度。仅作为额外身份/跨比例测试，不新增动作源。
+图：/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/audit/flexiact_remaining_candidates_20261018/rotate__game_man_1_source_target.png
+
+每张原片图取0,4,...,48帧，共13时刻，8fps；总49帧，末帧PTS6.000秒。所有8行CSV及素材SHA已实际核对。保留旧样本失败；未新建推理队列。

@@ -1,0 +1,50 @@
+dynamic_residual / static_component 已有实际结果审查
+2026-10-19；只读旧记录，未启动GPU、未改方法或生产包。
+
+确认有3条正式GPU成片，来自同一段自选真人舞蹈→Sam Altman角色替换。每条均核实执行history成功、history内graph与保存config完全一致、450次实际路由、20次预测、成片文件SHA与原归档及质量审阅SHA一致。它们不是三个独立素材。
+
+| 已完成控制 | 同机对照中的主窗口时差，检测置信度.3 / .5 | 同帧手臂方向误差，.3共同有效点 | 已有视觉审阅与身份结论 |
+|---|---|---|---|
+| R2 .41 dynamic_residual | Native14/14帧→dynamic12/UNKNOWN；Full2/2 | Native1.14670、dynamic0.97268、Full0.35794；有效比例95.31% | 帧55、86仍偏离原动作；可见男士灰衣外观。精确身份、源身份残留、全片质量均未知 |
+| R2 .41 static_component | Native14/14帧→static14/14；Full2/2 | static1.14255；同一共同有效点 | 两个固定帧接近Native延后姿态；没有身份残留减轻的验收 |
+| R3 .9 dynamic_residual | Native13/13帧→dynamic1/1；Full1/1 | Native1.12808、dynamic0.13972、Full0.13318；有效比例100% | 帧55上举/抬腿、帧86双臂举过头出现，dynamic与Full接近；无质量或身份优势证据 |
+
+正时差代表生成动作更晚；.3/.5是旧姿态检测置信度阈值敏感性检查。主窗口固定原帧50…65。R2在.5下四组共同有效比例只有60.94%，不能用该共同支撑比较作强结论。R3的.5共同有效比例95.31%，dynamic同帧误差0.14072，Full0.13396。以上是旧局部姿态诊断，未新跑指标。
+
+实际做过的算子
+
+按每个空间位置，把参考视频V沿全部latent时间bin做等权均值mu；dynamic分量为V−mu，static分量为mu。本轮只把同bin修正中的V换成对应分量：
+  O_new = O + alpha*m_ref*(Attention_same_bin(Q,K,V_component) − Attention_all_reference(Q,K,V_component))。
+原有全序列输出O保持在结果中；alpha1，radius0、offset0、全部50层、去噪index6…14。物理窗口只用50…65帧（latent14…19），不覆盖整片。源141帧、24fps、1312×736，seed2026101311。
+这个时间均值/残差分解已实现、已实跑。动态分量里可能仍含姿态、视角变化和外观变化，旧记录没有证明它等同于纯动作信息。基础O仍含原条件贡献，不能仅从该公式推断源人物身份被消除。
+
+是否在benchmark身份编辑任务做过
+
+本次检查本地8个FlexiAct/IVEBench消费者incoming目录，读取66条成功实际history、按prompt_id去重：34条native，32条mass_preserve，dynamic_residual/static_component命中0条。精确范围和每份history的SHA写入EVIDENCE.json。R2/R3已验证的正式成片都使用05_real_megumi_v.mp4与Sam照片，属于自选development素材。当前找到的证据不支持“已经在FlexiAct/IVEBench身份替换上比较过dynamic/static”。该检查范围限于已归档incoming，不代表未落盘或其他位置运行的全局否定。
+
+R2文件名中的bench2是两步速度预热，不是数据集benchmark。第一次在DiT前因H3X0Readout要求21个sigma失败，后续重试也仅供预热；均不计入上表。
+
+解释边界与接续意义
+
+R2的dynamic没有稳定修复，static基本保持原延后；R3的dynamic能保留Full在这一个已知失败样例上的局部修复效果，但未超过Full。两轮实际源RGB转换和下游VAE/计算环境存在差异，旧审计已证明；跨机差异不能归为单独GPU因素。各轮内部实际条件与噪声配对通过。
+
+源身份保留是否减少：3条均UNKNOWN。旧审阅只看原帧55/86，记录灰衣男性和大场景，未完成精确身份或全片残留检查。现有结果能避免重复提出“时间均值分量分离”作为未做过的机制；若后续拿它处理benchmark身份失败，属于新任务上的既有算子对照，需要单独身份验收。这里不建议扩大实验，也未创建任何实验包。
+
+可复核证据
+
+R2正式图/执行/输出：
+/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_dynamic_6to14_provenance/{config.json,history.json,router_audit.json,archive_manifest.json}
+/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/pilot/r2_s05_static_6to14_provenance/{config.json,history.json,router_audit.json,archive_manifest.json}
+R2输出位于同analysis/pose/raw/；质量审阅为pilot/<run>.quality_review.json；compact_summary.json与pairs/four_arms_threshold0.3.json、0.5.json保存原指标。
+
+R3对应：
+/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/pilot/r3_s05_dynamic_6to14_provenance/
+/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/R3_FOUR_ARM_REVIEW.md
+/Users/researcher/DevProjects/h3-timing-spatial-r3-20261016/analysis/pose/raw/r3_s05_dynamic_6to14_00001_.mp4
+
+旧跨运行环境审计：
+/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/input_runtime_difference/REPORT.txt
+原算子：
+/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/extensions/H3TemporalRouter/core.py:87–136、210–278。
+
+本次EVIDENCE.json记录实际路径、图、指令、原视频SHA、输出SHA、success、450路由、同轮条件门、原质量审阅及66条benchmark history的扫描范围。

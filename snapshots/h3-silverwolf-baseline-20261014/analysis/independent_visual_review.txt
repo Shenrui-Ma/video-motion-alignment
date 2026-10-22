@@ -1,0 +1,60 @@
+Independent visual review — Silver Wolf baseline versus x3
+Non-blind AI frame inspection; not a human metric or video-playback review.
+Zero-based frame numbers, 24 fps.
+
+Main finding:
+Both outputs contain a coarse brief face-directed hand beat. Baseline: frame 38 only. x3: frames 40..41. Source defining eye/finger pose: frames 41..42. Thus x3 is visibly closer in onset and sampled duration, but this is NOT a binary absent-to-present rescue, and neither reconstructs the exact source hand/eye geometry.
+
+CONTROL COMPARISON LIMITED:
+Baseline ran on host .41 with PyTorch 2.11.0+cu130 / PyAV 17; x3 ran on .9 with PyTorch 2.5+cu121 / PyAV 16. Input files, prompt, actual noise and model weights reportedly match, but decoded RGB, VAE latents and conditioning differ. Execution artifacts passed validation; causal controls are limited. Any visible difference cannot be attributed solely to factor 1 versus factor 3.
+Control report: /Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/analysis/baseline_validation.json
+Numerical drift report: /Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/analysis/numerical_drift_quantification.json
+
+Inspection coverage:
+All 141 synchronized rows, 0..140, were visually inspected: all 16 dense sheets for 30..77 plus all 31 remaining all_frames sheets. Native-resolution 736x736 crops were decoded in memory for baseline 37..42 and 57, source 41, and x3 41. No crop files were written. No real-time/slow-motion playback was claimed.
+
+Early beat:
+- Source: fingers rise near-vertically across one eye toward the brow at 41..42; release starts 43.
+- Baseline: face clear at 37; compact curled/fist-like glove against mouth/nose/cheek at 38; outward reach starts 39. One sampled frame, about 42 ms. Onset is 3 frames before source, release 4 frames before source.
+- Native baseline 38 does not clearly show the source's eye/brow-framing fingers. It is a coarse face approach, spatially partial. Looking only at 40..42 would incorrectly classify the whole beat as absent.
+- x3: face pose at 40..41, release at 42. Two sampled frames, about 83 ms; onset/release one frame before source. Glove covers more central/lower face and extends into the eye-adjacent region, but remains mask-like and geometrically imperfect.
+- x3 begins the beat 2 frames later than baseline, holds the visible face pose one additional frame, and releases 3 frames later. These are output observations, not an isolated weighting effect.
+
+Surrounding/later motion:
+Both show raised index at 32..33. Baseline reaches outward at 39..42, begins the next cross-front transition at 43..44, and shows obvious broad eye cover by 45..48. x3 releases at 42, reaches through 45 and develops the later broad face sweep around 46..50.
+Baseline's long eye-adjacent open-palm plus raised bent leg is already visible at 49; x3 at 51; source V/leg pose at 54. Baseline begins changing this held pose at 66; x3 at 68. Native baseline 57 confirms an open spread blue palm rather than source V fingers, a mismatch shared with x3.
+These later sweeps/holds remain distinct from the short early beats. Order is preserved; timing differences are local and do not establish a uniform global retime.
+
+Full context:
+0..29: crouched/side-on hand dance and turn.
+78..98: overhead arms open outward.
+99..140: spread-arm torso tilts and leg shifts.
+No extra independent short face beat, late relocated copy, or reordered event was found in either output.
+
+Identity/background:
+Both retain Silver Wolf's goggles, silver ponytail, purple/black jacket, white graphic top, shorts/belt/thigh details and asymmetric gloves. No gross identity switch, costume replacement, extra/missing limb or scene collapse was observed. Curtain/window/desk/chair/red desk object persist in both. Fine hands and moving fingers remain ambiguous; no numerical quality score or confident overall hand-quality ranking is claimed. Frame inspection does not establish playback smoothness.
+
+Confidence:
+High for the visible frame occurrence, sampled duration and release boundaries; moderate for coarse event correspondence; exact hand-eye contact and finger topology are not established.
+
+Strongest evidence:
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/dense_030_077/dense_036-038.jpg
+  Baseline frame 38 contains the one-frame face approach; frame 37 does not.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/dense_030_077/dense_039-041.jpg
+  Baseline already reaches outward while x3 holds face pose at 40..41.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/dense_030_077/dense_042-044.jpg
+  Source still holds at 42; x3 releases; baseline is further into following motion.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/dense_030_077/dense_048-050.jpg
+  Baseline long open-palm/raised-leg pose begins by 49, ahead of x3.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/dense_030_077/dense_051-053.jpg
+  x3 raised-leg pose begins at 51.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/dense_030_077/dense_066-068.jpg
+  Baseline long-pose change begins at 66, x3 at 68.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/outputs/06_silverwolf_seed2_baseline_00001_.mp4
+  Native crops establish early compact mouth/nose glove and later open palm.
+/Users/researcher/DevProjects/h3-silverwolf-baseline-20261014/review/all_frames
+  Complete context check for missing, retimed, reordered and repeated actions.
+
+Recommended wording:
+“The baseline already contains a one-frame face approach at 38; x3 contains a two-frame version at 40..41, closer to source 41..42. Both remain spatially imperfect. Runtime and preprocessing differences prevent treating this comparison as clean causal evidence for 3x weighting.”
+

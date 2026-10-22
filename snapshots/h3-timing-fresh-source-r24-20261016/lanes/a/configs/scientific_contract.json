@@ -1,0 +1,57 @@
+{
+  "schema": "r24-fresh-source-fixed-pair-v1",
+  "scope": "2 previously unused references x2 pre-fixed seeds x native/Full6..14; all8 outcomes retained",
+  "seeds": [
+    2026101610,
+    2026101611
+  ],
+  "arms": [
+    "native",
+    "full_6to14"
+  ],
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "frames": 141,
+    "fps": 24
+  },
+  "router": {
+    "alpha": 1.0,
+    "radius": 0,
+    "time_offset": 0,
+    "step_interval_half_open": [
+      6,
+      15
+    ],
+    "block_interval_half_open": [
+      0,
+      50
+    ]
+  },
+  "sampler": "Euler20",
+  "CFG": 1,
+  "no_Turbo": true,
+  "captures": [
+    5,
+    10,
+    15,
+    19
+  ],
+  "NFE_per_job": 20,
+  "callback_count": 20,
+  "blocks_per_job": 1000,
+  "cost": "record only, no efficiency gate or optimization",
+  "continuous": {
+    "jobs_per_initial_lane": 4,
+    "retain_service_between_jobs": true,
+    "cache_none": false,
+    "idle_hold_seconds": 1800,
+    "max_service_seconds": 43200,
+    "job_timeout_seconds": 5400,
+    "root_final_close_releases": true,
+    "failure_releases_exact_owned": true
+  },
+  "launch_authority": "root live admission only",
+  "source_binding": "unfilled; each source manifest supplies its independent input/window/prompt before graphs exist",
+  "model_residency_claim": "retain service/cache; measure actual own PID VRAM and do not claim all model tensors resident solely from process liveness"
+}

@@ -1,0 +1,30 @@
+--- presentation_v1
++++ presentation_v2
+@@ -30,14 +30,14 @@
+   if not(st['width']==1312 and st['height']==736 and st['r_frame_rate']=='24/1' and len(a['frames'])==141 and abs(float(st['duration'])-5.875)<1e-6):raise ValueError('source geometry')
+   if any(abs(float(f['best_effort_timestamp_time'])-i/24)>1e-6 for i,f in enumerate(a['frames'])):raise ValueError('source PTS')
+   original.append({'path':str(v),'sha256':s,'probe':a})
+- w,h,foot=656,368,76;labels=('1.参考视频','2.编辑后：未干预','3.编辑后：同时间参考路由')
++ w,h,foot=656,368,76;labels=('1.参考视频','2.编辑后视频','3.编辑＋时序引导后视频')
+  font=ImageFont.truetype(FONT,24);small=ImageFont.truetype(FONT,17)
+  caption=Image.new('RGB',(3*w,foot),'black');dr=ImageDraw.Draw(caption)
+  for i,t in enumerate(labels):
+   box=dr.textbbox((0,0),t,font=font);dr.text((i*w+(w-(box[2]-box[0]))/2,7),t,font=font,fill='white')
+- dr.text((18,45),f'Sam Altman角色替换 | {cid} | seed {seed}',font=small,fill='#c7c7c7')
+- dr.text((w+30,45),'24fps，同一物理时间，无动作延迟补偿',font=small,fill='#c7c7c7')
+- dr.text((2*w+30,45),f'采样索引6–14；视频主窗{spec["primary"][0]}–{spec["primary"][1]}帧',font=small,fill='#c7c7c7')
++ dr.text((18,45),f'角色替换 | {cid} | seed {seed}',font=small,fill='#c7c7c7')
++ dr.text((w+30,45),'各列按24fps原始帧号同步',font=small,fill='#c7c7c7')
++ dr.text((2*w+30,45),f'去噪步骤6–14（从0计数）；主窗{spec["primary"][0]}–{spec["primary"][1]}帧',font=small,fill='#c7c7c7')
+  caption.save(dst/'caption.png')
+  for n in spec['frames']:
+   im=Image.new('RGB',(3*w,h+foot),'black');full=Image.new('RGB',(3936,736+2*foot),'black')
+@@ -61,7 +61,7 @@
+  if any(sha(v)!=s for v,s in zip(vids,expected)):raise ValueError('source changed after media')
+  (dst/'manifest.json').write_text(json.dumps({'originals':original,'outputs':outputs,'source_only_fixed_frames':spec['frames'],'primary_window':spec['primary'],'clip_inclusive':spec['clip'],'fullfield_scale':[656,368],'crop':None,'footer_height':foot,'lag_alignment':False,'frame_interpolation':False,'composite_audio':False,'original_audio_preserved':True,'selection_before_generation':True,'builder_sha256':sha(__file__)},indent=2)+'\n')
+  pics=''.join(f'<figure><img src="frame{n:03d}_triptych.png"><figcaption>Frame {n} | {n/24:.3f}s</figcaption></figure>' for n in spec['frames'])
+- (dst/'index.html').write_text(f'<!doctype html><meta charset="utf-8"><title>R24 {key}</title><style>body{{background:#111;color:#eee;font:17px sans-serif;max-width:1600px;margin:30px auto}}video,img{{width:100%;height:auto}}figure{{margin:25px 0}}p{{line-height:1.6}}figcaption{{color:#bbb}}</style><h1>{key}：参考 / 未干预 / 同时间参考路由</h1><p>新参考视频的窗口与展示帧由源素材预先选定；这是该源的两个预定种子之一，全部结果均保留。各列保留完整视野及相同缩放，按原始物理时间同步，无延迟补偿或帧插值。6–14为零起始采样索引，不是视频帧。时序、可观测性与形状/身份/背景质量分别评价。</p><h2>完整5.875秒</h2><video controls loop src="full_length.mp4"></video><h2>主窗附近{start}–{end}帧，正常速度</h2><video controls loop src="primary_normal.mp4"></video><h2>同片段半速，无插帧</h2><video controls loop src="primary_half_speed.mp4"></video>'+pics)
++ (dst/'index.html').write_text(f'<!doctype html><meta charset="utf-8"><title>R24 {key}</title><style>body{{background:#111;color:#eee;font:17px sans-serif;max-width:1600px;margin:30px auto}}video,img{{width:100%;height:auto}}figure{{margin:25px 0}}p{{line-height:1.6}}figcaption{{color:#bbb}}</style><h1>{key}：参考 / 编辑 / 时序引导</h1><p>新参考视频的窗口与展示帧由源素材预先选定。每个源包含两个预定种子，页面保留各自结果。各列保留完整视野及相同缩放，按24fps原始帧号同步。6–14表示从0计数的去噪步骤。时序、可观测性与形状、身份、背景质量分别评价。</p><h2>完整5.875秒</h2><video controls loop src="full_length.mp4"></video><h2>主窗附近{start}–{end}帧，正常速度</h2><video controls loop src="primary_normal.mp4"></video><h2>同一组原始帧以12fps播放</h2><video controls loop src="primary_half_speed.mp4"></video>'+pics)
+  print(json.dumps({'passed':True,'path':str(dst),'time':time.time()}))
+ if __name__=='__main__':
+  p=argparse.ArgumentParser();p.add_argument('case',choices=SPECS);p.add_argument('seed',type=int,choices=(2026101610,2026101611));a=p.parse_args()

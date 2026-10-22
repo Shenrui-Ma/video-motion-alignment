@@ -1,0 +1,204 @@
+--- v1/BINDING.template.json
++++ v2/BINDING.template.json
+@@ -1,7 +1,7 @@
+ {
+   "approved_for_consumer_start": false,
+   "remote_root": "/data5/researcher/h3_runs/timing_source28289_native_r42_20261017",
+-  "protocol_sha256": "1de6edf54fb28a142bb9a6930aed5e97a69dc8ebcbd2d4b7c422da9c94e90cbc",
++  "protocol_sha256": "ba5aac3d3eb4d9320fc14164d2b8d4470a0bee464d97ed6d73e6dd436837a09c",
+   "producer_manifest_sha256": "02fd94c8e056396f246db4ff7afe3d376a689019bd0a7d8152d30bc73401dfac",
+   "service_record": null,
+   "external_identity": null,
+--- v1/CPU_EVIDENCE.json
++++ v2/CPU_EVIDENCE.json
+@@ -46,5 +46,15 @@
+     "source_test_sha256": "ed02d1b7bade01cd95bbc385a2db71129a8432495a1b987ca895416db17cbed5",
+     "scope": "same render body previously passed actual .9 141-frame three-column synthetic gate; new two-key layout guard unit tested and fixed caption PNG visually inspected; no new 2-column actual rendering/model run claimed"
+   },
+-  "no_GPU_or_actual_result_consumption": true
++  "no_GPU_or_actual_result_consumption": true,
++  "v2_additive_evaluation": {
++    "passed": true,
++    "test_count": 24,
++    "log": "/Users/researcher/DevProjects/h3-timing-source28289-native-r42-20261017/audit/postrun_v2_tests_attempt1.log",
++    "log_sha256": "2f762ce6b22bda3cfaf698b7f0818a4418dee04ff95d8e64abe18fda08852cc1",
++    "producer_files_unchanged": 49,
++    "production_code_and_numeric_helpers_byte_exact_v1": true,
++    "no_actual_pose_or_video_result_consumed": true,
++    "no_GPU_or_service_started": true
++  }
+ }
+--- v1/HANDOFF.txt
++++ v2/HANDOFF.txt
+@@ -1,36 +1,5 @@
+-R42 source28289 / Elon Musk Native outcome, prepared only.
+-Producer49 immutable files stay untouched; no GPU or service management.
+-Root fills actual BINDING.json after launch and calls one bounded CPU phase:
+-  /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python analysis/postrun/one_phase.py --execute
+-Each invocation has a unique log and takes the existing Mac -> remote CPU
+-locks only for actual work. R40 online observer has priority. Pending/busy/
+-stabilizing never runs a phase; technical partial failure requires review.
+-Archive complete yields captured/batch/RUN_GATE.json and archive receipt for
+-root's exact-owner release. Queue.finalize false->true needs that exact gate
+-and root_release_request; no other scientific edit is accepted.
+-
+-Then one case phase computes141-frame source and target DWPose from actual
+-input/output with exact video+code+model provenance, CPU only. Same frozen
+-.3/.5 reliability/49lag/186row scan as R38; no human failure/event window.
+-The single fixed diagnostic is whole0..140; all62 temporal supports appear
+-in common-support output for each of the three scanned arm feature choices.
+-UNKNOWN and low-support rows remain; no guarantee the source yields an error.
+-
+-Source vs Native fixed0/35/70/105/140 and complete141-frame24fps comparisons
+-use full-frame equal tiles and black caption below. Chinese labels are
+-1.参考视频 and2.编辑后视频; original English diagnostic and pixel hashes remain.
+-Pose does not prove Musk likeness, handshape, source edit presence or quality;
+-those require fixed fullclip/frame review. There is no Auto comparator yet.
+-
+-Finalize rechecks entire original PT/nonPT and all derived inventory plus all
+-producer immutable files. PT stay remote; every nonPT is downloaded and exact
+-inventory/SHA checked locally. No20 intermediate VAE/pose decoding is added.
+-Actual20NativeNFE/20Euler/21chosen/condition and two-stream noise gates are
+-owned by the already sealed producer verify_batch, called during archive.
+-No postaugmentation/full processed-condition certificate is fabricated.
+-
+-SOURCE_DESIGN.json is a byte-exact evidence copy of the producer's own
+-pre-output source-only design. Evaluation/scan math and contract are exact
+-R38 originals. Presentation reuses R41 tested render body with only the
+-explicit two-key Source/Native layout guard changed. One_phase is the sole
+-entry; consume.py's legacy resident main is disabled by its direct-entry gate.
++R42 postrun v2 additive evaluation correction. Producer unchanged; old v1 payload, FREEZE and bundle retained in audit.
++Root creates a new BINDING against current PROTOCOL SHA; no previous authorization is inherited. Use audit/postrun_bundle_v2.tar.gz. No consumer has started.
++The five producer-declared windows [0,31]/[32,63]/[64,95]/[96,127]/[125,140] and seven stills 0/24/48/72/96/120/140 are primary coverage descriptors. Whole0..140 and stills0/35/70/105/140 remain supplementary. Renderer emits the sorted10-frame union once, retaining all141 video frames; EVALUATION_ADDENDUM.json identifies roles. No event/failure window is selected.
++Numerical helpers, remote consumer, renderer and lifecycle are byte-exact v1; only configuration/test/docs/seal binding changed. Bounded one_phase.py --execute still requires exact root BINDING and both nonblocking CPU locks, with R40 online observation priority. Archive RUN_GATE plus receipt permits root to release the exact service before CPU pose/evaluation/final. Model/PT validation scope, UNKNOWN/common support and final nonPT exact inventory remain unchanged.
++Create the empty analysis/postrun/parents directory when extracting a portable package (R43 also creates it at prepare).
+--- v1/PROTOCOL.json
++++ v2/PROTOCOL.json
+@@ -1,5 +1,5 @@
+ {
+-  "schema": "r42-source28289-native-postrun-v1",
++  "schema": "r42-source28289-native-postrun-v2",
+   "root_remote": "/data5/researcher/h3_runs/timing_source28289_native_r42_20261017",
+   "root_local": "/Users/researcher/DevProjects/h3-timing-source28289-native-r42-20261017",
+   "producer_manifest_sha256": "02fd94c8e056396f246db4ff7afe3d376a689019bd0a7d8152d30bc73401dfac",
+@@ -11,17 +11,70 @@
+       "windows": [
+         [
+           0,
++          31
++        ],
++        [
++          32,
++          63
++        ],
++        [
++          64,
++          95
++        ],
++        [
++          96,
++          127
++        ],
++        [
++          125,
++          140
++        ],
++        [
++          0,
+           140
+         ]
+       ],
+-      "window_scope": "full141 global descriptor only; no preselected failure/event window. All186 fullscan rows retained."
++      "window_scope": "Five producer-predeclared fixed partitions plus supplementary full141 descriptor; no preselected failure/event window. All186 fullscan rows retained.",
++      "predeclared_windows": [
++        [
++          0,
++          31
++        ],
++        [
++          32,
++          63
++        ],
++        [
++          64,
++          95
++        ],
++        [
++          96,
++          127
++        ],
++        [
++          125,
++          140
++        ]
++      ],
++      "supplementary_windows": [
++        [
++          0,
++          140
++        ]
++      ]
+     }
+   ],
+   "fixed_visual_frames": [
+     0,
++    24,
+     35,
++    48,
+     70,
++    72,
++    96,
+     105,
++    120,
+     140
+   ],
+   "fixed_clip_inclusive": [
+@@ -81,5 +134,25 @@
+     }
+   },
+   "physical_index_note": "Any producer legacyphysical_index denotes denoising iteration; scan windows are source video frame indices24fps.",
+-  "no_consumer_started": true
++  "no_consumer_started": true,
++  "primary_visual_frames": [
++    0,
++    24,
++    48,
++    72,
++    96,
++    120,
++    140
++  ],
++  "supplementary_visual_frames": [
++    0,
++    35,
++    70,
++    105,
++    140
++  ],
++  "evaluation_addendum": {
++    "file": "EVALUATION_ADDENDUM.json",
++    "sha256": "45212aef0d168f03e6b01578db1df6f26cfb74054516ad3b2b5f68944ac79ed7"
++  }
+ }
+--- v1/test_native.py
++++ v2/test_native.py
+@@ -4,7 +4,7 @@
+ from presentation import layout_keys
+ class NativeTests(unittest.TestCase):
+  def test_single_native_no_event_window(self):
+-  p=read(HERE/'PROTOCOL.json');self.assertEqual(len(p['cases']),1);c=p['cases'][0];self.assertEqual((c['source_id'],c['seed']),('28289',2026101701));self.assertEqual(c['windows'],[[0,140]]);self.assertIn('no preselected failure',c['window_scope']);self.assertEqual(p['fixed_visual_frames'],[0,35,70,105,140]);self.assertEqual(p['scan_rows'],186)
++  p=read(HERE/'PROTOCOL.json');self.assertEqual(len(p['cases']),1);c=p['cases'][0];self.assertEqual((c['source_id'],c['seed']),('28289',2026101701));self.assertEqual(c['windows'],[[0,31],[32,63],[64,95],[96,127],[125,140],[0,140]]);self.assertIn('no preselected failure',c['window_scope']);self.assertEqual(p['fixed_visual_frames'],[0,24,35,48,70,72,96,105,120,140]);self.assertEqual(p['scan_rows'],186)
+  def test_actual_source_design_byte_exact(self):
+   p=read(HERE/'PROTOCOL.json');root=Path(p['root_local']);self.assertEqual((HERE/'SOURCE_DESIGN.json').read_bytes(),(root/'design/PROTOCOL.json').read_bytes());self.assertEqual(sha(root/'deploy_manifest.json'),p['producer_manifest_sha256'])
+  def test_all_math_reused_original(self):
+--- v1/test_postrun.py
++++ v2/test_postrun.py
+@@ -24,7 +24,7 @@
+     with self.assertRaises(ValueError):consume.check_download(arc)
+  def test_frozen_source_windows_evaluation_only(self):
+   p=c.read(c.HERE/'PROTOCOL.json');self.assertEqual([r['source_id'] for r in p['cases']],['28289']);self.assertEqual([r['seed'] for r in p['cases']],[2026101701]);self.assertEqual(c.sha(c.HERE/p['source_design']['file']),p['source_design']['sha256']);self.assertTrue(p['source_design']['evaluation_only'])
+-  for case in p['cases']:self.assertEqual(case['windows'],[[0,140]])
++  for case in p['cases']:self.assertEqual(case['windows'],[[0,31],[32,63],[64,95],[96,127],[125,140],[0,140]])
+  def test_runtime_seal_unchanged(self):
+   root=c.HERE.parents[1];manifest=c.read(root/'deploy_manifest.json')
+   for rel,row in manifest['files'].items():self.assertEqual(c.sha(root/rel),row['sha256'])

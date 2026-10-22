@@ -1,0 +1,6 @@
+R83 HTTP观测修复候选，仅CPU准备，未改现有producer。
+原路径run_queue内直接job.status，HTTP超时进入failed/finally.stop；root再看failed清理。
+候选candidate/job.py新增StatusUnavailable，仅只读GET的timeout/connection failure以及408/429/500/502/503/504使用；POST保留原异常和submission_uncertain，绝不自动重试。
+candidate/run_queue.py捕获专用StatusUnavailable写observation_unknown，unknown_missing也持续观测同一已提交job。原started/deadline继续，真实history error与identity mismatch保留终止。
+10项CPU测试通过，涵盖原版同一timeout立刻failed的对照、timeout→unknown_missing→running→success且submit仅一次、真实error、身份错误、job/总期限；没有GPU操作。
+原封存与首attempt文件保持。root恢复需新独立行政版本/包并审核seal，将这两个差异纳入，不能默默覆盖历史生产或重用旧failed job记录。R83 watchdog本身只查controller活性/总期限，没有HTTP900秒分支；controller修复后无需因此更换。

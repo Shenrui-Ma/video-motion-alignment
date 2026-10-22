@@ -1,0 +1,90 @@
+{
+  "schema": "r135-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-subject-replacement-r135-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_subject_replacement_r135_20261020",
+  "producer_seal_sha256": "0815042763dc56722665a7e146753d9f58f1deb801d7c832b53c06ddc19b0723",
+  "producer_contract_sha256": "996060207944339fe7f58a6bc9c7c3bd37dc4c5d0302e1e7026fdcdb4849ebcf",
+  "producer_runtime_sha256": "a207b388aae0fbebeea209816f48311486f82c9052dae65d4791346fd547fed9",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0084"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0084",
+      "run_id": "r135_short_0084_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 90,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the man with a woman\n\nretention_analysis:\n<Video 1>: partially_preserved - Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.\n",
+      "original_task": {
+        "id": 84,
+        "src_video_name": "short_0084.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A man wearing a camouflage cap and a tactical vest is holding a gun to his head, looking distressed and intense.",
+        "edit_prompt": "Replace the man with a woman",
+        "target_prompt": "A woman wearing a camouflage cap and a tactical vest is holding a gun to her head, looking distressed and intense.",
+        "target_span": "woman",
+        "target_phrase": "A woman is holding a gun to her head"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 74,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "37037/12000",
+        "end_exclusive_rational": "1001/320",
+        "duration_rational": "1001/320"
+      },
+      "task_scope": "subject_replacement",
+      "evaluation_scope": "IVEBench完整短片探索",
+      "forced_run_id": "r135_short_0084_seed2026101701_forced",
+      "valid_frames": 76,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/short_0084_video.mp4",
+        "sha256": "444b2567759d06705da94dde4710f811a2d902a53be02b9ae93eb00cd19ec72d",
+        "bytes": 9108875
+      },
+      "provenance": {
+        "file": "inputs/short_0084_provenance.json",
+        "sha256": "4859e5f8c4eccd7db21b8cc7ffbed1e5286f701d4c765e75c34eaf0a9e969a70",
+        "bytes": 14920
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-subject-replacement-metrics-r135-20261020/inputs/short_0084_original.mp4",
+        "sha256": "2bb1540adadfb9ca248a884ec0c3f615df1cb5bb913dd20d4b7a961f8ba71343"
+      },
+      "graph_sha256": "02ed10065b28c997ecf2c998335b9e510aec0bd008678629cdaceb65e775f2da",
+      "forced_graph_sha256": "3718dbd81b0d88e96033d8778ca505cff8c874b9a57cb280b90e7fde025212e9",
+      "expected_prompt_sha256": "5403b0e382f201f6715cc13e35f1f5df7bceeac33a47bf60c26eaf37dec44659"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true,
+  "namespace": "r135",
+  "display_description": "R135将人物改为女性，使用完整原片与参考视频绑定。沿用官方编辑原句和通用保留要求；三个时刻是同一次连续下放的里程碑。"
+}

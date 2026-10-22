@@ -1,0 +1,43 @@
+R83 CPU结果收集与展示；2026-10-18
+
+本地：/Users/researcher/DevProjects/h3-ivebench-subject-edits-metrics-r83-20261018
+远端：/data3/researcher/h3_runs/ivebench_subject_edits_metrics_r83_20261018
+生产者：/data3/researcher/h3_runs/timing_subject_edits_r83_20261018
+
+范围
+7组：0131、0268、0343、0274、0085、0358、0178，顺序与producer相同。
+有效/总帧：43/56、97/107、61/73、72/73、66/73、105/107、121/124。全部24fps。
+原始素材、P1-local-v1提示、各run_id、producer108seal已绑定。
+实际pair gate通过后才收集；实际AV噪声/条件/前6步x0由原producer CPU verifier核验。
+收集实际MP4及job/history/router/graph/gate；大PT留在生产者。
+视频只保留有效帧及1280×720内容区域，三列全宽3840×720，下方88px中文黑条。
+另生成完整片段均匀六时刻，所有样例与失败状态保留。
+官方MF：configs/PENDING_OFFICIAL_MF.json，7 source+14 targets等待root另行调度。
+本轮只调用CPU处理，未建立GPU追踪队列；runtime目录保留原官方数值实现逐SHA快照供后续接入。
+
+启动要求
+Root确认R83实际启动后，CPU watcher已启动：.41 PID871498，绑定audit/root_attempt1/STARTED.json。Mac媒体同步已独立启动，详见audit/LOCAL_SYNC_LAUNCH.json。
+等root确认R83实际启动、STARTED.json存在后，在.41执行（替换实际attempt目录）：
+
+cd /data3/researcher/h3_runs/ivebench_subject_edits_metrics_r83_20261018
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps /data3/researcher/ComfyUI/.venv/bin/python -u scripts/watch_actual_pairs.py --producer-root /data3/researcher/h3_runs/timing_subject_edits_r83_20261018 --root-started-receipt /data3/researcher/h3_runs/timing_subject_edits_r83_20261018/audit/ACTUAL_ROOT_ATTEMPT/STARTED.json --start-confirmed --attempt cpu_attempt1
+
+此CPU进程等待实际success，核gate、收集、裁剪、三栏渲染。会记录所有失败并继续等其他组。
+每45秒检查一次，最多18h；可用root进程监管方式后台启动。独占consumer锁与共享CPU工作锁。
+不会批准后续GPU队列、提交prompt或改变service生命周期。
+
+Mac单次下载/更新HTML：
+PYTHONDONTWRITEBYTECODE=1 /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv-current/bin/python /Users/researcher/DevProjects/h3-ivebench-subject-edits-metrics-r83-20261018/scripts/sync_showcase.py --output /Users/researcher/Downloads/H3_IVEBench七组主体编辑对照_R83_20261018.html
+
+root确认生成启动后，可增加 --watch --start-confirmed，每60秒同步必要视频与JSON，最多18h。
+原始完整generated视频：incoming/<source>/{native,forced}.mp4
+横拼完整有效片段：showcase/<source>/full_valid.mp4
+六时刻：showcase/<source>/six_times.png
+效率：results/<source>/EFFICIENCY.json；整条job观察用时含加载、编码、采样、snapshot、decode与polling。
+该数值不当作稳态去噪速度。GPU峰值只有原始实际记录存在时才另报。
+
+证据
+CONSUMER_FREEZE.json：80文件，SHA da5b55ac44e881873004426113a09252556cf5aec521007ce7c002086244024d。
+本机与.41均12项CPU测试通过。7源裁剪逐帧MD5和24fps PTS校验通过。
+audit/presentation_fixture：三列都用同一源片的排版测试，generated_model_results=0，单独存放，不进入正式网页。
+audit/review_r84：独立配对审查，R84 20项CPU测试通过，核心无阻断发现。

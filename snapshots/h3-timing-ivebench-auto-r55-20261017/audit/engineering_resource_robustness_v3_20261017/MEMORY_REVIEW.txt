@@ -1,0 +1,11 @@
+建议先用现有 27-bin 最大实际序列 GPU gate 测量，再决定是否增加 reserve。Native NVML 最高 46353 MiB，单卡总量 48494 MiB；这份日志没有区分活跃张量、PyTorch 缓存和 CUDA context，不能据此直接断定 Full 会 OOM。当前 Comfy get_free_memory 将 mem_get_info 的空闲量与 reserved-active 缓存相加（upstream_review/model_management.py:1765-1804），缓存可复用。
+
+最小工程选项：主服务 command 仅增加 --reserve-vram 8；若实际 allocator gate 与首步峰值仍没有足够余量，再设 10。8/10 的实现单位是 GiB。Linux 默认400MiB，额外预留分别增加7.609375/9.609375GiB。代码路径：cli_args.py:174 -> model_management.py:863-877 -> sampler_helpers.py:198-201 -> load_models_gpu:929-934,985-1020。reserve 加入 inference minimum，先清理当前不需要的模型（可能是 TE/VAE），再缩小 DiT 常驻权重预算。NVIDIA 的 MIN_WEIGHT_MEMORY_RATIO=0（model_management.py:458-460）；NORMAL_VRAM 和 LOW_VRAM 都使用预算；当前 --disable-dynamic-vram 使这条估算路径有效。reserve 是权重装载预算，不是硬性显存分区，不能承诺启动后始终留8/10GiB。
+
+该选项保留图中的 INT8 ConvRot 模型、weight_dtype=default、Qwen NVFP4、FP16 VAE、sigma、attention 和 Triton dispatch。model_patcher.py:995-1038/1085-1105 将超预算模块保留在 offload device，并为传输buffer计入预算；ops.py:393-439 按原权重和原dtype搬运再计算，INT8融合分支见ops.py:958-990。图中没有LoRA，避免引入新的在线LoRA重算。不过静态代码不能证明搬运路径完全逐位相同，必须检查首步Native初始noise、conditioning/reference实体、sigma和保存的endpoint与R54匹配，并保持现有backend dispatch审计。若不匹配，应终止该工程候选并说明差异，不能降低匹配门槛。
+
+不要同时加 --lowvram、--novram 或 --disable-smart-memory。当前版本 --lowvram 会让TE转CPU（cli_args.py:170），会扩大执行路径变化；reserve一项足以控制常驻空间。--disable-async-offload 会改变传输策略，当前不需要。
+
+测量口径：27x943x56x128 的单个BF16/FP16视频token张量约348.10MiB。route_attention 在全序列 Flash 输出之外还有ref、aligned、FP32 correction等临时量（extensions/H3TemporalRouter/core.py:57-86,238-273）；部分临时量在不同阶段已释放，逐项总和会高估峰值。现有 gpu_dynamic_union_smoke.py:82-100 的峰值还覆盖 finite/bits 检查以及第二次 sealed Full调用，适合保守容量检查，不能直接当作纯routing新增量。建议在GPU gate另取route_attention调用前后allocator的 peak allocated / reserved、当前active和free，分别测Native、local和all27；使用实际最大seq_len。随后在真实模型首步核验上述父链与可用余量，再启动Full选择。建议至少留1GiB实测安全余量，余量不足时再由root选择reserve8/10。
+
+本次只读审查没有改变service命令、运行配置、模型权重、kernel、dtype、策略、parent绑定，也没有操作GPU。资源工程补丁的CPU验证已经完成。最终容量结论由root的实际GPU gate给出。

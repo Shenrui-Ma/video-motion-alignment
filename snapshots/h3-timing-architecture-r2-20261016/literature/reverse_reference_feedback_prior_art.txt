@@ -1,0 +1,65 @@
+H3 参考分支反向读取：有界先验核查
+日期：2026-10-17。仅文献、公开源码和既有本地实现只读审查；没有启动 GPU、推理、修改实验配置或重算指标。
+
+结论
+“参考不能读取生成”已有明确论文公式和公开代码，不能作为新机制首创。当前两臂的有效问题更窄：在冻结 H3 的同一局部参考 query 上，完全移除生成视频反馈，与保留反馈总质量但只接收物理时间对应的生成信息，哪种更能保住动作时间和编辑质量？这与已核的完全阻断有可描述差异；Vidu S2 的文字又可能覆盖双向同帧交换，因此现有证据不能保证该时间约束前无古人。它仍值得作为可证伪的方向性机制实验，不应被“思想相近”直接否决，也不能凭边的方向不同直接宣称创新。
+
+1. 方向和范围
+以下 R 为 dense VAE 参考视频，T 为生成视频；箭头总是 Q→K/V 的读取方向。A_RT 是参考 query 读取生成 key/value；A_TR 是生成 query 读取参考 key/value。不能混用自然语言“参考到生成的信息流”来指这两个矩阵块。
+现有 Full 改 A_TR；当前候选改 A_RT。R17 的 phase_attention 取 output-video queries，并显式拒绝与 reference-video segment 重叠；旋转 target Q 只用于它读取 reference KV 的子项，不是旋转 reference Q。已核本地 core.py:63–101，SHA b5a9e12b6ca2a28cba46c83890eeb2f412b34fea3bde8d881343d3279cfb9c4f。其阴性结果不覆盖这次反向候选。
+同层 Q/K/V 在更新之前一起生成。只改 O_R 可令该次 attention 的 O_T 原样；后层重新产生的 Q_T、K_R、V_R 及最终生成轨迹仍可改变。“target-query 保持 native”只能指该调用的直接输出计算，并不等于整条生成轨迹 native。
+
+2. 五项最接近证据
+
+[OT] OmniTransfer，arXiv:2601.14250v1，§4.3 Eq3–4、§5.1。
+https://arxiv.org/html/2601.14250v1
+参考只读自身：O_R=Attn(Q_R,K_R,V_R)；目标读目标加参考。参考时间条件固定，采用分阶段训练。作者讨论双向交互与 copy-paste 的联系；未给 H3 动作延后的因果验证。它直接覆盖完全阻断原则，不是反向同时间保留反馈。官方仓库当前 commit f8fe7f253f835df33a404b2c7a8d2dae2b1b3cd8 共22路径，仅 README/许可证/素材，未见模型实现。
+https://github.com/PangzeCheung/OmniTransfer/tree/f8fe7f253f835df33a404b2c7a8d2dae2b1b3cd8
+
+[IAP] Identity as Presence，arXiv:2603.17889v1，§3.3 Eq6、§3.4。
+https://arxiv.org/html/2603.17889v1
+M_ij=−∞ 当 i属于reference、j属于noisy；其他为0。图像/语音身份参考采用独立投影、身份位置绑定和三阶段训练，不是无需训练的动作视频修补。官方代码已公开，不能继续写“仅项目页”：WanSelfAttention.asymmetric_attention_reverse 的681–700行实际执行目标读拼接KV、参考只读参考KV；724–750行有调用。函数名 reverse 不表示当前候选的时间选择。
+https://github.com/WeChatCV/Identity-as-Presence/blob/e905e6ef67df77aa4b969a2ddc02c488505f2eea/identity_as_presence/models/iap_base_model.py#L649
+该文件SHA256 ff76f66c2d18bbd71dbc42f5092bd5df13d0a3ed8363d8fc676980b5f2bf8f8b。这里只核实静态实现，不声称复现实验或所有跨模态路径独立。
+
+[FD] FullDiT2，arXiv:2506.04213v1，§3.3.2 Eq8–9、Appendix A。
+https://arxiv.org/html/2506.04213v1
+被选参考只读参考，noisy query 读两组；分解为两次标准 attention，避免任意 mask。它另有学习式 token 筛选和跨层/跨步缓存；全部模型参数微调400k次，非直接训练自由 H3 补丁。论文还讨论训练时双向、推理时缓存的不一致。项目仓库 cb519d04e02a327ef12ab0d3f4f0dafebc043c88 的229路径未见Python/CUDA模型代码，本次依据公式与项目说明，不伪称已查模型实现。
+https://github.com/FullDiT2/FullDiT2.github.io/tree/cb519d04e02a327ef12ab0d3f4f0dafebc043c88
+
+[VIDU] Vidu S2-Editing，arXiv:2609.11638v1，§3.2。
+https://arxiv.org/html/2609.11638v1
+明确对应时间的源/生成帧交互，目标帧内部双向训练后再转因果流式训练。正文使用 exchanges information；这比“只规定 target 读 source”更宽，但无完整 Q/K mask 公式。不能据 bidirectional 标题断言反向同帧，也不能断言只做正向。公开仓库 58de7c0f5d3c9b34790d55a4fde9a27f7066b0b4 仅3路径、无网络实现，方向细节未决。因此“首次双向/反向同帧对齐”是高风险主张。
+https://github.com/shengshu-ai/Vidu-S/tree/58de7c0f5d3c9b34790d55a4fde9a27f7066b0b4
+
+[RFC] vllm-omni #6491，2026-08-22创建、08-27关闭，state_reason=not_planned。
+https://github.com/vllm-project/vllm-omni/issues/6491
+作者报告 H3 第一主层参考KV跨采样步稳定、深层变化，并评估周期缓存。这里是工程RFC/报告的测量，非已合并功能或动作对齐论文；脚本仅写工作目录相对路径，未核到可重现的固定脚本版本。测量针对缓存误差，不证明自然动作延后源于参考被污染。官方当前 transformer.py 的 causal=False、仅padding/document隔离支持双向路径存在；不替代本机实际实现/样本的因果审计。
+https://github.com/vllm-project/vllm-omni/blob/6613d77bf1c5ed27f5bc68787aeb4b988914dfce/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py#L478
+该文件SHA fcf01b34171bc2f89b65aeaafea3b620c0dd4d14d473df12607d52171b5229e8；查阅段478、536–641、669–732。当前代码基线不是RFC实验当时的精确版本。
+
+3. R25 两臂和先例的确切关系
+沿根任务拟定 source05/Sam/seed2026101311、1312×736×141/24fps、20 Euler、zero-based indices6…14、全部50层、同W50…65对应参考query事件bin集合。仅约束 A_RT；人物图、文本、target audio、事件窗外R行不直接修改。它是局部直接边的消融，不是生成→参考完全隔离，也不能保证参考KV静态可缓存。
+
+设当前某个参考query/head原生输出为 o，生成视频组原概率总质量为m_T，组内归一化输出为o_T，同时间生成bin内归一化输出为o_B。
+BLOCK：o'=Attn(Q_R,K_not_T,V_not_T)。其理想实数等价式为 (o−m_T o_T)/(1−m_T)，非简单减去m_T o_T；实际建议直接补集attention避免近1时相减不稳定。
+SAME：o'=o+m_T(o_B−o_T)。与既有Full同一组内重分配代数；只把被控读取方向换成R→T，不把该公式当新贡献。物理对应依据实际VAE/packed layout，而不是令两条RoPE原点相同。
+
+为何必须BLOCK：若只与Native比较SAME，无法证明“保留合适反馈”优于既有完全移除反馈思想。BLOCK有效而SAME无额外收益时，优先收缩为已知原则的H3局部应用；不能包装同时间反馈机制必要。两者不同也混合了总group mass和支持集，不是纯mass单变量消融。SAME对Native的受控改动在首个相同输入调用中保持m_T，其后下游状态差异属于真实传播。
+Vidu的对应帧交互与SAME仍很近；训练自由、单独修改反向边、保留本调用原m_T是可核的设置差别。只有相对BLOCK/现有Full的具体质量-时序效益、复现和独立数据结果，才能支持值得贡献的算法组合。概念差别本身不等于论文创新保证。
+
+4. 机制证据不能跳步
+- 参考输入clean，不意味着每层hidden纯净；hidden依赖target是联合attention正常功能，不能预先命名为污染错误。
+- 本机H3每次forward重建参考embedding；旧reference hidden不作为跨Euler步持久状态返回。可能经target latent间接延续，不能画成同一reference hidden跨步原地累加。
+- 当前调用未修改T行可用同次原生输出逐位验证；下一层传播需同输入原生对照，不可把相邻层不同hash当因果证据。
+- 只封Rvideo←Tvideo，仍可能经文本/音频/其它reference行间接耦合；不能照搬全参考独立缓存结论。
+- 参考hidden或KV漂移、attention质量变化、缓存PSNR改变均不等于动作延后因果。最终独立pose的同帧、lag、wrist、shape、UNKNOWN以及编辑/背景质量必须共同报告。
+
+5. 最小可证伪判断（尚不授权运行）
+先做行方向、补集归一化、SAME组mass、输入QKV不变、非选行原样的数值契约；所有宣称位相同的门都只用于该门真实比较的对象。新增两条正式视频前绑定旧Native/Full的actual condition/noise/sigma/backend和005视频音频prefix，不凭相同seed代替配对证据。
+保留原四窗、双阈值和全部unknown；Native与SAME/ BLOCK按共同支持比较时序和形状，固定质量视图不重新挑帧。单旧故障样例只作开发证据。两臂都失败则停止这些固定候选；任一有效也不外推全部失败成因。若SAME相对BLOCK有清楚的保真收益，再以冻结参数查既有另一延后源07和正常seed1313，之后才讨论新源泛化。当前R24的正向Full结果不证明反向方法泛化。
+
+6. 可安全写入报告的主张
+可写：本轮检查一个此前本地尚未直接干预的读取边，并与已有非对称attention原则构成的局部BLOCK对照，研究冻结H3内反馈时间分配的作用。
+不可写：首次防止参考污染；首次不让参考看生成；首次同帧/双向对应；RFC已证明动作延后成因；仅换方向就有架构创新；R17已经试过反向；target轨迹完全native；两条结果足以证明通用性。
+检索是指定五源、官方仓库和本地既有档案的有界核查，不是不存在其它工作的证明。

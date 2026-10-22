@@ -1,0 +1,127 @@
+R27 自动局部动作时序控制：有界先例与可主张范围审查
+2026-10-17；只读。没有修改模型、控制器、评估器或生产队列；没有运行 GPU。
+
+结论
+R27 当前可以报告一个已实现的 training-free 推理控制系统及其开发例因果结果：在同一实际状态先做 Native clean prediction，由全片姿态扫描自动选择干预时间段；已知 source05/Sam/bad1311 只在 index4 使用一次 Full，最终原主窗方向 lag 从 13/13 降到 2/2，腕部从 13/12 降到 2/1（分别为 confidence .3/.5）。这支持该控制链在此开发案例可用。它不是只用最终坏帧反推出来的离线提示。
+
+现在不能据此称已证明新的模型架构、首次动态运动引导、首次同帧注意力，或声称完整组合必然原创。最直接先例已覆盖运动误差反馈、相邻步骤稳定化、动态停止、参考注意力修改、对应帧路由等核心原语。合理的潜在贡献位置是：对真实编辑任务的局部物理动作错位定义、可拒判的在线对应判据、以及它们对于控制效果/质量的独立因果价值。相近先例应成为对照；不应仅因能写成 logit bias 就否定一个有独立效用的模块。
+
+本审查限六项最接近的原始论文及其中可核代码；未找到完整同构实现不等于证明不存在。新素材结果不在本次结论中预支。186 行滑窗不是 186 个独立视频样本。
+
+一、实际算法与容易误写的地方
+
+1. 每个 index 0..19 均从实际当前 x/sigma 取得 Native clean endpoint，固定 VAE 解码和固定姿态模型测量。额外 Full prediction 在完全同一状态上求得，只用一个被选端点做一次 Euler 更新。NFE=20+ON次数；观测还包含完整 VAE/CPU pose，不能仅凭 NFE 宣称便宜。没有生成教师不等于没有额外预训练模型。
+
+2. 141 帧完整时间轴上扫描长度16/32、stride4及最后完整起点；双臂/左臂/右臂三种方向描述，lag ∈{-24,...,24}，confidence .3/.5。姿态置信、尺度锚点、覆盖率、候选残差及曲线歧义门均沿原工具。方向归一化能减弱身份比例差异，同时可能看不见幅度、手指和局部外观损坏。
+
+3. 用 s_t 表示源单位骨向量，y_{n,t+d} 表示本步 Native 端点在位移 d 下的目标向量；d>0 表示目标动作晚。每个置信阈值 c 有自己的候选 d_c，二者必须相差不超过2帧。
+对于每个允许偏移 e∈E={−2,−1,0,1,2}，只在 s_t、y_{n,t+d_c}、y_{n,t+e} 三者共同可见的槽计算：
+  w=min(source_score, proposal_score, null_score) 后 clip[0,1]
+  C_p=Σw||s_t−y_{n,t+d_c}|| / Σw
+  C_e=Σw||s_t−y_{n,t+e}|| / Σw
+  g_{c,e}=(C_e−C_p)/max(C_e,1e−8)
+每个比较都需 coverage≥.8、至少8有效帧、C_p≤.5；最终 min_{c,e} g_{c,e}>.5。
+这里每个比较内部使用同一支持和权重，但不同 e/c 的支持可以不同。它是对五个离散容差内偏移的确定性优势门，不是具有显著性水平的统计原假设检验；不覆盖所有连续 time warp，也不保证比较对象是同一次重复动作。两组置信阈值来自同一个 pose 输出，不能当独立证据。clipped score 不是校准概率。
+
+4. 持续规则的代码检查：只要求相邻去噪观测的代表窗共享至少一条手臂，且交集/较短窗长度≥.5。没有跨步骤的数值 lag 距离门。正号来自只保留 delayed 候选。故同一窗 +3→+23 理论上也可通过；当前首例真实唯一兼容边没有这种跳变，不应伪称已观察到该失败。上一轮保存全部代表窗，不只实际 ON 的窗。
+
+5. 时间重叠连通分量按时间合并，未按身体部位分组；每个分量仅保留最小绝对收益最大的一个既有窗。长重叠链可以桥接多个动作，代表窗覆盖少于分量成员并集。首例回放有3个分量，其中2个存在这种遗漏。动态0..K是组件数，不等于识别出0..K个真实动作事件。
+
+6. 检测器可指出某只手臂，但执行器只局部化物理时间：对应 bins 的全部空间 query、全部50层都被改。不能写成已经实现了局部肢体 attention 控制。UNKNOWN 使用 Native，其理由应保留；UNKNOWN/OFF 不等于动作已修复。特别 index5 置信不足退出后，后续此窗仍可能自行对齐，不能预设这次 OFF 有害。
+
+二、六项最直接先例，具体重合与边界
+
+[1] MotionEcho — When Distillation Breaks Motion Control
+原文 https://arxiv.org/html/2506.19348v2 ，§3.4、§7.1、Algorithm 1；项目 https://euminds.github.io/motionecho/ 。本轮核论文/伪代码；项目 Code 尚列 Coming soon，不声称运行过官方实现。
+原文以过去 W 步运动损失均值超过 δ1 启动教师，用教师当前运动损失低于 δ2 截断；实验 W=2。Algorithm 1 明确计算未施本次运动引导的 clean prediction。观察与当前干预分离、运动误差触发和动态收手都有直接先例。R27 的物理局部有符号 lag、容差集合共同支持比较、多个时间窗不是该公式的直接照抄；但把教师换成同一骨干、把标量损失换 pose、把均值换连续两次，单独都不足以证明机制贡献。R27 的 global-mean-W2 回放是自建消融，不是 MotionEcho 复现。
+
+[2] DIAL — Harnessing Intrinsic Subject-Aware Attention for Controllable Multi-Subject Video Generation
+原文 https://arxiv.org/html/2609.11507v1 ，§3.3 Eq6–7、Algorithm 1；本轮没有核到可据以宣称复现的官方代码。
+Phase I 用上一去噪步的 ISGM 为视频 query→特定主体参考 key 加 logγ×空间权重；已有自动 query 空间图和逐步更新。对同一主体组的常量偏置增加该组总质量，不改变其组内相对分布。R27 Full 改的是视频参考组内时间分布并保持组质量，二者不是完全相同算子。DIAL 下降编号 i=N..1、i≤.8N 才启用：是越过最初20%后的后80%，不是“完成80%后才开始”。Phase II 训练是另一部分，不能混称整个方法均 training-free。
+
+[3] FlowMotion — Training-Free Flow Guidance for Video Motion Transfer
+原文 https://arxiv.org/html/2603.06289v2 。官方实现固定：
+https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py
+以 clean 预测 z−tv 的重构/帧间变化约束进行推理优化，并有 velocity projection；代码用预定 guidance_step 限制早期引导。无需生成教师、使用参考运动和 clean endpoint 的反馈不是 R27 首创。R27 用实测有符号物理 lag 与局部容差门决定当前时间支持，是可比较的决策机制差别；它仍须胜过固定区间/固定剂量等简单控制。已读原文与固定代码，没有在本审查中跑模型。
+
+[4] TempoControl — Temporal Attention Guidance for Text-to-Video Models
+原文 https://arxiv.org/html/2510.02226v3 ，方法节；固定官方实现：
+https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/wan/text2video.py
+将词语的视频注意力时间曲线与用户期望曲线相关性作为目标，另有幅度/空间熵项；达到相关门后可停止内部优化，外层可用范围仍由配置控制。已有“看时间对齐程度决定停止”的机制。它的输入是期望语义时间曲线，R27 是源/目标 pose 的动作对应；不能据此差异就宣称自动阈值或时间控制新颖。已读原文及停止代码，未执行。
+
+[5] Wan-Animate-2 — Pushing the Application Boundaries of Character Animation
+原文 https://arxiv.org/html/2608.06009v2 ，§3.2–3.4；固定官方代码：
+https://github.com/Wan-Video/Wan-Animate-2/blob/3ad2fef7d61d6200c9c653e0fe47be7616b323f3/wanxiang/models/wan_animate_2_model.py#L525
+双分支提取参考 K/V，时间坐标对齐，create_mask 以 q_frame==kv_frame 限制对应参考帧。对应帧访问这一核心原语是直接先例。训练架构与冻结 H3 的组质量补偿输出模块并不逐实现相同；但不能把“只读同一时刻参考”再作为原创核心。当前 R27 可评的是何时、哪些时间段需要该操作，及收益/副作用，而不是第一次同帧注意力。
+
+[6] VAOT/VASOT — Joint Self-Supervised Video Alignment and Action Segmentation
+原文 https://arxiv.org/html/2503.16832v1 ，§3.1 Eq1–4、§3.1.2；核全文，未核官方代码实现。
+该工作将帧间匹配成本与帧内结构关系结合为 fused Gromov–Wasserstein 对齐，并以虚拟帧处理背景/冗余未匹配部分。上下文一致性、重复动作处理、显式未匹配状态都是已有思想；它是学习表征的视频对齐，不是 diffusion 在线控制。若后续设计动作实例对应持久性，必须比较这类结构对应思想，不能把 DP/OT 或未匹配槽本身当新原理。
+
+三、Full 算子可精确改写；差别应落在效果与约束上
+
+对某个被选 query，原 attention 的参考组总质量为 m，组内条件概率为 a_j；S 是对应时间 bin 的参考 key 集。R27：
+  O'=O+m(O_same−O_ref),  alpha=1
+  O_ref=Σ_j a_jV_j，O_same=Σ_{j∈S}a_jV_j/p_S，p_S=Σ_{j∈S}a_j。
+这与以下原 logits 修改完全等价（精确实数/同一QKV条件下）：
+  j∈S: z'_j=z_j−log p_S；参考组 j∉S: z'_j=−∞；组外 z'_j=z_j。
+因此组分区函数保持不变，m 保持不变。一般组内偏置 b 也可用
+  z'_ref=z_ref+b+LSE(z_ref)−LSE(z_ref+b)
+保持原组质量。该归一化是 softmax 的代数性质，不是独立理论贡献。
+DIAL 的组内常量偏置与这一时间再分配有实质差别；而同帧 mask 在[5]已有。不能用“可写成 bias”直接宣布所有模块等价，也不能把输出差分的写法当全新架构。
+单个操作直接保持组外 contribution，不代表整个后续网络未受影响：同层其他 token、后层 query/key、时间和空间关联均可传播改变。m 本身也随轨迹变化。当前没有证明干预影响严格局限所选动作窗/手臂。
+
+四、本轮结果支持什么，最小还缺什么
+
+已知开发例 main50–65 的改善明确；原固定 Full6..14 的1/1与 Auto2/2都在容差附近。Auto主窗同支持形状误差优于 Native、略差于固定Full。高阈值外窗69–81仍UNKNOWN，不应省略。所有186行只用于描述同一视频时间覆盖。
+已归档实际轨迹回放：local-compatible ON[4]，one-step ON[3,4]，global-mean-W2 OFF；分别5/16/0 bin-step。它证明规则产生不同决策，不能证明替代轨迹质量、效率或局部持续规则的因果必要性。当前唯一实际兼容边没有>2帧lag跳变，因此修该漏洞尚无本例受益证据。
+
+最小因果对照优先级：
+A. 原实际 index4、原5个 bins，与预先固定的另一段不重叠5-bin支持做匹配时间支持对照；步数、层、alpha和算子相同。支持应在看新结果前按源时间坐标冻结。它问选中物理位置是否必要。相同 bin 数只匹配 query 数量，不匹配实际 Σm_ref 或校正范数；这些需记录，不能叫严格等剂量。
+B. 原 index4 的全片 Full 是空间/时间影响范围基线，但干预量更大，报告剂量混淆。若任一早期5-bin或全片脉冲都同样成功，局部窗口机制尚无独立价值。不能把固定Full6..14作为唯一对照，因为它同时改了启用时刻、次数和时间支持。
+C. 在预先固定的正常/延后跨源案例上比较固定早期脉冲与自动策略，保留全部UNKNOWN和变差例。单个成功case的实际动作重放本来就能被固定mask逐位复现，不证明实例自适应收益。新视频应先按源选，不能只发布生成失败者。
+D. 用独立最终 pose、同支持方向/幅度/腕部、可见身份/重影/背景检查；检测器用同 pose 不能等于独立无偏真值。效率合并计算Native/Full NFE、全部VAE、pose、I/O与墙时。
+以上均是待根决定的实验建议，本审查未运行或改变方案。
+
+五、周期别名、置信噪声与校准的具体边界
+
+• 周期动作让 d 与 d+周期都能低残差；当前远峰margin是观察到的49点启发式，不能证明匹配同一次动作。缺失可见性还可能删除某一峰。±24之外的重复无法由本窗口排除。
+• 两连续去噪端点共享状态、模型和姿态偏差，错误可以持续；相邻 source 窗重叠不保证 target 对应的是同一动作实例。若存在多个正lag但它们都要求同一干预，唯一lag未必必要；若正/容差内/提前假设并存，则动作方向本身不确定。
+• .3/.5和> .5 gain都没有频率学/概率校准。现有源±2容差构造曾漏掉source07，不能把源自匹配成功当跨身份阈值泛化。此前严格缺测界在R26没有新增认证，不能为了救当前UNKNOWN降低门并追认成功。
+• 同窗不同null比较用不同共同支持，内部公平不等于全局同一risk；跨窗绝对收益排序也受动作幅度、姿态可见槽和支持差异影响。186×49×20的筛选还扩大偶然最低点机会。
+• 方向曲线只涵盖所选手臂骨方向；高置信误检、左右肢体交换、主person误选和动作幅度损坏仍可能给假相位。
+
+六、只保留一个后续机制缺口：动作实例对应的持续性
+
+值得设计的对象不是再调一次 coverage/gain，而是“相邻去噪观测是否在追踪同一个源→目标动作对应”。当前只记 source 区间和一个胜出 lag；建议先做 CPU 必要性诊断，保留多个可解释对应与未匹配状态，再对对应关系而非仅 source 窗做持久判断。
+
+最小结构定义草案（还不是已冻结算法）：
+每个源窗/部位 W,b，在相邻物理上下文内建立 H_n(W,b) 的对应假设集合，包括若干 lag 模态及 unmatched；每个假设带 source 支持、target 时间区间、形状残差和可见性。跨去噪步同时关联 source 与 target 支持，并检查相邻物理段的顺序/上下文，不仅检查源区间交集。上下文不能凭空补缺测，unmatched 不能靠“假设动作一定存在”删除。
+定义动作 a(d)：d>2 要求正向纠正；|d|≤2为容差内；d<−2是当前执行器未控制的提前；unmatched为UNKNOWN。只有在有足够证据收缩后的所有可接受假设都支持同一正向动作、且前后两步对应支持相容时才ON。若不同正lag具有同一控制需求，可以保留集合而不强迫唯一物理lag。若null/提前/unmatched仍合理则拒判。
+这一结构的核心待证点是 action-level identifiability：在周期动作和部分可见时判断“是否应该干预”能否比硬选单峰可靠。集合阈值/上下文长度还未冻结；此处没有给它虚构覆盖保证。上下文匹配、未匹配状态和结构对齐有[6]等先例；这只有在生成过程的观测噪声/控制代价下呈现独立价值，才可能形成方法贡献，而非新增几个if条件。
+
+最低CPU否证：在源pose与已完成归档的真实曲线上，预先固定周期重复、隔离事件、已知±4/±8偏移、近静态、成段遮挡/置信丢失及动作形状变化的全部变换。比较当前规则、仅加跨step lag距离、上下文对应集合；保存全部候选/UNKNOWN，不用生成终局挑窗口。合成变换只是算法校准，不充当新生成视频样本。若集合只能增加UNKNOWN、无法排除实在的错误动作实例，或简单lag距离门同样有效，则不引入更复杂模块。
+
+因果前置：先做第四节的局部支持必要性对照。若局部选窗本身对效果没有贡献，升级窗口对应识别的论文动机就弱，应把资源投到实际改善质量/效率的模块。若CPU只证明决策不同，后续仍需相同执行器、匹配预算的真实轨迹对照；不能用离线重放替代。
+
+可用表述
+“我们在冻结视频编辑模型上实现了基于当前原生预测的自动局部动作时序控制；它对可接受时间偏移进行共同支持比较，并以相邻观测的局部证据选择同帧参考路由。一个预先保留的开发失败例获得明显相位改善。操作原语和动态引导有明确先例；局部决策及可靠性机制的独立贡献正在通过对照验证。”
+不使用：首次动态引导、首次局部参考注意力、无额外模型、统计显著拒绝H0、全片/所有动作已修复、已证明新架构、一个pulse必然更快、完整组合无人做过。
+
+读取证据与SHA
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/configs/AUTOMATIC_CONTROL_BASELINE_SPEC.txt
+SHA256 c4508ca039142f5e1a13f6c7c44eca38b0bc2bcfbf6c2a05a37a9ba7819ddb25
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/configs/PAIRWISE_GAIN_PROTOCOL.txt
+SHA256 9250cba8cd27fb7ea624179631be7bc1cd76cc7727f13a9fe84c8f7baf4de8a8
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/scripts/scan_current_pose.py
+SHA256 db6cb40c30d88ae7b4ce4892a90be16483d903a1aeee2a634f1dedc9cd63c814
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/scripts/pairwise_gain.py
+SHA256 a5d84914149c0c0fe1d7a945512743e68bc5d15c1edc66c2d2ec848a41acf960
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/scripts/timing_metrics.py
+SHA256 eebb6893896aca76276ae2e749b8cd44d6efa24ace1cc0fcbbcc9e17cd1b3d8e
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/policy_replay/frozen/automatic_window_policy.py
+SHA256 5b91dc9a1ea97c1544a2483911327c93024dad2bca33da5fa488204a532cb3b2
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/priority_final_outcome/PRIORITY_REVIEW.txt
+SHA256 bd8558164f9c2a603378ed31c814e06d9dcf1afdbbdea3f66cca2577c022cd29
+/Users/researcher/DevProjects/h3-timing-auto-controller-r27-20261017/analysis/policy_replay/results/r27_s05_bad1311_auto/SUMMARY.txt
+SHA256 33d6922611786a86d99b39480742e6a09dfe49b3bd85802c9ef851ffbad0e41f

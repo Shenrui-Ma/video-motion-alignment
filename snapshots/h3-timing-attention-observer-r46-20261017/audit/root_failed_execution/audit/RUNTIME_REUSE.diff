@@ -1,0 +1,150 @@
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/service_entry.py
++++ scripts/service_entry.py
+@@ -9,7 +9,7 @@
+ def wait_gate(directory,target,identity_fn=identity,timeout=600):
+  d=Path(directory);target=Path(target);ready=d/'cuda_gate_ready.json';go=d/'cuda_gate_go.json'
+  if ready.exists() or go.exists():raise FileExistsError('gate files already exist; explicit generation recovery required')
+- rec={'schema':'r37-before-CUDA-root-gate-v1','pid':os.getpid(),'identity':identity_fn(),'target':str(target),'target_sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'argv':sys.argv[:],'unix':time.time()}
++ rec={'schema':'r46-before-CUDA-root-gate-v1','pid':os.getpid(),'identity':identity_fn(),'target':str(target),'target_sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'argv':sys.argv[:],'unix':time.time()}
+  temporary=d/('cuda_gate_ready.'+str(os.getpid())+'.tmp')
+  with temporary.open('x') as f:json.dump(rec,f,indent=2)
+  try:os.link(temporary,ready)  # exclusive, complete JSON becomes visible atomically
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/service.py
++++ scripts/service.py
+@@ -61,6 +61,8 @@
+ 
+ 
+ def assert_owned(record):
++    from r46_contract import identity_schema
++    identity_schema(record['identity'])
+     actual = current_identity(record['pid'])
+     if actual is None:
+         raise RuntimeError('Recorded service process is absent')
+@@ -101,6 +103,8 @@
+ 
+ 
+ def check_admission(admission, processes, queue):
++    from r46_contract import identity_schema
++    for row in admission['permitted_compute_processes']: identity_schema(row['identity'], external=True)
+     allowed = {int(row['pid']): row['identity']
+                for row in admission['permitted_compute_processes']}
+     owned_cards = {row['gpu_uuid'] for row in processes if proc_uid(row['pid']) == os.getuid()}
+@@ -145,12 +149,12 @@
+             '--base-directory', str(RUN), '--models-directory', MODELS,
+             '--disable-auto-launch', '--disable-dynamic-vram', '--disable-cuda-malloc', '--use-pytorch-cross-attention',
+             '--enable-triton-backend', '--preview-method', 'none', '--disable-all-custom-nodes',
+-            '--whitelist-custom-nodes', 'ComfyUI-KJNodes', 'H3EventAudit', 'H3PairAudit', 'H3StaticWindowRouter', 'H3X0Readout',
++            '--whitelist-custom-nodes', 'H3AttentionStateProbe',
+             '--input-directory', str(RUN / 'input'), '--output-directory', str(RUN / 'output'),
+             '--temp-directory', str(RUN / 'temp'), '--user-directory', str(RUN / 'user'),
+             '--database-url', 'sqlite:///' + str(RUN / 'screen.db')]
+     if cache_none:
+-        raise ValueError('R37 continuous batch requires the existing default model/node cache')
++        raise ValueError('R46 two-state queue requires the existing default model/node cache')
+     return args
+ 
+ 
+@@ -163,14 +167,14 @@
+         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+         refuse_existing_service()
+         for required in (Path(PYTHON), CORE / 'main.py', Path(DEPENDENCIES), Path(MODELS),
+-                         RUN / 'custom_nodes/ComfyUI-KJNodes'):
++                         RUN / 'custom_nodes/H3AttentionStateProbe'):
+             if not required.exists():
+                 raise RuntimeError('Missing runtime path: ' + str(required))
+         if not os.access(PYTHON, os.X_OK):
+             raise RuntimeError('Runtime Python is not executable')
+         admission = json.loads((RUN / 'configs/admission.json').read_text())
+         if admission.get('ready_for_launch') is not True:
+-            raise RuntimeError('R37 root has not completed live hardware/resource admission')
++            raise RuntimeError('R46 root has not completed live hardware/resource admission')
+         hardware = gpu_readiness()
+         processes = compute_processes()
+         queue = queue_at(admission.get('existing_comfy_port', 8189))
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/lease_watchdog.py
++++ scripts/lease_watchdog.py
+@@ -1,10 +1,10 @@
+ """Hard lifetime and controller-loss guard; never touches an unregistered PID."""
+ import json,time
+ import service
+-from r37_contract import read
++from r46_contract import read
+ if __name__=='__main__':
+     record=read(service.RUN/'processes/service.json')
+-    deadline=time.monotonic()+read(service.RUN/'configs/scientific_contract.json')['continuous']['max_service_seconds']
++    deadline=time.monotonic()+read(service.RUN/'configs/SCIENCE_PROTOCOL.json')['continuous']['max_service_seconds']
+     grace=time.monotonic()+900
+     while time.monotonic()<deadline:
+         actual=service.current_identity(record['pid'])
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/job.py
++++ scripts/job.py
+@@ -63,7 +63,7 @@
+ 
+ def submit(name, expected_owner=None):
+     validate_name(name)
+-    from r37_contract import validate_job, prepare_loader_inputs
++    from r46_contract import validate_job, prepare_loader_inputs
+     binding = validate_job(name)
+     prepare_loader_inputs(name)
+     graph_path = RUN / 'configs/graphs' / (name + '.json')
+@@ -92,7 +92,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-fixed-early-global-r37-20261017'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-attention-observer-r46-20261017'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/run_queue.py
++++ scripts/run_queue.py
+@@ -1,7 +1,7 @@
+ """One persistent Comfy service per source lane; bounded hold, exact cleanup."""
+ import json,subprocess,time
+ import service,job,preflight
+-from r37_contract import registry,read,sha
++from r46_contract import registry,read,sha
+ 
+ def state(**value):service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**value))
+ def remaining(order,completed):
+@@ -16,7 +16,7 @@
+     preflight.check(service.RUN)
+     owner=read(service.RUN/'processes/service.json');service.assert_owned(owner)
+     if owner['pid']!=expected_pid or str(owner['identity']['start_ticks'])!=str(expected_start_ticks):raise RuntimeError('stale controller generation')
+-    policy=read(service.RUN/'configs/scientific_contract.json')['continuous']
++    policy=read(service.RUN/'configs/SCIENCE_PROTOCOL.json')['continuous']
+     deadline=time.monotonic()+policy['max_service_seconds'];completed=[];current=None;idle=None;row_pins={}
+     try:
+         while time.monotonic()<deadline:
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/start_controller.py
++++ scripts/start_controller.py
+@@ -23,8 +23,8 @@
+   owner=json.loads((root/'processes/service.json').read_text());registry=root/'processes/controller.json'
+   admit(a.pid,a.start_ticks,owner,json.loads(registry.read_text()) if registry.exists() else None)
+   service.assert_owned(owner);check(root,live=True)
+-  with urllib.request.urlopen(f'http://127.0.0.1:{service.PORT}/object_info/H3StaticWindowRouter',timeout=10) as response:
+-   if 'H3StaticWindowRouter' not in json.load(response):raise ValueError('service not ready')
++  with urllib.request.urlopen(f'http://127.0.0.1:{service.PORT}/object_info/H3AttentionStateProbe',timeout=10) as response:
++   if 'H3AttentionStateProbe' not in json.load(response):raise ValueError('service not ready')
+   gate=json.loads((root/'processes/cuda_gate_ready.json').read_text());go=json.loads((root/'processes/cuda_gate_go.json').read_text())
+   if gate!=go or gate['pid']!=owner['pid'] or gate['identity']!=service.external_identity(owner['pid']):raise ValueError('CUDA gate owner differs')
+   job.require_generation(job.active_service(),owner)
+--- /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017/scripts/launch_remote.py
++++ scripts/launch_remote.py
+@@ -40,14 +40,12 @@
+     preflight.check(r,live=True)
+     for name in ['custom_nodes','input','output','temp','user','logs','processes','audit','analysis']:
+         (r/name).mkdir(exist_ok=True)
+-    for name in ['H3EventAudit','H3PairAudit','H3StaticWindowRouter','H3X0Readout']:
++    for name in ['H3AttentionStateProbe']:
+         target=r/'extensions'/name
+         assert (target/'__init__.py').is_file(),target
+         link=r/'custom_nodes'/name
+         if not link.exists():link.symlink_to(target,target_is_directory=True)
+-    kj=r/'custom_nodes/ComfyUI-KJNodes'
+-    if not kj.exists():kj.symlink_to('/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes',target_is_directory=True)
+-    from r37_contract import registry,prepare_loader_inputs
++    from r46_contract import registry,prepare_loader_inputs
+     for name in registry(r)[1]:prepare_loader_inputs(name,r)
+ 
+     parent=json.loads((r/'configs/parent_runtime_provenance.json').read_text())

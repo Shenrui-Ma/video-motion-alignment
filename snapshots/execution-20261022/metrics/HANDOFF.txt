@@ -1,0 +1,54 @@
+IVEBench 评测执行交接（2026-10-22）
+
+范围
+主实验 10 组 ×（参考视频 + 6 种编辑）=70条，其中9组IVEBench、1组FlexiAct crouch/movie_man_4。
+扩展实验现为30组 ×（参考视频 + 普通编辑 + 全程弱引导）=90条；新追加10组进入host9a队列。主批次与扩展集分别汇总。
+保留六组历史任务36条编辑与6条参考；新增三条IVE与一条FlexiAct由推理队列完成后自动接入。
+
+执行位置
+.81 H3_SERVER: /data/researcher/h3_metrics_20261022
+GPU0 UUID GPU-REDACTED；保留已有VSR服务，与它空队列状态下共卡。
+环境 venv/bin/python，独立venv继承原comfyui的PyTorch，只在本venv补依赖。
+code/ 为镜像代码；videos/ 为内网传输视频；frames/ 为统一有效帧与裁剪后的PNG缓存；evaluation/results/<job>/<metric>.json 为每条原始分数。
+evaluation/summary.json 含全量行、完整性计数、分方法均值、六方法齐全的配对均值。
+
+12项状态
+9项数值指标：SC、BC、TF、MS、VTSS、OSC、PSC、SF、MF 已部署官方实现及原始权重。
+QA：仅 quantity_modification 适用；当前选取任务均不属于此类别，返回 N/A。
+IS / CF：官方原精度Qwen2.5-VL-72B-Instruct仍待GPU资源。AWQ同72B备用方案已完成下载与分片校验；这是单独的量化评测配置，未来结果须注明4bit AWQ、模型revision，不并称原精度复现。
+
+模型与公式
+IVEBench官方代码固定2dcf8900ee65197f43854c76f61c66a32bb8dbfc。
+所有数值由官方compute函数计算，加载适配只用于离线DINO权重和避免不相关依赖的包初始化。
+MF参考分数由source/source实际运行；各方法偏差为逐样本 MF(source,output)-MF(source,source) 后取平均。
+SC/BC/TF等为原始平均值。官方get_average_score.py的CLI解包数量不匹配，聚合改用aggregate.py。
+明确记录N/A、失败、待生成/待资源及分母。完整配对均值仅纳入六种方法全部有值的同一组样本。
+FlexiAct目标原caption与蹲起动作不符，metadata记录原文和文本评测适配；此组独立可识别，另有9组纯IVE均值。
+
+持久进程
+Mac launchd cn.h3.metrics.relay.20261022：90秒轮询 .41/.9a/.9b 的成功结果，SSH内网传新文件并SHA校验，统一帧处理，触发评测。
+远端 metric_service.py：48小时CPU监督器，按enabled_metrics.json启动单GPU实际待评测任务；空队列无GPU占用。
+每条每项失败重试最多3次、单项40分钟超时，失败后继续下一项；原子写入，重复启动用flock防重。
+Mac launchd cn.h3.qwen.download.20261022：官方AWQ固定revision c8b87d4b81f34b6a147577a310d7e75f0698f6c2；11个分片合计43.02GB，分片SHA校验、断点续传、48h期限，不申请GPU。
+AWQ存到.60 /data3/researcher/h3_metrics_20261022/weights/Qwen2.5-VL-72B-Instruct-AWQ。
+.60根分区空间不足，后续环境、缓存、TMPDIR全部放/data3/researcher/h3_metrics_20261022。
+
+资源与下一项
+AWQ官方CUDA GEMM不支持CPU/disk offload；单40GB卡放不下权重和激活。等两张真正空闲GPU，再部署独立兼容环境及批量常驻IS/CF evaluator。
+目前尚未启动自动AWQ评测；权重已于04:03前完成，独立CPU环境与批量入口已在qwen_runtime目录完成，5项CPU测试通过；58条输入快照已同步至.60并校验，CPU dry-run 58 ready；六位帧名通过只读五位软链接适配官方函数，6项CPU测试通过；命令与容量依据见QWEN72B_PENDING.txt。
+推理服务器CPUworker跨重启恢复由主agent另行负责，本relay仅接收已完成结果。
+
+停止方式
+Mac：launchctl remove cn.h3.metrics.relay.20261022；launchctl remove cn.h3.qwen.download.20261022。
+远端只停止本目录的metric_service.py监督器，并让当前metric_worker.py完成；当前durable_metrics.py --once一轮结束自动释放。
+勿停止其他用户进程和旧VSR服务。中止下载留下.partial可续传。
+恢复：相同launchctl submit命令可重启脚本；远端服务以nohup venv/bin/python code/metric_service.py --root /data/researcher/h3_metrics_20261022 --hours 48启动。
+
+计时
+历史36条从timing/historical_six_cases_timing.json读取：包含每步x0 CPU拷贝和audit I/O。
+新增任务计时来自结果JSON中sampling_seconds/mean_sampling_step_seconds，不含上述x0拷贝。
+总均值保留，并按scope分别列出，避免把两种计时内容混为相同实现开销。
+
+网络
+轻量权重和AWQ采用curl --interface en0 --noproxy '*' +真实IP TLS解析，逐重定向确认，流式SSH写服务器；Mac不保留大权重。
+DNS查询和少量源码元数据走代理；视频在内网SSH传输。路径证据见各download.json和PHYSICAL_INTERFACE_ROUTE_CHECK.json。

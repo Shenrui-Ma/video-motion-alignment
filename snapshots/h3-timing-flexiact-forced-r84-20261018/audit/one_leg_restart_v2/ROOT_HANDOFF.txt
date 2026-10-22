@@ -1,0 +1,26 @@
+R84 one_leg fresh-service recovery — CPU prepared only
+
+Original 63-file producer seal remains exact:
+e3d4a14bc9a57e206c96ea7b321b6b369793d76b276b968a00af3d7357797b27
+All new behavior lives under audit/one_leg_restart_v2 and reviewed audit/watchdog_recovery_v2/watchdog_v2.py. Earlier unsealed administrative draft is preserved in unsealed_admin_draft; original producer files were restored from the existing full snapshot.
+
+Actual old attempt: service 857566/start8690132 absent, first four x0 captures only, zero routed calls, no history success or final MP4. Root confirmed old watchdog stopped it for HTTP_unavailable_timeout. The runner repeats process/CUDA/job/history/output checks before moving any old attempt data.
+
+Root execution (remote .41, only when all other own CUDA services on .41 are released):
+cd /data3/researcher/h3_runs/timing_flexiact_forced_r84_20261018
+PYTHONDONTWRITEBYTECODE=1 python3 -u audit/one_leg_restart_v2/root_restart_one_leg.py --execute --native-reviewed --attempt root_one_leg_restart_v2_attempt1
+
+Root may wrap this exact command with nohup and record the actual wrapper identity. No call has been launched by this subagent.
+GPU7 UUID GPU-REDACTED, port8548, normal/reserve8, original 30GiB controlled capacity trial.
+
+Execution sequence:
+1. Exact old process generation absence + CUDA absence; reject full output or successful history. Preserve all original logs/processes/one_leg partial x0/conditions/noise and existing output under attempt/previous_attempt, with hashes before moves.
+2. Read and copy R72 original paired noise into new R84 attempt and check byte SHA. R72 Native stays untouched; fitness original noise stays untouched.
+3. Launch original service-only with inherited per-attempt marker, bind exact pre-CUDA owner/supervisor. Stop only the freshly launched original watchdog by its full PID identity, start reviewed v2 policy, wait exact STARTED receipt, then root runner writes GO.
+4. Submit only one_leg once. Network/HTTP read transport timeouts and unknown_missing are UNKNOWN observations. Original scientific-contract job timeout14400s remains bounded; actual history error or identity replacement fails.
+5. Exact own service release and NVML tail wait, then original CPU pair verifier. It checks original R72 Native noise/8 conditions/first6 AV x0 exactly, complete 20 steps and valid output. Hold after this one pair; no fitness submission.
+
+Receipts: audit/<attempt>/{ACTUAL_RETRY_INSPECTION,ARCHIVE_PLAN,ARCHIVED,WATCHDOG_REPLACED,STARTED,ROOT_EXIT_RECEIPT,COMPLETE_REVIEW_HOLD}.json. On failure, FAILURE plus cleanup evidence; primary exception retained even if a failure receipt cannot be written.
+Original scientific modules and graph are unmodified. The administrative wrapper and v2 watchdog change has only CPU/mock coverage until root executes. Actual new paired-tensor gate remains pending.
+
+Local coverage: 18 retry tests, 14 watchdog tests, 20 existing producer tests passed. System python3 lacked torch for one producer class; reran all20 with existing .venv-current and all passed. Remote CPU tests will be recorded separately.

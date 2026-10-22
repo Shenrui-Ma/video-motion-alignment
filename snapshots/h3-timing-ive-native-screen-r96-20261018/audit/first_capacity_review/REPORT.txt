@@ -1,0 +1,30 @@
+R96 首条 long_0047 Native 容量核查（截至前2步）
+
+结论：当前单卡已完成模型加载并连续完成前两次Euler预测，可以在现有守卫下继续。暂不增加第二张本用户GPU。这个结论覆盖107帧普通编辑的加载和前2步，后18步、最终VAE解码、固定引导及158帧素材仍待实际运行。
+
+本次证据边界
+service951112/start10923395，root_native_screen_attempt1，GPU2/8560。33次既有资源采样和3次手工只读快照；未增设watcher、加载模型、启动服务或更改封存文件。最终快照snapshot_loading_3.json绑定实际2callbacks、100attention blocks、0routed。
+
+内存与显存
+1. /user.slice本次memory.current采样峰90.900GiB，high100GiB余9.100GiB，max112GiB余21.100GiB。最新采样90.849GiB。已有memory.peak100.323GiB属于历史累计值，未拿来当本轮峰值。
+2. 新建session-12464.scope的内核memory.peak为63.088GiB，包含此会话进程和它们产生的页缓存；该值也不等于模型常驻RAM。末次memory.stat中任务session约21.575GiB anon、41.303GiB file；父user.slice约29.611GiB anon、60.583GiB file。共享/可回收缓存使两卡所需RAM不能按当前数字简单翻倍或相加。
+3. 与CGROUP_STARTUP相比，当前session、user1004和user.slice的high/max/oom/oom_kill增量全部0；memory PSI some/full total增量0，已记录avg10峰值0。历史high=100852630保留作基准，不当本次故障。
+4. GPU2设备总显存20秒级采样峰35767MiB≈34.929GiB；最终手工读取本PID951112为35724MiB、设备可用12742MiB。采样峰是观测下界，未记录CUDA allocator精确峰值；当前GPU2compute列表仅本PID。温度采样峰和原始记录见CAPACITY_SUMMARY。
+
+实际模型加载与后端
+Comfy日志记录text encoder加载14960.20MB、VideoVAE4966.19MB；加载DiT前释放部分text encoder显存，随后MiniMaxH3完整加载19996.14MB（日志原单位），没有本轮加载错误或OOM。
+实际attention记录为aten._scaled_dot_product_flash_attention.default；前2次共100block调用全部完成。
+backend_dispatch_audit已观测到cuda.int8_linear一次成功调用（输入65902×5376）；当前周期性快照triton.int8_linear和eager计数为0。计数可能滞后，能确认已执行CUDA INT8路径，不能仅凭--enable-triton-backend把本轮称为实际Triton推理。这里只登记调度事实。
+
+已有时间信息
+提交到sampler创建545.943秒，包含首次输入处理、tokenization、参考VAE编码及模型/文件加载，日志缺少足以单独分离每项加载的时间戳。
+日志首步47.08秒；到2/20显示总采样01:33、平滑46.79秒/步。已记录两次x0快照共4.172秒，包含在这段运行内；不据此声称纯计算每步耗时。最终decode、文件保存、收尾时间在当前观察边界尚未发生。
+
+第二卡建议
+先维持单卡。父cgroup采样高水位距high仅9.1GiB，新增第二次模型加载的私有内存及缓存回收压力尚无同配置实测；当前也无法满足既定64GiB首次加载行政余量。页缓存可回收和跨进程共享可能改变未来需求，现有记录不足以给第二卡可靠容量承诺。是否另行测试由root结合首条后续内存轨迹决定。
+
+证据
+VERDICT.json：结论、数字、实际调用边界和快照SHA。
+CAPACITY_SUMMARY.json：仅第一条Native对应资源行聚合；当前手工snapshot单列。
+snapshot_loading_1/2/3.json：已有Comfy、resource、router、x0 manifest、job、backend日志和只读/proc/cgroup/nvidia-smi快照；没有读取大PT。
+collect_snapshot.py与summarize.py：本次只读抽取/本地汇总脚本，无循环守护入口。

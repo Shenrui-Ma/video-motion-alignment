@@ -1,0 +1,29 @@
+R70 已知 codec residual 补偿对照
+
+来源与范围
+LookingGlass, §4.1 Eq7–8: https://arxiv.org/html/2504.08902v1#S4.SS1
+该工作在图像的预测 clean latent 上解码、变换、重编码，并补回变换后的 codec residual；identity视图恢复原latent。
+LongE2V, Reencoding Alignment / Cross Residual Correction: https://arxiv.org/html/2607.08770v1
+该工作在视频时间翻转中先做RGB翻转与重编码，并引用LookingGlass，通过前后向分支交叉注入重建残差。
+本包继承 codec residual 思路，只测试在相同 H3 x0 上是否减少时间重排伪影。没有新公式或完整方法成功声明。
+
+固定输入
+R70 实际已完成的原 z，e_id=E(D(z))，e_shift3，e_offline；实际3 encode均已完成并精确绑定SHA、张量raw signature、root退出回执。使用原R70的+3RGBframe映射和final-output离线phi，绝不改用新current-x0拟合。原geometry158×768×1152、147有效、24fps不变。
+
+四项只解码运算
+shift3 / offline_mapping各执行：
+T_anchor = z + (e_phi − e_id)
+T_transport = L_phi(z) + (e_phi − L_phi(e_id))
+第二式在精确算术中等于 e_phi + L_phi(z−e_id)，归属已有残差传输技巧。计算顺序按上述括号冻结。
+数学identity保持；实现对坐标identity且e_phi与e_id相等时直接clone z，保证IEEE负零也逐位保持。非identity两项没有额外分支或调参。
+使用原native VAE共4 decode，0 encode、0 DiT。复用原R70 checkpoint/normalization/compatibility，拒绝wrapper OOM fallback。
+
+比较
+新增与既有全部视频都是float→clamp/truncate RGB8→lossless x264rgb。root确认退出后CPU逐帧解码，统一用同一RGB8尺度计算目标误差，比较plain latent、RGB重编码、anchor、transport。不可把新增RGB8误差直接混入原R70 float MAE表。共同valid/cross17/decoder-overlap掩码复用原R70。
+
+CPU验证
+6类：identity逐位包括负零；shape/dtype/finite拒绝；精确公式；原坐标/方向/端点；输入SHA变动拒绝；实际同原z和encoded张量绑定。另两项ready/go identity测试。CPU实际启动import用--validate-only，禁止CUDA初始化。
+
+资源
+只decode相同geometry已有实测5.57GiB峰值reserved。仍以16GiB实际free作为trial准入，不能保证共卡他人后续分配变化。预期4×约47秒VAE，加保存/回读，约5–8分钟。精确峰值/时长以RESULT为准。
+root唯一执行GPU；ready/go前全输入已校验并载入CPU。root须登记exact PID到并行服务允许peer后GO；本进程复核实际free/温度/own两卡上限。退出CUDA核验由root完成。

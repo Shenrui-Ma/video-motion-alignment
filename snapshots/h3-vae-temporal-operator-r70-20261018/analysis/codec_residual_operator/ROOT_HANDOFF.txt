@@ -1,0 +1,17 @@
+Ready: CPU only. Root owns all CUDA execution and lifecycle.
+
+Local: /Users/researcher/DevProjects/h3-vae-temporal-operator-r70-20261018/analysis/codec_residual_operator
+Remote: /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/analysis/codec_residual_operator
+FREEZE SHA 75aaae0a2236f220148ba1e171ee4f73a4bea1a8d30cb9f344defe3297eb2285
+8 Mac + 8 actual .9 CPU tests PASS. Actual .9 startup --validate-only PASS, CUDA_initialized=false. All four operator tensor byte signatures agree between Mac and .9. Parent R70 freeze is unchanged.
+
+Exactly four native VAE decodes: shift3 anchor, shift3 transport, offline_mapping anchor, offline_mapping transport. No encode, DiT, fitting, checkpoint changes or new dependencies. z/e_id/e_phi/coordinates are actual previous R70 outputs, bound to its complete RESULT and exact exit receipt. Prior technique attribution is in DESIGN.txt and contract.json.
+
+Root execute:
+CUDA_VISIBLE_DEVICES=GPU-REDACTED /home/researcher/miniconda3/envs/comfyui/bin/python -u /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/analysis/codec_residual_operator/run_codec.py --execute --gpu-uuid GPU-REDACTED --control /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/analysis/codec_residual_operator/audit/root_control_attempt1 --output /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/analysis/codec_residual_operator/outputs/attempt1
+
+ready.json appears in --control before CUDA. Identity includes pid/uid/start_ticks/raw cmdline SHA; root must register exact peer with any parallel service, then write identical JSON to go.json atomically. 600-second timeout. Inputs have been checked and loaded before ready; root can recheck ready.parent_files_sha256 at GO. Actual free>=16384MiB, temperature<85, own device union<=2 are checked after GO. Foreign processes allowed. Prior exact-shape decode reserved peak5.57GiB; this is a trial margin, not a hard upper bound under concurrent users.
+
+Root should retain stdout/stderr and failures, confirm child exit plus no CUDA allocation, then write passed/pid/process_absent/CUDA_allocation_absent receipt. Consumers wait for that receipt. Result requires status complete, four decodes, no fallback, zero encode/DiT. Expected runtime5–8 minutes including lossless saves.
+
+Four output MP4 and derived latent PT signatures are recorded. CPU consumer should compare every method in common RGB8 space against existing lossless targets and report existing masks. Old R70 float-error table remains historical; no mixed-scale ranking. No new formula claim or end-to-end timing success follows from this operator test.

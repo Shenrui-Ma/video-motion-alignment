@@ -1,0 +1,336 @@
+--- host9/audit/root_run_seedpairs.py
++++ host41/audit/root_run_seedpairs.py
+@@ -99,9 +99,33 @@
+         best_effort_receipt(audit/'CLEANUP_FAILURE.json',{'primary':repr(error),'cleanup':repr(cleanup)})
+     return owner
+ 
++MF_RELEASE_PATH = Path('/data4/researcher/h3_runs/ive_r118_mf_20261019/audit/FINAL_RELEASE_VERIFIED.json')
++
++def require_mf_released(review):
++    proof=review['mf_release_verification'];p=Path(proof['file'])
++    require(p==MF_RELEASE_PATH,'MF final receipt path changed')
++    require(sha(p)==proof['sha256'],'MF final receipt digest differs')
++    value=read(p)
++    required=('passed','all_spawned_trackers_released','exact_processes_absent',
++              'exact_CUDA_allocations_absent','fresh_own_cuda_absent')
++    require(all(value.get(k) is True for k in required),'MF complete release pending')
++    wrappers=value['wrapper_identities'];trackers=value['tracker_identities']
++    require(len(wrappers)>0 and len(trackers)>0,'MF process evidence absent')
++    cuda=service.compute_processes()
++    for row in wrappers+trackers:
++        require(row['uid']==1004 and row.get('start_ticks') is not None and row.get('cmdline_sha256'),
++                'MF process identity incomplete')
++        require(service.current_identity(row['pid']) is None,'MF process remains or PID reused')
++        require(not any(int(x['pid'])==row['pid'] for x in cuda),'MF CUDA remains')
++    owners=[service.proc_uid(x['pid']) for x in cuda]
++    require(all(uid is not None for uid in owners),'compute process ownership unavailable')
++    require(1004 not in owners,'own CUDA task present before H3 launch')
++    return {'passed':True,'receipt_file':str(p),'receipt_sha256':sha(p),
++            'wrapper_identities':wrappers,'tracker_identities':trackers,'fresh_compute_processes':cuda}
++
+ def main():
+     parser=argparse.ArgumentParser();parser.add_argument('--execute',action='store_true',required=True);parser.add_argument('--attempt',required=True);parser.add_argument('--peer-root',action='append',default=[]);parser.add_argument('--predecessor-attempt',action='append',default=[]);args=parser.parse_args()
+-    root_gpu_review(ROOT)
++    review=root_gpu_review(ROOT)
+     require(ROOT==Path(service.RUNTIME['remote_root']),'actual remote root required')
+     require(args.attempt.replace('_','').replace('-','').isalnum(),'invalid attempt name')
+     audit=ROOT/'audit'/args.attempt;audit.mkdir(exist_ok=False)
+@@ -116,6 +140,10 @@
+         service.write_json(audit/'PREDECESSOR_RELEASE.json',check_predecessor(ROOT,args.predecessor_attempt))
+         for seed in SEEDS:
+             require(not (ROOT/'audit'/(pair_id(seed)+'_noise.pt')).exists(),'fresh experiment requires absent prior noise cache')
++        require(not args.peer_root,'host41 single own H3 only')
++        service.write_json(audit/'MF_FINAL_RELEASE_RECHECK.json',require_mf_released(review))
++        import cgroup_memory
++        service.write_json(audit/'CGROUP_BEFORE_START.json',cgroup_memory.check(ROOT))
+         peers=live_peers(args.peer_root)
+         admission={'ready_for_launch':True,'scope':'own_user_video_jobs','existing_comfy_port':None,'permitted_compute_processes':peer_policy(peers)}
+         service.write_json(ROOT/'configs/admission.json',admission)
+--- host9/configs/graphs/r113_short_0252_seed2026101702_fixed.json
++++ host41/configs/graphs/r113_short_0252_seed2026101702_fixed.json
+@@ -56,7 +56,7 @@
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101702,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_seed2026101702_fixed",
+       "pair_id": "r113_short_0252_seed2026101702"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r113_short_0252_seed2026101702_fixed",
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "source_run_id": "r113_short_0252_shared",
+       "run_id": "r113_short_0252_seed2026101702_fixed"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r113_short_0252_seed2026101702_fixed",
+-      "output_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- host9/configs/graphs/r113_short_0252_seed2026101702_native.json
++++ host41/configs/graphs/r113_short_0252_seed2026101702_native.json
+@@ -56,7 +56,7 @@
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101702,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_seed2026101702_native",
+       "pair_id": "r113_short_0252_seed2026101702"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r113_short_0252_seed2026101702_native",
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "source_run_id": "r113_short_0252_shared",
+       "run_id": "r113_short_0252_seed2026101702_native"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r113_short_0252_seed2026101702_native",
+-      "output_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- host9/configs/graphs/r113_short_0252_seed2026101703_fixed.json
++++ host41/configs/graphs/r113_short_0252_seed2026101703_fixed.json
+@@ -56,7 +56,7 @@
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101703,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_seed2026101703_fixed",
+       "pair_id": "r113_short_0252_seed2026101703"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r113_short_0252_seed2026101703_fixed",
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "source_run_id": "r113_short_0252_shared",
+       "run_id": "r113_short_0252_seed2026101703_fixed"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r113_short_0252_seed2026101703_fixed",
+-      "output_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- host9/configs/graphs/r113_short_0252_seed2026101703_native.json
++++ host41/configs/graphs/r113_short_0252_seed2026101703_native.json
+@@ -56,7 +56,7 @@
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101703,
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "run_id": "r113_short_0252_seed2026101703_native",
+       "pair_id": "r113_short_0252_seed2026101703"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r113_short_0252_seed2026101703_native",
+-      "audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit",
+       "source_run_id": "r113_short_0252_shared",
+       "run_id": "r113_short_0252_seed2026101703_native"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r113_short_0252_seed2026101703_native",
+-      "output_dir": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- host9/configs/predecessor.json
++++ host41/configs/predecessor.json
+@@ -2,17 +2,18 @@
+   "schema": "r113-exact-predecessor-v1",
+   "required": [
+     {
+-      "key": "R105",
+-      "kind": "screen",
+-      "remote_root": "/home/researcher/h3_runs/timing_flexiact_remaining_repair_r105_20261019",
+-      "producer_seal_sha256": "62cabd6e97ee4dbdf43f4037ac5a79a738877b8f9f74e05b6d36866db8daa377",
+-      "runtime_sha256": "195a05e6d13857458f19680a1d9b8a00abdedc2aa2d637ef2ca0e9c0a3ca3dc9",
++      "key": "R118",
++      "kind": "single_control",
++      "remote_root": "/data4/researcher/h3_runs/timing_ive_interview_guidance_r118_host41_20261019",
++      "producer_seal_sha256": "713abff574c9debe7082322bdedb19b97a68c5ea970411aea7f683b602f725c5",
++      "runtime_sha256": "eecee396a68e6012a3f3778ea495697a836522d9da9c1d42567102cf93f6bb2c",
++      "required_runs": [
++        "r118_long_0047_seed2026101701_forced"
++      ],
+       "required_sources": [
+-        "human2animal_2__movie_man_11",
+-        "crouch__movie_man_4",
+-        "human2animal_3__game_man_4"
++        "long_0047"
+       ]
+     }
+   ],
+-  "note": "Same GPU lane requires the current R105 batch completion and exact release. Optional R104 peer uses standard two-card registry."
++  "schedule": "After exact R118 host41 release and its short official MF release; one own H3 on host41; original host9 R113 remains unstarted."
+ }
+--- host9/configs/runtime.json
++++ host41/configs/runtime.json
+@@ -1,19 +1,19 @@
+ {
+   "status": "CPU_PREPARED_ROOT_LAUNCH_PENDING",
+-  "host": "H3_SERVER_A",
+-  "remote_root": "/home/researcher/h3_runs/timing_oxygen_seed_replication_r113_20261019",
+-  "gpu_uuid": "GPU-REDACTED",
+-  "port": 8576,
++  "host": "H3_SERVER_B",
++  "remote_root": "/data4/researcher/h3_runs/timing_oxygen_seed_replication_r113_host41_20261019",
++  "gpu_uuid": "GPU-REDACTED",
++  "port": 8582,
+   "lane": "single",
+-  "core": "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI",
+-  "python": "/home/researcher/miniconda3/envs/comfyui/bin/python",
+-  "dependencies": "/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps",
+-  "models": "/data5/researcher/ComfyUI/models",
+-  "profile_scope": "Two independent predeclared seeds, fresh Native and fixed6..14 per seed; all four retained; root review required before execution.",
+-  "kj_nodes": "/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes",
+-  "uid": 1016,
+-  "profile": "host9_gpu0_r113_normal_reserve8",
++  "core": "/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI",
++  "python": "/data3/researcher/ComfyUI/.venv/bin/python",
++  "dependencies": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps",
++  "models": "/data3/researcher/ComfyUI-H3/models",
++  "profile_scope": "Administrative host41 execution of R113 original four fresh Native/fixed seed replications; numerical and pair-gate files unchanged. One persistent H3 after R118 and its final MF exact release.",
++  "kj_nodes": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/custom_nodes/ComfyUI-KJNodes",
++  "uid": 1004,
++  "profile": "host41_gpu2_r113_normal_reserve8",
+   "reserve_vram": 8,
+   "memory_mode": "normal",
+-  "expected_gpu_index": 0
++  "expected_gpu_index": 2
+ }
+--- host9/scripts/run_queue.py
++++ host41/scripts/run_queue.py
+@@ -20,6 +20,11 @@
+         sample.update(sample=None,sample_available=False,error_type=type(error).__name__,error=str(error))
+     else:
+         sample.update(sample=stats.stdout.strip() or None,sample_available=bool(stats.stdout.strip()))
++    try:
++        import cgroup_memory
++        sample['cgroup']=cgroup_memory.collect()
++    except Exception as error:
++        sample['cgroup']={'status':'UNKNOWN','error':repr(error)}
+     with (service.RUN/'logs/resources.jsonl').open('a') as handle:handle.write(json.dumps(sample)+'\n')
+ 
+ 
+--- host9/scripts/service.py
++++ host41/scripts/service.py
+@@ -220,6 +220,9 @@
+         available_kib = int(memory['MemAvailable'].split()[0])
+         if available_kib < 20 * 1024 * 1024:
+             raise RuntimeError('Host RAM headroom is below 20 GiB')
++        import cgroup_memory
++        cgroup_startup=cgroup_memory.check(RUN)
++        write_json(RUN/'audit/CGROUP_STARTUP.json',cgroup_startup)
+         with socket.socket() as probe:
+             probe.bind(('127.0.0.1', PORT))
+         env = os.environ.copy()
+@@ -237,7 +240,7 @@
+         record = {'pid': process.pid, 'gpu_uuid': GPU, 'port': PORT, 'started_unix': started,
+                   'root_attempt_token': os.environ.get('H3_ROOT_ATTEMPT_TOKEN'),
+                   'command': args, 'identity': child_identity, 'cache_none': cache_none,
+-                  'host_available_kib': available_kib, 'admission': admission, 'gpu_readiness': hardware,
++                  'host_available_kib': available_kib, 'cgroup_startup': cgroup_startup, 'admission': admission, 'gpu_readiness': hardware,
+                   'preexisting_compute_processes': processes, 'existing_comfy_queue': queue,
+                   'state': 'started_readiness_unverified'}
+         write_json(RUN / f'processes/service_{process.pid}.json', record)

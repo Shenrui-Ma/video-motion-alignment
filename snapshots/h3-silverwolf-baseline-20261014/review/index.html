@@ -1,0 +1,670 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3 Silver Wolf baseline versus weight x3</title><style>body{font:16px system-ui,sans-serif;background:#080808;color:#fff;margin:0 auto;padding:24px;max-width:1968px}h1{font-size:26px}h2{font-size:21px}p{line-height:1.55;color:#ddd}a{color:#fff;overflow-wrap:anywhere}section{border-top:1px solid #555;margin:24px 0;padding-top:16px}video,img{display:block;width:100%;height:auto;background:#000;margin:14px 0}summary{cursor:pointer}.note{border-left:3px solid #fff;padding-left:14px}li{line-height:1.6}.compact{max-width:1104px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:32em;overflow:auto;border:1px solid #555;padding:12px;font-size:13px}</style><body><h1>H3 Silver Wolf baseline versus weight x3</h1><p>SOURCE / SILVER WOLF BASELINE / SILVER WOLF x3</p><p class="note">Both generated columns use Silver Wolf with nominally identical prompt, seed and settings apart from event weight (baseline x1 versus x3). Nominal agreement does not establish a causal weighting comparison. Read the control validator status and its environment differences and evidence limits below; media readiness is not a control-validation pass.</p><p>Nominal settings: same prompt and reference, seed 2026101312, 20 steps; event weight x1 versus x3. <a href="../inputs/silverwolf_reference.png">Open the Silver Wolf reference image</a>.</p><section class="compact"><h2>Earlier baseline gesture: frames37–39</h2><p>The baseline contains a brief near-face pose at frame38. Do not label the event absent solely from frames40–42. Hand shape, location and timing differ from the source; the baseline and x3 were produced in different runtime environments.</p><img src="compact/compact_frames_037-039.png" alt="Same-frame earlier baseline gesture"><details><summary>Native-resolution face detail</summary><img src="../analysis/native_event_crops/native_037-039.png" alt="Native face crops37–39"></details></section><section id="control-validation"><h2>Control validation</h2><p class="note">Validator reported status: <strong>limited</strong>.</p><ul><li>runtime_comparison.baseline.identity.host: 192.0.2.1</li><li>runtime_comparison.baseline.identity.gpu_model: NVIDIA GeForce RTX 4090</li><li>runtime_comparison.baseline.provenance.actual_host: 192.0.2.1</li><li>runtime_comparison.factor3.identity.host: 192.0.2.1</li><li>runtime_comparison.factor3.identity.gpu_model: NVIDIA A100 80GB PCIe</li><li>runtime_comparison.factor3.provenance.models.diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors.full_hash_recomputed: False</li></ul><p>Additional recorded limits appear in the complete report.</p><p><a href="../analysis/baseline_validation.json">Open the complete control-validation report</a>.</p><details><summary>Complete validator report</summary><pre>{
+  &quot;created_utc&quot;: &quot;2026-10-14T13:01:56.630611+00:00&quot;,
+  &quot;run_id&quot;: &quot;06_silverwolf_seed2_baseline&quot;,
+  &quot;factor&quot;: 1,
+  &quot;parent_archive&quot;: &quot;/Users/researcher/DevProjects/h3-event-emphasis-silverwolf-20261014&quot;,
+  &quot;parent_run_id&quot;: &quot;06_silverwolf_seed2_emphasis3&quot;,
+  &quot;factor3_archive_validation&quot;: {
+    &quot;status&quot;: &quot;pass&quot;,
+    &quot;errors&quot;: [],
+    &quot;missing&quot;: []
+  },
+  &quot;execution_seconds&quot;: 2202.879,
+  &quot;output_file&quot;: &quot;outputs/06_silverwolf_seed2_baseline_00001_.mp4&quot;,
+  &quot;output_sha256&quot;: &quot;454b0a13fb8d9cbc06c363191277d1be1d88b818ec840eab4597fa1d6354bba3&quot;,
+  &quot;video_probe&quot;: {
+    &quot;frames&quot;: 141,
+    &quot;fps&quot;: &quot;24&quot;,
+    &quot;width&quot;: 1312,
+    &quot;height&quot;: 736
+  },
+  &quot;derived_runtime_layout&quot;: {
+    &quot;seq_len&quot;: 87571,
+    &quot;segments&quot;: [
+      [
+        0,
+        6939,
+        &quot;text&quot;
+      ],
+      [
+        6939,
+        7889,
+        &quot;ref_img&quot;
+      ],
+      [
+        7889,
+        47495,
+        &quot;ref_img&quot;
+      ],
+      [
+        47495,
+        47965,
+        &quot;audio&quot;
+      ],
+      [
+        47965,
+        87571,
+        &quot;video&quot;
+      ]
+    ],
+    &quot;signature&quot;: [
+      6939,
+      42,
+      46,
+      82,
+      235
+    ],
+    &quot;reference_index&quot;: 1,
+    &quot;reference_kind&quot;: &quot;video&quot;,
+    &quot;reference_video_segment&quot;: [
+      7889,
+      47495
+    ],
+    &quot;reference_image_segments&quot;: [
+      [
+        6939,
+        7889
+      ]
+    ],
+    &quot;target_video_segment&quot;: [
+      47965,
+      87571
+    ],
+    &quot;latent_interval_half_open&quot;: [
+      12,
+      14
+    ],
+    &quot;pixel_interval_inclusive&quot;: [
+      39,
+      44
+    ],
+    &quot;position_bin_coverage_inclusive&quot;: [
+      39,
+      46
+    ],
+    &quot;key_interval_half_open&quot;: [
+      19205,
+      21091
+    ],
+    &quot;query_interval_half_open&quot;: [
+      59281,
+      61167
+    ],
+    &quot;key_first_time_coordinate&quot;: 7005.0,
+    &quot;query_first_time_coordinate&quot;: 7240.0,
+    &quot;frame_rows&quot;: 943
+  },
+  &quot;hook&quot;: {
+    &quot;factor&quot;: 1,
+    &quot;status&quot;: &quot;sampling&quot;,
+    &quot;completed_calls&quot;: 1000,
+    &quot;completed_forward_calls&quot;: 20,
+    &quot;native_override_calls&quot;: 0
+  },
+  &quot;status&quot;: &quot;limited&quot;,
+  &quot;artifact_validation_status&quot;: &quot;pass&quot;,
+  &quot;causal_controls_status&quot;: &quot;limited&quot;,
+  &quot;errors&quot;: [],
+  &quot;missing&quot;: [],
+  &quot;checks&quot;: {
+    &quot;unchanged_attention_code:extensions/H3EventEmphasis/core.py&quot;: true,
+    &quot;unchanged_attention_code:extensions/H3EventEmphasis/__init__.py&quot;: true,
+    &quot;input_file_identical:06_anime_eye_insert.mp4&quot;: true,
+    &quot;source_video_geometry&quot;: true,
+    &quot;input_file_identical:silverwolf_reference.png&quot;: true,
+    &quot;graph_factor1_run_identity&quot;: true,
+    &quot;graph_audit_paths&quot;: true,
+    &quot;graph_only_factor_paths_ids_differ&quot;: true,
+    &quot;job_identity_and_graph_hash&quot;: true,
+    &quot;history_graph&quot;: true,
+    &quot;job_history_prompt_id&quot;: true,
+    &quot;positive_execution_duration&quot;: true,
+    &quot;formal_history_output&quot;: true,
+    &quot;conditioning_run_and_prompt&quot;: true,
+    &quot;noise_run_and_pair&quot;: true,
+    &quot;raw_output_geometry&quot;: true,
+    &quot;conditioning_own_dynamic_layout&quot;: true,
+    &quot;conditioning_own_position_geometry&quot;: true,
+    &quot;decoded_source_video_geometry&quot;: true,
+    &quot;conditioning_prompt_identical&quot;: true,
+    &quot;target_latent_shapes_identical&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/0f943972d3c85370304adf027b4f6e54820f67bf99169dca6a8128ea002ee293.pt&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/e820bbc8ffe8e16fd4ace8c26b6ff8a153ad9e16428be932e38695d178c7984d.pt&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/a8c849a458fb0a48998fa31ba0a0601e169957169be5dcae2273dbeef4837f04.pt&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/aa81b1315833b10b850d808600c22e7ee345103781f2ea2b22261dbf191ddeeb.pt&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/acaacdffa6f9968fff2afdffe31849ddbec73ba3f8a2333eab7ee5e26fe2734a.pt&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/588dfdbbdaf79a1567ef91fcab144424024acf838270565065a5737c70644ef8.pt&quot;: true,
+    &quot;raw_storage:audit/tensor_blobs/2ad9320de4982750996784562891c4538bdb9aa67dad0e1bfd4d03bacd18fa71.pt&quot;: true,
+    &quot;actual_noise_cache_byte_identical&quot;: true,
+    &quot;noise_seed_and_cache_name&quot;: true,
+    &quot;noise_signature_identical&quot;: true,
+    &quot;actual_noise_streams_identical&quot;: true,
+    &quot;raw_storage:audit/06_anime_eye_insert_s2_noise.pt&quot;: true,
+    &quot;executed_attention_code_identical:extensions/H3EventEmphasis/core.py&quot;: true,
+    &quot;executed_attention_code_identical:extensions/H3EventEmphasis/__init__.py&quot;: true,
+    &quot;model_identity:diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors&quot;: true,
+    &quot;model_identity:text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors&quot;: true,
+    &quot;model_identity:vae/minimax_h3_video_vae_fp16.safetensors&quot;: true,
+    &quot;model_identity:vae/minimax_h3_audio_vae_fp32.safetensors&quot;: true
+  },
+  &quot;runtime_comparison&quot;: {
+    &quot;baseline&quot;: {
+      &quot;identity&quot;: {
+        &quot;host&quot;: &quot;192.0.2.1&quot;,
+        &quot;pytorch&quot;: &quot;2.11.0+cu130&quot;,
+        &quot;python&quot;: &quot;3.10.12&quot;,
+        &quot;comfyui&quot;: &quot;0.35.0&quot;,
+        &quot;triton&quot;: &quot;3.6.0&quot;,
+        &quot;gpu_model&quot;: &quot;NVIDIA GeForce RTX 4090&quot;,
+        &quot;native_pytorch_attention&quot;: true,
+        &quot;python_path&quot;: &quot;/data3/researcher/ComfyUI/.venv/bin/python&quot;,
+        &quot;core_main_path&quot;: &quot;/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/main.py&quot;,
+        &quot;models_path&quot;: &quot;/data3/researcher/ComfyUI-H3/models&quot;,
+        &quot;backend_memory_flags&quot;: [
+          &quot;--disable-cuda-malloc&quot;,
+          &quot;--disable-dynamic-vram&quot;,
+          &quot;--enable-triton-backend&quot;,
+          &quot;--use-pytorch-cross-attention&quot;
+        ]
+      },
+      &quot;provenance&quot;: {
+        &quot;actual_host&quot;: &quot;192.0.2.1&quot;,
+        &quot;models&quot;: {
+          &quot;diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data3/researcher/ComfyUI-H3/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors&quot;,
+            &quot;bytes&quot;: 20970379616,
+            &quot;mtime_ns&quot;: 1785988936000000000,
+            &quot;prior_full_sha256&quot;: &quot;9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: true,
+            &quot;resolved&quot;: &quot;/data3/researcher/h3_staging_20260819/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors&quot;,
+            &quot;sha256&quot;: &quot;9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779&quot;
+          },
+          &quot;text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data3/researcher/ComfyUI-H3/models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors&quot;,
+            &quot;bytes&quot;: 15687142551,
+            &quot;mtime_ns&quot;: 1785953619894982504,
+            &quot;prior_full_sha256&quot;: &quot;35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: true,
+            &quot;resolved&quot;: &quot;/data3/researcher/h3_staging_20260819/models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors&quot;,
+            &quot;sha256&quot;: &quot;35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6&quot;
+          },
+          &quot;vae/minimax_h3_video_vae_fp16.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data3/researcher/ComfyUI-H3/models/vae/minimax_h3_video_vae_fp16.safetensors&quot;,
+            &quot;bytes&quot;: 5207808496,
+            &quot;mtime_ns&quot;: 1785953890000000000,
+            &quot;prior_full_sha256&quot;: &quot;7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: true,
+            &quot;resolved&quot;: &quot;/data3/researcher/h3_staging_20260819/models/vae/minimax_h3_video_vae_fp16.safetensors&quot;,
+            &quot;sha256&quot;: &quot;7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522&quot;
+          },
+          &quot;vae/minimax_h3_audio_vae_fp32.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data3/researcher/ComfyUI-H3/models/vae/minimax_h3_audio_vae_fp32.safetensors&quot;,
+            &quot;bytes&quot;: 605254808,
+            &quot;mtime_ns&quot;: 1785954746259358845,
+            &quot;prior_full_sha256&quot;: &quot;8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: true,
+            &quot;resolved&quot;: &quot;/data3/researcher/h3_staging_20260819/models/vae/minimax_h3_audio_vae_fp32.safetensors&quot;,
+            &quot;sha256&quot;: &quot;8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48&quot;
+          }
+        },
+        &quot;inputs&quot;: {
+          &quot;silverwolf_reference.png&quot;: {
+            &quot;sha256&quot;: &quot;c9d80713eafde0f1a2519fcaba4cd5ba363adff16cf0eed254d3485a162c8d4c&quot;,
+            &quot;bytes&quot;: 2811213
+          },
+          &quot;06_anime_eye_insert.mp4&quot;: {
+            &quot;sha256&quot;: &quot;f8dff750e79eea857b2d787b4990fcd29838727ea51f0fa7392ac188a8404952&quot;,
+            &quot;bytes&quot;: 1293674
+          }
+        },
+        &quot;code&quot;: {
+          &quot;scripts/compatibility_bootstrap.py&quot;: &quot;cf36c1a922df0dbd9371d5421cca2d9c1300e89f957d825190961ed41f630a2f&quot;,
+          &quot;scripts/run_queue.py&quot;: &quot;b68d6a08eb7b8c262aded24a47b1f666fbf52876c9e361022ad3adee53aed58d&quot;,
+          &quot;scripts/launch_remote.py&quot;: &quot;98372a312aa75198a19da2c807c4a84274553a6c80d0f727ad32a258e662e177&quot;,
+          &quot;scripts/job.py&quot;: &quot;422c3a993dbde49e555752b5b1f8c164fd58bebb026957b944e525cdceb8d7af&quot;,
+          &quot;scripts/lease_watchdog.py&quot;: &quot;e4ef6552b58fe712fa3d21b024d08e5404224e589f24025c63ba659edbcac2a6&quot;,
+          &quot;scripts/int8_row_chunking.py&quot;: &quot;49e314f7a647edfeb5ccb72a8efcdf8f4a86f5f7f3481af7886d50ca69ca376f&quot;,
+          &quot;scripts/watch_remote.py&quot;: &quot;4dd6010a565c045899595f467af03cc4f8d4c42472c5ffb7bf62c9713791f8ae&quot;,
+          &quot;scripts/probe_live.py&quot;: &quot;ae432f3dfcc6efb2d6a3f4c69a704e851d2ec70da5c9e7947920d6da9d74735b&quot;,
+          &quot;scripts/supervise_service.py&quot;: &quot;b02d855fecb38071c7189f9a87fe27790222246c95106df8c413e6ef1ebe7541&quot;,
+          &quot;scripts/service.py&quot;: &quot;90e1d40dc734fc7e669b2d4aa343639d10ae1fbf737c402d2472a8de1abfc82f&quot;,
+          &quot;scripts/collect_run.py&quot;: &quot;3c206c1b567573706e7a56876f5aedd98e9bd632a739bc0857f7c6e7e3db972f&quot;,
+          &quot;scripts/verify_baseline.py&quot;: &quot;959f8b2bc62a6eead92820f60fac7f25a2b4ef5baef8989bbf97d7e5059e5167&quot;,
+          &quot;scripts/render_baseline_comparison.py&quot;: &quot;70dbaaf063066e72bf2c5bcd012113fca9a6694a14930a081d23e5fd5f4a0349&quot;,
+          &quot;extensions/H3EventAudit/__init__.py&quot;: &quot;345ed7f52a821d7dec7ffeb86645cf18c728e78356e92b045977a65962137e37&quot;,
+          &quot;extensions/H3EventEmphasis/__init__.py&quot;: &quot;8bb8cff027f9262f32cbddc3e10b5e5e41a36cea48da0a0c730947f1c8c8fb26&quot;,
+          &quot;extensions/H3EventEmphasis/core.py&quot;: &quot;3352d993f7d3daaf96d1b8a7ab3ff1404880871f022afa65397654729b5d35a6&quot;
+        },
+        &quot;checked_unix&quot;: 1791980544.6674001,
+        &quot;core_matches&quot;: {
+          &quot;comfy/ldm/minimax/model.py&quot;: true,
+          &quot;comfy/ldm/modules/attention.py&quot;: true,
+          &quot;comfy/model_base.py&quot;: true,
+          &quot;comfy/model_patcher.py&quot;: true,
+          &quot;comfy_extras/nodes_minimax_h3.py&quot;: true,
+          &quot;comfy/model_sampling.py&quot;: true,
+          &quot;comfy/samplers.py&quot;: true,
+          &quot;comfy/ldm/minimax/vae.py&quot;: true,
+          &quot;comfy/text_encoders/qwen3vl.py&quot;: true
+        }
+      },
+      &quot;provenance_file&quot;: &quot;remote_configs/runtime_provenance.json&quot;
+    },
+    &quot;factor3&quot;: {
+      &quot;identity&quot;: {
+        &quot;host&quot;: &quot;192.0.2.1&quot;,
+        &quot;pytorch&quot;: &quot;2.5.1+cu121&quot;,
+        &quot;python&quot;: &quot;3.10.19&quot;,
+        &quot;comfyui&quot;: &quot;0.35.0&quot;,
+        &quot;triton&quot;: &quot;3.1.0&quot;,
+        &quot;gpu_model&quot;: &quot;NVIDIA A100 80GB PCIe&quot;,
+        &quot;native_pytorch_attention&quot;: true,
+        &quot;python_path&quot;: &quot;/home/researcher/miniconda3/envs/comfyui/bin/python&quot;,
+        &quot;core_main_path&quot;: &quot;/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py&quot;,
+        &quot;models_path&quot;: &quot;/data5/researcher/ComfyUI/models&quot;,
+        &quot;backend_memory_flags&quot;: [
+          &quot;--disable-cuda-malloc&quot;,
+          &quot;--disable-dynamic-vram&quot;,
+          &quot;--enable-triton-backend&quot;,
+          &quot;--use-pytorch-cross-attention&quot;
+        ]
+      },
+      &quot;provenance&quot;: {
+        &quot;models&quot;: {
+          &quot;diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data5/researcher/ComfyUI/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors&quot;,
+            &quot;bytes&quot;: 20970379616,
+            &quot;mtime_ns&quot;: 1785988936000000000,
+            &quot;prior_full_sha256&quot;: &quot;9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: false
+          },
+          &quot;text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data5/researcher/ComfyUI/models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors&quot;,
+            &quot;bytes&quot;: 15687142551,
+            &quot;mtime_ns&quot;: 1785953619894982504,
+            &quot;prior_full_sha256&quot;: &quot;35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: false
+          },
+          &quot;vae/minimax_h3_video_vae_fp16.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data5/researcher/ComfyUI/models/vae/minimax_h3_video_vae_fp16.safetensors&quot;,
+            &quot;bytes&quot;: 5207808496,
+            &quot;mtime_ns&quot;: 1785953890000000000,
+            &quot;prior_full_sha256&quot;: &quot;7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: false
+          },
+          &quot;vae/minimax_h3_audio_vae_fp32.safetensors&quot;: {
+            &quot;path&quot;: &quot;/data5/researcher/ComfyUI/models/vae/minimax_h3_audio_vae_fp32.safetensors&quot;,
+            &quot;bytes&quot;: 605254808,
+            &quot;mtime_ns&quot;: 1785954746259358845,
+            &quot;prior_full_sha256&quot;: &quot;8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48&quot;,
+            &quot;size_mtime_match&quot;: true,
+            &quot;full_hash_recomputed&quot;: false
+          }
+        },
+        &quot;inputs&quot;: {
+          &quot;06_anime_eye_insert.mp4&quot;: {
+            &quot;sha256&quot;: &quot;f8dff750e79eea857b2d787b4990fcd29838727ea51f0fa7392ac188a8404952&quot;,
+            &quot;bytes&quot;: 1293674
+          },
+          &quot;silverwolf_reference.png&quot;: {
+            &quot;sha256&quot;: &quot;c9d80713eafde0f1a2519fcaba4cd5ba363adff16cf0eed254d3485a162c8d4c&quot;,
+            &quot;bytes&quot;: 2811213
+          }
+        },
+        &quot;code&quot;: {
+          &quot;scripts/probe_live.py&quot;: &quot;7eb397f0caa6b686f8d6ad8534e651d3154bc88b270a5e3429cb2ac1ae50543a&quot;,
+          &quot;scripts/lease_watchdog.py&quot;: &quot;e4ef6552b58fe712fa3d21b024d08e5404224e589f24025c63ba659edbcac2a6&quot;,
+          &quot;scripts/launch_remote.py&quot;: &quot;f32d236d9487bee373574dbd863f4ea8d4fc0b7d81af2b91e191da41ab343515&quot;,
+          &quot;scripts/service.py&quot;: &quot;bedbb2d37897162ed713c67607880c1d7e5af5daba85d83093c9a193b765fea0&quot;,
+          &quot;scripts/collect_run.py&quot;: &quot;a264b35b8f398072a330a526e8dedaceeb5a871b1512763e619ca65302100d9f&quot;,
+          &quot;scripts/int8_row_chunking.py&quot;: &quot;49e314f7a647edfeb5ccb72a8efcdf8f4a86f5f7f3481af7886d50ca69ca376f&quot;,
+          &quot;scripts/supervise_service.py&quot;: &quot;b02d855fecb38071c7189f9a87fe27790222246c95106df8c413e6ef1ebe7541&quot;,
+          &quot;scripts/run_queue.py&quot;: &quot;b68d6a08eb7b8c262aded24a47b1f666fbf52876c9e361022ad3adee53aed58d&quot;,
+          &quot;scripts/watch_remote.py&quot;: &quot;4dd6010a565c045899595f467af03cc4f8d4c42472c5ffb7bf62c9713791f8ae&quot;,
+          &quot;scripts/job.py&quot;: &quot;b7b8eb25ad0e20b196cab8c65fa9e7e871b40425f8964636cf733cd70e7c5797&quot;,
+          &quot;scripts/compatibility_bootstrap.py&quot;: &quot;cf36c1a922df0dbd9371d5421cca2d9c1300e89f957d825190961ed41f630a2f&quot;,
+          &quot;extensions/H3EventEmphasis/core.py&quot;: &quot;3352d993f7d3daaf96d1b8a7ab3ff1404880871f022afa65397654729b5d35a6&quot;,
+          &quot;extensions/H3EventEmphasis/__init__.py&quot;: &quot;8bb8cff027f9262f32cbddc3e10b5e5e41a36cea48da0a0c730947f1c8c8fb26&quot;,
+          &quot;extensions/H3EventAudit/__init__.py&quot;: &quot;679d6c98da61e02e029a40cba2fe96822d5dee9a9a55e2fd890f3b363659c70f&quot;
+        },
+        &quot;checked_unix&quot;: 1791975827.0102232,
+        &quot;core_matches&quot;: {
+          &quot;comfy/ldm/minimax/model.py&quot;: true,
+          &quot;comfy/ldm/modules/attention.py&quot;: true,
+          &quot;comfy/model_base.py&quot;: true,
+          &quot;comfy/model_patcher.py&quot;: true,
+          &quot;comfy_extras/nodes_minimax_h3.py&quot;: true,
+          &quot;comfy/model_sampling.py&quot;: true,
+          &quot;comfy/samplers.py&quot;: true,
+          &quot;comfy/ldm/minimax/vae.py&quot;: true,
+          &quot;comfy/text_encoders/qwen3vl.py&quot;: true
+        }
+      },
+      &quot;provenance_file&quot;: &quot;remote_configs/runtime_provenance.json&quot;
+    },
+    &quot;mismatches&quot;: [
+      {
+        &quot;field&quot;: &quot;core_main_path&quot;,
+        &quot;baseline&quot;: &quot;/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/main.py&quot;,
+        &quot;factor3&quot;: &quot;/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py&quot;
+      },
+      {
+        &quot;field&quot;: &quot;gpu_model&quot;,
+        &quot;baseline&quot;: &quot;NVIDIA GeForce RTX 4090&quot;,
+        &quot;factor3&quot;: &quot;NVIDIA A100 80GB PCIe&quot;
+      },
+      {
+        &quot;field&quot;: &quot;host&quot;,
+        &quot;baseline&quot;: &quot;192.0.2.1&quot;,
+        &quot;factor3&quot;: &quot;192.0.2.1&quot;
+      },
+      {
+        &quot;field&quot;: &quot;models_path&quot;,
+        &quot;baseline&quot;: &quot;/data3/researcher/ComfyUI-H3/models&quot;,
+        &quot;factor3&quot;: &quot;/data5/researcher/ComfyUI/models&quot;
+      },
+      {
+        &quot;field&quot;: &quot;python&quot;,
+        &quot;baseline&quot;: &quot;3.10.12&quot;,
+        &quot;factor3&quot;: &quot;3.10.19&quot;
+      },
+      {
+        &quot;field&quot;: &quot;python_path&quot;,
+        &quot;baseline&quot;: &quot;/data3/researcher/ComfyUI/.venv/bin/python&quot;,
+        &quot;factor3&quot;: &quot;/home/researcher/miniconda3/envs/comfyui/bin/python&quot;
+      },
+      {
+        &quot;field&quot;: &quot;pytorch&quot;,
+        &quot;baseline&quot;: &quot;2.11.0+cu130&quot;,
+        &quot;factor3&quot;: &quot;2.5.1+cu121&quot;
+      },
+      {
+        &quot;field&quot;: &quot;triton&quot;,
+        &quot;baseline&quot;: &quot;3.6.0&quot;,
+        &quot;factor3&quot;: &quot;3.1.0&quot;
+      }
+    ]
+  },
+  &quot;numerical_comparison&quot;: {
+    &quot;input_preprocessing&quot;: {
+      &quot;decoded_source_video&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;747f2cd9e5fc7774b1bd1b85889a58524379106aed7770df7d5a07d87f1effa6&quot;,
+          &quot;shape&quot;: [
+            141,
+            736,
+            1312,
+            3
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 1633849344
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;7928c1b8aebf7dd46d78f1befe2c748cb21e11ff4bf04d791f4ece6422cc5fa5&quot;,
+          &quot;shape&quot;: [
+            141,
+            736,
+            1312,
+            3
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 1633849344
+        }
+      },
+      &quot;source_video_prepared_frames&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;e521e3e3ccfcbb6943049fd2987eb54c1f8957ca64903692bf6bf049fe75e333&quot;,
+          &quot;shape&quot;: [
+            141,
+            736,
+            1312,
+            3
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 1633849344
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;9d03338fc51342f2449bea9cecb67239cea9b05f8216706ae2535e5e071e4a9f&quot;,
+          &quot;shape&quot;: [
+            141,
+            736,
+            1312,
+            3
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 1633849344
+        }
+      },
+      &quot;reference_image_prepared_frames&quot;: {
+        &quot;identical&quot;: true,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;865fe94eabd40a64504bcb76b801c93d0fb2e091a4e842f779634488c1da43d6&quot;,
+          &quot;shape&quot;: [
+            1,
+            1216,
+            800,
+            3
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 11673600
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;865fe94eabd40a64504bcb76b801c93d0fb2e091a4e842f779634488c1da43d6&quot;,
+          &quot;shape&quot;: [
+            1,
+            1216,
+            800,
+            3
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 11673600
+        }
+      }
+    },
+    &quot;clean_vae_latents&quot;: {
+      &quot;source_video&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;abca5f9aab84f5394eb7cad45f6d15bd226ab968e63305101784d114810b2e1d&quot;,
+          &quot;shape&quot;: [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 15208704
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;253ad1db6cb17570929b6ef122e65361a8fbe921f13ab292960104cc4611b7ea&quot;,
+          &quot;shape&quot;: [
+            1,
+            24,
+            42,
+            46,
+            82
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 15208704
+        }
+      },
+      &quot;reference_image&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;01961b21d8e460a44c02ae25f6547aadb13b76bda35c5a9e0609efa9586e2629&quot;,
+          &quot;shape&quot;: [
+            1,
+            24,
+            1,
+            76,
+            50
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 364800
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;edb765d0e1da61d067a43ba7fa1399f004460934086da5c722cbb98f5fea39cd&quot;,
+          &quot;shape&quot;: [
+            1,
+            24,
+            1,
+            76,
+            50
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 364800
+        }
+      }
+    },
+    &quot;conditioning&quot;: {
+      &quot;qwen_presentation&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;8b09e4102fa591b7083deabdb574d6097cfd8702acd104e0375cc59b10a44f69&quot;
+        },
+        &quot;factor3&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;a2bcd8699e6fa6430934954c1e8447d2e7de286be92c83b5c2ef2ef60405921f&quot;
+        }
+      },
+      &quot;tokenization_before_vision_expansion&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;3d081e268f856d483d02392deae9db0a1b815bc7d5fb941681489b0c7e70ec46&quot;
+        },
+        &quot;factor3&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;afa06112a89e7511f9024ab9681cc9509d7b9f53ef67e0157f98653cb582c265&quot;
+        }
+      },
+      &quot;conditioning_embedding&quot;: {
+        &quot;identical&quot;: false,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;4d8ba2600430a4fdde760be2302015f1950599f75f379da1c14fef83c1f80943&quot;,
+          &quot;shape&quot;: [
+            1,
+            6939,
+            5120
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 142110720
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;25c07369c794b41df12ef9d9838a4960adfdbc5031af0200b51db8139617a6ec&quot;,
+          &quot;shape&quot;: [
+            1,
+            6939,
+            5120
+          ],
+          &quot;dtype&quot;: &quot;torch.float32&quot;,
+          &quot;bytes&quot;: 142110720
+        }
+      },
+      &quot;token_tags&quot;: {
+        &quot;identical&quot;: true,
+        &quot;baseline&quot;: {
+          &quot;sha256&quot;: &quot;649943dba67cf39521d63c952bfcf282444a147db55069ba20c8c9b0dfa166be&quot;,
+          &quot;shape&quot;: [
+            6939
+          ],
+          &quot;dtype&quot;: &quot;torch.int64&quot;,
+          &quot;bytes&quot;: 55512
+        },
+        &quot;factor3&quot;: {
+          &quot;sha256&quot;: &quot;649943dba67cf39521d63c952bfcf282444a147db55069ba20c8c9b0dfa166be&quot;,
+          &quot;shape&quot;: [
+            6939
+          ],
+          &quot;dtype&quot;: &quot;torch.int64&quot;,
+          &quot;bytes&quot;: 55512
+        }
+      },
+      &quot;packed_layout&quot;: {
+        &quot;identical&quot;: true,
+        &quot;baseline&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;a0a1e114592c3b82fc01eb7e311db25ba8771b7cc999974e1829aa1bad3d1952&quot;
+        },
+        &quot;factor3&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;a0a1e114592c3b82fc01eb7e311db25ba8771b7cc999974e1829aa1bad3d1952&quot;
+        }
+      }
+    },
+    &quot;runtime_implementation&quot;: {
+      &quot;scripts/int8_row_chunking.py&quot;: {
+        &quot;identical&quot;: true,
+        &quot;baseline&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;95841cf7ce0fddf67593cc8a79b44c6b66b25c184b7b1711af10b84433647341&quot;
+        },
+        &quot;factor3&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;95841cf7ce0fddf67593cc8a79b44c6b66b25c184b7b1711af10b84433647341&quot;
+        }
+      },
+      &quot;scripts/compatibility_bootstrap.py&quot;: {
+        &quot;identical&quot;: true,
+        &quot;baseline&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;a69a85fc5c88a8568ce1a374be834b20740441f9c86f427136b51421e26b521a&quot;
+        },
+        &quot;factor3&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;a69a85fc5c88a8568ce1a374be834b20740441f9c86f427136b51421e26b521a&quot;
+        }
+      },
+      &quot;core_source_evidence&quot;: {
+        &quot;identical&quot;: true,
+        &quot;baseline&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;873d19ae8c8e157eb3c85e70233c75e96212438b083b1b89777e2067b29f62e5&quot;
+        },
+        &quot;factor3&quot;: {
+          &quot;canonical_record_sha256&quot;: &quot;873d19ae8c8e157eb3c85e70233c75e96212438b083b1b89777e2067b29f62e5&quot;
+        }
+      }
+    }
+  },
+  &quot;numerical_differences&quot;: [
+    {
+      &quot;stage&quot;: &quot;input_preprocessing&quot;,
+      &quot;field&quot;: &quot;decoded_source_video&quot;
+    },
+    {
+      &quot;stage&quot;: &quot;input_preprocessing&quot;,
+      &quot;field&quot;: &quot;source_video_prepared_frames&quot;
+    },
+    {
+      &quot;stage&quot;: &quot;clean_vae_latents&quot;,
+      &quot;field&quot;: &quot;source_video&quot;
+    },
+    {
+      &quot;stage&quot;: &quot;clean_vae_latents&quot;,
+      &quot;field&quot;: &quot;reference_image&quot;
+    },
+    {
+      &quot;stage&quot;: &quot;conditioning&quot;,
+      &quot;field&quot;: &quot;qwen_presentation&quot;
+    },
+    {
+      &quot;stage&quot;: &quot;conditioning&quot;,
+      &quot;field&quot;: &quot;tokenization_before_vision_expansion&quot;
+    },
+    {
+      &quot;stage&quot;: &quot;conditioning&quot;,
+      &quot;field&quot;: &quot;conditioning_embedding&quot;
+    }
+  ],
+  &quot;independently_hashed_new_tensor_storage_files&quot;: 8,
+  &quot;evidence_limits&quot;: [
+    &quot;Runtime/host/version or preprocessing/VAE/conditioning differences limit causal attribution, without alone invalidating a successful generated baseline.&quot;,
+    &quot;Raw source/reference files, prompt/graph, actual AV noise, weights and factor1 attention code/path remain strict controls; mismatches are invalid evidence.&quot;,
+    &quot;Input decoding/prepared-frame differences are reported separately from clean VAE latent and conditioning/token/layout differences.&quot;,
+    &quot;Factor1 is checked by unchanged attention-extension source hashes, zero override calls, no override diagnostics and the original-block audit path.&quot;,
+    &quot;Saved tensor ZIP storages are independently hashed without torch/pickle execution; unsaved conditioning/token tensors use recorded hashes.&quot;,
+    &quot;Model identity may reuse prior full hashes with current size/mtime checks; the verifier does not rehash remote model files.&quot;,
+    &quot;A passing pair validates controls for this example/seed; it does not establish general efficacy or a clean speed comparison.&quot;
+  ]
+}</pre></details></section><p>All three columns use the same zero-based frame index and original timestamp. Source event: frames 39-44, core 41-42. The later action at 54-68 is separate. These source labels do not assert generated success.</p><section class="compact"><h2>Compact event detail</h2><p>Identical native crop x288, y0, 736 &times; 736, scaled to 368 &times; 368. Rows show frames 40, 41 and 42, covering the source core at 41-42 and the earlier weighted-output gesture at 40-41; captions remain below the images.</p><a href="compact/compact_frames_040-042.png"><img src="compact/compact_frames_040-042.png" alt="Same-frame source, Silver Wolf baseline and Silver Wolf x3 crops at frames 40-42"></a><p>Quarter speed: 48 frames at 6 FPS, 8 seconds</p><video controls preload="metadata" src="compact/compact_frames_030-077_quarter_speed.mp4"></video><a href="compact/compact_frames_030-077_quarter_speed.mp4">Open compact video</a><p>Normal speed: 48 frames at 24 FPS, 2 seconds</p><video controls preload="metadata" src="compact/compact_frames_030-077.mp4"></video><a href="compact/compact_frames_030-077.mp4">Open compact video</a></section><p>Full-frame views below scale each complete 1312 &times; 736 frame equally to 656 &times; 368. Quarter-speed views encode the same frames at 6 FPS; no interpolation, repeats or independent retiming. Review videos are silent; raw media are preserved.</p><section><h2>Complete clip: 141 frames at 24 FPS, 5.875 seconds</h2><video controls preload="metadata" src="comparison_full.mp4"></video><a href="comparison_full.mp4">Open full-frame video</a></section><section><h2>Frames 30-77: normal speed, 2 seconds</h2><video controls preload="metadata" src="comparison_frames_030-077.mp4"></video><a href="comparison_frames_030-077.mp4">Open full-frame video</a></section><section><h2>Frames 30-77: quarter speed, 8 seconds</h2><video controls preload="metadata" src="comparison_frames_030-077_quarter_speed.mp4"></video><a href="comparison_frames_030-077_quarter_speed.mp4">Open full-frame video</a></section><section><h2>Dense context: every frame 30-77</h2><p>Three time rows per sheet; SOURCE / SILVER WOLF BASELINE / SILVER WOLF x3 across every row.</p><details><summary>Show all frame sheets</summary><a href="dense_030_077/dense_030-032.jpg"><img loading="lazy" src="dense_030_077/dense_030-032.jpg" alt="Same-index triplets: frames 30-32"></a><a href="dense_030_077/dense_033-035.jpg"><img loading="lazy" src="dense_030_077/dense_033-035.jpg" alt="Same-index triplets: frames 33-35"></a><a href="dense_030_077/dense_036-038.jpg"><img loading="lazy" src="dense_030_077/dense_036-038.jpg" alt="Same-index triplets: frames 36-38"></a><a href="dense_030_077/dense_039-041.jpg"><img loading="lazy" src="dense_030_077/dense_039-041.jpg" alt="Same-index triplets: frames 39-41"></a><a href="dense_030_077/dense_042-044.jpg"><img loading="lazy" src="dense_030_077/dense_042-044.jpg" alt="Same-index triplets: frames 42-44"></a><a href="dense_030_077/dense_045-047.jpg"><img loading="lazy" src="dense_030_077/dense_045-047.jpg" alt="Same-index triplets: frames 45-47"></a><a href="dense_030_077/dense_048-050.jpg"><img loading="lazy" src="dense_030_077/dense_048-050.jpg" alt="Same-index triplets: frames 48-50"></a><a href="dense_030_077/dense_051-053.jpg"><img loading="lazy" src="dense_030_077/dense_051-053.jpg" alt="Same-index triplets: frames 51-53"></a><a href="dense_030_077/dense_054-056.jpg"><img loading="lazy" src="dense_030_077/dense_054-056.jpg" alt="Same-index triplets: frames 54-56"></a><a href="dense_030_077/dense_057-059.jpg"><img loading="lazy" src="dense_030_077/dense_057-059.jpg" alt="Same-index triplets: frames 57-59"></a><a href="dense_030_077/dense_060-062.jpg"><img loading="lazy" src="dense_030_077/dense_060-062.jpg" alt="Same-index triplets: frames 60-62"></a><a href="dense_030_077/dense_063-065.jpg"><img loading="lazy" src="dense_030_077/dense_063-065.jpg" alt="Same-index triplets: frames 63-65"></a><a href="dense_030_077/dense_066-068.jpg"><img loading="lazy" src="dense_030_077/dense_066-068.jpg" alt="Same-index triplets: frames 66-68"></a><a href="dense_030_077/dense_069-071.jpg"><img loading="lazy" src="dense_030_077/dense_069-071.jpg" alt="Same-index triplets: frames 69-71"></a><a href="dense_030_077/dense_072-074.jpg"><img loading="lazy" src="dense_030_077/dense_072-074.jpg" alt="Same-index triplets: frames 72-74"></a><a href="dense_030_077/dense_075-077.jpg"><img loading="lazy" src="dense_030_077/dense_075-077.jpg" alt="Same-index triplets: frames 75-77"></a></details></section><section><h2>Full context: every frame 0-140</h2><p>Three time rows per sheet; SOURCE / SILVER WOLF BASELINE / SILVER WOLF x3 across every row.</p><details><summary>Show all frame sheets</summary><a href="all_frames/frames_000-002.jpg"><img loading="lazy" src="all_frames/frames_000-002.jpg" alt="Same-index triplets: frames 0-2"></a><a href="all_frames/frames_003-005.jpg"><img loading="lazy" src="all_frames/frames_003-005.jpg" alt="Same-index triplets: frames 3-5"></a><a href="all_frames/frames_006-008.jpg"><img loading="lazy" src="all_frames/frames_006-008.jpg" alt="Same-index triplets: frames 6-8"></a><a href="all_frames/frames_009-011.jpg"><img loading="lazy" src="all_frames/frames_009-011.jpg" alt="Same-index triplets: frames 9-11"></a><a href="all_frames/frames_012-014.jpg"><img loading="lazy" src="all_frames/frames_012-014.jpg" alt="Same-index triplets: frames 12-14"></a><a href="all_frames/frames_015-017.jpg"><img loading="lazy" src="all_frames/frames_015-017.jpg" alt="Same-index triplets: frames 15-17"></a><a href="all_frames/frames_018-020.jpg"><img loading="lazy" src="all_frames/frames_018-020.jpg" alt="Same-index triplets: frames 18-20"></a><a href="all_frames/frames_021-023.jpg"><img loading="lazy" src="all_frames/frames_021-023.jpg" alt="Same-index triplets: frames 21-23"></a><a href="all_frames/frames_024-026.jpg"><img loading="lazy" src="all_frames/frames_024-026.jpg" alt="Same-index triplets: frames 24-26"></a><a href="all_frames/frames_027-029.jpg"><img loading="lazy" src="all_frames/frames_027-029.jpg" alt="Same-index triplets: frames 27-29"></a><a href="all_frames/frames_030-032.jpg"><img loading="lazy" src="all_frames/frames_030-032.jpg" alt="Same-index triplets: frames 30-32"></a><a href="all_frames/frames_033-035.jpg"><img loading="lazy" src="all_frames/frames_033-035.jpg" alt="Same-index triplets: frames 33-35"></a><a href="all_frames/frames_036-038.jpg"><img loading="lazy" src="all_frames/frames_036-038.jpg" alt="Same-index triplets: frames 36-38"></a><a href="all_frames/frames_039-041.jpg"><img loading="lazy" src="all_frames/frames_039-041.jpg" alt="Same-index triplets: frames 39-41"></a><a href="all_frames/frames_042-044.jpg"><img loading="lazy" src="all_frames/frames_042-044.jpg" alt="Same-index triplets: frames 42-44"></a><a href="all_frames/frames_045-047.jpg"><img loading="lazy" src="all_frames/frames_045-047.jpg" alt="Same-index triplets: frames 45-47"></a><a href="all_frames/frames_048-050.jpg"><img loading="lazy" src="all_frames/frames_048-050.jpg" alt="Same-index triplets: frames 48-50"></a><a href="all_frames/frames_051-053.jpg"><img loading="lazy" src="all_frames/frames_051-053.jpg" alt="Same-index triplets: frames 51-53"></a><a href="all_frames/frames_054-056.jpg"><img loading="lazy" src="all_frames/frames_054-056.jpg" alt="Same-index triplets: frames 54-56"></a><a href="all_frames/frames_057-059.jpg"><img loading="lazy" src="all_frames/frames_057-059.jpg" alt="Same-index triplets: frames 57-59"></a><a href="all_frames/frames_060-062.jpg"><img loading="lazy" src="all_frames/frames_060-062.jpg" alt="Same-index triplets: frames 60-62"></a><a href="all_frames/frames_063-065.jpg"><img loading="lazy" src="all_frames/frames_063-065.jpg" alt="Same-index triplets: frames 63-65"></a><a href="all_frames/frames_066-068.jpg"><img loading="lazy" src="all_frames/frames_066-068.jpg" alt="Same-index triplets: frames 66-68"></a><a href="all_frames/frames_069-071.jpg"><img loading="lazy" src="all_frames/frames_069-071.jpg" alt="Same-index triplets: frames 69-71"></a><a href="all_frames/frames_072-074.jpg"><img loading="lazy" src="all_frames/frames_072-074.jpg" alt="Same-index triplets: frames 72-74"></a><a href="all_frames/frames_075-077.jpg"><img loading="lazy" src="all_frames/frames_075-077.jpg" alt="Same-index triplets: frames 75-77"></a><a href="all_frames/frames_078-080.jpg"><img loading="lazy" src="all_frames/frames_078-080.jpg" alt="Same-index triplets: frames 78-80"></a><a href="all_frames/frames_081-083.jpg"><img loading="lazy" src="all_frames/frames_081-083.jpg" alt="Same-index triplets: frames 81-83"></a><a href="all_frames/frames_084-086.jpg"><img loading="lazy" src="all_frames/frames_084-086.jpg" alt="Same-index triplets: frames 84-86"></a><a href="all_frames/frames_087-089.jpg"><img loading="lazy" src="all_frames/frames_087-089.jpg" alt="Same-index triplets: frames 87-89"></a><a href="all_frames/frames_090-092.jpg"><img loading="lazy" src="all_frames/frames_090-092.jpg" alt="Same-index triplets: frames 90-92"></a><a href="all_frames/frames_093-095.jpg"><img loading="lazy" src="all_frames/frames_093-095.jpg" alt="Same-index triplets: frames 93-95"></a><a href="all_frames/frames_096-098.jpg"><img loading="lazy" src="all_frames/frames_096-098.jpg" alt="Same-index triplets: frames 96-98"></a><a href="all_frames/frames_099-101.jpg"><img loading="lazy" src="all_frames/frames_099-101.jpg" alt="Same-index triplets: frames 99-101"></a><a href="all_frames/frames_102-104.jpg"><img loading="lazy" src="all_frames/frames_102-104.jpg" alt="Same-index triplets: frames 102-104"></a><a href="all_frames/frames_105-107.jpg"><img loading="lazy" src="all_frames/frames_105-107.jpg" alt="Same-index triplets: frames 105-107"></a><a href="all_frames/frames_108-110.jpg"><img loading="lazy" src="all_frames/frames_108-110.jpg" alt="Same-index triplets: frames 108-110"></a><a href="all_frames/frames_111-113.jpg"><img loading="lazy" src="all_frames/frames_111-113.jpg" alt="Same-index triplets: frames 111-113"></a><a href="all_frames/frames_114-116.jpg"><img loading="lazy" src="all_frames/frames_114-116.jpg" alt="Same-index triplets: frames 114-116"></a><a href="all_frames/frames_117-119.jpg"><img loading="lazy" src="all_frames/frames_117-119.jpg" alt="Same-index triplets: frames 117-119"></a><a href="all_frames/frames_120-122.jpg"><img loading="lazy" src="all_frames/frames_120-122.jpg" alt="Same-index triplets: frames 120-122"></a><a href="all_frames/frames_123-125.jpg"><img loading="lazy" src="all_frames/frames_123-125.jpg" alt="Same-index triplets: frames 123-125"></a><a href="all_frames/frames_126-128.jpg"><img loading="lazy" src="all_frames/frames_126-128.jpg" alt="Same-index triplets: frames 126-128"></a><a href="all_frames/frames_129-131.jpg"><img loading="lazy" src="all_frames/frames_129-131.jpg" alt="Same-index triplets: frames 129-131"></a><a href="all_frames/frames_132-134.jpg"><img loading="lazy" src="all_frames/frames_132-134.jpg" alt="Same-index triplets: frames 132-134"></a><a href="all_frames/frames_135-137.jpg"><img loading="lazy" src="all_frames/frames_135-137.jpg" alt="Same-index triplets: frames 135-137"></a><a href="all_frames/frames_138-140.jpg"><img loading="lazy" src="all_frames/frames_138-140.jpg" alt="Same-index triplets: frames 138-140"></a></details></section><p><a href="manifest.json">Media manifest and interpretation limits</a> &middot; <a href="../analysis/renderer_qa.json">Renderer checks</a></p></body></html>

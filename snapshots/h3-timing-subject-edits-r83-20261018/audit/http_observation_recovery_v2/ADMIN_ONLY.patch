@@ -1,0 +1,63 @@
+--- original/job.py
++++ candidate/job.py
+@@ -1,6 +1,7 @@
+ """Submit once and preserve Comfy history for the task-owned service."""
+ import argparse
+ import fcntl
++import http.client
+ import hashlib
+ import json
+ from pathlib import Path
+@@ -21,6 +22,10 @@
+     return name
+ 
+ 
++class StatusUnavailable(RuntimeError):
++    """The registered job status could not be observed through a read-only HTTP request."""
++
++
+ def request(route, body=None):
+     payload = None if body is None else json.dumps(body).encode()
+     req = urllib.request.Request(URL + route, data=payload, headers={'Content-Type': 'application/json'})
+@@ -28,7 +33,13 @@
+         with urllib.request.urlopen(req, timeout=30) as response:
+             return json.load(response)
+     except urllib.error.HTTPError as exc:
++        if body is None and exc.code in (408, 429, 500, 502, 503, 504):
++            raise StatusUnavailable('HTTP status observation unavailable: ' + str(exc.code)) from exc
+         raise RuntimeError(exc.read().decode()) from exc
++    except (TimeoutError, ConnectionError, urllib.error.URLError, http.client.IncompleteRead) as exc:
++        if body is None:
++            raise StatusUnavailable('HTTP status observation unavailable: ' + repr(exc)) from exc
++        raise
+ 
+ 
+ def active_service():
+--- original/run_queue.py
++++ candidate/run_queue.py
+@@ -84,17 +84,22 @@
+             if (service.RUN/'logs'/f'{current}_job.json').exists():raise RuntimeError('Existing job record requires manual recovery, never auto-resubmit')
+             service.residency_snapshot('before_'+current);job.submit(current,expected_owner=owner);started=time.monotonic()
+             while time.monotonic()<deadline:
+-                result=job.status(current);status=result.get('status') or 'running'
++                try:
++                    result=job.status(current)
++                except job.StatusUnavailable as error:
++                    result={'status':'observation_unknown','observation_error':repr(error)}
++                status=result.get('status') or 'running'
+                 status=status['status_str'] if isinstance(status,dict) else status
+                 record_resources(current)
+-                state(status=status,current=current,completed=completed)
++                state(status=status,current=current,completed=completed,
++                      observation_error=result.get('observation_error'))
+                 if status=='success':
+                     history=read(service.RUN/'logs'/f'{current}_history.json')
+                     if history['status']['completed'] is not True:raise ValueError('Success history not completed')
+                     completed.append(current)
+                     service.residency_snapshot('after_'+current)
+                     current=None;break
+-                if status in ('error','unknown_missing','submission_uncertain'):raise RuntimeError(f'{current}: {status}')
++                if status in ('error','submission_uncertain'):raise RuntimeError(f'{current}: {status}')
+                 if time.monotonic()-started>policy['job_timeout_seconds']:raise TimeoutError('One job exceeded frozen safety timeout')
+                 time.sleep(20)
+             else:raise TimeoutError('Service maximum lifetime reached')

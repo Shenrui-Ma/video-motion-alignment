@@ -1,0 +1,243 @@
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/extensions/H3EventAudit/__init__.py
++++ extensions/H3EventAudit/__init__.py
+@@ -21,9 +21,10 @@
+ 
+ 
+ def audit_root(value):
+-    root = Path(value)
+-    if not root.is_absolute() or "timing_architecture_r2_20261016" not in root.parts:
+-        raise ValueError("audit_dir must be under the task's timing_architecture_r2_20261016 directory")
++    root = Path(value).resolve()
++    allowed = Path("/data3/researcher/h3_runs/timing_cross_source_r20_20261016/audit").resolve()
++    if not Path(value).is_absolute() or root != allowed:
++        raise ValueError("R20 audit_dir must equal its isolated audit directory")
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+ 
+@@ -164,7 +165,7 @@
+             "width": ("INT", {"default": 1312, "min": 32, "step": 32}),
+             "height": ("INT", {"default": 736, "min": 32, "step": 32}),
+             "length": ("INT", {"default": 107, "min": 5}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_architecture_r2_20261016/audit"}),
++            "audit_dir": ("STRING", {"default": "/data3/researcher/h3_runs/timing_cross_source_r20_20261016/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "semantic_fps": ("INT", {"default": 2, "min": 1, "max": 24}),
+             "phase_frames": ("INT", {"default": 0, "min": 0, "max": 23}),
+@@ -267,7 +268,7 @@
+     def INPUT_TYPES(cls):
+         return {"required": {
+             "noise_seed": ("INT", {"default": 12345, "min": 0, "max": 0xffffffffffffffff}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_architecture_r2_20261016/audit"}),
++            "audit_dir": ("STRING", {"default": "/data3/researcher/h3_runs/timing_cross_source_r20_20261016/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "pair_id": ("STRING", {"default": "case_seed1"}),
+         }}
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/extensions/H3PairAudit/__init__.py
++++ extensions/H3PairAudit/__init__.py
+@@ -54,8 +54,11 @@
+         if source_run_id == run_id:
+             raise ValueError("a snapshot must not overwrite the shared source manifest")
+         root = Path(source_audit_dir)
+-        if not root.is_absolute():
+-            raise ValueError("source_audit_dir must be absolute")
++        allowed = Path("/data3/researcher/h3_runs/timing_cross_source_r20_20261016/audit")
++        if (not root.is_absolute() or root.resolve() != allowed.resolve() or
++                source_run_id != "07_sam_1312x736_shared_r20" or
++                run_id not in ("r20_s07_native", "r20_s07_full_6to14")):
++            raise ValueError("R20 pair snapshot root/identity mismatch")
+         source_path = root / (source_run_id + "_conditioning.json")
+         source_bytes = source_path.read_bytes()
+         common = json.loads(source_bytes)
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/extensions/H3TemporalRouter/__init__.py
++++ extensions/H3TemporalRouter/__init__.py
+@@ -2,6 +2,19 @@
+ 
+ from .core import EventBlockPatch, MODES, RouterState
+ from .layout import conditioning_metadata, event_latent_range
++
++
++def validate_run_contract(mode, alpha, radius, time_offset, start_frame, end_frame,
++                          block_start, block_end, step_start, step_end, run_id, audit_dir):
++    from pathlib import Path
++    allowed = Path("/data3/researcher/h3_runs/timing_cross_source_r20_20261016/audit/router")
++    if not Path(audit_dir).is_absolute() or Path(audit_dir).resolve() != allowed.resolve():
++        raise ValueError("R20 router audit directory must equal the isolated task directory")
++    arms = {"r20_s07_native": "native", "r20_s07_full_6to14": "mass_preserve"}
++    if (run_id not in arms or mode != arms[run_id] or
++            (alpha, radius, time_offset, start_frame, end_frame, block_start,
++             block_end, step_start, step_end) != (1.0, 0, 0, 54, 69, 0, 50, 6, 15)):
++        raise ValueError("R20 cross-source paired scientific contract mismatch")
+ 
+ 
+ class H3TemporalRouter:
+@@ -31,6 +44,8 @@
+               end_frame, block_start, block_end, step_start, step_end, run_id, audit_dir):
+         import comfy.ldm.minimax.model as h3
+ 
++        validate_run_contract(mode, alpha, radius, time_offset, start_frame, end_frame,
++                              block_start, block_end, step_start, step_end, run_id, audit_dir)
+         metadata = conditioning_metadata(positive)
+         ref = next(r for r in metadata["refs"] if r["kind"] in ("video", "video_audio"))
+         event_latent_range(start_frame, end_frame, ref["latent_t"])
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/extensions/H3X0Readout/__init__.py
++++ extensions/H3X0Readout/__init__.py
+@@ -28,6 +28,12 @@
+         key = "H3X0Readout/passive-v1"
+         if model.get_wrappers(WrappersMP.SAMPLER_SAMPLE, key):
+             raise ValueError("H3X0Readout already registered on this model")
++        from pathlib import Path
++        allowed = Path("/data3/researcher/h3_runs/timing_cross_source_r20_20261016/audit/x0")
++        if (not Path(output_dir).is_absolute() or Path(output_dir).resolve() != allowed.resolve() or
++                run_id not in ("r20_s07_native", "r20_s07_full_6to14") or
++                (width, height, length) != (1312, 736, 141)):
++            raise ValueError("R20 x0 path/identity/geometry contract mismatch")
+         config = CaptureConfig(run_id, output_dir, width, height, length)
+         cloned = model.clone()
+         cloned.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, key, PassiveRecorder(config))
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/scripts/service.py
++++ scripts/service.py
+@@ -11,13 +11,13 @@
+ import time
+ import urllib.request
+ 
+-RUN = Path('/data3/researcher/h3_runs/timing_architecture_r2_20261016')
++RUN = Path('/data3/researcher/h3_runs/timing_cross_source_r20_20261016')
+ CORE = Path('/data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI')
+ PYTHON = '/data3/researcher/ComfyUI/.venv/bin/python'
+ DEPENDENCIES = '/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps'
+ MODELS = '/data3/researcher/ComfyUI-H3/models'
+-GPU = 'GPU-REDACTED'
+-PORT = 8463
++GPU = 'GPU-REDACTED'
++PORT = 8480
+ 
+ 
+ def write_json(path, value):
+@@ -118,12 +118,30 @@
+         raise RuntimeError('Existing Comfy service has queued/running work; refusing to start')
+ 
+ 
++
++def gpu_readiness():
++    """Exact UUID query is mandatory; never fall back to an index after an error."""
++    result = subprocess.run(['nvidia-smi', '-i', GPU,
++        '--query-gpu=uuid,memory.used,memory.free,utilization.gpu,temperature.gpu',
++        '--format=csv,noheader,nounits'], capture_output=True, text=True, check=True, timeout=20)
++    rows = [line.strip() for line in result.stdout.splitlines() if line.strip()]
++    if len(rows) != 1 or result.stderr.strip():
++        raise RuntimeError('GPU exact-UUID health query returned ambiguity or driver error')
++    values = [x.strip() for x in rows[0].split(',')]
++    if len(values) != 5 or values[0] != GPU:
++        raise RuntimeError('GPU exact UUID did not resolve to the planned healthy device')
++    used, free, utilization, temperature = [float(x) for x in values[1:]]
++    if not (0 <= used <= 1024 and free >= 45000 and utilization == 0 and 0 <= temperature < 85):
++        raise RuntimeError('GPU exact-UUID readiness/idle/memory gate failed')
++    return {'csv': rows[0], 'observed_unix': time.time(), 'index_fallback': False}
++
++
+ def command(cache_none=False):
+     args = [PYTHON, '-u', str(RUN / 'scripts/compatibility_bootstrap.py'), str(CORE / 'main.py'), '--listen', '127.0.0.1', '--port', str(PORT),
+             '--base-directory', str(RUN), '--models-directory', MODELS,
+             '--disable-auto-launch', '--disable-dynamic-vram', '--disable-cuda-malloc', '--use-pytorch-cross-attention',
+             '--enable-triton-backend', '--preview-method', 'none', '--disable-all-custom-nodes',
+-            '--whitelist-custom-nodes', 'ComfyUI-KJNodes', 'H3EventAudit', 'H3EventEmphasis', 'H3PairAudit', 'H3TemporalRouter', 'H3X0Readout', 'H3PhaseRoPE',
++            '--whitelist-custom-nodes', 'ComfyUI-KJNodes', 'H3EventAudit', 'H3PairAudit', 'H3TemporalRouter', 'H3X0Readout',
+             '--input-directory', str(RUN / 'input'), '--output-directory', str(RUN / 'output'),
+             '--temp-directory', str(RUN / 'temp'), '--user-directory', str(RUN / 'user'),
+             '--database-url', 'sqlite:///' + str(RUN / 'screen.db')]
+@@ -145,6 +163,9 @@
+         if not os.access(PYTHON, os.X_OK):
+             raise RuntimeError('Runtime Python is not executable')
+         admission = json.loads((RUN / 'configs/admission.json').read_text())
++        if admission.get('ready_for_launch') is not True:
++            raise RuntimeError('R20 root has not completed live hardware/resource admission')
++        hardware = gpu_readiness()
+         processes = compute_processes()
+         queue = queue_at(admission.get('existing_comfy_port', 8189))
+         check_admission(admission, processes, queue)
+@@ -169,7 +190,7 @@
+             raise RuntimeError('Service exited during startup; inspect logs/comfyui.log')
+         record = {'pid': process.pid, 'gpu_uuid': GPU, 'port': PORT, 'started_unix': started,
+                   'command': args, 'identity': identity(process.pid), 'cache_none': cache_none,
+-                  'host_available_kib': available_kib, 'admission': admission,
++                  'host_available_kib': available_kib, 'admission': admission, 'gpu_readiness': hardware,
+                   'preexisting_compute_processes': processes, 'existing_comfy_queue': queue,
+                   'state': 'started_readiness_unverified'}
+         write_json(RUN / f'processes/service_{process.pid}.json', record)
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/scripts/job.py
++++ scripts/job.py
+@@ -69,7 +69,7 @@
+         with record_path.open('x') as target:
+             json.dump(record, target, indent=2)
+         try:
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-architecture-r2-20261016'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-cross-source-r20-host41-20261016'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/scripts/run_queue.py
++++ scripts/run_queue.py
+@@ -5,11 +5,13 @@
+ import re
+ import job
+ import service
++import preflight
+ 
+ def state(**v):
+     service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**v))
+ 
+ def run():
++    preflight.check(service.RUN)
+     deadline=time.monotonic()+8*3600
+     completed=[]
+     current=None
+@@ -18,7 +20,8 @@
+         while time.monotonic()<deadline:
+             plan=json.loads((service.RUN/'configs/queue.json').read_text())
+             names=plan['jobs']
+-            assert len(names)<=18 and len(names)==len(set(names))
++            if plan != {'jobs': ['r20_s07_native', 'r20_s07_full_6to14'], 'sealed': True}:
++                raise ValueError('R20 sealed two-arm queue changed')
+             pending=[n for n in names if n not in completed]
+             if not pending:
+                 if plan.get('sealed'):
+--- /Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/scripts/launch_remote.py
++++ scripts/launch_remote.py
+@@ -8,11 +8,15 @@
+ import time
+ import urllib.request
+ import service
++import preflight
++import warmup_reuse
+ 
+ r=service.RUN
++preflight.check(r)
++warmup_reuse.validate(r)
+ for name in ['custom_nodes','input','output','temp','user','logs','processes','audit','analysis']:
+     (r/name).mkdir(exist_ok=True)
+-for name in ['H3EventAudit','H3PairAudit','H3EventEmphasis','H3TemporalRouter','H3X0Readout','H3PhaseRoPE']:
++for name in ['H3EventAudit','H3PairAudit','H3TemporalRouter','H3X0Readout']:
+     target=r/'extensions'/name
+     assert (target/'__init__.py').is_file(),target
+     link=r/'custom_nodes'/name
+@@ -56,9 +60,6 @@
+             with urllib.request.urlopen(f'http://127.0.0.1:{service.PORT}/object_info/H3X0Readout',timeout=2) as f:
+                 readout_info=json.load(f)
+             assert 'H3X0Readout' in readout_info
+-            with urllib.request.urlopen(f'http://127.0.0.1:{service.PORT}/object_info/H3PhaseRoPE',timeout=2) as f:
+-                phase_info=json.load(f)
+-            assert 'H3PhaseRoPE' in phase_info
+             break
+         except Exception:time.sleep(2)
+     else:raise TimeoutError('readiness timeout')
+--- /Users/researcher/DevProjects/h3-timing-schedule-controls-r11-20261016/scripts/warmup_reuse.py
++++ scripts/warmup_reuse.py
+@@ -45,7 +45,7 @@
+             "extensions/H3EventEmphasis/core.py"]
+     for rel in code:
+         normalized = (root / rel).read_bytes().replace(
+-            b"timing_schedule_controls_r11_20261016", b"timing_feedback_r6_20261016")
++            b"timing_cross_source_r20_20261016", b"timing_feedback_r6_20261016")
+         if hashlib.sha256(normalized).hexdigest() != provenance["code"][rel]:
+             raise ValueError("backend code differs from warmup: " + rel)
+     return {"status": "pass", "warmup_job": gate["job"], "seconds_per_iteration": timing[-1],

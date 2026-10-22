@@ -1,0 +1,89 @@
+当前 x0 时间修正进入后续去噪：最小可否决实验
+
+建议
+先用 fitness → game_girl_1 的既有任务，做3条同一host、同一初始AV噪声的完整Euler20。只在index6处理一次；映射从这一刻的x0计算。先检查修正后的clean预测确实更接近动作时间，再看下一步预测和最终视频。当前最直接的价值是检验“修正能否沿去噪保留”这一前提。
+本文件只完成设计和实际源码核查。未写生产hook、改旧包或启动GPU。
+
+一、可用证据与当前限制
+R70 transport对两种既有映射的RGB8误差比直接重编码低13.99%/17.43%，说明其codec损失较低。其offline_mapping来自最终Native拟合；本实验改用当前x0的对应，旧最终phi不得进入输入。
+current_x0_phase_fit在原8fps前0..15时刻共同覆盖1.0，两档置信阈值.3/.5均可测。双臂方向误差.400769→.208729，未拟合前臂.439771→.215949，肩相对腕位置.491163→.352774。全片共同覆盖.4694/.3776，结论保持UNKNOWN。上述指标是开发诊断，辅助量仍共享姿态估计和关节。
+当前实际phi的0..15坐标全部有双上臂支持，首尾phi(0)=0、phi(15)=15。2秒以后的DP路径含不可见区间的约束填补，不能据此逐段干预。
+
+二、修正定义与使用范围
+取本次index6、post-CFG前的clean视频预测z，VAE解码y=D(z)。源姿态只需预处理一次；当前y须用同一冻结DWPose/原时间函数得到姿态。
+复用已冻结49点DP：8fps、双上臂方向、置信阈值.3、缺失代价2、增量0/1/2、最多连续重复2次、偏移上限8个原帧、同一tie-break。保持全49点拟合，首轮只使用预先指定0..15的可见段。
+本次拟合后必须检查：该段两档阈值覆盖达到原.8与至少8帧要求；所用插值邻点都有实际支持；首尾映射闭合至identity且单调。现有开发输入满足。新轨迹不满足则标记INELIGIBLE并跳过该组干预，保留结果。首轮不新增补全或另一套窗口选择器。
+将8fps坐标乘3，在24fps帧0..45之间做现有R70的分段线性时间插值；帧45..157取identity，形成W_phi。首尾闭合消除了坐标跳变。所有用于读取的RGB均须落在当前可见、有效源域内；146后的padding保持identity。
+使用整个当前画面的时间重排。该原型只对时间范围局部，尚未按人体部位做空间分割。
+
+计算
+  e_id = E(D(z))
+  e_phi = E(W_phi(D(z)))
+  T = L_phi(z) + [e_phi - L_phi(e_id)]
+L_phi严格沿R70名义非均匀latent中心，不把其当作VAE感受野或RoPE坐标。
+最终Delta = M * (T-z)。M只在输出名义范围、读取范围均完全落入可信时间段的latent bin非零。当前0..45的输出名义范围覆盖bin0..12；bin13对应43..46，跨边界排除。进一步检查读取插值的两端，bin11/12会读到bin13，因此当前实际可保留bin0..10。末尾bin9/10固定半余弦衰减为.75、.25，其他完整内部bin为1，外部为0。该边界处理是预先固定的工程约束，进入实验前一起封存；不得看成片后移动边界或改衰减。
+完整VAE的时间感受野和decode chunk overlap会把latent改动传播至邻近RGB。M=0只保证这些latent坐标直接改变量为0。必须报告RGB帧46..146、17帧分块交界和decoder overlap邻域的变化。不要宣称边界外RGB严格恒等。
+
+进入完整推理前的必要小检查
+对新current-phi计算的z+Delta做一次VAE decode，重新测量姿态；同时保存直接W_phi(y)作为图像目标。这项检查要在masked transport之后完成，避免只证明未加mask的算子有效。
+检查其前2秒原时间动作是否比y更接近源视频，左右臂、未拟合前臂/腕位置是否一致改善，以及边界处是否出现明显重影/顿挫。若直接RGB重排也无法改善，当前对应估计在本例不成立；若RGB目标改善但decode(z+Delta)不改善，问题位于映射到latent、codec或边界mask，先在这个层面处理。
+现有R70 four-decode不能直接替代该检查：其phi和范围不同。缺少当前映射的新e_phi，至少需要这次新的encode。
+
+三、最少3条完整对照，最多5条候选
+A：普通H3 + 同一观测流程。index6计算并记录当前phi、提案Delta，返回原始packed denoised。20次DiT；有效干预0。作为fresh同host对照，保留其完整输出。
+B：index6仅一次transport endpoint修改，lambda=1。后续13次forward完全沿原模型。作用是测试最自然的一次clean预测替换。
+C：同一index6提案，lambda=(1-sigma7)/c6=4.900008917317525，c6=(sigma6-sigma7)/sigma6。使下一state包含eta=1-sigma7=.04294478893280029倍Delta；这对应在同一噪声层级下替换当前估计的clean信号部分，估计噪声保持原值。用于排除B的Euler写入量太小。
+D（条件开展）：若C能保留改善，再加同index、同lambda的直接RGB重编码，Delta_raw=M*(e_phi-z)。与C区别仅为codec residual项，测试该已知补偿是否在最终结果中仍有额外收益。没有必要再跑已失败的plain latent重排或reference offset/PhaseRoPE。
+E（条件开展）：若B/C的提案几何有效但最终均无改善，可加最后一步index19的current-x0拟合与transport，lambda=1。此时c19=1，后面没有DiT，用于检验当前映射—codec—Euler—最终保存这条输出路径。它属于末端重定时的功能对照，不能凭这个结果宣称后续去噪保留了修正。index19重新用本次预测拟合，仍执行同一可见性与闭合要求。
+
+首轮顺序建议：先A的current-phi/codec可行性检查，再B、C。若B/C出现明确保留则D；若proposal有效但两者均无保留则E。总候选最多5条，不做lambda网格搜索。
+C与等量state编辑的实际一阶更新相同，无需为此另跑一条GPU视频。数学等价先CPU核对，再由每条实际x7输入验证，避免把相同操作当成两个独立方法。
+
+四、endpoint与state的精确关系
+实际源码：sampling.py:205返回denoised，206行先计算d，208行才调用被动callback，211行更新x。samplers.py:600..603在返回denoised前应用post-CFG hook，返回值赋给cfg_result。因此应接sampler_post_cfg_function；现有H3X0Readout callback保持记录用途。
+令z为原clean预测，z'=z+lambda*Delta，h=sigma_next-sigma：
+  x_next = x + h*(x-z)/sigma
+  x_next' = x_next + c*lambda*Delta,
+  c = (sigma-sigma_next)/sigma。
+index6：sigma=.9655172228813171，sigma_next=.9570552110671997，c=.00876422668967511。
+B写入下一state的是.00876422669*Delta，即0.8764%。
+定义 epsilon_hat=[x-(1-sigma)z]/sigma，则原Euler下一state严格等于sigma_next*epsilon_hat+(1-sigma_next)z。
+把这一表达式的clean项替换为z+Delta，可得x_next_signal=x_next+(1-sigma_next)Delta，对应C的lambda=4.900008917。
+float64独立随机向量代数检查的最大误差在4.44e-16至8.88e-16。实际float32需记录误差，使用预先声明的浮点容差，不要求不同括号顺序逐位相同。
+将整个Delta直接加到state需要lambda约114.1002；不采用它作为默认方案。把带噪state本身时间重排还会重排噪声并改变下一网络输入，不属于这里的等价对照。
+
+五、必须记录的轨迹，如何否决
+记录index6原始packed input x6、hook前z6、phi/有效性与mask、z+Delta、hook后denoised、实际下一次model input x7；保留原音频切片逐位值。再保存index7、12、19的hook前视频x0及真实sampler_final。
+当前H3X0Readout已有20组x0，但没有把传入的带噪x保存到文件。x6/x7需要新增独立只读审计记录。只有保存原x0和最终视频无法核定写入量。
+实际step7输入必须符合上一节的x_next'，无修改区间和音频本步误差为0（或仅记录相同Euler路径本身的float舍入）。index6之前的原始AV噪声、condition tensor、steps0..5及index6 hook前输入应与A严格相同；不满足则本组不具备单变量配对条件。
+
+判别顺序：
+1. W_phi(y)也没有动作改善：对应/任务可测性不足，本组不能验证修正机制。
+2. W_phi(y)改善，decode(z+Delta)不改善：算子或边界处理失效；后续推理结果无法把问题归因给模型冲掉。
+3. 提案改善，但实测x7未写入预期c*lambda*Delta：实现接线或重复调用问题，实验无效。
+4. x7写入正确，step7 clean预测从未显示改善，最终也无改善：结论为这一剂量在下一预测未传递出可测修正。包括高噪声弱写入、网络响应与观测误差，不能仅凭最终失败称后续冲掉。
+5. step7 clean预测已有改善，step12/19逐渐回到A的错位，最终改善消失：支持修正被后续去噪抵消。
+6. step7或后续预测出现改善且final仍保留，同时人物编辑、动作方向/幅度和接缝质量通过：支持单次current-x0反馈可沿推理保留。先报告这一例，再扩样本/种子。
+若E有效但C在step7已无效，说明输出路径能工作而早期状态/模型响应仍是障碍；E的phi来自另一步，不能单独证明同一个修正被冲掉。
+
+评价固定为原时间，不把生成视频重新对齐后再打改善分。沿既有物理评估报告first2s与whole，UNKNOWN原样保留；同时使用左右臂方向、未拟合前臂/腕位置，原始事件时刻以及固定6时刻和连续短视频。只有几何误差下降可能混合视角/幅度变化，动作时间改善需有事件先后与真实时刻证据。原8fps事件时间分辨率125ms；报告原帧级变化而不宣称个位毫秒精度。现有5%单侧恶化阈值仅作原工程筛查，保留连续值。
+whole UNKNOWN的样本仍进入总分母，可报告first2s结果和全片质量，不能把不可见段填写为零误差。官方MF可作补充，不替代动作阶段/时刻和编辑成功检查。
+
+六、真实输入、缓存与配对
+使用R65 fitness原任务和game_girl_1目标，避免和R72的新目标混用。实际文件与SHA见INPUT_BINDINGS.json。
+R65远端 .41 根目录为 /data3/researcher/h3_runs/timing_flexiact_forced_r65_20261018；已有原始噪声缓存 audit/r65_fitness_seed2026101701_noise.pt，约15.66MB，两路float32。已只读确认文件存在，并核实际noise manifest和PAIR_RUNTIME_GATE。
+所有新对照应放新的独立root，在同一个host/GPU/runtime/profile运行；保持原prompt、参考图/视频顺序、预处理、158帧/147有效帧、20Euler、原sigma float32、CFG1、seed、VAE权重与model哈希相同。沿原共享噪声文件复制并核张量raw SHA，而非只沿seed重新采样。
+如迁到.9，fresh A/B/C都在那里跑，同host内重新绑定实际VAE/Qwen/conditioning；R65 .41成片与x0仅作历史证据。A/B/C共享本批真实conditioning和noise，保存各自运行身份。
+若A/B/C在index6前逐位相同，则A算出的phi/e_id/e_phi/Delta可在本批后续臂以完整hash绑定复用，作为相同提案的因果实验。必须核本次hook前z6 raw SHA与来源；若不同则重新计算current-x0映射与codec。旧R65/finalNative的phi不能代用。复用时同时报告一次冷计算成本与后续replay成本，不能把缓存跳过的VAE时间伪称在线方法无需开销。
+
+七、额外开销与实现可行性
+每个首次有效观察：1次D(z)，1次CPU姿态观测/DP，2次VAE encode（e_id/e_phi），0次额外DiT forward。二路encode只差RGB时间重排，保持完整158帧上下文与VAE封装。decode/encode加载可能使DiT卸载；需要记录实际卸载、重载和wall，不能拿模型纯forward时间替代总耗时。
+R70已有同geometry .9实测：decode约39–50s/次，encode约75–76s/次。故1D+2E大约189–202s，仅是同环境量级参考；CPU姿态、文件传输、重载另计。
+可否决诊断另需1次decode(z+Delta)、index7和12各1次decode；final decode本来就有，index19可用final记录其Euler舍入差，不强制另decode。合计在有效干预臂约4次额外decode+2次encode+CPU观察，额外DiT仍为0。A可用同样观测路径控制生命周期，验证Delta后返回原z。所有调用次数与时间须实际记录。
+为减少风险，首轮建议暂停index6的采样线程，将clone到CPU的当前z和事务身份交独立VAE worker；等待同一事务的Delta后再进入本步Euler。root安排worker与DiT显存资源，遵守.9同时最多2卡。若选择同进程VAE，需先验证Comfy模型卸载/回载后的下一forward；当前源码审计尚未覆盖该生命周期实测。
+同一post-CFG注册只应存在一次。预计20次hook进入，B/C只有index6一次非零返回。检查cloned model已继承的hook列表、run/step身份和step顺序；重复注册或重复sigma调用不能靠CFG1自动规避。
+音频packed切片原样返回，仅保证本步直接音频更新相同；未来AV耦合可能改变音频输出。已有saved readout audio除过4，不能直接回填。
+首轮从头完整20步最稳妥。现有x0_step006.pt只有clean endpoint，不能当带噪state继续采样；读取该文件然后跑剩13步会改变实验定义。
+
+归属
+transport codec residual沿已归档LookingGlass/LongE2V数学机制；当前DP与上述信号量标定也按机制诊断对照报告。本轮成功可证明接口和保留性，为后续动态触发/支持区域/跨样本算法提供实验前提，尚不构成独立的新架构贡献。

@@ -1,0 +1,52 @@
+--- R35/evaluate.py
++++ R40/evaluate.py
+@@ -8,12 +8,14 @@
+ 
+ def check_provenance(source,generated,parents,source_video_sha):
+  require(generated['script_sha256']=='04c6dd432ddf102300a4cd065f4de8b9c2bc0661ce1abb06d994330b32ae693f','generated pose script')
+- require(all(generated==p for p in parents),'generated pose provenance differs from frozen parent')
+- if source==generated:return {'exact':True}
+- exception=read(HERE/'SOURCE_POSE_PROVENANCE_EXCEPTION.json')
+- require(source['script_sha256']=='b0eb01e8a0d24049cff8880dc3f356a177ada760cc919a31cfbd11ee7f82fa89' and source_video_sha==exception['source_sha256'] and exception['passed'] is True,'unregistered source pose exception')
+- require({k:v for k,v in source.items() if k!='script_sha256'}=={k:v for k,v in generated.items() if k!='script_sha256'},'pose source/model/selection provenance changed')
+- return {'exact_except_source_opening_mode':True,'existing_input_timebase_binding':exception}
++ require(source==generated and all(generated==p for p in parents),'source/Native/Auto pose provenance differs')
++ return {'exact':True,'scope':'all provenance fields, including detector/model/code/device/threads/selection rule; actual video SHA checked separately'}
++
++def pixel_outcome(off,auto,native):
++ require(len(auto)==len(native)==141,'RGB comparison requires141 actual frame hashes')
++ equal=auto==native
++ return {'all_OFF_141RGB_equal':equal if off else None,'actual_141RGB_equal_to_Native':equal,'all_OFF_final_AV':'independently checked by verify_single' if off else 'N/A after first intervention','RGB_difference_source':'not investigated by this comparison' if not equal else 'N/A equal','RGB_equality_is_not_inferred_from_latents':True}
++
+ 
+ def fixed_metrics(source,poses,windows,thresholds,metrics):
+  out={}
+@@ -115,24 +117,17 @@
+  for name,path in poses.items():
+   scan=observe(source,path,19);save(dest/(name+'_WHOLE_SCAN.json'),scan);scans[name]=observer_summary(scan)
+  save(dest/'WHOLE_SCAN_SUMMARY.json',{'endpoint':'final sampler output, independent of online selected windows; legacy physical_index19 is only schema adapter','results':scans})
+- ledger=read(arc/'DECISION_LEDGER.json');regions=region_sets(ledger,case);save(dest/'REGIONS.json',regions);subsets=[list(poses)]
+- if len(poses)>2:subsets.append(['fixed_full','auto'])
++ ledger=read(arc/'DECISION_LEDGER.json');regions=region_sets(ledger,case);save(dest/'REGIONS.json',regions);require(list(poses)==['native','auto'],'unregistered comparator: manual arm requires separate version');subsets=[list(poses)]
+  common={}
+  for names in subsets:
+   label='__'.join(names);common[label]={}
+   for c in protocol['thresholds']:
+    record=common_regions(source,{n:poses[n] for n in names},regions,c,metrics);save(dest/f'COMMON_{label}_{c}.json',record);common[label][str(c)]={'status':record['status'],'rows':len(record['rows'])}
+  pixels=media_and_pixels(videos,dest/'media',protocol['fixed_visual_frames'],protocol['fixed_clip_inclusive'])
+- media_and_pixels(videos,dest/'full_media',protocol['fixed_visual_frames'],[0,140])
+- import random
+- pair=['fixed_full','auto'];random.Random(protocol['blind_media_seed']).shuffle(pair)
+- blind={'A':videos[pair[0]],'B':videos[pair[1]]}
+- save(dest/'BLIND_KEY.json',{'seed':protocol['blind_media_seed'],'mapping':dict(zip(('A','B'),pair)),'scope':'read only after blind visual judgement'})
+- media_and_pixels(blind,dest/'blind_media',protocol['fixed_visual_frames'],protocol['fixed_clip_inclusive'])
+- off=not ledger['active_indices'];rgb_equal=pixels['RGB_frame_sha256']['AUTO']==pixels['RGB_frame_sha256'][case['comparators'][0]]
+- if off:require(rgb_equal,'all-OFF141RGB differs from Native despite required equality')
++ off=not ledger['active_indices'];pixel_scope=pixel_outcome(off,pixels['RGB_frame_sha256']['AUTO'],pixels['RGB_frame_sha256']['native'])
+  audit=read(arc/'audit/counterfactual'/f'{run}.json')['counterfactual'];job=read(arc/'logs'/f'{run}_job.json');capture=read(arc/'audit/x0'/run/'manifest.json')
+  efficiency={'job_wall_seconds':job['observed_unix']-job['submitted_unix'],'actual_NFE':ledger['NFE'],'actual_Euler_updates':20,'current_Native_observations':20,'Full_branches':len(ledger['active_indices']),'observer_wall_seconds':sum(x['wall_seconds'] for x in audit['measurements']),'branch_model_seconds_synchronized':sum(x['model_seconds_synchronized'] for x in audit['branches']),'branch_condition_copy_hash_seconds':sum(x['condition_copy_hash_seconds'] for x in audit['branches']),'chosen20_capture_seconds':sum(x['capture_seconds'] for x in capture['captures']),'interpretation':'recorded scopes can overlap; not an efficiency optimization study or a sum-total decomposition'}
++ parent_job=read(HERE/protocol['parents']['native']['job']);require(sha(HERE/protocol['parents']['native']['job'])==protocol['parents']['native']['job_sha256'] and parent_job['status']=='success' and parent_job['name']==case['parent_run'],'parent efficiency record');efficiency['Native']={'actual_NFE':20,'actual_Euler_updates':20,'job_wall_seconds':parent_job['observed_unix']-parent_job['submitted_unix'],'job_record_sha256':protocol['parents']['native']['job_sha256'],'scope':'historical job wall includes setup/decode/polling; not a controlled speed comparison'}
+  save(dest/'EFFICIENCY.json',efficiency)
+- summary={'video':str(video),'video_sha256':sha(video),'pose':str(pose),'pose_sha256':sha(pose),'source_pose_sha256':sha(source),'pose_provenance':provenance,'fixed_windows_scope':case['window_scope'],'whole_scan':scans,'common_support':common,'NFE':ledger['NFE'],'active_indices':ledger['active_indices'],'ON_episodes':ledger['ON_episodes_inclusive'],'restart_count':ledger['restart_count'],'normal_any_intervention':case['seed']==2026101313 and not off,'all_OFF_141RGB_equal':rgb_equal if off else None,'all_OFF_final_AV':'independently checked by verify_single' if off else 'N/A after first intervention','CPU_seconds':time.monotonic()-started,'efficiency':efficiency,'manual_quality_review':'pending fixed frames/fullvideo inspection; pose alone not identity/shape success','scope':'development cases, no generalization or architecture novelty claim'}
++ summary={'video':str(video),'video_sha256':sha(video),'pose':str(pose),'pose_sha256':sha(pose),'source_pose_sha256':sha(source),'pose_provenance':provenance,'fixed_windows_scope':case['window_scope'],'whole_scan':scans,'common_support':common,'NFE':ledger['NFE'],'active_indices':ledger['active_indices'],'ON_episodes':ledger['ON_episodes_inclusive'],'restart_count':ledger['restart_count'],**pixel_scope,'future_manual_reference':protocol['future_manual_reference'],'CPU_seconds':time.monotonic()-started,'efficiency':efficiency,'manual_quality_review':'pending fixed frames/fullvideo inspection; pose alone not identity/shape success','scope':'development-screened source51310 from previously examined nighttime court corpus; Native+Auto only, no independent unseen-scene or architecture novelty claim'}
+  save(dest/'FINAL_SUMMARY.json',summary);return summary

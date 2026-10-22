@@ -1,0 +1,72 @@
+现有86版本：按独立任务选择最新实际配对
+
+任务组合43个，独立源视频34条；同源角色、提示词、种子和方法版本单独留档。
+
+flexiact
+任务17个，源视频8条，版本31条；有实际干预配对13个任务。
+配对任务验收：{'PARTIAL': 6, 'COMPLETE_OBSERVED': 1, 'UNKNOWN': 3, 'FAIL': 3}
+配对时序结论（含各验收层级）：{'NEUTRAL': 10, 'NOT_COMPARABLE': 3}
+任务完整成立后的时序结论：{'NEUTRAL': 1}
+每任务最新尝试验收（含Native-only）：{'FAIL': 2, 'UNKNOWN': 4, 'PARTIAL': 9, 'COMPLETE_OBSERVED': 2}
+
+ivebench
+任务26个，源视频26条，版本55条；有实际干预配对24个任务。
+配对任务验收：{'PARTIAL': 2, 'COMPLETE_OBSERVED': 20, 'FAIL': 2}
+配对时序结论（含各验收层级）：{'NEUTRAL': 17, 'MIXED_BY_VARIANT': 1, 'NOT_COMPARABLE': 2, 'UNKNOWN': 1, 'IMPROVED': 2, 'OTHER_ACTION_CONTENT_BENEFIT': 1}
+任务完整成立后的时序结论：{'NEUTRAL': 15, 'MIXED_BY_VARIANT': 1, 'UNKNOWN': 1, 'IMPROVED': 2, 'OTHER_ACTION_CONTENT_BENEFIT': 1}
+每任务最新尝试验收（含Native-only）：{'PARTIAL': 2, 'COMPLETE_OBSERVED': 23, 'FAIL': 1}
+
+逐任务：benchmark | source | targetSHA前8位 | 最新实际pair | 任务验收 | 时序结果 | 最新尝试
+
+flexiact | chest | aeb8c2da | - | NO_ACTUAL_PAIR | NO_ACTUAL_PAIR | flex_r50_chest_auto
+flexiact | chest | fb2f5f3f | - | NO_ACTUAL_PAIR | NO_ACTUAL_PAIR | flex_r74_chest__game_man_5_native
+flexiact | crouch | 1f3bfe05 | flex_r85_crouch__movie_man_5_fixed | PARTIAL | NEUTRAL | flex_r104_crouch__movie_man_5_native
+flexiact | crouch | 41e95f56 | - | NO_ACTUAL_PAIR | NO_ACTUAL_PAIR | flex_r105_crouch__movie_man_4_native
+flexiact | fitness | 4e6ba751 | flex_r104_fitness__game_man_4_fixed | COMPLETE_OBSERVED | NEUTRAL | flex_r104_fitness__game_man_4_fixed
+flexiact | fitness | aeb8c2da | flex_r65_fitness_fixed | UNKNOWN | NEUTRAL | flex_r65_fitness_fixed
+flexiact | fitness | fb2f5f3f | - | NO_ACTUAL_PAIR | NO_ACTUAL_PAIR | flex_r72_fitness_prompt_control
+flexiact | human2animal_1 | 08f83a26 | flex_r104_human2animal_1__movie_man_11_fixed | PARTIAL | NEUTRAL | flex_r104_human2animal_1__movie_man_11_fixed
+flexiact | human2animal_1 | 4e6ba751 | flex_r116_human2animal_1__game_man_4_fixed | PARTIAL | NEUTRAL | flex_r116_human2animal_1__game_man_4_fixed
+flexiact | human2animal_2 | 08f83a26 | flex_r105_human2animal_2__movie_man_11_fixed | PARTIAL | NEUTRAL | flex_r105_human2animal_2__movie_man_11_fixed
+flexiact | human2animal_2 | 4e6ba751 | flex_r66_human2animal_2__game_man_4 | FAIL | NOT_COMPARABLE | flex_r66_human2animal_2__game_man_4
+flexiact | human2animal_3 | 08f83a26 | flex_r66_human2animal_3__movie_man_11 | UNKNOWN | NEUTRAL | flex_r66_human2animal_3__movie_man_11
+flexiact | human2animal_3 | 4e6ba751 | flex_r66_human2animal_3__game_man_4 | FAIL | NOT_COMPARABLE | flex_r105_human2animal_3__game_man_4_native
+flexiact | one_leg | 08f83a26 | flex_r66_one_leg__movie_man_11 | PARTIAL | NEUTRAL | flex_r66_one_leg__movie_man_11
+flexiact | one_leg | 5580c8f3 | flex_r65_one_leg_fixed | UNKNOWN | NEUTRAL | flex_r65_one_leg_fixed
+flexiact | one_leg | 94c1ff88 | flex_r85_one_leg__movie_man_9_fixed | FAIL | NOT_COMPARABLE | flex_r90_one_leg__movie_man_9_prompt_control
+flexiact | rotate | aeb8c2da | flex_r85_rotate__game_girl_1_fixed | PARTIAL | NEUTRAL | flex_r85_rotate__game_girl_1_fixed
+ivebench | long_0047 | - | r118_long_0047_fixed | PARTIAL | NEUTRAL | r118_long_0047_fixed
+ivebench | long_0123 | - | - | NO_ACTUAL_PAIR | NO_ACTUAL_PAIR | r96_long_0123
+ivebench | long_0167 | - | - | NO_ACTUAL_PAIR | NO_ACTUAL_PAIR | r96_long_0167
+ivebench | long_0173 | - | r96_long_0173 | COMPLETE_OBSERVED | NEUTRAL | r96_long_0173
+ivebench | long_0174 | - | r115_long_0174_fixed_one_bin,r115_long_0174_matched_one_bin | COMPLETE_OBSERVED | MIXED_BY_VARIANT | r115_long_0174_fixed_one_bin,r115_long_0174_matched_one_bin
+ivebench | short_0035 | - | r73_short_0035 | COMPLETE_OBSERVED | NEUTRAL | r73_short_0035
+ivebench | short_0065 | - | r73_short_0065 | COMPLETE_OBSERVED | NEUTRAL | r73_short_0065
+ivebench | short_0085 | - | r89_short_0085 | COMPLETE_OBSERVED | NEUTRAL | r89_short_0085
+ivebench | short_0092 | - | r64_short_0092 | FAIL | NOT_COMPARABLE | r102_short_0092
+ivebench | short_0114 | - | r100_short_0114 | PARTIAL | NEUTRAL | r119_short_0114_official_prompt
+ivebench | short_0126 | - | r64_short_0126 | FAIL | NOT_COMPARABLE | r102_short_0126
+ivebench | short_0131 | - | r89_short_0131 | COMPLETE_OBSERVED | NEUTRAL | r89_short_0131
+ivebench | short_0135 | - | r73_short_0135 | COMPLETE_OBSERVED | UNKNOWN | r73_short_0135
+ivebench | short_0178 | - | r89_short_0178 | COMPLETE_OBSERVED | NEUTRAL | r89_short_0178
+ivebench | short_0210 | - | r99_short_0210 | COMPLETE_OBSERVED | NEUTRAL | r99_short_0210
+ivebench | short_0230 | - | r99_short_0230 | COMPLETE_OBSERVED | NEUTRAL | r99_short_0230
+ivebench | short_0252 | - | r113_short_0252_seed2026101702_fixed,r113_short_0252_seed2026101703_fixed | COMPLETE_OBSERVED | IMPROVED | r113_short_0252_seed2026101702_fixed,r113_short_0252_seed2026101703_fixed
+ivebench | short_0263 | - | r102_short_0263 | COMPLETE_OBSERVED | NEUTRAL | r102_short_0263
+ivebench | short_0268 | - | r89_short_0268 | COMPLETE_OBSERVED | NEUTRAL | r89_short_0268
+ivebench | short_0274 | - | r89_short_0274 | COMPLETE_OBSERVED | NEUTRAL | r89_short_0274
+ivebench | short_0343 | - | r89_short_0343 | COMPLETE_OBSERVED | NEUTRAL | r89_short_0343
+ivebench | short_0344 | - | r73_short_0344 | COMPLETE_OBSERVED | NEUTRAL | r73_short_0344
+ivebench | short_0352 | - | r99_short_0352 | COMPLETE_OBSERVED | OTHER_ACTION_CONTENT_BENEFIT | r99_short_0352
+ivebench | short_0358 | - | r97_short_0358_extended | COMPLETE_OBSERVED | IMPROVED | r97_short_0358_extended
+ivebench | short_0370 | - | r69_short_0370 | COMPLETE_OBSERVED | NEUTRAL | r78_short_0370
+ivebench | short_0392 | - | r108_short_0392 | COMPLETE_OBSERVED | NEUTRAL | r108_short_0392
+
+关键解释：
+1. short_0252与short_0358为两个有局部时序改善的独立来源。R113的两个新seed只增加复验次数。
+2. long_0174新Value transport固定变体仅局部转折提前，匹配变体近中性；归MIXED_BY_VARIANT。
+3. short_0352减少新增指点手势，归动作内容收益；short_0135接触时刻UNKNOWN。
+4. NEUTRAL表示既有审阅范围内未见清楚收益，基础任务部分成功和未知均单列；完整任务成立不等于每个事件对齐。
+5. 当前统计按最高R的实际配对，保留较新Native-only的单独验收。旧失败配对不被较新普通版替换。
+
+优先继续：IVE单人手部离散操作与主体/外观修改，按源动作可见性预选；保留全部预选样本、失败和中性结果。

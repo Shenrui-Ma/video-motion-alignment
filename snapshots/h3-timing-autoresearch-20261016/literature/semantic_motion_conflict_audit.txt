@@ -1,0 +1,104 @@
+H3 稀疏语义参考与密集运动参考冲突：独立窄范围审查
+2026-10-16；只写本文，未改代码、部署或运行 GPU。
+当前事实边界：root 报告 B=P6/T6 的主窗口 lag 从原生13帧降到5帧；C/D待出，本审查不预支其结果，也不把一个窗口指标当整体编辑质量。
+
+判断
+
+NO-GO：现在不能以“发现语义—运动冲突，动态屏蔽冲突语义 token”为新架构直接推进。语义编辑与运动保持的冲突、条件分路、注意力子块屏蔽、条件门控都已有明确先例。本次没有核实到一篇完全相同于“冻结 H3，衰减 source-video Qwen 来源行而保留 dense source VAE 输入，以修复动作时间 lag”的论文；这不构成空白证明。
+
+GO（仅诊断）：可以保留一个窄假说——稀疏来源呈现对动作时刻的影响，是否通过视频来源 tagged semantic span 的直接读取路径介导？对该路径做有限、可回滚的衰减 ablation，而不是先添加动态冲突检测器。成功仍是来源路径因果证据；不能称纯语义/纯运动解耦。
+
+1. 最接近原始工作：哪些直接冲突，哪些只是相邻
+
+1.1 SAMA：视频编辑的 semantic–motion 冲突已被直接命名和建模
+https://arxiv.org/html/2603.19228v1
+已读 §1、§3.1–3.4，尤其 Eq.3–5；原文短句：“lack of factorization between semantic structure planning and motion modeling”。
+它在同一 Wan DiT 中联合去噪稀疏 anchor 的 SigLIP semantic tokens 与视频 latent，并用 cube inpainting、speed perturbation、tube shuffle 的恢复任务训练运动建模，再做编辑数据 SFT。不是 inference-time Qwen span attenuation；也不是无需训练。否定的是泛化故事“语义与运动冲突此前无人研究”，不是否定本例能做因果诊断。本文未审其完整可运行代码，不声称复现。
+
+1.2 Kiwi-Edit：MLLM 语义与 dense source VAE 分工，以及时间相关支路强度已有
+https://arxiv.org/html/2603.02175v1
+已读 §4.1、Eq.1。MLLM instructional queries / reference features 给语义条件，source VAE 经独立 PatchEmbed 后与 noisy latent 相加，learned gamma(t) 控制 source 强度；reference image 用序列拼接。训练 connector/适配模型；不是检测冲突后屏蔽已上下文化的 source-video 语义行。它直接否定“只要把语义和源视频结构分两路，再按去噪步调权就是架构新意”。
+官方仓库由论文给出：https://github.com/showlab/Kiwi-Edit 。本次判定来自原文，未做实现复验。
+
+1.3 FlexiMMT：视频 DiT 中 text / motion / video attention 子块限制已有
+https://arxiv.org/html/2603.01000v1
+已读 §3.1–3.3，Eq.2–10、Figure2。插入从参考视频训练的 motion tokens；MDMA 按对象限制 text/motion 与 video 的交互，并限制 motion-to-motion、text-to-motion 等子块；推理用对象 mask 及传播。不是 H3 source Qwen vs dense VAE 两条表示的消融，且 motion tokens 需学习。它阻止把“保留运动路径、屏蔽不该交互的语义子块”单独包装为新原语。
+注意：论文把 raw attention map 与 mask 写成逐元素乘法，本次未审官方执行代码，不据此假设每个0对应真实 softmax −inf hard mask；这里只认定其明确的子块选择机制与任务，不把记号当实现细节的证明。
+
+1.4 AtteConDA：跨条件冲突的局部门控已有，但它是图像模型
+https://arxiv.org/html/2605.09425v1
+已读 §3.5 Eq.10–16、Appendix B。独立 edge/depth/seg stems；用条件相互作用、去噪时间和 pooled text 产生局部 logits，再经 straight-through hard selector 选条件。训练 local adapter/PAM，冻结 SD backbone；不是 training-free，也不是视频动作对齐。
+代码实读并固定：
+https://github.com/ShogoNoguchi/AtteConDA/blob/49c86d61515bbdd533bf5bceec7d4f5b7255f98b/Uni-ControlNet/models/patch_adaptation.py#L441
+441–499行确实独立提取三路、计算logits、选择及加权融合；50–69行是 softmax/argmax/STE。因此“用局部条件差异来开关某支”不能不做更明确区别就称新。
+
+1.5 MotionEditor：参考 motion 与源 motion 不一致的冲突早已有
+https://arxiv.org/html/2311.18830v1
+已读 §4.2–4.3，Eq.5。目标pose由ControlNet提供，可能与 inversion 中的原运动冲突；content-aware adapter 用 pose feature作Q、对应源latent作K/V，使其兼容，并注入重建分支保持外观背景。训练adapter。其冲突是指定新动作与源动作，不是同一源视频的稀疏/密集表示内部偏差；不能拿它当本诊断已完全做过，也不能再把一般reference-motion conflict称新问题。
+
+1.6 简单分支缩放并非新数学：BindWeave 与 ST-DRC
+https://arxiv.org/html/2510.00438v1 ，§3.1 Eq.4、§3.3–3.4 Eq.7–12。
+BindWeave讨论语义attention与VAE输入两级条件，自身用joint MLLM/T5和CLIP两种cross-attention及VAE reference；模型需训练。不要将它背景介绍的gamma公式误写成它提出的动态冲突gate。
+https://arxiv.org/html/2606.02441v1 ，§3.4。
+ST-DRC将三种velocity组合为 unconditional + s_text*(text−uncond) + s_ref*(text+ref−text)，独立调text/reference。不是Qwen source span去耦，但会成为“只是条件强度重新平衡”的直接反例基线。
+
+2. 已核实 H3 社区实现：不能忽略非论文已有性
+
+2.1 原生参考视频 V 衰减，Qwen保持：与我们的候选方向相反，但原语已存在
+https://github.com/ethanfel/ComfyUI-MiniMaxH3-Context-Loop/blob/43afeffcc570beb5f7382593e79e4b211c7e02f6/reference_video_fade.py#L244
+本次实读代码：244–264行找到packed native video/video_audio范围后，对V对应行乘strength；266–276行仍调用原attention backend。文件1–18行与节点文档明确保留Qwen、still-picture、reference audio等路径；79–96行按采样进度半余弦fade。
+这是第三方作者自己的实现证据，不是MiniMax官方结论，也不证明其效果优于原生。它不实现“削弱Qwen保留dense”，但把开关从一个参考group移到另一个group，通常只是控制对象改变，难形成架构贡献。
+更重要的数学边界：其V-only缩放在当前attention调用保持QK概率，但改变V输出；并非logits mask，也不是“删掉某类信息”。
+
+2.2 Qwen-only / native双参考transport已经可选择
+https://github.com/ethanfel/ComfyUI-MiniMax-H3-Edit/blob/92ff5b926945e21d843fa618ba440ad2f96048e6/h3edit/nodes.py#L69
+实读69–73、1218–1223、1540–1545、1897–1907、1987–1989行：semantic仅走Qwen，native额外生成VAE minimax_refs；图片编辑/生成用途，不是我们的逆向“保留dense禁Qwen视频”实验。故“可以拆开两条reference运输路径”已有工程先例。
+作者文档也区分 timed Qwen-only anchors 与 native refs：
+https://github.com/ethanfel/ComfyUI-MiniMaxH3-Context-Loop/blob/43afeffcc570beb5f7382593e79e4b211c7e02f6/docs/SCHEDULED_REFERENCES.md
+作者提醒过多重复语义图可能阻碍源视频变换姿态；这是作者使用观察，非本轮可引用为已经严谨证实H3语义—运动冲突的实验。
+
+3. H3 的 source-tag span 不能当干净的因子
+
+依据本地冻结snapshot及已完成实现审查：
+/Users/researcher/DevProjects/h3-short-event-pilot-20261013/configs/comfy_core_snapshot.tar.gz
+comfy/text_encoders/minimax.py:39–72、179–191；comfy/ldm/minimax/model.py:353–460；本项目 literature/semantic_sampling_hypothesis.txt 与 semantic_clock_implementation_review.txt。
+
+- 稀疏2fps视频两图形成一个Qwen visual entry；后面取的是深层上下文化embedding，既可能含身份、背景、动作、文本指令，也可能受先前其他输入影响。
+- 来源tag只记录输入位置/来源。tagged source-video行不是纯motion；untagged text/其他行也可能携带已传播的source-video信息，具体依赖encoder注意力和序列次序。
+- token refiner与DiT再混合，之后按原tag屏蔽readout不会擦除已流入其他行的source信息。反之，直接屏蔽源行也可能删掉正确的指令语义、外观、定位等。
+- dense VAE同样不是“纯运动通道”，含纹理、背景、身份、姿态。两路都来自同一真实视频，在输入真值上未必互相矛盾；模型内部粗表示诱导的偏差目前只是待验解释。
+- fixed dense encoded input不等于后续每层dense K/V不变。共同DiT中的上下文更新可让dense hidden states受到干预的间接影响。
+- 因此准确报告应叫“某来源位置的直接读取消融”，不叫“去除语义干扰、保留纯运动”或“只改运动因子”。
+
+4. 仅一个可证伪假说及最小实验
+
+H：在固定dense参考和噪声的条件下，P/T呈现导致的部分动作lag差异，经source-video语义来源行的直接target读取路径介导；对这一特定路径有限衰减，应该削弱两种呈现之间的差异，而不是仅靠重分配attention概率强化dense参考。
+这是机制诊断假说，不是确认的结构创新。当前B13→5本身只提供动机，不能确认H；C/D仍须独立报告。
+
+可审查算子（仅定义，不在此执行）：
+令当前某层/头P=softmax(QK^T/sqrt(d))，S为冻结ledger对应的source-video semantic位置，U为被修改的输出video queries。原O_U=P_U,: V。定义
+    O'_U = O_U + (beta−1)*P_U,S V_S，0<=beta<=1。
+beta=1严格原生fastpath；其它query输出不直接动。原dense input/layout、Q/K、当前位置和本次attention概率不变，不额外给dense group增mass。beta必须事先固定（例如0.5），不能扫很多层/时段再只选最优。
+这就是已知group contribution衰减，不是新数学；相对于社区全query dense V gate，仅改变query范围和被门控group，不能单凭这个主张架构差异。
+
+为何不用简单logits hard mask做第一诊断：若把S logits置−inf，非S权重会按1/(1−m_S)放大，dense reference也被动增强。改善可能完全来自我们已知有效的“更强/更集中的dense控制”，无法归因于语义内容冲突。V-only可以排除此处softmax再归一化混淆，但仍有attention输出幅度变小的混淆，须加匹配控制。
+
+最小附加对照（前置条件：现有四臂实际编码/视频审计完整通过；本建议不授权新增队列）：
+1) 固定两种已观察的呈现A和B，分别加同一beta、同一范围门；复用现native A/B作为无gate对照。考察e_A−e_B是否缩小，同时两个最终视频是否保住动作与角色编辑。差异缩小因为两条都坏掉，不支持H。
+2) 至少一个matched control：对非source-video语义来源组做相似输出贡献幅度的衰减，或对当前attention输出做匹配幅度缩放。应预先锁定匹配规则，不根据最终pose调参；该控制自身也可能删掉有用内容，必须如实报告。
+3) 新seed上的A/B交互复验必须冻结门参数。若只比较一条A前后，只能得到path sensitivity，不能支持P/T效应由该路径特异介导。
+4) 没有测量conflict的可靠传感器前，不添加动态gate。向量cosine<0不等于动作冲突，flow velocity差不等于光流；source-span attention强也不等于错时原因。
+
+拒绝条件与结论阶梯
+- gate无效：拒绝“该直接读取路径足够解释并可修复”的强版本；因信息可能已跨行传播，不能据此证明语义路径整体无关。
+- A/B差异不减，或matched control同样修好：不支持source-video语义特异的冲突解释。
+- lag变小但动作幅度/编辑身份/背景崩掉，或unknown变成假成功：拒绝“缓解问题”的结论。
+- 只在一个seed某beta有效：配置敏感性/小样本消融，不叫稳定结构规律。
+- A/B差异特异减小且新seed重现：可说“来源span直接读取参与了呈现敏感性”，仍不能说已分离纯semantic/motion或找到自动conflict gate。
+- 要从诊断晋级方法：必须有预先定义且可验证的冲突指标、保持无需编辑运动的选择规则、固定gate比全局条件衰减/同帧dense route更好的独立证据。这些当前都未提供，本轮不以拼装先例填补。
+
+5. 范围与最终建议
+
+本次定向核实了视频语义/运动factorization、MLLM+dense参考、token子块隔离、局部条件门控，以及H3第三方分路/衰减实现。未把图像条件门控误称完全同任务的视频先例，也未把未找到exact-match论文当空白证明。论文与代码引用分别标明，未运行任何外部模型。
+
+建议只做有限因果ablation或等待C/D完成后停止；不立即设计新的动态门控架构。当前最有价值的输出仍是明确排除错误归因：不能仅看到lag改善就推断稀疏语义与dense运动冲突，更不能以tagged span宣称因子解耦。现阶段architecture NO-GO，diagnostic conditional GO。

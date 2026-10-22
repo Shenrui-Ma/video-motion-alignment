@@ -1,0 +1,59 @@
+候选状态：21 项定向 CPU 测试通过；每项同时检查 R50、R55 接口。
+本目录以外没有写入，未查询真实 GPU，未启动或停止任何实验进程。
+
+精确变更（各版本均仅 4 个源文件）
+1. extensions/H3AutomaticWindowRouter/transport.py
+   - ResourceUnavailable 与 AdmissionIntegrityError 分开；只有资源状态可重试。
+   - GPU memory/compute 原始查询与 PID ownership 快照进入 JSONL 审计。
+   - 对其他用户只读取 UID；本用户及预期父进程核对 PID/start ticks/command SHA。
+   - admission 仍要求主模型独占指定 main GPU，decoder GPU 空闲，所有本 UID
+     已用卡仅有 main。这在加入 decoder 后保持最多两张自有 GPU。
+   - wait_decoder_admission 共享本 observation 的 600 秒单调时钟截止点。
+   - run_child 增加可选执行阶段计时：收到绑定本次 child identity 的 start
+     marker 后，独立限制执行时间为 180 秒。其他调用沿用原有总预算逻辑。
+   - response 验证改为本次 decoder generation 与 NVML 尾已释放的证明。
+2. scripts/run_observer.py
+   - 等待资源、保存现场；向 child 传同一截止点与独占 start marker 路径。
+   - 父监督总预算=剩余资源等待+180 秒；CPU pose 的 840 秒上限沿用。
+   - 解码后检查自身释放，随后进入 CPU pose。其他人在 GPU2 开始工作会
+     出现在记录中；下一次 decoder 准入重新检查卡是否空闲。
+3. scripts/decode_live_child.py
+   - 两次准入检查均支持有界等待；第二次之后再次验证 request/endpoint。
+   - CUDA 初始化前写入本次 child 的 execution-start marker。
+   - VAE load/decode、归一化、FP16、RGB 写出及异常处理计算体保持逐字一致。
+4. scripts/gpu_release_gate.py
+   - 新增 wait_own_child_released：只等待自身 PID generation/NVML 尾，最多10秒。
+   - 同 PID 新 start ticks 记为复用；同 generation 即使命令变化仍硬失败。
+   - 原 wait_after_child 保留逐字不变，供 standalone 资源证书继续检查整卡空闲。
+
+已验证
+- busy 后恢复、等待超时、父身份变化、数据绑定错误、第三张自有 GPU、其他
+  用户无关 GPU、解码退出后其他进程进入、PID 复用、原 generation 仍存活、
+  NVML 尾恢复/超时、查询晚于截止点，以及两套 response 接口。
+- 合法资源等待 300 秒后再解码 30 秒可以完成；执行阶段超过 180 秒会结束
+  本次 child；伪造 generation 和过期执行 marker 均失败。
+- 21 个测试通过；准确 patch 可从 source snapshot 重建 overlay。
+- 当前 producer 四文件 SHA 与开始前 snapshot 一致；数值计算体及 standalone
+  gate 逐字相等。TEST_LOG.txt 与 CHECK_RESULTS.json 保存证据。
+
+供 root 集成
+1. 优先在 R55 封存前合入。R50 当前正在运行，现有文件维持冻结。
+2. 先比对 SOURCE_SNAPSHOTS.json。若 producer 已被其他工作更新，重新审查
+   并合并 diff，避免用整个 overlay 覆盖其改动。使用相应 candidate.patch。
+3. 用新的工程版本重新生成 source bindings、manifest 和 bundle；保留旧版。
+   该补丁没有改数值策略/Attention/parent/noise，kernel 继承须继续核验原哈希。
+4. 新版实际 decoder gate 仍应由 root 在空卡上执行；本候选没有 GPU 结果。
+5. 为新增 after_decoder_release 和 execution marker 更新任何限定字段的
+   外部归档/验证规则。候选已覆盖当前 transport 的正式 response 校验。
+
+限制与风险
+- NVML 查询与 CUDA 初始化之间仍存在竞争时间窗；共享集群没有原子 GPU
+  预留。此补丁通过等待和再次查询处理常见竞争，不能建立独占调度保证。
+- 单次 nvidia-smi 查询最多10秒；两次查询可能使终止响应超出资源截止点
+  少量时间。超过截止点取得的“可用”结果会拒绝 CUDA 准入。
+- 600秒资源等待与180秒执行使用同机 monotonic 时钟；不能跨主机复用该值。
+- decoder 只在成功回收后进入 release 验证。未知 compute ownership 会等待；
+  不会将其当作其他用户而放行。退出后自身 NVML 尾超过10秒仍会失败。
+- 资源等待期间主模型继续驻留 GPU；结束观察超时后由原生命周期机制回收。
+- 仍需真实环境检查：查询格式、GPU驱动NVML延迟、目录权限、开始marker读写，
+  以及实际解码耗时。全部测试使用 stdlib mocks，未做 CUDA/inference 测试。

@@ -1,0 +1,25 @@
+FlexiAct 官方 CSV 未测组合盘点（固定 revision 69d7747f93e1b913a3dca306bf8e91ee74fea7d4）
+
+已使用的 8 个底层人体 motion 对应 46 条 val_image.csv 记录，去重后仍为 46 对：39 对人体目标、7 对动物目标。R49/R65/R66 合并后已有 13 个不同 source×target 组合，其中7个在官方 CSV，另6个是 human2animal 素材配人体目标的自建组合。相同动作的 crop 文件、不同 prompt/seed、Native/引导两次推理均不算新的 source×target。
+
+人体官方组合剩32对。逐张检查20张原始人体目标图后，未测且从头到脚完整可见的官方组合只有7对；全部纳入。再加 chest→movie_man_7，目标图双臂、躯干和大腿可见，与 chest 的上肢拉力动作相容，形成8对固定候选。共5个 motion、6张目标图。其余24个人体组合和7个动物组合也完整保存在 ALL_OFFICIAL_ROWS.csv，不因之前的失败而删除。
+
+固定顺序：
+1. chest → game_man_5.jpeg；全身目标图；官方 CSV 行 3
+2. chest → movie_man_7.jpg；双臂/躯干可见，脚不在图内；官方 CSV 行 8
+3. crouch → movie_man_5.jpg；全身目标图；官方 CSV 行 2
+4. crouch → movie_man_9.webp；全身目标图；官方 CSV 行 6
+5. fitness → game_man_5.jpeg；全身目标图；官方 CSV 行 7
+6. one_leg → movie_man_9.webp；全身目标图；官方 CSV 行 2
+7. rotate → game_man_1.jpg；全身目标图；官方 CSV 行 3
+8. rotate → game_man_4.jpg；全身目标图；官方 CSV 行 6
+
+选择依据是官方成员身份、未测组合及原始目标可见范围；没有用这8对的 H3 结果来筛选。原5个 motion 保持覆盖，旧失败保留原统计分母。候选不增加新动作内容，目的是检验同一动作换目标身份后的泛化。
+
+源素材可见性：chest 是上半身近景，手部可能出画；fitness 在抬手高点有上边界裁切；crouch、one_leg、rotate 体现更完整的身体或腿部。source_inventory.jpg 的0/24/48帧仅说明构图，可见性不等于逐帧动作标注。人体关键点观察器应保留 UNKNOWN，不应把缺少可见关节自动判作动作错误。
+
+官方元数据问题：crouch 的 val_image.csv caption 描述 resistance machine，但原片是户外深蹲，已逐行标记。P0 保持 R49 原提示完全不变，本盘点不自动纠正官方 caption 或采用新 P1。
+
+human2animal_1/2/3 的官方目标都是动物，共7对。本轮候选保持人体目标；动物组合仍列在总库存，人体姿态/可见部位评估对它们的适用性需单独定义。
+
+全部8个CSV、8条源视频和20张已查看人体目标图已用固定 HF_TREE 的 Git blob OID 或 LFS SHA256 核验。FIXED_8_CANDIDATES.json 包含每条素材绝对路径、hash、官方行与原caption。INVENTORY_FREEZE.json 固定本次候选及数据快照。没有执行新生成或 GPU 工作。

@@ -1,0 +1,16 @@
+R121：两条已有正例在 IVEBench 官方原文提示下复核
+
+1. short_0252：Replace the man with an elderly woman
+2. short_0358：Add a pair of glasses to the man.
+
+两条文本逐字等于官方 edit_prompt。分别沿用 R73、R89 的源视频与预处理文件，源片有效帧为 98、105；模型输入均为 107 帧、24 fps、1312×736。展示与评分裁去预处理边框至 1280×720，padding 不参与评价。它们是两个已有来源的提示词协议复核，不增加独立来源数。
+
+每个来源先运行新的 Native；负责人检查目标编辑、场景、人物、物体及原动作序列，随后选择 guide 或 skip。时刻偏移本身不作为基础任务失败。guide 使用同一官方文本、2026101701 初始噪声、原 sigma、Euler 20 步、CFG 1，在 zero-based 6–14 步的全部 50 个 block 做已验证的 mass_preserve 引导。两个来源都保留，skip 写明实际理由。首次 guided 成片通过负责人审阅后继续第二来源。
+
+实际 gate 验证 reference conditions、AV noise、sigma、前六次预测逐值相同、实际 0/450 次路由及 107 帧输出。每条记录运行时间，分别评价任务成立与可见动作时刻；官方 MF 另行计算，保留与肉眼判断不同的情况。事件沿用已记录的 source-only 定义，见 design/PREREGISTERED_EVENTS.json。
+
+执行环境：.41 GPU 2，port 8585；单个本用户 H3 服务。R113-host41 四条全部完成并精确释放，再等待其官方 MF 最终释放回执。原 H3 准入规则保持：adjusted high/max 64/76 GiB，GPU free 40 GiB，以及冻结策略中的其他容量/PSI条件。前置检查绑定 R113 actual attempt、aggregate/per-seed gate 和 MF 的 exact identity 释放。ROOT review、target CPU 验证和实际容量通过后才启动。
+
+预定启动：python3 -u audit/root_run_batch.py --execute --attempt host41_official_positive_attempt1 --predecessor-attempt R113=host41_oxygen_seeds_attempt1
+
+进程由已验证的 supervisor/controller 管理，最终清理仅本包身份匹配的进程。consumer 收取视频、小 JSON 与回执，完整 x0/noise/condition 张量留在服务器。输入、6 个数值核心文件与父图变更见 audit/SCIENCE_DIFF.json、audit/INHERITED_BYTE_BINDINGS.json、configs/runtime_kernel_hashes.json。

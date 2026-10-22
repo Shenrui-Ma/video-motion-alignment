@@ -1,0 +1,38 @@
+R113 独立消费与事件评价（CPU 准备）
+
+输入：IVEBench short_0252，任务为男人替换年长女人，无角色参考图。
+Producer：h3-timing-oxygen-seed-replication-r113-20261019。
+预定种子：2026101702、2026101703。每 seed 均有独立 Native 与 fixed，四条全部保留。
+视频输入与成片均为 1312×736 /107帧/24fps；有效帧 0–97。
+评价与展示取 x=16,y=8,width=1280,height=720；98帧保持原物理时间。
+
+本包没有推理或 tracker GPU 提交入口。全部实际结果和分数当前尚未生成。
+
+收取条件与入口：
+scripts/consume.py --attempt <root已完成并精确释放的R113 attempt>
+只读状态：同一命令追加 --status。
+收取须同时具有两个 per-seed gate、aggregate gate、完整4条 COMPLETE 以及准确释放回执。
+每条检查实际 graph/job/history/router/conditioning/noise 绑定；两 seed 不得复用旧 Native 或相同噪声。
+只收小 JSON 和四条 MP4，源视频从本机复制。完整 condition/noise/x0 tensor 留在服务器。
+遇到缺失/失败门时保持 pending/保存错误，避免生成虚假的实验对照。
+
+未来输出：
+incoming/actual/：全部四条原成片、源视频与实际证据。
+showcase/2026101702/、showcase/2026101703/：3840×808 三联视频、20页覆盖98帧的对照图、单文件HTML。
+showcase/index.html：两 seed 的三联视频总览；实际完成后同时发布到 Downloads。
+prepared/<seed>/MF_INPUTS.json：无损裁剪且逐帧像素/PTS核验的官方IVE MF输入；评分单独排队。
+audit/full98_review/<seed>/REVIEW_TEMPLATE.json：实际 gate/collection/帧图绑定的审阅模板。
+
+任务验收：年长女人身份、机舱/男孩/面罩、动作顺序、构图/幅度分别记录。
+事件源区间固定为42–45、48–51、69–75帧，来自R73探索记录并在两个新seed之前封存。
+每个事件逐版填写OBSERVED及区间，或UNKNOWN/NOT_COMPARABLE/RIGHT_CENSORED/ALTERED及原因。
+看不清不能记成0帧误差；终点姿态只记存在情况。
+正式时间比较要求两版任务PASS且事件均可比较；原始观察区间仍完整保留。
+scripts/review.py --review <完成的审阅JSON> --output <新的事件结果JSON>
+计算共享源事件不确定区间下的有符号延迟和绝对时间差变化；该范围是视觉标注范围，非统计置信区间。
+
+CPU验证：
+python -m unittest discover -s tests -v
+python scripts/preflight.py
+audit/source_only_layout_fixture 只重复原视频，验证98帧时基、裁剪、布局与中文图注；不属于实验结果。
+科学像素和评分方法不受展示缩放影响。视频图注为参考视频/普通编辑/时序引导后视频。

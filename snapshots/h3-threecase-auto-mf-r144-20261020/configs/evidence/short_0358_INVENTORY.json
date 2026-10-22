@@ -1,0 +1,262 @@
+{
+  "id": "r123_short_0358_full_context",
+  "benchmark": "IVEBench",
+  "source_id": "short_0358",
+  "variant": "R123 · 完整Context-IR · 同提示词时序引导",
+  "title": "饮酒动作 · 给饮酒者加眼镜",
+  "task": "Add a pair of glasses to the man.",
+  "display_task": "给画面左侧饮酒男子加眼镜，保留双人场景和饮酒动作。",
+  "reference_image_used": false,
+  "reference_image_path": null,
+  "reference_video_path": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_video.mp4",
+  "ordinary_video_path": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native.mp4",
+  "comparison_video_path": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/showcase_pairs/short_0358/source_native_guided_full_valid.mp4",
+  "guided_video_path": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced.mp4",
+  "alternative_video_path": null,
+  "comparison_kind": "guided_pair",
+  "column_labels": [
+    "1.参考视频",
+    "2.普通编辑",
+    "3.时序引导"
+  ],
+  "guidance_activation": "fixed_active",
+  "guidance_decision": "guide",
+  "guided_status": "complete",
+  "actual_routed_blocks": 450,
+  "routed_block_calls": 450,
+  "method_label": "固定6–14步时序引导",
+  "pair_group": "IVEBench官方短视频任务",
+  "valid_frames": 105,
+  "generated_frames": 107,
+  "fps": 24,
+  "seed": 2026101701,
+  "source_clip": {
+    "start_frame": 0,
+    "end_frame_inclusive": 108,
+    "original_frame_interval_half_open": [
+      0,
+      109
+    ],
+    "scope": "existing source full temporal extent; valid/padding determined by inherited provenance"
+  },
+  "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+  "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+  "original_task": {
+    "id": 358,
+    "src_video_name": "short_0358.mp4",
+    "category": "subject_editing",
+    "subcategory": "add new subject",
+    "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+    "edit_prompt": "Add a pair of glasses to the man.",
+    "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+    "target_span": "glasses",
+    "target_phrase": "the man is wearing a pair of glasses"
+  },
+  "review_status": "基础编辑完成；饮酒局部小幅提前，残余延迟保留",
+  "review_status_code": "PASS_CORE_EDIT",
+  "review_summary": "两版均给左侧饮酒男子加眼镜，右侧男子、餐馆与饮酒动作保留。引导后酒瓶到嘴约提前3帧、离嘴约提前1–2帧，事件区间部分重叠，后半段仍延后。",
+  "display_summary": "两版均给左侧饮酒男子加眼镜，右侧男子、餐馆与饮酒动作保留。引导后酒瓶到嘴约提前3帧、离嘴约提前1–2帧，事件区间部分重叠，后半段仍延后。",
+  "count_as_complete_task_success": true,
+  "clear_temporal_support": false,
+  "support_for_clear_whole_event_repair": false,
+  "action_alignment_bool": false,
+  "action_alignment_by_method": {
+    "native": false,
+    "guided": false
+  },
+  "guidance_effect": "SMALL_LOCAL_TIMING_IMPROVEMENT",
+  "key_same_frame_indices": [
+    45,
+    85
+  ],
+  "judgment_source": "continue_r111_r103完整105有效帧三列审阅；root抽查。",
+  "event_review": {
+    "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/INDEPENDENT_REVIEW.json",
+    "sha256": "6304cbf88afd18aaff82b8da4060d17382967d498c80a9d54679f56c79337969",
+    "events": [
+      {
+        "name": "bottle lowered",
+        "source_frames": [
+          14,
+          18
+        ],
+        "native_frames": [
+          14,
+          19
+        ],
+        "forced_frames": [
+          14,
+          19
+        ],
+        "assessment": "approximately aligned; no clear change"
+      },
+      {
+        "name": "bottle reaches lips / drinking begins",
+        "source_frames": [
+          37,
+          40
+        ],
+        "native_frames": [
+          46,
+          49
+        ],
+        "forced_frames": [
+          43,
+          46
+        ],
+        "assessment": "approximately three-frame local advance; interval endpoints overlap, residual delay remains"
+      },
+      {
+        "name": "bottle leaves lips",
+        "source_frames": [
+          80,
+          84
+        ],
+        "native_frames": [
+          91,
+          94
+        ],
+        "forced_frames": [
+          90,
+          92
+        ],
+        "assessment": "approximately one-to-two-frame local advance; intervals overlap, residual delay remains"
+      }
+    ],
+    "scope": "同帧事件区间逐帧审阅；局部提前与残余延迟分别记录。"
+  },
+  "full_frame_review_path": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/INDEPENDENT_REVIEW.json",
+  "release_status": "COMPLETE_EXACT_RELEASE",
+  "quantitative_metrics": {
+    "motion_fidelity": {
+      "native": 0.8917583268279772,
+      "guided": 0.8810650134062523,
+      "delta": -0.01069331342172486,
+      "status": "complete",
+      "higher_is_better": true,
+      "protocol": "IVEBench official MF",
+      "valid_frames": 105,
+      "evaluation_frames": 105,
+      "evaluation_fps": 24,
+      "source_files": [
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_forced.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_forced/RELEASED.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_native.json",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_native/RELEASED.json"
+      ],
+      "source_sha256": {
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json": "a6054c8a77b8c56b80f29b6309fa3c425e61ad4511637994789d0698f08825f0",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json": "dcd1a41fbe39777a76fe90779c7e09b3460a9733af38629b7378dc7e3a1ee646",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_forced.json": "b10ebaee03209931bed35e2df7c6c3802b0f9358ed0f30943a5266b588e6c221",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_forced/RELEASED.json": "bb257c84d55a886c56a41900947cb202806eed6e313b0e00dd47be4cb0ff96cc",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_native.json": "d7ae5ff8e1d8c11417ace929655b2f10eee75b47e027f43c082b58722a4721ed",
+        "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_native/RELEASED.json": "3e3a66b6b5b95669c66e1db52a445c1331d56ccee82bbc6d5a707865fa8f8819"
+      },
+      "scope": "官方IVEBench MF；同一有效帧域与预处理，视觉任务验收、事件区间和阶段持续时间分别记录。"
+    }
+  },
+  "prompt_protocol": {
+    "kind": "official_context_ir_with_benchmark_captions",
+    "label": "官方source/edit/target三字段适配完整Context-IR；指定饮酒者消歧单独记录",
+    "official_edit_prompt": "Add a pair of glasses to the man.",
+    "actual_prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+    "verbatim": false,
+    "official_edit_prompt_preserved_verbatim": true
+  },
+  "actual_prompt_by_column": {
+    "ordinary": {
+      "text": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "protocol": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "exact_official_edit_prompt": false,
+      "graph_bindings": [
+        {
+          "graph": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_graph.json",
+          "graph_sha256": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1",
+          "node_id": "5",
+          "field": "inputs.prompt"
+        }
+      ],
+      "actual_history": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_history.json",
+      "actual_history_sha256": "0584ebb76b77338ac07c8f5a76c4e3907ee7babe16053ca49c9bace8cc9cb938",
+      "scope": "对应已完成视频的实际提交图及Comfy history；consumer严格逐字核验。"
+    },
+    "guided": {
+      "text": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "protocol": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "exact_official_edit_prompt": false,
+      "graph_bindings": [
+        {
+          "graph": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_graph.json",
+          "graph_sha256": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509",
+          "node_id": "5",
+          "field": "inputs.prompt"
+        }
+      ],
+      "actual_history": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_history.json",
+      "actual_history_sha256": "c13040dbef8f8249f5dbcbf8e0c75668848edd148a6e0920c14cae82271c1546",
+      "scope": "对应已完成视频的实际提交图及Comfy history；consumer严格逐字核验。"
+    }
+  },
+  "evidence_paths": [
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/showcase_pairs/short_0358/PRESENTATION.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/INDEPENDENT_REVIEW.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/PAIR_RUNTIME_GATE.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/COLLECTION.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/FRAME_LEDGER.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/prepared/short_0358/paired/MF_INPUTS.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_history.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_job.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_router.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_graph.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_history.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_job.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_router.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/actual_release/ROOT_EXIT_RECEIPT.json",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/actual_release/COMPLETE.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_forced.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_forced/RELEASED.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_native.json",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_native/RELEASED.json"
+  ],
+  "evidence_sha256": {
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/showcase_pairs/short_0358/PRESENTATION.json": "75b6cc04a4b4bbd52add7082a6c5c96296c304da128f822330644c09a132827d",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/INDEPENDENT_REVIEW.json": "6304cbf88afd18aaff82b8da4060d17382967d498c80a9d54679f56c79337969",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/PAIR_RUNTIME_GATE.json": "6c4f6a6039eda434e0b4d3fc2c8dcc4185a9ebd1cc1601470cf51000ad39b196",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/COLLECTION.json": "00f8d63b7c6d47eac615eebbfe683dabdfe172364dde9959fbc7b1b3a4f80cdc",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/full_frame_review/short_0358/paired/FRAME_LEDGER.json": "27717c80bf5bea138568a11e73e13106f5c04366186977f6e7914e46214542c6",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/prepared/short_0358/paired/MF_INPUTS.json": "6f8a35782212fc7df807b628da45f3cb5df8272c31037971b4281559d832c963",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_graph.json": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_history.json": "0584ebb76b77338ac07c8f5a76c4e3907ee7babe16053ca49c9bace8cc9cb938",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_job.json": "99d46684181fb4dabf8f32cd7cc89eecd24f7f0d3c7e54bf4fd1a39f0e58bade",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/native_router.json": "2e3747fff6eb6ca4395e92d5bdc1f8c3dec5676bbcb6779cbeb5c911ff2b0da7",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_graph.json": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_history.json": "c13040dbef8f8249f5dbcbf8e0c75668848edd148a6e0920c14cae82271c1546",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_job.json": "73679bdf7d6908d58059f27165522202669215ef9f6d3f07a6ab4befe7c3c542",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/forced_router.json": "0fc9ed2088784feb3373f1135bd5392a1e24dcc0371e594363a76d2689ece026",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/actual_release/ROOT_EXIT_RECEIPT.json": "f06d4beb9542243dc2da682bf6f95b160e884dcf150453eda29e2d496af783bc",
+    "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/audit/actual_release/COMPLETE.json": "19f8bbca09d6fdc81ce5c18e0b3a365163d9d2795935f5d30319566971c10d8c",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/RESULTS_VERIFIED.json": "a6054c8a77b8c56b80f29b6309fa3c425e61ad4511637994789d0698f08825f0",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/FINAL_RELEASE_VERIFIED.json": "dcd1a41fbe39777a76fe90779c7e09b3460a9733af38629b7378dc7e3a1ee646",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_forced.json": "b10ebaee03209931bed35e2df7c6c3802b0f9358ed0f30943a5266b588e6c221",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_forced/RELEASED.json": "bb257c84d55a886c56a41900947cb202806eed6e313b0e00dd47be4cb0ff96cc",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/results/short_0358/full_native.json": "d7ae5ff8e1d8c11417ace929655b2f10eee75b47e027f43c082b58722a4721ed",
+    "/Users/researcher/DevProjects/h3-ive-context-mf-host41-20261020/audit/actual_context_mf_attempt1/jobs/short_0358/full_native/RELEASED.json": "3e3a66b6b5b95669c66e1db52a445c1331d56ccee82bbc6d5a707865fa8f8819"
+  },
+  "media_sha256": {
+    "reference_video_path": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+    "ordinary_video_path": "04510e08e359c2b22614bc12a0fdcbfffb35e9cbcef1d0a2f0a7dbc92c069c2e",
+    "guided_video_path": "362e23ac4bc864a3a7e5ec454c1eceed5f7c6ffc572067943873636ab423f935",
+    "comparison_video_path": "1a3af38db25989f321fb0f8a86e5ac5de83254bb531f26afa8e974bd68b72561"
+  },
+  "execution_seconds": {
+    "native": 1027.392,
+    "forced": 1036.339
+  }
+}

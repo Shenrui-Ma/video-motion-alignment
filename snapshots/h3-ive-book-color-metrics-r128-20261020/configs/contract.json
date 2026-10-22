@@ -1,0 +1,87 @@
+{
+  "schema": "r128-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-book-color-r128-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_book_color_r128_20261020",
+  "producer_seal_sha256": "92633d6f8524f8c666688c91e009324fc04dce1c4d1d75bc5e543156999fd766",
+  "producer_contract_sha256": "64d24939125eeedc12b6b436a1c566b3ea6355e2be6f901264bce59506d8be80",
+  "producer_runtime_sha256": "62c0d46cb2891522908d61639f771e3aae885a75acfb51c57a7e66cf4a634036",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0362"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0362",
+      "run_id": "r128_short_0362_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-official-fields-full-Context-IR-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: A woman in traditional Chinese attire is sitting and reading a book with a blue cover, while a man in similar attire is sitting beside her, seemingly engaged in a conversation.\n<Subject 1> is the book with a blue cover in <Video 1>.\n<Subject 2> is the woman and man in traditional attire in <Video 1>.\n<Subject 3> is the surrounding scene in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nChange the book with a blue cover to a red cover\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] A woman in traditional Chinese attire is sitting and reading a book with a red cover, while a man in similar attire is sitting beside her, seemingly engaged in a conversation.\nThe edited subject is <Subject 1>; the other source people and objects are <Subject 2>, and the remaining setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 362,
+        "src_video_name": "short_0362.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "A woman in traditional Chinese attire is sitting and reading a book with a blue cover, while a man in similar attire is sitting beside her, seemingly engaged in a conversation.",
+        "edit_prompt": "Change the book with a blue cover to a red cover",
+        "target_prompt": "A woman in traditional Chinese attire is sitting and reading a book with a red cover, while a man in similar attire is sitting beside her, seemingly engaged in a conversation.",
+        "target_span": "red",
+        "target_phrase": "book with a red cover"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 66,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "66/25",
+        "end_exclusive_rational": "67/25",
+        "duration_rational": "67/25"
+      },
+      "task_scope": "held_object_color",
+      "evaluation_scope": "IVEBench完整短片探索",
+      "forced_run_id": "r128_short_0362_seed2026101701_forced",
+      "valid_frames": 65,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/short_0362_video.mp4",
+        "sha256": "5ce049240df21368621c5353f19bd9f9d516017dc05a829a14d08e2adee14cb9",
+        "bytes": 7578348
+      },
+      "provenance": {
+        "file": "inputs/short_0362_provenance.json",
+        "sha256": "c071c487493fa5374f7dc0bfbdc69211c4fbf99dbfd94a18f283e5b1664ce065",
+        "bytes": 10330
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-book-color-metrics-r128-20261020/inputs/short_0362_original.mp4",
+        "sha256": "0a14daaa993620d0c78405ce0f79bf0379c9482703fa3e8c6e4c65351176df62"
+      },
+      "graph_sha256": "c87f879f13b9924ec2e233aaefe4bf855c77a9c497839277c8e3a03eb5dd8c79",
+      "forced_graph_sha256": "3fe582a89de5cd68527bd761b1cf8b1eb40c96c88e25e038ec6890c4ed0d1d0e"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

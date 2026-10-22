@@ -4,7 +4,18 @@
 
 本仓库是研究源码备份，保存主要方法、实验版本、运行脚本、评测代码、提示词与展示页生成器。各版本放在 `snapshots/` 下，名称对应本地实验目录，方便恢复与核对历史修改。
 
-## 当前代码入口
+## 2026-10-22 代码备份
+
+最新批次代码位于 [execution-20261022 快照](snapshots/execution-20261022)。包含冻结的时间对齐 Attention、持久推理队列、服务器进程管理、IVEBench 评测与三项待 GPU 验证的独立实现。
+
+- [按修正方向调整 heads 与强度](snapshots/execution-20261022/innovation/direction_runtime)：17 项 CPU 测试通过；层范围手动指定。
+- [部分时间 RoPE 频带补偿](snapshots/execution-20261022/innovation/partial_rope)：23 项 CPU 测试通过。
+- [跨时刻参考覆盖分配](snapshots/execution-20261022/innovation/temporal_coverage)：22 项 CPU 测试通过。
+- [R148 相位组合](snapshots/h3-timing-phase-combined-r148-20261020)、[R150 区间对照](snapshots/h3-guidance-schedule-r150-20261021)、[双向 Attention](snapshots/h3-reference-feedback-r151-20261021) 保留对应实现及配置。
+
+原始运行目录及用户手工编辑的报告保留在本机；本仓库同步脱敏副本。模型、素材与成片继续保存在实验服务器。恢复运行前需重新配置服务器、路径与设备标识。
+
+## 早期代码入口
 
 | 内容 | 路径 |
 |---|---|

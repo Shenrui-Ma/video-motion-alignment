@@ -1,0 +1,377 @@
+--- R42/scripts/build_manifest.py
++++ R43/scripts/build_manifest.py
+@@ -1,7 +1,7 @@
+-"""Seal all scientific/runtime bytes. Inputs are hash-bound but copied from root prepared source28289."""
++"""Seal all scientific/runtime bytes. Inputs are hash-bound but copied from root prepared source51765."""
+ import argparse,json,tarfile
+ from pathlib import Path
+-from r42_contract import sha
++from r43_contract import sha
+ from preflight import check
+ 
+ def build(root):
+@@ -14,7 +14,7 @@
+    if not p.is_file() or '__pycache__' in p.parts or p.suffix=='.pyc' or rel in excluded:continue
+    files[rel]={'bytes':p.stat().st_size,'sha256':sha(p)}
+  files['INPUTS_READY.json']={'bytes':(root/'INPUTS_READY.json').stat().st_size,'sha256':sha(root/'INPUTS_READY.json')}
+- dest.write_text(json.dumps({'files':files,'mutable_administration':sorted(excluded),'administration_rule':'only exact peer PIDs/ready flag, queue.finalize boolean and actual runtime provenance; fixed1job immutable','inputs_in_tar':False,'input_source':'new prepared28289 video/provenance plus original Elon Musk portrait; exact inputs SHA required before launch'},indent=2)+'\n')
++ dest.write_text(json.dumps({'files':files,'mutable_administration':sorted(excluded),'administration_rule':'only exact peer PIDs/ready flag, queue.finalize boolean and actual runtime provenance; fixed1job immutable','inputs_in_tar':False,'input_source':'new prepared51765 video/provenance plus original Sam Altman portrait; exact inputs SHA required before launch'},indent=2)+'\n')
+  tar=root/'audit/runtime_bundle_v1.tar.gz'
+  with tarfile.open(tar,'x:gz') as f:
+   for rel in [r for r in files if not r.startswith('inputs/')]+['deploy_manifest.json','configs/admission.json','configs/queue.json']:f.add(root/rel,arcname=rel)
+--- R42/scripts/job.py
++++ R43/scripts/job.py
+@@ -63,7 +63,7 @@
+ 
+ def submit(name, expected_owner=None):
+     validate_name(name)
+-    from r42_contract import validate_job, prepare_loader_inputs
++    from r43_contract import validate_job, prepare_loader_inputs
+     binding = validate_job(name)
+     prepare_loader_inputs(name)
+     graph_path = RUN / 'configs/graphs' / (name + '.json')
+@@ -92,7 +92,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-source28289-native-r42-20261017'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-source51765-native-r43-20261017'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- R42/scripts/launch_remote.py
++++ R43/scripts/launch_remote.py
+@@ -47,7 +47,7 @@
+         if not link.exists():link.symlink_to(target,target_is_directory=True)
+     kj=r/'custom_nodes/ComfyUI-KJNodes'
+     if not kj.exists():kj.symlink_to('/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes',target_is_directory=True)
+-    from r42_contract import registry,prepare_loader_inputs
++    from r43_contract import registry,prepare_loader_inputs
+     for name in registry(r)[1]:prepare_loader_inputs(name,r)
+ 
+     parent=json.loads((r/'configs/parent_runtime_provenance.json').read_text())
+--- R42/scripts/lease_watchdog.py
++++ R43/scripts/lease_watchdog.py
+@@ -1,7 +1,7 @@
+ """Hard lifetime and controller-loss guard; never touches an unregistered PID."""
+ import json,time
+ import service
+-from r42_contract import read
++from r43_contract import read
+ if __name__=='__main__':
+     record=read(service.RUN/'processes/service.json')
+     deadline=time.monotonic()+read(service.RUN/'configs/scientific_contract.json')['continuous']['max_service_seconds']
+--- R42/scripts/preflight.py
++++ R43/scripts/preflight.py
+@@ -1,16 +1,16 @@
+ """Static exact-parent Native validation, no GPU/network/service."""
+ from pathlib import Path
+ import argparse,json
+-from r42_contract import ROOT,read,sha,registry,validate_job
++from r43_contract import ROOT,read,sha,registry,validate_job
+ 
+ def check(root=ROOT,live=False):
+  root=Path(root);s=read(root/'configs/scientific_contract.json');jobs,order=registry(root)
+- if s['seeds']!=[2026101701] or s['source_ids']!=['28289'] or s['arms']!=['native'] or s['captures']!=list(range(20)) or s['single_CUDA_process'] is not True or s['preCUDA_gate'] is not True:raise ValueError('science contract differs')
++ if s['seeds']!=[2026101701] or s['source_ids']!=['51765'] or s['arms']!=['native'] or s['captures']!=list(range(20)) or s['single_CUDA_process'] is not True or s['preCUDA_gate'] is not True:raise ValueError('science contract differs')
+  if s['router']!={'mode':'native','physical_window_metadata_only':[0,140],'window_not_used_for_intervention':True} or s['NFE_per_job']!=20 or s['callback_count']!=20 or s['blocks_per_job']!=1000 or s['routed_blocks_per_job']!=0:raise ValueError('scientific operator/cost differs')
+  for rel,h in read(root/'configs/source_freeze.json').items():
+   if sha(root/rel)!=h:raise ValueError('source/design freeze differs '+rel)
+  runtime=read(root/'configs/runtime.json')
+- if runtime['gpu_uuid']!='GPU-REDACTED' or runtime['port']!=8504 or runtime['remote_root']!='/data5/researcher/h3_runs/timing_source28289_native_r42_20261017':raise ValueError('runtime identity differs')
++ if runtime['gpu_uuid']!='GPU-REDACTED' or runtime['port']!=8505 or runtime['remote_root']!='/data5/researcher/h3_runs/timing_source51765_native_r43_20261017':raise ValueError('runtime identity differs')
+  for run in order:validate_job(run,root)
+  for rel,row in read(root/'configs/runtime_kernel_hashes.json').items():
+   if sha(root/rel)!=row['current_sha256']:raise ValueError('frozen kernel changed '+rel)
+--- R42/scripts/r42_contract.py
++++ R43/scripts/r43_contract.py
+@@ -2,34 +2,34 @@
+ import copy,hashlib,json,re
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-REMOTE=Path('/data5/researcher/h3_runs/timing_source28289_native_r42_20261017')
+-SOURCES=('28289',);SEEDS=(2026101701,);ARMS=('native',)
+-PROMPT='Replace the person in the reference video with the man from the reference image, Elon Musk. He wears a plain gray long-sleeve shirt and dark trousers. Preserve the original hand gestures, body motions and their exact timing, the sequence of body poses, the camera movement, and the green background of the reference video.'
++REMOTE=Path('/data5/researcher/h3_runs/timing_source51765_native_r43_20261017')
++SOURCES=('51765',);SEEDS=(2026101701,);ARMS=('native',)
++PROMPT='Replace the dancer in the reference video with the man from the reference image, Sam Altman. He wears a plain gray long-sleeve shirt and dark trousers. Preserve the original dance motions and their exact timing, the sequence of body poses, the headphones, the camera movement, and the orange-yellow studio background and colored lighting of the reference video.'
+ def read(p):return json.loads(Path(p).read_text())
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ def safe(v):
+- if not isinstance(v,str) or not re.fullmatch(r'[a-z0-9_]+',v):raise ValueError('unsafe R42 identifier')
++ if not isinstance(v,str) or not re.fullmatch(r'[a-z0-9_]+',v):raise ValueError('unsafe R43 identifier')
+  return v
+ 
+ def expected_graph(root,case):
+  root=Path(root);g=copy.deepcopy(read(root/case['parent_graph']));run=case['run_id']
+  for node,key,suffix in [('5','audit_dir','audit'),('6','audit_dir','audit'),('50','audit_dir','audit/router'),('51','source_audit_dir','audit'),('52','output_dir','audit/x0')]:g[node]['inputs'][key]=str(REMOTE/suffix)
+  g['5']['inputs']['prompt']=PROMPT
+- g['21']['inputs']['image']=case['portrait'];g['22']['inputs']['file']=case['video'];shared='r42_source_'+case['source_id']+'_shared'
++ g['21']['inputs']['image']=case['portrait'];g['22']['inputs']['file']=case['video'];shared='r43_source_'+case['source_id']+'_shared'
+  g['5']['inputs']['run_id']=shared;g['51']['inputs']['source_run_id']=shared
+  for k in ('6','50','51','52'):g[k]['inputs']['run_id']=run
+- g['6']['inputs'].update(pair_id=f'r42_source_{case["source_id"]}_seed{case["seed"]}',noise_seed=case['seed']);g['14']['inputs']['filename_prefix']=run
++ g['6']['inputs'].update(pair_id=f'r43_source_{case["source_id"]}_seed{case["seed"]}',noise_seed=case['seed']);g['14']['inputs']['filename_prefix']=run
+  g['50']['inputs'].update(mode='native',step_start=0,step_end=20,start_frame=0,end_frame=140)
+  return g
+ 
+ def registry(root=ROOT):
+- root=Path(root);s=read(root/'configs/scientific_contract.json');queue=read(root/'configs/queue.json');reg=read(root/'configs/job_registry.json')['jobs'];cases=s['cases'];wanted=[f'r42_source_{source}_seed2026101701_native' for source in SOURCES]
++ root=Path(root);s=read(root/'configs/scientific_contract.json');queue=read(root/'configs/queue.json');reg=read(root/'configs/job_registry.json')['jobs'];cases=s['cases'];wanted=[f'r43_source_{source}_seed2026101701_native' for source in SOURCES]
+  if s['source_ids']!=list(SOURCES) or s['seeds']!=list(SEEDS) or s['arms']!=['native'] or len(cases)!=1 or s['case_order']!=wanted:raise ValueError('fixed source/seed order differs')
+  if list(reg)!=wanted or set(queue)!={'jobs','finalize'} or queue['jobs']!=wanted or type(queue['finalize']) is not bool:raise ValueError('queue differs from frozen one-source/one-seed contract')
+  jobs={}
+  for case,run,source in zip(cases,wanted,SOURCES):
+   seed=2026101701
+-  if case['run_id']!=run or case['seed']!=seed or case['source_id']!=source or case['identity']!='Elon Musk' or case['prompt']!=PROMPT or reg[run]['seed']!=seed or reg[run]['arm']!='native' or reg[run]['source_id']!=source:raise ValueError('case/seed/arm differs')
++  if case['run_id']!=run or case['seed']!=seed or case['source_id']!=source or case['identity']!='Sam Altman' or case['prompt']!=PROMPT or reg[run]['seed']!=seed or reg[run]['arm']!='native' or reg[run]['source_id']!=source:raise ValueError('case/seed/arm differs')
+   if sha(root/case['parent_graph'])!=case['parent_graph_sha256']:raise ValueError('parent graph changed')
+   jobs[run]=dict(reg[run],case=case)
+  return jobs,wanted
+--- R42/scripts/run_queue.py
++++ R43/scripts/run_queue.py
+@@ -1,7 +1,7 @@
+ """One persistent Comfy service per source lane; bounded hold, exact cleanup."""
+ import json,subprocess,time
+ import service,job,preflight
+-from r42_contract import registry,read,sha
++from r43_contract import registry,read,sha
+ 
+ def state(**value):service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**value))
+ def remaining(order,completed):
+--- R42/scripts/service.py
++++ R43/scripts/service.py
+@@ -150,7 +150,7 @@
+             '--temp-directory', str(RUN / 'temp'), '--user-directory', str(RUN / 'user'),
+             '--database-url', 'sqlite:///' + str(RUN / 'screen.db')]
+     if cache_none:
+-        raise ValueError('R42 Native job requires the existing default model/node cache')
++        raise ValueError('R43 Native job requires the existing default model/node cache')
+     return args
+ 
+ 
+@@ -170,7 +170,7 @@
+             raise RuntimeError('Runtime Python is not executable')
+         admission = json.loads((RUN / 'configs/admission.json').read_text())
+         if admission.get('ready_for_launch') is not True:
+-            raise RuntimeError('R42 root has not completed live hardware/resource admission')
++            raise RuntimeError('R43 root has not completed live hardware/resource admission')
+         hardware = gpu_readiness()
+         processes = compute_processes()
+         queue = queue_at(admission.get('existing_comfy_port', 8189))
+--- R42/scripts/service_entry.py
++++ R43/scripts/service_entry.py
+@@ -9,7 +9,7 @@
+ def wait_gate(directory,target,identity_fn=identity,timeout=600):
+  d=Path(directory);target=Path(target);ready=d/'cuda_gate_ready.json';go=d/'cuda_gate_go.json'
+  if ready.exists() or go.exists():raise FileExistsError('gate files already exist; explicit generation recovery required')
+- rec={'schema':'r42-before-CUDA-root-gate-v1','pid':os.getpid(),'identity':identity_fn(),'target':str(target),'target_sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'argv':sys.argv[:],'unix':time.time()}
++ rec={'schema':'r43-before-CUDA-root-gate-v1','pid':os.getpid(),'identity':identity_fn(),'target':str(target),'target_sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'argv':sys.argv[:],'unix':time.time()}
+  temporary=d/('cuda_gate_ready.'+str(os.getpid())+'.tmp')
+  with temporary.open('x') as f:json.dump(rec,f,indent=2)
+  try:os.link(temporary,ready)  # exclusive, complete JSON becomes visible atomically
+--- R42/scripts/verify_batch.py
++++ R43/scripts/verify_batch.py
+@@ -5,7 +5,7 @@
+ import torch
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'extensions'))
+ from H3X0Readout.core import tensor_signature,SCHEMA
+-from r42_contract import read,sha as digest,registry,validate_job
++from r43_contract import read,sha as digest,registry,validate_job
+ from preflight import check
+ CAPTURES=tuple(range(20))
+ SHAPES = {'video':(1,24,42,46,82), 'audio':(1,32,2,235)}
+@@ -92,7 +92,7 @@
+   checks[run+'_history']=(hist['status']['completed'] is True and hist['status']['status_str']=='success' and hist['prompt'][2]==g and hist['prompt'][1]==job['prompt_id'] and job['status']=='success' and job['name']==run)
+   checks[run+'_service']=(job['status']=='success' and job['service_pid']==owner['pid'] and job['service_identity']==owner['identity'] and job['graph_sha256']==row['graph_sha256'])
+   c=read(root/'audit'/f'{run}_conditioning.json');n=read(root/'audit'/f'{run}_noise.json');conds[run]=c;noises[run]=n
+-  shared=root/'audit'/('r42_source_'+case['source_id']+'_shared_conditioning.json')
++  shared=root/'audit'/('r43_source_'+case['source_id']+'_shared_conditioning.json')
+   checks[run+'_actual_shared_cond']=(c['run_id']==run and c['pair_snapshot']['verified'] is True and c['pair_snapshot']['source_manifest_sha256']==digest(shared))
+   def visit(value):
+    if isinstance(value,dict):
+@@ -110,11 +110,11 @@
+   checks[run+'_actual_layout']=(router['first_attention']['qkv_shape']==[1,56,seq,128] and router['first_attention']['heads']==56 and plan['seq_len']==seq and [list(x) for x in plan['segments']]==c['packed_layout']['segments'] and plan['pixel_interval_inclusive']==[0,140] and plan['frame_rows']==943 and plan['latent_interval_half_open']==[0,42] and plan['query_interval_half_open']==plan['target_video_segment'] and plan['key_interval_half_open']==plan['reference_video_segment'])
+   checks[run+'_finite']=all(x.get('sampled_finite',True) for x in router['forward_summaries'])
+   m,files,prefix=inspect_capture(root/'audit/x0'/run,run,grid,seed);prefixes[run]=prefix
+-  pair=('r42_source_'+case['source_id']+'_seed'+str(seed));cache=root/'audit'/f'{pair}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True);actual=[{k:signature(t)[k] for k in ('shape','dtype','sha256')} for t in saved['tensors']];cached[run]=saved
++  pair=('r43_source_'+case['source_id']+'_seed'+str(seed));cache=root/'audit'/f'{pair}_noise.pt';saved=torch.load(cache,map_location='cpu',weights_only=True);actual=[{k:signature(t)[k] for k in ('shape','dtype','sha256')} for t in saved['tensors']];cached[run]=saved
+   checks[run+'_actual_noise']=(n['run_id']==run and n['pair_id']==pair and n['signature']['seed']==seed and len(actual)==2 and saved['signature']==n['signature'] and saved['hashes']==actual==n['actual_noise_streams'])
+   events=hist['status'].get('messages',[]);cache_events=[x for x in events if x[0]=='execution_cached']
+   result['runs'][run]={'historical_prefix_bridges':'not available for new source; current all21 AV tensors retained','snapshots':files,'NFE':20,'callback_count':20,'Euler_updates':20,'actual_20Euler_evidence':'success of frozen Euler20 graph plus callbacks and actual block counters','job_wall_seconds':job['observed_unix']-job['submitted_unix'],'capture_seconds_20_intermediates':sum(x['capture_seconds'] for x in m['captures']),'additional_16_captures_vs_R24_seconds':sum(x['capture_seconds'] for x in m['captures'] if x['step_zero_based'] not in (5,10,15,19)),'final_capture_cost':'included in total job time; inherited recorder does not separately time final','capture_file_bytes':sum(x['bytes'] for x in files),'execution_cached_events':cache_events,'loaded_model_residency':'see resources/residency; cache events alone do not prove all tensors stayed on GPU'}
+- checks['single_predeclared_source']=[jobs[x]['case']['source_id'] for x in order]==['28289']
++ checks['single_predeclared_source']=[jobs[x]['case']['source_id'] for x in order]==['51765']
+  checks['one_fixed_seed']=[jobs[x]['seed'] for x in order]==[2026101701]
+  only=order[0];checks['actual_frozen_prompt']=conds[only]['prompt']==jobs[only]['case']['prompt']
+  checks['actual_eight_condition_entities']=len(result['condition_tensor_files'])==8
+--- R42/extensions/H3EventAudit/__init__.py
++++ R43/extensions/H3EventAudit/__init__.py
+@@ -21,7 +21,7 @@
+ 
+ 
+ def audit_root(value):
+-    from r42_contract import audit_dir
++    from r43_contract import audit_dir
+     root = audit_dir(value)
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+--- R42/extensions/H3PairAudit/__init__.py
++++ R43/extensions/H3PairAudit/__init__.py
+@@ -53,11 +53,11 @@
+         _safe_id(run_id)
+         if source_run_id == run_id:
+             raise ValueError("a snapshot must not overwrite the shared source manifest")
+-        from r42_contract import validate_job, audit_dir
++        from r43_contract import validate_job, audit_dir
+         row=validate_job(run_id)
+         root=audit_dir(source_audit_dir)
+-        if source_run_id != 'r42_source_'+row['case']['source_id']+'_shared':
+-            raise ValueError('R42 source-conditioning identity mismatch')
++        if source_run_id != 'r43_source_'+row['case']['source_id']+'_shared':
++            raise ValueError('R43 source-conditioning identity mismatch')
+         source_path = root / (source_run_id + "_conditioning.json")
+         source_bytes = source_path.read_bytes()
+         common = json.loads(source_bytes)
+--- R42/extensions/H3TemporalRouter/__init__.py
++++ R43/extensions/H3TemporalRouter/__init__.py
+@@ -4,7 +4,7 @@
+ from .layout import conditioning_metadata, event_latent_range
+ 
+ 
+-from r42_contract import validate_router as validate_run_contract
++from r43_contract import validate_router as validate_run_contract
+ 
+ 
+ class H3TemporalRouter:
+--- R42/extensions/H3X0Readout/__init__.py
++++ R43/extensions/H3X0Readout/__init__.py
+@@ -28,7 +28,7 @@
+         key = "H3X0Readout/passive-v1"
+         if model.get_wrappers(WrappersMP.SAMPLER_SAMPLE, key):
+             raise ValueError("H3X0Readout already registered on this model")
+-        from r42_contract import validate_job, ROOT, read
++        from r43_contract import validate_job, ROOT, read
+         from pathlib import Path
+         validate_job(run_id)
+         allowed = Path(read(ROOT/'configs/runtime.json')['remote_root'])/'audit/x0'
+--- R42/tests/real_comfy_cached_queue_smoke.py
++++ R43/tests/real_comfy_cached_queue_smoke.py
+@@ -5,7 +5,7 @@
+ 
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('--core',required=True);a=p.parse_args();root=Path(__file__).resolve().parents[1];started=time.monotonic()
+- os.environ['CUDA_VISIBLE_DEVICES']='';sys.path[:0]=[str(root/'scripts'),str(root/'tests'),a.core,str(Path(a.core).parent/'runtime_deps')];sys.argv=['r42-cpu','--cpu','--disable-dynamic-vram','--use-pytorch-cross-attention']
++ os.environ['CUDA_VISIBLE_DEVICES']='';sys.path[:0]=[str(root/'scripts'),str(root/'tests'),a.core,str(Path(a.core).parent/'runtime_deps')];sys.argv=['r43-cpu','--cpu','--disable-dynamic-vram','--use-pytorch-cross-attention']
+  import torch
+  torch.set_num_threads(1);torch.set_num_interop_threads(1)
+  import comfy.options
+@@ -27,7 +27,7 @@
+  from comfy.utils import unpack_latents
+  from comfy.ldm.modules.attention import AttentionTensorContainer,attention_pytorch
+  import comfy.ldm.minimax.model as h3
+- import r42_contract as c
++ import r43_contract as c
+  model=MiniMaxH3.__new__(MiniMaxH3);torch.nn.Module.__init__(model)
+  with torch.device('meta'):diffusion=h3.MiniMaxH3Model(num_attention_heads=56,device='meta',dtype=torch.float32,operations=torch.nn)
+  model.diffusion_model=diffusion;model.model_sampling=model_sampling(None,ModelType.FLOW_AV);model.model_sampling.set_parameters(shift=12,audio_shift=3);model.latent_format=MiniMaxH3Video();model.manual_cast_dtype=torch.float32;model.concat_keys=()
+@@ -40,7 +40,7 @@
+   z=q@k.transpose(-1,-2)/(q.shape[-1]**.5);return z.softmax(-1)@v,z.logsumexp(-1)
+  def cpu_route(*args,**kw):return route(*args,**kw,attention=dense)
+  native=cpu_route(q,k,v,56,plan,mode='native');sampler=KSAMPLER(sample_euler);reports=[];states=[];recorders=[];noises=[];outputs=[]
+- with tempfile.TemporaryDirectory(prefix='r42-real-cpu-') as td:
++ with tempfile.TemporaryDirectory(prefix='r43-real-cpu-') as td:
+   work=Path(td);lane=root
+   c.ROOT=lane;validate_original=c.validate_job
+   def validate(run,root=None):return validate_original(run,lane if root is None else root)
+@@ -66,7 +66,7 @@
+      pair_result=Pair().snapshot(positive,pair_target,**pair_args)
+      assert pair_result[0] is positive and pair_result[1] is pair_target
+      assert json.loads((pair_work/(run+'_conditioning.json')).read_text())['pair_snapshot']['verified'] is True
+-     for wrong in ('r26_'+row['case']['source_id']+'_shared','r42_source_wrong_shared'):
++     for wrong in ('r26_'+row['case']['source_id']+'_shared','r43_source_wrong_shared'):
+       try:Pair().snapshot(positive,pair_target,**dict(pair_args,source_run_id=wrong))
+       except ValueError as exc:assert 'source-conditioning identity' in str(exc)
+       else:raise AssertionError('wrong source registration accepted')
+@@ -109,5 +109,5 @@
+   assert all(torch.equal(a,b) for ns in noises[1:] for a,b in zip(noises[0],ns));assert all(torch.equal(outputs[0],z) for z in outputs[1:])
+  assert not base.model_options['transformer_options'].get('patches_replace',{}).get('dit') and not base.get_wrappers(WrappersMP.SAMPLER_SAMPLE,'H3X0Readout/passive-v1')
+  assert all(torch.equal(a,b) for a,b in zip(originals,(q,k,v,reference,portrait))) and not torch.cuda.is_initialized()
+- print('R42_CACHED_NATIVE_CPU='+json.dumps({'passed':True,'actual_node_loader':True,'actual_Euler20':True,'one_fresh_state_and_recorder':True,'cached_base_unmodified':True,'cold_and_cache_hit_noise_equal':True,'CUDA_initialized':False,'runs':reports,'seconds':time.monotonic()-started,'scope':'actual Comfy loader/Guider/clone/Euler20/readout and official H3 meta/processed-condition interfaces; tiny synthetic attention/conditions; no neural video quality/GPU equivalence claim'}))
++ print('R43_CACHED_NATIVE_CPU='+json.dumps({'passed':True,'actual_node_loader':True,'actual_Euler20':True,'one_fresh_state_and_recorder':True,'cached_base_unmodified':True,'cold_and_cache_hit_noise_equal':True,'CUDA_initialized':False,'runs':reports,'seconds':time.monotonic()-started,'scope':'actual Comfy loader/Guider/clone/Euler20/readout and official H3 meta/processed-condition interfaces; tiny synthetic attention/conditions; no neural video quality/GPU equivalence claim'}))
+ if __name__=='__main__':main()
+--- R42/tests/run_remote_cpu_gate.py
++++ R43/tests/run_remote_cpu_gate.py
+@@ -1,7 +1,7 @@
+ """CPU-only isolated staging; nonblocking Mac then shared remote lock, no service."""
+ import fcntl,hashlib,json,os,shlex,subprocess,sys,time
+ from pathlib import Path
+-r=Path(__file__).resolve().parents[1];attempt=int(sys.argv[1]);mode=sys.argv[2] if len(sys.argv)>2 else 'comfy';remote='/data5/researcher/h3_runs/r42_cpu_stage_attempt'+str(attempt)
++r=Path(__file__).resolve().parents[1];attempt=int(sys.argv[1]);mode=sys.argv[2] if len(sys.argv)>2 else 'comfy';remote='/data5/researcher/h3_runs/r43_cpu_stage_attempt'+str(attempt)
+ lock=Path('/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/cpu_evaluation_global.lock').open('a')
+ try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ except BlockingIOError:
+@@ -17,11 +17,11 @@
+ def pending():
+  roots=['timing_auto_controller_r27_20261017','timing_auto_fresh_r32_20261017','timing_auto_bedside_r35_20261017','timing_normal_early_control_r37_20261017','timing_auto_source51310_r40_20261017']
+  return any((d/'request.json').exists() and (d/'native.json').exists() and not (d/'pose_complete.json').exists() and not (d/'response.json').exists() for name in roots for d in (Path('/data5/researcher/h3_runs')/name/'audit/observations').glob('step*'))
+-if pending():print('R42_CPU_GATE_BUSY online_pose_pending',flush=True);raise SystemExit(75)
++if pending():print('R43_CPU_GATE_BUSY online_pose_pending',flush=True);raise SystemExit(75)
+ lock=open('/data5/researcher/h3_runs/timing_architecture_r2_20261016/analysis/pose/consumer.lock','a')
+ try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+-except BlockingIOError:print('R42_CPU_GATE_BUSY remote_cpu_lock',flush=True);raise SystemExit(75)
+-if pending():print('R42_CPU_GATE_BUSY online_pose_pending_after_lock',flush=True);raise SystemExit(75)
++except BlockingIOError:print('R43_CPU_GATE_BUSY remote_cpu_lock',flush=True);raise SystemExit(75)
++if pending():print('R43_CPU_GATE_BUSY online_pose_pending_after_lock',flush=True);raise SystemExit(75)
+ r=sys.argv[1];mode=sys.argv[2]
+ cmd=['/home/researcher/miniconda3/envs/comfyui/bin/python',r+'/tests/real_comfy_cached_queue_smoke.py','--core','/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI']
+ if mode=='unit':cmd=['/home/researcher/miniconda3/envs/comfyui/bin/python','-m','unittest','discover','-s',r+'/tests','-p','test_*.py','-v']
+--- R42/tests/test_capture.py
++++ R43/tests/test_capture.py
+@@ -9,7 +9,7 @@
+ 
+ class NativeCaptureTests(unittest.TestCase):
+  def setUp(self):
+-  torch.set_num_threads(1);self.tmp=tempfile.TemporaryDirectory();self.folder=Path(self.tmp.name);self.run='r42_source_28289_seed2026101701_native';self.grid=torch.linspace(1,0,21).tolist();self.shapes={'video':(1,24,2,2,2),'audio':(1,32,2,8)};self.patcher=patch.object(v,'SHAPES',self.shapes);self.patcher.start()
++  torch.set_num_threads(1);self.tmp=tempfile.TemporaryDirectory();self.folder=Path(self.tmp.name);self.run='r43_source_51765_seed2026101701_native';self.grid=torch.linspace(1,0,21).tolist();self.shapes={'video':(1,24,2,2,2),'audio':(1,32,2,8)};self.patcher=patch.object(v,'SHAPES',self.shapes);self.patcher.start()
+   self.man={'schema':'h3-x0-readout-v1','status':'complete','callback_count':20,'expected_callback_count':20,'run_id':self.run,'capture_steps_zero_based':list(range(20)),'sigmas_video':self.grid,'seed':2026101701,'sampler':'sample_euler','audio_scale':4,'video_latent_scale_factor':1,'normalization_stage':'after_process_latent_out','geometry':{'width':1312,'height':736,'frames':141,'fps':24},'target_latent_shapes':[list(s) for s in self.shapes.values()],'captures':[]}
+   for i in range(21):
+    final=i==20;n=min(i,19);sv=0 if final else self.grid[n];tensors={k:torch.full(s,float(i)) for k,s in self.shapes.items()};meta={k:self.man[k] for k in ('seed','geometry','normalization_stage','audio_scale','video_latent_scale_factor')};meta.update(schema='h3-x0-readout-v1',run_id=self.run,total_steps=20,snapshot_kind='sampler_final' if final else 'x0_estimate',step_zero_based=n,model_call_one_based=n+1,sigma_video=sv,sigma_audio=sv/(4-3*sv),sigma_next_video=self.grid[n+1],**{k:v.signature(t) for k,t in tensors.items()})
+--- R42/tests/test_contract.py
++++ R43/tests/test_contract.py
+@@ -2,7 +2,7 @@
+ from pathlib import Path
+ from unittest.mock import patch
+ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
+-import r42_contract as c,preflight,service,job,start_controller,service_entry,launch_remote
++import r43_contract as c,preflight,service,job,start_controller,service_entry,launch_remote
+ class ContractTests(unittest.TestCase):
+  def test_single_exact_parent_derived_graph(self):
+   jobs,order=c.registry(ROOT);self.assertEqual(len(order),1);self.assertTrue(preflight.check(ROOT)['passed'])
+@@ -41,8 +41,8 @@
+ class SingleSourceTests(unittest.TestCase):
+  def test_actual_new_source_identity_and_noise_seed(self):
+   jobs,order=c.registry(ROOT);self.assertEqual(len(order),1);run=order[0];row=jobs[run];g=c.read(ROOT/'configs/graphs'/f'{run}.json')
+-  self.assertEqual(row['source_id'],'28289');self.assertEqual(row['case']['identity'],'Elon Musk');self.assertEqual(g['6']['inputs']['noise_seed'],2026101701)
+-  self.assertIn('Elon Musk',g['5']['inputs']['prompt']);self.assertIn('hand gestures',g['5']['inputs']['prompt']);self.assertIn('exact timing',g['5']['inputs']['prompt']);self.assertNotIn('Sam Altman',g['5']['inputs']['prompt'])
++  self.assertEqual(row['source_id'],'51765');self.assertEqual(row['case']['identity'],'Sam Altman');self.assertEqual(g['6']['inputs']['noise_seed'],2026101701)
++  self.assertIn('Sam Altman',g['5']['inputs']['prompt']);self.assertIn('headphones',g['5']['inputs']['prompt']);self.assertIn('exact timing',g['5']['inputs']['prompt']);self.assertNotIn('Elon Musk',g['5']['inputs']['prompt'])
+  def test_wrong_source_seed_prompt_or_extra_case_rejected(self):
+   original=c.read
+   for mode in ('source','seed','prompt','extra'):
+@@ -153,4 +153,16 @@
+    stop.assert_called_once_with(expected_record=owner);self.assertTrue(answer['stopped'])
+    with patch.object(service,'stop') as stop:launch_remote.cleanup_created_owner(root,20,{'start_ticks':'other'})
+    stop.assert_not_called()
++class NewSourceEvidenceTests(unittest.TestCase):
++ def test_source_origin_and_integer_pts(self):
++  selected=c.read(ROOT/'design/SOURCE_ONLY_SELECTION.json');self.assertEqual(selected['prepared_video_range_24fps'],[192,332]);self.assertEqual(selected['source_original_fps'],'24000/1001');self.assertIs(selected['inference_observed'],False)
++  probe=c.read(ROOT/'design/INPUT_PROBE.json');frames=probe['frames'];self.assertEqual(len(frames),141);self.assertEqual([int(f['best_effort_timestamp']) for f in frames],[512*i for i in range(141)])
++  self.assertTrue(all((f['width'],f['height'])==(1312,736) for f in frames));self.assertEqual(probe['streams'][0]['avg_frame_rate'],'24/1')
++ def test_original_evidence_and_exact_sam_portrait(self):
++  for row in c.read(ROOT/'configs/RAW_EVIDENCE_COPIES.json')['files']:self.assertEqual(c.sha(ROOT/row['target']),row['sha256'])
++  row=c.registry(ROOT)[0][c.registry(ROOT)[1][0]];self.assertEqual(row['case']['portrait_sha256'],'4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42')
++  review=c.read(ROOT/'design/SOURCE_POSE_REVIEW.json');self.assertEqual(review['prepared_video_sha256'],row['case']['video_sha256']);self.assertIs(review['source_only'],True)
++ def test_gpu3_runtime_and_no_source_pose_policy(self):
++  runtime=c.read(ROOT/'configs/runtime.json');self.assertEqual(runtime['gpu_uuid'],'GPU-REDACTED');self.assertEqual(runtime['port'],8505)
++  run=c.registry(ROOT)[1][0];graph=c.read(ROOT/'configs/graphs'/f'{run}.json');self.assertTrue(all('pose' not in n['class_type'].lower() for n in graph.values()));self.assertNotIn('SOURCE_ONLY_SELECTION',json.dumps(graph))
+ if __name__=='__main__':unittest.main()

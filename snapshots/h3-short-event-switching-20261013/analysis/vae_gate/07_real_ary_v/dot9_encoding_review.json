@@ -1,0 +1,328 @@
+{
+  "case": "07_real_ary_v",
+  "runtime": ".9 corrected INT8 row-chunk runtime; actual auxiliary encode/decode diagnostic",
+  "reviewed_local": "2026-10-13T14:09:09.044940+08:00",
+  "reviewer": "AI independent framewise visual inspection",
+  "human_review": false,
+  "native_speed_playback_claimed": false,
+  "history_status": "success",
+  "history_prompt_id": "fd1de7ab-6f85-4af5-bbf7-d2e6a900bbbc",
+  "history_path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/logs/07_real_ary_v_a_s1_benchmark2_history.json",
+  "history_sha256": "6d1f35d0fd5fb31de6594202d73593b2aa299b6f8204d9db8e6196176e6d8762",
+  "audit_path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/audit/07_real_ary_v_a_s1_benchmark2_conditioning.json",
+  "audit_sha256": "437173c369998b78d3af6397192292bb613e2fcb2d97ae71f6522b6fd7f11bde",
+  "files": {
+    "source": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/inputs/07_real_ary_v.mp4",
+      "sha256": "46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11",
+      "probe": {
+        "width": 1312,
+        "height": 736,
+        "r_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "decoded_frames": 141,
+      "sheets": [
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/source_all_p1.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/source_all_p2.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/source_all_p3.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/source_all_p4.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/source_all_p5.jpg"
+      ]
+    },
+    "prepared": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/outputs/07_real_ary_v_actual_prepared_reference_00001_.mp4",
+      "sha256": "4273c2b70892b69549da8f3c83c5737f4ba7ebd757537222b0d89d559dbc06f8",
+      "probe": {
+        "width": 1312,
+        "height": 736,
+        "r_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "decoded_frames": 141,
+      "sheets": [
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/prepared_all_p1.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/prepared_all_p2.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/prepared_all_p3.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/prepared_all_p4.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/prepared_all_p5.jpg"
+      ]
+    },
+    "vae": {
+      "path": "/Users/researcher/DevProjects/h3-short-event-switching-20261013/outputs/07_real_ary_v_reference_vae_reconstruction_00001_.mp4",
+      "sha256": "72247b40c50d8c26371e5ce2c23c5b20a38d053aa72a73923bcd96bac499ba00",
+      "probe": {
+        "width": 1312,
+        "height": 736,
+        "r_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "decoded_frames": 141,
+      "sheets": [
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/vae_all_p1.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/vae_all_p2.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/vae_all_p3.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/vae_all_p4.jpg",
+        "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/vae_all_p5.jpg"
+      ]
+    }
+  },
+  "executed_encoding": {
+    "vae_loader_node3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
+    },
+    "reference_node5_class": "H3EventAuditReference",
+    "reference_node5_inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "ref_video": [
+        "23",
+        0
+      ],
+      "prompt": "subject_definitions:\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Change only the main performer's white long-sleeved blouse to vivid royal blue, preserving its shape and fabric. Keep the black suspenders, black layered skirt and white stockings unchanged. Preserve the same person, face, hair, accessories, skin, body proportions, room, objects, background, camera, composition and all original motion. Preserve every original gesture, expression, action order, speed, timing and rhythm. Keep the same realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve source motion, action timing, person, objects, camera and background; apply only the requested appearance change.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "width": 1312,
+      "height": 736,
+      "length": 141,
+      "audit_dir": "/data5/researcher/h3_runs/short_event_switching_20261013/audit",
+      "run_id": "07_real_ary_v_a_s1_benchmark2",
+      "semantic_fps": 2,
+      "phase_frames": 0
+    },
+    "reconstruction_decode_node30": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "5",
+          3
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "reconstruction_create_node31": {
+      "class_type": "CreateVideo",
+      "inputs": {
+        "images": [
+          "30",
+          0
+        ],
+        "fps": 24.0,
+        "bit_depth": 8
+      }
+    },
+    "reconstruction_save_node32": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": [
+          "31",
+          0
+        ],
+        "filename_prefix": "07_real_ary_v_reference_vae_reconstruction",
+        "format": "mp4",
+        "codec": "h264",
+        "codec.encoding": "re-encode",
+        "codec.encoding.crf": 16.0
+      }
+    },
+    "prepared_create_node33": {
+      "class_type": "CreateVideo",
+      "inputs": {
+        "images": [
+          "5",
+          2
+        ],
+        "fps": 24.0,
+        "bit_depth": 8
+      }
+    },
+    "prepared_save_node34": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": [
+          "33",
+          0
+        ],
+        "filename_prefix": "07_real_ary_v_actual_prepared_reference",
+        "format": "mp4",
+        "codec": "h264",
+        "codec.encoding": "re-encode",
+        "codec.encoding.crf": 16.0
+      }
+    },
+    "native_video_vae_call": {
+      "prepared_frames": {
+        "shape": [
+          141,
+          736,
+          1312,
+          3
+        ],
+        "dtype": "torch.float32",
+        "sha256": "8ca1262bdc1972241623868d517380343a44f51e3b3b60c9a6b15188f828afc8",
+        "tensor_file": "tensor_blobs/0b4e5e0679200f6de71dde11fc41092a0b0d7e07af1029e4db7b13ca1b637e60.pt"
+      },
+      "latent": {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "82d1e8f70a38ee0c5d7e447c3c9919ed5288e49f82677d3d3835bd7b7a1c4db3",
+        "tensor_file": "tensor_blobs/c7e7fceee07ae7554907dbdb917ff80a06d13cd52f427e0ff116e8ccd9211d4c.pt"
+      }
+    },
+    "input_video": {
+      "shape": [
+        141,
+        736,
+        1312,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "3d6a128eff3138e6f448460e10a60c2361850179bfc8e3feeb0c8afe481c17bf"
+    },
+    "model_weight_file_hash_independently_verified": false,
+    "path_scope": "Actual normalized frames and native reference latent decoded by same VAE loader; benchmark generation is not reference reconstruction and was not inspected."
+  },
+  "coverage": {
+    "source_all141": true,
+    "prepared_all141_new_dot9": true,
+    "vae_all141_new_dot9": true,
+    "dense_aligned_window_half_open": [
+      49,
+      75
+    ],
+    "dense_pages_viewed": [
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p1.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p2.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p3.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p4.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p5.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p6.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p7.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p8.jpg",
+      "/Users/researcher/DevProjects/h3-short-event-switching-20261013/analysis/vae_gate/07_real_ary_v/aligned_detail_p9.jpg"
+    ]
+  },
+  "visibility_levels": {
+    "hand_eye_relation": {
+      "decision": "pass_at_face_region_relation_level",
+      "complete_occurrence_count": 1,
+      "full_event_frames_half_open": [
+        54,
+        70
+      ],
+      "decisive_frames_half_open": [
+        60,
+        63
+      ],
+      "strongest_face_adjacent_evidence_frames_half_open": [
+        60,
+        62
+      ],
+      "full_duration_seconds": 0.6666666666666666,
+      "decisive_duration_seconds": 0.125,
+      "duration_class": "secondary_0.6_to_0.8_seconds",
+      "boundary_uncertainty_frames": 2,
+      "observation": "The right/image-left arm spreads at f54–55, rises f56–58, crosses forehead/face f59, briefly lies in front of nose/upper-face/eye region f60–61, moves upward across forehead f62–63, is clearly away f64–65 and spreads f66–69. One bent-back raised leg accompanies the gesture. This single approach/face relation/departure persists in actual prepared and VAE at corresponding indices. Eye contact specifically is not established.",
+      "temporal_difference": "No categorical omission, extra complete target occurrence or material boundary shift observed at matched indices. Fine onset/release shifts within approximately two frames remain uncertain."
+    },
+    "finger_shape": {
+      "decision": "uncertain_for_exact_V_topology",
+      "observation": "A spread/V-like hand configuration around f60–61 is suggested in source and reconstruction, but original motion blur, bright exposure and small fingers already impede exact identification. VAE softens these further. Exact two-finger topology, digit count and skin/eye contact are not certified.",
+      "not_equivalent_to_omission": true
+    }
+  },
+  "surrounding_actions": [
+    {
+      "frames_approx": [
+        0,
+        7
+      ],
+      "act": "tail of prior near-chin gesture",
+      "vae": "retained; not selected eye-region target"
+    },
+    {
+      "frames_approx": [
+        8,
+        35
+      ],
+      "act": "bent-knee leaning/stepping with drooped/open palms",
+      "vae": "retained"
+    },
+    {
+      "frames_approx": [
+        36,
+        53
+      ],
+      "act": "bilateral arm sweep/raise and lowering with stance change",
+      "vae": "retained"
+    },
+    {
+      "frames_approx": [
+        70,
+        90
+      ],
+      "act": "arms lower then rise and spread overhead",
+      "vae": "retained"
+    },
+    {
+      "frames_approx": [
+        91,
+        140
+      ],
+      "act": "wide spread/lateral lean, forward leg extension and return",
+      "vae": "retained at category/timing level; feet and high hands can leave source frame"
+    }
+  ],
+  "sampling_context": {
+    "actual_indices": [
+      0,
+      12,
+      24,
+      36,
+      48,
+      60,
+      72,
+      84,
+      96,
+      108,
+      120,
+      132
+    ],
+    "target_full_event_sample_overlap": [
+      60
+    ],
+    "target_core_sample_overlap": [
+      60
+    ],
+    "label": "sampled_at_core",
+    "limit": "This real gesture has a native semantic sample at its core; no claim that sparse sampling omits the entire event. Reconstructibility does not prove downstream attention/use."
+  },
+  "decision": "Encoding visibility passes for one complete short face-region excursion, with exact V-finger topology uncertain. This is the explicitly secondary ~0.67-second full event, not a primary <=0.6-second full event.",
+  "limitations": [
+    "Framewise AI review; no independent human rating or native-speed playback claimed.",
+    "Source already has fast-hand blur, overexposure and decorative graphics near the legs. None hides the broad face-region excursion, but exact anatomy is uncertain.",
+    "Some feet/high hands leave the source framing; dense hand crop also truncates wide arms. Full-frame evidence governs broad motion assessment.",
+    "Real and anime sources share a choreography family; this does not establish generalization to unrelated real actions.",
+    "No benchmark-generated pixels viewed or scored."
+  ],
+  "gate_final_for_current_runtime": true
+}

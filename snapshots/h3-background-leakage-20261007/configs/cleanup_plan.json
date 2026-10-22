@@ -1,0 +1,24 @@
+{
+  "scope": [
+    "scripts/remote_service.py",
+    "scripts/comfy_job.py",
+    "scripts/make_reference_controls.py",
+    "scripts/analyze_video.py",
+    "extensions/H3ReferenceBranchSwap/__init__.py",
+    "tests/test_pilot.py",
+    "tests/test_branch_swap.py"
+  ],
+  "behavior_lock": "4 local pipeline tests passed;7 remote CPU branch-swap tests passed. No running service changes.",
+  "plan": [
+    "Inspect unused imports/deadbranches and speculative abstractions.",
+    "Inspect duplicated graph mutation logic and process ownership boundaries.",
+    "Only remove a concrete verified smell; preserve pinned experiment behavior.",
+    "Re-run affected targeted tests and Python syntax checks after any edit."
+  ],
+  "constraints": [
+    "No shared core/model/env edits",
+    "No dependency additions",
+    "Review may conclude no cleanup needed",
+    "Any future codechanges require refreshed review/testevidence"
+  ]
+}

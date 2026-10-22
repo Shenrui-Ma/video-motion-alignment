@@ -1,0 +1,66 @@
+{
+  "real_comfy_cached_queue_cpu_result": {
+    "passed": true,
+    "CUDA_initialized": false,
+    "cached_base_unmodified": true,
+    "four_distinct_router_states": true,
+    "four_distinct_readout_instances": true,
+    "same_seed_pair_noise_equal": true,
+    "different_seed_AV_noise_different": true,
+    "runs": [
+      {
+        "run": "r24_unseen_alpha_seed2026101610_native",
+        "seed": 2026101610,
+        "arm": "native",
+        "blocks": 1000,
+        "forward_calls": 20,
+        "routed": 0,
+        "passive_callbacks": 20
+      },
+      {
+        "run": "r24_unseen_alpha_seed2026101610_full_6to14",
+        "seed": 2026101610,
+        "arm": "full_6to14",
+        "blocks": 1000,
+        "forward_calls": 20,
+        "routed": 450,
+        "passive_callbacks": 20
+      },
+      {
+        "run": "r24_unseen_alpha_seed2026101611_native",
+        "seed": 2026101611,
+        "arm": "native",
+        "blocks": 1000,
+        "forward_calls": 20,
+        "routed": 0,
+        "passive_callbacks": 20
+      },
+      {
+        "run": "r24_unseen_alpha_seed2026101611_full_6to14",
+        "seed": 2026101611,
+        "arm": "full_6to14",
+        "blocks": 1000,
+        "forward_calls": 20,
+        "routed": 450,
+        "passive_callbacks": 20
+      }
+    ],
+    "scope": "real H3 meta/ModelPatcher/attention and passive wrapper; manual20x50CPU blockcalls and synthetic20callbacks, not actual Euler integration or GPU inference",
+    "h3_sha256": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+    "log_sha256": "f4a5ae9fbfe4c2953a207c8d1255a020a85fff3df4e7fac9ab190744d86bfa52",
+    "stage_manifest_sha256": "22cf15331de105b3afddca61f1fcfe4dcf3b2977296c9f540ec16bf074624133"
+  },
+  "measured_sources_unchanged": {
+    "extensions/H3TemporalRouter/core.py": true,
+    "extensions/H3TemporalRouter/layout.py": true,
+    "extensions/H3TemporalRouter/__init__.py": true,
+    "extensions/H3X0Readout/core.py": true,
+    "extensions/H3X0Readout/__init__.py": true,
+    "extensions/H3EventAudit/__init__.py": true,
+    "extensions/H3PairAudit/__init__.py": true,
+    "tests/real_comfy_cached_queue_smoke.py": true
+  },
+  "actual_source_binding_sha256": "a5630159b5ea8ee57c61636eb0c878ad7cd8a30fde25f37803552358cbf5b58f",
+  "local_contract_tests_log_sha256": "e1a3bdee9f9720ef5a7294055c127a2624e78da366242950e725845ca630a01a",
+  "runtime_admin_changes_since_smoke": "postrun verifier added; generation-bound submission and second graphSHA read added; these do not alter measured math/node interfaces; local contract negatives rerun"
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "r136-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-otter-color-r136-20261020",
+  "producer_remote": "/home/researcher/h3_runs/timing_ive_otter_color_r136_20261020",
+  "producer_seal_sha256": "813e6493cc423e43aa19292481680a01dd0d4d2fd835ceb0390a7d33313101b6",
+  "producer_contract_sha256": "8e39d433d2b3db3f23e5096e5baf883bf1511f808c01900966a2e4d327ac7a88",
+  "producer_runtime_sha256": "76e26c2f3a026d03ee3a24348dfc6daabac458180fef865ae579780c81128115",
+  "host": "H3_SERVER_A",
+  "source_order": [
+    "short_0235"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0235",
+      "run_id": "r136_short_0235_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 90,
+        "fps": 24
+      },
+      "prompt_version": "IVEBench-edit-with-generic-retention-v1",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nChange the white sea otter to green\n\nretention_analysis:\n<Video 1>: partially_preserved - Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.\n",
+      "original_task": {
+        "id": 235,
+        "src_video_name": "short_0235.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "The video captures a white sea otter grooming itself in water, showcasing its fluffy fur and playful behavior.",
+        "edit_prompt": "Change the white sea otter to green",
+        "target_prompt": "The video captures a green sea otter grooming itself in water, showcasing its fluffy fur and playful behavior.",
+        "target_span": "green",
+        "target_phrase": "green sea otter"
+      },
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 111,
+        "start_pts_rational": "0",
+        "end_pts_rational_inclusive": "37037/10000",
+        "end_exclusive_rational": "7007/1875",
+        "duration_rational": "7007/1875"
+      },
+      "task_scope": "animal_color_edit",
+      "evaluation_scope": "IVEBench完整短片探索",
+      "forced_run_id": "r136_short_0235_seed2026101701_forced",
+      "valid_frames": 90,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "source": {
+        "file": "inputs/short_0235_video.mp4",
+        "sha256": "66b3defcc0407efa5cbf756e189085dffde3f4056277ae127b271345452b0cc8",
+        "bytes": 29824943
+      },
+      "provenance": {
+        "file": "inputs/short_0235_provenance.json",
+        "sha256": "8a1663833a72bb895947cd57025f66ba1e37e573674491adc7f7e8781e89f56d",
+        "bytes": 17770
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-otter-color-metrics-r136-20261020/inputs/short_0235_original.mp4",
+        "sha256": "b7b39a9d771f32364106b1a08341f661384704c4e0bbcc397404786e53e004fc"
+      },
+      "graph_sha256": "b9f3d94065ffa63d026a3867fab45be9891800deb08ddc9e6f1a7077afac347d",
+      "forced_graph_sha256": "86d5b03f8ee36c0a7bd9022607d04f679078ced8d1d3bbdf43a487a50e8199b7",
+      "expected_prompt_sha256": "5029ccd09478874885dce4d2db658eec095a56b5448c514d9382eec0698be143"
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true,
+  "namespace": "r136",
+  "display_description": "R136将海獭颜色改为绿色，使用完整原片与参考视频绑定。沿用官方编辑原句和通用保留要求；两个阶段属于同一次转头往返，人体手臂观察器不适用。"
+}

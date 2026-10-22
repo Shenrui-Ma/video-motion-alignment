@@ -1,0 +1,96 @@
+H3 pair instrumentation — 2026-10-14
+
+Scope
+New task-owned files only: extensions/H3PairAudit/__init__.py,
+scripts/backend_dispatch_audit.py, tests/test_pair_audit.py, and this note.
+No old archive, Core source, checkpoint, shared dependency, GPU, or server was
+modified or started by this implementation lane. No dependency was installed.
+
+Legacy Comfy node
+Class and mapping key: H3PairConditionSnapshot
+FUNCTION: snapshot
+Required inputs, in order:
+  positive: CONDITIONING
+  target: LATENT
+  source_audit_dir: STRING, absolute directory containing the shared manifest
+  source_run_id: STRING, default 05_musk_shared_conditioning
+  run_id: STRING, unique per-run filename component
+Outputs: CONDITIONING, LATENT
+Output names: positive, target_latent
+
+Connect shared H3EventAuditReference node 5 outputs 0 and 1 to this node.
+Keep node 5's inputs, including run_id, identical in every prompt. The snapshot
+must be upstream of the sampler/intervention and have a different run_id for
+each benchmark/baseline/weighted run so that each per-run audit executes.
+
+The snapshot loads <source_run_id>_conditioning.json and verifies the actual
+embedding and token tags by shape/dtype/SHA256; each clean reference latent
+against native_vae_calls in the native node's emission order; target stream
+shapes; reference metadata; and native PackedLayout segments/position IDs.
+It then deep-copies the source JSON to <run_id>_conditioning.json in the same
+directory and adds pair_snapshot verification/provenance. Relative tensor_file
+paths remain byte-for-byte unchanged. The shared manifest is never overwritten.
+Source native_vae_calls, Qwen presentation, and tokenization fields describe
+the one shared preprocessing operation, not fresh calls for each snapshot.
+The actual positive and target Python objects are returned unchanged. Hashing
+does copy detached tensor bytes to CPU, which has bounded per-run audit cost;
+no tensor contents are modified and no RNG is called. Imports of torch and
+PackedLayout occur only during node execution. Only image/silent-video refs
+are supported, matching this experiment's source node.
+
+Cache evidence
+pair_snapshot.cache_usage.verified remains false deliberately. Identical node
+inputs permit caching; the formal history execution_cached event must prove
+node 5 reuse. The first benchmark may execute preprocessing, later runs should
+list node 5 as cached. Snapshot JSON alone cannot prove execution frequency.
+
+Dispatch installation (root lane owns bootstrap integration)
+After int8_row_chunking.install(...) and before Core main:
+  from backend_dispatch_audit import install as install_backend_dispatch_audit
+  dispatch = install_backend_dispatch_audit(
+      log_path=task_root / "logs/backend_dispatch_audit.json")
+
+API: install(*, log_path, flush_every=1000) -> JSON-safe status dictionary.
+API: flush() -> current JSON-safe counters (or None if not installed).
+Install is idempotent for identical settings and checks hooks on reinstall.
+The only patched exports are comfy_kitchen.backends.{cuda,triton,eager}.
+{int8_linear,w4a8_int8_linear}, when callable and registered. Every successful
+patch is verified through registry.get_implementation; an inconsistent
+registry triggers rollback of all exports installed by that attempt.
+Missing/unregistered/disabled operations are recorded without forcing backend
+availability, capability, or priority. Operations unavailable at installation
+are not monitored if a different runtime later enables them; inspect status.
+
+The wrapper invokes the exact original callable with original *args/**kwargs.
+It preserves the original result and exception objects. functools.wraps also
+preserves the pre-existing row-guard metadata and signature. The backend name
+is attached to an observed export call, not inferred from CLI backend flags.
+Only first-call shape/dtype/device and outcome are recorded per backend/op;
+the hot path counts calls without copying/reading tensor values. It flushes
+atomically after each first call, every 1000 calls per operation, on explicit
+flush(), and at normal process exit. Logging failures do not replace operator
+behavior; one error is retained in memory and reported on stderr.
+
+Counts are process-wide attempted/succeeded/failed export calls. Backend
+delegation can make one model operation appear in multiple export counters;
+these are not disjoint model-layer totals. While a server is running, a file
+may lag each operation's current counter by up to 999 calls. First-call entries
+remain sufficient to prove observed CUDA/Triton/eager execution. Read a final
+flush or the normal-exit file when exact final counts are required. A killed
+process does not guarantee final flush. Sampling-run attribution requires
+correlating this process-wide audit with the prompt history/runtime log.
+
+Verification
+Passed 13 unittest CPU checks using the pre-existing local Python environment:
+  /Users/researcher/DevProjects/ComfyUI-dev/.venv/bin/python -m unittest discover \
+    -s tests -p test_pair_audit.py -v
+Torch: 2.14.0 (local CPU fixtures only; not the .41 experiment environment).
+Also passed python3 -m py_compile for the three Python files.
+The suite uses real small CPU torch tensors for hashing/immutability/RNG checks
+and a small fake PackedLayout for isolated snapshot contract validation. Fake
+backends verify all six wrapper locations, registry identity, no unrelated
+wrapping, unavailable operations, rollback, idempotency, argument/result/error
+identity, log failure behavior, and first/periodic/final flush semantics.
+Import-time tests confirm neither module imports torch or Comfy eagerly.
+Native .41 PackedLayout and actual CUDA/Triton execution remain runtime checks
+for the root experiment lane; local CPU fixtures do not claim GPU evidence.

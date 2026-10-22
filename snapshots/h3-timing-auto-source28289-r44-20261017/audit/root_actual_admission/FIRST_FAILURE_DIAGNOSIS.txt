@@ -1,0 +1,7 @@
+R44 首次启动：资源准入拒绝，未产生模型结果
+
+首个异常：job.submit 调用 check_host_admission，再由 service.check_admission 拒绝 Selected GPU has active compute。异常在 /prompt 提交之前；run_job、history、counterfactual 均不存在，Comfy 日志仅到HTTP ready，无got prompt。DiT=0，observer=0，不能归为方法或模型失败。
+
+失败时GPU2有PID32067/22290MiB；本服务40369正常exact清理，supervisor40315/controller44721均已消失，registered child为空。现PID32067已不存在，UID无从复核，不能猜；下一只读快照GPU2为PID60869、UID0、32018MiB。本用户UID1016，未操作该外部进程。
+
+33份实际日志/注册/队列/准入/资源/kernel/退出记录均已下载，远端下载前后SHA一致。原producer128文件不动；后处理BINDING未创建。按root授权另建R45 GPU3/8507行政迁移，科学配置、17数值文件及阈值保持。

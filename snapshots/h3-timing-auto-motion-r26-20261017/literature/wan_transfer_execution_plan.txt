@@ -1,0 +1,194 @@
+Wan2.1 T2V-1.3B：FlowMotion / FlowDirector V1 可执行迁移审查
+日期：2026-10-17；状态：源码和清单审查完成，尚未安装、下载权重或运行模型。
+写域：本文件、同名 JSON、wan_transfer_sources/。生产 H3 / ComfyUI / GPU 未改动。
+
+1. 当前可执行结论
+
+可以在同一 Wan2.1-T2V-1.3B 模型家族上运行两套公开代码，完成“源视频＋文本的外观/主体编辑并保留运动”的交集任务。它们都不原生接受 H3 当前实验使用的身份参考图。不能把带 Sam 肖像的 H3 Ref2VA 和不带肖像的 Wan 文本编辑称为相同输入条件下的方法胜负。首个共同任务宜固定成衣服颜色/外观文字编辑；源描述、目标描述及目标词必须由源内容预先冻结。
+
+H3 Full 不是在 Wan 中改几行现成 reference logits 就能原样工作。Wan T2V 的 self-attention 只有当前视频 Q/K/V，文字走独立 cross-attention，没有 H3 joint stream 的 reference-video group。必须先定义 source reference bank / 双分支，再检验该新增分支的原生影响，才谈“保组质量的同时间读取”。控制器可以复用物理时间误差的定义，但 Wan 编码器时钟、条件语义与执行器都要重新验收。
+
+已下载的只是固定版本小源码、HF 文件清单和配置；论文与代码已读，命令仅模板。没有声称官方仓库已经在本机实跑成功。
+
+2. 精确源码与主来源
+
+FlowMotion：
+  论文 https://arxiv.org/html/2603.06289v2 （§3.3–3.4、附录 B/D/E）
+  仓库 https://github.com/HKUST-LongGroup/FlowMotion
+  固定 commit f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d
+  run.py https://github.com/HKUST-LongGroup/FlowMotion/blob/f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d/run.py
+  run.py SHA256 47671d72232a61ebac1cb3b4cc538e51c844af6eb3ab28db620cf6d30794dc21
+  本地 FlowMotion/ 四文件 18,900 bytes；MIT LICENSE 保留。
+
+FlowDirector：
+  V1 论文 https://arxiv.org/html/2506.05046v1
+  仓库 https://github.com/Westlake-AGI-Lab/FlowDirector
+  固定 commit cecd56e30820b279f35acaa18597f4da25fa4f42
+  核心 https://github.com/Westlake-AGI-Lab/FlowDirector/blob/cecd56e30820b279f35acaa18597f4da25fa4f42/wan/text2video.py
+  本地 FlowDirectorV1/ 34 文件 389,254 bytes。README 明确 V1，V2 待开源；不能标成已复现 CVPR 后续版本。
+  LICENSE 实际为 Apache-2.0，和 README 的 MIT 文字不一致；保存实际 LICENSE。
+
+Wan / Diffusers：
+  原始模型 https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B
+  Diffusers 包 https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+  Diffusers v0.35.1 源码 https://github.com/huggingface/diffusers/blob/v0.35.1/src/diffusers/models/transformers/transformer_wan.py
+  Pipeline https://github.com/huggingface/diffusers/blob/v0.35.1/src/diffusers/pipelines/wan/pipeline_wan.py
+  转换程序 https://github.com/huggingface/diffusers/blob/v0.35.1/scripts/convert_wan_to_diffusers.py
+  三个 dependency 文件已 pin / hash；SOURCE_MANIFEST.json 和 DEPENDENCY_SOURCE_MANIFEST.json 逐文件记录来源。
+
+3. 两套原生执行路径（代码事实）
+
+FlowMotion run.py：
+- 输入 source MP4 + target_prompt；source prompt 和 negative prompt 都是空字符串。全部源帧经 imageio 读取，VideoProcessor 按指定宽高预处理，输出沿用源 FPS。
+- 模型/文本/VAE按 FP16 加载；VAE.encode()[0].sample() 取 posterior 样本，继而按 mean/std 标准化。目标从随机噪声起步。
+- 每个指导步独立 forward-noise 源 latent，求源预测 clean endpoint；目标 latent 进行 Adam 内循环，对 clean endpoint 和绝对跨帧差值作匹配，再做手写 Euler 更新。无 inversion，无 LoRA，无深网络反传。
+- 默认 50 步，前 10 步各 3 次优化，source CFG 1.5，target CFG 6，lr .003，alpha20/beta5，velocity perpendicular scale .1。
+- calc_velocity 有 @torch.no_grad()；梯度经过 x0 = z - t*stopgrad(v)，不能删除 decorator 后仍称官方复现。
+- __init__ 创建 self.scheduler(flow_shift=CLI)，process 却调用 self.pipe.scheduler。当前 --flow_shift 无效；HF 原配置 flow_shift=3。默认恰好一致，更改 CLI 不会改变实际 sigma。应归档实际 timesteps/sigmas；接通参数属于带版本标记的修订。
+- do_classifier_free_guidance 由 pipe._guidance_scale=target CFG 控制，source 两个空条件仍做两次 forward。默认 latent_prediction 的实际 DiT 调用预计 50*2+10*2+10*3*2=180；clean_latent 为160。必须以实际 instrumentation 为准，不能仅报“50步”。
+
+FlowDirector V1 edit.py -> WanT2V.edit：
+- 输入 source MP4、source_prompt、target prompt、source_words、target_words；无身份参考图。words 通过 tokenizer 子序列定位，应验证两者都确实匹配，缺失会影响编辑 mask。
+- OpenCV 读全部帧，BGR->RGB，INTER_AREA 直接 resize，[-1,1]；VAE.video_encode 返回均值 latent，VAE 默认 FP32。T5/DiT计算配置 BF16；并非 FlowMotion 的 FP16 posterior-sample 路径。
+- z_edit 初值为源 clean latent。对每个 noising draw 和 temporal window 构造 z_src=(1-t)x_src+t*noise，z_tar=z_edit+z_src-x_src，调用源/目标各 conditional/unconditional，得到速度差；文字 cross-attention mask 调制更新。无 inversion。
+- 官方 shell 默认 50 个调度时刻、n_max40/n_min0、n_avg4/worse_avg2、source CFG3.5、target CFG10.5、shift12、omega2.75、window_size11、decay .25。前10个调度时刻跳过，随后40个编辑更新。并非50次同成本生成。
+- Temporal MultiDiffusion 默认 latent window11 / stride8；CLI window_size 是空间 mask pooling 参数，不是这个 temporal window。81 RGB ->21 latent：实际窗口起点[0,8,10]，每步 3 windows。默认 81帧约40*4*3*4=1920 DiT forwards；41帧单窗约640；49帧两窗约1280。不含文本/VAE。以实际计数复核。
+- frame_num 只用于 target_shape/seq_len 计算，loader 不裁剪源帧；必须外部准备精确帧数。输出固定 cfg.sample_fps=16，不读取输入 FPS。输入 24fps 直接送入会改变输出的物理动作时长，这不能记成生成动作延迟。
+- 官方 README 脚本名下划线写法不对应实际文件；实际是 script-edit-single-gpu.sh。下方模板直接调用 edit.py。
+
+4. DAG 的精确行为与公平边界
+
+在 text2video.py 887–903，令 M 个速度差为 v_i、均值 Vbar。代码枚举所有大小 k 的子集 S，并平均 Vbar - mean_{i in S}(v_i)。每个 i 在同样多的子集出现，故：
+  mean_S(mean_{i in S} v_i) = Vbar；mean_S(Vbar - mean_S(v)) = 0。
+于是精确算术下 V_final=Vbar+(omega-1)*0，omega 不产生所声称差分增强；浮点可能留微小残差。接着仍乘 active spatial attention mask，其他方法部分没有被这个结论否定。848–851 计算的 conflict_mask 没进入后面的 active 更新；实际用 source/target attention union + soften。
+
+必须分开三种标签：
+A. Official V1@commit：原样执行、准确记录 DAG 等价取消及结果。
+B. V1 的后续修复：只有另行规定子集选择/排序/参照等，才可能不抵消；这会改变算法，不能用“简单bugfix”假装论文唯一意图，不能声称官方 V2。
+C. 我们移植 Wan 的新执行器：独立命名、独立 baseline。
+单凭官方 V1 某一退化实现上胜出不能支撑对论文完整算法的优势。后续论文比较需报告 A 的限制；若无可核官方修正版，保留 FlowMotion 为核心可解释对照，不自行降低其参数来获得胜出。
+
+5. 权重精确清单与磁盘
+
+HF 读取的完整 revision 与每个 LFS SHA/大小在 JSON 和 hf_metadata/*.json；这里给主要文件（十进制 GB）。
+原始包 revision 37ec512624d61f7aa208f7ea8140a131f93afc9a：
+  diffusion_pytorch_model.safetensors 5,676,070,424 bytes
+  models_t5_umt5-xxl-enc-bf16.pth 11,361,920,418
+  Wan2.1_VAE.pth 507,609,880
+  config.json；google/umt5-xxl/{spiece.model,tokenizer.json,tokenizer_config.json,special_tokens_map.json}
+  权重17,545,600,722；运行所需非 assets/README/.gitattributes 17,567,317,037；整个repo 17,573,837,064。
+Diffusers 包 revision 0fad780a534b6463e45facd96134c9f345acfa5b：
+  transformer 两片合计5,676,070,648；text_encoder 五片合计22,723,671,744；vae 507,591,892。
+  model_index、scheduler config、各组件 config/index、tokenizer 文件也必需。
+  权重28,907,334,284；运行文件28,929,138,487；整个repo28,935,653,511。
+  两套运行文件共46,496,455,524 bytes，约46.50 GB（43.30 GiB），不含环境/临时转换/结果。
+
+不要凭模型名认定两包参数、dtype和预处理逐位相同。公开转换脚本还从 google/umt5-xxl 取 T5；运行前需按映射核 state keys / tensor values / dtype，并做同输入编码与单步输出容差门，明确允许的转换误差。下载原始包再本地转换可能省网络，但会新增转换验收，不能把当前脚本当已认证节省方案。
+
+参考缓存成本：832×480、patch(1,2,2)、12heads×128、30blocks，81帧共32760 tokens。FP16/BF16 单层 K+V 201,277,440 bytes，30层约6.04GB/step，50步全存约301.92GB。CFG两条件、多个noising draw或存Q还会倍增。这比当前盘余量大，不能默认全缓存。最低方案为同一时刻 source forward 一次，保当步每层K/V，消费完释放；更省峰值方案需显式交错 source/target layers，不能当免费 cache reuse。FlowMotion 只有早期 source forward，后期需要参考时须计新增调用。
+
+6. 实际现有内容和环境（只读 inventory，不是模型验证）
+
+本次 H3_SERVER_A (.9) 仅在 /data5/researcher/ComfyUI/models 与 ~/.cache/huggingface/hub 做有界文件清单；未发现准确 T2V1.3B 包。其他目录是否存在未知。
+可复用候选：
+  /data5/researcher/ComfyUI/models/text_encoders/umt5-xxl-enc-bf16.safetensors 11,361,845,464 bytes
+  /data5/researcher/ComfyUI/models/vae/Wan2_1_VAE_bf16.safetensors 253,806,278
+  /data5/researcher/ComfyUI/models/vae/wan_2.1_vae.safetensors 253,815,318
+这些只是路径/大小/mtime；未加载、未hash大权重。safetensors->pth不能简单改后缀；BF16 VAE相对官方FP32原件的精度损失不能恢复。Fun-Control、FLF2V14B、WanAnimate14B及FP8文件不等于T2V1.3B，不能替换后仍称同backbone。
+
+实际 comfyui env metadata：torch2.5.1+cu121 / torchvision.20.1 / diffusers.35.2 / transformers4.57.3 / tokenizers.22.1 / accelerate1.12 / numpy1.26.4 / scipy1.15.3 / PIL12。flash-attn、easydict、dashscope、xfuser、gradio未见安装metadata。未 import torch/CUDA。
+本机仅查HF cache与DevProjects顶层相关名字，未找到Wan/FlowMotion/FlowDirector现成运行目录；不代表全盘没有。
+/data5 空闲快照244,574,846,976 bytes；不是资源预留。
+
+依赖隔离：
+FlowMotion作者 Python3.10；torch2.8.0/torchvision.23.0/diffusers.35.1/transformers4.56/tokenizers.22.0/opencv4.11.0.86/numpy1.26.4/PIL11.3，加requirements列出的库。
+FlowDirector作者 README Python3.12，torch>=2.4/vision>=.19/diffusers>=.31/transformers>=4.49，加scipy1.15.2/skimage.25.2/xfuser.4.3.post3等。宽范围不等于任何解析结果均已验证，首次成功必须 pip freeze 保存。
+重要：虽然README称flash_attention可选，WanSelfAttention实际直接调用flash_attention，缺FA2/FA3会assert。同文件attention()的SDPA fallback没有被该模型调用。要运行官方路径须兼容PyTorch/CUDA的FA2/3；切换SDPA必须独立记录为backend适配。dashscope在edit.py的prompt_extend导入链被无条件import，即使不启用API扩写仍需要包；不需要用户API key，只要不传--use_prompt_extend。xfuser单GPU路径延迟导入，可做最小依赖审计，但先按官方requirements建独立环境更易归责。
+补充只读驱动清单：.9 四张 NVIDIA A100 80GB PCIe 的 driver_version 都为535.129.03；只执行nvidia-smi查询，没有创建CUDA上下文。PyTorch官方2.8轮子提供cu126/cu128/cu129（https://pytorch.org/get-started/previous-versions/）。NVIDIA CUDA12.x minor compatibility允许>=525驱动，但PTX JIT和新特性可能要求较新驱动（https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html）。所以优先显式cu126并验收实际attention/kernel，不能据535直接说绝对不兼容，也不能承诺pip成功即GPU可用；不修改驱动。
+
+禁止升级当前comfyui。磁盘建议另留20–40GB给两个环境、wheel/编译缓存与结果（工程余量估计，不是已测需求），总预算约70–90GB；额外保留重复download cache需另算。
+FlowMotion README记录49/81帧约19/20GB GPU，CPU offload约4.9/5.8GB；这些是作者条件，不能承诺本832宽或当前机器同数值。FlowDirector V1没有在已读README给出可信统一VRAM数值；应在健康80GB空卡做预检，而非先占共享48GB猜测。此报告没有资源分配授权。
+
+7. 可直接填路径运行的命令模板（本轮没有执行）
+
+所有WAN_*变量是新隔离目录，下面假定两个环境和权重已按依赖门验收。WAN_SOURCE/TARGET_PROMPT/SOURCE_PROMPT/SOURCE_WORDS/TARGET_WORDS须由冻结源清单提供，不能拿source05提示词硬套新舞蹈。CUDA_VISIBLE_DEVICES必须由root的实时准入填空闲UUID，文中不预订卡。
+
+隔离环境命令模板（版本解析/编译可能失败，首次成功后保存pip freeze；本轮未执行）：
+  conda create -p "$WAN_ENVS/flowmotion" python=3.10 -y
+  "$WAN_ENVS/flowmotion/bin/python" -m pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu126
+  "$WAN_ENVS/flowmotion/bin/python" -m pip install -r "$WAN_CODE/FlowMotion/requirements.txt"
+  conda create -p "$WAN_ENVS/flowdirector" python=3.12 -y
+  "$WAN_ENVS/flowdirector/bin/python" -m pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu126
+  "$WAN_ENVS/flowdirector/bin/python" -m pip install -r "$WAN_CODE/FlowDirectorV1/requirements.txt"
+  "$WAN_ENVS/flowdirector/bin/python" -m pip install flash-attn --no-build-isolation
+模板为FlowDirector也先显式选torch2.8/cu126（满足作者范围，不代表作者锁定环境）；实际验收前仍不保证兼容。必须在安装计划阶段拒绝requirements意外升级torch/vision。最后flash-attn命令是作者安装入口而非已锁定可用二进制承诺；应按实际torch/CUDA/SM80编译或选择匹配wheel后记录文件SHA。不要在两个环境间复制.so。
+
+源码：
+  git clone https://github.com/HKUST-LongGroup/FlowMotion "$WAN_CODE/FlowMotion"
+  git -C "$WAN_CODE/FlowMotion" checkout --detach f5b4dcfc2ac00d21c05e2290111dde468ddb1d9d
+  git clone https://github.com/Westlake-AGI-Lab/FlowDirector "$WAN_CODE/FlowDirectorV1"
+  git -C "$WAN_CODE/FlowDirectorV1" checkout --detach cecd56e30820b279f35acaa18597f4da25fa4f42
+亦可复制本报告下载的纯源码快照，先核SOURCE_MANIFEST；没有下载官方示例素材。
+
+权重下载（命令模板，未执行）：
+  hf download Wan-AI/Wan2.1-T2V-1.3B --revision 37ec512624d61f7aa208f7ea8140a131f93afc9a --local-dir "$WAN_WEIGHTS/original" --exclude 'assets/*'
+  hf download Wan-AI/Wan2.1-T2V-1.3B-Diffusers --revision 0fad780a534b6463e45facd96134c9f345acfa5b --local-dir "$WAN_WEIGHTS/diffusers" --exclude 'assets/*'
+若远程网络慢可在本机同revision下载并校SHA后rsync，磁盘清单不变。HF CLI必须来自隔离环境，语法先hf download --help验收，不安装到生产。
+
+共同输入拟用81帧、16fps、832×480；前81帧总时长5.0625秒，最后样本时刻5.0秒。先固定起点/空间变换再转码一次。不要让两工具各自读取不同源时间；FlowDirector不能自动截取。
+  ffmpeg -i "$ORIGINAL_SOURCE" -vf 'fps=16,scale=832:480:force_original_aspect_ratio=decrease,pad=832:480:(ow-iw)/2:(oh-ih)/2:black,setsar=1' -frames:v 81 -an -c:v libx264 -crf 10 -pix_fmt yuv420p "$WAN_SOURCE"
+这里给起点0示例，未来选择必须只依源片；记录FFmpeg版本/实际帧RGB与timestamp。两工具内部decoder/resize仍不必逐位等，必须实际dump比较。81帧是共同工程协议，不等于FlowMotion论文49帧720宽或FlowDirector脚本41帧默认。
+
+FlowMotion官方逻辑、共同尺寸：
+  cd "$WAN_CODE/FlowMotion"
+  CUDA_VISIBLE_DEVICES="$WAN_GPU_UUID" "$FLOWMOTION_PY" run.py --model_id "$WAN_WEIGHTS/diffusers" --video_path "$WAN_SOURCE" --target_prompt "$TARGET_PROMPT" --seed 2026101701 --T_steps 50 --height 480 --width 832 --device cuda:0 --source_guidance_scale 1.5 --target_guidance_scale 6.0 --flow_shift 3.0 --guidance_step 10 --optimization_step 3 --lr_base 0.003 --alpha 20 --beta 5 --regulate_scale 0.1 --guidance_type latent_prediction --output_dir "$WAN_RESULTS/flowmotion"
+  输出预期：latent_prediction_2026101701.mp4。--flow_shift仍按原代码无效，HF实际3须audit。
+
+FlowDirector官方V1逻辑、共同尺寸：
+  cd "$WAN_CODE/FlowDirectorV1"
+  CUDA_VISIBLE_DEVICES="$WAN_GPU_UUID" "$FLOWDIRECTOR_PY" edit.py --task t2v-1.3B --size '832*480' --frame_num 81 --ckpt_dir "$WAN_WEIGHTS/original" --source_video_path "$WAN_SOURCE" --source_prompt "$SOURCE_PROMPT" --source_words "$SOURCE_WORDS" --prompt "$TARGET_PROMPT" --target_words "$TARGET_WORDS" --base_seed 2026101701 --sample_solver unipc --sample_steps 50 --sample_shift 12 --sample_guide_scale 3.5 --tar_guide_scale 10.5 --n_max 40 --n_min 0 --n_avg 4 --worse_avg 2 --omega 2.75 --window_size 11 --decay_factor 0.25 --offload_model True --save_file "$WAN_RESULTS/flowdirector_v1_seed2026101701.mp4"
+  先mkdir输出父目录；不启prompt_extend，不调用外部API。--size引号保留，防shell通配。
+
+技术烟测若需缩为41帧，必须真正外部裁成41帧且两套参数/输入都一致；只验证接口，不纳入主质量结论。该烟测不在本任务执行。
+
+8. H3 Full 迁移 Wan 的最小插入点与必要对照
+
+现有H3：O_new=O+alpha*m_ref*(O_same_ref-O_all_ref)，其中m_ref来自原joint attention对reference视频组的真实概率质量；其他组输出不改。
+Wan结构：30blocks，12heads×128，hidden1536，latent channels16，patch[1,2,2]，参考不存在。
+原Wan文件 wan/modules/model.py：WanSelfAttention.forward的qkv_fn约138行，qkv约143，RoPE+flash145，flatten154，self.o155。最小hook在视频self-attention post-RoPE / pre-output-projection。文字WanT2VCrossAttention不动。
+Diffusers v0.35.1：WanAttnProcessor.__call__ qkv91、norm93/94、reshape96–98、RoPE100–117、SDPA139–147、flatten148、to_out154；只给attn1安装processor，attn2文字保持。必须实测processor接口和head-layout；不能复制H3 split-half RoPE实现，因为Wan实现布局不同。
+
+建议最小可解释适配：
+  S_n=(1-sigma_n)*E(source)+sigma_n*epsilon_n；用源条件c_s独立跑同一Wan，各block缓存post-RoPE K_s和V_s。
+  target各block原Q_t，组成K=[K_t,K_s], V=[V_t,V_s]，得到bank baseline O_B及真实m_s。
+  O_BFull=O_B+alpha*m_s*(O_same(K_s,V_s)-O_all(K_s,V_s))。
+  same对应的是该Wan编码格中的物理时间索引，源/目标等fps且等帧数；首帧与后续4帧chunk分别处理。不能沿用H3 17RGB→5latent、50blocks、56heads、bin14..19。
+
+最少三臂：原方法；加source-bank但不重路由；相同bank+Full。第三减第二才隔离同帧读取。相同source-noise/sigma/条件、seed、actual每step source K/V和目标zero路径需可审计。比较原FlowMotion时其loss和source-forward不能悄悄删除；也可另开Wan bank实验，但称“新增参考条件版Wan”，而非FlowMotion官方消融。
+源bank不一定需要inversion：上述forward-noised branch足够定义；换成inversion/reconstruction轨迹要追加重建误差、调用数和cache验收。即使复用原FlowMotion sourceforward，其优化内圈可reuse同sourcebank，但target改变后的K_t会改变m_s；不可把缓存的target m_s复用。
+FlowDirector source分支每个noise/window/CFG均不同；cache必须key=(step,draw,window,condition,layer,sourceinputSHA)。其window内RoPE时间重置，需要明确相对/全局物理时间映射；不能把整段sourcebank直接喂每个小窗。
+
+不推荐偷换的“零开销版”：在原Wan O_t上加lambda*m_hyp*(O_same_s-O_all_s)，m_hyp由假想拼接计算。这可以有合法的zero=原Wan路径，但不是重新分配原生reference group；它是delta adapter，需单独命名/验证。任意lambda不是H3组质量自然继承。
+
+最低数值门：
+- alpha0/native原输出、RNG、未选query/文字cross-attention逐位不变；非零以独立dense小张量核公式和m_s。
+- 同帧映射在首帧/chunk边界、source长度与输出长度不匹配时fail closed；cache stale/错branch拒绝。
+- 原模型FP16/BF16kernel的全序列finite/RNG/输出容差与peakVRAM门；不依赖toy测试代替真实shape。
+- 新bank本身不能让外观编辑退化成源重建；需测text/edit fidelity、背景/身份/身体形状以及时序，而非只看lag。
+
+9. 公平比较与执行顺序
+
+阶段A：官方逻辑复现。固定两套commit、模型revision、源时间与目标文字，分别用各作者默认指导参数；保存实际sigma和NFE。报告为相同模型家族、各自原生pipeline，承认VAE/文本编码/CFG/负提示/计算dtype与初始化差异。同seed不是同noise证据。
+阶段B：统一pipeline适配。只有A可运行且预处理/权重映射通过，才将两方法移到同一Wan实现/精度/调度器。每种适配先对自己的原生输出验证，新增兼容修正逐项标记；不得把统一后的适配结果冒充作者原样实现。
+阶段C：新reference-bank+Full三臂、再在线pose控制。先证明执行器在Wan可控、编辑质量可接受，不能直接把H3控制器阈值2frames/步号6–14搬来当同机制证据。16fps下2frames=125ms，旧24fps2frames≈83ms；公平容差应预先以秒冻结，并报告采样量化。
+
+共同评价：所有预选源/seed保留正常、恶化和UNKNOWN；按原始物理时间对齐展示，禁止先DTW后报同步；额外报告允许lag对齐后的shape以分清改动作/变幅与时延。测外观编辑成功和背景保留，避免“保留原片不编辑”赢运动分。不能用坏例筛选后的成功率冒充总体率。两方法计算预算不同，先报各自原生质量/总NFE/壁时/峰值显存；等NFE或等时间是另一个预注册条件，不强改作者优化次数制造比较优势。
+
+最小接下来动作：root授权后建立两个隔离环境、下载固定模型文件，做零GPUimports/权重键映射/CLI smoke；随后仅健康空卡做实际shape数值验收与一条共同输入技术烟测。将真实执行记录补入清单后才启动主质量对比。本轮已经完成审查，应等待主任务确定实施，不自行下载大模型或占卡。
+
+10. 本轮可核证据/局限
+
+- SOURCE_MANIFEST.json：38原仓库文件逐SHA；DEPENDENCY_SOURCE_MANIFEST.json：3 Diffusers来源。
+- hf_metadata两份API文件：固定revision、所有主要模型文件LFS SHA和字节数；没有读取权重tensor。
+- remote_inventory_stdout.json：只读.9路径/metadata/盘余量；没有网络连通/驱动/GPU准入承诺。
+- JSON含逐文件模型清单、依赖、插入点、命令和限制。本轮仅静态源码审查，尚无两方法本机成功证据、没有解决V1作者算法意图、没有证明新增bank是好架构或有新颖性。

@@ -1,0 +1,74 @@
+--- R42/consume.py
++++ R43/consume.py
+@@ -1,4 +1,4 @@
+-"""One CPU consumer for R42 single Native result; default is prepare-only."""
++"""One CPU consumer for R43 single Native result; default is prepare-only."""
+ import argparse,fcntl,os,shlex,subprocess,time,traceback
+ from pathlib import Path
+ from contract import *
+--- R42/one_phase.py
++++ R43/one_phase.py
+@@ -15,13 +15,14 @@
+  for rel,d in freeze['files'].items():require(sha(HERE/rel)==d,'consumer changed')
+  b=read(HERE/'BINDING.json');require(b['approved_for_consumer_start'] is True and b['protocol_sha256']==sha(HERE/'PROTOCOL.json'),'root consumer binding/authorization')
+  subprocess.run(base.SSH+[base.HOST,'mkdir -p '+shlex.quote(base.REMOTE)],check=True,timeout=30)
++ (HERE/'parents').mkdir(exist_ok=True)  # No parent arm for this Native-only case.
+  sources=[str(HERE/r) for r in freeze['files'] if '/' not in r]+[str(HERE/'BINDING.json'),str(HERE/'FREEZE.json')]
+  subprocess.run(['rsync','-a','-e',shlex.join(base.SSH),*sources,str(HERE/'parents'),str(HERE/'assets'),base.HOST+':'+base.REMOTE+'/'],check=True,timeout=60)
+ 
+ def execute_one():
+  unique=(HERE/'unique_consumer.lock').open('a')
+  try:fcntl.flock(unique,fcntl.LOCK_EX|fcntl.LOCK_NB)
+- except BlockingIOError:unique.close();return {'status':'busy','scope':'another R42 driver','no_phase_started':True}
++ except BlockingIOError:unique.close();return {'status':'busy','scope':'another R43 driver','no_phase_started':True}
+  with unique:
+   prepare();(HERE/'logs').mkdir(exist_ok=True);stamp=str(time.time_ns())
+   def call(args):
+--- R42/remote_consume.py
++++ R43/remote_consume.py
+@@ -1,4 +1,4 @@
+-"""Read-only producer intake, one fixed source28289 Native result. All inference is already complete."""
++"""Read-only producer intake, one fixed source51765 Native result. All inference is already complete."""
+ import argparse,fcntl,os,shutil,subprocess,sys,time
+ from pathlib import Path
+ from contract import *
+--- R42/test_native.py
++++ R43/test_native.py
+@@ -4,7 +4,7 @@
+ from presentation import layout_keys
+ class NativeTests(unittest.TestCase):
+  def test_single_native_no_event_window(self):
+-  p=read(HERE/'PROTOCOL.json');self.assertEqual(len(p['cases']),1);c=p['cases'][0];self.assertEqual((c['source_id'],c['seed']),('28289',2026101701));self.assertEqual(c['windows'],[[0,140]]);self.assertIn('no preselected failure',c['window_scope']);self.assertEqual(p['fixed_visual_frames'],[0,35,70,105,140]);self.assertEqual(p['scan_rows'],186)
++  p=read(HERE/'PROTOCOL.json');self.assertEqual(len(p['cases']),1);c=p['cases'][0];self.assertEqual((c['source_id'],c['seed']),('51765',2026101701));self.assertEqual(c['windows'],[[0,140]]);self.assertIn('no preselected failure',c['window_scope']);self.assertEqual(p['fixed_visual_frames'],[0,35,70,105,140]);self.assertEqual(p['scan_rows'],186)
+  def test_actual_source_design_byte_exact(self):
+   p=read(HERE/'PROTOCOL.json');root=Path(p['root_local']);self.assertEqual((HERE/'SOURCE_DESIGN.json').read_bytes(),(root/'design/PROTOCOL.json').read_bytes());self.assertEqual(sha(root/'deploy_manifest.json'),p['producer_manifest_sha256'])
+  def test_all_math_reused_original(self):
+@@ -21,4 +21,17 @@
+   for length in (16,32):
+    for a in sorted(set(range(0,141-length+1,4))|{141-length}):windows.append((a,a+length-1))
+   self.assertEqual(len(windows),62);self.assertTrue(all(0<=a<=b<=140 for a,b in windows));s=(HERE/'remote_consume.py').read_text();self.assertIn("regions[f'scan_{a}_{a+length-1}']",s)
++class PortablePreparationTests(unittest.TestCase):
++ def test_empty_parent_directory_created_before_sync(self):
++  import tempfile
++  from unittest.mock import patch
++  import one_phase
++  with tempfile.TemporaryDirectory() as td:
++   root=Path(td);(root/'PROTOCOL.json').write_text('{}');save(root/'FREEZE.json',{'files':{}});save(root/'BINDING.json',{'approved_for_consumer_start':True,'protocol_sha256':sha(root/'PROTOCOL.json')})
++   calls=[]
++   def fake(cmd,**kw):
++    if cmd[0]=='rsync':self.assertTrue((root/'parents').is_dir())
++    calls.append(cmd)
++   with patch.object(one_phase,'HERE',root),patch.object(one_phase.subprocess,'run',side_effect=fake):one_phase.prepare()
++   self.assertEqual(len(calls),2)
+ if __name__=='__main__':unittest.main()
+--- R42/test_postrun.py
++++ R43/test_postrun.py
+@@ -23,7 +23,7 @@
+      (arc/'final/one/SUMMARY.json').unlink();manifest=c.read(arc/'DERIVED_FILES.json');del manifest['final/one/SUMMARY.json'];c.save(arc/'DERIVED_FILES.json',manifest)
+     with self.assertRaises(ValueError):consume.check_download(arc)
+  def test_frozen_source_windows_evaluation_only(self):
+-  p=c.read(c.HERE/'PROTOCOL.json');self.assertEqual([r['source_id'] for r in p['cases']],['28289']);self.assertEqual([r['seed'] for r in p['cases']],[2026101701]);self.assertEqual(c.sha(c.HERE/p['source_design']['file']),p['source_design']['sha256']);self.assertTrue(p['source_design']['evaluation_only'])
++  p=c.read(c.HERE/'PROTOCOL.json');self.assertEqual([r['source_id'] for r in p['cases']],['51765']);self.assertEqual([r['seed'] for r in p['cases']],[2026101701]);self.assertEqual(c.sha(c.HERE/p['source_design']['file']),p['source_design']['sha256']);self.assertTrue(p['source_design']['evaluation_only'])
+   for case in p['cases']:self.assertEqual(case['windows'],[[0,140]])
+  def test_runtime_seal_unchanged(self):
+   root=c.HERE.parents[1];manifest=c.read(root/'deploy_manifest.json')

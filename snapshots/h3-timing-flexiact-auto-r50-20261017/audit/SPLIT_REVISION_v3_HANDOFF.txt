@@ -1,0 +1,23 @@
+R50 resource placement v3; no GPU launched by builder.
+
+Main GPU3: GPU-REDACTED
+Decoder GPU0: GPU-REDACTED
+V2 preservation: audit/revisions/producer_v2/{deploy_manifest.json,sealed_producer.tar.gz,PRESERVATION.json}; original v1 preservation is also retained. Both version archives are in the v3 bundle.
+
+Manifest SHA256: 7e76dd59188990bc5e7c927483489b903c2af965e503e8b90cb0bba37208c4d5
+Bundle audit/runtime_bundle_v3.tar.gz SHA256: d55cd83b1b63035c827e8761482c9709d624f495d5de5d439d3577b49b426b1b
+Protocol SHA256: c494f9f4598aee04225d47da8435a65ec18c560a888258df2baf56eb9e9ffb3e
+
+Changes from v2: protocol resources.decoder_uuid is the only protocol difference. Device constants, admission and versioned gate names follow GPU0. Numerical observer/controller/operator, main model, sampler/precision/frame domain and five actual parent pairs remain identical. 101 scientific files matched; 52 tests and metadata preflight passed. Main admission reserves GPU3/GPU0; an unrelated other user's GPU2 job is allowed and untouched.
+
+Root owns upload, deployment and execution. No upload/execution performed for v3 by builder.
+After inspecting/extracting the v3 bundle into inactive R50:
+1. Using /home/researcher/miniconda3/envs/comfyui/bin/python, CUDA_VISIBLE_DEVICES empty and TMPDIR/TMP/TEMP pointing to R50/temp:
+   scripts/known_endpoint_158_gate.py --root-admitted --output audit/known_endpoint_158_split_v3_gate.json
+   Independent child directory: audit/observations/known_endpoint_158_split_v3.
+   Register exact decoder_ready.json identity for GPU0 and create decoder_go.json with root_approved=true, identity and gpu_uuid. Gate requires priorGPU3 same-endpoint decoded tensor and all158 RGB frame hashes to match.
+2. Run audit/build_split_resource_admission_v3_proposed.py --root-approved. Writes audit/resource_admission_v3.json; requires GPU3 and GPU0 idle. GPU2 is not used by this task.
+3. Bind mutable admission after root review, run full scripts/preflight.py.
+4. scripts/launch_remote.py --service-only, then scripts/start_controller.py --pid <exact service PID> --start-ticks <exact start ticks>.
+
+Whole-run fixed evidence: configs/engineering_revision_v3.json, configs/engineering_v3/*, retained configs/engineering_revision_v2.json and configs/engineering_v2/*, audit/known_endpoint_158_split_v3_gate.json, audit/resource_admission_v3.json. Per-step response/process/exit paths and cleanup fields stay as v2. Formal whole-run gates remain unchanged after first case starts.

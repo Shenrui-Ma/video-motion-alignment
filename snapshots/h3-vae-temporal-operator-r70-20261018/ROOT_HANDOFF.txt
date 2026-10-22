@@ -1,0 +1,17 @@
+R70 CPU prepared; GPU execution remains root-owned.
+Local: /Users/researcher/DevProjects/h3-vae-temporal-operator-r70-20261018
+Remote: /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018
+FREEZE SHA256: 49618bf59ea2a82e96164cbe90b3502a9c29dd1bfc986489bb20f1a4f4abe679
+GPU UUID: GPU-REDACTED (.9 GPU1, root fresh resource check)
+
+Root launch (no CUDA is initialized until exact ready/go):
+CUDA_VISIBLE_DEVICES=GPU-REDACTED /home/researcher/miniconda3/envs/comfyui/bin/python -u /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/scripts/run_operator.py --execute --gpu-uuid GPU-REDACTED --control /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/audit/root_control_attempt1 --output /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/outputs/attempt1
+
+Wait for audit/root_control_attempt1/ready.json. It binds identity={pid,uid,start_ticks,cmdline_sha256}, snapshot/phi/FREEZE hashes, GPU UUID, output, CUDA_started=false.
+Register that exact PID identity into R71 permitted_compute_processes before authorizing. Verify /proc UID/start/nonempty cmd SHA freshly. Write go.json atomically with exactly the ready.json object; no added fields. Gate times out after600s. Resource admission after go requires >=16384MiB free, temperature<85C, ownGPUunion<=2, foreign users allowed.
+
+CPU check (no GPU):
+CUDA_VISIBLE_DEVICES= /home/researcher/miniconda3/envs/comfyui/bin/python /data5/researcher/h3_runs/vae_temporal_operator_r70_20261018/scripts/run_operator.py --validate-only
+
+Completion: outputs/attempt1/RESULT.json statuscomplete, encode3/decode6/DiT0/fallback0. Root must separately verify process+CUDA allocation exit before downstream consumers. Any startup/operation/cleanup error is retained; failed directories are not reused.
+The phi is offline final-output-fitted development evidence, applied to index6 for operator coordinate diagnosis only.

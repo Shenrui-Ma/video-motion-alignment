@@ -1,0 +1,32 @@
+{
+  "prepared_date": "2026-10-20",
+  "scope": "Isolated CPU-prepared engineering prototype; production R141b/R142 frozen; no GPU execution.",
+  "archive_path": "/Users/researcher/.hermes/profiles/closure/workspace/silverwolf-486-threeway-20-8-4/audit_hosts/host9-deep.json",
+  "archive_sha256": "242b2a305a746eca5c05685a3c9a64539e87ef36205801228c0c4e66ade7fa91",
+  "sage_core_archive_key": "/data5/researcher/h3_runs/closure_multi_motion_v2/sage_vendor/sageattention/core.py",
+  "sage_core_content_sha256": "eb5ca9e8047583cc3a139f788f4bf48857aa1134d47a36ad5021b153690beaf4",
+  "sage_function": "sageattn_qk_int8_pv_fp16_cuda",
+  "sage_public_return_line": 629,
+  "sage_public_return_expression": "return o, lse / 1.44269504 + lse_correction * sm_scale if smooth_k else lse / 1.44269504",
+  "known_layout_issue": {
+    "lines": [
+      583,
+      584
+    ],
+    "detail": "head counts use size(2), so use NHD explicitly."
+  },
+  "pv_note": "FP16 V/PV path with FP32 accumulation; vendor casts V to float16 even for BF16 QKV.",
+  "router_core_read_only_path": "/Users/researcher/DevProjects/h3-timing-oxygen-centered-control-r142-20261020/extensions/H3TemporalRouter/core.py",
+  "router_core_sha256": "ac9a5437f0fa22fda037506d13f09e5f14c63e0c0e5946a5fa6483d6db7de7e0",
+  "router_note": "Existing production log-mass clamp stays frozen; diagnostics expose raw delta and do not clamp.",
+  "gpu_status": "not_run",
+  "no_new_dependencies": true,
+  "audited_target": {
+    "host": "H3_SERVER_B (.41)",
+    "target_core_path": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps/sageattention/core.py",
+    "target_core_sha256": "e475182fc55d6a683499e1eb4d8886fc06e050ed938d8563b090773eede2a99e",
+    "target_python": "/data3/researcher/ComfyUI/.venv/bin/python",
+    "target_pythonpath": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps",
+    "runtime_kernel_compatibility": "not_executed; source audit does not measure CUDA execution or accuracy"
+  }
+}

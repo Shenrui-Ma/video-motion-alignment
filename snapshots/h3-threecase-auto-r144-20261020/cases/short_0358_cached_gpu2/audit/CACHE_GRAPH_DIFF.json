@@ -1,0 +1,73 @@
+{
+  "original_graph_sha256": "911c316515ef0ee7d8d92c27bfad186aab5f28de753a098bffc22e3a7958352a",
+  "cached_graph_sha256": "93f525db8c0d19d02f06943a0e77d067bfe18faf767cb39631c134497f055f83",
+  "removed_nodes": {
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "22": {
+      "class_type": "LoadVideo",
+      "inputs": {
+        "file": "short_0358_video.mp4"
+      }
+    },
+    "23": {
+      "class_type": "GetVideoComponents",
+      "inputs": {
+        "video": [
+          "22",
+          0
+        ]
+      }
+    }
+  },
+  "replaced_node_5": {
+    "before": {
+      "class_type": "H3EventAuditReference",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "width": 1312,
+        "height": 736,
+        "length": 107,
+        "audit_dir": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/cases/short_0358/audit",
+        "run_id": "r123_short_0358_shared",
+        "semantic_fps": 2,
+        "phase_frames": 0
+      }
+    },
+    "after": {
+      "class_type": "H3CachedReferenceConditioning",
+      "inputs": {
+        "cache_manifest": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/cases/short_0358_cached_conditions/configs/CONDITION_CACHE.json",
+        "audit_dir": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/cases/short_0358_cached_conditions/audit",
+        "run_id": "r144_short_0358_seed2026101701_visible_only"
+      }
+    }
+  },
+  "path_updates_only_other_nodes": [
+    "6",
+    "14",
+    "50",
+    "51",
+    "52"
+  ],
+  "DiT_sigma_sampler_noise_router_unchanged": true,
+  "original_attempt_preserved": true
+}

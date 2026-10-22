@@ -1,0 +1,41 @@
+def run_child(command,env,directory,label,timeout,parent,*,execution_started_path=None,execution_timeout=None):
+ directory=Path(directory);log=directory/(label+'.log');start=time.monotonic();proc=None;entry=None;execution_start=None
+ marker=None
+ if execution_started_path is not None:
+  marker=inside(str(Path(execution_started_path).absolute()),ROOT/'audit/observations')
+  require(not marker.exists(),'execution marker already exists')
+  require(isinstance(execution_timeout,(int,float)) and 0<execution_timeout<=180,'invalid child execution timeout')
+ def check_execution_budget():
+  nonlocal execution_start
+  if marker is None:return
+  if execution_start is None and marker.exists():
+   try:record=read_json(marker)
+   except json.JSONDecodeError:return  # write_new may be between open and write
+   require(record.get('schema')=='h3-child-execution-start-v1' and record.get('identity')==entry,'execution marker identity differs')
+   started=record.get('started_monotonic')
+   require(type(started) in (int,float) and start<=started<=time.monotonic(),'execution marker time invalid')
+   execution_start=record
+  if execution_start is not None and time.monotonic()-execution_start['started_monotonic']>execution_timeout:
+   raise TimeoutError(label+' execution timeout')
+ try:
+  require(alive(parent),'parent exited before child launch')
+  with log.open('xb') as handle:
+   proc=subprocess.Popen(command,env=env,stdout=handle,stderr=subprocess.STDOUT,start_new_session=True)
+   deadline=time.monotonic()+3
+   while entry is None and proc.poll() is None and time.monotonic()<deadline:
+    entry=identity(proc.pid)
+   require(entry is not None and entry['uid']==os.getuid(),'unable to bind own child')
+   write_new(directory/(label+'.process.json'),dict(entry,command=command,parent=parent,timeout_seconds=timeout,execution_timeout_seconds=execution_timeout,execution_started_path=str(marker) if marker else None))
+   while proc.poll() is None:
+    require(alive(parent),'parent exited during child execution')
+    check_execution_budget()
+    if time.monotonic()-start>timeout:raise TimeoutError(label+' total timeout')
+    time.sleep(.2)
+   if proc.returncode:raise RuntimeError(label+' exit '+str(proc.returncode)+'; see '+str(log))
+   check_execution_budget()
+   if marker is not None:require(execution_start is not None,'successful child lacks execution start evidence')
+ finally:
+  if proc is not None:
+   terminate_owned(proc,entry)
+   write_new(directory/(label+'.exit.json'),{'pid':proc.pid,'returncode':proc.returncode,'identity_absent':not alive(entry),'wall_seconds':time.monotonic()-start,'execution_start':execution_start})
+ return {'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode,'execution_start':execution_start}

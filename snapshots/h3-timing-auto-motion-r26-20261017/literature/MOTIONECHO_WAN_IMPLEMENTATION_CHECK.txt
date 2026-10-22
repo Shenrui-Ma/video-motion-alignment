@@ -1,0 +1,49 @@
+MotionEcho Wan implementation availability — static primary-source check, 2026-10-17
+
+Decision: keep MotionEcho as a close conceptual comparison and a deferred executable baseline. Its public author repository is currently a project website, not a released motion-control implementation. The checkpoint availability of its student does not close this gap. No dependencies, model weights or videos were downloaded; no inference, GPU or consumer was started.
+
+A. Author release actually inspected
+
+The official page explicitly labels Code(Coming soon). Author euminds/motionecho main is commit 7b8a02618aa9f94da46377645fb5d9cecabddb26. The complete recursive GitHub tree is nontruncated: README, HTML/CSS/JS, images and demonstration MP4s; it contains no Python/shell/notebook/environment YAML/TOML implementation, inference entrypoint or license file. Only main is listed, with no tags/releases. README identifies this repository as the project page. This establishes the current contents of the inspected official surfaces, not the global absence of private or unlinked author code.
+https://euminds.github.io/motionecho/
+https://github.com/euminds/motionecho/tree/7b8a02618aa9f94da46377645fb5d9cecabddb26
+https://api.github.com/repos/euminds/motionecho/git/trees/main?recursive=1
+
+B. Paper's Wan configuration (reported, not executable verification)
+
+The v2 paper uses original Wan2.1-1.3B as teacher and Video-BLADE LoRA on the same base as student. Custom UniPC maintains teacher/student trajectories, typically 200/8 steps. Null-text reference encoding supplies block15 K/V. Objectives include MOFT, DMT and DiTFlow; latent Adam uses five inner iterations. Teacher CFG is5; student is single-branch. Output is480×832,25frames,8fps. Adaptive settings include loss averaging W2, at most3 teacher events, lambda.5 and thresholds20/18. MotionEcho is training-free at application time; its distilled student was pretrained. Wan2.2 extensions use corresponding5B teachers/students and49frames. All experiments report A100-40G. Table12 lists VB MotionEcho peaks12.66/12.72/17.82GB for MOFT/DMT/DiTFlow. These are reported configurations, not our resource measurements. The published pseudocode is explicitly TurboV2, so it cannot substitute for the missing Wan implementation.
+https://arxiv.org/html/2506.19348v2#S7.SS1
+https://arxiv.org/html/2506.19348v2#S7.SS2
+https://arxiv.org/html/2506.19348v2#S8.SS6
+
+C. What is available separately: student and teacher ingredients
+
+Video-BLADE's official repo at commit9d5680edee90b7a4c48c13f69541d414fb39d079 contains actual wanx/train/inference.py. Lines47–62 load local wan1.3b, FP32 VAE, BF16 pipeline, flow-prediction UniPC shift3, sparse-attention modification and a supplied LoRA. Lines68–101 require prompts/inference_prompts.txt and generate81frames at480×832,8steps,CFG1, exported16fps. It has text inputs, no reference-video motion-transfer argument or MotionEcho teacher/student correction loop. Its hardcoded default LoRA path and absent prompt fixture require explicit path preparation; we did not run it. The dependencies pin diffusers0.34.0, torch2.8.0 and transformers4.55.0. The README separately requests a compiled Block-Sparse-Attention component and recommends24GB inference memory. Those requirements belong to Video-BLADE, not a verified MotionEcho installation.
+https://github.com/xiaolong-li1/VIDEO-BLADE/blob/9d5680edee90b7a4c48c13f69541d414fb39d079/wanx/train/inference.py
+https://github.com/xiaolong-li1/VIDEO-BLADE/blob/9d5680edee90b7a4c48c13f69541d414fb39d079/requirements.txt
+
+Teacher/base: Wan-AI/Wan2.1-T2V-1.3B-Diffusers supplies transformer, VAE, text encoder/tokenizer and scheduler assets. Student adapter inventory includes GYP666/VIDEO-BLADE/BLADE_wanx_weight/pytorch_lora_weights.safetensors. This inventory does not identify which exact adapter revision the MotionEcho authors used. No weights were fetched.
+https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+https://huggingface.co/GYP666/VIDEO-BLADE/tree/main/BLADE_wanx_weight
+
+License inventory, not a legal opinion: the Wan model card and BLADE model metadata declare Apache-2.0. The inspected MotionEcho website repository and VIDEO-BLADE code tree have no LICENSE/COPYING file; GitHub license metadata is null for both. A weight-card label does not establish permission for every separate code component. A usable author release should identify its own code license and transitive dependencies; currently no MotionEcho software license was located in these official surfaces.
+
+D. Comparison selection with the existing Wan feasibility note
+
+FlowMotion remains the strongest immediately implementable reference-motion candidate among these three: actual run.py accepts video_path and target text, defaults to Wan2.1-T2V-1.3B-Diffusers, resizes by arguments (480×720 default), uses all loaded frames and exports the source FPS. README examples cover49/81frames and claim a single RTX3090 setup. Its official implementation can be pinned and tested without inventing a teacher or a portrait interface.
+https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+
+TempoControl has real Wan code, but the current README specifies about110GB on one GPU and offers Ulysses multi-GPU execution. The existing feasibility note correctly separates its concept/timing-signal task from reference-motion preservation. It is a candidate for explicit timing control after task/input adaptation and resource validation, not an interchangeable portrait-editing baseline.
+https://github.com/Shira-Schiber/TempoControl/blob/main/README.md
+
+MotionEcho currently cannot fill the second runnable-author-method slot. Reimplementing its equations on Video-BLADE would be our reimplementation with unverified scheduler, guidance, preprocessing and adapter choices; it must not be labelled authors' code reproduction. The available BLADE text-only sample is likewise not MotionEcho. Keep the second slot open pending a task-compatible official implementation or a future author release; do not rush a nominal two-method table.
+
+E. Minimal future fairness contract (our proposed evaluation conditions)
+
+First separate two tracks: undistilled Wan2.1-1.3B methods, versus the same fixed Video-BLADE student with/without MotionEcho. Comparing those tracks changes the generator as well as controller. A meaningful common-Wan experiment needs a fixed backbone/checkpoint and exact permitted inputs: source video plus target text, with portrait identity only when every method has an equivalent supported interface. H3's joint reference-token actuator does not carry over automatically to a Wan T2V pipeline.
+
+Preserve physical time before changing frame counts. The paper's25frames/8fps and BLADE code's81frames/16fps differ from each other and from our141frames/24fps. Predeclare shared frame timestamps, clip duration, resize/crop and VAE4n+1 constraint. Re-measure local motion delay in seconds and frames on the common sequence; simply changing playback FPS can manufacture apparent timing gains. Report rejection/UNKNOWN and all preselected sources, not only visually successful outputs.
+
+For a later MotionEcho release, require executable Wan entrypoint, exact teacher/student/LoRA revisions, motion-objective choice, reference sampling, scheduler/grid and adaptive settings, source inversion/precompute accounting, and a reference output or smoke fixture. Count teacher/student forward and backward work plus inner optimization and preprocessing; an eight-step label alone is not total NFE. Establish each author's default first, then label every common-task or geometry adaptation separately. Peak-memory and speed claims above require a new measured admission at our selected geometry.
+
+Scope: static HTTP/GitHub/HuggingFace metadata and source reads only. Existing WAN_BASELINE_FEASIBILITY.txt was read, not edited. The evidence JSON records hashes of inspected primary artifacts. No assurance of absence outside those inspected repositories, no new novelty claim and no synthetic substitute baseline.

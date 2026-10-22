@@ -1,0 +1,97 @@
+--- R121/common.py
++++ context/common.py
+@@ -63,16 +63,19 @@
+  return rows
+ 
+ def resource_check(gpu,allowed_pid=None):
+- import capacity,gpu_coexistence
++ import capacity,gpu_coexistence,peer_support,process_identity
+  assert os.getuid()==1004 and socket.gethostname()=='H3_HOST'
+  assert os.environ.get('CUDA_VISIBLE_DEVICES')==gpu
+  mem=capacity.assess(capacity.snapshot(),'entry');assert mem['passed'],str(mem['failures'])
+  rows=cuda_process_rows();policy=read(ROOT/'configs/EXISTING_SERVICES.json')
+- coexistence=gpu_coexistence.assess(rows,gpu,policy['processes'],allowed_pid,limit=policy['max_owned_active_gpus_including_selected'])
++ peers=peer_support.peers(read(ROOT/'configs/RUNTIME.json')['peer_roots'],process_identity)
++ assert len(peers)<=1, 'only one simultaneous H3 peer permitted'
++ assert all(peer['owner']['gpu_uuid']!=gpu for peer in peers), 'selected GPU reserved by H3 peer'
++ coexistence=gpu_coexistence.assess(rows,gpu,policy['processes'],allowed_pid,limit=policy['max_owned_active_gpus_including_selected'],reserved_gpus=[peer['owner']['gpu_uuid'] for peer in peers])
+  assert coexistence['passed'],str(coexistence['failures'])
+  raw=subprocess.check_output(['nvidia-smi','-i',gpu,'--query-gpu=uuid,name,memory.free,temperature.gpu','--format=csv,noheader,nounits'],text=True,timeout=15)
+  uuid,name,free,temp=map(str.strip,raw.strip().split(','));assert uuid==gpu and float(free)>=40960 and float(temp)<85
+- return dict(hostname=socket.gethostname(),gpu_name=name,gpu_uuid=gpu,memory_free_mib=float(free),processes=rows,capacity=mem,coexistence=coexistence)
++ return dict(hostname=socket.gethostname(),gpu_name=name,gpu_uuid=gpu,memory_free_mib=float(free),processes=rows,capacity=mem,coexistence=coexistence,peers=peers)
+ 
+ 
+ def validate_flex_report(r,m,role,target=None):
+@@ -85,3 +88,19 @@
+  assert r['case']['id']==m['canonical_id']
+  if role=='source':assert r['case']['role']=='reference'and r['case']['sha256']==m['source_score_sha256']
+  else:assert target is not None and r['case']['role']=='generated'and r['case']['sha256']==target['score_sha256']
++
++
++def register_peer(ident):
++ import peer_support,process_identity
++ peers=peer_support.peers(read(ROOT/'configs/RUNTIME.json')['peer_roots'],process_identity)
++ assert len(peers)<=1, 'only one simultaneous H3 peer permitted'
++ entry={'pid':ident['pid'],'identity':{k:v for k,v in ident.items()if k!='pid'}}
++ for peer in peers:peer_support.update_peer(peer,entry,process_identity)
++ return peers
++
++def unregister_peer(ident,peers):
++ import peer_support,process_identity
++ entry={'pid':ident['pid'],'identity':{k:v for k,v in ident.items()if k!='pid'}}
++ for peer in peers:peer_support.update_peer(peer,entry,process_identity,remove=True)
++
++
+--- R121/gpu_coexistence.py
++++ context/gpu_coexistence.py
+@@ -6,7 +6,7 @@
+     return all(str(left.get(key)) == str(right.get(key)) for key in IDENTITY_KEYS)
+ 
+ 
+-def assess(rows, selected_gpu, known_services, task_pid=None, uid=1004, limit=2):
++def assess(rows, selected_gpu, known_services, task_pid=None, uid=1004, limit=2, reserved_gpus=()):
+     owned = []
+     for source in rows:
+         row = dict(source)
+@@ -19,9 +19,9 @@
+                                  'verified pre-existing service' if known else
+                                  'other observed process; capacity assessed')
+         owned.append(row)
+-    devices = sorted({selected_gpu, *(row['gpu_uuid'] for row in owned)})
++    devices = sorted({selected_gpu, *reserved_gpus, *(row['gpu_uuid'] for row in owned if row['classification'] != 'verified pre-existing service')})
+     return dict(passed=len(devices) <= limit, observed_owned_cuda=owned,
+-                owned_gpu_uuids_including_selected=devices, maximum_gpus=limit,
++                owned_gpu_uuids_including_selected=devices, maximum_gpus=limit, verified_preexisting_services_excluded_from_experiment_count=True,
+                 failures=[] if len(devices) <= limit else ['owned GPU limit exceeded'])
+ 
+ 
+--- R121/run_batch.py
++++ context/run_batch.py
+@@ -36,14 +36,14 @@
+     subprocess.run([sys.executable,str(ROOT/'scripts/score.py'),'--case',key,'--role',role],env=dict(os.environ,CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1'),check=True,timeout=600)
+    continue
+   if a.maximum_new_trackers is not None and count>=a.maximum_new_trackers:break
+-  snap=capacity.snapshot();delta=oom_delta(baseline,snap);entry=resource_check(a.gpu);logdir=root/'jobs'/key/role;logdir.mkdir(parents=True);save(logdir/'PREFLIGHT.json',dict(resource=entry,oom_delta=delta));child=None;ident=None;samples=[];error=None
++  snap=capacity.snapshot();delta=oom_delta(baseline,snap);entry=resource_check(a.gpu);logdir=root/'jobs'/key/role;logdir.mkdir(parents=True);save(logdir/'PREFLIGHT.json',dict(resource=entry,oom_delta=delta));child=None;ident=None;samples=[];error=None;registered_peers=[]
+   command=[sys.executable,str(ROOT/'scripts/track.py'),'--case',key,'--role',role,'--attempt',a.attempt,'--gpu',a.gpu]
+   try:
+    with(logdir/'tracker.log').open('xb')as log:child=subprocess.Popen(command,cwd=ROOT,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'),stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
+    row=process_identity.bind_or_reap(child,command);ident=dict(pid=child.pid,**process_identity.hashed_record(row));save(logdir/'LAUNCHED.json',dict(identity=ident,command=command));control=root/'controls'/key/role;deadline=time.monotonic()+180
+    while not(control/'ready.json').exists():assert child.poll()is None and time.monotonic()<deadline,'ready timeout or exit';time.sleep(.2)
+    ready=read(control/'ready.json');assert ready['identity']==ident and ready['CUDA_started']is False and ready['input_sha256']==sha(c/'INPUTS.json')and ready['seal_sha256']==sha(ROOT/'SEAL.json')
+-   fresh=capacity.snapshot();oom_delta(baseline,fresh);save(logdir/'AT_GO.json',resource_check(a.gpu,child.pid));save(control/'go.json',ready);print('GO',key,role,flush=True);deadline=time.monotonic()+600
++   registered_peers=register_peer(ident);fresh=capacity.snapshot();oom_delta(baseline,fresh);save(logdir/'AT_GO.json',resource_check(a.gpu,child.pid));save(control/'go.json',ready);print('GO',key,role,flush=True);deadline=time.monotonic()+600
+    while child.poll()is None:
+     assert time.monotonic()<deadline,'tracker deadline';v=capacity.snapshot();delta=oom_delta(baseline,v);check=capacity.assess(v,'running');assert check['passed'],check['failures'];obs=dict(unix=time.time(),capacity=v)
+     try:obs['process_memory']={line.split(':',1)[0]:line.split(':',1)[1].strip()for line in Path('/proc',str(child.pid),'status').read_text().splitlines()if line.startswith(('VmHWM:','VmRSS:','RssAnon:','RssFile:'))}
+@@ -52,7 +52,8 @@
+    child.wait();assert child.returncode==0,'tracker failed';folder=root/'tracks'/key/role;r=read(folder/'REPORT.json');assert r['passed'];ext='tracks.pt'if read(c/'INPUTS.json')['benchmark']=='FlexiAct'else'tracks.npz';assert sha(folder/ext)==r['tracks_sha256']
+   except BaseException as exc:error=exc;save(logdir/'ERROR.json',dict(error=repr(exc),traceback=traceback.format_exc()))
+   finally:
+-   if ident is not None:save(logdir/'RELEASED.json',cleanup(child,ident))
++   if ident is not None:
++    released=cleanup(child,ident);unregister_peer(ident,registered_peers);released['peer_registrations_removed']=True;save(logdir/'RELEASED.json',released)
+    save(logdir/'RESOURCE_OBSERVATIONS.json',dict(samples=samples))
+   if error is not None:raise error
+   save(state,dict(folder=str(folder.relative_to(ROOT)),report_sha256=sha(folder/'REPORT.json'),release=bound(logdir/'RELEASED.json')));count+=1;print('TRACK_COMPLETE',key,role,flush=True)

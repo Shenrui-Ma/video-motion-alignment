@@ -1,0 +1,102 @@
+{
+  "schema": "h3-one-step-fork-r13-v1",
+  "created_utc": "2026-10-16T09:48:04.158782+00:00",
+  "diagnostic_only": true,
+  "new_method_claim": false,
+  "source_run": "r10_s05_fixed_full_probe",
+  "source_indices": [
+    6,
+    10,
+    14
+  ],
+  "eval_indices": [
+    7,
+    11,
+    15
+  ],
+  "order": [
+    [
+      6,
+      7,
+      "replay_full"
+    ],
+    [
+      6,
+      7,
+      "fork_native"
+    ],
+    [
+      10,
+      11,
+      "replay_full"
+    ],
+    [
+      10,
+      11,
+      "fork_native"
+    ],
+    [
+      14,
+      15,
+      "replay_full"
+    ],
+    [
+      14,
+      15,
+      "fork_native"
+    ]
+  ],
+  "expected_nfe": 6,
+  "expected_block_calls": 300,
+  "routed_block_calls": 0,
+  "euler_updates": 0,
+  "sampler_callbacks": 0,
+  "condition_materializations": 1,
+  "geometry": [
+    1312,
+    736,
+    141
+  ],
+  "video_shape": [
+    1,
+    24,
+    42,
+    46,
+    82
+  ],
+  "audio_shape": [
+    1,
+    32,
+    2,
+    235
+  ],
+  "seed": 2026101311,
+  "full_grid": "exact original21points, originalfloat32",
+  "gates": [
+    "parent R10 complete and existing R3 paired endpoints PASS",
+    "all source files/tensors/conditions/noise/seed/runtime frozen",
+    "GPU Euler reconstruction UF matches R10 next native same_input SHA",
+    "native(UF) matches archived next native raw/normalized SHA",
+    "only then evaluate native(UN)"
+  ],
+  "selection": "none; observer passive frozen gap5 full49 window50..65",
+  "constraints": [
+    "raw packed x never processed as clean latent or noise",
+    "original eager Euler to_d/subtract/multiply/add order on sameGPU",
+    "no extra noise_scaling/inverse_noise_scaling/sample_euler",
+    "restore unique original conditioning UUID then full original+processed hash match",
+    "localGenerator alpha seed and fullgrid/PDD unchanged",
+    "no RNG restore/reset; allsix forward inputs/condition/RNG unchanged",
+    "no decode/fullvideo generation; report only",
+    "source SHA binding after R10 completes does not alter design"
+  ],
+  "resource": {
+    "remote_root": "/data5/researcher/h3_runs/timing_one_step_fork_r13_20261016",
+    "host": ".9",
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8474,
+    "max_host9_owned_gpus": 2
+  },
+  "source_bind_status": "separate manifest must be complete before launch",
+  "efficiency": "record costs only; no speed diagnosis"
+}

@@ -1,0 +1,113 @@
+{
+  "status": "staged_v1_frozen",
+  "created_unix": 1792085745.5988312,
+  "installed_live": false,
+  "gpu_inference_started": false,
+  "files": {
+    "extensions_staged/H3X0Readout/core.py": "aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c",
+    "extensions_staged/H3X0Readout/__init__.py": "8d3b6a7994f9b4a4a660ad889f3e8b07fc17c5a2e5ba1403bfc580cb3cfc2461",
+    "extensions_staged/H3X0Readout/README.md": "bad7eca9d2bc906cac1c6b05aacbc1f9a1ec95cb48ba24d447e63995cde81bcd",
+    "scripts/decode_x0.py": "344dfacdae05d506c0d3c0b89a23ed9275e4c292651d6c02ca1fd5bc5443ec51",
+    "tests/test_x0_readout.py": "38ab6a80a5e2bde331f49ddb7ef1db8f32a4d6a756fbff3cd6855d426563ef9a",
+    "tests/x0_core_cpu_smoke.py": "d4ae3a00d2307d371bcb49f38b6635aeb1b9cae01eb3691855fa9987f1a17b43"
+  },
+  "local_cpu_unit_tests": {
+    "passed": 12,
+    "resource_warnings_treated_as_errors": true,
+    "py_compile_passed": true
+  },
+  "remote_cpu_integration": {
+    "success": true,
+    "torch_version": "2.5.1+cu121",
+    "cuda_initialized": false,
+    "device": "cpu",
+    "loaded_model_weights": false,
+    "recorder_core_sha256": "aeb9889a64ab1d1be28b679b9e3635db57f500d78f8de1e754de8149607ef63c",
+    "cases": [
+      {
+        "case": "packed_euler",
+        "output_bitwise_unchanged": true,
+        "callback_count": 20,
+        "normalization_matches_real_model": true,
+        "endpoint_comparison": {
+          "reference": "x0_step019.pt",
+          "measured": "sampler_final.pt",
+          "differences": {
+            "video": {
+              "max_abs": 0.0,
+              "mean_abs": 0.0,
+              "rms": 0.0
+            },
+            "audio": {
+              "max_abs": 3.725290298461914e-09,
+              "mean_abs": 5.093170329928398e-11,
+              "rms": 4.355862615046391e-10
+            }
+          },
+          "interpretation": "Euler final arithmetic may round differently; no exact-equality requirement"
+        }
+      },
+      {
+        "case": "nested_callback",
+        "output_bitwise_unchanged": true,
+        "callback_count": 20,
+        "normalization_matches_real_model": true,
+        "endpoint_comparison": {
+          "reference": "x0_step019.pt",
+          "measured": "sampler_final.pt",
+          "differences": {
+            "video": {
+              "max_abs": 0.0,
+              "mean_abs": 0.0,
+              "rms": 0.0
+            },
+            "audio": {
+              "max_abs": 3.725290298461914e-09,
+              "mean_abs": 5.093170329928398e-11,
+              "rms": 4.355862615046391e-10
+            }
+          },
+          "interpretation": "Euler final arithmetic may round differently; no exact-equality requirement"
+        }
+      }
+    ]
+  },
+  "required_graph_change": {
+    "node_60": {
+      "class_type": "H3X0Readout",
+      "inputs": {
+        "model": [
+          "50",
+          0
+        ],
+        "run_id": "s05_full_seed1_native_x0_unique",
+        "output_dir": "/data5/researcher/h3_runs/timing_autoresearch_20261016/audit/x0",
+        "width": 1312,
+        "height": 736,
+        "length": 141
+      }
+    },
+    "node_7_inputs_model": [
+      "60",
+      0
+    ]
+  },
+  "remaining_validation": [
+    "real H3 capture vs no-capture final equivalence",
+    "real GPU native VAE decode",
+    "intermediate-state timing observability and confidence"
+  ],
+  "decoder_followup": {
+    "updated_unix": 1792085871.7693608,
+    "capture_core_unchanged": true,
+    "pixel_conversion": "(frame * 255).clamp(0, 255).byte()",
+    "crf": 16,
+    "verified_source": "comfy_api/latest/_input_impl/video_types.py:1176",
+    "preencode_rgb_stream_and_frame_hashes": true,
+    "float_vae_hash_streamed_per_frame": true,
+    "unit_tests_passed": 12,
+    "resource_warnings_treated_as_errors": true,
+    "gpu_used": false,
+    "note": "MP4 bitwise equivalence not required across libraries; true passive paired check uses same Comfy final encoding path."
+  }
+}

@@ -16,7 +16,7 @@ def status_label(value):
     value=str(value or '')
     return STATUS_LABELS.get(value, value if re.search('[\u4e00-\u9fff]',value) else '待人工复核')
 def activation(item):
-    if item.get('comparison_kind') in ('prompt_control','sampler_control','native_only'): return 'not_applicable'
+    if item.get('comparison_kind') in ('prompt_control','sampler_control','positional_control','native_only'): return 'not_applicable'
     value=item.get('guidance_activation')
     if value in ('active','zero','not_applicable'): return value
     if item.get('actual_routed_blocks') is not None:
@@ -32,6 +32,26 @@ def sha256(path):
 def esc(value): return html.escape(str(value or ''), quote=True)
 
 def render_motion_fidelity(out, item):
+    if item.get('comparison_kind') == 'reference_origin_control':
+        metric = (item.get('quantitative_metrics') or {}).get('motion_fidelity', {})
+        values = [metric.get(k) for k in ('native', 'reference_origin')]
+        if any(v is not None and (type(v) not in (int, float) or not math.isfinite(v)) for v in values):
+            raise ValueError('Invalid reference-origin-control MF: '+item['id'])
+        out.write('<div class="metric-block"><p>参考分支相位对照 · IVEBench Motion Fidelity</p><table><thead><tr><th>普通编辑</th><th>参考分支相位引导</th></tr></thead><tbody><tr>')
+        for value in values:
+            out.write('<td>'+('待计算' if value is None else f'{value:.6f}')+'</td>')
+        out.write('</tr></tbody></table></div>')
+        return
+    if item.get('comparison_kind') == 'positional_control':
+        metric = (item.get('quantitative_metrics') or {}).get('motion_fidelity', {})
+        values = [metric.get(k) for k in ('native', 'aligned')]
+        if any(v is not None and (type(v) not in (int, float) or not math.isfinite(v)) for v in values):
+            raise ValueError('Invalid positional-control MF: '+item['id'])
+        out.write('<div class="metric-block"><p>RoPE 时间坐标对照 · IVEBench Motion Fidelity</p><table><thead><tr><th>普通编辑</th><th>RoPE 时间坐标对齐</th></tr></thead><tbody><tr>')
+        for value in values:
+            out.write('<td>'+('待计算' if value is None else f'{value:.6f}')+'</td>')
+        out.write('</tr></tbody></table></div>')
+        return
     if item.get('comparison_kind') == 'sampler_control':
         metric = (item.get('quantitative_metrics') or {}).get('motion_fidelity', {})
         values = [metric.get(k) for k in ('euler', 'res_multistep')]
@@ -111,6 +131,9 @@ def render_event_timing(out, item):
     sampler = item.get('comparison_kind') == 'sampler_control'
     keys = ('source_frames', 'euler_frames', 'res_multistep_frames') if sampler else ('source_frames', 'native_frames', 'guided_frames')
     labels = ('Euler 普通编辑', 'res_multistep 普通编辑') if sampler else ('普通编辑', '时序引导')
+    if item.get('comparison_kind') == 'reference_origin_control':
+        keys = ('source_frames', 'native_frames', 'reference_origin_frames')
+        labels = ('普通编辑', '参考分支相位引导')
     out.write('<div class="metric-block"><p>局部动作延后范围（秒）· '+esc(measurement)+'</p><table><thead><tr><th>动作</th>'+''.join('<th>'+esc(label)+'</th>' for label in labels)+'</tr></thead><tbody>')
     for event in timing['events']:
         if sampler and event.get('arrival_time') and 'source_frames' not in event:
@@ -158,6 +181,12 @@ def render_repair_index(out, items, path):
     out.write('</tbody></table></section>')
 
 def classify(item):
+    if item.get('comparison_kind') == 'reference_origin_control':
+        return 'reference_origin' if all(item.get(k) for k in ('ordinary_video_path','guided_video_path','comparison_video_path')) else 'pending'
+    if item.get('comparison_kind') == 'positional_control':
+        if item.get('guided_video_path'):
+            raise ValueError('Positional control contains a guided output: '+item.get('id',''))
+        return 'positional' if all(item.get(k) for k in ('ordinary_video_path','alternative_video_path','comparison_video_path')) else 'pending'
     if item.get('comparison_kind') == 'sampler_control':
         if item.get('guided_video_path'):
             raise ValueError('Sampler control contains a guided output: '+item.get('id',''))
@@ -297,8 +326,8 @@ def render_card(out,item,n,ffmpeg,embedded):
     if item.get('reference_image_used') is True:
         image=m['reference_image_path'];out.write(f'<figure class="ref"><img src="{data_uri(image["path"],image["mime"])}" alt="{esc(item["title"])}的实际参考图" loading="lazy"><figcaption>实际参考图</figcaption></figure>')
     out.write('</div>')
-    if kind in ('guided','prompt','sampler'):
-        labels=item.get('column_labels') or ({'guided':CAPTIONS,'prompt':['参考视频','原提示词编辑','调整提示词编辑'],'sampler':['参考视频','Euler 普通编辑','res_multistep 普通编辑']}[kind])
+    if kind in ('guided','prompt','sampler','positional'):
+        labels=item.get('column_labels') or ({'guided':CAPTIONS,'prompt':['参考视频','原提示词编辑','调整提示词编辑'],'sampler':['参考视频','Euler 普通编辑','res_multistep 普通编辑'],'positional':['参考视频','普通编辑','RoPE 时间坐标对齐']}[kind])
         if kind=='prompt':out.write('<div class="media-title">提示词对照 · 第三栏为调整提示词后的编辑结果</div>')
         if kind=='sampler':out.write('<div class="media-title">采样器对照 · Euler 与 res_multistep 普通编辑</div>')
         render_video(out,m['comparison_video_path'],f'v{n}',item['title'],ffmpeg,embedded,labels,download_name=item['id']+'_full_valid.mp4')
@@ -348,8 +377,8 @@ def main():
     statuses=sorted(set(status_label(x.get('review_status')) for x in items))
     with temp.open('w') as out:
         out.write('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3 · FlexiAct 与 IVEBench 实验总览</title><style>'+CSS+'</style></head><body><main><header><div class="eyebrow">H3 VIDEO EDITING · RESEARCH RESULTS</div><h1>FlexiAct 与 IVEBench 实验总览</h1><p class="intro">查看每项任务的原视频、普通编辑和时序引导结果。参考图与视频已嵌入本文件，可直接分享并离线播放。</p><div class="stats">')
-        for num,label in ((counts['guided'],'已齐方法对照'),(counts['prompt'],'提示词对照'),(counts['sampler'],'采样器对照'),(counts['pending'],'普通编辑记录')):out.write(f'<div class="stat"><strong>{num}</strong>{label}</div>')
-        out.write('</div></header><nav class="toolbar" aria-label="结果筛选"><label>数据集<select id="bench"><option value="">全部</option><option value="flexiact">FlexiAct</option><option value="ivebench">IVEBench</option></select></label><label>对照<select id="kind"><option value="">全部</option><option value="guided">时序引导</option><option value="prompt">提示词对照</option><option value="sampler">采样器对照</option><option value="pending">普通编辑记录</option></select></label><label>触发<select id="activation"><option value="">全部</option><option value="active">实际干预</option><option value="zero">零触发</option><option value="unknown">待核对</option><option value="not_applicable">普通编辑及其对照</option></select></label><label>审阅<select id="status"><option value="">全部</option>')
+        for num,label in ((counts['guided'],'已齐方法对照'),(counts['prompt'],'提示词对照'),(counts['sampler'],'采样器对照'),(counts['positional'],'位置坐标对照'),(counts['reference_origin'],'参考分支相位对照'),(counts['pending'],'普通编辑记录')):out.write(f'<div class="stat"><strong>{num}</strong>{label}</div>')
+        out.write('</div></header><nav class="toolbar" aria-label="结果筛选"><label>数据集<select id="bench"><option value="">全部</option><option value="flexiact">FlexiAct</option><option value="ivebench">IVEBench</option></select></label><label>对照<select id="kind"><option value="">全部</option><option value="guided">时序引导</option><option value="prompt">提示词对照</option><option value="sampler">采样器对照</option><option value="positional">位置坐标对照</option><option value="reference_origin">参考分支相位对照</option><option value="pending">普通编辑记录</option></select></label><label>触发<select id="activation"><option value="">全部</option><option value="active">实际干预</option><option value="zero">零触发</option><option value="unknown">待核对</option><option value="not_applicable">普通编辑及其对照</option></select></label><label>审阅<select id="status"><option value="">全部</option>')
         for s in statuses:out.write(f'<option value="{esc(s)}">{esc(s)}</option>')
         out.write('</select></label><input id="search" type="search" aria-label="搜索任务" placeholder="搜索任务、素材或方法"><span class="meta">显示 <span id="visible-count">'+str(len(items))+'</span> 项</span></nav>')
         render_repair_index(out, items, ROOT/'inventory/repair_index.json')
@@ -363,7 +392,7 @@ def main():
             else:
                 out.write('<p class="intro">本节采用 IVEBench 官方 Motion Fidelity，比较点轨迹的位置与位移变化。轨迹遮挡后的插值可能改变时间对应关系；局部动作另按原始帧时刻评测。</p>')
             out.write('<p class="metric-note">编辑任务是否完成见每项审阅结论；MF 衡量整体运动保持程度。人物未替换成功也可能得到较高 MF。动作时间表列出视觉事件边界及各自的采样精度。</p>')
-            for kind,title in [('guided','时序引导对照'),('prompt','提示词对照'),('sampler','采样器对照'),('pending','普通编辑记录')]:
+            for kind,title in [('guided','时序引导对照'),('prompt','提示词对照'),('sampler','采样器对照'),('positional','位置坐标对照'),('reference_origin','参考分支相位对照'),('pending','普通编辑记录')]:
                 selected=[x for x in subset if x['section_kind']==kind]
                 if not selected:continue
                 if kind!='guided':out.write(f'<details class="group-details" data-kind="{kind}"><summary>{title} · {len(selected)} 项</summary>')

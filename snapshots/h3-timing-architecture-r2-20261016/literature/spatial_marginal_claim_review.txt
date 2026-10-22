@@ -1,0 +1,184 @@
+positiveSPtransport：保 K、仅广播 V 的独立理论与 claim 审查
+2026-10-16
+写入范围仅本文件。未改实现、运行配置或其他报告，未访问 GPU。已有 primary 文献足够核查本问题，本轮没有重复宽搜索。进行了一个纯 Python/CPU 的小型代数数值检查，结果见末节。
+
+结论先行
+
+1. root 的判断成立：在同一 reference-only 条件分支内，将实际 post-norm/post-RoPE 的 K(tq,s) 和 V(tq,s) 同时等次数重复，softmax 中重复因子抵消；再乘原 m_ref，严格退化成现有 mass_preserve 同帧读取。它应做张量验收，不应增加一条重复的视频基线。
+2. 保持全参考 K、只广播 V 是另一算子。它等价于保留原每 query 的参考空间边缘 c(s)，用 c(s) 读取指定时刻的 V(tq,s)。它可以高效实现，不需显式 N² attention，也不需 Sinkhorn。
+3. 必须纠正上一报告中可能读成更强 claim 的措辞：DC-split 也保持原空间边缘，并且其有效权重的时间边缘也等于同帧 delta。positiveSP 独有的是非负性与严格的指定时刻 value 索引支持；不能称它比 DC-split 多了“时间 marginal 保证”或“静态不变性”。
+4. 新算子的具体结构区别可研究，但“非负”“凸组合”“K/V 分开”都不是新数学，也不保证画质或物理动作优于 DC-split。现阶段应称一个具备可检验不变性的 reference readout 候选，不能称已证明新架构。
+
+一、记号：只比较同一前向的同一 Q/K/V
+
+固定一个输出 query q、一个 attention head，参考视频索引为 (t,s)，其中 t 是参考 latent 时间 bin，s 是参考空间 patch。令
+  ℓ(t,s)=q·K(t,s)/sqrt(d)，
+  a(t,s)=exp ℓ(t,s)/Z_R，Z_R=Σ_(u,x)exp ℓ(u,x)，Σ_ts a=1。
+这里 a 是 reference-only 条件分布，而非完整多模态 softmax 的概率。
+令原完整 softmax 的参考组 mass 为 m，原输出为
+  O=O_nonref + m z_native，z_native=Σ_ts a(t,s)V(t,s)。
+所有算子的 O_nonref、原 m 都在这一前向输入下固定。模型之后的层/采样轨迹可以改变；本报告不把单层恒等式扩展成最终视频恒等式。
+
+指定同帧索引 τ=tq；令
+  a_time(τ)=Σ_s a(τ,s)，
+  c_same(s)=a(τ,s)/a_time(τ)，
+  c(s)=Σ_t a(t,s)。
+现有 mass_preserve 的参考读出是 z_same=Σ_s c_same(s)V(τ,s)，总输出 O_same=O+m(z_same−z_native)。假定指定帧有有效支持；实际无支持/零分母时应按明确协议 fail-open 或拒绝，不能暗用另一帧。
+
+二、同时广播 K/V 为什么等价：以及哪些实现条件会破坏等价
+
+把 K'(u,s)=K(τ,s)、V'(u,s)=V(τ,s) 重复 r 次，每个空间位置重复数相同。reference-only attention 为
+  z_repeatKV
+  =Σ_(u=1..r,s) exp ℓ(τ,s)/(r·Σ_x exp ℓ(τ,x)) · V(τ,s)
+  =Σ_s exp ℓ(τ,s)/Σ_x exp ℓ(τ,x) · V(τ,s)
+  =z_same。
+故 O+m(z_repeatKV−z_native)=O_same，α 相同的线性混合也同样等价。不需要在 logits 额外减 log r，因为此处 reference 分支自身归一化已经消掉重复因子。
+
+成立所需条件：
+- 复制的是进入 attention 的完整 K，也就是实际 norm/RoPE 后的 key。若先复制未旋转 K 再按各 u 施加不同时间 RoPE，复制后的 K 并不相同，以上证明不适用。那是另一位置编码实验，不是同一基线。
+- query、softmax 温度/scale、有效 mask、每个 s 的复制次数相同；无额外按位置不同的 bias 或 dropout。若不同 s 重复 r_s 次，就会额外得到 log r_s 偏置。仅依赖 u、且对所有 s 相同的独立可分 bias 可以在求和后抵消，但不可假定一般时空 bias 可分。
+- 使用的是 reference-only 条件输出，然后恢复原 m。若把重复 K/V 直接放进全多模态 softmax，新的组 mass 是 r Z_τ/(Z_nonref+r Z_τ)，通常不同于原 m；那不是现有 mass_preserve。
+- 实数算术下严格等价；Flash/SDPA 的不同 sequence length、分块顺序和 bf16 舍入可能造成微小数值误差。若 GPU 视频因此不同，首先是数值路径问题，不能据此认定有科学上新基线。
+
+执行含义：复用已有、同配置 calls6..14 的 mass_preserve 结果作为这一组件基线；只新增 CPU/张量的 broadcastKV≈same-frame 检验。不要为一个已证明等价的操作再占 GPU 生成整条视频。若旧 baseline 的采样区间、原 m 的定义、模型或 seed 不同，则不能跨配置直接混用；需要的是正确同配置 baseline，而非新增一个重复名称。
+
+三、只广播 V 的精确形式
+
+保持实际 K(t,s) 全部不动，令 V'_τ(t,s)=V(τ,s)：
+  z_SP=Attention(q,K_R,V'_τ)
+      =Σ_ts a(t,s)V(τ,s)
+      =Σ_s c(s)V(τ,s)。
+因此有效 reference weights 是
+  b_SP(t,s)=1[t=τ] c(s)。
+总输出 O_SP=O+m(z_SP−z_native)。按 τ 分组 query，各组调用 reference-only Flash 即可。不需先显式算 c、不需构造注意力矩阵、不需 Sinkhorn；额外 Flash 成本与 V 展开成本须计入实际运行时间。
+
+这也可以写成一个普通的空间 attention：
+  L(s)=log Σ_t exp ℓ(t,s)，c(s)=softmax_s L(s)。
+也就是将全参考 key 的逐时相容性用 log-sum-exp 聚合成空间 score，再读取 τ 的 value。它不是一般的 softmax(q·mean_tK)：log-sum-exp 不与求平均/点积交换。不存在可以无条件替换这一步的一个固定均值 K。
+
+重要解释：该结构将“由全部参考 K 决定的空间地址”与“来自指定参考时间的 V 载荷”分开。它没有估计动作相位、没有判断是否需要控制、没有修改采样日程。全参考 K 仍含时间位置、内容和上游混合信息，不能称它获得了完全与时间/身份无关的地址。
+
+四、与 DC-split 的精确比较：相同性质与新增性质
+
+令 μ_s=Σ_t w_tV(t,s)，w_t≥0、Σ_tw_t=1，所有 s 共用同一 w；D=V−μ。原动态支路为
+  O_DC=O+m Σ_ts[b_same(t,s)−a(t,s)]D(t,s)，
+  b_same(t,s)=1[t=τ]c_same(s)。
+展开得到其有效 reference 权重：
+  b_DC(t,s)=b_same(t,s)+w_t[c(s)−c_same(s)]。
+
+两者共同保证（当前 Q/K 固定、α=1）：
+  Σ_t b_DC(t,s)=Σ_t b_SP(t,s)=c(s)；
+  Σ_s b_DC(t,s)=Σ_s b_SP(t,s)=1[t=τ]；
+  Σ_ts b_DC=Σ_ts b_SP=1。
+因此 DC-split 不仅保空间 marginal，也保同帧时间 marginal；只是部分时间行内有正负项互相抵消。
+
+令 d(s)=c_same(s)−c(s)，则有特别简单的差：
+  b_DC−b_SP = [1[t=τ]−w_t] d(s)，
+  z_DC−z_SP = Σ_s d(s)[V(τ,s)−μ_s]，
+  O_DC−O_SP = m Σ_s d(s)D(τ,s)。
+这是每 query 的一个 time×space rank-1 signed circulation，而不是两个无关的大模型。可直接记录其能量，用来判断新臂是否真的与 DC-split 有足够差异。
+
+何时退化：
+- 若 c_same=c，两者在任意 V 上完全相同，且都等于 ordinary same-frame readout；无需新增视频实验宣称区别。
+- 若 w 全部集中在 τ，DC-split 也精确等于 SP；这不是当前均匀时间均值的常规设置。
+- 若仅当前数据上 Σ_s d(s)D(τ,s)=0，两者当前输出相同，但不代表算子在任意 V 上等价。
+- DC 与 full-V 同帧相同的条件不同：Σ_s[c(s)−c_same(s)]μ_s=0。因此动态臂即便与 full-V 相同，也不必与 SP 相同。
+
+positiveSP 比 DC-split 多的性质
+
+1. 非负性：b_SP≥0。DC-split 一般有负权；当 w 在 τ 之外有正质量、d≠0 时，d 的和为0且有正有负，τ 外必有正负系数。
+2. 严格 value 时间支持：b_SP 在 τ 外逐元素为0；DC 的 τ 外只有行和为0，仍可通过不同空间位置的正负 value 对读出有贡献。不能把 DC 的零时间 marginal 等同于没有 off-time value 信息。
+3. 凸包与单层扰动界：z_SP 属于 {V(τ,s)} 的凸包；固定 a 下，reference value 的最大逐 token 扰动 ε 只会造成不超过 ε 的 reference-conditional 输出扰动。DC 不保证这一点。
+4. 对 hard 同帧目标，非负＋原空间边缘 c＋时间边缘 delta 三项约束已经唯一确定 b_SP。此时不是用复杂最优化找到一个幸运方案，而是一个闭式唯一解。
+
+一个精确放大界：因为 b_DC 在 τ 行为 (1−w_τ)c_same+w_τc，非负且总和1，故
+  ||b_DC||_1 = 1+(1−w_τ)||c_same−c||_1 ≤ 3−2w_τ。
+相应负权总量是 0.5(1−w_τ)||c_same−c||_1。该量可作实际实现的诊断，不是最终视频错误率预测。SP 的该范数恒为1。
+
+positiveSP 不比 DC-split 多的性质、以及可能更弱之处
+
+- 二者具有相同的静态空间 value 响应保持性质。SP 不“更严格地去掉静态身份”；它只限制同一不变约束内的合法权重。
+- SP 放弃 DC 允许的带符号跨时刻补偿；这种补偿可能正是修复动态姿态所需。非负约束可能损失表现力，不能单凭凸组合就称更优。
+- c(s) 汇总全参考时间。人物从左移到右时，这个 spatial footprint 可能同时覆盖两个位置；把它全部用于 τ 的 V，会在当前人物外读取背景。它不是光流沿轨迹保持，也不是主体坐标系的不变性。
+- 指定 τ 的 V 本身由 VAE 时间卷积和上游 attention 混合而来；“value 索引只来自 τ”不能写成“没有其他物理帧的信息”。
+- K 不变不意味着其他交互最终不受影响；加回后的 hidden state 会影响随后所有层与采样。凸包性质只对单头 reference-conditional readout、输出投影之前成立，不是 RGB、身份或运动幅度的上界。
+- α∈[0,1] 时 (1−α)a+αb_SP 仍非负；仅 α=1 有纯 τ 的 value 支持。若 α>1，则 τ 外有效权重为 (1−α)a<0，SP 的非负/凸包保证失效。不能一边用三倍 extrapolation 一边宣传此保证。
+
+五、静态不变性究竟说什么
+
+对任意不随 t 变化的空间 value 场 C(s)，固定当前 Q/K，有
+  Δ_SP(V+C)=Δ_SP(V)，Δ_DC(V+C)=Δ_DC(V)。
+因为 Σ_t(b−a)=0。反过来，若对所有 C(s) 该式成立，逐个选择空间基函数即可推出 Σ_tb(t,s)=c(s)。因此空间边缘约束是此单层线性不变性的充要条件。
+
+这不意味着 O_SP(V+C)=O_SP(V)，也不意味着去掉了原背景；原 native 对 C 的响应仍存在。它只表示我们追加的纠正不额外改变 native 对该静态 field 的响应。若真实改变输入图像/视频使 Q、K、m 也改变，上述固定-Q/K 命题不再自动适用。
+
+六、两个明确反例：不把更好的代数性质当成画质保证
+
+反例1：DC 可以超出目标帧 value 凸包。
+  a=[[.8,.1],[.05,.05]]，τ=0，w=(.5,.5)，m=1；
+  V=[[0,0],[100,0]]。
+则 c=(.85,.15)，c_same=(8/9,1/9)，
+  b_DC=[[313/360,47/360],[−7/360,7/360]]；
+  z_SP=0，z_same=0，z_DC=−35/18。
+τ 帧所有 V 都是0，DC 仍因 off-time signed value 产生负输出。它证明性质差别，不证明真实视频一定产生伪影。
+
+反例2：SP 可以削弱当前正确位置的动作 signal。
+  a=[[.4,.1],[.05,.45]]，τ=0，w=(.5,.5)，m=1；
+  V=[[1,0],[0,1]]。
+把数值1看作当前人物位置的一维 feature 示意：c=(.45,.55)，c_same=(.8,.2)，μ=(.5,.5)。
+  z_same=z_DC=.8，z_SP=.45。
+SP 保住的是 native 跨时刻空间足迹，而 τ 帧角色主要在第0位置，因此它把更多权重给了当前空位置。这个反例排除了“保持空间边缘必然更好保动作/身份”的强命题。此处并未把该一维示意当作真实视觉质量模型。
+
+七、最低必要性实验：哪些复用、哪些新增、哪些不能混为独立因果
+
+无需视频生成的门
+
+G0. 在同一 Q/K/V 上，验证只广播 V=显式 b_SP readout、同时广播 K/V=已有 mass_preserve 同帧；先小张量，再由实现者做实际 GPU tile 验收。broadcastKV 不新增视频臂。
+G1. 验证空间边缘、参考总 mass、hard 时间支持和非负性；DC 同时验证上述 b_DC 等价式及负权总量。只检查流程参数不够。
+G2. 验证 SP−DC 精确差式；检查 actual 输出差是否仅舍入量级或与原 correction 几乎共线且只是缩放。alpha0 必须原路径直返，不能额外一次 attention 产生假零误差。
+G3. post-RoPE K 不变、reference V 索引和空间排列正确；不混 image/audio/semantic span；没有按错误统一 stride 映射 τ。这些是实现前提，不是贡献。
+
+最少视频比较
+
+第一组可以复用严格同配置的 native、full-V mass_preserve calls6..14、dynamic DC-split；只新增 SP 一臂。static-only 结果用于诊断，但不能代替这三类基线。所有 arms 的 seed、noise、帧数、sampler、去噪区间、query范围、层/头及原 m 定义必须一致。
+
+- SP vs mass_preserve：问“保原全参考 K 汇总的空间地址”是否比 K/V 同帧读取有实际益处。后者就是等价 broadcastKV baseline，不另跑。
+- SP vs DC-split：问“同一空间/时间 marginal 下，非负同帧载荷结构”是否优于允许 signed off-time 补偿的 readout。
+- 不能把这一个比较同时解释成独立证明了非负性、严格 value 支持和某个特殊 coupling 各自必要。hard 同帧 marginal 下，这些约束相互关联，唯一解就是 SP；它们是一个结构 bundle。
+- 若 SP 改善编辑保真但 correction RMS 更小，至少补一个事先确定的强度匹配对照。可把更强 baseline 下调至匹配预算；不要为了匹配把 SP α 提到>1后仍声称凸包保证。预算在发现例实际张量上校准后冻结，再评估新例，不能看片后搜索到好看才称公平。
+- 校正 lag 必须同时保持 shape/coverage 门；身份/背景/窗口外动作不能恶化到不可用。两个臂都有背景失败仍是最终任务失败，不能豁免。
+- 发现例即使成功，最低推广证据还需独立 seed、第二 source、原本正常例。若新例不支持，不把它们删除成“无短动作场景”。
+
+可以接受的窄机制 claim（需实验过门）
+
+“在指定 H3 motion-preserving edit 条件下，保留全参考 key 导出的空间读取分布，同时只读取物理对应时间的 value，在相同参考总量和干预日程下，比同帧 K/V 读取及 signed DC-split 得到更好的时序/编辑质量折中。”
+
+比这个更强的 claim 目前不成立：分离了纯身份与纯运动；解决了所有短动作遗漏；自动检测并纠错；建立了物理时间不变架构；对所有 diffusion/flow模型通用；优于完整 DIAL/MOFT/HALO 的公平复现。
+
+八、只有普通算子族近邻时，如何判断实质区别
+
+已核实 primary：
+- HALO 的 value-only 注入：官方代码 https://github.com/SunYJ-hxppy/HALO-Official-code/blob/a4933506563a32ac38a17ba071d34ea6c428788e/guidance_utils/custom_modules_inject_final.py#L95 ，保 Q/K、复制指定头同位参考 V；没有此处按目标 τ 把 V 广播到全部参考 key 时间。
+- Text2Video-Zero Eq.8：https://arxiv.org/html/2303.13439v1 ，K/V 同时取首帧；代数上属于本报告已排除的重复同帧基线家族。
+- FRESCO 官方代码 https://github.com/williamyang1991/FRESCO/blob/736a7140f30d622ba8b62584445c8f6c2d9d9fe0/src/diffusion_hacked.py#L237 ，跨帧 K/V 同步选择/重复，另有 flow 对齐 attention；不是该固定 native 空间 marginal。
+- MOFT：https://arxiv.org/html/2405.14864v1 ，时间去均值与 motion feature 引导已有；DiViD：https://arxiv.org/html/2507.13934v2 ，训练式静态全局/动态逐帧分路已有。
+- DIAL：https://arxiv.org/html/2609.11507v1 ，参考内容 logit bias 已有；任意正 b_SP 都可以写成相对于 a 的 logit bias。这说明不能靠“改 V 而不是 logits”的实现语法宣称新数学，不说明所有具备不同必要约束的 attention 结构研究都自动失去价值。
+
+应区分三层判断：
+I. 数学原语：softmax 复制抵消、条件概率分解、非负耦合、静态投影都已知；本候选不在这里主张新算法。
+II. 具体计算结构：全参考 K 计算空间地址、指定时间 V 作为载荷、保持原 m 和原 static-field 响应，是明确且一般不同于同帧 mask/DC-split 的结构。可以诚实说“实现了并测试这一结构”，不能仅凭未找到同式论文就说“首创”。
+III. 科学贡献：需要证明这种分离所对应的失败原因和可重复收益；强同帧基线不能解释收益，强度/噪声/日程不能解释收益，目标编辑质量须过门。如果这些成立，再针对实质机制扩展文献核查和基线，而不是现在因普通 attention 能表示它就一概否决，也不是看到一条好视频就预支顶会创新。
+
+当前推进结论：SP 是值得在已冻结 dynamic/static 结果后执行的一项有界结构试验；它没有被上述“广播 K/V”等价关系否掉。但其理论优势只是约束和稳定性边界，存在明确反例，不是保证成功。若它与 DC/同帧在 actual 张量上近等价，或收益仅来自强度变化，则撤销该结构必要性主张，继续另一个有不同可证伪预测的结构，而不增加重复臂。
+
+九、CPU 代数核验记录
+
+仅用 Python math/random/Fraction，未导入 torch，未访问 CUDA。固定 random seed=20261016，T=4、S=5、D=3，随机 logits/values：
+  V-only broadcast vs 显式 SP 最大误差：0.0；
+  KV-broadcast vs 同帧 readout 最大误差：0.0；
+  DC−SP 精确差式最大误差：1.3877787807814457e−16；
+  DC 空间 marginal 最大误差：0.0；
+  DC 时间 marginal 最大误差：2.0816681711721685e−17；
+  DC 权重 L1：1.2431161877972277，与解析式相同；
+  此随机例 SP 与 DC 最大输出差：0.6037969697361192。
+两个有理数反例用 Fraction 验证：反例1 SP=0/DC=−35/18/same=0；反例2 SP=9/20/DC=4/5/same=4/5。此核验不替代实际 H3 patch 与 bf16/Flash 验收。

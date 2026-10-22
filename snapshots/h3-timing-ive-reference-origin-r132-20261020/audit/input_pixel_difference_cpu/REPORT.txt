@@ -1,0 +1,17 @@
+R132 输入像素差异 CPU 定位（原失败 gate 保留）
+
+已定位在 PyAV 的 YUV420p → gbrpf32le 浮点 RGB 转换。
+两机同一个 prepared MP4 的 SHA 为 ed29fd0615aaeee1f24f103b37bea5f18dc7daebce0159b8ff460492ca6c934c；107 帧的原生 YUV420p 数组逐帧 SHA、PTS、颜色元数据、宽高全部一致。两机使用完全相同的 video_types.py、nodes_minimax_h3.py、comfy/utils.py 文件。
+
+分别按实际代码在 CPU 重新进行浮点 RGB 转换，得到的全片原始 RGB SHA 精确复现各自推理记录。这证明差异已存在于 LoadVideo/GetVideoComponents 的输出，早于 VAE 和任何 R132 注意力操作。PyAV 分别17.0.0和16.0.1，报告的 libav* 版本相同；本次没有细分二进制构建或 CPU SIMD 路径。
+
+之后使用原生代码的 PIL 路径（clip(255*x).astype(uint8)，LANCZOS resize，float32/255）重建所有107帧，与各自保存的实际 VAE prepared_frames 逐像素相等：max=0、RMS=0、差异比例0。输入与输出宽高均1312×736，crop=disabled，没有重新裁切或位移。Qwen 取帧严格为0,12,...,96，所有采样值与相应prepared帧完全相等。颜色通道为 RGB，float32 标准0–1范围；native输入格式yuv420p；原生浮点路径不额外除255，PIL量化后的prepared才除255。VAE归一化发生更后，不能解释这个更早的差异。
+
+跨机确定性抽样（11帧×8192通道值=90112值）：
+raw RGB max=0.03398183，RMS=0.00154423，44.05%通道值不同；
+实际 prepared max=9/255，RMS=0.00183902（0.469个8位灰阶），12.75%通道值不同。
+这是通道样本差异比例，非全片像素比例；最大的局部差异超过1灰阶，不宜仅称机器浮点舍入。全片YUV及取帧/几何相同，平均RGB差异小，但本次没有验证它对生成的影响。
+
+源码定位：ComfyUI/comfy_api/latest/_input_impl/video_types.py:461–570，特别476/525–530/555；comfy_extras/nodes_minimax_h3.py:67–71；comfy/utils.py:1095–1103。实际prepared是H3EventAudit/VAEProxy在native VAE.encode前保存。
+
+实验处理：保留原 REFERENCE_ORIGIN_RUNTIME_GATE passed=false（c2dd56cf...）和退出回执（61954f17...），不覆盖或伪造COMPLETE。R132只可在新的明确资格说明下展示，跨环境输入像素差异应随结果记录。未载入模型、未启动CUDA、未重新生成Native，未复制任何完整tensor到本地。

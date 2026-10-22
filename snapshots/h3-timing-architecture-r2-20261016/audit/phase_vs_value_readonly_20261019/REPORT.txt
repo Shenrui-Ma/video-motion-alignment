@@ -1,0 +1,31 @@
+Reference K 相位重定位与 R112 Value 读取：只读机制审查
+2026-10-19；理论比较，无实现、GPU 或队列调整。
+
+1. 数学作用
+令 j=(t,s)，Tτ(j)=(u,π(s))，u=t+sign(τ−t)。q̄、k̄ 是 RMSNorm 后、RoPE 前的特征，R(p) 是 H3 的分轴旋转。原 K_j=R(p_j)k̄_j；若只将其位置改为 p′_j=p_ref(Tτ(j))：
+  K′_{τ,j}=R(p′_j)R(p_j)ᵀK_j
+  ℓ′_{qj}=q̄_qᵀR(p′_j−p_q)k̄_j/√d
+  Δℓ_{qj}=q̄_qᵀ[R(p′_j−p_q)−R(p_j−p_q)]k̄_j/√d。
+因此它精确等价于一个依赖 Q/K、对应关系与 query 时间的 logit 偏置。原 k̄_j/v_j 内容配对保留，改变的是这份内容被放置的相对时空坐标。RoPE 点积可随相位增减，缩短坐标距离并不保证注意力变大，也没有据此测到输出动作究竟早或晚。
+“可写成 logit bias”只说明运算形式，不能据此认定与 DIAL 完全相同；创新审查仍需逐项比较偏置构造、几何信号、作用域及实证。是否继续此分支，待 R112 的实际对应质量、ΔV 与成片结果确定。
+
+2. H3 的实际边界
+当前已绑定 model.py 的每 head 为 128 维，前 96 维按 t/h/w 各 16 对旋转，余 32 维不旋转；Q/K 先 RMSNorm，再 fused RoPE，V 不旋转。现 hook 已在 RoPE 后，可用差分旋转表达上述等式；BF16 的逆旋转会有舍入误差。
+更关键：reference 在 target 之前占据独立 media clock。p_tar(τ) 与 p_ref(t) 有整段参考时长偏置；bin 的物理跨度还按 (1,4,4,4,4) 循环并乘 5/3。故索引“朝 τ 推一格”未必缩短实际 Q/K 时间坐标差。改为 p_tar(Tτ(j)) 会同时消除 media-clock 偏置，是另一种几何变化。空间坐标必须用实际 area-normalized 网格。
+同一个 reference key 对不同 τ 会获得不同位置；单次改全局 position_ids 无法表达它。普通全序列 softmax 还会改变参考组总质量与非参考权重。若与 R112 同样固定原组质量 m，输出关系应写成 O′=O+m[softmax_ref(ℓ′)−a]V；这项守恒不会由 RoPE 自动提供。
+
+3. 与 R112 的必要区别及退化
+R112 修正为 mΣ_j a_j(v_Tτ(j)−v_j)，固定 attention、改变读取内容；沿对应轨迹 V 恒定时为零。相位重定位改变 a，因而可能在不同物体/背景之间重新分配权重；即便每条轨迹 V 恒定，仍可有输出变化，但这种变化也可能是身份/背景占比改变。若全部被读 V 相同且 m 固定，或各条恒定轨迹的总权重不变，相位重定位也无效。
+精确等价情形：位置不变或所有相关 Q/K 共同平移，点积不变；仅移动 reference K 不享有后一不变性。若 T 是双射、沿 T 的 k̄/v 都相同，将位置按 T 重排仅形成成对 K/V 的排列，完整 attention 不变。一般 V 传输 Σ_j a_j v_T(j) 等价于权重改为 a′_j=a_T⁻¹(j)；相位变化只有恰好实现该逆向权重排列时才与之等价，不能把同方向的位置移动直接当成 V 传输。
+
+4. 直接近邻
+FLATTEN §3.2–3.3：RAFT 轨迹上收集 K/V，额外做无位置编码的 trajectory attention；沿对应改变信息交换已存在，但它未做此处的 K 相位操作。[1] TokenFlow §4.2：由原视频 diffusion feature 的 cosine 最近邻传播关键帧编辑特征；对应及特征搬运已有先例。[2] RAVE 使用 randomized noise shuffling 建立跨帧一致性；其核心并非对应点相位重定位。[3]
+位置方法中，H3 aligned-ref 直接让参考与目标共享时空网格，同时影响 reference Q/K，成功证据含配对 LoRA 训练；VAP §3.4 固定平移 reference 时间、保持空间坐标，并训练 MoT expert。两者已覆盖“通过参考位置改变对齐先验”的宽泛思想。Untwisting RoPE 对参考 K 做频段幅度缩放，其算子与旋转相位不同。[4–6] 本页只界定运算关系；当前没有相位重定位改善 H3 事件时间的实验证据，也未作新颖性判断。
+
+[1] https://arxiv.org/html/2310.05922v2
+[2] https://arxiv.org/html/2307.10373v3
+[3] https://rave-video.github.io/
+[4] https://gist.github.com/alisson-anjos/b300f2b90e65cf85846519d78b660cd3/e9d586a5eb9fecd8018f544fa87a797e94072bae
+[5] https://arxiv.org/html/2510.20888v1
+[6] https://arxiv.org/html/2602.05013v1
+代码：sources/H3_model.py（SHA 0d5edcf3…，与 R112 绑定一致），关键行 90–118、173–201、365–455、523–530；来源及完整 SHA 见 SOURCES.json。

@@ -1,0 +1,67 @@
+{
+  "original_graph_sha256": "b565e9f3f5209347df17fa5ae61bc6a5c10736789e561a5fb96cf2dc9832591e",
+  "cached_graph_sha256": "01ff71c1a5e67d8338ca8bb1a50edc1f473dd1188bacd4ad130b50200b68c645",
+  "removed_nodes": {
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "22": {
+      "class_type": "LoadVideo",
+      "inputs": {
+        "file": "long_0039_video.mp4"
+      }
+    },
+    "23": {
+      "class_type": "GetVideoComponents",
+      "inputs": {
+        "video": [
+          "22",
+          0
+        ]
+      }
+    }
+  },
+  "node_5": {
+    "before": {
+      "class_type": "H3EventAuditReference",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdjust the color of book to blue\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+        "width": 1312,
+        "height": 736,
+        "length": 107,
+        "audit_dir": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/cases/long_0039/audit",
+        "run_id": "r122_long_0039_shared",
+        "semantic_fps": 2,
+        "phase_frames": 0
+      }
+    },
+    "after": {
+      "class_type": "H3CachedReferenceConditioning",
+      "inputs": {
+        "cache_manifest": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/cases/long_0039_cached_conditions/configs/CONDITION_CACHE.json",
+        "audit_dir": "/data4/researcher/h3_runs/threecase_auto_r144_20261020/cases/long_0039_cached_conditions/audit",
+        "run_id": "r144_long_0039_seed2026101701_visible_only"
+      }
+    }
+  },
+  "DiT_sigma_sampler_noise_router_unchanged": true,
+  "original_host9_four_condition_tensors": true,
+  "historical_prefix_scope": "signed historical captures; cross-host difference is recorded, not an intervention decision"
+}

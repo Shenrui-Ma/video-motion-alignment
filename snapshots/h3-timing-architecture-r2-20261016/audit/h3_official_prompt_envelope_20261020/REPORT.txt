@@ -1,0 +1,33 @@
+H3 官方提示词格式：只读核查，2026-10-20
+
+结论
+H3-Base 官方说明的输入是 H3-Context-IR 输出：包含目标视频内容及参考资产关系的结构化描述。Context-IR 是独立的前处理系统，开源模型本身不会自动完成这个改写。README 强烈推荐接入它或按官方指导自行实现。
+
+本轮裸句 P0 直接进入 H3 text encoder。实际 .41 编码器会自动加 <Video 1>:、时间戳及视频视觉块，再追加原 prompt；它没有自动加 [video editing]，也没有声明这是在编辑参考视频。因而视频仍然通过 Qwen 和 VAE 两路输入，遗漏的是文字里的编辑关系表达。R121 自写 H3EventAudit 只是代理审计，传递 prompt 原文。
+
+官方 Full-Reference rewrite guide 为 summary 规定方括号任务类型；源视频直接编辑对应 video editing，并要求 summary 以 “The target video is an edited version of <Video 1>.” 开始。<Video N> 表示整体视频的编辑/延续/时序关系。这些都是文本语义格式；当前执行路径没有把方括号词组解析成独立的数值开关。
+
+六段的准确地位：官方完整 Context-IR rewrite 规范要求六段及固定顺序，README 对采用该前处理路线使用强烈推荐措辞。当前 ComfyUI 执行路径没有六段存在性校验，裸句可以完成一次推理。现有资料支持“完整官方推荐输入格式”，无法证明少一段就必然失败或六段都对每项任务具有同等必要性。
+
+候选与假说
+CANDIDATE_SHORT_0358.txt 只增加 reference 定义、编辑任务标签与目标视频关系句；最后一行逐字保留 IVE edit_prompt。没有展开动作、速度、镜头或时间窗。该候选只检验最小任务/引用封装，尚不等同于完整六段 Context-IR。
+假说：显式绑定编辑关系后，基础任务更可能保持原双人餐厅/饮酒动作，并把眼镜作为外观编辑。R121 的单人戴眼镜结果与“把裸句理解成目标动作”的解释相容；本次审计不能单凭该现象确定原因。
+最小实验：复用 R121 short_0358 的 source、seed、噪声、20 步、sigma、CFG、几何和 runner，只改 prompt。先审全 105 有效帧的双人构图、原饮酒动作与眼镜外观，再决定是否补配对引导。此前裸句结果作为该 prompt-format 对照保留。
+
+证据位置
+1. official_github_README.md:89–104：Context-IR 作用、H3-Base 接收其输出、前处理未随开源发布。
+   https://github.com/MiniMax-AI/MiniMax-H3#h3-context-ir
+2. official_ref_en.txt:13–22,77–89,121–153：六段、Video 标签关系、summary 任务类型与编辑起始句。
+   https://github.com/MiniMax-AI/MiniMax-H3/blob/main/skills/h3-prompt-writing/references/ref-en.txt
+3. official_skill.md:11–14,25–29：Ref2VA 选择完整六段改写格式。
+   https://github.com/MiniMax-AI/MiniMax-H3/blob/main/skills/h3-prompt-writing/SKILL.md
+4. official_ref2va_request.sh:12–13：独立 task=ref2va，prompt 为完整 Context-IR 示例。
+   https://github.com/MiniMax-AI/MiniMax-H3/blob/main/scripts/readme/reproducible-768p-ref2va-request.sh
+5. actual_host41_nodes_minimax_h3.py:337–362：视频视觉/latent 两路，prompt 原样 tokenize。
+   远端 /data3/researcher/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_extras/nodes_minimax_h3.py
+6. actual_host41_text_minimax.py:169–197：自动资产标签与视觉块，再追加原文。
+   同 ComfyUI 根 /comfy/text_encoders/minimax.py
+7. R121 extensions/H3EventAudit/__init__.py:126–154,177–190：代理最终原样调用 native.tokenize 和官方节点。
+8. R121 configs/graphs/r121_short_0358_seed2026101701_native.json:node5.inputs.prompt：裸句，ref_video 仍接 node23。
+
+此审计没有改动已封存 R121；没有部署或启动 GPU。

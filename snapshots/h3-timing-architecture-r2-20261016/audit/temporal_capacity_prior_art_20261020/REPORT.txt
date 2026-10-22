@@ -1,0 +1,24 @@
+参考视频时间容量重分配：限定文献核查（2026-10-20）
+
+待核机制：保留每个输出 query 原有参考视频注意力总质量 m；只重新分配其在参考时间上的份额；约束各参考时间区间接收的总量，容量按有效物理时长设置；区间内空间条件分布保持。此处只审查方案，未实现或启动实验。
+
+1. MiRA: Reweighting Framewise Attention in Video Transformers for Facial Expression Understanding（arXiv:2606.30611v3）。论文与作者 AttentionMiRA 代码都已核对。Exact 分支先汇总各帧收到的注意力 c，根据 c 与帧内逆熵得到目标权重 π，再用 α=clip(π/c) 缩放该帧全部 key，最后逐 query 归一化并可残差混合。它直接覆盖“按帧聚合边际、重加权且保留帧内分布”的核心组成；单次列缩放后再归一化并不保证最终列边际等于 π，代码也没有迭代 Sinkhorn。存在均匀 floor 时空间条件分布会变化。任务为视频表情识别，实验包含模型训练；不涉及现有多模态参考组质量 m 或按物理时长配置容量。
+https://arxiv.org/html/2606.30611v3
+https://github.com/ysrinria/MiRA （modeling_finetune.py，Exact 分支约第 618–705 行）
+
+2. Sinkformers: Transformers with Doubly Stochastic Attention（AISTATS 2022）。论文及官方 Sinkhorn 实现已核。它把点积相似度作为负代价，用熵正则 OT 的交替行列归一化取代普通 softmax，具有均匀行列边际。QK→Sinkhorn 注意力这一数学构造已有直接先例。其设置不是视频编辑中保留已有参考模态质量、同时按时长分配参考时间容量。
+https://proceedings.mlr.press/v151/sander22a.html
+https://github.com/michaelsdr/sinkformers （已读取提交 045d933490f396c068cba6d7668bb1707a94c7aa 的 vit-pytorch/vit_pytorch/sinkhorn.py）
+
+3. Slot-ID: Identity-Preserving Video Generation from Reference Videos via Slot-Based Temporal Identity Encoding（arXiv:2601.01352v1）。已核论文 3.2.3、3.3 与训练设置。参考视频经过时空编码后，由可学习 slot queries 读取 token；Sinkhorn 均匀边际促使槽与 token 均衡分配，再形成身份条件。它直接覆盖“参考视频 + Sinkhorn + 防止分配塌缩”，但槽汇总身份，不是输出时间到参考时间的读出计划。身份编码器与 LoRA 需要训练；不应因免逐身份微调就归为完全 training-free。本次未找到可核对的作者实现。
+https://arxiv.org/html/2601.01352v1
+
+4. FreeMix: Zero-shot Customized Video Editing with Diffusion Feature Transfer（ICCV 2025 Workshops, Findings）。已核正式论文与作者论文页面。它在冻结扩散模型中进行运动/外观特征转移，并在相邻源视频帧之间，用空间坐标和扩散特征的距离求熵正则 OT 对应，改善时间一致性。其运输维度是相邻帧内空间位置，帧对预先确定；不对整段参考时间的使用量建立列容量，也不保留多模态参考组原有 m。本次未找到可核对的作者代码。
+https://openaccess.thecvf.com/content/ICCV2025W/Findings/papers/Chen_Zero-shot_Customized_Video_Editing_with_Diffusion_Feature_Transfer_ICCVW_2025_paper.pdf
+https://www.amazon.science/publications/zero-shot-customized-video-editing-with-diffusion-feature-transfer
+
+核查结论：已见组成部分的明确先例；本次限定检索未发现同时满足“生成中 output→reference 的时间运输、逐 query 原参考质量保持、物理时长列容量、帧内空间条件保持”的同一实现。该结果只能作为候选方案的差异边界，不能证明无人做过，更不能把 Sinkhorn 或帧级重加权本身作为新算法贡献。Temporal State Transport（2609.08505）另已筛查，其谱张力调节 query 尺度，不使用此行列边际约束；未纳入四篇主比较。
+
+数学上需要先固定约束对象。设参考条件注意力 p[i,t,s] 对 t,s 和为 1，原参考总质量 m[i]，输出 query 的物理权重 w[i]。若约束实际参考读出量，应令 T0[i,t]=w[i] m[i] sum_s p[i,t,s]，行边际 a[i]=w[i]m[i]，列容量 b[t]=sum_i a[i]·d[t]/sum_t d[t]。OT 对 T0 作 KL 投影后，用 T[i,t]/a[i] 乘原 p[s|i,t] 重建；a=0 的行跳过。若只平衡条件 p 后再乘不同 m，则最终实际读出量未必满足容量。w 应避免因每帧空间 query 数不同而改变物理权重；d 应按真实 VAE 时间覆盖与有效帧截断计算，排除重复 padding。
+
+该约束也有明确反例：时间置换矩阵与均匀混合都可以满足相同边际；因此容量均衡本身不保证动作顺序或持续时长。遮挡、静止片段和用户要求改变的动作也可能无需等量读取。后续若做实验，应同时检查动作阶段时间、基础编辑成立和源复制风险，再判定容量约束是否解决观察到的过长停留。

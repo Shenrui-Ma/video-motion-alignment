@@ -1,0 +1,549 @@
+{
+  "candidate_id": "sam07",
+  "source_id": "07_real_ary_v",
+  "source_group": "07_real_ary_v",
+  "task": "角色替换—Sam Altman复现床边书记舞",
+  "basic_edit_status": "NEEDS_ROOT_IDENTITY_SCENE_SPOT",
+  "selection_status": "root_review_needed",
+  "media": {
+    "source": {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/inputs/07_real_ary_v.mp4",
+      "exists_local": true,
+      "sha256": "46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11",
+      "bytes": 2650826
+    },
+    "native": {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/07_sam_s1_baseline_00001_.mp4",
+      "exists_local": true,
+      "sha256": "27e440b95326059b23b95b05516ec7fe9c2d000523bfccf0f3cafb7fd53be2ae",
+      "bytes": 2597087
+    },
+    "legacy_weight3": {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/07_sam_s1_weight3_00001_.mp4",
+      "exists_local": true,
+      "sha256": "abd6f8c93a1034a624e99eeec533654c8c1314345ddabde7eda1582a87214f50",
+      "bytes": 2595200
+    },
+    "fixed": null
+  },
+  "valid_frames": 141,
+  "fps": 24,
+  "geometry": {
+    "width": 1312,
+    "height": 736,
+    "sampled_frames": 141,
+    "crop_xywh": [
+      0,
+      0,
+      1312,
+      736
+    ]
+  },
+  "seed": 2026101311,
+  "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+  "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+  "graphs": {
+    "native": {
+      "graph": {
+        "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/configs/07_sam_s1_baseline.json",
+        "exists_local": true,
+        "sha256": "a425af893c9c3fcb97ce76bf249f37fa41716a97989bb59ec846291ca6a7e88b",
+        "bytes": 5922
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+      "seed": 2026101311,
+      "noise_registration": {
+        "noise_seed": 2026101311,
+        "audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit",
+        "run_id": "07_sam_s1_baseline",
+        "pair_id": "07_ary_sam_s1"
+      },
+      "condition_registration": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit",
+        "run_id": "07_sam_shared_conditioning",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      },
+      "recipe_nodes": {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": {
+            "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "weight_dtype": "default"
+          }
+        },
+        "2": {
+          "class_type": "CLIPLoader",
+          "inputs": {
+            "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "type": "minimax",
+            "device": "default"
+          }
+        },
+        "3": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+          }
+        },
+        "4": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+          }
+        },
+        "41": {
+          "class_type": "MiniMaxH3SigmaShift",
+          "inputs": {
+            "model": [
+              "1",
+              0
+            ],
+            "shift_video": 12.0,
+            "shift_audio": 3.0
+          }
+        },
+        "8": {
+          "class_type": "KSamplerSelect",
+          "inputs": {
+            "sampler_name": "euler"
+          }
+        },
+        "9": {
+          "class_type": "ManualSigmas",
+          "inputs": {
+            "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+          }
+        },
+        "50": {
+          "class_type": "H3EventEmphasis",
+          "inputs": {
+            "model": [
+              "41",
+              0
+            ],
+            "positive": [
+              "51",
+              0
+            ],
+            "factor": 1,
+            "start_frame": 54,
+            "end_frame": 69,
+            "run_id": "07_sam_s1_baseline",
+            "audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit/emphasis"
+          }
+        },
+        "51": {
+          "class_type": "H3PairConditionSnapshot",
+          "inputs": {
+            "positive": [
+              "5",
+              0
+            ],
+            "target": [
+              "5",
+              1
+            ],
+            "source_audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit",
+            "source_run_id": "07_sam_shared_conditioning",
+            "run_id": "07_sam_s1_baseline"
+          }
+        }
+      },
+      "input_nodes": {
+        "21": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "sam_altman_village_global_20221117_original.jpg"
+          }
+        },
+        "22": {
+          "class_type": "LoadVideo",
+          "inputs": {
+            "file": "07_real_ary_v.mp4"
+          }
+        }
+      }
+    },
+    "legacy_weight3": {
+      "graph": {
+        "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/configs/07_sam_s1_weight3.json",
+        "exists_local": true,
+        "sha256": "9422af8e1a614a2d7fec615e506107fb1f67ca4b0ee2da09d52830fbfea668e3",
+        "bytes": 5918
+      },
+      "prompt": "subject_definitions:\n<Subject 1>: Sam Altman as shown in <Picture 1>; use this portrait only for identity and clothing, with pose and actions from <Video 1>.\n<Video 1>: The complete source video to edit and the reference for all original motion.\nsummary:\n[video editing] Replace only the main performer in <Video 1> with Sam Altman from <Picture 1>. Preserve his recognizable facial features, short thick tousled brown hair, clean-shaven face and light gray long-sleeved crew-neck knit sweater. Complete the outfit with dark trousers and dark shoes. Use realistic adult male body proportions, adapted to the complete original performance. Preserve every original action, hand gesture, expression timing, action order, speed and rhythm. Preserve the original room, furniture, objects, background, camera, composition and original borders. Use the portrait only for appearance; do not copy its static seated pose, yellow chair, tabletop, cup or background. Keep a realistic live-action appearance.\nretention_analysis:\n<Video 1>: Preserve all original motion, action timing, camera, room, objects and background; replace only the main performer's identity and outfit as requested.\ndetailed_description:\nPreserve the original source actions, their order, timing and rhythm. Keep the source playback speed, camera and duration.\noverall_soundscape:\nNo speech or added sound effects are requested.\nnon_diegetic_music:\nNone.\n",
+      "prompt_sha256": "d7deaa2685d4d8e0c242f0ed7b038c5029037b69e26fef1d039f8c2e80aa3546",
+      "seed": 2026101311,
+      "noise_registration": {
+        "noise_seed": 2026101311,
+        "audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit",
+        "run_id": "07_sam_s1_weight3",
+        "pair_id": "07_ary_sam_s1"
+      },
+      "condition_registration": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "ref_video": [
+          "23",
+          0
+        ],
+        "width": 1312,
+        "height": 736,
+        "length": 141,
+        "audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit",
+        "run_id": "07_sam_shared_conditioning",
+        "semantic_fps": 2,
+        "phase_frames": 0,
+        "ref_image": [
+          "21",
+          0
+        ]
+      },
+      "recipe_nodes": {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": {
+            "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+            "weight_dtype": "default"
+          }
+        },
+        "2": {
+          "class_type": "CLIPLoader",
+          "inputs": {
+            "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "type": "minimax",
+            "device": "default"
+          }
+        },
+        "3": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+          }
+        },
+        "4": {
+          "class_type": "VAELoader",
+          "inputs": {
+            "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+          }
+        },
+        "41": {
+          "class_type": "MiniMaxH3SigmaShift",
+          "inputs": {
+            "model": [
+              "1",
+              0
+            ],
+            "shift_video": 12.0,
+            "shift_audio": 3.0
+          }
+        },
+        "8": {
+          "class_type": "KSamplerSelect",
+          "inputs": {
+            "sampler_name": "euler"
+          }
+        },
+        "9": {
+          "class_type": "ManualSigmas",
+          "inputs": {
+            "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+          }
+        },
+        "50": {
+          "class_type": "H3EventEmphasis",
+          "inputs": {
+            "model": [
+              "41",
+              0
+            ],
+            "positive": [
+              "51",
+              0
+            ],
+            "factor": 3,
+            "start_frame": 54,
+            "end_frame": 69,
+            "run_id": "07_sam_s1_weight3",
+            "audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit/emphasis"
+          }
+        },
+        "51": {
+          "class_type": "H3PairConditionSnapshot",
+          "inputs": {
+            "positive": [
+              "5",
+              0
+            ],
+            "target": [
+              "5",
+              1
+            ],
+            "source_audit_dir": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit",
+            "source_run_id": "07_sam_shared_conditioning",
+            "run_id": "07_sam_s1_weight3"
+          }
+        }
+      },
+      "input_nodes": {
+        "21": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "sam_altman_village_global_20221117_original.jpg"
+          }
+        },
+        "22": {
+          "class_type": "LoadVideo",
+          "inputs": {
+            "file": "07_real_ary_v.mp4"
+          }
+        }
+      }
+    }
+  },
+  "noise_metadata": {
+    "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/audit/07_sam_s1_baseline_noise.json",
+    "exists_local": true,
+    "sha256": "71cde61a3fbaed3b80cfc63a0152e6227eeaea72d1f8c8abc1c575af9a732941",
+    "bytes": 966
+  },
+  "noise_record": {
+    "schema": "h3-event-noise-v1",
+    "run_id": "07_sam_s1_baseline",
+    "pair_id": "07_ary_sam_s1",
+    "signature": {
+      "seed": 2026101311,
+      "nested": true,
+      "shapes": [
+        [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          235
+        ]
+      ],
+      "dtypes": [
+        "torch.float32",
+        "torch.float32"
+      ],
+      "batch_index": null
+    },
+    "actual_noise_streams": [
+      {
+        "shape": [
+          1,
+          24,
+          42,
+          46,
+          82
+        ],
+        "dtype": "torch.float32",
+        "sha256": "94f396923114629ab5cd89dbd7d548d75c2b1a99f9d9984d1e8ccd7cc9d07d96"
+      },
+      {
+        "shape": [
+          1,
+          32,
+          2,
+          235
+        ],
+        "dtype": "torch.float32",
+        "sha256": "ddc72075fc55aaefb2afb28875d057e8cd6e38d81fee7f1b4e4203c7b81df4f3"
+      }
+    ],
+    "cache_file": "/data5/researcher/h3_runs/sam_real_dance_batch_20261015/audit/07_ary_sam_s1_noise.pt"
+  },
+  "condition_metadata": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/audit/07_sam_s1_baseline_conditioning.json",
+      "exists_local": true,
+      "sha256": "da084b3b9a9d4919e5627ced6356850486ef5ee3ec98ba14158d35a00e9f837d",
+      "bytes": 31917
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/audit/05_sam_shared_conditioning_conditioning.json",
+      "exists_local": true,
+      "sha256": "3abfb75486d240150167cc236eb30544a31ddac67dad1aa9a436e39a2de6dfc7",
+      "bytes": 28881
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/audit/07_sam_shared_conditioning_conditioning.json",
+      "exists_local": true,
+      "sha256": "687aa39a7b05b02fbf55093465238cd755439dc2434bca57bfd0c71228e00677",
+      "bytes": 28881
+    }
+  ],
+  "historical_fixed_method": null,
+  "legacy_method": "selected reference K/V duplicated twice (logits+ln3), all20steps/all50blocks; not same-bin7–15",
+  "new_requirement": "Root-approved same-bin7–15 reference required before schedule comparison; never relabel weight3 as fixed.",
+  "edit_evidence": [
+    {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/REPORT.txt",
+      "exists_local": true,
+      "sha256": "b8087ab75f282e31c8b310bf5245a54e9847cbd6da0b8968893bf1cf50eb8896",
+      "bytes": 2094
+    },
+    {
+      "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/REPORT.txt",
+      "exists_local": true,
+      "sha256": "b8087ab75f282e31c8b310bf5245a54e9847cbd6da0b8968893bf1cf50eb8896",
+      "bytes": 2094
+    }
+  ],
+  "qualification": "旧报告仅全片间隔+关键窗审阅，局部延后改善；未完成全面身份/场景质量评估，待root看片决定。",
+  "official_MF": {
+    "status": "not_located_in_completed_official_MF_records",
+    "native": null,
+    "fixed": null
+  },
+  "review_frame": {
+    "file": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/review/07_sam_preview_frame_061.png",
+    "exists_local": true,
+    "sha256": "1ff767fef329a542f680d1b29cd906772e87e8d25401c6fa287983e651f0c4f2",
+    "bytes": 834657
+  },
+  "same_source_as_current_Sam": false,
+  "rank_by_existing_edit_evidence": 12,
+  "evaluation_task_id": "sam07",
+  "actual_new_producer_binding": null,
+  "new_output_status": "AWAITING_ACTUAL_PRODUCER_CONTRACT",
+  "frozen_events": {
+    "candidate_id": "sam07",
+    "source_id": "07_real_ary_v",
+    "valid_frames": 141,
+    "search_frame_domain": [
+      0,
+      140
+    ],
+    "detail_window": [
+      45,
+      95
+    ],
+    "native_timing_status": "clear_local_delay",
+    "events": [
+      {
+        "id": "landmark_1",
+        "label": "手在口鼻旁且后腿保持弯起",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          60,
+          61
+        ],
+        "native_interval_inclusive": [
+          75,
+          77
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action",
+        "uncertainty_frames": 2
+      },
+      {
+        "id": "landmark_2",
+        "label": "手从口鼻旁向上离开",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          62,
+          63
+        ],
+        "native_interval_inclusive": [
+          78,
+          79
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action",
+        "uncertainty_frames": 2
+      },
+      {
+        "id": "landmark_3",
+        "label": "后弯腿放下",
+        "measurement_kind": "visible_action_interval",
+        "source_interval_inclusive": [
+          64,
+          69
+        ],
+        "native_interval_inclusive": [
+          79,
+          84
+        ],
+        "new_outputs": {
+          "fixed7_15_new": null,
+          "early": null,
+          "late": null,
+          "split": null,
+          "global_weak": null
+        },
+        "absent_event_rule": "null with absence reason; never infinite delay or substitute a different action",
+        "uncertainty_frames": 3
+      }
+    ],
+    "evidence": [
+      {
+        "file": "/Users/researcher/DevProjects/h3-four-pair-evidence-review-20261015/sam07/motion_review.json",
+        "sha256": "9f35db11dbf96a2d2c85f1ce4aadd087e6af4f04a49e96d8f2039f86bf9e787c"
+      }
+    ],
+    "legacy_weight3_is_not_fixed": true
+  },
+  "root_selection": {
+    "record": {
+      "file": "/Users/researcher/DevProjects/h3-guidance-schedule-eval-r150-20261021/SELECTED_TASKS.json",
+      "sha256": "ce0e55a264e3c9290b71f46f3862b9304376a025c1609b5469415aa0a4eba1b0"
+    },
+    "approved": true,
+    "overrides_older_candidate_selection_status": true
+  },
+  "required_new_roles": [
+    "fixed",
+    "early",
+    "late",
+    "split",
+    "global_weak"
+  ],
+  "fixed_role_rule": "Await new same-bin 7–15 output; legacy_weight3 remains a separate historical role"
+}

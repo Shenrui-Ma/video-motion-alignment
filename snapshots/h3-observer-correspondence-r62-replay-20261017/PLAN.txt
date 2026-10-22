@@ -1,0 +1,7 @@
+R62 真实冻结轨迹的对应关系门重放
+
+只读 R55 short0210 完整20步、R50 retry chest完整20步、失败crouch完成的0..13步。crouch14是技术失败，15..19未观测；这些状态不提交给policy，不能记作科学UNKNOWN。
+先封存源/当前pose、请求响应、原committed决定、R61门和本脚本，再做任何新的扫描。R55用原signed政策，R50用原delay-only政策，原窗口/阈值/特征与A/B全部继承。
+每条轨迹分别用R56整臂和R60上臂扫描；original指该表示不加A/B，production单独重放并逐字段核对已提交决定。四个版本各自维护完整persistence状态。候选筛除可通过group representative改变后续ON，故同时记录新增、删除与窗口变化。
+逐步记录原输入证据、候选、A/B数值、动作窗口和latent-bin union。首次与实际production路由分歧之后，所有观测仍来自旧轨迹；不据此推断新策略的视频效果。
+所有写入仅本目录。零GPU、新pose、依赖与生产改动。仅从远程读取已有JSON并核SHA，无PT或视频。

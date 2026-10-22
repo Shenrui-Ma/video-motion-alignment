@@ -1,0 +1,1768 @@
+{
+  "generated_at": "2026-10-15T23:12:46.574194+00:00",
+  "scope": "Local lightweight media inventory, not pose or scientific-effectiveness evaluation",
+  "existing_mp4_count": 20,
+  "expected_final_mp4_count": 20,
+  "pending_expected_media": [],
+  "formatting_or_provenance_issues": [],
+  "missing_optional_qa_json": [
+    "old_calibration_s05.mp4",
+    "s05_1024_mass_control.mp4",
+    "s05_full_hard.mp4",
+    "s05_full_hard_late11.mp4",
+    "s05_full_mass.mp4",
+    "s05_full_mass_complete.mp4",
+    "s05_full_mass_late11.mp4",
+    "s05_full_mass_late6.mp4",
+    "s05_phase_minus12.mp4",
+    "s05_phase_plus12.mp4",
+    "s05_posthoc_retime.mp4",
+    "s05_seed2_mass.mp4",
+    "s07_seed1_mass.mp4"
+  ],
+  "missing_optional_frame055": [
+    "old_calibration_s05.mp4",
+    "s05_1024_mass_control.mp4",
+    "s05_full_hard.mp4",
+    "s05_full_mass.mp4",
+    "s05_full_mass_complete.mp4",
+    "s05_full_mass_late11.mp4",
+    "s05_phase_plus12.mp4",
+    "s05_posthoc_retime.mp4",
+    "s05_seed2_mass.mp4"
+  ],
+  "explicit_temporal_remap_exception": "s05_posthoc_retime.mp4: input third video is already retimed and labelled non-new-inference; other displays keep original frame correspondence.",
+  "rows": [
+    {
+      "name": "old_calibration_s05.mp4",
+      "sha256": "48972e4db4732fb9acf7554e0c74d57eb22adcfc17826e44b10a2c96a0597b17",
+      "bytes": 635503,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/old_calibration_s05.caption.png",
+        "review/old_calibration_s05_frame55.png"
+      ],
+      "method_category": "historical_x3_reference_weight",
+      "interpretation_boundary": "Archived repeated reference K/V, softmax-equivalent log(3) bias; not prompt emphasis.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.旧实验：短时参考三倍加权"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/05_sam_s1_baseline_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "9f685a46be46a4d63c805348880de979e3b9e1e6415731666e055c81d711713f",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/05_sam_s1_weight3_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "6565ffa686963f60f1312f5300e5ff73ae0865c2d21150db3d2f19ae376b8f94",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "scope": "Historical calibration or postprocessing control: no new inference config in current configs directory."
+      }
+    },
+    {
+      "name": "s05_1024_mass_control.mp4",
+      "sha256": "6573ad2f89d9030f6fab5a4058c3396560306576f0fdd7aaae11ac99033eaca4",
+      "bytes": 635808,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_1024_mass_control.caption.png",
+        "review/s05_1024_mass_control_frame55.png"
+      ],
+      "method_category": "same_frame_mass_preserve_1024",
+      "interpretation_boundary": "Output/reference 1024×576 good-case control, equal display scaling only.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.同帧路由，保持参考总份额"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_seed1_native_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "30a1528792ee3aee4d45104f9f9303a300487bd9117cb76eaff13f40425a1386",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_seed1_mass_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "33d9ea3f5b4186632e1fa4f7b5b0d31286c1f8943cb4dff172f7c601e51ea9d8",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_seed1_mass.json",
+        "sha256": "6e0046c392b1a8884121d4ba3cff4ec60b94e36ed738bd6f95599b07bafbed3d",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_hard.mp4",
+      "sha256": "b125ce5f74362302580bcbc15b4df6ad036c90625d7142bf54a72046771c03b9",
+      "bytes": 629224,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_hard.caption.png",
+        "review/s05_full_hard_frame055.png",
+        "review/s05_full_hard_late11.caption.png",
+        "review/s05_full_hard_late11.frame055.png"
+      ],
+      "method_category": "same_frame_hard_mask",
+      "interpretation_boundary": "Same-frame reference restriction with native other-modality logits; not mass-preserving.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.同帧硬掩码"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_hard_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "ce4aa4ccb7bf33739fb114138bbb0906baab6264ce67d35b961666a2051eb51d",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_hard_x0.json",
+        "sha256": "3e001b240dbcb857af71706a216652e9ce63e421921eb09747f02b0811315cd6",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "hard_route",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_hard_late11.mp4",
+      "sha256": "da4bae27d50406b7b6f260befeac4e2a8fc77112f94725a19efee28998cc4d28",
+      "bytes": 634714,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_hard_late11.caption.png",
+        "review/s05_full_hard_late11.frame055.png"
+      ],
+      "method_category": "same_frame_hard_mask_calls12_20",
+      "interpretation_boundary": "Zero-based calls11..19, one-based12..20, 9 calls.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.第 12 次调用起同帧硬掩码"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_hard_late11_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "3dd11dbfe402b02802326a2a199dfe0e50574a17665f2cbe4ea312b17c410230",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_hard_late11_x0.json",
+        "sha256": "3339de913299d9d6181ba77d67c43fc70a77802aa47f645622448b7f43075c8f",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "hard_route",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 11,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_mass.mp4",
+      "sha256": "ec125cd6fdd78cfc825621885d5a50ad39c7c980f7b090f42c79124f98ca02a8",
+      "bytes": 629741,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_mass.caption.png",
+        "review/s05_full_mass_complete.caption.png",
+        "review/s05_full_mass_frame055.png",
+        "review/s05_full_mass_late11.caption.png",
+        "review/s05_full_mass_late11_frame055.png",
+        "review/s05_full_mass_late6.caption.png",
+        "review/s05_full_mass_late6.frame055.png"
+      ],
+      "method_category": "same_frame_mass_preserve",
+      "interpretation_boundary": "Preserves reference attention mass at the same input attention state, not global across trajectories.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.保留参考量的同帧读取"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "e5d74ae7b7650e717b4c65955a98c3bd349da49f8ee15c92cee8097f692ca6d8",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_mass_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "2be7a147dec0940e8ac93e2d3d56ea28335763eac20eaabdcd2e3eb6d7a8907a",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_mass_x0.json",
+        "sha256": "7be600e07b9935b2a4c03f0a85a5aec93ad86d53faf643d8ee061b3b140aaa14",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_mass_6to14.mp4",
+      "sha256": "ec6143758d4581b2299e6f31a0e7d4f4cccc83a6167594989fbbda3d126504d3",
+      "bytes": 630437,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_mass_6to14.caption.png",
+        "review/s05_full_mass_6to14.frame055.png"
+      ],
+      "method_category": "same_frame_mass_preserve_calls7_15",
+      "interpretation_boundary": "Zero-based calls6..14, 9 calls; exploratory equal-call-count interval control.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.第7–15次调用同帧路由"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_mass_6to14_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "8c7ffcf450fd6ecd7e3a5722765072e5798ede73c64b273e0ba7d960a93b2f9f",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_full_mass_6to14_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_mass_6to14_x0.json",
+        "sha256": "a892edbf3be67d10614c39743738a0b5804fa74e6883ad3e7a5da83d5aa7f7d4",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_mass_complete.mp4",
+      "sha256": "dad6a7ef9e6547a1f4c9d246642e504f9173285c5bf5fed2d12c1b3b7906b32d",
+      "bytes": 1204727,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "5.875000",
+        "nb_read_frames": "141"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_mass_complete.caption.png"
+      ],
+      "method_category": "same_frame_mass_preserve",
+      "interpretation_boundary": "Complete141frame version of the same case, not an additional experiment.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.保留参考量的同帧读取"
+      ],
+      "source_frame_interval_half_open": [
+        0,
+        141
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=0:end_frame=141,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=0:end_frame=141,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=0:end_frame=141,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=141,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "e5d74ae7b7650e717b4c65955a98c3bd349da49f8ee15c92cee8097f692ca6d8",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_mass_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "2be7a147dec0940e8ac93e2d3d56ea28335763eac20eaabdcd2e3eb6d7a8907a",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_mass_x0.json",
+        "sha256": "7be600e07b9935b2a4c03f0a85a5aec93ad86d53faf643d8ee061b3b140aaa14",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_mass_late11.mp4",
+      "sha256": "1aec9fd2d5fc935926a134b1f4c55eb587e7b508c5fe549920037f87c6011a16",
+      "bytes": 627293,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_mass_late11.caption.png",
+        "review/s05_full_mass_late11_frame055.png"
+      ],
+      "method_category": "same_frame_mass_preserve_calls12_20",
+      "interpretation_boundary": "Zero-based11..19, 9 calls; not last9video frames.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.仅最后9次调用同帧路由"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_mass_late11_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "3e514fe8ee0a2bf3080e2ce34a50140c97c33fdd242357f1fca67698e87e91f0",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_mass_late11_x0.json",
+        "sha256": "ce76bfe5cc1cd2d4685a83026abc7cdc0c0d85afffea3f85e5ff898e161e0861",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 11,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_mass_late6.mp4",
+      "sha256": "2514399b77b36defbe1915c40608dbb1cdbd7907db4da54c7c0c7574d3904323",
+      "bytes": 628615,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_mass_late6.caption.png",
+        "review/s05_full_mass_late6.frame055.png"
+      ],
+      "method_category": "same_frame_mass_preserve_calls7_20",
+      "interpretation_boundary": "Zero-based6..19, 14 calls; not same intervention budget as late11.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.第 7 次调用起同帧读取"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_mass_late6_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "a125d806a7ea0188cf3cb2447377221d510b37b6ea3615c58ebd76b5c7636c25",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_mass_late6_x0.json",
+        "sha256": "977f6ce38092617009c664bba7b8f73c95e67bfb3353087575a847d10ee8532b",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_offset4.mp4",
+      "sha256": "02fed02d3bba77127ab7718147746033dd09c49b6d45581e378c2d68d10dc206",
+      "bytes": 632811,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_offset4.caption.png",
+        "review/s05_full_offset4.frame055.png"
+      ],
+      "method_category": "mass_preserve_reference_bin_plus4",
+      "interpretation_boundary": "Reference key/value frame-bin selection +4; does not shift displayed video frames.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.参考读取 +4 时间格"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_offset4_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "13f9e3c3dc2f6315ccbb7603be46bffb5b3f0846882c6a598df0f7f9b5d50452",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_full_offset4_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_offset4_x0.json",
+        "sha256": "14b0c439aef4edc14e24aba40cb2e9a35ad7801e765fb8c694d95ca356cfd0ad",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 4,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_full_offsetm4.mp4",
+      "sha256": "1ece716f677d25abb6901754c62dc518acaa83e3d4263e2b8478299d599afb5d",
+      "bytes": 629294,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_full_offsetm4.caption.png",
+        "review/s05_full_offsetm4.frame055.png"
+      ],
+      "method_category": "mass_preserve_reference_bin_minus4",
+      "interpretation_boundary": "Reference key/value frame-bin selection −4; does not shift displayed video frames.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.参考读取 −4 时间格"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_offsetm4_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "253d2c1a2e26e2408adef458517bd414ef75ee4841f2ea6cc4015d7165c91bb3",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_full_offsetm4_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_offsetm4_x0.json",
+        "sha256": "4c9e7411663666375f15813168379d03e2cbbb4f685360a8a5abab6f7a188bfe",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": -4,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_phase_minus12.mp4",
+      "sha256": "3d322ce374db64cc383bd6b1e2b6dea8a96272db7bb3e2f23c5983f0fc3968f4",
+      "bytes": 633677,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_phase_minus12.caption.png",
+        "review/s05_phase_minus12.frame055.png",
+        "review/s05_phase_minus12_late11.caption.png",
+        "review/s05_phase_minus12_late11.frame055.png"
+      ],
+      "method_category": "reference_interaction_phase_minus12",
+      "interpretation_boundary": "Reference-only interaction uses cloned output-query temporal rotation −12 physical frames, not global reference K mutation or playback retiming.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.参考时间位置偏移 −12 帧"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_phase_minus12_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "b8a79caccc85ab5dc565b400eb8bd9ddac4fe5cbcd63e1bc3f3bd40d8ea91fb6",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_phase_minus12_late11_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_phase_minus12_x0.json",
+        "sha256": "b6e1ff0d13ff65e884e43800dd0e2542984574abf62d0258bef5ba84f1762e2b",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3PhaseRoPE",
+            "inputs": {
+              "alpha": 1.0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20,
+              "delta_frames": -12.0
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_phase_minus12_late11.mp4",
+      "sha256": "e2ac8238f56a7fdfe3719d5283d1b675dbd587c27c252cd6565239cb99fcc239",
+      "bytes": 627786,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_phase_minus12_late11.caption.png",
+        "review/s05_phase_minus12_late11.frame055.png"
+      ],
+      "method_category": "reference_interaction_phase_minus12_calls12_20",
+      "interpretation_boundary": "Temporal rotation −12 physical frames, last9 model calls11..19; not postprocessing video displacement.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.后9次调用：时间位置 −12帧"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_phase_minus12_late11_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "386ade6f3d3b155c3f5b62d22f9f3a1c25822089a6cfa584cd9476c17db5afd6",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_phase_minus12_late11_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_phase_minus12_late11_x0.json",
+        "sha256": "84dd8a3453878cee120e80ac0521d583f063fa2aa462105b80f7cca17dcc4756",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3PhaseRoPE",
+            "inputs": {
+              "alpha": 1.0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 11,
+              "step_end": 20,
+              "delta_frames": -12.0
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_phase_plus12.mp4",
+      "sha256": "2372499d6630a3659e909b9c4a33086bdfd819d6b3278addd03ced297ae63205",
+      "bytes": 621352,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_phase_plus12.caption.png",
+        "review/s05_phase_plus12_frame055.png"
+      ],
+      "method_category": "reference_interaction_phase_plus12",
+      "interpretation_boundary": "Reference-only interaction uses cloned output-query temporal rotation +12 physical frames, not playback retiming.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.参考时间位置 +12 帧"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_phase_plus12_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "843275a99a4de48bcb1d88d374eef5bbfb5595a46d9611ea5fb58a4cb9d97648",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/s05_full_seed1_phase_plus12_x0.json",
+        "sha256": "f1c72329c393eff2804977a113ae327e5b5fcad14f9f957368c12c62f17bc63a",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3PhaseRoPE",
+            "inputs": {
+              "alpha": 1.0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20,
+              "delta_frames": 12.0
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_posthoc_retime.mp4",
+      "sha256": "b50e21741a79d39ce250e8ea94b324ee123e1c2651e6833700a0bf0fcfb207a5",
+      "bytes": 625669,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_posthoc_retime.caption.png"
+      ],
+      "method_category": "explicit_posthoc_retime_control",
+      "interpretation_boundary": "THIRD INPUT IS TEMPORALLY REMAPPED by prior DTW nearest-neighbor postprocessing. Caption explicitly says postprocessing/non-new-inference. Triptych builder adds no further retiming. Must not be counted as untouched-frame generated sample.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.后处理时间重映射（非新推理）"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Renderer adds equal display scale and caption only; the third input was already post-hoc temporally remapped. The triptych itself does not apply any additional temporal mapping.",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-sam-real-dance-batch-20261015/outputs/05_sam_s1_baseline_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "9f685a46be46a4d63c805348880de979e3b9e1e6415731666e055c81d711713f",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/analysis/retiming/old_sam05/old_sam05_posthoc_dtw_nn_full.mp4",
+          "exists": true,
+          "recorded_sha256": "8a0dba7c9202d87bfd943e2850646dc7adba3a916e8552c5ce2b949c750750c4",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "scope": "Historical calibration or postprocessing control: no new inference config in current configs directory."
+      }
+    },
+    {
+      "name": "s05_seed2_mass.mp4",
+      "sha256": "4ce082b84c73a069737a84633dc86c2f48c5c802d01d46b1eba858d0ea3038b2",
+      "bytes": 587250,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": false,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_seed2_mass.caption.png",
+        "review/s05_seed2_mass_frame055.png"
+      ],
+      "method_category": "same_frame_mass_preserve_seed2",
+      "interpretation_boundary": "Repeat source with another seed, not independent source; edit/background failures are assessed separately.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.同帧参考路由 · 新种子"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed2_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "fa421266379670e5127854944265c41962fbea6a199d88924afd626a7c624e48",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed2_mass_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "852f37e4c99720c71606c3b976a86cc6353ffc2a42dd5bd9076adff831f56e17",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/transfer_staged/s05_full_seed2_mass_x0.json",
+        "sha256": "56e6d8cc4e571a7a6ba0c63d31e189beff68bcb2126aba2bb1ddbff9c0157206",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_semantic_b.mp4",
+      "sha256": "6de5f334ef49d8a6ebc09c1abf4fac5a9d1557b45576662cc5a08135f7ec2967",
+      "bytes": 624464,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_semantic_b.caption.png",
+        "review/s05_semantic_b.frame055.png"
+      ],
+      "method_category": "semantic_phase_and_labels_p6_t6",
+      "interpretation_boundary": "Only semantic video sample phase +6 physical frames=.25s and associated labels; displayed text shift .3s due rounding, not DiT RoPE change.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.语义 P6T6（采样＋标签）"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_semantic_b_p6_t6_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "6f243b4eabbe93048e755df82f474481bf92e85c091178ca558cdc008cee5359",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_semantic_b_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "semantic_clock_staged/configs/s05_semantic_b_p6_t6.json",
+        "sha256": "4b8f03fe607602e8015f9512ed28c2caeb0383af1c12dca3b2761fce09e7323e",
+        "relevant_nodes": [
+          {
+            "id": "5",
+            "class_type": "H3SemanticClockReference",
+            "inputs": {
+              "width": 1312,
+              "height": 736,
+              "length": 141,
+              "pixel_phase_frames": 6,
+              "label_phase_frames": 6
+            }
+          },
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "native",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_semantic_c.mp4",
+      "sha256": "ef2c6695029b61bf0060857c9d37febced8411e090ba1f5e4ea61ebabb5ed116",
+      "bytes": 625893,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_semantic_c.caption.png",
+        "review/s05_semantic_c.frame055.png"
+      ],
+      "method_category": "semantic_labels_only_p0_t6",
+      "interpretation_boundary": "Only timestamp label source changed; semantic images P0 unchanged.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.语义 P0T6（仅改标签）"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_semantic_c_p0_t6_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "f4f292674d86096f0a4e0e2c55f7240fc792cea1a79116dfa70acce675d15013",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_semantic_c_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "semantic_clock_staged/configs/s05_semantic_c_p0_t6.json",
+        "sha256": "64fb3ce33bcc1af78ff6a94be672bcf9b823c47824f74b1a405e3d329c4acbbb",
+        "relevant_nodes": [
+          {
+            "id": "5",
+            "class_type": "H3SemanticClockReference",
+            "inputs": {
+              "width": 1312,
+              "height": 736,
+              "length": 141,
+              "pixel_phase_frames": 0,
+              "label_phase_frames": 6
+            }
+          },
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "native",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s05_semantic_d.mp4",
+      "sha256": "c786098f528222fc17b5018b8dd17352f08bff6c7c5c7fdf4818f164082394b1",
+      "bytes": 629839,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": true,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s05_semantic_d.caption.png",
+        "review/s05_semantic_d.frame055.png"
+      ],
+      "method_category": "semantic_sampling_only_p6_t0",
+      "interpretation_boundary": "Only semantic visual sample phase changed; timestamp label source P0 unchanged.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.语义 P6T0（仅改采样）"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/05_real_megumi_v.mp4",
+          "exists": true,
+          "recorded_sha256": "c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "7a65463d6cd54517851a1aa3bf3a3670d6bf07a28f0ca46e7b267e03799ec30b",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s05_semantic_d_p6_t0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "a70bb6f9e4e17305fbb6df51103d85e7cae1a25193d2d79e840ea03ac58fb411",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [
+        ".omx/state/s05_semantic_d_triptych/ralph-progress.json"
+      ],
+      "configuration_evidence": {
+        "path": "semantic_clock_staged/configs/s05_semantic_d_p6_t0.json",
+        "sha256": "7db9f8296023322e2fa21a39553a80706d67b1dc5c728091f766e837490ebf3b",
+        "relevant_nodes": [
+          {
+            "id": "5",
+            "class_type": "H3SemanticClockReference",
+            "inputs": {
+              "width": 1312,
+              "height": 736,
+              "length": 141,
+              "pixel_phase_frames": 6,
+              "label_phase_frames": 0
+            }
+          },
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "native",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 50,
+              "end_frame": 65,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    },
+    {
+      "name": "s07_seed1_mass.mp4",
+      "sha256": "5796c5a5b064ecc5478e6a77ce8e243461cfa1da35cb46bfce4276bd65018667",
+      "bytes": 925931,
+      "ffprobe": {
+        "width": 1968,
+        "height": 426,
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "duration": "3.000000",
+        "nb_read_frames": "72"
+      },
+      "paired_json_exists": true,
+      "qa_json_exists": false,
+      "frame055_png_exists": true,
+      "caption_png_exists": true,
+      "related_pngs": [
+        "review/s07_seed1_mass.caption.png",
+        "review/s07_seed1_mass.frame055.png"
+      ],
+      "method_category": "same_frame_mass_preserve_source07",
+      "interpretation_boundary": "Related known historical failure source07, not blind held-out evidence.",
+      "labels": [
+        "1.参考视频",
+        "2.原始 H3 编辑",
+        "3.同帧参考读取"
+      ],
+      "source_frame_interval_half_open": [
+        40,
+        112
+      ],
+      "processing": "Equal display scale, original frame correspondence, silent; no temporal warping or spatial cropping",
+      "probe_matches_declared_interval": true,
+      "render_filter": "[0:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v0];[1:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v1];[2:v]trim=start_frame=40:end_frame=112,setpts=PTS-STARTPTS,scale=656:368:flags=lanczos,setsar=1[v2];[v0][v1][v2]hstack=inputs=3[row];[3:v]trim=end_frame=72,setpts=PTS-STARTPTS[caption];[row][caption]vstack=inputs=2:shortest=1[out]",
+      "render_filters_match_fixed_display_protocol": true,
+      "contains_prompt_emphasis_mislabel": false,
+      "inputs": [
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/inputs/07_real_ary_v.mp4",
+          "exists": true,
+          "recorded_sha256": "46637cac9d2aba836b96962b0ffcd62607f15264d8bf81b0886e82c552666a11",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s07_full_seed1_native_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "a4b0f8bdefa545638904ae027e50e9a00c494fce6586a1077851da944f56a32c",
+          "current_sha_matches": true
+        },
+        {
+          "path": "/Users/researcher/DevProjects/h3-timing-autoresearch-20261016/outputs/s07_full_seed1_mass_x0_00001_.mp4",
+          "exists": true,
+          "recorded_sha256": "b7e3753d0ad74d25e509d92dfd601b6eda7062d318d1411f429142239cfc6fc7",
+          "current_sha_matches": true
+        }
+      ],
+      "footer_shape": [
+        1968,
+        58
+      ],
+      "footer_corner_black": true,
+      "matching_visual_verdict_state": [],
+      "configuration_evidence": {
+        "path": "configs/transfer_staged/s07_full_seed1_mass_x0.json",
+        "sha256": "f5aac16e4f4e93e0d0a43afe59d794e4f80f6e561738b200e9e172b1d5639bbf",
+        "relevant_nodes": [
+          {
+            "id": "50",
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 54,
+              "end_frame": 69,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20
+            }
+          }
+        ],
+        "scope": "Stored approved config; actual execution success/graph matching are audited separately."
+      }
+    }
+  ],
+  "complete": true
+}

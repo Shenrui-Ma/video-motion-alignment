@@ -1,0 +1,27 @@
+.9 当前30GiB显存余量下的独立容量试跑建议
+2026-10-18；仅源码/现有收据/当前内存层级只读检查
+
+建议
+优先沿已验证的 normal/reserve8，在独立新profile中以GPU0实际free≥30GiB做short_0131首对受控容量试跑。两次均用56帧1312×736、相同Euler20/CFG1/actual sigma/precision/attention、fresh共同噪声和条件，保留前6次x0相等门。现有R87的40GiB封存门保持原样。这项建议有同机90帧完成证据，但56帧新提示词的实际容量仍需本对完整验证，后续107/124帧各有自身容量风险。
+
+当前CPU内存
+.9使用cgroup v1。当前SSH和R85 service16003均位于 /sys/fs/cgroup/memory/user.slice；它和根memory cgroup的hard/soft limit均9223372036854771712（无限值），failcnt均0。共享user.slice占约181.98GiB；整机MemAvailable约197.72GiB，缓存可回收量较大。本机没有/proc/pressure接口，不能给PSI数值。没有观察到.41那类100GiB父级节流。
+
+已有完整运行证据
+R63同机同core/模型，normal、reserve8、关闭dynamic vram：启动实际free24054MiB（23.49GiB）完成90帧Native和固定引导各一次。日志明确DiT分别约9.1/8.6GB驻留，约10.9/11.4GB offload；normal模式已经根据余量卸载层。离散观察最大own residency14316MiB，未测真正torch peak，不能当容量上界。
+R80同GPU0 normal/reserve8的short0230 90帧Native已实际完成，HOST9_v2 gate通过，20NFE，job1947.60秒。其容量准备采用30GiB门；这份已完成gate没有重新证明连续峰值。
+上述证据比没有完整成片记录的显式lowvram路径更接近当前配置。此次只检查这些已有收据，没有遍历全部历史实验。
+
+--lowvram 在实际core中做什么
+cli_args.py:170直接说明关闭dynamic vram时，lowvram令text encoder运行CPU。
+model_management.py:1007–1018对LOW_VRAM和NORMAL_VRAM采用同一DiT驻留预算公式；1205–1214在LOW_VRAM选择CPU text_encoder_device；默认text_encoder_dtype仍float16。当前图使用Qwen3VL32B，因此显式lowvram还改变了文本/视频语义编码的设备和计算路径，不能保证所得embedding与原GPU编码逐位相等。现有材料中没有确认该精确NVFP4/AWQ配置在显式--lowvram下完整成功；日志里的“lowvram patches: 0”只是模型patch计数，并不证明运行过该flag。
+
+如果root仍决定lowvram试跑，可将两次都固定为该配置，先完成编码阶段兼容性与actual条件检查，再做两次完整对照；它应记作新的计算profile。需要记录Qwen运行设备/实际dtype、条件tensor、20forward、sigmas、prefix gate、峰值及时间。该路径的30GiB容量和耗时尚未实测；不会借更换步数、精度、分辨率或attention策略补救容量。
+
+本次边界
+未改R85/R87、未提交任务、未动GPU或其他用户进程。最小数值对照仍是同profile的Native与fixed；完整生成和实际gate后才批准后续样例。
+
+文件
+HOST9_RESOURCES.json：SSH及实际R85服务的祖先内存层级与整机meminfo。
+model_management.py / cli_args.py / CORE_BINDINGS.json：实际.9源码及SHA。
+EXISTING_CAPACITY_EVIDENCE.json：历史成功收据定位、原SHA、有限容量事实。

@@ -1,0 +1,34 @@
+任务范围核查（2026-10-18，CPU/只读；未启动新推理）
+
+IVEBench更符合本次“在原场景内替换主体或局部元素，保留其余内容及原动作”的任务。
+FlexiAct考察参考视频动作向任意目标图的迁移，允许布局、视角和骨架不同；论文§4.1报告250个video-image pairs、25类动作、每类10张目标图。官方README也将推理表述为动画化target image。原视频背景保留不属于其默认任务要求。
+出处：https://arxiv.org/html/2505.03730v1 （Abstract、§3.1、§4.1）
+https://github.com/shiyi-zh0408/FlexiAct （Method Overview / Data Preparation / Inference）
+
+当前实际可下载的冻结FlexiAct数据版本69d7747f93e1b913a3dca306bf8e91ee74fea7d4：15条不含crop目录的源MP4（human8、animal3、camera4），15份val_image.csv合计89行。其中human源的CSV46行：原5个人体动作39行，human2animal三源7行。论文的250对与这份公开目录的89行应分别记录。已保存完整树和所有CSV的SHA；crop视频是同一源的裁剪，不能充当额外独立动作。
+https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4/benchmark
+
+IVEBench官方600条包含400短片和200长片；编辑指令覆盖8大类。其Content Fidelity专门检查应保持未编辑的内容。它也包含要求修改动作、镜头、风格的任务，故不能把全体600条都用于原动作保持测试。
+出处：https://arxiv.org/html/2510.11647v1 （§3.1–3.2、§4.3、Appendix A）
+https://github.com/RyanChenYN/IVEBench
+https://huggingface.co/datasets/Coraxor/IVEBench/tree/1e6cb655c0a537f6093edcf18e2607fb03e76734
+
+实际官方JSON逐条计数：
+类型                         短片400  长片200  合计600
+replace existing subject          30       13       43
+add new subject                   28       13       41
+remove existing subject           33       17       50
+color adjustment                  30       15       45
+上述四类合计                     121       58      179
+这些179条是类别计数，包含人物、动物、物件及背景颜色；人体动作丰富/可见的适用条数仍需原片筛查。原metadata有一条category写为“style editing”，统计规范化时仅将空格换下划线；保留原字段与两种计数，不修改元数据。
+
+当前提示词与用户目标的直接差异：
+R72/design/P1_TEMPLATE.txt 第3、7、11、16行与R74/configs/prompts/chest__game_man_5.txt相同位置，把背景设为Picture1，将Video1限定为完整动作和时序来源，要求输出场景来自Picture1。R74全部六条均沿该规则。这个实际配置符合动作迁移应用，却与这次保留Video1场景的目标不一致。应把这些旧结果按动作迁移归档；后续若改为原场景换人，需要独立登记新任务条件、保持Video1场景/镜头/非编辑主体，Picture1只提供待替换主体外观。既有结果不倒改标签。
+R72路径：/Users/researcher/DevProjects/h3-timing-flexiact-prompt-pair-r72-20261018/design/P1_TEMPLATE.txt
+R74路径：/Users/researcher/DevProjects/h3-timing-flexiact-official-six-r74-20261018/configs/prompts/chest__game_man_5.txt
+
+IVE当前P0/P1：P0仅原edit_prompt短句可能造成H3输入适配不足；这是待控制实验区分的解释。R71 short0210的fresh P0/P1已提供单例对照证据。它不能证明所有IVE失败均由短提示造成，也不能把P1下的场景/动作改变归纳成纯时差。后续结论同时报告编辑完成、原场景/动作内容保持、可测局部时序。MF只作为其中一项。
+
+建议候选：0131、0178属于已看源片且R76已准备的衣色编辑；0230（做饭换头巾/围裙颜色）和0352（木屋坐姿手势换人）是已有R54/R55 development原五条，列为任务匹配示例，后续属于复测；0362（阅读换书封色）、0395（交谈换校服颜色）、0144（拍手/击掌时替换背景屏幕）、0166（采苹果时狗换猫）是按官方元数据筛出的候选，仍需先看源片。所有原始source/edit/target prompt逐字见CANDIDATES_VERBATIM.json和.txt。列表没有按新H3输出筛选；不保证未审查视频动作密度。0252与0210另存为已有参照，不冒充新held-out案例。
+
+当前执行：R76保持待发；本审查未更改任何生产图、提示词、策略或已冻结清单。

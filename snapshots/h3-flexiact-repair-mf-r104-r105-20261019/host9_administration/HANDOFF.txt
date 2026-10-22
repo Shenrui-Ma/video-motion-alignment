@@ -1,0 +1,20 @@
+Root review required before execution. No GPU launched.
+
+Admin seal: 02a425a8539f54e3b15950456fe322813e5381a0ab239f923fe42721c7dbcf15
+Target CPU receipt: 9893452225c2e3ff97a2698dae54e6051e05b2559d9cadb30a20f8e8437125ab
+12 tests passed locally and on .9. Both original host9 package seals and all numerical/input files are unchanged. Original host41 packages remain runnable.
+
+Minimal effective differences:
+1. Frozen track_shared.py receives host9 capacity_v1 through a separate entry; replaces only the administrative mf_capacity module.
+2. Root batch derives unchanged scientific argv from frozen tracking_plan.py, switches only the entry executable, and performs exact peer ready/go registration and release. Lifecycle pattern reused from R74 root_finish_metrics.py and R115 root_run_seedpairs.py.
+3. UID1016 and cgroup v1 paths; finite limit remaining 12GiB before tracker / 8GiB after import and while running. Host available >=32GiB, actual GPU free >=40GiB, max two own GPUs, exact registered peers. This host has unlimited cgroup limits and no v1 memory.high.
+4. Kernel3.10 exposes no cumulative OOM kill count or PSI. Recorded unknown; failcnt and under_oom polled, host capacity maintained, child failure stops the batch. No claim of global OOM counter zero.
+
+Files for review: capacity_v1.py (memory); run_batch.py (lifecycle); track_entry.py (injection); admin_common.py (seals); tests/test_admin.py.
+
+After root allocates released GPU0 and writes ROOT_REVIEW.json, commands in order (each releases three tracker processes before the next package):
+/home/researcher/miniconda3/envs/comfyui/bin/python /home/researcher/h3_runs/flexiact_repair_mf_host9_administration_20261019/run_batch.py --package /home/researcher/h3_runs/flexiact_pair_mf_r104_fitness__game_man_4_20261019_host9 --gpu-uuid GPU-REDACTED --attempt actual_host9_capacity1 --review /home/researcher/h3_runs/flexiact_repair_mf_host9_administration_20261019/ROOT_REVIEW.json --peer-root /home/researcher/h3_runs/timing_flexiact_remaining_repair_r104_20261019
+
+/home/researcher/miniconda3/envs/comfyui/bin/python /home/researcher/h3_runs/flexiact_repair_mf_host9_administration_20261019/run_batch.py --package /home/researcher/h3_runs/flexiact_pair_mf_r105_human2animal_2__movie_man_11_20261019_host9 --gpu-uuid GPU-REDACTED --attempt actual_host9_capacity1 --review /home/researcher/h3_runs/flexiact_repair_mf_host9_administration_20261019/ROOT_REVIEW.json --peer-root /home/researcher/h3_runs/timing_flexiact_remaining_repair_r104_20261019
+
+Output: each original remote package/audit/actual_host9_capacity1/{reference,native,guided}/RELEASED.json and COMPLETE.json; original package scores/{native,guided}/SCORE.json.

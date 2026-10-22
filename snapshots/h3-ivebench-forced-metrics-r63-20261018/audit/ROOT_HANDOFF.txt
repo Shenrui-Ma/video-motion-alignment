@@ -1,0 +1,39 @@
+R63 IVEBench official MF and presentation — CPU preparation complete
+
+Local /Users/researcher/DevProjects/h3-ivebench-forced-metrics-r63-20261018
+Remote /data5/researcher/h3_runs/ivebench_forced_metrics_r63_20261018
+Python /home/researcher/miniconda3/envs/comfyui/bin/python
+Final runtime freeze SHA 78694aa4e31cc5e624bf924417069281c5f0af46dc57cfdc06d6d76ba55d5a37
+Producer owned by root/R59: /data5/researcher/h3_runs/timing_ivebench_forced_r63_20261018
+
+No GPU tracker has been started. CPU model construction on .9 passed,8 administrative regressions and10 original metric/cache tests passed. The original vendor manifest includes14 frozen Python3.12 bytecode files; these were transferred exactly to satisfy its complete inventory. Python3.10 runtime imports the unchanged source. Initial missing-bytecode failures are preserved in audit; final passing logs use FINAL suffix.
+
+Official numbers remain unchanged: pinned IVEBench commit2dcf8900ee65197f43854c76f61c66a32bb8dbfc, CoTracker3 offline checkpoint da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df, grid10/query frame0/window60/backward false,100 points. Original official MF similarity/visibility handling is unchanged. Five valid lengths87/86/74/78/89, physical time i/24 seconds, fixed spatial crop16,8,1280,720. Do not report the five-task score as the600-task leaderboard or overall12-metric score.
+
+Source cache: transferred exact tracks/report hashes from .41 source5 archive. Original source_score.mp4 files were actually copied .41→Mac→.9 and their SHA matched the source tracking reports. New Native and forced targets require separate real tracking. Runtime version differs between source-cache .41 Torch2.11 and target .9 Torch2.5.1; both new generated methods use the same .9 runtime. Reports retain exact checkpoint/protocol/source media and runtime versions.
+
+GPU resource admission:16GiB actual free memory, healthy GPU, at most2 owned GPU cards; foreign users may share if headroom is sufficient. This exceeds the original source reserved peak10.98GB with conservative room. Root should schedule on the second .9 card; each target is an independent process and releases GPU memory on exit. Actual tracker wall time/peak memory are written in REPORT.json. The old strict whole-card-empty rule is replaced only at the administrative check_gpu function; tracker/load_video/matching implementation is byte-exact.
+
+One completed pair is enough; do not wait for five:
+1. Ensure producer wrote analysis/postrun/short_0210/PAIR_RUNTIME_GATE.json, schema r63-paired-runtime-gate-v1, passed true/P0, actual Native and forced video SHA, validframes/NFE20/routes0or450, equal clean conditions/noise/Native prefix0..5.
+2. On .9, cwd metrics root, CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 python scripts/prepare_pair.py --source short_0210 --producer /data5/researcher/h3_runs/timing_ivebench_forced_r63_20261018
+   Produces prepared/short_0210/METRIC_INPUTS.json and lossless valid-prefix native_score.mp4 / forced_score.mp4. Rechecks every score frame against the actual generated video crop and exact PTS. Source crop is the preserved original source_score.mp4. Takes shared CPU lock. No tracker launch.
+3. Optional CPU media check: CUDA_VISIBLE_DEVICES= python scripts/track_one.py --source short_0210 --method native --gpu-uuid GPU-ROOT-CHOSEN --attempt 1 --check-only
+   Native and forced checks are independent.
+4. Root launches each actual tracking process with exact UUID:
+   CUDA_VISIBLE_DEVICES=ACTUAL_UUID PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 python -u scripts/launch_tracker.py --control controls/short0210_native_attempt1 -- --source short_0210 --method native --gpu-uuid ACTUAL_UUID --attempt 1
+   Read control ready.json; bind exact process UID/start/argv, selected GPU and frozen manifest. Root writes go.json containing exactly the ready record after resource review. The gate waits at most600s and initializes no CUDA while waiting. It repeats resource admission immediately before CUDA.
+   Run forced similarly with its own control path. Each report ends at tracks/<method>/<source>/attempt1/REPORT.json and R63_BINDING.json.
+5. After a target succeeds: CUDA_VISIBLE_DEVICES= python scripts/score_one.py --source short_0210 --method native --attempt 1
+   Uses original source cache; writes results/short_0210/native_attempt1.json. Repeat forced. Preserve both absolute values and forced-minus-native difference. A score increase requires visual action/edit confirmation before a timing-improvement claim.
+
+Presentation after the real pair is complete:
+Download only prepared/<source>/native_score.mp4, forced_score.mp4 and necessary JSON. Source score already exists locally at inputs/source_scores/<source>/source_score.mp4. PT files stay remote.
+Mac: python scripts/make_triptych.py --source SOURCE_SCORE --native NATIVE_SCORE --forced FORCED_SCORE --output /Users/researcher/Downloads/R63_short_0210_三组对比.mp4
+Three1280x720 panels, original matched frame times, black88px caption band: 1.参考视频 / 2.编辑后视频 / 3.编辑＋时序引导后视频. No top labels or time shifts.
+Mac: python scripts/extract_six_times.py --source SOURCE_SCORE --native NATIVE_SCORE --forced FORCED_SCORE --output /Users/researcher/Downloads/R63_short_0210_六时刻对照.png
+Fixed frames0,12,24,36,48,60 correspond to0,0.5,1,1.5,2,2.5s. Three columns, six rows, bottom captions. ffmpeg decodes directly to memory/Pillow, no large frame directory. Requires an existing Pillow Python environment.
+Mac: python scripts/make_showcase.py --video /Users/researcher/Downloads/R63_short_0210_三组对比.mp4 --output /Users/researcher/Downloads/R63_实际干预对比.html
+This embeds actual completed MP4s only. Multiple --video arguments add later completed cases. Large black player supports fullscreen; Chinese text is concise.
+
+Pending actual evidence: R63 producer inputs had not yet been deployed at the CPU-validation timestamp; prepare_pair validates the actual input source/crop again when a pair exists. No source/Native/forced presentation or score has been fabricated from placeholders.

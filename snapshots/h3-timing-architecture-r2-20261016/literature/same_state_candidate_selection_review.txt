@@ -1,0 +1,121 @@
+同状态 native / Full 端点选择：有界主来源与机制审查
+日期：2026-10-16。独立只读研究；未改代码、未启动GPU、未访问远程机器。只审一个候选：在同一实际x_n、sigma_n计算native与Full两个端点，以物理时延及运动形状可信度择一，完成一次Euler更新。
+
+判断
+这可以作为有实证动机的推理控制改进继续验证，但“两候选→评分→接受更好者”已有明确先例，不能单独称新架构。SVDD-PM与CoDe是最直接的候选价值选择近邻；MotionEcho与AG覆盖误差/预测驱动的条件计算，PAG/CAG覆盖同模型attention反事实分支。当前可能独立有用的部分是：针对冻结视频编辑器，证明某种经过编码相位校准的时序/形状判据能够预测实际纠正收益，并以有限额外计算减少无效或有害修正。这个命题目前未成立。
+
+比查有没有相同标题更紧迫的问题是：本候选评分的对象是“当前受改动网络的clean端点”，而真正提交的是“两个端点经过小Euler系数混合后的下一状态”。二者的动作评分排序没有一般保证；它仍可能奖励执行器暂时制造的端点响应。最便宜的下一步应先检查这一排序，而不是直接全20步双分支。
+
+1. 当前事实边界
+root最新报告：R6动态控制最终主窗lag13，另一阈值unknown；同机固定Full为2/2。其早期trace：index5 native lag11，index6 Full端点lag1而触发关闭，index7 native lag12再触发。R9普通hold2仍在准备/执行，本审查不预判其效果。一次控制失败不证明闭环路线不可行，也未证明它只因index7断开而失败。
+
+所有index在本文件均零起始。index6是第7个采样forward位置。旧控制用第n步已执行分支的观测决定第n+1步；本候选在第n步先评估再决定该步积分，额外包含决策延迟变化，需单列。
+
+2. 精确定义：不是概率拒绝采样，也不自动是line search
+固定同一x=x_n、sigma=sigma_n、条件c、模型权重和全局采样状态：
+  y_N = D_native(x,sigma,c)
+  y_F = D_Full(x,sigma,c)
+D_native只禁用本研究Full，不删除原参考条件/CFG/LoRA。D_Full只改变已验证的参考时间读取算子；不重新抽噪声。
+
+设冻结observer给出E(y)=物理时间误差、S(y)=运动形状误差、v(y)=可判状态。只在native确有需要修正的正延后、两者共同支持充分、Full误差改善达到预定门槛且形状不变坏时，选择F；否则保留N并保留unknown原因。形式例如：
+  accept_F = eligible_N AND v_N AND v_F
+             AND [E_F <= E_N−delta_E]
+             AND [S_F <= S_N+delta_S].
+本式只描述候选，不设新delta数值，不以已见结果挑阈值。native不可判时回退N只是保守策略，不能叫N正确。提前/overshoot保持现有单独处理，不擅自扩为双向控制。
+
+  beta_n = 1−sigma_(n+1)/sigma_n
+  U_N = (1−beta_n)x + beta_n y_N
+  U_F = U_N + beta_n(y_F−y_N)
+  x_(n+1) = U_F if accept_F else U_N.
+
+若把可信/形状约束写成违反时负无穷的reward，以上就是带fallback的二候选约束argmax。改称benefit-aware、counterfactual、safe或trust并不改变这层数学。它不是Metropolis-Hastings/精确拒绝采样：没有目标密度、提议密度或接受率校正；不能继承分布正确性。
+
+3. 直接近邻：实际核到的公式与官方实现
+
+3.1 SVDD-PM：最直接的训练免费、非可微评分候选选择
+论文 https://arxiv.org/html/2408.08252v3 ，Algorithm1、Algorithm3、§4.2–4.3。
+从当前x_t采M个候选下一状态x_(t−1)^m，权重w_m=exp(v_hat(x_(t−1)^m)/alpha)，按权重选择；alpha=0时直接取最大值。PM版本用v_hat(z)=r(x0_hat(z))，无需另训value，也不需reward可微。
+官方实现 https://github.com/masa-ue/SVDD/blob/4f20e27888f2a4196c8e9f4f78e9989cc6de6b98/diffusion_gosai.py#L1374 ：1402生成候选，1414–1419在候选上重新forward作完成预测，1430评分，1451–1459选择。核的是其DNA离散实例，不假称连续视频代码。
+与本候选：选择层高度重合；我们是两个确定性干预向量场，而不是基础转移采样，且先评当前端点，没有重新评实际下一状态。不能直接继承SVDD的重要性采样/最优策略解释。改变提议器或增加任务判据可研究，需证明独立价值。
+
+3.2 CoDe：以预测clean sample评价中间候选、分块保留赢家
+论文 https://arxiv.org/html/2502.00968v2 ，Eq11–12、Algorithm1。V(z)=E[r(x0)|z]约为r(x0_hat(z))；每B步生成N个延续并择优。B=1退化到逐步选择。
+官方 https://github.com/anujinho/code/blob/4c80b45dcdd493f806a9cd23b9439174e793102e/BoN/src_sd/pipelines/cd_pipe.py#L220 ：220取pred_original_sample，221评分，227取最大分数索引，229–232保留对应curr_samples。并非只评分完整成片。
+与本候选：用clean预测评分以省完整rollout已知；我们的参考相位与形状是专用约束，native/Full是结构化提议。若只有generic二候选评分包装，贡献边界很薄；若有可信的早期运动价值估计及控制成本优势，可有独立算法价值。论文中的期望近似不是非线性reward的恒等式，即使denoiser准确也不保证r(E[x0])=E[r(x0)]。
+
+3.3 DRM：直接评分下一状态的逐步分支选择
+论文 https://arxiv.org/html/2605.25661v1 ，§3.4 Eq12：SDE从同状态提出k个下一状态，以训练过的噪声latent reward model选择argmax R(x_(t−1)^i,c)。
+官方 https://github.com/jjaxonx/DRM ，本次固定commit 3d84d8abefead0c46c789dc0b57674d059354324。核了drm/pipeline.py，公开该文件是reward打分管线，未在这次有限代码读取中核到完整分支采样执行；因此选择机制据论文Eq12，不声称已复现代码。
+此方法另训reward模型，而我们拟用冻结手工/现有observer；这避免新增大训练依赖，但“每步评候选后选一个”仍不是空白。它也提示下一状态应在对应噪声尺度评价，不能用当前端点评分偷换。
+
+3.4 Trust Sampling：proxy可靠性与停止边界已有明确讨论
+论文 https://arxiv.org/html/2411.10932v1 ，§3.1 Eq7–9与Algorithm1。其约束优化用L(x0_hat(x),y)，明确区分E[f(x0)]与f(E[x0])，按噪声阶段限制梯度迭代；预测噪声范数越界则停止。
+官方 https://github.com/will-s-h/trust-sampling/blob/04fc14452b512426fd09e00c2047b3855f6edb1f/diffusion/diffusion.py#L437 ：构造model_mean，441重新预测，448–477依据noise norm限制normalized-gradient更新。它不是比较native/Full后择优，也不检查每一步loss严格下降或失败回滚；不能把论文名称当接受保证。
+其核心警示直接适用：clean预测上的目标改善不必等于实际状态/最终约束改善。形状可信约束不自动证明在数据流形上，尤其H3姿态/动作observer只校准了部分状态。
+
+3.5 CAT：真正的有限步Armijo接受，而不是端点分数差
+论文 https://arxiv.org/html/2609.21251v1 ，§4.2 Eq12、Algorithm1。CAT在同一working-state目标L_t上要求
+  L_t(x+gamma d) <= L_t(x)+c gamma grad(L_t)(x)^T d,
+并在几何限制下回退gamma。其L_t包含对修改后state重新做clean预测及测量算子；保证依赖梯度下降方向、光滑性和局部条件。没有在本次核到可验证官方代码入口，机制结论限论文公式。
+我们只比较L(y_F)和L(y_N)，且lag常为离散argmin、shape门含拒判，不满足这些条件。二候选择优可称有限动作集合搜索，不能称Armijo保证。若未来评实际提交状态并做accept/reject，亦已有line-search原理，必须靠新任务判据/成本/效果建立区别。
+
+3.6 MotionEcho、AG、PAG/CAG：本任务已核的直接背景
+MotionEcho https://arxiv.org/html/2506.19348v2 §3.2/3.4/Algorithm1：用当前状态的motion loss激活/截断额外teacher计算，motion-gradient端点不是其停止损失本身；并有同状态无/有运动引导端点。已有观测与本次执行器响应分离，换成同backbone不独立构成新贡献。
+AG https://arxiv.org/html/2312.12487v1 Eq7/§5：同状态conditional/unconditional预测足够相似后省略额外分支；没有参考动作收益门。
+PAG https://arxiv.org/html/2403.17377v2 Algorithm1 与CAG https://arxiv.org/html/2506.17220v2#S5 Eq10：同模型原/扰动attention预测外推。当前候选选择一个分支，并非外推远离受损分支。双forward、无teacher、无新训练、attention干预均不能各自或合起来作空白论据。更详代码定位见已有query_time_posterior_gate_review.txt第6节，此处没有重复执行项目。
+
+3.7 不能借用的精确接受理论
+DiffRS https://arxiv.org/html/2405.17880v1 §3.1–3.4 使用时间相关density-ratio判别器和接受率校正，拒绝后重初始化；当前启发式端点择优没有这些量。FK/SMC/SVDD的分布解释也依赖提议/权重与value近似。我们不需要这些理论才能做有用控制，但不能把“拒绝坏候选”命名成精确无偏采样。
+
+4. 最关键的数学区别：当前端点评价不等于提交状态评价
+令d=y_F−y_N。当前候选检查的是
+  P = L(y_N)−L(y_F).
+实际一步native读出应检查的是
+  Q = L(D_native(U_N,sigma_next,c))
+      −L(D_native(U_N+beta*d,sigma_next,c)).
+P>0不蕴含Q>0。beta*d是精确的latent状态差，但beta*P不是动作收益。即使beta极小，Q的一阶符号还取决于native后续网络Jacobian与评分方向；lag评分不光滑时更不能直接作梯度论证。
+
+一个仅作逻辑否证的一维例子：当前y_N=0、y_F=1、x=0、L(y)=(y−1)^2，则P=1；若下一噪声尺度native读出D(z)=−z，U_N=0、U_F=beta，下一状态损失从1增至(1+beta)^2。它不模拟H3，但严格说明没有单凭端点评分与正beta即可成立的下降保证。
+
+另外，瞬时无改善不意味着该干预对多步无用。已知早期beta很小，状态可能需连续数步积累；若要求每次立即下降>=4物理帧，可能拒绝所有有用积累。必须区别“可信方向/不恶化”与“大到可测的立即收益”，不能机械复用启动阈值当接受改善阈值。shape与lag可能同源、同失真，二者一致也不等于两份独立证据。
+
+5. 最便宜且有区分力的判别实验
+不建议先完整20步candidate selector。优先使用预先固定的真实状态，执行一次双候选的一步前瞻诊断；本文件不授权/执行任何GPU动作。
+
+最小诊断位置固定为本轮已暴露故障的index6（实际第7步），且明确这是开发病例，不能当独立泛化验证。若已有对应真实noisy x、sigma、完整sampler状态，直接复用；仅有x0或C/Y块特征不能恢复它。若没有，下一次已授权native重放可保存该状态，不能假称当前旧文件足够。
+
+冻结四次预测及评估顺序：
+  1) y_N=D0(x,sigma)；2) y_F=D1(x,sigma)。
+  3) z_N=D0(U_N,sigma_next)；4) z_F=D0(U_F,sigma_next)。
+只构造U_N/U_F作为只读分支，之后从原状态按既定主轨迹继续；四次forward不得暗改采样index、RNG或缓存。总4NFE；若主轨迹已需1)，边际3NFE。若3)正好是主轨迹下一次native且缓存无效应，可按实际减少增量，不能预支复用。评估两端点和两个native-next读出时使用同一冻结window/共同支持/校准，不从效果挑另一动作或另一头。
+
+记录：P与Q的lag排序、可判状态、shape误差、共同有效支持、beta、||beta*d||；可用已有解码/pose作少量独立核验，但保持unknown，不为可判率换评估器。若P改善而Q无改善/反向，本候选的“端点改善可预测即时修复”不获支持；这不能单独否定Full多步有效，只是否定此接受依据的当前充分性。若两边都unknown，先处理observer，不追加复杂选择器。若P与Q一致，本例仅通过局部必要性门，不能叫最终动作成功。
+
+没有新GPU时，可先对已有同状态端点做离线gate退化审查：是否永远Full、永远native，shape约束是否独立拒绝了任何候选；以及对合成已知时移/幅度损伤验证评分方向。不同运行不同state的两个x0不可冒充同状态候选。这个CPU层不能验证Q，若现有同状态端点也没有，应如实标为数据不足，不制造无意义统计。
+
+6. 通过必要性后，最小全程对照与成本
+至少区分三个政策：
+  A：native-first仅按native是否延后决定开Full；
+  B：同样先native，但多用Full候选相对改善/shape门决定接受；
+  C：固定Full/普通hold2及等预算固定脉冲。
+A与B都按当前步判断、当前步积分，才能把相对候选验收与一index延迟差异分离。旧R6另作历史/执行分支观测对照，不把A相对旧R6的全部收益算成B作用。若只跑B对旧R6，只能声明组合策略可行性。
+
+成本应为20+M NFE：M是实际计算Full候选的次数，含最终拒绝的候选；接受次数K<=M单独记录。原native-first若每次算Full都接受，才有M=K。每步都评双候选则40NFE，不因只接受几次而变便宜。若额外做两条native-next前瞻，至少再加相应2次/测试点，不能藏在验证里声称部署零成本。VAE/pose或latent observer耗时另记；修正次数、sigma积分剂量、wall time都需报告。
+
+固定预算对照不必把所有方法硬凑相同Euler步数，但表中必须分清Euler步数、完整模型评估、attention分支开销、最终质量。优先比同NFE/耗时下固定Full/hold2是否已经同效；对于候选比较新增M成本，若不改善最终动作—形状权衡，应舍弃相对accept门，保留更便宜native-first或固定hold策略。
+
+7. 可主张范围与拒绝条件
+可保留的一个机制命题：在冻结参考视频编辑器中，经过物理时间和编码相位校准的候选效用判据，能筛掉“端点看似修复、实际状态或形状没有收益”的Full动作，并在独立视频/seed上提高同预算时序—形状表现。这是任务化的接受策略与测量贡献，可与高效实现/评测互补；还不是已验证架构创新。
+
+需要降级/拒绝该命题的情形：
+  - gate总选Full：没有有效的选择作用；
+  - gate只等价减少固定Full次数，等剂量/hold2同效：主要是剂量/保持时间；
+  - 端点排序不预测native-next或最终动作排序：当前benefit proxy不成立；
+  - shape门仅与lag同一个统计重复，无法拦下重影/幅度劣化：没有独立形状保护证据；
+  - early全unknown，late才可判断但不能修：没有解决控制可用性；
+  - 更高评分伴随整体动作、身份、背景质量下降：reward利用而非有效纠正；
+  - 只在挑出的失败seed有效而正常样例受损：不能讲普适稳定性；
+  - 增加成本后不优于固定控制或简单hold2：不能声称有效自适应省算。
+
+定向检索范围
+本次新核SVDD、CoDe、DRM、Trust Sampling、CAT论文与上述官方代码范围；沿用已核MotionEcho/AG/PAG/CAG及DiffRS原始公式。检索聚焦stepwise candidate selection、posterior-mean reward、guidance acceptance/Armijo，不泛搜全部控制理论。未发现本文H3固定Full两候选和专用运动门的完整官方实现，不代表没有相关工作。现有直接先例足以约束宽创新claim，但不排除经必要性与同预算实验证明的专用算法贡献。

@@ -1,0 +1,82 @@
+R57 CPU preparation revision2 — 2026-10-17
+
+Local root:
+/Users/researcher/DevProjects/h3-timing-ivebench-prompt-adaptation-r57-20261017
+Remote planned root:
+/data3/researcher/h3_runs/timing_ivebench_prompt_adaptation_r57_20261017
+Host: H3_SERVER_B
+Interpreter: /data3/researcher/ComfyUI/.venv/bin/python
+Port: 8517. Planned GPU2: GPU-REDACTED.
+
+Delivered:
+PREPARATION_MANIFEST.json
+SHA 591c7526bc15a14777d67781d11ad45904e87a83feca04adaebb45516758b04a
+105 sealed small files; all original media remain external, hash-bound.
+audit/cpu_preparation_bundle_v2.tar.gz
+SHA d27ca287aa353824988858b00986143de31de825c960a8c630a0c9031cda7c64
+
+Readiness:
+CPU tests42 PASS, independently rerun by reviewer, syntax23 PASS, actual20 parent input hashes PASS.
+Actual remote CPU tokenizer P0/P1 counts6/206,11/181,7/198,13/194,6/208.
+Prepared video inputs all90@24,1312x736 and no audio stream.
+Source five/seed/weights/Native/Euler20/sigmas/geometry and startup flags preserve R54.
+Scientific graph delta is prompt only; that field bundles source/target semantics,
+reference binding, preservation instructions and official-style organization.
+No GPU deployment, service or inference has occurred for R57.
+
+Root execution sequence after R55 completes and releases:
+1. Review CPU seal and independent reviewer result; choose exact fresh GPU/resources.
+   Transfer small bundle to a fresh remote root and unpack. No model/input download.
+2. Remote CPU stage, cwd remote root:
+   PYTHONDONTWRITEBYTECODE=1 python3 scripts/materialize_inputs.py
+   PYTHONDONTWRITEBYTECODE=1 python3 scripts/preflight.py
+   PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
+   This copies the20 original existing R54 archive inputs as ordinary files;
+   no image/video processing. A missing or changed parent input fails.
+3. Root must record fresh GPU/host/runtime decision; retain CPU seal and record any
+   administrative change. Runtime currently HOST_PENDING; admission ready=false.
+   Confirm same host/core/model paths and original startup flags, resource health,
+   exact own peer identities, then set runtime.status=READY and admission=true.
+   Revision2 permits foreign processes when actual free memory is >=48401MiB.
+   This initial gate is R54 sampled maximum46353MiB +2GiB;20s periodic samples
+   are not a continuous peak guarantee and P1 memory still needs observation.
+   Own peers must match exact registered PID generations; own GPU cap remains2.
+   Resource/PID query races retry at most600s. Optional statistics record null.
+   Launcher waits at most660s and cleans its exact waiting supervisor on failure;
+   pre-CUDA service_entry requires that exact parent throughout root-go waiting.
+   R57 simultaneous own-GPU2 sharing is not implemented; run after R55 release.
+4. Make formal deployment seal after that decision:
+   PYTHONDONTWRITEBYTECODE=1 python3 scripts/build_manifest.py --formal
+   PYTHONDONTWRITEBYTECODE=1 python3 scripts/preflight.py --live
+   Sync final runtime/configs/deploy_manifest locally and to consumer before launch.
+5. Root-only service launch:
+   PYTHONDONTWRITEBYTECODE=1 python3 scripts/launch_remote.py --service-only
+   It returns exact service generation and writes processes/cuda_gate_ready.json.
+   Root checks identity/resources and atomically links identical ready bytes to
+   processes/cuda_gate_go.json. This action permits CUDA; builder has not done it.
+6. After service HTTP ready, use exact owner from processes/service.json:
+   PYTHONDONTWRITEBYTECODE=1 python3 scripts/start_controller.py --pid ACTUAL_PID --start-ticks ACTUAL_START_TICKS
+   Queue five P1 Native cases. Do not substitute previous service PID/generation.
+7. Once five complete, exact runtime validator:
+   CUDA_VISIBLE_DEVICES= /data3/researcher/ComfyUI/.venv/bin/python scripts/verify_batch.py --root /data3/researcher/h3_runs/timing_ivebench_prompt_adaptation_r57_20261017 --output audit/RUNTIME_GATE.json
+   Native capture checks remain, plus actual initial AV noise signatures and
+   reference input/VAE latent/Qwen presentation equality to each original P0.
+   Generated x0, text embeddings and position tensors are expected to differ.
+
+Consumer interface:
+Reuse R54 Native postrun schema, all5 outcomes and fixed original valid prefixes
+87/86/74/78/89. Source_score may reuse actual R54 original byte-bound score clips.
+Run IDs r57_short_NNNN_seed2026101701_native.
+Read CURRENT model prompt from configs/scientific_contract.json or configs/prompts;
+inputs/short_NNNN_prompt.txt is intentionally unchanged archived P0 parent evidence.
+Output raw video: output/{run}_00001_.mp4.
+All20x0+final AV manifests: audit/x0/{run}/manifest.json.
+Graphs: configs/graphs/{run}.json; actual history/job: logs/{run}_{history,job}.json.
+The postrun verifier supports full fixed five; this preparation adds no partial
+batch parser. Archive new deploy seal, scientific contract, input/parent bindings,
+preregistration/template, per-source P1 prompt, actual input/cache/noise captures.
+Judge edit completion/action type first; same-event lag and MF retain their
+separate meaning. P0 and P1 results both remain; no new automatic method arm yet.
+
+Revision1 remains in audit/revision1 and original cpu_preparation_bundle_v1.tar.gz.
+The GPU service command and all22 protected scientific/startup files match v1.

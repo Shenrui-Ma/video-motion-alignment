@@ -1,0 +1,25 @@
+Scope: candidate only. All writes stay in this directory; frozen R50/R55 producers,
+running services, queues and GPU state remain under the root agent's control.
+
+1. Snapshot the four current interface files for R50 and R55, with SHA256.
+2. Build separate overlays and exact unified patches for each snapshot.
+   - Typed resource-unavailable states carry their actual query snapshot.
+   - Share one 600-second resource deadline per observation; parent/request
+     identity failures remain hard failures. A process-bound start marker before
+     CUDA starts an independent 180-second execution limit. Parent supervision
+     allows the remaining resource budget plus those 180 seconds.
+   - Recheck admission immediately before CUDA with the same observation deadline.
+   - After successful child reaping, verify the original process generation and
+     its NVML tail. Record unrelated processes and continue to CPU pose.
+   - Preserve the standalone idle gate for resource certificates.
+3. Add deterministic stdlib tests using fake clocks, process identities and GPU
+   snapshots: busy recovery, timeout, parent identity loss, a third owned GPU,
+   unrelated-user GPU, new foreign process after release, and PID reuse. Also
+   check data-binding hard failure, release-tail timeout and R50/R55 integration.
+4. Verify patches reconstruct the overlays, unchanged numerical bodies remain
+   byte-identical, and live producer source hashes still match their snapshots.
+5. Report candidate tests, precise changed files, integration/sealing steps and
+   remaining limits. Root decides whether/when to incorporate the candidate.
+
+No dependencies are added. No live GPU query, CUDA, inference or browser action
+is part of this work. Other agents' files are preserved.

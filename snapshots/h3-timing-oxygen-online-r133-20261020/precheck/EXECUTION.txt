@@ -1,0 +1,12 @@
+R133 decoder-only 执行入口
+
+CPU: CUDA_VISIBLE_DEVICES='' <runtime python> scripts/run_precheck.py --validate-only
+GPU预检: CUDA_VISIBLE_DEVICES='' <runtime python> scripts/run_precheck.py --attempt host41_precheck_attempt1
+启动目录: /data4/researcher/h3_runs/timing_oxygen_online_r133_20261020/precheck
+准入: audit/ROOT_REVIEW.json 必须 approved=true, scope=decoder_precheck_only, freeze_sha256=<FREEZE SHA>；已完成MF最终释放c631474a…与GPU7实际16GiB、原64/76GiB cgroup门、精确8189保留。
+
+每步独立VAE子进程读取同一个已完成R113 Native对应x0（0..9）；完整107帧FP16 VAE、原RGB writer；子进程释放后CPU DWPose与原ROI及120行扫描；唯一Controller对象顺序接收measurement。chosen_full首次为true即停止，不额外扫描下一步。不启动DiT/不提交formal loop。一个VAE进程每步重载，与R86原在线生命周期一致。
+
+保留每步request/latent绑定、decoder结果/像素hash、raw/filtered pose、120行observer与decision；RESULT记first_ON、时间和所有已执行步骤。失败保存部分证据，原run_child精确清理子进程，CHILDREN_RELEASED核CUDA。协调者退出后另核exact parent identity和CUDA，生成最终释放回执。所有x0留远程原路径。本地只收小JSON、必要视频/关键帧。
+
+此预检验证Native路径在首次干预前可触发；正式闭环从第0步重新推理，首次ON后的后续控制须以真实新状态为准，须root审阅另行放行。

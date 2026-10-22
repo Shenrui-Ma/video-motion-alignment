@@ -1,0 +1,62 @@
+--- /Users/researcher/DevProjects/h3-timing-ivebench-native-r54-20261017/scripts/prepare_inputs.py
++++ /Users/researcher/DevProjects/h3-ivebench-heldout-source-selection-20261018/scripts/prepare_inputs.py
+@@ -1,4 +1,4 @@
+-"""Prepare the five frozen IVEBench sources with explicit frame-index mapping."""
++"""Prepare four source-only extension inputs using the frozen R54 pixel transform."""
+ from pathlib import Path
+ import argparse
+ import fcntl
+@@ -9,12 +9,12 @@
+ import time
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+-SELECTION = Path('/Users/researcher/DevProjects/h3-ivebench-pilot-20261017/inputs_selection/PILOT_5_MANIFEST.json')
+-SELECTION_SHA = '5d4f43a066dffa7227e062c5914734f1d406627d10c2c1c8cdf0388e25ad8fd9'
++SELECTION = ROOT/'SELECTED_4_MANIFEST.json'
++SELECTION_SHA = '9f54c602f461a0935fd3a2400d58e6f9d22bf22ef383d8a7bc0702a9bcab827f'
+ FFMPEG = '/opt/homebrew/bin/ffmpeg'
+ FFPROBE = '/opt/homebrew/bin/ffprobe'
+ LOCK = Path('/Users/researcher/DevProjects/h3-timing-architecture-r2-20261016/analysis/pose/cpu_evaluation_global.lock')
+-WIDTH, HEIGHT, FRAMES, FPS = 1312, 736, 90, 24
++WIDTH, HEIGHT, FPS = 1312, 736, 24
+ FRAME_BYTES = WIDTH * HEIGHT * 3 // 2
+ 
+ def sha(path):
+@@ -40,6 +40,7 @@
+     source = Path(row['source']['file'])
+     if sha(source) != row['source']['sha256']:
+         raise ValueError('Original source changed')
++    FRAMES = row['input_protocol']['h3_frame_count']
+     mapping = row['input_protocol']['input_to_original_frame']
+     effective = row['input_protocol']['effective_frame_count']
+     if len(mapping)!=FRAMES or not 1<=effective<=FRAMES:
+@@ -71,7 +72,7 @@
+     shutil.copyfile(source,original)
+     prompt=ROOT/'inputs'/f'{pair_id}_prompt.txt'
+     prompt.write_text(row['edit_prompt']+'\n')
+-    provenance=dict(schema='r54-ivebench-input-v1',pair_id=pair_id,selection_file=str(SELECTION),
++    provenance=dict(schema='r64-ivebench-source-extension-input-v1',pair_id=pair_id,selection_file=str(SELECTION),
+         selection_sha256=SELECTION_SHA,source_sha256=sha(original),video_sha256=sha(dest),
+         prompt_sha256=sha(prompt),prompt=row['edit_prompt'],reference_images=[],geometry=[WIDTH,HEIGHT],
+         content_rectangle_xywh=[16,8,1280,720],frames=FRAMES,fps=FPS,
+@@ -88,8 +89,16 @@
+         exact_frame_map=True,seconds=provenance['seconds'])),flush=True)
+ 
+ if __name__=='__main__':
+-    parser=argparse.ArgumentParser();parser.add_argument('pair_id',choices=['all','short_0210','short_0230','short_0263','short_0352','short_0370']);args=parser.parse_args()
+-    with LOCK.open('a+') as lock:
+-        fcntl.flock(lock,fcntl.LOCK_EX)
+-        for name in (['short_0210','short_0230','short_0263','short_0352','short_0370'] if args.pair_id=='all' else [args.pair_id]):
++    parser=argparse.ArgumentParser();parser.add_argument('pair_id',choices=['all','short_0092','short_0114','short_0126','short_0392']);args=parser.parse_args()
++    with LOCK.open('r+') as lock:
++        deadline = time.monotonic()+300
++        while True:
++            try:
++                fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
++                break
++            except BlockingIOError:
++                if time.monotonic() >= deadline:
++                    raise TimeoutError('Existing CPU evaluation lock remained busy')
++                time.sleep(1)
++        for name in (['short_0092','short_0114','short_0126','short_0392'] if args.pair_id=='all' else [args.pair_id]):
+             prepare(name)

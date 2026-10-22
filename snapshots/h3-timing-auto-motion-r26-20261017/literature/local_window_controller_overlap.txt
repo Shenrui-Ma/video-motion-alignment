@@ -1,0 +1,73 @@
+自动局部时间窗口控制：有界近邻核查
+2026-10-17；只读文献/设计审查，无GPU或运行文件变更。
+绑定：design/AUTOMATIC_CONTROL_BASELINE_SPEC.txt，SHA c4508ca039142f5e1a13f6c7c44eca38b0bc2bcfbf6c2a05a37a9ba7819ddb25
+
+结论
+该spec可作为有价值的自动控制基线。当前可测试的差异是：从当前未施加本步执行器的端点扫描出有单位、有拒判的局部有符号时延，决定0..K物理区间，并在实际受控轨迹上持续复测、局部起停。现有工作已覆盖动态监测、阈值触发、提前停止、局部attention支持和clean端点运动指导；不能把这套组合直接称为新架构。本次没有核实完整同构实现，也不能由此证明空白。
+
+五个最直接近邻
+
+1. DIAL
+原文：https://arxiv.org/html/2609.11507v1
+位置：§3.3 Eq6–7, Algorithm1 lines4–16; Appendix C.2
+已确认：前一步ISGM给各空间query软掩码，向指定参考主体key logits加log(gamma)*guide；倒序i=N..1时i<=0.8N才启用，即跳过初始20%、作用于最后80%。
+重合：自动局部支持、跨相邻去噪步传递观测、参考注意力调节均已有。
+具体差异待证：ISGM是身份空间定位；未在已读算法找到物理帧有符号lag、扫描得到0..K事件区间、两步兼容事件持续条件或误差消失后的局部停启。
+实现证据边界：本次论文链接未给出可核实官方实现；依据公开公式/伪代码，不称代码已审。
+
+2. MotionEcho
+原文：https://arxiv.org/html/2506.19348v2
+位置：§3.2 Eq3; §3.3 Eq5–6; §3.4; §3.5; Algorithm1; Appendix8.1
+已确认：对最近W个去噪步运动loss做均值，超过delta1触发teacher；teacher内部motionloss低于delta2提前结束；用teacher修复端点与student端点插值。其temporal mask来自参考attention。
+重合：运动偏离监测、跨去噪步平滑/持续证据、按需启动/停止、无额外参数训练的反馈系统均已有；teacher在已修正latent上重新预测，功能上也分离当前观测与修正，不能靠native命名声称首次。
+具体差异待证：W是去噪步窗口，不等于自动发现的物理视频事件窗口；我们的同模型当前x/sigma重算局部参考路由不同于teacher轨迹修复，但独立收益未证明。
+实现证据边界：本次项目页仍标Code(Coming soon)，已核论文算法，不能称官方代码已审。
+项目：https://euminds.github.io/motionecho/
+
+3. FlowMotion
+原文：https://arxiv.org/html/2603.06289v2
+位置：§3.3–3.4; Algorithm1; run.py compute_motion_difference/_apply_guidance_step
+已确认：预测clean latent zhat=z_t-t*v；匹配源/目标端点和帧差分并调整velocity。实际代码含相邻绝对差及frame-to-all差，Adam优化target latent；Algorithm1限制前T_opt步与K_opt内循环。
+重合：无需生成teacher、利用预测clean端点的运动偏差进行推理引导已实现。
+具体差异待证：已读算法未自动估计局部物理lag并寻找/启停0..K事件窗口。阈值响应不能代替完整FlowMotion损失作为公平对照。
+实现证据边界：本次读取作者run.py实际代码，未运行项目。main为可变链接，论文固定v2。
+代码：https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py
+
+4. TempoControl
+原文：https://arxiv.org/html/2510.02226v3
+位置：§4 correlation-based early stopping; Algorithm1; code573–581,640–735
+已确认：用户token的时间控制曲线与video-to-text attention曲线做Pearson相关损失，加幅度/空间熵项，优化latent；每步相关超过阈值可提前结束，去噪eligible范围仍由配置确定。代码的优化前跳过分支位于write_output区块，内循环停止另有实际判断。
+重合：局部时间目标、相关分数门、按样本/步提前停引导已有。
+具体差异待证：目标曲线由用户/外部音频给出，非参考视频与当前输出之间自动发现的视觉动作lag；实际移植需保留其完整目标及算法。
+实现证据边界：本次读取固定commit作者代码，未运行。
+代码：https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/wan/text2video.py
+
+5. ReTime / Semantic Progress Function
+原文：https://arxiv.org/html/2604.22554v1
+位置：§3–4、temporal position warping/iterative refinement；既有phase_observer_controller_review精确代码核对
+已确认：从语义进度测量得到时间重参数化并修改生成时间位置；重生成迭代修正进度。
+重合：自动识别时间推进不均并据此改生成过程已有。
+具体差异待证：目标为指定/均匀语义节奏；不等于appearance编辑保持原参考局部动作时刻，且不是每次当前native端点判定后的同一步局部路由。
+实现证据边界：本轮复核论文；固定代码细节复用此前已读审查，未再次运行。
+代码：https://github.com/SagiPolaczek/semantic-progress-function/blob/bf5a388378d5153a9b25ae4a64c2de377e62f48f/spf/retime.py
+
+时间维度必须分开
+MotionEcho的W是去噪步历史；spec的16/32是物理视频窗口，连续两次是去噪端点证据。DIAL空间guide可以随视频帧变化，但并未因此测量动作delay。TempoControl的时间mask是要求内容何时出现。三者不能混写成“都已自动找短动作窗口”，也不能因此否认组合可能有实用增益。
+数学上，Full在选定query行以O'=O+m_ref(O_same−O_ref)替换参考组内条件读出；选择时间bin/开关只是控制该已有算子的支持。保质量、mask和两次持续本身都不是新数学原语。差异若成立，应由实例相关的检测→局部动作保留→更少质量损伤这条因果链支持。
+
+同一reference的可控时移/姿态增强阈值
+窄检索没有核实“单一reference生成局部允许误差→视频去噪局部引导开关”的完整同构代码，不能称不存在。检索返回的AION是相关检测先例：训练camera/LiDAR共享表征，以历史窗口DTW监测错时，开发正常数据设检测阈值。正文已读；补充阈值公式和代码未细读，不能给它杜撰分位数或单reference校准流程。
+AION原文：https://people.cs.vt.edu/naren/papers/Temporal_Misalignment_ICLR26.pdf
+作者实现：https://github.com/shahriar0651/AION
+
+这类source-only扰动能估计“该段源动作在该描述子和该变换族下的可分辨性”。它不能自动覆盖跨身份形状差异、早期x0中的系统性错肢、遮挡、生成模糊或重复动作歧义。source±2最大差阈值已有漏掉source07的本地反例，应保留原失败。对静态段，小shift差可接近零；对快速转折，容许差可很大；固定max阈值因此可能分别过敏或漏检。允许误差并非越大越可靠。
+
+若开发该观察器，最小门是先固定source-only变换族及参数，列出null[-2,2]和positive±4/±8、幅度缩小/缺测等的全部局部分布；再用独立实际端点检查假阳性与假阴性。两个相邻端点不等于两个独立校准样本。重叠窗口/49lag选优/多次去噪检测均带选择效应；未处理这些就只称经验阈值或敏感性归一化，不称风险控制或概率保证。不能用增强数据自匹配成功来代替跨身份端点验证。
+
+最少可执行对照
+先运行冻结基线，不引入额外校准组件。Native、原固定Full、自动控制三者报告全片扫描、已冻结旧窗、UNKNOWN、身份/重影与成本。正常例all-OFF要求exact Native。若自动轨迹有收益，回放其实际选中的物理bin支持，分别固定支持与启停时序，避免把两者混在一项优点里；之后才比较单次/两次持续或source-local阈值，不能同时换观测器和执行器。
+
+可主张的阶段性结果：自动局部检测/起停在冻结开发案例上是否可行；检测对正常样例是否少干预；是否改善保动作与质量的权衡。当前不可主张：首次动态指导、首次motion-loss监测、首次局部attention、首次training-free控制、已建立全片风险保证或发现文献空白。最关键证据应来自多实例独立响应，而非标题或公式措辞差别。
+
+检索范围与缺口
+本轮重读DIAL/MotionEcho/FlowMotion/TempoControl原文，读取FlowMotion和固定commit TempoControl代码；复核ReTime原文并复用已有固定代码审查。补查temporal alignment + calibration + synthetic shift/pose perturbation组合关键词；AION仅正文机制确认。未做全领域穷尽，未运行作者方法。R26原生结果仍由唯一CPU消费者优先接收；本报告不改变当前已封存实验。

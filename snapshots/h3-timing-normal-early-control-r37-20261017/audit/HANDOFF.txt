@@ -1,0 +1,39 @@
+R37 producer ready for independent review; no GPU/service/formal deployment by builder.
+
+Local /Users/researcher/DevProjects/h3-timing-normal-early-control-r37-20261017
+Remote /data5/researcher/h3_runs/timing_normal_early_control_r37_20261017
+GPU2 UUID GPU-REDACTED; port8499 (root rechecks).
+One job r37_s05_normal1313_global_full_index4. Seed2026101313, source05 Sam. Fixed static Full index4/all42bins;21NFE20Euler20callbacks1050blocks50routes;0onlineobserver. Runtime/scientific design remain unchanged after seal.
+
+Producer manifest SHA930f12b110355f093c200dbb2b582b4a8527fcfa40e68d68912f1afa3006525d (77immutablefiles).
+Bundle audit/runtime_bundle_v1.tar.gz SHA9501f255d6a637961d62b4acf259ee65b0344d73557645486db68ec597e7d0e6 (78members; inputs excluded).
+Actual CPU attempt3 PASS31.904s. Two preceding attempts onlyonline pose busy, preserved. 32localtestsPASS/1Linuxskip. configs/CPU_EVIDENCE.json links actual log, stage source identities, real loader/AV shape87592 layout/seed1313 cold noise. No H3 GPU or historical tensor equality claimed before formalrun.
+
+Root passive deployment:
+  mkdir the new remote root; copy bundle to incoming and extract without overwriting an existing generation.
+  Copy inputs/05_real_megumi_v.mp4 and inputs/sam_altman_village_global_20221117_original.jpg from existing remote R27 inputs (or already exact R33 inputs). Verify configs/input_hashes.json and every deploy_manifest fileSHA.
+  python3 RUN/scripts/preflight.py --root RUN
+Inputs are c80a126374966191cf87eebb8b8952d84fc88a7d6a56ca4c8be01a099ca2a857 and4231440d7d8c8305b5f1bdd497ad699fee30e07443ba8ee681cedd19c1a7da42.
+
+Root resource certificate, audit/resource_admission.json (template inconfigs):
+ schema r37-root-resource-admission-v1; root_approved true;
+ protocol_sha256 7a54ab45db4343f66007d334e14e3b7a0eb571227a8fc7e6b8af6de0ce1fea8a;
+ gpu_uuid targetGPU2;
+ kernel_gate_sha256 from frozen configs/kernel_inheritance.json;
+ kernel_inheritance_sha256 actual config hash;
+ positive integer model_resident_measured_bytes/routing_increment_bound_bytes/total_memory_bytes/estimated_combined_bytes with combined>=model+route and<=total;
+ single_CUDA_process true; online_observers0; at least2 actual evidence paths and SHA.
+Certificate scope only applies inherited actual87592 numerical gate and root resource evidence. It does not replace current formalcondition/input/prefix checks.
+Set configs/admission.json ready_for_launch true with exact permittedpeer identity from current resources; don't guess a stale PID.
+
+After independent reviewerPASS and rootadmission:
+  python3 RUN/scripts/preflight.py --root RUN --live
+  python3 RUN/scripts/launch_remote.py --service-only
+This returns exactfutureCUDA PID and cuda_gate_ready while it is stopped before importing CUDA. Root registers that identity in live peeradmission before atomically writing matching readyJSON as processes/cuda_gate_go.json. Wait HTTP ready on8499, then:
+  python3 RUN/scripts/start_controller.py --pid ACTUAL_PID --start-ticks ACTUAL_TICKS
+No other service/controller is implicitly started by these handoff instructions. Generation-specific cleanup/timeout and strictpeer600s boundedwait are inherited.
+
+After actualsuccess:
+  CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python RUN/scripts/verify_completed.py --root RUN --allow-resident --output RUN/analysis/RUN_GATE.json
+Use existing shared CPU locks and onlinepriority; fullverification reloads actualhistoricalR27 normal Native0..4 AV and all newarchives. Parentprocessedcondition tree allowsonlytwo correspondingUUIDleaves; historicalrawinput4 entity missing, signatureonlycomparison explicit.20lateruntreatedfuturecomparisonpermanentlyN/A afterFull4.
+No postrun consumer started/prepared as part of this producer handoff. Evaluation design is immutable: same-seedR27normal vsR37,fouroriginalwindows+186scan/common support/UNKNOWN,fixed0/55/86/105/140and42..82/full141withPTS; visibleidentity/shape/legs/ghosting assessed separately. Root can schedule its postrun after actualbinding, without changing producer.

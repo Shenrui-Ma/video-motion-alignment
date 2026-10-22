@@ -1,0 +1,461 @@
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/build_manifest.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/build_manifest.py
+@@ -4,11 +4,11 @@
+ R=Path(__file__).resolve().parents[1]
+ p=argparse.ArgumentParser();p.add_argument('--manifest',required=True);p.add_argument('--bundle',required=True);a=p.parse_args()
+ paths=[R/name for name in ('PROTOCOL.json','README.txt','COMPARABILITY.txt','FREEZE.json')]
+-for sub in ('extensions','scripts','tests','configs','inputs'):
++for sub in ('extensions','scripts','tests','configs'):
+  for f in (R/sub).rglob('*'):
+   if f.is_file() and '__pycache__' not in str(f) and f.name not in ('admission.json','runtime_provenance.json','queue.json'):paths.append(f)
+ files={str(f.relative_to(R)):{'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(paths)}
+-manifest={'schema':'r35-immutable-deploy-v1','files':files,'scientific_protocol_sha256':hashlib.sha256((R/'configs/protocol.json').read_bytes()).hexdigest(),'resource_revision':'frozen protocol resources','mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'GPU_launch_authorized_by_root_only':True}
++manifest={'schema':'r40-immutable-deploy-v1','files':files,'scientific_protocol_sha256':hashlib.sha256((R/'configs/protocol.json').read_bytes()).hexdigest(),'resource_revision':'frozen protocol resources','mutable_administrative_files':['configs/admission.json','configs/runtime_provenance.json','configs/queue.json'],'GPU_launch_authorized_by_root_only':True}
+ out=Path(a.manifest);out.parent.mkdir(parents=True,exist_ok=True)
+ with out.open('x') as f:json.dump(manifest,f,indent=2);f.write('\n')
+ with tarfile.open(a.bundle,'x:gz') as archive:
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/job.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/job.py
+@@ -10,7 +10,7 @@
+ import urllib.request
+ 
+ import service
+-from r35_contract import validate_job
++from r40_contract import validate_job
+ 
+ RUN = service.RUN
+ URL = f'http://127.0.0.1:{service.PORT}'
+@@ -78,7 +78,7 @@
+             json.dump(record, target, indent=2)
+         try:
+             require_generation(active_service(),owner)
+-            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-auto-bedside-r35-20261017'})
++            response = request('/prompt', {'prompt': graph, 'client_id': 'h3-timing-auto-source51310-r40-20261017'})
+             record.update(status='queued', response=response, prompt_id=response['prompt_id'])
+         except Exception as exc:
+             record.update(status='submission_uncertain', error=str(exc), observed_unix=time.time())
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/parent_binding.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/parent_binding.py
+@@ -1,38 +1,39 @@
+-"""Bind actual R20 host9 source07 evidence; missing old entities stay unavailable."""
++"""Read actual R38 source51310 archives; never infer absent historical trees."""
+ from pathlib import Path
+ from observer_import import t
+ 
+ def check(root,remote=False):
+  root=Path(root);p=t.read_json(root/'configs/protocol.json');case=p['cases'][0]
+- t.require(len(p['cases'])==1 and case['source_id']=='07_real_ary_v' and case['seed']==2026101311,'case changed')
+- cap=t.read_json(root/case['parent_captures']);condition=t.read_json(root/case['parent_conditioning']);inventory=t.read_json(root/case['parent_file_inventory']);gate=t.read_json(root/'configs/parent_run_gate.json')
+- t.require(gate['passed'] is True and all(gate['checks'].values()),'parent actual pair gate failed')
+- run=case['parent_run'];counts=gate['runs'][run]
+- t.require(counts['NFE']==counts['callback_count']==counts['Euler_updates']==20 and counts['routed_calls']==0,'parent native counts differ')
+- t.require(counts['manifest_sha256']==t.sha(root/case['parent_captures']),'parent manifest differs')
+- t.require(cap['status']=='complete' and cap['seed']==case['seed'] and cap['run_id']==run,'parent capture identity')
+- t.require([c['step_zero_based'] for c in cap['captures']]==[5,10,15,19] and cap['callback_count']==20 and cap['capture_steps_zero_based']==[5,10,15,19],'parent available snapshots differ')
+- expected={str(Path(row['file']).relative_to(case['parent_root'])):{'bytes':row['bytes'],'sha256':row['sha256']} for row in counts['files']}
+- t.require(len(expected)==5 and all(inventory[k]==v for k,v in expected.items()),'parent tensor inventory differs')
++ t.require(len(p['cases'])==1 and case['source_id']=='51310' and case['seed']==2026101701,'case changed')
++ run=case['parent_run'];cap=t.read_json(root/case['parent_captures']);condition=t.read_json(root/case['parent_conditioning']);inventory=t.read_json(root/case['parent_file_inventory'])
++ gate=t.read_json(root/'configs/parent_run_gate.json');runtime=t.read_json(root/'configs/parent_runtime_gate.json');history=t.read_json(root/'configs/parent_history.json');router=t.read_json(root/'configs/parent_router.json')
++ t.require(gate['passed'] is True and run in gate['runs'] and all(runtime['checks'].values()),'parent actual gates failed')
++ t.require(gate['file_inventory_sha256']==t.sha(root/case['parent_file_inventory']) and gate['runtime_gate_sha256']==t.sha(root/'configs/parent_runtime_gate.json'),'parent gate binding differs')
++ count=runtime['runs'][run]
++ t.require(count['NFE']==count['callback_count']==count['Euler_updates']==20,'parent native counts differ')
++ t.require(router['completed_forward_calls']==20 and router['completed_calls']==1000 and router['routed_calls']==0 and router['calls_by_forward']==[50]*20,'parent native block counters differ')
++ t.require(history['status']['completed'] is True and history['status']['status_str']=='success' and history['prompt'][2]==t.read_json(root/case['parent_graph']),'parent actual graph/history differs')
++ t.require(cap['status']=='complete' and cap['seed']==case['seed'] and cap['run_id']==run and cap['callback_count']==20,'parent capture identity')
++ t.require([c['step_zero_based'] for c in cap['captures']]==list(range(20)) and cap['capture_steps_zero_based']==list(range(20)),'parent21 snapshots incomplete')
++ expected={str(Path(row['file']).relative_to(case['parent_root'])):{'bytes':row['bytes'],'sha256':row['sha256']} for row in count['snapshots']}
++ t.require(len(expected)==21 and all(inventory[k]==v for k,v in expected.items()),'parent tensor inventory differs')
+  source=t.read_json(root/'configs/source.pose.json');v=source['video'];frames=source['frames']
+  t.require((v['fps'],v['width'],v['height'],v['container_frame_count'])==(24,1312,736,141),'source pose geometry differs')
+  t.require(len(frames)==141 and [f['frame'] for f in frames]==list(range(141)) and all(abs(f['time_s']-i/24)<1e-8 for i,f in enumerate(frames)),'source pose timebase differs')
+  provenance=t.read_json(root/'configs/source_provenance.json');inputs=t.read_json(root/'configs/input_hashes.json')
+- t.require(v['sha256']==provenance['prepared_sha256']==inputs['07_real_ary_v.mp4'],'source pose/video binding differs')
++ t.require(v['sha256']==provenance['prepared_sha256']==inputs['source_51310_video.mp4'],'source pose/video binding differs')
+  t.require(t.sha(root/'configs/source.pose.json')==p['observer']['source_pose_sha256'],'source pose changed')
+- mapping=provenance['frame_map'];t.require(len(mapping)==141 and [r['prepared_frame'] for r in mapping]==list(range(141)) and [r['input_frame'] for r in mapping]==list(range(141)),'physical frame mapping differs')
+- t.require(all(abs(r['prepared_time_s']-i/24)<1e-8 for i,r in enumerate(mapping)),'physical times differ')
+- t.require(condition['packed_layout']['seq_len']==87592 and condition['conditioning_embedding']['shape']==[1,6960,5120],'actual conditioning layout changed')
+- t.require('tensor_file' not in condition['conditioning_embedding'],'historical entity contract changed; review required')
++ times=provenance['probe']['frames'];t.require(len(times)==141 and all(abs(float(row['best_effort_timestamp_time'])-i/24)<1e-6 for i,row in enumerate(times)),'prepared video PTS differs')
++ selection=provenance['source_selection'];t.require(selection['id']=='51310' and selection['source_only_start_seconds']==0 and selection['output_frame_range_inclusive']==[0,140] and selection['output_fps']==24,'source selection mapping differs')
++ t.require(condition['packed_layout']['seq_len']==87361 and condition['conditioning_embedding']['shape']==[1,6729,5120],'actual conditioning layout changed')
++ embedding='audit/'+condition['conditioning_embedding']['tensor_file'];t.require(inventory[embedding]['bytes']==137811656,'historical embedding entity inventory absent')
++ relations={f'configs/graphs/{run}.json':case['parent_graph'],f'audit/{run}_conditioning.json':case['parent_conditioning'],f'audit/{run}_noise.json':case['parent_noise'],f'audit/x0/{run}/manifest.json':case['parent_captures'],f'logs/{run}_history.json':'configs/parent_history.json',f'audit/router/{run}.json':'configs/parent_router.json'}
++ for rel,local in relations.items():t.require(t.sha(root/local)==inventory[rel]['sha256'],'copied parent evidence differs: '+rel)
+  checked=[]
+  if remote:
+   old=Path(case['parent_root'])
+-  relations={f'configs/{run}.json':case['parent_graph'],f'audit/{run}_conditioning.json':case['parent_conditioning'],f'audit/{run}_noise.json':case['parent_noise'],f'audit/x0/{run}/manifest.json':case['parent_captures']}
+-  for rel,local in relations.items():
+-   t.require(t.sha(old/rel)==t.sha(root/local)==inventory[rel]['sha256'],'actual parent metadata differs: '+rel);checked.append(rel)
+-  t.require(t.sha(old/'audit/completed_pair_gate.json')==t.sha(root/'configs/parent_run_gate.json'),'actual completed pair gate changed')
+-  for rel,row in expected.items():
+-   path=old/rel;t.require(path.stat().st_size==row['bytes'] and t.sha(path)==row['sha256'],'historical file differs: '+rel);checked.append(rel)
+-  history=t.read_json(old/'logs'/f'{run}_history.json')
+-  t.require(t.sha(old/'logs'/f'{run}_history.json')==counts['history_sha256'] and history['status']['completed'] is True and history['status']['status_str']=='success' and history['prompt'][2]==t.read_json(root/case['parent_graph']),'actual parent history/graph differs')
+- return {'passed':True,'available_native_indices':[5,10,15,19],'source_frame_mapping':'unchanged input0..140 at24fps','historical_actual_files_checked':checked,'actual_embedding_signature_equal':'runtime original clean embedding; not yet measured','historical_embedding_entity_and_full_processed_tree':'unavailable; no tensor-equality claim','prefix_early_ON':'never postpone; unavailable bridge if firstON<5'}
++  for rel,local in relations.items():t.require(t.sha(old/rel)==t.sha(root/local),'actual parent metadata differs: '+rel);checked.append(rel)
++  for rel in [embedding,*expected]:
++   row=inventory[rel];path=old/rel
++   t.require(path.stat().st_size==row['bytes'] and t.sha(path)==row['sha256'],'actual historical file differs: '+rel);checked.append(rel)
++ return {'passed':True,'available_native_indices':list(range(20)),'all21_native_archived':True,'source_frame_mapping':'prepared0..140 at24fps; exact raw video/PTS preserved','historical_actual_files_checked':checked,'actual_embedding_tensor_equal':'runtime after current conditioning; not yet measured','historical_full_postaugmentation_tree_and_raw_sampler_inputs':'not available; no equality claim'}
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/preflight.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/preflight.py
+@@ -2,7 +2,7 @@
+ import argparse,json
+ from pathlib import Path
+ from observer_import import t,ROOT
+-from r35_contract import validate_job
++from r40_contract import validate_job
+ 
+ def check(root=ROOT,metadata_only=False):
+     root=Path(root);t.bindings();t.admission_document(approved=not metadata_only)
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/prelaunch_gates.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/prelaunch_gates.py
+@@ -34,14 +34,20 @@
+ 
+ def check(root):
+     root=Path(root);protocol=sha(root/'configs/protocol.json')
+-    inherited=inherited_bridge(root)
+-    spec=read(root/'configs/r27_inheritance.json');parent=Path(spec['parent_root'])
++    spec=read(root/'configs/kernel_inheritance.json');parent=Path(spec['parent_root'])
++    require(sha(parent/'deploy_manifest.json')==spec['parent_deploy_manifest_sha256'],'R28 parent seal changed')
++    require(sha(parent/'configs/protocol.json')==spec['parent_protocol_sha256'],'R28 parent protocol changed')
++    for name,digest in spec['exact_numerical_files'].items():require(sha(root/name)==sha(parent/name)==digest,'R28 inherited numerical bytes changed: '+name)
+     kp=parent/'audit/gpu_dynamic_union_gate.json';rp=root/'audit/resource_admission.json';k=read(kp)
++    require(k['schema']=='h3-r27-kernel-gate-v1' and k['passed'] is True and k['NFE']==0,'R28 actual kernel absent/failed')
++    require(k['protocol_sha256']==spec['parent_protocol_sha256'],'inherited kernel protocol differs')
++    for name,digest in k['source_sha256'].items():require(sha(parent/name)==digest,'parent actual kernel evidence changed: '+name)
++    require(sha(kp)==sha(root/'configs/inherited_actual87361_kernel.json'),'copied actual kernel evidence differs')
+     check_layout_case(k,read(root/'configs/parent_conditioning.json'))
+-    r=read(rp)
+-    require(r['schema']=='r35-root-resource-admission-v1' and r['root_approved'] is True,'root resource review missing')
++    inherited=inherited_bridge(root);r=read(rp)
++    require(r['schema']=='r40-root-resource-admission-v1' and r['root_approved'] is True,'root resource review missing')
+     require(r['gpu_uuid']=='GPU-REDACTED','resource GPU differs')
+-    require(r['kernel_gate_sha256']==sha(kp) and r['known_endpoint_gate_sha256']==inherited['known_endpoint_gate_sha256'] and r['inheritance_sha256']==inherited['inheritance_sha256'] and r['protocol_sha256']==protocol,'resource review unbound to gates')
++    require(r['kernel_gate_sha256']==sha(kp) and r['known_endpoint_gate_sha256']==inherited['known_endpoint_gate_sha256'] and r['inheritance_sha256']==inherited['inheritance_sha256'] and r['kernel_inheritance_sha256']==sha(root/'configs/kernel_inheritance.json') and r['protocol_sha256']==protocol,'resource review unbound to gates')
+     for key in ('model_resident_measured_bytes','routing_increment_bound_bytes','decoder_peak_reserved_bytes','total_memory_bytes','estimated_combined_bytes'):
+         require(type(r[key]) is int and r[key]>0,'invalid resource estimate '+key)
+     require(r['estimated_combined_bytes']>=sum(r[key] for key in ('model_resident_measured_bytes','routing_increment_bound_bytes','decoder_peak_reserved_bytes')),'resource total omits component')
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/r35_contract.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/r40_contract.py
+@@ -1,13 +1,13 @@
+-"""One frozen source07 development transfer; exact graph and actual loader input binding."""
++"""One frozen source51310 development transfer; exact graph and actual loader input binding."""
+ import hashlib,json,shutil
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[1]
+-REMOTE=Path('/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017')
++REMOTE=Path('/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017')
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ def read(p):return json.loads(Path(p).read_text())
+ def audit_dir(value):
+     p=Path(value)
+-    if not p.is_absolute() or p.is_symlink() or p.resolve()!=REMOTE/'audit':raise ValueError('audit root outside frozen R35 root')
++    if not p.is_absolute() or p.is_symlink() or p.resolve()!=REMOTE/'audit':raise ValueError('audit root outside frozen R40 root')
+     return p.resolve()
+ def expected_graph(parent,case):
+     g=json.loads(json.dumps(parent))
+@@ -16,7 +16,7 @@
+             if isinstance(v,str) and case['parent_root'] in v:node['inputs'][k]=v.replace(case['parent_root'],str(REMOTE))
+     run=case['run_id']
+     for key in ('6','51','52'):g[key]['inputs']['run_id']=run
+-    g['5']['inputs']['run_id']='r35_s07_shared';g['51']['inputs']['source_run_id']='r35_s07_shared'
++    g['5']['inputs']['run_id']='r40_source51310_shared';g['51']['inputs']['source_run_id']='r40_source51310_shared'
+     g['6']['inputs']['pair_id']=run+'_noise';g['14']['inputs']['filename_prefix']=run
+     g['50']={'class_type':'H3AutomaticWindowRouter','inputs':{'model':['41',0],'positive':['51',0],'run_id':run,'audit_dir':str(REMOTE)+'/audit/counterfactual'}}
+     return g
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/run_queue.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/run_queue.py
+@@ -1,7 +1,7 @@
+-"""One predeclared source07 job, bounded resident hold, generation-bound cleanup."""
++"""One predeclared source51310 job, bounded resident hold, generation-bound cleanup."""
+ import json,subprocess,time
+ import job,service
+-from r35_contract import validate_job
++from r40_contract import validate_job
+ 
+ def state(**v):service.write_json(service.RUN/'logs/controller_state.json',dict(unix=time.time(),**v))
+ def run(expected_pid=None,expected_start_ticks=None):
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/service.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/service.py
+@@ -11,13 +11,13 @@
+ import time
+ import urllib.request
+ 
+-RUN = Path('/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017')
++RUN = Path('/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017')
+ CORE = Path('/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI')
+ PYTHON = '/home/researcher/miniconda3/envs/comfyui/bin/python'
+ DEPENDENCIES = '/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps'
+ MODELS = '/data5/researcher/ComfyUI/models'
+ GPU = 'GPU-REDACTED'
+-PORT = 8497
++PORT = 8502
+ 
+ 
+ def write_json(path, value):
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/scripts/verify_completed.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/scripts/verify_completed.py
+@@ -35,7 +35,7 @@
+     torch.set_num_threads(1)
+     from H3X0Readout.core import tensor_signature
+     from H3AutomaticWindowRouter.selector import Controller
+-    from r35_contract import validate_job
++    from r40_contract import validate_job
+     t.bindings();t.admission_document(approved=True)
+     manifest=t.read_json(root/'deploy_manifest.json')
+     for rel,row in manifest['files'].items():t.require(t.sha(root/rel)==row['sha256'],'immutable file changed: '+rel)
+@@ -88,11 +88,12 @@
+         t.require(len(initial)==1 and initial[0]['pass'] is True and initial[0]['seed']==case['seed'] and initial[0]['actual_noise_and_producer_clean_inputs_exact'] is True,'initial input binding missing')
+         embedding=initial[0]['archived_embedding_tensor'];old_condition=t.read_json(root/case['parent_conditioning'])
+         from H3AutomaticWindowRouter.pair_gate import clean_record
+-        t.require('tensor_file' not in old_condition['conditioning_embedding'],'historical embedding contract changed')
+-        t.require(embedding['actual_signature_equal'] is True and embedding['signature']==clean_record(old_condition['conditioning_embedding']) and embedding['actual_tensor_equal'] is None and embedding['historical_tensor_available'] is False,'runtime actual embedding signature gate unbound')
++        relative='audit/'+old_condition['conditioning_embedding']['tensor_file']
++        expected_embedding=t.read_json(root/case['parent_file_inventory'])[relative]
++        t.require(embedding['actual_tensor_equal'] is True and embedding['file']==str(Path(case['parent_root'])/relative) and embedding['file_sha256']==expected_embedding['sha256'],'runtime actual embedding entity gate unbound')
+         first=mask[0] if mask else None
+         gates=[g for g in c['pair_gates'] if g['gate']=='native_prefix']
+-        t.require(len(gates)==nfe,'prefix qualification record incomplete')
++        t.require([(g['physical_index'],g['branch']) for g in gates]==[(b['physical_index'],b['branch']) for b in c['branches']],'prefix qualification record incomplete or duplicated')
+         oldcap=t.read_json(root/case['parent_captures'])
+         available={r['step_zero_based'] for r in oldcap['captures']}
+         for g in gates:
+@@ -121,7 +122,7 @@
+                     oldpath=Path(case['parent_root'])/'audit/x0'/case['parent_run']/oldcap['final_sampler_result']['file']
+                     old=torch.load(oldpath,map_location='cpu',weights_only=True)
+                     t.require(all(tensor_signature(old[k])==oldcap['final_sampler_result'][k] and torch.equal(value[k],old[k]) for k in ('video','audio')),'all-OFF final Native replay mismatch')
+-        results.append({'run':run,'mask':mask,'NFE':nfe,'updates':20,'observations':20,'first_on':first,'case_role':'source07 previously inspected development transfer','prefix_scope':'old Native only005/010/015/019; compare eligible current Native through firstON; earlyON<5 means prefix unavailable, never postponed','all_OFF_final_exact':not bool(mask)})
++        results.append({'run':run,'mask':mask,'NFE':nfe,'updates':20,'observations':20,'first_on':first,'case_role':'source51310 development-screened same-corpus transfer','prefix_scope':'all20 old Native available; current Native through firstON inclusive; full and future permanently N/A','all_OFF_final_exact':not bool(mask)})
+     cleanup=root/'processes/cleanup.json'
+     if cleanup.exists():
+         d=t.read_json(cleanup);check_owner_evidence(owner,jobs,d);released=True
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/extensions/H3AutomaticWindowRouter/__init__.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/__init__.py
+@@ -7,7 +7,7 @@
+     def INPUT_TYPES(cls):
+         return {'required': {'model': ('MODEL',), 'positive': ('CONDITIONING',),
+                 
+-                'run_id': ('STRING', {'default': 'r35_s07_seed2026101311_auto'}),
++                'run_id': ('STRING', {'default': 'r40_source51310_seed2026101701_auto'}),
+                 'audit_dir': ('STRING', {'default': '/tmp/h3-counterfactual'})}}
+     RETURN_TYPES = ('MODEL',)
+     FUNCTION = 'apply'
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/extensions/H3AutomaticWindowRouter/pair_gate.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/pair_gate.py
+@@ -96,5 +96,5 @@
+         t.require(required<=self.done,'missing eligible historical comparisons')
+         s.audit['counterfactual']['native_preservation']={'zero_Full':self.first_on is None,'first_on':self.first_on,
+             'status':'pending_final_exact_check' if self.first_on is None else 'divergent_controlled_trajectory',
+-            'case_role':'source07 previously inspected development transfer',
+-            'prefix_evidence':'prefix_unavailable_due_to_early_intervention' if self.first_on is not None and self.first_on<5 else 'compare only archived eligible indices005/010/015/019; no fabricated earlier bridge'}
++            'case_role':'source51310 development-screened same-corpus transfer',
++            'prefix_evidence':'all20 historical captures available; current Native through firstON inclusive; future permanently N/A'}
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/extensions/H3AutomaticWindowRouter/transport.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3AutomaticWindowRouter/transport.py
+@@ -2,11 +2,11 @@
+ import hashlib,json,os,signal,subprocess,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+-PROTOCOL_SHA='94f21c35abb197e2ef650c852e25a523fff78b64f375362308ab24c48e8c2602'
++PROTOCOL_SHA='fd3d154d8d8c1dc3980588ed44155d7f631f40acccd045244cea366362dedda2'
+ DECODER_UUID='GPU-REDACTED'
+ MAIN_UUID='GPU-REDACTED'
+ SECOND_TASK_UUID='GPU-REDACTED'
+-REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017')
++REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def sha(path):
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/extensions/H3EventAudit/__init__.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/extensions/H3EventAudit/__init__.py
+@@ -21,7 +21,7 @@
+ 
+ 
+ def audit_root(value):
+-    from r35_contract import audit_dir
++    from r40_contract import audit_dir
+     root = audit_dir(value)
+     root.mkdir(parents=True, exist_ok=True)
+     return root
+@@ -163,7 +163,7 @@
+             "width": ("INT", {"default": 1312, "min": 32, "step": 32}),
+             "height": ("INT", {"default": 736, "min": 32, "step": 32}),
+             "length": ("INT", {"default": 107, "min": 5}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017/audit"}),
++            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "semantic_fps": ("INT", {"default": 2, "min": 1, "max": 24}),
+             "phase_frames": ("INT", {"default": 0, "min": 0, "max": 23}),
+@@ -266,7 +266,7 @@
+     def INPUT_TYPES(cls):
+         return {"required": {
+             "noise_seed": ("INT", {"default": 12345, "min": 0, "max": 0xffffffffffffffff}),
+-            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_bedside_r35_20261017/audit"}),
++            "audit_dir": ("STRING", {"default": "/data5/researcher/h3_runs/timing_auto_source51310_r40_20261017/audit"}),
+             "run_id": ("STRING", {"default": "case_A_seed1"}),
+             "pair_id": ("STRING", {"default": "case_seed1"}),
+         }}
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/tests/real_comfy_cpu_smoke.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/tests/real_comfy_cpu_smoke.py
+@@ -73,7 +73,7 @@
+     sampler_source = Path(args.comfy_root).resolve() / "comfy_extras/nodes_custom_sampler.py"
+     if not asyncio.run(nodes.load_custom_node(str(sampler_source), module_parent="comfy_extras")):
+         raise RuntimeError("actual Comfy node loader failed")
+-    graph = json.loads((root / "configs/r35_s07_seed2026101311_auto.json").read_text())
++    graph = json.loads((root / "configs/r40_source51310_seed2026101701_auto.json").read_text())
+     graph_guider_type = graph["7"]["class_type"]
+     assert graph_guider_type == "BasicGuider"
+     graph_guider_node = nodes.NODE_CLASS_MAPPINGS[graph_guider_type]
+@@ -171,7 +171,7 @@
+         # Same actual Euler, one model prediction per step, independently prescribed masks.
+         # Both actual run IDs create independent states from the same cached ModelPatcher.
+         cached_states=[]
+-        for cache_attempt,actual_run in enumerate(('r35_s07_seed2026101311_auto','r35_s07_seed2026101311_auto')):
++        for cache_attempt,actual_run in enumerate(('r40_source51310_seed2026101701_auto','r40_source51310_seed2026101701_auto')):
+             cached=H3AutomaticWindowRouter().apply(base,positive,actual_run,str(temp/('cached_states_'+str(cache_attempt))))[0]
+             cs=cached.get_wrappers(WrappersMP.SAMPLER_SAMPLE,KEY)[0].state
+             assert cs.callback_count==0 and cs.forward_index==-1 and not cs.entered
+@@ -182,7 +182,7 @@
+         # Actual native cold noise may advance global CPU RNG; compare its exact native behavior.
+         # Cache hits must preserve the post-cold state and return independent copies.
+         noise_values=[]
+-        for case_seed in (2026101311,):
++        for case_seed in (2026101701,):
+             provider=aux.CachedNoise(case_seed,temp,'noise_'+str(case_seed),'cache_'+str(case_seed))
+             target={'samples':NestedTensor([torch.zeros(shape) for shape in shapes])}
+             oldrng=torch.random.get_rng_state().clone()
+@@ -306,7 +306,7 @@
+         'actual_node_loader_module_alias_tested':True,'real_H3_extra_conds_tested':True,'official_original_conds_clean_embedding_adapter_tested':True,
+         'real_local_generator_helpers_tested':True,'full_grid_preserved':True,
+         'core_sha256':hashlib.sha256((root/'extensions/H3AutomaticWindowRouter/core.py').read_bytes()).hexdigest(),
+-        'case_filter':args.case,'cached_base_same_new_run_repeated_fresh_state':True,'actual_seed1311_noise_cold_hit_pass':True,'cold_noise_native_rng_and_archived_AV_hashes_equal':True,'cache_hits_rng_unchanged':True,'automatic_union_replay_matches_singleforward_masks':True,
++        'case_filter':args.case,'cached_base_same_new_run_repeated_fresh_state':True,'actual_seed1701_noise_cold_hit_pass':True,'cold_noise_native_rng_and_archived_AV_hashes_equal':True,'cache_hits_rng_unchanged':True,'automatic_union_replay_matches_singleforward_masks':True,
+         'Full_observer_does_not_choose_branch':True,'index0_observed_and_no_forced_prefix':True,
+         'index19_can_trigger':True,'cases':rows}))
+ 
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/tests/test_admin_relocation.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/tests/test_admin_relocation.py
+@@ -2,7 +2,7 @@
+ from pathlib import Path
+ R=Path(__file__).resolve().parents[1];sys.path[:0]=[str(R/'scripts'),str(R/'extensions')]
+ from observer_import import t
+-from r35_contract import expected_graph
++from r40_contract import expected_graph
+ class AdministrativeRelocationTests(unittest.TestCase):
+  def read(self,name):return json.loads((R/name).read_text())
+  def test_observer_and_actuator_exact_except_source_binding(self):
+@@ -13,9 +13,9 @@
+   for rel,digest in spec['exact_numerical_files'].items():self.assertEqual(hashlib.sha256((R/rel).read_bytes()).hexdigest(),digest)
+  def test_exact_new_device_and_peer(self):
+   import service
+-  self.assertEqual(service.GPU,t.MAIN_UUID);self.assertEqual(service.PORT,8497);self.assertEqual(t.MAIN_UUID,t.DECODER_UUID);self.assertEqual(t.MAIN_UUID,'GPU-REDACTED');self.assertEqual(t.SECOND_TASK_UUID,'GPU-REDACTED');self.assertNotEqual(t.SECOND_TASK_UUID,t.MAIN_UUID)
++  self.assertEqual(service.GPU,t.MAIN_UUID);self.assertEqual(service.PORT,8502);self.assertEqual(t.MAIN_UUID,t.DECODER_UUID);self.assertEqual(t.MAIN_UUID,'GPU-REDACTED');self.assertEqual(t.SECOND_TASK_UUID,'GPU-REDACTED');self.assertNotEqual(t.SECOND_TASK_UUID,t.MAIN_UUID)
+  def test_graph_and_input_metadata_unchanged(self):
+-  case=self.read('configs/protocol.json')['cases'][0];g=self.read('configs/'+case['run_id']+'.json');self.assertEqual(g,expected_graph(self.read('configs/parent_graph.json'),case));self.assertEqual(case['seed'],2026101311);self.assertEqual(case['source_id'],'07_real_ary_v')
++  case=self.read('configs/protocol.json')['cases'][0];g=self.read('configs/'+case['run_id']+'.json');self.assertEqual(g,expected_graph(self.read('configs/parent_graph.json'),case));self.assertEqual(case['seed'],2026101701);self.assertEqual(case['source_id'],'51310')
+  def test_default_admission_denies(self):
+   self.assertTrue(t.admission_document(False)['root_live_review_required'])
+   with self.assertRaises(ValueError):t.admission_document(True)
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/tests/test_automatic.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/tests/test_automatic.py
+@@ -10,7 +10,7 @@
+ from H3AutomaticWindowRouter.dependencies import router
+ from counterfactual_support import dense_attention
+ from pose_test_support import row,measurement
+-from r35_contract import validate_job
++from r40_contract import validate_job
+ class Tests(unittest.TestCase):
+  def test_policy_off_early_restart(self):
+   self.assertFalse(Controller().select(0,measurement('always',0))['chosen_full'])
+@@ -59,7 +59,7 @@
+  def test_frozen_policy_copy(self):
+   self.assertEqual((ROOT/'scripts/automatic_window_policy.py').read_bytes(),(ROOT/'extensions/H3AutomaticWindowRouter/automatic_window_policy.py').read_bytes())
+  def test_request_bounds_single_new_seed(self):
+-  self.assertEqual(t.case_for('r35_s07_seed2026101311_auto')['seed'],2026101311)
++  self.assertEqual(t.case_for('r40_source51310_seed2026101701_auto')['seed'],2026101701)
+   with self.assertRaises(ValueError):t.case_for('r27_s05_bad1311_auto')
+   with self.assertRaises(ValueError):t.case_for('unknown')
+ 
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/tests/test_resource_relocation.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/tests/test_resource_relocation.py
+@@ -11,15 +11,15 @@
+   put(root/'configs/protocol.json',{'schema':'current'});put(parent/'configs/protocol.json',{'schema':'prior'})
+   put(parent/'deploy_manifest.json',{'files':{}})
+   for p in (root,parent):put(p/'configs/numerical.json',{'same':1});put(p/'configs/conditioning.json',{'same':2})
+-  # R27 actual kernel/bridge is reused; no R28 layout adapter.
++  # Reuse actual R28 87361 layout and independent R27 decoder implementation.
+   spec={'parent_root':str(parent),'parent_deploy_manifest_sha256':g.sha(parent/'deploy_manifest.json'),'parent_protocol_sha256':g.sha(parent/'configs/protocol.json'),'exact_numerical_files':{'configs/numerical.json':g.sha(root/'configs/numerical.json')},'same_source_condition_noise_artifacts':['configs/conditioning.json']}
+-  put(root/'configs/r27_inheritance.json',spec)
++  put(root/'configs/r27_inheritance.json',spec);put(root/'configs/kernel_inheritance.json',spec)
+   condition=json.loads((R/'configs/parent_conditioning.json').read_text());put(root/'configs/parent_conditioning.json',condition)
+-  k={'schema':'h3-r27-kernel-gate-v1','passed':True,'NFE':0,'protocol_sha256':spec['parent_protocol_sha256'],'source_sha256':{'configs/numerical.json':g.sha(parent/'configs/numerical.json')},'cases':[{'actual_shape':True,'shape':[1,56,87592,128],'plan':{'seq_len':87592,'frame_rows':943,'latent_interval_half_open':[0,42],'query_interval_half_open':[47986,87592],'reference_video_segment':[7910,47516]},'passed':True,'checks':{'all':True}}]}
+-  put(parent/'audit/gpu_dynamic_union_gate.json',k)
++  k={'schema':'h3-r27-kernel-gate-v1','passed':True,'NFE':0,'protocol_sha256':spec['parent_protocol_sha256'],'source_sha256':{'configs/numerical.json':g.sha(parent/'configs/numerical.json')},'cases':[{'actual_shape':True,'shape':[1,56,87361,128],'plan':{'seq_len':87361,'frame_rows':943,'latent_interval_half_open':[0,42],'query_interval_half_open':[47755,87361],'reference_video_segment':[7679,47285]},'passed':True,'checks':{'all':True}}]}
++  put(parent/'audit/gpu_dynamic_union_gate.json',k);put(root/'configs/inherited_actual87361_kernel.json',k)
+   for i in range(2):put(root/f'audit/evidence{i}.json',{'measured':i})
+   inherited={'known_endpoint_gate_sha256':'known','inheritance_sha256':g.sha(root/'configs/r27_inheritance.json')}
+-  resource={'schema':'r35-root-resource-admission-v1','root_approved':True,'gpu_uuid':'GPU-REDACTED','kernel_gate_sha256':g.sha(parent/'audit/gpu_dynamic_union_gate.json'),'known_endpoint_gate_sha256':'known','inheritance_sha256':inherited['inheritance_sha256'],'protocol_sha256':g.sha(root/'configs/protocol.json'),'model_resident_measured_bytes':60*1024**3,'routing_increment_bound_bytes':2*1024**3,'decoder_peak_reserved_bytes':6*1024**3,'total_memory_bytes':80*1024**3,'estimated_combined_bytes':68*1024**3,'required_free_before_decoder_mib':12288,'scope':'single GPU isolated exec; runtime exact-parent admission remains mandatory','evidence':[{'file':str(root/f'audit/evidence{i}.json'),'sha256':g.sha(root/f'audit/evidence{i}.json')} for i in range(2)]}
++  resource={'schema':'r40-root-resource-admission-v1','root_approved':True,'gpu_uuid':'GPU-REDACTED','kernel_gate_sha256':g.sha(parent/'audit/gpu_dynamic_union_gate.json'),'known_endpoint_gate_sha256':'known','inheritance_sha256':inherited['inheritance_sha256'],'kernel_inheritance_sha256':g.sha(root/'configs/kernel_inheritance.json'),'protocol_sha256':g.sha(root/'configs/protocol.json'),'model_resident_measured_bytes':60*1024**3,'routing_increment_bound_bytes':2*1024**3,'decoder_peak_reserved_bytes':6*1024**3,'total_memory_bytes':80*1024**3,'estimated_combined_bytes':68*1024**3,'required_free_before_decoder_mib':12288,'scope':'single GPU isolated exec; runtime exact-parent admission remains mandatory','evidence':[{'file':str(root/f'audit/evidence{i}.json'),'sha256':g.sha(root/f'audit/evidence{i}.json')} for i in range(2)]}
+   put(root/'audit/resource_admission.json',resource)
+   return root,parent,resource,inherited,put
+  def test_valid_scoped_inheritance_and_gpu3_resource(self):
+@@ -34,7 +34,7 @@
+     with patch.object(g,'inherited_bridge',return_value=i),self.assertRaises(ValueError):g.check(r)
+  def test_actual_layout_cannot_be_inherited_from_short_prompt(self):
+   with tempfile.TemporaryDirectory() as d:
+-   r,p,v,i,put=self.fixture(d);k=json.loads((p/'audit/gpu_dynamic_union_gate.json').read_text());k['cases'][0]['shape'][2]=87361;put(p/'audit/gpu_dynamic_union_gate.json',k);v['kernel_gate_sha256']=g.sha(p/'audit/gpu_dynamic_union_gate.json');put(r/'audit/resource_admission.json',v)
++   r,p,v,i,put=self.fixture(d);k=json.loads((p/'audit/gpu_dynamic_union_gate.json').read_text());k['cases'][0]['shape'][2]=87592;put(p/'audit/gpu_dynamic_union_gate.json',k);v['kernel_gate_sha256']=g.sha(p/'audit/gpu_dynamic_union_gate.json');put(r/'audit/resource_admission.json',v)
+    with patch.object(g,'inherited_bridge',return_value=i),self.assertRaises(ValueError):g.check(r)
+  def test_current_memory_or_evidence_failure_cannot_be_inherited(self):
+   with tempfile.TemporaryDirectory() as d:
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/tests/test_sparse_parent.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/tests/test_sparse_parent.py
+@@ -23,7 +23,7 @@
+    if first is not None:gate.decision(s,first,{'chosen_full':True})
+    gate.done={n for n in gate.records if first is None or n<=first};gate.finish(s)
+    expected=first is not None and first<5
+-   self.assertEqual(s.audit['counterfactual']['native_preservation']['prefix_evidence']=='prefix_unavailable_due_to_early_intervention',expected)
++   self.assertIn('current Native through firstON inclusive',s.audit['counterfactual']['native_preservation']['prefix_evidence'])
+    if first is not None:self.assertFalse(gate.native_comparable(first+1))
+  def test_missing_eligible_old_checkpoint_rejected(self):
+   gate=g.HistoricalPairGate();gate.records={5:{}};gate.first_on=10
+--- /Users/researcher/DevProjects/h3-timing-auto-bedside-r35-20261017/tests/test_transfer.py
++++ /Users/researcher/DevProjects/h3-timing-auto-source51310-r40-20261017/tests/test_transfer.py
+@@ -13,18 +13,18 @@
+   for changed in (x+1,x.double(),x.reshape(1,8,10)):
+    with self.assertRaises(ValueError):compare_embedding_tensors(changed,x,s)
+   with self.assertRaises(ValueError):compare_embedding_tensors(x,x+1,s)
+- def test_sparse_prefix_and_first_on_keeps_current(self):
++ def test_dense_prefix_and_first_on_keeps_current(self):
+   cap=json.loads((R/'configs/parent_captures.json').read_text())
+-  self.assertEqual([v['step_zero_based'] for v in cap['captures']],[5,10,15,19])
+-  self.assertEqual(cap['seed'],2026101311)
++  self.assertEqual([v['step_zero_based'] for v in cap['captures']],list(range(20)))
++  self.assertEqual(cap['seed'],2026101701)
+   gate=HistoricalPairGate();s=type('State',(),{'audit':{'counterfactual':{}}})()
+   gate.decision(s,1,{'chosen_full':True});self.assertTrue(gate.native_comparable(1));self.assertFalse(gate.native_comparable(2))
+   gate.decision(s,3,{'chosen_full':False});self.assertFalse(gate.native_comparable(4))
+  def test_actual_layout_boundary_gate(self):
+   c=json.loads((R/'configs/parent_conditioning.json').read_text())
+-  a={'actual_shape':True,'shape':[1,56,87592,128],'plan':{'seq_len':87592,'frame_rows':943,'latent_interval_half_open':[0,42],'query_interval_half_open':[47986,87592],'reference_video_segment':[7910,47516]},'passed':True,'checks':{'fixture':True}}
++  a={'actual_shape':True,'shape':[1,56,87361,128],'plan':{'seq_len':87361,'frame_rows':943,'latent_interval_half_open':[0,42],'query_interval_half_open':[47755,87361],'reference_video_segment':[7679,47285]},'passed':True,'checks':{'fixture':True}}
+   check_layout_case({'cases':[a]},c)
+-  for field,value in [('seq_len',87361),('reference_video_segment',[7679,47285]),('query_interval_half_open',[47755,87361])]:
++  for field,value in [('seq_len',87592),('reference_video_segment',[7910,47516]),('query_interval_half_open',[47986,87592])]:
+    bad=copy.deepcopy(a);bad['plan'][field]=value
+    with self.assertRaises(ValueError):check_layout_case({'cases':[bad]},c)
+  def test_inherited_numerical_hashes(self):
+@@ -40,7 +40,7 @@
+    with self.assertRaises(ValueError):admit(*args)
+  def test_actual_parent_metadata_and_source_mapping(self):
+   from parent_binding import check
+-  result=check(R,remote=False);self.assertEqual(result['available_native_indices'],[5,10,15,19])
++  result=check(R,remote=False);self.assertEqual(result['available_native_indices'],list(range(20)))
+  def test_two_controller_starts_compete_for_one_lock(self):
+   from start_controller import controller_start_lock
+   with tempfile.TemporaryDirectory() as temp:

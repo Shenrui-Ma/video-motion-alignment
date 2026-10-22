@@ -1,0 +1,255 @@
+--- base/analysis/postrun/verify_pair.py
++++ variant/analysis/postrun/verify_pair.py
+@@ -39,7 +39,7 @@
+  owner=read(root/'processes/service.json');checks['actual_runtime_device']=(owner['gpu_uuid']==runtime['gpu_uuid'] and owner['port']==runtime['port'])
+  pair=[run for run in order if jobs[run]['source_id']==source];require(len(pair)==2,'paired registry differs')
+  if native_only:pair=pair[:1]
+- result={'schema':'r123-native-runtime-gate-v1' if native_only else 'r123-paired-runtime-gate-v1','source_id':source,'prompt_version':'official_edit_prompt_with_task_reference_envelope','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'One source with verbatim official edit sentence and minimal reference/task envelope; all valid frames reviewed for requested edit, scene preservation and separately visible action timing.','condition_tensor_files':[],'service_owner':{'pid':owner['pid'],'identity':owner['identity']}}
++ result={'schema':'r123-native-runtime-gate-v1' if native_only else 'r123-paired-runtime-gate-v1','source_id':source,'prompt_version':'official_edit_prompt_with_task_reference_and_generic_retention','runtime_profile_sha256':runtime_sha,'runtime_profile':runtime,'checks':checks,'runs':{},'created_unix':time.time(),'quality_assessment':'One source with verbatim official edit sentence and minimal reference/task envelope; all valid frames reviewed for requested edit, scene preservation and separately visible action timing.','condition_tensor_files':[],'service_owner':{'pid':owner['pid'],'identity':owner['identity']}}
+  conditions={};noises={};manifests={};seen=set()
+  for run in pair:
+   row=validate_job(run,root);arm=row['arm'];case=row['case'];forced=arm=='forced';graph=read(root/'configs/graphs'/f'{run}.json');grid=torch.tensor([float(x) for x in graph['9']['inputs']['sigmas'].split(',')],dtype=torch.float32).tolist()
+--- base/configs/graphs/r123_short_0358_seed2026101701_forced.json
++++ variant/configs/graphs/r123_short_0358_seed2026101701_forced.json
+@@ -52,11 +52,11 @@
+         "23",
+         0
+       ],
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
+       "run_id": "r123_short_0358_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101701,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
+       "run_id": "r123_short_0358_seed2026101701_forced",
+       "pair_id": "r123_short_0358_seed2026101701"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r123_short_0358_seed2026101701_forced",
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
+       "source_run_id": "r123_short_0358_shared",
+       "run_id": "r123_short_0358_seed2026101701_forced"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r123_short_0358_seed2026101701_forced",
+-      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- base/configs/graphs/r123_short_0358_seed2026101701_native.json
++++ variant/configs/graphs/r123_short_0358_seed2026101701_native.json
+@@ -52,11 +52,11 @@
+         "23",
+         0
+       ],
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+       "width": 1312,
+       "height": 736,
+       "length": 107,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
+       "run_id": "r123_short_0358_shared",
+       "semantic_fps": 2,
+       "phase_frames": 0
+@@ -66,7 +66,7 @@
+     "class_type": "H3EventAuditNoise",
+     "inputs": {
+       "noise_seed": 2026101701,
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit",
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
+       "run_id": "r123_short_0358_seed2026101701_native",
+       "pair_id": "r123_short_0358_seed2026101701"
+     }
+@@ -213,7 +213,7 @@
+       "step_start": 6,
+       "step_end": 15,
+       "run_id": "r123_short_0358_seed2026101701_native",
+-      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit/router"
++      "audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/router"
+     }
+   },
+   "51": {
+@@ -227,7 +227,7 @@
+         "5",
+         1
+       ],
+-      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit",
++      "source_audit_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit",
+       "source_run_id": "r123_short_0358_shared",
+       "run_id": "r123_short_0358_seed2026101701_native"
+     }
+@@ -240,7 +240,7 @@
+         0
+       ],
+       "run_id": "r123_short_0358_seed2026101701_native",
+-      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020/audit/x0",
++      "output_dir": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020/audit/x0",
+       "width": 1312,
+       "height": 736,
+       "length": 107
+--- base/configs/predecessor.json
++++ variant/configs/predecessor.json
+@@ -2,13 +2,12 @@
+   "schema": "r123-predecessor-v1",
+   "required": [
+     {
+-      "key": "R121",
+-      "remote_root": "/data4/researcher/h3_runs/timing_ive_official_positive_recheck_r121_20261020",
+-      "producer_seal_sha256": "0604a82a3c79a8560ab094ba9afc703d4cd68f8ca806cd3e7e822f03a61feb8f",
+-      "runtime_sha256": "97c1c1cd79d9fe68ca6afaec844e033f7525fbc7f877d8016493a1f1142df0e1",
++      "key": "R123",
++      "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020",
++      "producer_seal_sha256": "a0a596ff72906e7899e482dba2ff09930eaa8a492dce43330700b2429fe9edc7",
++      "runtime_sha256": "7e564d23d2c2cb5ca1987042f5a8bd430dfe6ac4b9546f3ce4b1637e0466e200",
+       "kind": "screen",
+       "required_sources": [
+-        "short_0252",
+         "short_0358"
+       ]
+     }
+--- base/configs/prompts/short_0358.txt
++++ variant/configs/prompts/short_0358.txt
+@@ -3,4 +3,7 @@
+ 
+ summary:
+ [video editing] The target video is an edited version of <Video 1>.
+-Add a pair of glasses to the man.+Add a pair of glasses to the man.
++
++retention_analysis:
++<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.--- base/configs/runtime.json
++++ variant/configs/runtime.json
+@@ -1,7 +1,7 @@
+ {
+   "status": "CPU_PREPARED_ROOT_LAUNCH_PENDING",
+   "host": "H3_SERVER_B",
+-  "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_r123_20261020",
++  "remote_root": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_retention_r123_20261020",
+   "gpu_uuid": "GPU-REDACTED",
+   "port": 8587,
+   "lane": "single",
+@@ -9,10 +9,10 @@
+   "python": "/data3/researcher/ComfyUI/.venv/bin/python",
+   "dependencies": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/runtime_deps",
+   "models": "/data3/researcher/ComfyUI-H3/models",
+-  "profile_scope": "One drinking source: exact official edit sentence plus minimal task/reference envelope; Native review precedes paired fixed6..14.",
++  "profile_scope": "R123 generic retention text variant, reused original numerical runner.",
+   "kj_nodes": "/data3/researcher/h3_runs/closure_tutorials_53592/01-anime/custom_nodes/ComfyUI-KJNodes",
+   "uid": 1004,
+-  "profile": "host41_gpu2_r123_prompt_envelope",
++  "profile": "host41_gpu2_r123_generic_retention",
+   "reserve_vram": 8,
+   "memory_mode": "normal",
+   "expected_gpu_index": 2
+--- base/configs/scientific_contract.json
++++ variant/configs/scientific_contract.json
+@@ -55,7 +55,7 @@
+       "run_id": "r123_short_0358_seed2026101701_native",
+       "source_id": "short_0358",
+       "seed": 2026101701,
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+       "parent_graph": "configs/parent_graphs/short_0358_native.json",
+       "parent_graph_sha256": "9f9cd2cbfc225b2976e0521e11c37019e43d3d82131f829a5ec6ca4d0ea40d6c",
+       "video": "short_0358_video.mp4",
+@@ -90,10 +90,10 @@
+       ],
+       "original_source": "short_0358_original.mp4",
+       "arm": "native",
+-      "prompt_version": "official_edit_prompt_with_task_reference_envelope",
+-      "parent_semantics": "R121 same source/seed/noise/numerics; only minimal task/reference prompt envelope changes.",
++      "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
++      "parent_semantics": "R123 exact graph numerics and R121 actual noise; only generic retention text added.",
+       "original_source_sha256": "42b3b299e92ae723965f58c6c5c333623afb380ccf39181481f05629478a532d",
+-      "prompt_sha256": "9144cc87a8a968fda9f55566d1ce79b40de67793a55af3033189d831a26fc7b8",
++      "prompt_sha256": "6c04241c70933e5953ece3ce89abc95656db78d22cd55627c652a328b819a754",
+       "evaluation_indices": [
+         0,
+         1,
+@@ -208,7 +208,7 @@
+       "run_id": "r123_short_0358_seed2026101701_forced",
+       "source_id": "short_0358",
+       "seed": 2026101701,
+-      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.",
++      "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+       "parent_graph": "configs/parent_graphs/short_0358_native.json",
+       "parent_graph_sha256": "9f9cd2cbfc225b2976e0521e11c37019e43d3d82131f829a5ec6ca4d0ea40d6c",
+       "video": "short_0358_video.mp4",
+@@ -243,10 +243,10 @@
+       ],
+       "original_source": "short_0358_original.mp4",
+       "arm": "forced",
+-      "prompt_version": "official_edit_prompt_with_task_reference_envelope",
+-      "parent_semantics": "R121 same source/seed/noise/numerics; only minimal task/reference prompt envelope changes.",
++      "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
++      "parent_semantics": "R123 exact graph numerics and R121 actual noise; only generic retention text added.",
+       "original_source_sha256": "42b3b299e92ae723965f58c6c5c333623afb380ccf39181481f05629478a532d",
+-      "prompt_sha256": "9144cc87a8a968fda9f55566d1ce79b40de67793a55af3033189d831a26fc7b8",
++      "prompt_sha256": "6c04241c70933e5953ece3ce89abc95656db78d22cd55627c652a328b819a754",
+       "evaluation_indices": [
+         0,
+         1,
+@@ -368,7 +368,7 @@
+   "pair_keys": [
+     "short_0358"
+   ],
+-  "prompt_version": "official_edit_prompt_with_task_reference_envelope",
++  "prompt_version": "official_edit_prompt_with_task_reference_and_generic_retention",
+   "router": {
+     "mode": "mass_preserve",
+     "alpha": 1.0,
+@@ -393,6 +393,6 @@
+     "root_final_close_releases": true,
+     "failure_releases_exact_owned": true
+   },
+-  "scope_note": "R121 drinking source and actual noise reused. Only task/reference envelope added; the edit instruction remains verbatim.",
++  "scope_note": "R123 task/reference envelope plus generic retention; same R121 actual noise and numerical files. Independent variant root with original registered run IDs.",
+   "source_definitions_sha256": "cb4f1ea350e1124aa246bf29ef658a7fd75c04d876261f4b51f7b90e00aa0532"
+ }
+--- base/scripts/r123_contract.py
++++ variant/scripts/r123_contract.py
+@@ -6,7 +6,7 @@
+ SOURCES = ('short_0358',)
+ ARMS = ('native', 'forced')
+ SOURCE_LENGTHS = {'short_0358': (107, 105)}
+-PROMPTS = {'short_0358': 'subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.'}
++PROMPTS = {'short_0358': "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary."}
+ ROUTER = {'mode':'mass_preserve','alpha':1.0,'blocks':[0,50],'steps':[6,15],
+           'physical_frames':'[0,valid_frame_count-1] per source',
+           'query_support':'all spatial queries in each position bin overlapping valid physical time; pure-pad bins remain native',
+@@ -68,8 +68,8 @@
+         require(case['reference_video_count']==1 and case['reference_image_count']==0,'reference scope changed')
+         require(case['original_task']==d['original_task'],'official task record changed')
+         prompt=root/'configs/prompts'/(source+'.txt')
+-        require(case['prompt_version']==s['prompt_version']=='official_edit_prompt_with_task_reference_envelope','prompt label changed')
+-        require(prompt.read_text()==case['prompt']==PROMPTS[source] and case['prompt'].splitlines()[-1]==case['original_task']['edit_prompt'],'official edit_prompt must be verbatim')
++        require(case['prompt_version']==s['prompt_version']=='official_edit_prompt_with_task_reference_and_generic_retention','prompt label changed')
++        require(prompt.read_text()==case['prompt']==PROMPTS[source] and case['prompt'].split('\n\nretention_analysis:')[0].splitlines()[-1]==case['original_task']['edit_prompt'],'official edit_prompt must be verbatim')
+         require(sha(prompt)==case['prompt_sha256'],'prompt digest changed')
+         for key in ('video','provenance','original_source'):
+             require(case[key]==d[key] and case[key+'_sha256']==d[key+'_sha256'],'source media binding changed')

@@ -1,0 +1,108 @@
+动作相位误差→参考读取时间中心校正：限时碰撞审查
+日期：2026-10-16。仅 primary 文献审查与机制分析；未修改模型／配置，未操作 GPU。
+范围：TempoControl、Sync-LoRA、FlowMotion、MotionEcho 的方法原文；定向补查闭环、物理时间重映射与局部相位控制。没有宣称检索穷尽。
+
+判定
+
+在本轮已读原文中，未找到与以下完整组合完全相同的实现：冻结视频编辑器；若干 denoising checkpoints 的 clean endpoint 预测解码；外部预训练姿态感知估计源／目标局部 signed lag 与置信；将该误差转成参考视频 attention 读取中心的有符号时间位移；不优化 latent，不引入生成教师，隔几步闭环重估。
+因此暂不因“已有 exact 同类”直接否决。它比 coverage 更贴合当前“动作做了但时间错位”的现象，值得保留一个便宜的 actuator oracle 测试。但这不是新颖性认证；它的组成部分（动态反馈、动作相位表示、物理时间条件、attention 路由）分别已有先例。单纯拼接现有工具依然可能只是工程控制器。
+
+当前只能做：检验 δ∈{−4,0,+4} latent time bins 的参考中心位移，是否在固定其他条件时引起可重复、有方向的最终动作时间响应。不要马上实现昂贵的 decode／tracker 闭环，更不能将“+4 某次更好”称为闭环方法成功。
+
+一、四篇指定近邻：机制与候选差别
+
+1. TempoControl
+原文 §4：读 video→text attention，得到目标 text-token 的物理时间响应曲线；对用户指定的时间 mask，使用 Pearson correlation 损失，以及 magnitude／entropy 辅助项，更新 noisy latent。采样内达到 correlation 阈值时提前停止本步优化；官方 wan/text2video.py 624–734 有实际 gate／early-stop。
+重合：按物理时间误差做采样内闭环，达到要求停止，训练免费。不能声称“首次动态按动作时间误差引导”。
+具体差别：它的传感信号是文字概念的 attention profile，目标是用户时间 mask；执行器是 latent 梯度更新。本候选估计视觉动作 signed phase lag，执行器是 source-reference 读取时间坐标。已读方法未出现 pose-lag→reference-key 时间中心校正。
+来源：https://arxiv.org/html/2510.02226v3 ，§4；已核代码：https://github.com/Shira-Schiber/TempoControl/blob/ac28c443ec112e0da6f9f5cbca26a2218d8d12dc/wan/text2video.py#L624 。
+
+2. Sync-LoRA
+§3 与补充算法：source 和 target 沿时间 token 轴拼接，同一物理位置共享经 VAE/FPS 缩放的 3D RoPE；source token diffusion timestep=0、target 为当前噪声步，训练 LoRA 保持 portrait video 同步。这里 per-token timestep 是去噪条件，与视频时间区分。
+重合：编辑时保证动作同步、让源目标时间坐标对应。
+差别：其映射是给定坐标下学习到的同步，不是在线估计 target 残余相位误差再移动 source 读取中心。训练后的架构，非本候选冻结测试时控制。未见方法中的 decode→pose反馈链。
+来源：https://arxiv.org/html/2512.03013v1 ，§3、补充伪代码；https://github.com/SagiPolaczek/Sync-LoRA 。本轮复读原文，代码沿用此前核对的仓库证据，不声称已运行。
+
+3. FlowMotion
+§3.3：每个去噪步取源／目标 clean-latent prediction，既对齐预测 latent，也对齐其跨帧差分；在固定模型预测的近似下优化 latent，配合 §3.4 累积方向正则。附录明确区分 velocity、一步去噪后 latent、预测 clean endpoint，不能把 flow velocity 当视频光流。
+重合：无需生成教师、采样过程中从预测端点评估运动并纠偏。
+差别：其 loss 不显式分解 signed phase lag 与幅度差，也不把 lag 变成 reference-time coordinate；执行器是 latent／velocity 更新。本候选真正可区分的不是“用 x0”，而是相位状态与参考时间执行器。
+来源：https://arxiv.org/html/2603.06289v1 ，§3.3–3.4、Appendix A/D；官方代码：https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py 。
+
+4. MotionEcho（用最新 v2）
+§3.3–3.4：学生预测端点重新加噪，调用完整教师执行运动引导；将教师校正端点反馈学生。过去数步的 motion loss 均值超过阈值就启用教师，教师 motion loss 达标便提前终止。DiT 扩展还可使用 MOFT/DMT/DiTFlow 运动表示和参考 K/V。
+重合：误差触发、短时指导、再监测、达标停止的闭环已经存在。
+差别：其执行器是教师恢复的生成轨迹／端点，未在已读方法看到根据视觉 signed lag 调 source-reference 物理读取时间。去掉 teacher 不是充分贡献；要证明 phase-specific 执行器比泛 motion loss 更可解释、低代价，且不破坏编辑。
+来源：https://arxiv.org/html/2506.19348v2 ，§3.3–3.5；https://euminds.github.io/motionecho/ 。本轮没有完整官方可运行实现复现，方法判断来自原文。
+
+二、新增必须引用的近邻
+
+5. TalkingPose: Efficient Face and Gesture Animation with Feedback-guided Diffusion Model
+§3.3 与 Algorithm 1 明确提出无需额外训练的 inference CLC，但反馈的是上一物理帧完整生成后的 latent：x_(k+1)=z_T+β(z_hat_(0,k)−z_T)，作为下一帧的初始输入，再结合当前 driving pose。骨干与 motion encoder 本身训练过。
+不属于本候选：它不测 source/target signed phase lag，不在同一次全视频去噪内修改 reference-time 读取中心。但“训练免费闭环姿态视频生成”这个宽泛标题已被占据。
+来源：https://arxiv.org/html/2512.00909v1 ，§3.3、Algorithm 1。
+
+6. Controllable Text-to-Motion Generation via Modular Body-Part Phase Control
+§4 用局部 body-part phase 表示 amplitude/frequency/phase shift/offset；训练 Phase Encoder／Phase ControlNet，将 scalar 相位参数通过 residual modulation 注入 diffusion 或 flow 骨干。用户可抽取当前生成运动的 phase、修改参数后再生成；示例明确移动抓头动作的时刻。
+§4.4 还有更近的一点：训练阶段会解码预测的 clean latent，使用冻结的 phase extractor 提取生成 phase，并与参考 phase 做局部 masked L1 损失。因此“decode x0→提取局部 phase→与参考比较”的传感链也不是新组件。它在训练中优化 Phase Encoder／ControlNet，推理使用用户指定的参数。
+不属于 exact 候选：其对象是结构化 motion generation，依赖训练控制分支，不是 frozen RGB editor 的在线 pose-lag 传感与 reference-attention 时间校正。但“局部相位区别于幅度、低维参数控制 timing”必须承认已有明确研究。
+来源：https://arxiv.org/html/2603.19795v1 ，§4、Fig.4；作者页：https://jixiii.github.io/bp-phase-project-page/ 。本轮读原文，未核全代码。
+
+7. BulletTime: Decoupled Control of Time and Camera Pose for Video Generation
+§3.2 将每输出帧关联连续 world-time τ_i，经 Time-RoPE 与 Time-AdaLN 控制物理时间；source/target tokens 拼接，训练 CogVideoX 与 4D 控制模块，可产生暂停、慢速和其他时间重映射。
+这是“通过 attention 时间编码控制参考视频的物理时间”强近邻。区别只在闭环估计残余 lag、冻结模型和保持编辑任务，不在“我们首次移动时间坐标”。它由用户给定时间映射，已读方法未见推理内 pose误差自动更新。
+来源：https://arxiv.org/html/2512.05076v1 ，§3.2–3.4、实现设置、§4.2。
+
+8. PhaseLock / Physics in 2-Steps: Locking Motion Priors Before Visual Refinement Erases Them
+§4.2–4.3：同噪声先做 few-step 生成，取 inter-frame latent delta 作为 motion prior；正式多步生成中将 prior delta 与当前 delta 差值直接加到后续帧 latent，首帧固定，采用预定区间内线性衰减强度。无需额外训练，不依赖生成教师，也不必做反向传播优化。
+因此“不训练、不用 teacher、不反传，直接按运动误差纠正”这个大类也不是空白。其 phase 是 Fourier 空间相位／跨帧 delta 解释，不是估计动作发生晚 δ 秒；没有 source-time 读取中心执行器。应避免将 phase 的不同定义混为一种。
+来源：https://arxiv.org/html/2606.06361v1 ，§4.2–4.4。
+
+9. 其他已读先例与同名误导
+Vidu S2、Wan-Animate-2 的同帧路由，以及 UNIC／VideoCoF 的时间坐标对应继续构成执行器基础 prior；把中心改成 τ+δ 不会自动摆脱这些机制。
+Temporal Alignment Guidance: On-manifold Sampling in Diffusion Models 的 time gap 是扩散噪声时间／流形偏离，非动作物理时间 lag。它是名字相近但本轮不据其标题判 exact 碰撞： https://openreview.net/pdf?id=TubfvqZNEr 。
+DiffPerformer（CVPR 2024）反馈 implicit video representation/latent guidance 来改善 pose-aligned 人体视频；本轮只确认 CVF 摘要／方法概述，没有完成其全文逐式核对，不能据此排除所有细节碰撞。后续若闭环候选通过可控性门槛，应继续查这条引用链。
+
+三、必须避免的原理错误
+
+1. 把相位传感器定义清楚
+设源动作特征 f_ref(τ)，当前预测视频 f_gen,s(τ)。定义 E_s(d)=Στ wτ·ρ[f_gen,s(τ)−f_ref(τ−d)]；d>0 表示生成动作落后源视频。可用归一化关节角、root/scale 归一姿态与局部速度；RGB外观差不应主导。最小 E 的 d 才是一个 shift 估计，attention 时间重心不是它。
+至少同时看：有效关节／帧数、移位后残差、E(0) 相对 E(d) 的下降、最优与远离邻域的次优峰间隔、幅度比例、相邻区间动作顺序。重复动作有多峰时不能强行选一个 lag；遮挡、幅度太低、动作本身改变时应 abstain。置信度不是 pose detector 单帧 confidence 一个数。
+
+2. clean endpoint 预测≠已经确定的最终视频
+应解码模型预测的 x0，而不是直接解码当前 noisy latent。H3 prediction parameterization/sigma 必须从实际 pipeline 核对，不能盲套 x0=x−t·v。VAE temporal chunk 要保持同样边界条件与帧时间；稀疏解码不能错位。
+早期 x0 可能看起来有动作，却不预测最终 event onset；晚期易观测时可能已失去可控性。必须存在 observability 与 controllability 重叠的去噪区间。单最终视频 oracle 对齐只能证明执行器可能有用，不证明中间 pose sensor 可用。
+
+3. τ+δ 的符号与增益不是定理
+若输出 y(τ)=reference(τ−d0)，把 source 读取中心前移 u 理想上产生 y_u(τ)=reference(τ+u−d0)，则 lag e(u)=d0−u；这只是假设。H3 的响应可能非线性、分层不同、跨事件耦合，或直接损伤人物动作。
+先实测 g≈[e(+h)−e(−h)]/(2h)，单位统一成秒。只有 g 有稳定符号且显著非零，才可考虑 u_new=u−κe/g。直接写 u=e 等价于未验证 g=−1；若符号反了就是正反馈。
+“几步后归零”也不是自然必然：可能去掉控制后偏移复发。需要 hold/decay 与重测，不能在第一次误差为零时骤然复位并声称稳定。禁止把两个物理时间轴/去噪时间轴混着积分。
+
+4. pretrained pose tracker 是外部模型
+可以称无需新训练、无需生成 teacher，但不能说不引入任何外部模型。调用检测器、VAE 解码、置信计算的成本和失败率要计入。改变人物体型与二次元域偏移可能让 tracker 有系统误差；真人成功不能直接推到二次元。
+
+四、当前最小 oracle 试验应该证明什么
+
+先等待同配置 full-resolution native 确认错误复现。正常 1024 结果不能按旧 +13f 标作坏例。
+维持相同 source／target identity／seed／sigma／后端／分辨率／采样步，固定已有 routing 强度、head/layer/step 作用范围，仅变中心 offset u∈{−4,0,+4} bins。该三臂测的是带路由执行器的方向响应；native 还需作为无路由对照。将 bins 的真实秒数由 preprocessing metadata 换算，不猜 4bins=固定若干帧。
+预期可证伪命题：同一源动作在三个视频中的 onset/peak/offset 随 u 有一致方向变化；pose 幅度、身份与动作内容没有同时崩坏。记录全片其他事件，排除“目标动作提前但挤走另一动作”。
++4 改善不是错误对照失效：如果 native 本来晚，读未来参考正可能补偿。若 +4 和 −4 都类似改善，可能是通用增强／规则化；若两者都恶化但方向有序，仍有可控性但当前增益太强。先验有限追加一次弱 α 复验可区分过强干预，但不能无限调参数。
+如果 e(+4)、e(0)、e(−4) 无稳定单调性，或误差变化全来自编辑失败／动作变化，暂停闭环候选。不可把姿态 tracker 用来替代人的失败判断。即使单例单调，还至少需要另一 seed 与另一事件确认增益符号。
+
+五、如果 oracle 有效，下一道门槛才是闭环
+
+在一条 native 的既有采样过程保存少量预测 x0，解码同一局部区间，比较中间 lag 与最终 lag、置信门槛和 actuator 可用阶段。不先加自动干预，就能排除 sensor 早期无用／晚期来不及的问题。
+最小 sensor 校准可对源 pose 序列施加已知时间移位、幅度缩放、遮挡和周期重复，检验它能识别 signed lag 并 abstain；这不需要训练生成器，成本也小于跑整批闭环。
+只有 sensor 与 actuator 两个门槛都过，才测试反馈；比较固定 zero-offset、事先 oracle 固定 offset、闭环估计 offset，以及同次数 decode/tracker 但不干预的监测对照。闭环必须在不同故障幅度/符号的样例上优于一个固定最优 offset，否则没有证据需要反馈系统。
+
+可保留的最窄研究命题：动作相位这一低维可观测误差，能在冻结多模态视频编辑器中通过参考时间读取中心这一低维执行器被有方向地校正；在置信不足或非相位错误时停止，避免泛 motion enhancement 的编辑破坏。
+不能保留的宽泛 claim：首个动态引导、首个 phase motion control、首个无 teacher 无训练 motion correction、首个 temporal attention alignment。
+
+当前推荐状态
+
+ORACLE ACTUATOR TEST ONLY；CLOSED-LOOP NOT YET JUSTIFIED。
+未找到 exact 同类使它有资格接受一次有限可控性检验，不代表已找到可投稿创新。若原始故障不可复现、signed response 不稳定、中间 pose 不可观测、或固定偏移已有同等效果，应停止，不继续为创新包装更复杂控制器。
+
+检索记录与局限
+
+定向组合：video editing phase feedback diffusion；motion transfer time warping；temporal offset guidance；video diffusion closed-loop motion pose；phase alignment inference；reference phase controller。重点阅读上述四篇指定方法与新增 TalkingPose、Modular Body-Part Phase Control、BulletTime、PhaseLock 原文方法。机器人闭环控制、播放器延迟、diffusion-time alignment 与本题不是同一物理量，未把这些搜索命中当作 exact prior。没有完全遍历 motion synthesis、视觉伺服、audio-video synchronization 的全部文献，也没有宣称 absence proof。

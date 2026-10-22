@@ -1,0 +1,10 @@
+1. 输入职责与标签匹配：R98 将图片的男性身份/衣服/白背景分别定义，视频另供动作和时间结构；动作以 attribute_transfer 迁移到目标角色。官方指南§2.1、§2.3、§4.1允许图片给外观、视频给动作，并分别标记可复用动作与整片结构。
+来源：https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/skills/h3-prompt-writing/references/ref-en.txt#L39-L88
+
+2. 提示结构匹配：R98 包含依次排列的六节、[Shot 1] 和完整动作描述。当前任务同时转移图片人物及图片背景，使用 [reference generation] 符合指南§3；指南没有要求这类输入一律写 video editing 或把角色图指定成首帧。
+来源：https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/skills/h3-prompt-writing/references/ref-en.txt#L121-L167
+
+3. 官方将 Context-IR 推荐为语义预处理，同时允许按指南自建提示系统；R98 属于后者。所查官方 Ref2VA 可复现请求直接提交结构化提示、参考媒体和目标尺寸/时长，没有列出角色迁移专用的必需初始化、反演或参考强度参数。不能由此认定 R98 与官方所有内部默认完全相同，也没有新证据支持把失败归因于漏开某个参数。
+来源：['https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md#recommended-workflow', 'https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/scripts/readme/reproducible-768p-ref2va-request.sh']
+
+本轮未发现明确的必需输入/提示/初始化误用；R98已经覆盖官方主要角色分工与结构化写法。后续以实际身份、场景、动作结果验收。

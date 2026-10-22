@@ -1,0 +1,1884 @@
+
+
+
+Untwisting RoPE: Frequency Control for Shared Attention in DiTs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      Report GitHub Issue
+      ×
+    
+
+    
+
+      Title:
+      
+
+      
+Content selection saved. Describe the issue below:
+
+      Description:
+      
+    
+
+    
+      Submit without GitHub
+      Submit in GitHub
+    
+  
+
+
+    
+    arXiv is now an independent nonprofit!
+    Learn more
+    ×
+  
+
+
+  
+
+    
+      Back to arXiv
+    
+  
+  
+  
+    Why HTML?
+    
+      
+        
+      
+      Report Issue
+    
+    
+      
+        
+        
+      
+      Back to Abstract
+    
+    
+    
+      
+        
+      
+      Download PDF
+    
+    
+      
+        
+        
+      
+    
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+          
+          
+        
+      
+      
+        
+          
+          
+        
+      
+      
+        
+          
+          
+        
+      
+    
+  
+
+
+
+
+Abstract.
+
+1 Introduction
+
+2 Related Works
+
+
+Attention-based image manipulation
+
+Diffusion transformers and RoPE
+
+
+3 Preliminaries
+
+
+3.1 Rotary Positional Encoding (RoPE)
+
+
+One-dimensional sequence
+
+Multi-dimensional sequence
+
+
+
+4 Attention-sharing
+
+
+RoPE frequency bands and attention
+
+
+5 Frequency-aware modulation
+
+
+Timestep scheduling
+
+Why Modulating RoPE’s Frequency Bands Works?
+
+
+6 Experiments
+
+
+Comparison
+
+Discussion on shifted RoPE
+
+
+7 Conclusion and future works
+
+References
+
+A Scaling interpolation function
+
+B User study
+
+C Comparison with Flux Kontext
+
+D Extra results
+
+
+
+
+
+
+  
+    License: CC BY 4.0
+  
+  
+
+arXiv:2602.05013v1 [cs.GR] 04 Feb 2026
+
+
+
+
+Untwisting RoPE: Frequency Control for Shared Attention in DiTs
+Journal: TOG
+
+
+
+Aryan Mikaeili
+
+Affiliation: Simon Fraser University, Burnaby, Canada
+
+email: aryan_mikaeili@sfu.ca
+
+, 
+Or Patashnik
+
+Affiliation: Tel Aviv University, Tel Aviv, Israel
+
+, 
+Andrea Tagliasacchi
+
+Affiliation: Simon Fraser University,, University of Toronto, Canada
+
+, 
+Daniel Cohen-Or
+
+Affiliation: Tel Aviv University, Tel Aviv, Israel
+
+ and 
+Ali Mahdavi-Amiri
+
+Affiliation: Simon Fraser University, Burnaby, Canada
+
+
+
+Figure 1. Shared-attention in RoPE-based diffusion transformers often collapses into reference copying: high-frequency RoPE components strongly bias attention toward spatially aligned reference tokens, causing the model to reproduce reference content rather than extract its style (top row). We analyze this frequency structure and introduce a frequency-aware modulation of RoPE that restores meaningful, semantically guided shared attention. Our method enables controllable style-aligned generation in which stylistic attributes are transferred without duplicating reference content (bottom row).
+
+
+Abstract.
+    
+
+Positional encodings are essential to transformer-based generative models, yet their behavior in multimodal and attention-sharing settings is not fully understood. In this work, we present a principled analysis of Rotary Positional Embeddings (RoPE), showing that RoPE naturally decomposes into frequency components with distinct positional sensitivities. We demonstrate that this frequency structure explains why shared-attention mechanisms, where a target image is generated while attending to tokens from a reference image, can lead to reference copying, in which the model reproduces content from the reference instead of extracting only its stylistic cues. Our analysis reveals that the high-frequency components of RoPE dominate the attention computation, forcing queries to attend mainly to spatially aligned reference tokens and thereby inducing this unintended copying behavior.
+Building on these insights, we introduce a method for selectively modulating RoPE’s frequency bands so that attention reflects semantic similarity rather than strict positional alignment. Applied to modern transformer-based diffusion architectures, where all tokens share attention, this modulation restores stable and meaningful shared attention. As a result, it enables effective control over the degree of style transfer versus content copying, yielding a proper style-aligned generation process in which stylistic attributes are transferred without duplicating reference content.
+  
+
+
+
+
+1. Introduction
+
+
+
+
+Transformers underpin today’s most powerful generative models (Peebles and Xie, 2022; Black Forest Labs, 2024).
+In particular, diffusion transformers, such as Multi-modal Diffusion Transformers (MMDiTs), adapt the transformer architecture to the diffusion framework, enabling joint modeling of textual and visual representations throughout the denoising process.
+For these models, positional encodings are essential, as they supply the spatial structure that the attention mechanism itself lacks.
+Without positional information, the model treats tokens as an unordered set, preventing coherent reasoning about spatial layout and making high-quality image generation impossible. Among the various designs, Rotary Positional Embeddings (RoPE) (Su et al., 2021) have proven effective in practice and are widely adopted in diffusion transformers, injecting relative position information directly into attention. RoPE therefore serves as a key mechanism that restores the locality once provided by convolutional networks.
+
+
+
+
+Beyond standard text-conditioned generation, shared-attention mechanisms have proven highly effective in UNet-based diffusion models, where tokens from a target image attend directly to those of a reference. This design provides a flexible interface for image manipulation tasks such as appearance transfer (Alaluf et al., 2023), style transfer (Hertz et al., 2023; Deng et al., 2024a; Deng et al., 2024b), and reference-based editing (Cao et al., 2023; Geyer et al., 2023), by implicitly computing semantic correspondences between images. As diffusion transformers increasingly replace convolutional UNets, understanding how these shared-attention mechanisms translate to transformer-based architectures becomes of critical importance.
+
+
+
+
+Specifically, unlike UNet–based diffusion models, whose attention layers do not rely on positional encodings, diffusion transformers depend critically on positional information, with RoPE playing a central role.
+In shared-attention settings, however, the strong spatial bias introduced by RoPE can dominate the attention computation, disrupting the semantic correspondences that shared attention relies on. As a result, instead of enabling stylistic or appearance transfer, the model often exhibits reference copying, reproducing content from the reference image rather than transferring features from it (see Figure 1).
+This effect has been recently observed (Avrahami et al., 2025; Zhang et al., 2025; Wei et al., 2025; Chen et al., 2025), but it has not yet been clearly understood.
+Style-aligned image generation aims to produce multiple images with diverse semantic content while maintaining a consistent visual style. As illustrated in Figure 2, when this objective is pursued in diffusion transformers, either disabling attention sharing fails to align styles, or enabling it naïvely leads to collapse into near-identical images due to content leakage from the reference.
+
+
+
+
+To understand this behavior, we perform a principled analysis of RoPE and study its impact on the shared attention mechanism. Specifically, we show that different frequency components of RoPE exhibit different degrees of positional sensitivity.
+In particular, we show that the high-frequency components exert a disproportionately strong influence on the attention computation, steering queries in the target image toward spatially aligned reference tokens. This positional dominance provides a clear explanation for why shared-attention mechanisms tend to collapse into content copying (see Figure 1-top row).
+
+
+Figure 2. Style-aligned image generation aims to produce images with different contents but a consistent style.
+(a) StyleAligned (Hertz et al., 2023) applies shared attention in SDXL, achieving style alignment but introducing artifacts.
+(b) Flux without attention sharing fails to produce style-aligned image sets.
+(c) Plain attention sharing in Flux leads to near-identical outputs due to positional bias.
+(d) Our frequency-aware attention sharing produces style-aligned images while preserving content fidelity to the text prompts.
+
+
+
+
+
+Building on this insight, we introduce an effective method for selectively modulating the frequency bands of RoPE. By attenuating the high-frequency components or amplifying the low-frequency ones, we rebalance the positional bias and allow attention to be guided by semantic similarity rather than strict spatial alignment. When applied to MMDiT-based architectures, this modulation restores stable and meaningful shared attention (Figure 1-bottom).
+
+
+
+
+Figure 2 summarizes the problem setting and the resulting contribution of this work. While shared attention enables style-aligned generation in UNet-based diffusion models (Figure 2-a), directly applying it to diffusion transformers leads to systematic failures: without attention sharing, styles do not align (Figure 2-b), and naïve sharing collapses the generation into near-identical images due to content leakage (Figure 2-c). We show that this behavior stems from RoPE’s positional bias and that selectively modulating its frequency components restores meaningful shared attention, enabling style-aligned generation that preserves semantic diversity (Figure 2-d).
+
+
+
+
+This understanding enables practical and controllable style-aligned generation: the model can follow stylistic cues from a reference image without mistakenly reproducing its content.
+Beyond style-aligned generation, our analysis reveals that the frequency structure of RoPE provides a direct and controllable handle for shaping how attention trades off between positional locality and semantic association in diffusion transformers.
+
+
+
+
+
+2. Related Works
+
+
+
+
+Attention-based image manipulation
+
+
+
+
+Attention sharing allows target tokens to attend to reference tokens during synthesis and has been explored across image generation and editing. Plug-and-Play (Tumanyan et al., 2023) injects reference attention for editing, MasaCtrl (Cao et al., 2023) replaces target keys and values to enable non-rigid edits, and Alaluf et al. (2023) show that attention sharing generalizes across images for zero-shot appearance transfer.
+
+
+
+
+This mechanism has also been applied to localized image editing (Patashnik et al., 2024; Alimohammadi et al., 2025; Xu et al., 2024; Koo et al., 2024; Avrahami et al., 2025), layout-guided generation (Eldesokey and Wonka, 2025; Liu et al., 2025; Mikaeili et al., 2025), identity-consistent synthesis (Tewel et al., 2024), and video editing (Geyer et al., 2023; Qi et al., 2023).
+
+
+
+
+StyleAligned (Hertz et al., 2023) is a representative shared-attention method for generating style-consistent image sets. However, it is built on UNet architectures, whose attention formulation and convolutional inductive biases differ fundamentally from those of DiTs. This mismatch complicates the transfer of shared-attention techniques to transformer-based diffusion models, where positional structure is encoded exclusively via RoPE.
+
+
+
+
+
+Diffusion transformers and RoPE
+
+
+
+
+Diffusion Transformers (DiTs) (Peebles and Xie, 2022) have become the dominant architecture for text-to-image generation (Black Forest Labs, 2024; Esser et al., 2024), largely replacing UNet-based designs (Rombach et al., 2022; Podell et al., 2024). By jointly processing image patches and text tokens within a unified transformer backbone, DiTs enable scalable models with strong image–text alignment, high-resolution synthesis, and flexible conditioning via additional context tokens (Black Forest Labs, 2025; Wu et al., 2025).
+
+
+
+
+Because transformers lack inherent spatial awareness, positional encodings are required to impose structure. Early vision transformers used sinusoidal encodings (Vaswani et al., 2017; Dosovitskiy et al., 2021), while modern DiT-based models adopt rotary positional encodings (RoPE) (Su et al., 2021), which encode relative positions and remain robust to changes in spatial and temporal resolution (Black Forest Labs, 2024; Black Forest Labs, 2025; Wan et al., 2025).
+Few works exploit properties of RoPE for specialized tasks such as high resolution image generation (Issachar et al., 2025) by rescaling (Chen et al., 2023; , 2023; Peng et al., 2024), or view synthesis (Bai et al., 2025) by warping positional encodings.
+
+
+
+
+Other works note that attention sharing in RoPE-based DiTs can lead to unintended content copying. Methods such as (Wei et al., 2025; Wang et al., 2024c; Avrahami et al., 2025) mitigate this by restricting attention sharing to selected DiT blocks, providing only coarse control over reference influence.
+A concurrent work, AlignedGen (Zhang et al., 2025), proposes shifting the positional indices of reference tokens to reduce positional collisions.
+While effective, shifting offers limited controllability and can introduce artifacts such as ghost-cyclic inpainting (see Figure 9).
+This stems from a lack of systematic analysis of RoPE and an explanation of why shared attention in DiTs collapses into content copying.
+In this paper, we address this gap and derive a more controllable and general solution.
+
+
+
+
+Style transfer
+has a long history in computer graphics (Hertzmann et al., 2001; Efros and Freeman, 2023; Gatys et al., 2016; Huang and Belongie, 2017; Johnson et al., 2016; Isola et al., 2017; Zhu et al., 2017; Huang et al., 2018).
+Recent style-transfer works extend text-to-image diffusion models for controllable style transfer. Personalization-based methods such as textual inversion (Gal et al., 2022), DreamBooth (Ruiz et al., 2022), StyleDrop (Sohn et al., 2023), and B-LoRA fine-tune model parameters from a small set of examples to capture a style or subject (Frenkel et al., 2024).
+
+
+
+
+Encoder-based approaches condition diffusion models on reference images via learned style encoders, including IP-Adapter (Ye et al., 2023), Instant-Style (Wang et al., 2024a), Instant-Style Plus (Wang et al., 2024b), StyleCrafter (Liu et al., 2023), and StyleMaster (Ye et al., 2025). However, these methods are limited to styles seen during training, and often require retraining for each backbone.
+Training-free approaches based on shared or cross-image attention offer an alternative. Cross-image attention (Alaluf et al., 2023) and StyleAligned (Hertz et al., 2023) demonstrate effective attention-driven style transfer in UNet-based diffusion models, highlighting attention as a powerful mechanism for style control—an idea our work further explores in the context of DiTs.
+
+
+
+
+
+
+3. Preliminaries
+
+
+
+
+
+
+
+
+
+(a)(b)
+Figure 3. RoPE overview.
+(a) For a token sequence, we illustrate three tokens,  MATH[q] qq,  MATH[k_{1}] k1k_{1}, and  MATH[k_{2}] k2k_{2}, located at positions  MATH[m] mm,  MATH[n_{1}] n1n_{1}, and  MATH[n_{2}] n2n_{2}.
+For each token, we highlight three corresponding chunks: 2-dimensional slices of the embedding on which RoPE applies independent rotations.
+(b) Assuming the corresponding chunks of  MATH[k_{1}] k1k_{1} and  MATH[k_{2}] k2k_{2} are identical, RoPE rotates them by different angles because their positions  MATH[n_{1}] n1n_{1} and  MATH[n_{2}] n2n_{2} differ. Each chunk is rotated by frequency  MATH[\theta_{d}] θd\theta_{d}, producing position-dependent inner products between  MATH[q] qq and each key.
+
+
+
+
+
+Recent text-to-image models such as Flux (Black Forest Labs, 2024) adopt a multimodal diffusion transformer (MMDiT) architecture (Peebles and Xie, 2022), where visual latents and text embeddings are concatenated and processed jointly via multimodal self-attention.
+This contrasts with UNet designs, where convolution performs local feature extraction, cross-attention injects text conditioning, and image self-attention provides global image context.
+By unifying these interactions in transformer blocks, MMDiTs enable fine-grained, bidirectional exchange between image and text tokens at all layers.
+
+
+
+
+At diffusion timestep  MATH[t] tt, noisy image tokens  MATH[H^{\text{img}}_{t}\in\mathbb{R}^{N\times D}] Htimg∈ℝN×DH^{\text{img}}_{t}\in\mathbb{R}^{N\times D} and text tokens  MATH[H^{\text{txt}}\in\mathbb{R}^{M\times D}] Htxt∈ℝM×DH^{\text{txt}}\in\mathbb{R}^{M\times D} are projected into queries, keys, and values:
+
+
+
+
+(1)
+
+ MATH[\displaystyle Q^{\text{img}}] Qimg\displaystyle Q^{\text{img}}
+ MATH[\displaystyle=W_{Q}^{\text{img}}H^{\text{img}}_{t},\>] =WQimg​Htimg,\displaystyle=W_{Q}^{\text{img}}H^{\text{img}}_{t},\>
+ MATH[\displaystyle K^{\text{img}}] Kimg\displaystyle K^{\text{img}}
+ MATH[\displaystyle=W_{K}^{\text{img}}H^{\text{img}}_{t},\>] =WKimg​Htimg,\displaystyle=W_{K}^{\text{img}}H^{\text{img}}_{t},\>
+ MATH[\displaystyle V^{\text{img}}] Vimg\displaystyle V^{\text{img}}
+ MATH[\displaystyle=W_{V}^{\text{img}}H^{\text{img}}_{t},] =WVimg​Htimg,\displaystyle=W_{V}^{\text{img}}H^{\text{img}}_{t},
+
+
+
+
+ MATH[\displaystyle Q^{\text{txt}}] Qtxt\displaystyle Q^{\text{txt}}
+ MATH[\displaystyle=W_{Q}^{\text{txt}}H^{\text{txt}},\>] =WQtxt​Htxt,\displaystyle=W_{Q}^{\text{txt}}H^{\text{txt}},\>
+ MATH[\displaystyle K^{\text{txt}}] Ktxt\displaystyle K^{\text{txt}}
+ MATH[\displaystyle=W_{K}^{\text{txt}}H^{\text{txt}},\>] =WKtxt​Htxt,\displaystyle=W_{K}^{\text{txt}}H^{\text{txt}},\>
+ MATH[\displaystyle V^{\text{txt}}] Vtxt\displaystyle V^{\text{txt}}
+ MATH[\displaystyle=W_{V}^{\text{txt}}H^{\text{txt}}.] =WVtxt​Htxt.\displaystyle=W_{V}^{\text{txt}}H^{\text{txt}}.
+
+
+
+After projection11
+            1
+            
+            
+            
+            
+            
+            
+            
+          Flux uses two attention block types: single-stream blocks (shared projections across modalities where  MATH[W_{Q,K,V}^{\text{img}}=W_{Q,K,V}^{\text{txt}}] WQ,K,Vimg=WQ,K,VtxtW_{Q,K,V}^{\text{img}}=W_{Q,K,V}^{\text{txt}}) and dual-stream blocks (separate projections). Our attention-sharing is applied only to single-stream blocks., image and text tokens are concatenated and the attention output is
+
+
+
+
+(2)
+
+ MATH[\displaystyle O=A\cdot[V^{\text{img}}\oplus V^{\text{txt}}],] O=A⋅[Vimg⊕Vtxt],\displaystyle O=A\cdot[V^{\text{img}}\oplus V^{\text{txt}}],
+
+
+
+where  MATH[\oplus] ⊕\oplus denotes concatenation and the attention matrix  MATH[A] AA is
+
+
+
+
+(3)
+
+ MATH[\displaystyle A=\text{Softmax}\!\left(\frac{\text{RoPE}([Q^{\text{img}}\oplus Q^{\text{txt}}])^{\top}\cdot\text{RoPE}([K^{\text{img}}\oplus K^{\text{txt}}])}{\sqrt{D}}\right),] A=Softmax​(RoPE​([Qimg⊕Qtxt])⊤⋅RoPE​([Kimg⊕Ktxt])D),\displaystyle A=\text{Softmax}\!\left(\frac{\text{RoPE}([Q^{\text{img}}\oplus Q^{\text{txt}}])^{\top}\cdot\text{RoPE}([K^{\text{img}}\oplus K^{\text{txt}}])}{\sqrt{D}}\right),
+
+
+
+with RoPE denoting rotary positional encoding. In the following, we analyze how RoPE shapes attention.
+
+
+
+
+3.1. Rotary Positional Encoding (RoPE)
+
+
+
+
+The attention operation is inherently permutation-equivariant. To model the strong spatial correlations in images, positional information must therefore be explicitly injected. Modern text-to-image models such as Flux (Black Forest Labs, 2024) achieve this by applying Rotary Positional Embeddings (RoPE) (Su et al., 2021) to the queries and keys in each transformer block, enabling the model to encode relative spatial relationships among tokens.
+
+
+
+
+One-dimensional sequence
+
+
+
+
+Given a one-dimensional token sequence, let  MATH[q\in\mathbb{R}^{D}] q∈ℝDq\in\mathbb{R}^{D} denote the query at position  MATH[m] mm, and  MATH[k\in\mathbb{R}^{D}] k∈ℝDk\in\mathbb{R}^{D} the key at position  MATH[n] nn.
+Let us understand how the relative displacement  MATH[(n-m)] (n−m)(n-m) between query and key affects attention.
+RoPE partitions each  MATH[D] DD-dimensional vector into  MATH[D/2] D/2D/2 chunks, indexed by  MATH[d] dd, each containing a pair of consecutive vector entries, and applies two-dimensional rotations element-wise (see Figure 3):
+
+
+
+
+
+ MATH[\hat{q}_{d}=R_{m\theta_{d}}\,q_{d},\qquad\hat{k}_{d}=R_{n\theta_{d}}\,k_{d},] q^d=Rm​θd​qd,k^d=Rn​θd​kd,\hat{q}_{d}=R_{m\theta_{d}}\,q_{d},\qquad\hat{k}_{d}=R_{n\theta_{d}}\,k_{d},
+
+
+
+with  MATH[\theta_{\text{base}}=1/10000] θbase=1/10000\theta_{\text{base}}=1/10000 as default:
+
+
+
+
+
+ MATH[\theta_{d}=\theta_{\text{base}}^{\,2d/D},\qquad d\in\left\{0,\dots,\tfrac{D}{2}-1\right\}.] θd=θbase 2​d/D,d∈{0,…,D2−1}.\theta_{d}=\theta_{\text{base}}^{\,2d/D},\qquad d\in\left\{0,\dots,\tfrac{D}{2}-1\right\}.
+
+
+
+
+
+
+The attention between  MATH[q] qq and  MATH[k] kk is then proportional to the inner
+product of their rotated embeddings:
+
+
+
+
+
+ MATH[\displaystyle A_{q\rightarrow k}=A[q,k]] Aq→k=A⁡[q,k]\displaystyle A_{q\rightarrow k}=A[q,k]
+ MATH[\displaystyle\propto\langle\hat{q},\hat{k}\rangle=] ∝⟨q^,k^⟩=\displaystyle\propto\langle\hat{q},\hat{k}\rangle=
+
+
+
+
+ MATH[\displaystyle\sum_{d=0}^{D/2-1}q_{d}^{\top}R_{m\theta_{d}}^{\top}R^{\vphantom{\top}}_{n\theta_{d}}k_{d}] ∑d=0D/2−1qd⊤​Rm​θd⊤​Rn​θd​kd\displaystyle\sum_{d=0}^{D/2-1}q_{d}^{\top}R_{m\theta_{d}}^{\top}R^{\vphantom{\top}}_{n\theta_{d}}k_{d}
+ MATH[\displaystyle=\sum_{d=0}^{D/2-1}q_{d}^{\top}R_{(n-m)\theta_{d}}k_{d}=\sum_{d=0}^{D/2-1}\langle q_{d},R_{(n-m)\theta_{d}}\,k_{d}\rangle.] =∑d=0D/2−1qd⊤​R(n−m)​θd​kd=∑d=0D/2−1⟨qd,R(n−m)​θd​kd⟩.\displaystyle=\sum_{d=0}^{D/2-1}q_{d}^{\top}R_{(n-m)\theta_{d}}k_{d}=\sum_{d=0}^{D/2-1}\langle q_{d},R_{(n-m)\theta_{d}}\,k_{d}\rangle.
+
+
+
+revealing that RoPE encodes positions through a relative rotation
+proportional to the displacement  MATH[(n-m)] (n−m)(n-m).
+
+
+
+
+An overview is shown in Figure 3, illustrating that a query at position  MATH[m] mm attends differently to keys at positions  MATH[n_{1}] n1n_{1} and  MATH[n_{2}] n2n_{2} due to distinct rotations of their two-dimensional chunks.
+
+
+Figure 4. Reference copying. Given a reference image of a bull, we generate a style-aligned image of a giraffe.
+(a) Without attention sharing, the output is not style-aligned.
+(b) Applying attention sharing at all denoising timesteps leads to near-exact replication of the reference.
+(c,d) Restricting attention sharing to later timesteps does not prevent copying.
+(e) Our method produces a style-aligned result while preserving the target prompt.
+
+
+
+
+
+
+Multi-dimensional sequence
+
+
+
+
+For multi-dimensional sequences such as images, each  MATH[D] DD-dimensional token is split into two sub-vectors that encode positional dependencies along the  MATH[x] xx- and  MATH[y] yy-axes, allowing RoPE to model each spatial dimension independently.
+In models such as Flux and in video generative models, an additional portion of the embedding encodes temporal positional dependencies; in Flux, this temporal component is kept unrotated.
+In the calculation of the attention of a query at position  MATH[(x_{q},y_{q})] (xq,yq)(x_{q},y_{q}) to a key at position  MATH[(x_{k},y_{k})] (xk,yk)(x_{k},y_{k}) for the 2D chunk of each token corresponding to the  MATH[x] xx-axis ( MATH[d_{x}] dxd_{x}), the
+attention inner product becomes
+
+
+
+
+(4)
+
+ MATH[\displaystyle\langle\hat{q}_{d_{x}},\hat{k}_{d_{x}}\rangle] ⟨q^dx,k^dx⟩\displaystyle\langle\hat{q}_{d_{x}},\hat{k}_{d_{x}}\rangle
+ MATH[\displaystyle=\langle q_{d_{x}},\,R_{(x_{k}-x_{q})\theta_{d_{x}}}\,k_{d_{x}}\rangle,d_{x}\in\left\{0,\dots,\tfrac{D_{x}}{2}-1\right\},] =⟨qdx,R(xk−xq)​θdx​kdx⟩,dx∈{0,…,Dx2−1},\displaystyle=\langle q_{d_{x}},\,R_{(x_{k}-x_{q})\theta_{d_{x}}}\,k_{d_{x}}\rangle,d_{x}\in\left\{0,\dots,\tfrac{D_{x}}{2}-1\right\},
+
+
+
+and along the  MATH[y] yy-axis, the inner product is calculated similarly.
+Finally, it is also worth noting that text tokens are assigned position zero.
+
+
+
+
+
+
+
+4. Attention-sharing
+
+
+
+
+Attention sharing has been widely studied in UNet-based text-to-image models for
+image manipulation tasks (Hertz et al., 2023; Tewel et al., 2024; Mou et al., 2023). In this work, we focus on style-aligned image generation, introduced in StyleAligned (Hertz et al., 2023), and briefly review the method.
+
+
+
+
+StyleAligned modifies UNet self-attention so that target image tokens attend to reference tokens during denoising.
+The method applies AdaIN (Huang and Belongie, 2017) to the target queries and keys, then concatenates the reference keys and values with those of the target before computing self-attention, enabling extraction of style cues via shared attention.
+
+
+
+
+(5)
+
+ MATH[\displaystyle Q] Q\displaystyle Q
+ MATH[\displaystyle=\tilde{Q}_{\text{tar}},\quad] =Q~tar,\displaystyle=\tilde{Q}_{\text{tar}},\quad
+ MATH[\displaystyle\tilde{Q}_{\text{tar}}] Q~tar\displaystyle\tilde{Q}_{\text{tar}}
+ MATH[\displaystyle=\text{AdaIN}(Q_{\text{tar}},Q_{\text{ref}}),] =AdaIN​(Qtar,Qref),\displaystyle=\text{AdaIN}(Q_{\text{tar}},Q_{\text{ref}}),
+
+
+
+
+ MATH[\displaystyle K] K\displaystyle K
+ MATH[\displaystyle=\tilde{K}_{\text{tar}}\oplus s\cdot K_{\text{ref}},\quad] =K~tar⊕s⋅Kref,\displaystyle=\tilde{K}_{\text{tar}}\oplus s\cdot K_{\text{ref}},\quad
+ MATH[\displaystyle\tilde{K}_{\text{tar}}] K~tar\displaystyle\tilde{K}_{\text{tar}}
+ MATH[\displaystyle=\text{AdaIN}(K_{\text{tar}},K_{\text{ref}}),] =AdaIN​(Ktar,Kref),\displaystyle=\text{AdaIN}(K_{\text{tar}},K_{\text{ref}}),
+
+
+
+
+ MATH[\displaystyle V] V\displaystyle V
+ MATH[\displaystyle=V_{\text{tar}}\oplus V_{\text{ref}},] =Vtar⊕Vref,\displaystyle=V_{\text{tar}}\oplus V_{\text{ref}},
+
+
+
+where  MATH[\{Q,K,V\}_{ref,tar}] {Q,K,V}r​e​f,t​a​r\{Q,K,V\}_{ref,tar} denote reference and target tokens, and  MATH[s] ss is a scalar controlling
+the strength of style transfer.
+By adding RoPE this formulation can be extended to MMDiTs by concatenating reference image tokens with the target image keys and values:
+
+
+
+
+(6)
+
+ MATH[\displaystyle Q] Q\displaystyle Q
+ MATH[\displaystyle=\text{RoPE}([\tilde{Q}^{\text{img}}_{\text{tar}}\oplus Q^{\text{txt}}_{\text{tar}}]),] =RoPE​([Q~tarimg⊕Qtartxt]),\displaystyle=\text{RoPE}([\tilde{Q}^{\text{img}}_{\text{tar}}\oplus Q^{\text{txt}}_{\text{tar}}]),
+
+
+
+
+ MATH[\displaystyle K] K\displaystyle K
+ MATH[\displaystyle=\text{RoPE}([\tilde{K}^{\text{img}}_{\text{tar}}\oplus K^{\text{txt}}_{\text{tar}}])\oplus s\cdot\text{RoPE}(K^{\text{img}}_{\text{ref}}),] =RoPE​([K~tarimg⊕Ktartxt])⊕s⋅RoPE​(Krefimg),\displaystyle=\text{RoPE}([\tilde{K}^{\text{img}}_{\text{tar}}\oplus K^{\text{txt}}_{\text{tar}}])\oplus s\cdot\text{RoPE}(K^{\text{img}}_{\text{ref}}),
+
+
+
+
+ MATH[\displaystyle V] V\displaystyle V
+ MATH[\displaystyle=[V^{\text{img}}_{\text{tar}}\oplus V^{\text{txt}}_{\text{tar}}]\oplus V^{\text{img}}_{\text{ref}}.] =[Vtarimg⊕Vtartxt]⊕Vrefimg.\displaystyle=[V^{\text{img}}_{\text{tar}}\oplus V^{\text{txt}}_{\text{tar}}]\oplus V^{\text{img}}_{\text{ref}}.
+
+
+
+However, directly applying this formulation leads to reference copying rather than style transfer, as discussed next.
+
+
+
+
+Reference copying is a failure mode in which the generated image reproduces visual content from the reference image rather than its stylistic cues.
+As shown in Figure 4-b, instead of producing a style-aligned version of the target prompt (giraffe), the model “collapses” and duplicates shapes, colors, and fine details from the reference (bull). Further, although prior work suggests that stylistic and appearance details emerge at later denoising steps and content is formed at earlier steps (Issachar et al., 2025; Bahmani et al., 2025), restricting attention sharing to later stages does not resolve the issue entirely (Figure 4-c,d).
+
+
+
+
+This behavior was also noticed by Zhang et al. (2025) and Wei et al. (2025), and attributed to RoPE disproportionately amplifying attention to spatially aligned reference tokens.
+During denoising, this repeated alignment draws visual information from identically positioned reference tokens, resulting in content copying. In the following, we analyze the underlying cause of this behavior through the lens of RoPE frequency bands.
+
+
+Figure 5. (a) Attention visualization for standard image generation.
+For each query point (red dots), we show the full attention map, attention using only high-frequency RoPE components, and attention using only low-frequency components (left to right). Retaining only low-frequency components yields more semantically aligned attention.
+(b) Cross-image attention visualization.
+Target queries attend to reference image patches; scaling down high-frequency key components similarly makes attention more global.
+
+
+
+
+
+RoPE frequency bands and attention
+
+
+
+
+The reference copying described above stems from how attention maps are formed in DiTs and how they are influenced by RoPE, which we analyze here. The attention inner product in Equation 4
+can be rewritten as:
+
+
+
+
+(7)
+
+ MATH[\displaystyle\langle\hat{q}_{d},\hat{k}_{d}\rangle=\langle q_{d},R_{\Delta\theta_{d}}k_{d}\rangle,] ⟨q^d,k^d⟩=⟨qd,RΔ​θd​kd⟩,\displaystyle\langle\hat{q}_{d},\hat{k}_{d}\rangle=\langle q_{d},R_{\Delta\theta_{d}}k_{d}\rangle,
+
+
+
+where  MATH[\Delta] Δ\Delta denotes the relative positional difference along the spatial axis
+corresponding to the given RoPE chunk, i.e.,
+ MATH[\Delta=x_{q}-x_{k}] Δ=xq−xk\Delta=x_{q}-x_{k} for  MATH[x] xx-axis chunks and
+ MATH[\Delta=y_{q}-y_{k}] Δ=yq−yk\Delta=y_{q}-y_{k} for  MATH[y] yy-axis chunks.
+
+
+
+
+Writing each two-dimensional RoPE chunk in polar coordinates, the rotation
+ MATH[R_{\Delta\theta_{d}}] RΔ​θdR_{\Delta\theta_{d}} acts as an additive phase shift in angle space.
+Consequently, the inner product between the rotated key and the query can be
+expressed as the product of their magnitudes and the cosine of the sum of the
+original angular difference and the RoPE-induced rotation:
+
+
+
+
+(8)
+
+ MATH[\displaystyle\langle\hat{q}_{d},\hat{k}_{d}\rangle] ⟨q^d,k^d⟩\displaystyle\langle\hat{q}_{d},\hat{k}_{d}\rangle
+ MATH[\displaystyle=\lVert\hat{q}_{d}\rVert\,\lVert\hat{k}_{d}\rVert\,\cos\!\left(\alpha_{d}+\Delta\,\theta_{d}\right),] =∥q^d∥​∥k^d∥​cos⁡(αd+Δ​θd),\displaystyle=\lVert\hat{q}_{d}\rVert\,\lVert\hat{k}_{d}\rVert\,\cos\!\left(\alpha_{d}+\Delta\,\theta_{d}\right),
+
+
+
+where  MATH[\alpha_{d}] αd\alpha_{d} denotes the angle between the original (unrotated)
+chunks  MATH[q_{d}] qdq_{d} and  MATH[k_{d}] kdk_{d}. For simplicity, we omit the  MATH[x] xx and  MATH[y] yy subscripts.
+
+
+
+
+The frequency term  MATH[\theta_{d}] θd\theta_{d} follows a geometric series
+ MATH[\{1,\dots,\frac{1}{10000}\}] {1,…,110000}\{1,\dots,\frac{1}{10000}\}.
+Thus, lower-index dimensions (larger  MATH[\theta_{d}] θd\theta_{d}-high frequency dimensions) produce rapid angle changes
+with respect to  MATH[\Delta_{k,q}] Δk,q\Delta_{k,q} and therefore introduce strong positional
+sensitivity, while higher-index dimensions (smaller  MATH[\theta_{d}] θd\theta_{d}-low frequency dimensions) vary slowly
+and contribute weak positional bias, focusing on global similarity.
+
+
+Figure 6. Mean attention similarity between two identical vectors as a
+function of position shift ( MATH[\Delta] Δ\Delta). Although RoPE naturally reduces attention
+similarity as the positional shift increases, the rate of decay varies across
+frequency bands: high-frequency components exhibit a steep drop, mid-frequency
+components show moderate sensitivity, and low-frequency components are largely
+insensitive to positional changes.
+
+
+
+
+This behavior is further illustrated in Figure 6, where we plot the
+mean attention similarity between two identical vectors as a function of their
+relative positional difference  MATH[\Delta] Δ\Delta. The similarity is defined as
+ MATH[\cos(\Delta\theta_{d})] cos⁡(Δ​θd)\cos(\Delta\theta_{d}), corresponding to the normalized inner product of each
+two-dimensional RoPE chunk. We report this quantity when all frequency components
+are used, and when the vectors are evenly partitioned into high-, mid-, and
+low-frequency subsets, with the mean computed separately for each subset.
+
+
+
+
+While RoPE naturally induces decay as  MATH[\Delta] Δ\Delta increases, the rate
+of decay varies significantly across frequency bands: the high-frequency
+dimensions exhibit a steep drop in similarity even for small  MATH[\Delta] Δ\Delta, whereas
+the low-frequency dimensions remain largely insensitive to  MATH[\Delta] Δ\Delta. This demonstrates that high-frequency RoPE components enforce strong
+locality, while low-frequency components preserve global spatial coherence.
+
+
+
+
+From this experiment, we expect a similar behavior in image generation with Flux. In Figure 5-a, we separate RoPE features into high- and low-frequency components and average attention across single-stream blocks at timesteps 5, 10, 15, and 20 after zeroing out each component. When high-frequency components are present, attention is strongly biased toward positionally aligned tokens; removing them makes attention more global, with queries attending to semantically similar regions rather than strict spatial alignment.
+
+
+
+
+We also analyze cross-image attention, where target queries attend to tokens of another image, to see whether the same behavior is observed. As shown in Figure 5-b, scaling down the high-frequency components of the keys similarly shifts attention toward semantic alignment. This behavior is also reflected in style-aligned generation, where reference and target tokens are concatenated (Figure 7): reducing high-frequency components or amplifying low-frequency ones shifts attention toward semantically meaningful regions (e.g., the cat’s ear) rather than positionally aligned tokens.
+
+
+Figure 7. Attention visualization for image generation with shared attention.
+We show attention from a target query (red dot) to both target and reference tokens; the corresponding reference location is marked in green. Top: Scaling down high-frequency components of the reference keys makes attention global and semantically aligned. Bottom: Scaling up low-frequency components has a similar effect.
+
+
+
+
+
+
+5. Frequency-aware modulation
+
+
+
+
+In Section 4, we found that RoPE’s high-frequency components induce strong locality and drive reference copying (Figure 1, Figure 4, Figure 8-b). A naïve attempt to mitigate this issue is to disable RoPE when attending to reference tokens; however, as shown in Figure 8-c, this leads to noticeable artifacts, indicating that RoPE’s positional structure remains necessary for coherent generation even under shared attention.
+
+
+
+
+Motivated by this observation, we selectively modulate RoPE frequency components, attenuating high frequencies to reduce positional bias and amplifying low frequencies to promote global attention to the reference. Rather than splitting frequencies into discrete groups, we apply a frequency-aware modulation exclusively to the reference image keys and smoothly interpolate the modulation scale across the RoPE spectrum. Because the transition from low to high frequencies in RoPE is continuous, this design preserves stable attention behavior and avoids abrupt changes in positional sensitivity.
+For smooth interpolation, we interpolate between a scale  MATH[s_{\text{hf}}\in(0,1)] shf∈(0,1)s_{\text{hf}}\in(0,1) for the highest-frequency components and  MATH[s_{\text{lf}}>1] slf>1s_{\text{lf}}>1 for the lowest-frequency components. We parameterize this interpolation using a polynomial schedule that increases smoothly from  MATH[s_{\text{hf}}] shfs_{\text{hf}} to  MATH[s_{\text{lf}}] slfs_{\text{lf}}.
+For each two-dimensional RoPE chunk  MATH[d] dd, we define a normalized index
+ MATH[\tilde{d}=\frac{d}{\tfrac{D}{2}-1}] d~=dD2−1\tilde{d}=\frac{d}{\tfrac{D}{2}-1},
+and assign a per-chunk scale:
+
+
+
+
+(9)
+
+ MATH[\displaystyle s_{d}=s_{\text{hf}}+\left(s_{\text{lf}}-s_{\text{hf}}\right)\,\tilde{d}^{\,\beta},\qquad d\in\left\{0,\dots,\tfrac{D}{2}-1\right\}.] sd=shf+(slf−shf)​d~β,d∈{0,…,D2−1}.\displaystyle s_{d}=s_{\text{hf}}+\left(s_{\text{lf}}-s_{\text{hf}}\right)\,\tilde{d}^{\,\beta},\qquad d\in\left\{0,\dots,\tfrac{D}{2}-1\right\}.
+
+
+
+This formulation downscales high-frequency chunks (small  MATH[d] dd) toward  MATH[s_{\text{hf}}] shfs_{\text{hf}}, reducing positional bias, while low-frequency chunks (large  MATH[d] dd) approach  MATH[s_{\text{lf}}] slfs_{\text{lf}}, preserving global semantic guidance. We set  MATH[\beta=2] β=2\beta=2 for all experiments, which we found to work best. We present an ablation on the value of  MATH[\beta] β\beta in the supplementary.
+We apply this modulation independently to the  MATH[x] xx- and  MATH[y] yy-axis partitions of the embeddings. Because, as noted in Section 3.1, the temporal partitions do not contribute to the positional sensitivity, they are always modulated by  MATH[s_{\text{lf}}] slfs_{\text{lf}}.
+
+
+
+
+In Figure 8-d, we further show that performing the reverse operation, scaling down the low-frequency chunks, does not mitigate the reference copying problem, which is consistent with our analysis in Section 4.
+In contrast, applying our approach with different modulation scales enables a controllable balance between content and style transfer.
+Using a larger scale for the high frequency chunks ( MATH[s_{\text{hf}}] shfs_{\text{hf}}) preserves the pose and overall structure of the reference while still transferring style and texture (Figure 8-e).
+Conversely, using a smaller scale for the high frequency chunks modifies the original structure while still achieving effective style transfer (Figure 8-f).
+
+
+Figure 8. Attention sharing in DiTs.
+(a) Without attention sharing, generated images exhibit inconsistent styles.
+(b) Plain attention sharing causes content copying from the reference.
+(c) Bypassing RoPE during reference attention leads to degenerate generations, showing that positional encoding is essential.
+(d) Scaling down only low-frequency components does not prevent copying, indicating that copying is driven by high-frequency channels.
+(e,f) Suppressing high-frequency components while amplifying low-frequency ones resolves copying and enables balanced style transfer while preserving target semantics.
+
+
+
+
+
+Timestep scheduling
+
+
+
+
+To account for the evolving behavior of the denoising process, where early timesteps establish global structure and later timesteps add texture and style (Issachar et al., 2025), we linearly increase both  MATH[s_{\text{hf}}] shfs_{\text{hf}} and  MATH[s_{\text{lf}}] slfs_{\text{lf}} over time.
+
+
+
+
+
+
+Early in denoising, this reduces the influence of high frequency locality and encourages broad style and shape guidance.
+As denoising progresses, progressively increasing the scaling sharpens attention toward the reference, enabling accurate transfer of fine-grained stylistic details and textures. An example is shown in the inset figure. Using a fixed low
+modulation scale for both  MATH[s_{hf}] sh​fs_{hf} and  MATH[s_{lf}] sl​fs_{lf} fails to transfer
+fine stylistic attributes from the reference to the target
+(inset-a).
+Conversely, using a fixed high modulation
+scale leads to excessive structural transfer from the reference
+(inset-b). In contrast, our scheduling strategy allows
+the model to first establish the correct global structure and subsequently,
+at later denoising timesteps, increase attention to the reference to
+transfer fine-grained details (inset-c).
+
+
+
+
+With this modification, the key ( MATH[K] KK) for shared-attention in Equation 6 becomes
+
+
+
+
+(10)
+
+ MATH[\displaystyle K=\bigl[K^{\prime img}_{tar}\oplus K^{\prime txt}_{tar}\bigr]\,\oplus\,s^{FA}_{t}\cdot K^{img}_{ref},\quad s^{FA}_{t}=\{s_{d}^{t}\}_{d=0}^{\tfrac{D}{2}-1},] K=[Kt​a​r′i​m​g⊕Kt​a​r′t​x​t]⊕stF​A⋅Kr​e​fi​m​g,stF​A={sdt}d=0D2−1,\displaystyle K=\bigl[K^{\prime img}_{tar}\oplus K^{\prime txt}_{tar}\bigr]\,\oplus\,s^{FA}_{t}\cdot K^{img}_{ref},\quad s^{FA}_{t}=\{s_{d}^{t}\}_{d=0}^{\tfrac{D}{2}-1},
+
+
+
+where  MATH[s^{FA}_{t}] stF​As^{FA}_{t} is our frequency-aware modulation scale at denoising timestep  MATH[t] tt. Only the reference image keys are modulated; target image keys, text keys, and all queries remain unchanged.
+
+
+
+
+
+Why Modulating RoPE’s Frequency Bands Works?
+
+
+
+
+Our analysis in Section 4 shows that RoPE decomposes attention into frequency components with distinct positional sensitivities: high frequency components impose strong locality, while low-frequency components support global interactions. This behavior is well-suited to standard image generation, where all tokens belong to a single evolving image and positional locality reinforces coherent local refinement without inducing competition.
+
+
+
+
+In shared-attention settings, however, target and reference tokens share the same spatial grid, causing high-frequency RoPE components to dominate attention at aligned positions and induce reference copying. By modulating RoPE’s frequency bands, our method suppresses this positional dominance and shifts attention toward semantic similarity, enabling style transfer without content copying.
+
+
+
+
+
+
+6. Experiments
+
+
+
+
+We evaluate our method on style-aligned generation and style transfer using Flux 1.-dev (Black Forest Labs, 2024) as the base model.
+Attention sharing is applied only to the single-stream blocks of the Flux DiT, which prior work (Zhang et al., 2025) shows primarily control appearance and style.
+For style-aligned generation, we use the prompt set from StyleAligned (Hertz et al., 2023). For style transfer, reference images are taken from B-LoRA (Frenkel et al., 2024), InstantStyle-Plus (Wang et al., 2024b), and other famous artworks.
+
+
+
+
+Comparison
+
+
+
+
+We compare our method against StyleAligned, which applies attention sharing in the UNet-based SDXL; AlignedGen, which performs attention sharing with shifted RoPE in Flux; IP-Adapter (InstantX Team, 2024), trained for Flux by InstantX, which injects reference image features via an image encoder; and B-LoRA, which trains LoRA modules on a subset of SDXL blocks that are more sensitive to style.
+
+
+
+
+We present a series of visual style transfer comparisons in Figure 9. While StyleAligned effectively captures the overall appearance of the reference images, it can introduce content leakage (Figure 2, Figure 9), and the transfer of stylistic attributes is often inconsistent. Moreover, relative to Flux, SDXL occasionally exhibits structural irregularities or repeated elements in the generated outputs, as shown in Figure 9.
+AlignedGen generally produces coherent images; however, its use of shifted RoPE can induce content leakage by encouraging generation as a continuation of the reference. This results in unintended content transfer, such as the Tower of Pisa appearing in a beach scene (Figure 9, first row), or identity-related leakage across semantically distinct subjects (e.g., facial features transferring from the woman to the cat, Figure 9, fifth row).
+IP-Adapter relies on a pretrained image encoder for reference feature extraction, which can limit its ability to generalize to reference images with unseen or out-of-distribution styles, and it may still exhibit content leakage similar to other methods. Likewise, B-LoRA struggles to consistently transfer style due to fine-tuning LoRA modules on a limited subset of SDXL blocks. In addition, B-LoRA requires per-reference training, making it more computationally demanding than our zero-shot approach.
+
+
+
+
+
+Discussion on shifted RoPE
+
+
+
+
+A concurrent work, AlignedGen, mitigates reference copying by horizontally shifting the positional coordinates of reference tokens and applying RoPE to the reference keys with these shifted positions. This separation bypasses RoPE’s positional sensitivity and prevents direct copying. However, since target queries and keys remain positionally aligned, shifting the reference keys weakens attention to the reference, necessitating explicit modulation of the reference keys for faithful style transfer.
+
+
+
+
+Figure 10-b shows that increasing the modulation scale  MATH[s] ss initially improves style fidelity but eventually leads to structural incoherence and periodic reference copying due to high-frequency components of RoPE. Our frequency-based analysis resolves this issue even under shifted RoPE: as shown in Figure 10-c, suppressing the high-frequency components of the reference keys ( MATH[s_{hf}] sh​fs_{hf}) mitigates artifacts and copying, while amplifying the low-frequency components ( MATH[s_{lf}] sl​fs_{lf}) improves style fidelity.
+
+
+
+
+As shown in Figure 10-d, when shifted RoPE positions are not used and attention to the reference is preserved, frequency-aware modulation yields the best results. In this setting, increasing  MATH[s_{lf}] sl​fs_{lf} enables smooth and controlled style transfer. In contrast, as shown in Figure 10-a, uniform scaling without positional shifting is insufficient: small scales produce weak style transfer, while large scales cause content copying, consistent with Section 4.
+
+
+
+
+As shown in Figure 11, the limitations of uniform modulation are amplified at high resolution. The large DiT context causes horizontally shifted reference tokens to have positional offsets unseen during training, leading to artifacts and periodic copying as the modulation scale increases. In contrast, our approach enables faithful style transfer, including shape and pose, by increasing  MATH[s_{lf}] sl​fs_{lf}.
+
+
+
+
+A further limitation of shifted RoPE is that horizontally shifting the reference causes the model to interpret it as a continuation of the target image. When the reference contains incomplete structures, the model therefore completes them in the target, a phenomenon we term ghost-cyclic inpainting. Examples are shown in fig. 9 and Figure 10-b, with the inpainted regions circled in red. Our frequency-aware modulation resolves this issue even under positional shifting, indicating that the effect stems from the locality induced by RoPE’s high-frequency components.
+
+
+
+
+
+
+7. Conclusion and future works
+
+
+
+
+We analyzed the role of rotary positional embeddings (RoPE) in diffusion transformers and showed that their frequency structure governs attention in shared-attention settings. High-frequency components enforce locality and lead to reference copying, while low-frequency components enable global, semantically driven interactions. Based on this insight, we introduced a frequency-aware modulation that enables controllable style-aligned generation without retraining or architectural changes.
+
+
+
+
+Our findings highlight that positional encodings are not a neutral component, but actively govern the balance between locality and semantic association. This explains why attention-sharing strategies developed for UNet-based models do not directly transfer to DiTs and emphasizes the need to account for positional structure when designing shared-attention mechanisms in DiTs.
+
+
+
+
+More broadly, this work suggests a direction for controlling generative models through targeted interventions in their internal representations. By analyzing how existing architectural components shape attention and information flow, future methods may achieve precise and interpretable control without introducing additional supervision or external control mechanisms.
+
+
+
+
+
+Acknowledgements
+
+
+
+
+This research was supported by an NSERC Discovery Grant (RGPIN-2022-03111 and 2023-05617), the SFU Visual Computing Research Chair, and the Israel Science Foundation (grants no. 3441/21, 1473/24), Len Blavatnik, and the Blavatnik Family Foundation.
+
+
+
+
+
+
+
+References
+
+
+
+Alaluf et al. (2023)
+Y. Alaluf, D. Garibi, O. Patashnik, H. Averbuch-Elor, and D. Cohen-Or
+
+Cross-image attention for zero-shot appearance transfer.
+
+External Links: 2311.03335
+
+Cited by: §1,
+§2,
+§2.
+
+
+Alimohammadi et al. (2025)
+A. Alimohammadi, A. Mikaeili, S. Nag, N. Hassanpour, A. Tagliasacchi, and A. Mahdavi-Amiri
+
+Cora: correspondence-aware image editing using few step diffusion.
+
+External Links: 2505.23907,
+Link
+
+Cited by: §2.
+
+
+Avrahami et al. (2025)
+O. Avrahami, O. Patashnik, O. Fried, E. Nemchinov, K. Aberman, D. Lischinski, and D. Cohen-Or
+
+Stable flow: vital layers for training-free image editing.
+
+In Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR),
+
+pp. 7877–7888.
+
+Cited by: §1,
+§2,
+§2.
+
+
+Bahmani et al. (2025)
+S. Bahmani, I. Skorokhodov, G. Qian, A. Siarohin, W. Menapace, A. Tagliasacchi, D. B. Lindell, and S. Tulyakov
+
+AC3D: analyzing and improving 3d camera control in video diffusion transformers.
+
+Proc. CVPR.
+
+Cited by: §4.
+
+
+Bai et al. (2025)
+Y. Bai, H. Li, and Q. Huang
+
+Positional encoding field.
+
+arXiv preprint arXiv:2510.20385.
+
+Cited by: §2.
+
+
+Black Forest Labs (2024)
+Black Forest Labs
+
+FLUX.
+
+Note: https://github.com/black-forest-labs/flux
+
+Cited by: §1,
+§2,
+§2,
+§3.1,
+§3,
+§6.
+
+
+Black Forest Labs (2025)
+Black Forest Labs
+
+FLUX.1 kontext: flow matching for in-context image generation and editing in latent space.
+
+External Links: 2506.15742,
+Link
+
+Cited by: Appendix C,
+§2,
+§2.
+
+
+Cao et al. (2023)
+M. Cao, X. Wang, Z. Qi, Y. Shan, X. Qie, and Y. Zheng
+
+MasaCtrl: tuning-free mutual self-attention control for consistent image synthesis and editing.
+
+In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV),
+
+pp. 22560–22570.
+
+Cited by: §1,
+§2.
+
+
+Chen et al. (2023)
+S. Chen, S. Wong, L. Chen, and Y. Tian
+
+Extending context window of large language models via positional interpolation.
+
+arXiv preprint arXiv:2306.15595.
+
+External Links: Link
+
+Cited by: §2.
+
+
+Chen et al. (2025)
+Z. Chen, F. Wei, R. Xu, J. Li, L. Duan, A. Yao, and W. Li
+
+The devil is in attention sharing: improving complex non-rigid image editing faithfulness via attention synergy.
+
+External Links: 2512.14423,
+Link
+
+Cited by: §1.
+
+
+Deng et al. (2024a)
+Y. Deng, X. He, F. Tang, and W. Dong
+
+Z*: zero-shot style transfer via attention reweighting.
+
+In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR),
+
+pp. 6934–6944.
+
+Cited by: §1.
+
+
+Deng et al. (2024b)
+Y. Deng, X. He, F. Tang, and W. Dong
+
+Z-star+: a zero-shot style transfer method via adjusting style distribution.
+
+arXiv preprint arXiv:2411.19231.
+
+Cited by: §1.
+
+
+Dosovitskiy et al. (2021)
+A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly, J. Uszkoreit, and N. Houlsby
+
+An image is worth 16x16 words: transformers for image recognition at scale.
+
+ICLR.
+
+Cited by: §2.
+
+
+Efros and Freeman (2023)
+A. A. Efros and W. T. Freeman
+
+Image quilting for texture synthesis and transfer.
+
+In Seminal Graphics Papers: Pushing the Boundaries, Volume 2,
+
+External Links: ISBN 9798400708978,
+Link
+
+Cited by: §2.
+
+
+Eldesokey and Wonka (2025)
+A. Eldesokey and P. Wonka
+
+Build-a-scene: interactive 3d layout control for diffusion-based image generation.
+
+In The Thirteenth International Conference on Learning Representations,
+
+External Links: Link
+
+Cited by: §2.
+
+
+Esser et al. (2024)
+P. Esser, S. Kulal, A. Blattmann, et al.
+
+Scaling rectified flow transformers for high-resolution image synthesis.
+
+In Proceedings of the 41st International Conference on Machine Learning (ICML 2024),
+
+External Links: Document
+
+Cited by: §2.
+
+
+Frenkel et al. (2024)
+Y. Frenkel, Y. Vinker, A. Shamir, and D. Cohen-Or
+
+Implicit style-content separation using b-lora.
+
+External Links: 2403.14572
+
+Cited by: §2,
+§6.
+
+
+Gal et al. (2022)
+R. Gal, Y. Alaluf, Y. Atzmon, O. Patashnik, A. H. Bermano, G. Chechik, and D. Cohen-Or
+
+An image is worth one word: personalizing text-to-image generation using textual inversion.
+
+ arXiv.
+
+External Links: Document,
+Link
+
+Cited by: §2.
+
+
+Gatys et al. (2016)
+L. A. Gatys, A. S. Ecker, and M. Bethge
+
+Image style transfer using convolutional neural networks.
+
+In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR),
+
+pp. 2414–2423.
+
+External Links: Link
+
+Cited by: §2.
+
+
+Geyer et al. (2023)
+M. Geyer, O. Bar-Tal, S. Bagon, and T. Dekel
+
+TokenFlow: consistent diffusion features for consistent video editing.
+
+arXiv preprint arxiv:2307.10373.
+
+Cited by: §1,
+§2.
+
+
+Hertz et al. (2023)
+A. Hertz, A. Voynov, S. Fruchter, and D. Cohen-Or
+
+Style aligned image generation via shared attention.
+
+Cited by: Figure 2,
+§1,
+§2,
+§2,
+§4,
+§6.
+
+
+Hertzmann et al. (2001)
+A. Hertzmann, C. E. Jacobs, N. Oliver, B. Curless, and D. H. Salesin
+
+Image analogies.
+
+In Proceedings of the 28th Annual Conference on Computer Graphics and Interactive Techniques,
+
+SIGGRAPH ’01, New York, NY, USA, pp. 327–340.
+
+External Links: ISBN 158113374X,
+Link,
+Document
+
+Cited by: §2.
+
+
+Huang and Belongie (2017)
+X. Huang and S. Belongie
+
+Arbitrary style transfer in real-time with adaptive instance normalization.
+
+In ICCV,
+
+Cited by: §2,
+§4.
+
+
+Huang et al. (2018)
+X. Huang, M. Liu, S. Belongie, and J. Kautz
+
+Multimodal unsupervised image-to-image translation.
+
+In ECCV,
+
+Cited by: §2.
+
+
+InstantX Team (2024)
+InstantX Team
+
+InstantX flux.1-dev ip-adapter page.
+
+Cited by: §6.
+
+
+Isola et al. (2017)
+P. Isola, J. Zhu, T. Zhou, and A. A. Efros
+
+Image-to-image translation with conditional adversarial networks.
+
+CVPR.
+
+Cited by: §2.
+
+
+Issachar et al. (2025)
+N. Issachar, G. Yariv, S. Benaim, Y. Adi, D. Lischinski, and R. Fattal
+
+DyPE: dynamic position extrapolation for ultra high resolution diffusion.
+
+arXiv preprint arXiv:2510.20766.
+
+External Links: Link
+
+Cited by: §2,
+§4,
+§5.
+
+
+Johnson et al. (2016)
+J. Johnson, A. Alahi, and L. Fei-Fei
+
+Perceptual losses for real-time style transfer and super-resolution.
+
+In Proceedings of the European Conference on Computer Vision (ECCV),
+
+pp. 694–711.
+
+External Links: Link
+
+Cited by: §2.
+
+
+Koo et al. (2024)
+G. Koo, S. Yoon, J. W. Hong, and C. D. Yoo
+
+FlexiEdit: frequency-aware latent refinement for enhanced non-rigid editing.
+
+arXiv preprint arXiv:2407.17850.
+
+Cited by: §2.
+
+
+Liu et al. (2023)
+G. Liu, M. Xia, Y. Zhang, H. Chen, J. Xing, X. Wang, Y. Yang, and Y. Shan
+
+StyleCrafter: enhancing stylized text-to-video generation with style adapter.
+
+arXiv preprint arXiv:2312.00330.
+
+Cited by: §2.
+
+
+Liu et al. (2025)
+S. J. Liu, N. Kumari, A. Shamir, and J. Zhu
+
+Generative photomontage.
+
+In Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR),
+
+pp. 7931–7941.
+
+Cited by: §2.
+
+
+Mikaeili et al. (2025)
+A. Mikaeili, A. Alimohammadi, N. Hassanpour, A. Mahdavi-Amiri, and A. Tagliasacchi
+
+Griffin: generative reference and layout guided image composition.
+
+External Links: 2509.23643,
+Link
+
+Cited by: §2.
+
+
+Mou et al. (2023)
+C. Mou, X. Wang, J. Song, Y. Shan, and J. Zhang
+
+Dragondiffusion: enabling drag-style manipulation on diffusion models.
+
+arXiv preprint arXiv:2307.02421.
+
+Cited by: §4.
+
+
+[34]
+ (2023)
+
+NTK-aware scaled rope allows llama models to have larger context windows.
+
+Note: https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/Reddit discussion post
+
+Cited by: §2.
+
+
+Patashnik et al. (2024)
+O. Patashnik, R. Gal, D. Cohen-Or, J. Zhu, and F. De La Torre
+
+Consolidating attention features for multi-view image editing.
+
+In SIGGRAPH Asia 2024 Conference Papers,
+
+SA ’24, New York, NY, USA.
+
+External Links: ISBN 9798400711312,
+Link,
+Document
+
+Cited by: §2.
+
+
+Peebles and Xie (2022)
+W. Peebles and S. Xie
+
+Scalable diffusion models with transformers.
+
+arXiv preprint arXiv:2212.09748.
+
+Cited by: §1,
+§2,
+§3.
+
+
+Peng et al. (2024)
+B. Peng, J. Quesnelle, H. Fan, and E. Shippole
+
+YaRN: efficient context window extension of large language models.
+
+In The Twelfth International Conference on Learning Representations (ICLR) 2024,
+
+External Links: Link
+
+Cited by: §2.
+
+
+Podell et al. (2024)
+D. Podell, Z. English, K. Lacey, A. Blattmann, T. Dockhorn, J. Müller, J. Penna, and R. Rombach
+
+SDXL: improving latent diffusion models for high-resolution image synthesis.
+
+In Proceedings of the International Conference on Learning Representations (ICLR) 2024,
+
+Note: Spotlight presentation
+
+External Links: Link
+
+Cited by: §2.
+
+
+Qi et al. (2023)
+C. Qi, X. Cun, Y. Zhang, C. Lei, X. Wang, Y. Shan, and Q. Chen
+
+FateZero: fusing attentions for zero-shot text-based video editing.
+
+arXiv:2303.09535.
+
+Cited by: §2.
+
+
+Rombach et al. (2022)
+R. Rombach, A. Blattmann, D. Lorenz, P. Esser, and B. Ommer
+
+High-resolution image synthesis with latent diffusion models.
+
+In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR),
+
+pp. 10684–10695.
+
+External Links: Link
+
+Cited by: §2.
+
+
+Ruiz et al. (2022)
+N. Ruiz, Y. Li, V. Jampani, Y. Pritch, M. Rubinstein, and K. Aberman
+
+DreamBooth: fine tuning text-to-image diffusion models for subject-driven generation.
+
+Cited by: §2.
+
+
+Sohn et al. (2023)
+K. Sohn, L. Jiang, J. Barber, K. Lee, N. Ruiz, D. Krishnan, H. Chang, Y. Li, I. Essa, M. Rubinstein, Y. Hao, G. Entis, I. Blok, and D. C. Chin
+
+StyleDrop: text-to-image synthesis of any style.
+
+In Advances in Neural Information Processing Systems (NeurIPS) 2023,
+
+Note: Poster — OpenReview preprint
+
+External Links: Link
+
+Cited by: §2.
+
+
+Su et al. (2021)
+J. Su, Y. Lu, S. Pan, B. Wen, and Y. Liu
+
+RoFormer: enhanced transformer with rotary position embedding.
+
+External Links: 2104.09864
+
+Cited by: §1,
+§2,
+§3.1.
+
+
+Tewel et al. (2024)
+Y. Tewel, O. Kaduri, R. Gal, Y. Kasten, L. Wolf, G. Chechik, and Y. Atzmon
+
+Training-free consistent text-to-image generation.
+
+External Links: 2402.03286,
+Link
+
+Cited by: §2,
+§4.
+
+
+Tumanyan et al. (2023)
+N. Tumanyan, M. Geyer, S. Bagon, and T. Dekel
+
+Plug-and-play diffusion features for text-driven image-to-image translation.
+
+In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR),
+
+pp. 1921–1930.
+
+Cited by: §2.
+
+
+Vaswani et al. (2017)
+A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin
+
+Attention is all you need.
+
+In Proceedings of the 31st International Conference on Neural Information Processing Systems,
+
+NIPS’17, Red Hook, NY, USA, pp. 6000–6010.
+
+External Links: ISBN 9781510860964
+
+Cited by: §2.
+
+
+Wan et al. (2025)
+T. Wan, A. Wang, B. Ai, B. Wen, C. Mao, C. Xie, D. Chen, F. Yu, H. Zhao, J. Yang, J. Zeng, J. Wang, J. Zhang, J. Zhou, J. Wang, J. Chen, K. Zhu, K. Zhao, K. Yan, L. Huang, M. Feng, N. Zhang, P. Li, P. Wu, R. Chu, R. Feng, S. Zhang, S. Sun, T. Fang, T. Wang, T. Gui, T. Weng, T. Shen, W. Lin, W. Wang, W. Wang, W. Zhou, W. Wang, W. Shen, W. Yu, X. Shi, X. Huang, X. Xu, Y. Kou, Y. Lv, Y. Li, Y. Liu, Y. Wang, Y. Zhang, Y. Huang, Y. Li, Y. Wu, Y. Liu, Y. Pan, Y. Zheng, Y. Hong, Y. Shi, Y. Feng, Z. Jiang, Z. Han, Z. Wu, and Z. Liu
+
+Wan: open and advanced large-scale video generative models.
+
+arXiv preprint arXiv:2503.20314.
+
+Cited by: §2.
+
+
+Wang et al. (2024a)
+H. Wang, Q. Wang, X. Bai, Z. Qin, and A. Chen
+
+Instantstyle: free lunch towards style-preserving in text-to-image generation.
+
+arXiv preprint arXiv:2404.02733.
+
+Cited by: §2.
+
+
+Wang et al. (2024b)
+H. Wang, P. Xing, R. Huang, H. Ai, Q. Wang, and X. Bai
+
+InstantStyle-plus: style transfer with content-preserving in text-to-image generation.
+
+arXiv preprint arXiv:2407.00788.
+
+Cited by: §2,
+§6.
+
+
+Wang et al. (2024c)
+J. Wang, J. Pu, Z. Qi, J. Guo, Y. Ma, N. Huang, Y. Chen, X. Li, and Y. Shan
+
+Taming rectified flow for inversion and editing.
+
+arXiv preprint arXiv:2411.04746.
+
+Cited by: §2.
+
+
+Wei et al. (2025)
+T. Wei, y. Zhou, D. Chen, and X. Pan
+
+FreeFlux: understanding and exploiting layer-specific roles in rope-based mmdit for versatile image editing.
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision.
+
+Cited by: §1,
+§2,
+§4.
+
+
+Wu et al. (2025)
+C. Wu, J. Li, J. Zhou, J. Lin, K. Gao, K. Yan, S. Yin, S. Bai, X. Xu, Y. Chen, Y. Chen, Z. Tang, Z. Zhang, Z. Wang, A. Yang, B. Yu, C. Cheng, D. Liu, D. Li, H. Zhang, H. Meng, H. Wei, J. Ni, K. Chen, K. Cao, L. Peng, L. Qu, M. Wu, P. Wang, S. Yu, T. Wen, W. Feng, X. Xu, Y. Wang, Y. Zhang, Y. Zhu, Y. Wu, Y. Cai, and Z. Liu
+
+Qwen-image technical report.
+
+External Links: 2508.02324,
+Link
+
+Cited by: §2.
+
+
+Xu et al. (2024)
+S. Xu, Y. Huang, J. Pan, Z. Ma, and J. Chai
+
+Inversion-free image editing with natural language.
+
+Cited by: §2.
+
+
+Ye et al. (2023)
+H. Ye, J. Zhang, S. Liu, X. Han, and W. Yang
+
+IP-adapter: text compatible image prompt adapter for text-to-image diffusion models.
+
+Cited by: §2.
+
+
+Ye et al. (2025)
+Z. Ye, H. Huang, X. Wang, P. Wan, D. Zhang, and W. Luo
+
+Stylemaster: stylize your video with artistic generation and translation.
+
+In Proceedings of the Computer Vision and Pattern Recognition Conference,
+
+pp. 2630–2640.
+
+Cited by: §2.
+
+
+Zhang et al. (2025)
+J. Zhang, Y. Du, Q. Wang, W. Li, Y. Gu, and J. Zhang
+
+AlignedGen: aligning style across generated images.
+
+arXiv preprint arXiv:2509.17088.
+
+Cited by: §1,
+§2,
+§4,
+§6,
+Figure 10.
+
+
+Zhu et al. (2017)
+J. Zhu, T. Park, P. Isola, and A. A. Efros
+
+Unpaired image-to-image translation using cycle-consistent adversarial networks.
+
+In Computer Vision (ICCV), 2017 IEEE International Conference on,
+
+Cited by: §2.
+
+
+
+
+Figure 9. Comparison.
+We visually compare our method’s style transfer results with AlignedGen, StyleAligned, IPAdapter, and B-LoRA.
+Our approach achieves faithful style transfer while maintaining structural coherence, avoiding (irrelevant to the target prompt) content leakage from the reference to the generated image. The red circles show the ghost-cyclic inpainting problem of shifted RoPE.
+
+
+Reference image(a) Uniform modulation, w/o shift(b) Uniform modulation, w/ shift (AlignedGen)(c) Frequency-aware modulation, w/ shift(d) Frequency-aware modulation, w/o shift (Ours
+Figure 10. Modulation and shifting effects.
+(a) Uniform modulation of reference tokens with a single scalar does not reliably transfer style; increasing the scale leads to content leakage and reference copying.
+(b) Shifting reference token positions, as in AlignedGen (Zhang et al., 2025), mitigates reference copying but introduces artifacts at larger scales due to the irregular behavior of high-frequency RoPE components.
+(c,d) Our frequency-aware modulation addresses these issues both with and without positional shifting.
+Without shifting, the overall attention to the reference is preserved, resulting in smoother and more controlled style transfer as  MATH[s_{lf}] sl​fs_{lf} increases. The red circles show the ghost-cyclic inpainting problem of shifted RoPE.
+
+
+
+
+
+
+
+
+
+
+OursShifted RoPE
+Figure 11. High-resolution image generation. In high-resolution settings (1536  MATH[\times] ×\times 1024), shifting reference tokens as in AlignedGen may introduce artifacts when reference attention increases due to the overly larger DiT context window consisting of unfamiliar RoPE positions. Our method avoids these artifacts and achieves better structural and stylistic alignment with the reference by increasing attention to reference tokens without positional shifts.
+
+
+
+
+
+
+
+
+
+Appendix A Scaling interpolation function
+
+
+
+
+As described in Equation 9, we employ a polynomial function to schedule the interpolation scale. While all experiments in the main paper use  MATH[\beta=2] β=2\beta=2, here we analyze the effect of this hyperparameter.
+
+
+
+
+Figure 12 illustrates the interpolation function for different values of  MATH[\beta] β\beta. Although all curves start at  MATH[s_{\text{hf}}] shfs_{\text{hf}} and end at  MATH[s_{\text{lf}}] slfs_{\text{lf}}, they differ in their intermediate behavior, which controls how quickly the transition occurs between the two endpoints.
+
+
+Figure 12. Polynomial scheduling curves for different values of  MATH[\beta] β\beta (all start at  MATH[s_{\text{hf}}] shfs_{\text{hf}} and end at  MATH[s_{\text{lf}}] slfs_{\text{lf}}).
+
+
+Figure 13. Qualitative ablation of  MATH[\beta] β\beta on style transfer behavior.
+
+
+
+
+
+Appendix B User study
+
+
+
+
+To compare our method with the baselines described in Section 6, we conduct a user study. The study consists of 20 style transfer examples, with reference images drawn from the B-LoRA dataset, the InstantStyle-Plus dataset, and other well-known artworks. Participants are asked to select and rank the top three results among five methods based on the following criteria: (1) style alignment, (2) alignment with the target prompt without unwanted content leakage from the reference, and (3) structural correctness (e.g., no missing or duplicated body parts such as extra hands).
+
+
+
+
+For scoring, the first-ranked result receives 3 points, the second receives 2 points, the third receives 1 point, and the remaining two receive 0 points. Table 1 reports the aggregated results over 25 participants, showing that our method outperforms all baselines.
+
+
+Table 1. User study. Our method receives a significantly higher score than the alternatives.
+
+
+
+
+
+
+Method
+B-LoRA
+IPAdapter
+StyleAligned
+AlignedGen
+Ours
+
+
+Average Ranking ( MATH[\uparrow] ↑\uparrow)
+1.15
+0.44
+0.74
+1.26
+2.40
+
+
+
+
+
+
+
+
+Appendix C Comparison with Flux Kontext
+
+
+
+
+In this section, we compare our method with Flux Kontext (Black Forest Labs, 2025), a fine-tuned variant of FLUX designed for in-context generation and image conditioning. The results in Figure 15 show that our method significantly outperforms Kontext. While Kontext performs reasonably well for coarse styles (bottom example), it struggles to capture fine-grained stylistic details, shapes, and brush strokes (top example). This limitation is likely due to Kontext being primarily trained for image editing rather than style transfer.
+
+
+
+
+
+Appendix D Extra results
+
+
+
+
+Figure 14 demonstrates that, from different noise maps, our method can generate diverse outputs from the same text prompt while consistently preserving the style of the reference image.
+
+
+
+
+In Figure 16 we show results of our method on FLUX.1-Depth-dev, which is fine-tuned for depth-conditioned image generation.
+
+
+
+
+In Figure 17 and Figure 18, we present additional style transfer results. Our method faithfully transfers the reference style while preserving alignment with the target text prompts. Figure 19 shows results for style-aligned generation, where the goal is to generate a set of images that are stylistically consistent; that is, the reference image is generated alongside the target images.
+
+
+
+
+Finally, we provide magnified views of Figure 9 in Figure 20 and Figure 21 for improved visibility. Notably, our method is the only approach that consistently transfers style without introducing unwanted content leakage from the reference.
+
+
+Figure 14. Generation results from different initial noise. We are able to generate variations that respect the style of the reference image and the text prompt.
+
+
+Figure 15. Comparison with Flux Kontext. Compared to Flux Kontext, our method is able to transfer finegrained stylistic cues from the reference image.
+
+
+
+Figure 16. Depth conditioned generation. Given an input depth map and a reference style, our method generates images that preserve the depth structure while faithfully transferring diverse styles across different objects.
+
+
+
+Figure 17. Extra style transfer results
+
+
+
+Figure 18. Extra style transfer results
+
+
+
+Figure 19. Extra style-aligned generation results
+
+
+
+Figure 20. Magnified results of Figure 9
+
+
+
+Figure 21. Magnified results of Figure 9
+
+
+
+
+
+
+  
+
+    Experimental support, please
+    view the build logs
+    for errors. Generated by
+    
+      
+        L
+        A
+        T
+        E
+      
+      xml
+      
+    .
+  
+  
+
+    
+Instructions for reporting errors
+    
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+      support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+      methods listed below:
+    
+      
+Click the "Report Issue" (
+            
+          ) button, located in the page header.
+    
+    
+Tip: You can select the relevant text first, to include it in your report.
+    
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+      may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+      should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+      all.
+    
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+  
+
+  
+
+    
+
+      
+
+        We gratefully acknowledge support from
+        our major funders,
+        member institutions, ,
+        and all contributors.
+      
+      
+        About
+        ·
+        Help
+        ·
+        Contact
+        ·
+        Subscribe
+        ·
+        Copyright
+        ·
+        Privacy
+        ·
+        Accessibility
+        ·
+        Operational Status (opens in new tab)
+      
+    
+
+    
+
+      
+Major funding support from
+      
+
+        
+          
+        
+        
+          
+        
+        
+          
+        
+      
+    
+  
+
+
+  
+    
+      
+    
+  
+
+

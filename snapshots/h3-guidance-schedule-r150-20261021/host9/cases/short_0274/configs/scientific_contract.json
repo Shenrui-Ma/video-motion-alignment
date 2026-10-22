@@ -1,0 +1,897 @@
+{
+  "schema": "r150-r89-schedule-extension-v1",
+  "cases": [
+    {
+      "run_id": "r150_short_0274_seed2026101701_early",
+      "source_id": "short_0274",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the astronaut in the foreground water in <Video 1>. The source screen position, body rise and head-turn sequence supply the performance for a humanoid alien replacement.\n<Subject 2> is the original water surface, distant horizon, visible rocks or debris and the surrounding landscape in <Video 1>.\nSource context: The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Replace the astronaut with a humanoid alien while preserving the original water scene and visible performance.\nRequested edit: Replace the astronaut with an alien\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Replace the astronaut’s identity and appearance with a humanoid alien. Preserve the source body placement in the water, body-rise motion, gaze and head-turn sequence, action timing and duration.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the original water, horizon, visible background objects, lighting, surface movement and interactions around the performer.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] A humanoid alien occupies the astronaut’s original position in the water. It follows the source forward-leaning opening pose, rise toward an upright posture and subsequent head movements, in the same order and timing. The original water surface and horizon remain throughout the shot.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "parent_graph": "design/parent_native_graph.json",
+      "parent_graph_sha256": "5c0147fc2177116f9db4563f71012ccba8720ea86a28a6976b5f650be8dec48b",
+      "video": "short_0274_video.mp4",
+      "provenance": "short_0274_provenance.json",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "valid_frame_count": 72,
+      "original_task": {
+        "id": 274,
+        "src_video_name": "short_0274.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.",
+        "edit_prompt": "Replace the astronaut with an alien",
+        "target_prompt": "The video depicts an alien standing in a vast body of water, possibly after an emergency landing.",
+        "target_span": "alien",
+        "target_phrase": "an alien"
+      },
+      "video_sha256": "717dd6a53cf5861980acf8ec12656296b2d758e5f9b09094b66daa8158f5a50f",
+      "provenance_sha256": "b0b6ec1be7071cf5914d9e9e11e0e81cbe031f201b23434ef6bf2f770c36e916",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "original_source": "short_0274_original.mp4",
+      "arm": "early",
+      "prompt_version": "P1-local-v1",
+      "parent_semantics": "Frozen R73 math, source-selected original video and full Subject/Shot P1-local-v1. Both arms exact same prompt and source; actual noise/conditions/prefix checked.",
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "target_latent_shapes": [
+        [
+          1,
+          24,
+          22,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          122
+        ]
+      ],
+      "physical_query_window": [
+        0,
+        71
+      ],
+      "steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "phase_displacement": 0,
+      "evaluation_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "sigma_selected": [
+        {
+          "step": 0,
+          "sigma": 1.0,
+          "sigma_next": 0.995633187773
+        },
+        {
+          "step": 1,
+          "sigma": 0.995633187773,
+          "sigma_next": 0.990825688073
+        },
+        {
+          "step": 2,
+          "sigma": 0.990825688073,
+          "sigma_next": 0.985507246377
+        },
+        {
+          "step": 3,
+          "sigma": 0.985507246377,
+          "sigma_next": 0.979591836735
+        },
+        {
+          "step": 4,
+          "sigma": 0.979591836735,
+          "sigma_next": 0.972972972973
+        },
+        {
+          "step": 5,
+          "sigma": 0.972972972973,
+          "sigma_next": 0.965517241379
+        },
+        {
+          "step": 6,
+          "sigma": 0.965517241379,
+          "sigma_next": 0.957055214724
+        },
+        {
+          "step": 7,
+          "sigma": 0.957055214724,
+          "sigma_next": 0.947368421053
+        },
+        {
+          "step": 8,
+          "sigma": 0.947368421053,
+          "sigma_next": 0.936170212766
+        }
+      ],
+      "sum_abs_delta_sigma": 0.06382978723400001
+    },
+    {
+      "run_id": "r150_short_0274_seed2026101701_late",
+      "source_id": "short_0274",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the astronaut in the foreground water in <Video 1>. The source screen position, body rise and head-turn sequence supply the performance for a humanoid alien replacement.\n<Subject 2> is the original water surface, distant horizon, visible rocks or debris and the surrounding landscape in <Video 1>.\nSource context: The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Replace the astronaut with a humanoid alien while preserving the original water scene and visible performance.\nRequested edit: Replace the astronaut with an alien\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Replace the astronaut’s identity and appearance with a humanoid alien. Preserve the source body placement in the water, body-rise motion, gaze and head-turn sequence, action timing and duration.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the original water, horizon, visible background objects, lighting, surface movement and interactions around the performer.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] A humanoid alien occupies the astronaut’s original position in the water. It follows the source forward-leaning opening pose, rise toward an upright posture and subsequent head movements, in the same order and timing. The original water surface and horizon remain throughout the shot.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "parent_graph": "design/parent_native_graph.json",
+      "parent_graph_sha256": "5c0147fc2177116f9db4563f71012ccba8720ea86a28a6976b5f650be8dec48b",
+      "video": "short_0274_video.mp4",
+      "provenance": "short_0274_provenance.json",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "valid_frame_count": 72,
+      "original_task": {
+        "id": 274,
+        "src_video_name": "short_0274.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.",
+        "edit_prompt": "Replace the astronaut with an alien",
+        "target_prompt": "The video depicts an alien standing in a vast body of water, possibly after an emergency landing.",
+        "target_span": "alien",
+        "target_phrase": "an alien"
+      },
+      "video_sha256": "717dd6a53cf5861980acf8ec12656296b2d758e5f9b09094b66daa8158f5a50f",
+      "provenance_sha256": "b0b6ec1be7071cf5914d9e9e11e0e81cbe031f201b23434ef6bf2f770c36e916",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "original_source": "short_0274_original.mp4",
+      "arm": "late",
+      "prompt_version": "P1-local-v1",
+      "parent_semantics": "Frozen R73 math, source-selected original video and full Subject/Shot P1-local-v1. Both arms exact same prompt and source; actual noise/conditions/prefix checked.",
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "target_latent_shapes": [
+        [
+          1,
+          24,
+          22,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          122
+        ]
+      ],
+      "physical_query_window": [
+        0,
+        71
+      ],
+      "steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "phase_displacement": 0,
+      "evaluation_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "sigma_selected": [
+        {
+          "step": 11,
+          "sigma": 0.90756302521,
+          "sigma_next": 0.888888888889
+        },
+        {
+          "step": 12,
+          "sigma": 0.888888888889,
+          "sigma_next": 0.865979381443
+        },
+        {
+          "step": 13,
+          "sigma": 0.865979381443,
+          "sigma_next": 0.837209302326
+        },
+        {
+          "step": 14,
+          "sigma": 0.837209302326,
+          "sigma_next": 0.8
+        },
+        {
+          "step": 15,
+          "sigma": 0.8,
+          "sigma_next": 0.75
+        },
+        {
+          "step": 16,
+          "sigma": 0.75,
+          "sigma_next": 0.679245283019
+        },
+        {
+          "step": 17,
+          "sigma": 0.679245283019,
+          "sigma_next": 0.571428571429
+        },
+        {
+          "step": 18,
+          "sigma": 0.571428571429,
+          "sigma_next": 0.387096774194
+        },
+        {
+          "step": 19,
+          "sigma": 0.387096774194,
+          "sigma_next": 0.0
+        }
+      ],
+      "sum_abs_delta_sigma": 0.90756302521
+    },
+    {
+      "run_id": "r150_short_0274_seed2026101701_split",
+      "source_id": "short_0274",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the astronaut in the foreground water in <Video 1>. The source screen position, body rise and head-turn sequence supply the performance for a humanoid alien replacement.\n<Subject 2> is the original water surface, distant horizon, visible rocks or debris and the surrounding landscape in <Video 1>.\nSource context: The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Replace the astronaut with a humanoid alien while preserving the original water scene and visible performance.\nRequested edit: Replace the astronaut with an alien\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Replace the astronaut’s identity and appearance with a humanoid alien. Preserve the source body placement in the water, body-rise motion, gaze and head-turn sequence, action timing and duration.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the original water, horizon, visible background objects, lighting, surface movement and interactions around the performer.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] A humanoid alien occupies the astronaut’s original position in the water. It follows the source forward-leaning opening pose, rise toward an upright posture and subsequent head movements, in the same order and timing. The original water surface and horizon remain throughout the shot.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "parent_graph": "design/parent_native_graph.json",
+      "parent_graph_sha256": "5c0147fc2177116f9db4563f71012ccba8720ea86a28a6976b5f650be8dec48b",
+      "video": "short_0274_video.mp4",
+      "provenance": "short_0274_provenance.json",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "valid_frame_count": 72,
+      "original_task": {
+        "id": 274,
+        "src_video_name": "short_0274.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.",
+        "edit_prompt": "Replace the astronaut with an alien",
+        "target_prompt": "The video depicts an alien standing in a vast body of water, possibly after an emergency landing.",
+        "target_span": "alien",
+        "target_phrase": "an alien"
+      },
+      "video_sha256": "717dd6a53cf5861980acf8ec12656296b2d758e5f9b09094b66daa8158f5a50f",
+      "provenance_sha256": "b0b6ec1be7071cf5914d9e9e11e0e81cbe031f201b23434ef6bf2f770c36e916",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "original_source": "short_0274_original.mp4",
+      "arm": "split",
+      "prompt_version": "P1-local-v1",
+      "parent_semantics": "Frozen R73 math, source-selected original video and full Subject/Shot P1-local-v1. Both arms exact same prompt and source; actual noise/conditions/prefix checked.",
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "target_latent_shapes": [
+        [
+          1,
+          24,
+          22,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          122
+        ]
+      ],
+      "physical_query_window": [
+        0,
+        71
+      ],
+      "steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "phase_displacement": 0,
+      "evaluation_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "sigma_selected": [
+        {
+          "step": 0,
+          "sigma": 1.0,
+          "sigma_next": 0.995633187773
+        },
+        {
+          "step": 1,
+          "sigma": 0.995633187773,
+          "sigma_next": 0.990825688073
+        },
+        {
+          "step": 2,
+          "sigma": 0.990825688073,
+          "sigma_next": 0.985507246377
+        },
+        {
+          "step": 3,
+          "sigma": 0.985507246377,
+          "sigma_next": 0.979591836735
+        },
+        {
+          "step": 15,
+          "sigma": 0.8,
+          "sigma_next": 0.75
+        },
+        {
+          "step": 16,
+          "sigma": 0.75,
+          "sigma_next": 0.679245283019
+        },
+        {
+          "step": 17,
+          "sigma": 0.679245283019,
+          "sigma_next": 0.571428571429
+        },
+        {
+          "step": 18,
+          "sigma": 0.571428571429,
+          "sigma_next": 0.387096774194
+        },
+        {
+          "step": 19,
+          "sigma": 0.387096774194,
+          "sigma_next": 0.0
+        }
+      ],
+      "sum_abs_delta_sigma": 0.820408163265
+    },
+    {
+      "run_id": "r150_short_0274_seed2026101701_global_weak",
+      "source_id": "short_0274",
+      "seed": 2026101701,
+      "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the astronaut in the foreground water in <Video 1>. The source screen position, body rise and head-turn sequence supply the performance for a humanoid alien replacement.\n<Subject 2> is the original water surface, distant horizon, visible rocks or debris and the surrounding landscape in <Video 1>.\nSource context: The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Replace the astronaut with a humanoid alien while preserving the original water scene and visible performance.\nRequested edit: Replace the astronaut with an alien\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Replace the astronaut’s identity and appearance with a humanoid alien. Preserve the source body placement in the water, body-rise motion, gaze and head-turn sequence, action timing and duration.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the original water, horizon, visible background objects, lighting, surface movement and interactions around the performer.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] A humanoid alien occupies the astronaut’s original position in the water. It follows the source forward-leaning opening pose, rise toward an upright posture and subsequent head movements, in the same order and timing. The original water surface and horizon remain throughout the shot.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+      "parent_graph": "design/parent_native_graph.json",
+      "parent_graph_sha256": "5c0147fc2177116f9db4563f71012ccba8720ea86a28a6976b5f650be8dec48b",
+      "video": "short_0274_video.mp4",
+      "provenance": "short_0274_provenance.json",
+      "reference_video_count": 1,
+      "reference_image_count": 0,
+      "valid_frame_count": 72,
+      "original_task": {
+        "id": 274,
+        "src_video_name": "short_0274.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "The video depicts an astronaut in a space suit standing in a vast body of water, possibly after an emergency landing.",
+        "edit_prompt": "Replace the astronaut with an alien",
+        "target_prompt": "The video depicts an alien standing in a vast body of water, possibly after an emergency landing.",
+        "target_span": "alien",
+        "target_phrase": "an alien"
+      },
+      "video_sha256": "717dd6a53cf5861980acf8ec12656296b2d758e5f9b09094b66daa8158f5a50f",
+      "provenance_sha256": "b0b6ec1be7071cf5914d9e9e11e0e81cbe031f201b23434ef6bf2f770c36e916",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "original_source": "short_0274_original.mp4",
+      "arm": "global_weak",
+      "prompt_version": "P1-local-v1",
+      "parent_semantics": "Frozen R73 math, source-selected original video and full Subject/Shot P1-local-v1. Both arms exact same prompt and source; actual noise/conditions/prefix checked.",
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "target_latent_shapes": [
+        [
+          1,
+          24,
+          22,
+          46,
+          82
+        ],
+        [
+          1,
+          32,
+          2,
+          122
+        ]
+      ],
+      "physical_query_window": [
+        0,
+        71
+      ],
+      "steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "phase_displacement": 0,
+      "evaluation_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "sigma_selected": [
+        {
+          "step": 0,
+          "sigma": 1.0,
+          "sigma_next": 0.995633187773
+        },
+        {
+          "step": 1,
+          "sigma": 0.995633187773,
+          "sigma_next": 0.990825688073
+        },
+        {
+          "step": 2,
+          "sigma": 0.990825688073,
+          "sigma_next": 0.985507246377
+        },
+        {
+          "step": 3,
+          "sigma": 0.985507246377,
+          "sigma_next": 0.979591836735
+        },
+        {
+          "step": 4,
+          "sigma": 0.979591836735,
+          "sigma_next": 0.972972972973
+        },
+        {
+          "step": 5,
+          "sigma": 0.972972972973,
+          "sigma_next": 0.965517241379
+        },
+        {
+          "step": 6,
+          "sigma": 0.965517241379,
+          "sigma_next": 0.957055214724
+        },
+        {
+          "step": 7,
+          "sigma": 0.957055214724,
+          "sigma_next": 0.947368421053
+        },
+        {
+          "step": 8,
+          "sigma": 0.947368421053,
+          "sigma_next": 0.936170212766
+        },
+        {
+          "step": 9,
+          "sigma": 0.936170212766,
+          "sigma_next": 0.923076923077
+        },
+        {
+          "step": 10,
+          "sigma": 0.923076923077,
+          "sigma_next": 0.90756302521
+        },
+        {
+          "step": 11,
+          "sigma": 0.90756302521,
+          "sigma_next": 0.888888888889
+        },
+        {
+          "step": 12,
+          "sigma": 0.888888888889,
+          "sigma_next": 0.865979381443
+        },
+        {
+          "step": 13,
+          "sigma": 0.865979381443,
+          "sigma_next": 0.837209302326
+        },
+        {
+          "step": 14,
+          "sigma": 0.837209302326,
+          "sigma_next": 0.8
+        },
+        {
+          "step": 15,
+          "sigma": 0.8,
+          "sigma_next": 0.75
+        },
+        {
+          "step": 16,
+          "sigma": 0.75,
+          "sigma_next": 0.679245283019
+        },
+        {
+          "step": 17,
+          "sigma": 0.679245283019,
+          "sigma_next": 0.571428571429
+        },
+        {
+          "step": 18,
+          "sigma": 0.571428571429,
+          "sigma_next": 0.387096774194
+        },
+        {
+          "step": 19,
+          "sigma": 0.387096774194,
+          "sigma_next": 0.0
+        }
+      ],
+      "sum_abs_delta_sigma": 1.0
+    }
+  ],
+  "case_order": [
+    "r150_short_0274_seed2026101701_early",
+    "r150_short_0274_seed2026101701_late",
+    "r150_short_0274_seed2026101701_split",
+    "r150_short_0274_seed2026101701_global_weak"
+  ],
+  "source_ids": [
+    "short_0274"
+  ],
+  "arms": [
+    "early",
+    "late",
+    "split",
+    "global_weak"
+  ],
+  "NFE_per_job": 20,
+  "callback_count": 20,
+  "online_observer": false,
+  "conditioning_sha256": "859d0813039eb7cef22e629994568c993590fdcf6a3bce9eed51ecbc4cdabcf5",
+  "historical_shared_run": "r89_short_0274_shared",
+  "noise_pair_id": "r89_short_0274_seed2026101701",
+  "parent_noise_file": "/data5/researcher/h3_runs/timing_ive_subject_capacity_r89_20261018/audit/r89_short_0274_seed2026101701_noise.pt",
+  "parent_noise_sha256": "4339087f5876aa58d27d90f7bd59d71be7e64614c9ed400ebd315c68444f7b6c",
+  "continuous": {
+    "retain_service_between_jobs": true,
+    "cache_none": false,
+    "idle_hold_seconds": 30,
+    "max_service_seconds": 43200,
+    "job_timeout_seconds": 14400,
+    "root_final_close_releases": true,
+    "failure_releases_exact_owned": true
+  },
+  "scope": "Three equal-count schedule arms plus separately labeled alpha0.25 whole-video twenty-step control; phase0",
+  "historical_runtime": "host9 original R89",
+  "execution_runtime": "host9 existing environment; shared GPU2",
+  "phase_displacement": 0,
+  "parent_cached_graph_sha256": "26701a8e6a10f9de3385275f83a214bbcb67fa10778cbac5f7f5da699f1455c6",
+  "parent_r89_seal_sha256": "b3b25e8a00270a333762723d9f19c66bf6b64862790fcaa6438e898740be126b"
+}

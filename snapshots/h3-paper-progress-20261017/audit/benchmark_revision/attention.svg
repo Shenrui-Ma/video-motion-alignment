@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="570" viewBox="0 0 1200 570">
+<style>text{font-family:Arial,'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#202832}.title{font-size:25px;font-weight:600}.label{font-size:21px}.small{font-size:18px}.note{font-size:17px;fill:#596470}.num{font-size:22px;font-family:Georgia,serif}.line{stroke:#526371;stroke-width:2;fill:none}</style>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#526371"/></marker></defs>
+<rect width="1200" height="570" fill="white"/>
+<text x="32" y="38" class="title">选中时间段的 Query：将参考读取集中到对应时刻</text>
+<text x="32" y="73" class="small">示意：Query 属于视频第 2 个 time bin。每个 head 分别执行，修改位于 Attention 输出投影之前。</text>
+<rect x="32" y="112" width="1136" height="72" rx="8" fill="#f3f6f8" stroke="#c7d2db"/>
+<text x="58" y="155" class="label">Q、K → RoPE → Attention</text><path d="M385 148H443" class="line" marker-end="url(#arrow)"/>
+<rect x="460" y="125" width="320" height="46" rx="5" fill="#dcecf7" stroke="#2b668d"/>
+<text x="620" y="155" text-anchor="middle" class="label">参考时间权重重分配</text><path d="M798 148H855" class="line" marker-end="url(#arrow)"/>
+<text x="875" y="155" class="label">Wₒ → 后续 DiT</text>
+<text x="32" y="223" class="label">普通 Attention</text><text x="32" y="367" class="label">时序引导</text>
+<text x="276" y="223" text-anchor="middle" class="small">bin 1</text><text x="424" y="223" text-anchor="middle" class="small">bin 2</text><text x="572" y="223" text-anchor="middle" class="small">bin 3</text><text x="720" y="223" text-anchor="middle" class="small">bin 4</text><text x="954" y="223" text-anchor="middle" class="small">其他 Token</text>
+<g stroke="#a9bfd1"><rect x="210" y="242" width="132" height="66" fill="#d6e6f2"/><rect x="358" y="242" width="132" height="66" fill="#b7d2e6"/><rect x="506" y="242" width="132" height="66" fill="#96bedb"/><rect x="654" y="242" width="132" height="66" fill="#edf3f8"/></g>
+<rect x="824" y="242" width="260" height="66" fill="#e9ecef" stroke="#aeb8c1"/>
+<g text-anchor="middle" class="num"><text x="276" y="283">0.08</text><text x="424" y="283">0.12</text><text x="572" y="283">0.16</text><text x="720" y="283">0.04</text><text x="954" y="283">0.60</text></g>
+<path d="M214 320V330H782V320" class="line"/><text x="498" y="359" text-anchor="middle" class="small">参考视频总权重 m_ref = 0.40</text>
+<g stroke="#a9bfd1"><rect x="210" y="385" width="132" height="66" fill="#fff"/><rect x="358" y="385" width="132" height="66" fill="#2b668d"/><rect x="506" y="385" width="132" height="66" fill="#fff"/><rect x="654" y="385" width="132" height="66" fill="#fff"/></g>
+<rect x="824" y="385" width="260" height="66" fill="#e9ecef" stroke="#aeb8c1"/>
+<g text-anchor="middle" class="num"><text x="276" y="426">0</text><text x="424" y="426" style="fill:white">0.40</text><text x="572" y="426">0</text><text x="720" y="426">0</text><text x="954" y="426">0.60</text></g>
+<text x="600" y="498" text-anchor="middle" class="num">O′ = O + m_ref (O_same − O_ref)</text>
+<text x="600" y="539" text-anchor="middle" class="note">每格表示一个时间组的总权重。对应组内部仍按原始 Attention logits 归一化分配给空间 Token。</text>
+</svg>

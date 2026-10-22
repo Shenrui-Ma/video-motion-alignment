@@ -1,0 +1,42 @@
+三个原场景局部编辑源候选复核
+
+检查固定六时刻原帧，没有查看这些候选的生成结果，也没有启动推理。官方MP4原字节、每帧PTS、SHA及完整source/edit/target prompt均保留。三条均25fps；帧数/末帧时间：0362=67/2.64秒，0144=108/4.28秒，0166=128/5.08秒。
+
+short_0144 — PRIORITY_CANDIDATE
+多人的上肢动作清楚，背景屏幕替换在任务上应保留人物与动作。
+四人围桌庆祝。左前黄衣人物由屈肘举拳向桌中央伸臂；右前绿衣人物从手部动作转为向中央伸臂；后方两人也伸手加入碰拳。
+上身、肩肘和手大部分可见；桌子遮挡下半身，伸手会合时手和前臂互相遮挡，右后人物局部被遮挡。应分别对应各人，不能用单个最大框代表整片。
+固定六时刻构图连续，未见硬切；全原片scene>0.25检测未报候选。该阈值仅辅助检查。
+只把原电脑屏幕替换成大型数字广告牌。人物、办公室、桌面、动作顺序/时序应保留；新牌的尺寸可造成合法局部遮挡，需要单独标记。
+官方caption写clapping/high-fiving；固定六帧实际最清楚的是举拳、伸臂、多人碰拳。保留官方prompt原文，动作评估以源画面为据，不把caption当逐帧动作真值。
+source_prompt: A group of four people are gathered around a table in a modern office setting, celebrating a successful digital marketing project. They are clapping and high-fiving each other, with a computer screen displaying 'Digital Marketing' in the background.
+edit_prompt: Replace the computer screen with a large digital billboard
+target_prompt: A group of four people are gathered around a table in a modern office setting, celebrating a successful digital marketing project. They are clapping and high-fiving each other, with a large digital billboard displaying 'Digital Marketing' in the background.
+
+short_0166 — SECONDARY_CANDIDATE_WITH_OCCLUSION
+人体动作明显且编辑对象为邻近动物，适合考察非编辑人物动作保持；遮挡和目标动物可见性限制较强。
+两人在果树旁采摘。左侧锥帽人物手从树枝附近移向胸前、再次伸向苹果；右侧花帽人物向前伸手，随后手臂放低并俯身。
+人物上肢尺寸较小，树枝/果实持续遮挡肩肘腕；右人物帽子遮脸，手部与细枝重叠。狗多处被腿/植物遮挡且下缘截断，不适宜依靠全身狗pose判替换成功。
+固定六时刻构图连续，未见硬切；全原片scene>0.25检测未报候选。
+只把狗换成猫；两名采摘者、树木/果实和果园场景应保留。猫的体型变化属于编辑范围，人的采摘动作不在修改范围。
+固定六帧能看出采摘/伸手动作阶段，但枝条遮挡使精确抓握接触时间不确定。
+source_prompt: Two women are harvesting apples from a tree in a lush green orchard. They are dressed in traditional attire, with one wearing a conical hat and the other a colorful headscarf. A dog is also present, moving around the women as they pick the apples.
+edit_prompt: Replace the dog with a cat
+target_prompt: Two women are harvesting apples from a tree in a lush green orchard. They are dressed in traditional attire, with one wearing a conical hat and the other a colorful headscarf. A cat is also present, moving around the women as they pick the apples.
+
+short_0362 — LOW_MOTION_CONTROL
+局部书封改色的任务非常明确，动作密度不足以担任高密度短动作主样例。
+女读者低头看书并说话/改变表情，书页与手位置只有小变化；右侧人物身体前倾、局部在画面内。
+女读者部分前臂、手与书可见；肘/下身部分出画，手被书页遮挡；右侧人物大幅裁切。
+固定六时刻构图连续，未见硬切；全原片scene>0.25检测未报候选。
+仅把蓝色书封改成红色。两个人、服装、室内背景、读书动作和页面内容都应保持。
+六帧未确认独立完整翻页事件；不将书页角度的小变化宣称为翻页动作。
+source_prompt: A woman in traditional Chinese attire is sitting and reading a book with a blue cover, while a man in similar attire is sitting beside her, seemingly engaged in a conversation.
+edit_prompt: Change the book with a blue cover to a red cover
+target_prompt: A woman in traditional Chinese attire is sitting and reading a book with a red cover, while a man in similar attire is sitting beside her, seemingly engaged in a conversation.
+
+0395：保留既有EXCLUDE。原CANDIDATES_MANIFEST记录“校服人物的脸与肩部近景，表情变化为主，手臂不在画面”，理由“不适合当前上肢动作保持问题”。没有重新判断或改写该结论。
+
+建议顺序：0144作为多人物上肢动作的优先候选；0166作为遮挡较多的原场景动物替换/人体动作保持候选；0362只作低运动量控制。它们都是局部元素编辑，不是新增的人物身份替换任务。
+数据版本：https://huggingface.co/datasets/Coraxor/IVEBench/tree/1e6cb655c0a537f6093edcf18e2607fb03e76734/ivebenchdb_mp4_short
+下载总字节：41304472。正式任务语句未改。

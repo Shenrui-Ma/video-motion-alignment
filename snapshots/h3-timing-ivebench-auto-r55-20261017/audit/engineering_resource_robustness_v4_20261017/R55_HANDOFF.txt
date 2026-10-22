@@ -1,0 +1,30 @@
+R55 resource v4 candidate — seven source files +two PENDING profiles. No GPU execution.
+The shared resource/runtime logic is byte/AST-identical to the44-test R50 v4 candidate. R55 adds11 CPU tests for pending/bootstrap profile, foreign co-residency, exact bootstrap snapshot, unchanged full90 checks and patch reconstruction.
+
+Apply after root's current source review
+- Verify SOURCE_SNAPSHOTS.json r55 before_sha256; R55_READY.json gives after SHA.
+- Apply r55/candidate.patch (seven source files). Copy configs/decoder_memory_profile.json and configs/main_memory_profile.json. Add profiles to observer_bindings.local_files/deploy. No policy, seed, parent or numerical module changes are included.
+- Current .41 main/decoder UUIDs remain the producer's existing constants. GPU cap is current UID's planned/active cards <=2 on that host; foreign users do not count.
+- main_memory_profile is PENDING. Service startup fails until root supplies an actual capacity certificate, after actual27-bin routing measurement and chosen model-residency/--reserve-vram configuration. No main capacity was invented.
+
+Full90 bootstrap -> measured formal binding (avoids circular SHA)
+1. Complete actual Native parent closure and scientific policy/protocol through existing root workflow. Keep protocol.resources as currently structured (no decoder profile hash embedded there). Bind decoder profile and source files in observer_bindings. Decoder profile is PENDING; its only allowed use is standalone full90 bootstrap requiring16GiB actual free memory. This threshold is a conservative engineering admission value, not a measurement.
+2. Finish source choices, including any service --reserve-vram flag, before collecting the source-bound full90 gate. The gate records all scripts' source SHA; changing a script afterward requires an explicit engineering inheritance review or a fresh gate.
+3. Use a fresh standalone known_endpoint_90 directory and existing root ready/go protocol. The gate and child inspect actual free memory and own-card count. Foreign compute may coexist. After decoder exits, release checks only the original child generation/NVML tail. Existing zeroDiT,90frame,shape,RGB count,no-fallback and endpoint/request checks remain unchanged.
+4. Gate preserves byte-exact bootstrap_observer_bindings.json and bootstrap_decoder_memory_profile.json in the observation directory. Its request continues to point to that archived bindings SHA. Keep these files and the original request/decode gate immutable.
+5. Copy the successful actual gate JSON byte-for-byte to configs/decoder_memory_evidence/full90_gate.json. Set decoder_memory_profile.status=MEASURED; evidence_file to that path; evidence_sha256=actual gate SHA; peak_reserved_bytes=actual decode.max_memory_reserved_bytes; required_free_bytes=peak+2147483648. Geometry90x736x1312@24 and exact VAE SHA remain fixed. Verify allocated>0 <=reserved, full90 shape, no fallback, gatepassed,NFE0/model_forward0. The profile reader enforces these checks.
+6. Update observer_bindings.local_files and deployment manifest explicitly to the measured profile/evidence and final main profile/certificate. Source scripts and protocol remain unchanged. Formal requests use the new bindings SHA; the old bootstrap request remains bound to its preserved prior snapshot. No retroactive gate relabeling is involved.
+7. prelaunch_gates now calls decoder_memory_profile() in formal mode and checks profile.evidence_sha256==SHA(actual audit/known_endpoint_90_gate.json) and identical recorded peak. Therefore formal preflight rejects PENDING or mismatched evidence before sampling.
+
+Main capacity profile format after actual root review
+schema h3-main-memory-profile-v4, status MEASURED_BOUND,
+required_free_bytes=<approved main_estimated_peak_bytes>,
+evidence_file=configs/main_memory_evidence/<actual certificate>.json,
+evidence_sha256=<exact certificate SHA>.
+The certificate must have root_approved=true, main_gpu_uuid matching service GPU, main_native_peak_reserved_bytes, routing_increment_bound_bytes, main_margin_bytes>=1GiB, main_estimated_peak_bytes >= their sum. Keep the distinction between sampled NVML usage and allocator peak accurate when creating this certificate. The candidate currently contains no certificate and makes no claim about actual full90 or actual main residency.
+
+Timing/consumer compatibility
+Same shared780s decoder stage,600s resource admission deadline,max3 typed-CUDA-OOM attempts as R50; no independent180s execution cutoff. Parent1650s budget remains. Report decoder_stage_seconds and outer_admission_wait_seconds; consumer agent confirmed no hard dependency on removed gpu_wait_seconds. Actual child waits remain in JSONL.
+
+Remaining standalone guards
+Production service/observer/full90 gate allow foreign co-residency. Legacy decode_x0.py, gpu_dynamic_union_smoke.py and the separate audit route_allocator_probe.py have strict selected-GPU checks; they are independent prelaunch/manual utilities, not the running method. Root may review those separately for the planned allocator gate. No unseen foreign-PID veto was found in controller/job/model extensions.

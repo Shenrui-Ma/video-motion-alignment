@@ -1,0 +1,88 @@
+{
+  "schema": "r123-native-paired-media-consumer-v1",
+  "producer_local": "/Users/researcher/DevProjects/h3-timing-ive-prompt-envelope-full-format-r123-20261020",
+  "producer_remote": "/data4/researcher/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020",
+  "producer_seal_sha256": "e1efca80e923af6ba4efd456d379852047ca3e9984884466c6da39d8c207ddf9",
+  "producer_contract_sha256": "14e6e2a6e7e2ac88d4a6d4445776ad8889b0d8c8cfd826fde3eb0f0f93d3820e",
+  "producer_runtime_sha256": "3de9ab84ebdeda7c89e015f55390b25acaa9b24da4ba60fce2fbfc85c3e8933f",
+  "host": "H3_SERVER_B",
+  "source_order": [
+    "short_0358"
+  ],
+  "sources": [
+    {
+      "source_id": "short_0358",
+      "run_id": "r123_short_0358_seed2026101701_native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "prompt_version": "official_context_ir_with_benchmark_captions_and_subject_binding",
+      "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+      "original_task": {
+        "id": 358,
+        "src_video_name": "short_0358.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+        "edit_prompt": "Add a pair of glasses to the man.",
+        "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+        "target_span": "glasses",
+        "target_phrase": "the man is wearing a pair of glasses"
+      },
+      "task_scope": "subject_editing",
+      "evaluation_scope": "One existing source prompt-format diagnostic; no new source coverage.",
+      "forced_run_id": "r123_short_0358_seed2026101701_forced",
+      "graph_sha256": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1",
+      "forced_graph_sha256": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509",
+      "valid_frames": 105,
+      "crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "reference_image_expected": false,
+      "reference_image": null,
+      "reference_video_count": 1,
+      "clip": {
+        "start_frame": 0,
+        "end_frame_inclusive": 108,
+        "original_frame_interval_half_open": [
+          0,
+          109
+        ],
+        "scope": "existing source full temporal extent; valid/padding determined by inherited provenance"
+      },
+      "source": {
+        "file": "inputs/short_0358_video.mp4",
+        "sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+        "bytes": 18002964
+      },
+      "provenance": {
+        "file": "inputs/short_0358_provenance.json",
+        "sha256": "d191c79ad0187c1e36429fc93d0a11ac15ff9b206dde46948e6c790f4770b07a",
+        "bytes": 15482
+      },
+      "original_media": {
+        "file": "/Users/researcher/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_original.mp4",
+        "sha256": "42b3b299e92ae723965f58c6c5c333623afb380ccf39181481f05629478a532d"
+      }
+    }
+  ],
+  "method": {
+    "name": "fixed temporal guidance",
+    "steps_zero_based_inclusive": [
+      6,
+      14
+    ],
+    "alpha": 1,
+    "reference_images": 0,
+    "caption": "时序引导"
+  },
+  "fixed_source_denominator": 1,
+  "no_gpu_entry": true,
+  "no_auto_submission": true
+}

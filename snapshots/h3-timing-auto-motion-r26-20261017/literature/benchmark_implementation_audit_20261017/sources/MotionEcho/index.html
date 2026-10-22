@@ -1,0 +1,1560 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="MotionEcho restores generative trajectories for fast distilled video generators through adaptive teacher-guided test-time distillation.">
+  <meta property="og:title" content="MotionEcho"/>
+  <meta property="og:description" content="When Distillation Breaks Motion Control: Restoring Generative Trajectories for Fast Video Generators"/>
+  <meta property="og:url" content="https://euminds.github.io/motionecho/"/>
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+  <meta property="og:image" content="static/images/figure1_camera_ready_cropped.png" />
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+
+
+  <meta name="twitter:title" content="MotionEcho">
+  <meta name="twitter:description" content="Restoring generative trajectories for fast video generators.">
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+  <meta name="twitter:image" content="static/images/figure1_camera_ready_cropped.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords" content="MotionEcho, motion customization, video generation, distilled video generators, test-time distillation, ECCV 2026">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+
+
+  <title>MotionEcho</title>
+  <link rel="icon" type="image/x-icon" href="static/images/NN.svg">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+  rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css?v=20260705-dit-examples">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js?v=20260705-dit-examples"></script>
+</head>
+<body>
+
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">When Distillation Breaks Motion Control: Restoring Generative Trajectories for Fast Video Generators</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block">
+                <a href="https://euminds.github.io/" target="_blank">Jintao Rong</a><sup>1,*</sup>,</span>
+              <span class="author-block">
+                <a href="https://shelsin.github.io/" target="_blank">Xin Xie</a><sup>2,*</sup>,</span>
+                  <span class="author-block">
+                    <a href="https://ieeexplore.ieee.org/author/37085832488" target="_blank">Xinyi Yu</a><sup>1</sup>,</span>
+                    <span class="author-block">
+                      <a href="https://ieeexplore.ieee.org/author/37426629600" target="_blank">Linlin Ou</a><sup>1,†</sup>,</span>
+                          </span>
+                        </span>
+                      </span>
+                    </span>
+                  </span>
+                  </div>
+                  <div class="is-size-5 publication-authors">
+                    <!-- Paper authors -->
+                              <a href="https://zhangxinyu-xyz.github.io/" target="_blank">Xinyu Zhang</a><sup>3</sup>,</span>
+                              <span class="author-block">
+                                <a href="https://cshen.github.io/" target="_blank">Chunhua Shen</a><sup>4</sup>,</span>
+                                <span class="author-block">
+                                  <a href="https://donggong1.github.io/" target="_blank">Dong Gong</a><sup>2,†</sup></span>
+                            </span>
+                          </span>
+                        </span>
+                        </div>
+	                  <div class="is-size-5 publication-authors">
+	                    <span class="author-block"><sup>1</sup>Zhejiang University of Technology, <sup>2</sup>UNSW Sydney, <sup>3</sup>University of Auckland, <sup>4</sup>Zhejiang University</span>
+	                    <span class="eql-cntrb"><small><br><sup>*</sup>Indicates Equal Contribution. <sup>†</sup>Indicates Corresponding Author.</small></span>
+	                  </div>
+
+                    <div class="publication-venue is-size-5">
+                      Accepted to the European Conference on Computer Vision (ECCV), 2026
+                    </div>
+
+	                  <div class="column has-text-centered">
+                    <div class="publication-links">
+                         <!-- Arxiv PDF link -->
+                      <span class="link-block">
+                        <a href="https://arxiv.org/pdf/2506.19348" target="_blank"
+                        class="external-link button is-normal is-rounded is-dark">
+                        <span class="icon">
+                          <i class="fas fa-file-pdf"></i>
+                        </span>
+                        <span>Paper</span>
+                      </a>
+                    </span>
+
+                    <!-- Supplementary PDF link -->
+                    <span class="link-block">
+                      <a href="https://arxiv.org/pdf/2506.19348" target="_blank"
+                      class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                      </span>
+                      <span>Supplementary</span>
+                    </a>
+                  </span>
+                  <!-- HF link -->
+                  <!-- <span class="link-block">
+                    <a href="" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      🤗
+                    </span>
+                    <span>HF demo</span>
+                  </a>
+                  </span> -->
+                  <!-- Github link -->
+                  <span class="link-block">
+                    <a href="" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code(Coming soon)</span>
+                  </a>
+                </span>
+
+                <!-- ArXiv abstract Link -->
+                <!-- <span class="link-block">
+                  <a href="https://arxiv.org/abs/<ARXIV PAPER ID>" target="_blank"
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span> -->
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Teaser -->
+<section class="teaser">
+  <div class="container is-max-desktop"">
+  </div>
+
+  <!-- More Resuts-->
+  <div style="display: flex; justify-content: center;">
+    <div class="gif-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 0px;">
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">
+          Reference Video <span style="color: red;">(Zoom In)</span>
+            </p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/camera_zoom_in.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"Railway for train."</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/Railway_for_train_2025.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">
+          Reference Video <span style="color: red;">(Zoom Out)</span>
+        </p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/camera_zoom_out.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"Man stands in his garden."</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/Man,_standing_in_his_garden._2026.mp4" type="video/mp4">
+        </video>
+
+      </div>
+
+    <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">
+          Reference Video <span style="color: red;">(Orbit Shot)</span>
+        </p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/camera_1.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"A island, on the ocean, sunny day."</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/A_island,_on_the_ocean,_sunny_day_2025.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <!-- <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">
+          Source Video <span style="color: red;">(Orbit)</span>
+        </p> -->
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <!-- <video poster="" id="tree" autoplay controls muted loop style="width: 400px;"> -->
+        <!-- Your video here -->
+        <!-- <source src="static/videos/camera_1.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"A island on the ocean, sunny day."</p> -->
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <!-- <video poster="" id="tree" autoplay controls muted loop style="width: 400px;"> -->
+        <!-- Your video here -->
+        <!-- <source src="static/videos/A_island,_on_the_ocean,_sunny_day_2025.mp4" type="video/mp4">
+        </video>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- GIF展示区域现在在它自己的容器中，并且没有最大宽度限制 -->
+  <div style="display: flex; justify-content: center;">
+    <div class="gif-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 0px;">
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">Reference Video</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/sample_astronaut.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"Explorer, walks on the desert."</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/Explorer,_walks_on_the_desert._5161.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">Reference Video</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/sample_cat.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"Leopard, slowly raises its head."</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/Leopard,_slowly_raises_its_head._5678.mp4" type="video/mp4">
+        </video>
+
+      </div>
+
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">Reference Video</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/hybrid_03.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"A car is driving in a forest."</p>
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+        <!-- Your video here -->
+        <source src="static/videos/A_car_driving_in_a_forest_780813.mp4" type="video/mp4">
+        </video>
+
+      </div>
+
+      <!-- <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">Source Video</p> -->
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <!-- <video poster="" id="tree" autoplay controls muted loop style="width: 400px;"> -->
+        <!-- Your video here -->
+        <!-- <source src="static/videos/object_01.mp4" type="video/mp4">
+        </video>
+
+      </div>
+      <div style="text-align: center;">
+        <p style="font-family: 'Segoe Print', sans-serif;">"A fox sits in a snowy mountain."</p> -->
+<!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+        <!-- <video poster="" id="tree" autoplay controls muted loop style="width: 400px;"> -->
+        <!-- Your video here -->
+        <!-- <source src="static/videos/A_fox_sitting_in_a_snowy_mountain_936920.mp4" type="video/mp4">
+        </video>
+
+      </div> -->
+    </div>
+  </div>
+
+</section>
+<!-- End teaser -->
+
+<section class="section efficiency-overview-section">
+  <div class="container is-max-desktop" id="paper-overview">
+    <figure class="image is-fullwidth" style="max-width:1200px; margin:2rem auto;">
+      <img src="static/images/figure1_camera_ready_efficiency.png" alt="MotionEcho efficiency comparison">
+    </figure>
+  </div>
+</section>
+
+<!-- Paper abstract -->
+<section class="section is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <div class="content has-text-justified abstract-card">
+          <h2 class="title is-3 has-text-centered">Abstract</h2>
+          <p>
+            Training-free motion customization imposes motion patterns from reference videos onto video generators
+            through test-time computation. Most existing methods target full diffusion models, requiring many
+            denoising steps and high computational cost. With the rise of efficient distilled models, a natural
+            question arises: <em>can test-time motion customization be applied directly to distilled generators
+            with their accelerated sampling and efficiency gains?</em> However, our analysis reveals that existing
+            training-free techniques fail on distilled models. Distillation fundamentally alters the denoising
+            dynamics that prior test-time guidance relies on, and the large denoising steps of distilled generators
+            discard the dense intermediate states that score guidance requires, rendering existing motion control
+            strategies incompatible with fast generation. To address this limitation, we propose
+            <strong>MotionEcho</strong>, a novel training-free <em>test-time distillation</em> framework that enables
+            motion customization for distilled video generators. The key idea is to correct the student model's
+            sampling trajectory with restricted usage of a high-quality diffusion teacher at inference time.
+            Teacher supervises the student's denoising by re-noising the student's endpoint onto its dense trajectory
+            to form a motion-aligned clean endpoint, then interpolating it with the student's, while an adaptive
+            scheduling mechanism determines when and how much teacher guidance is needed. As a result,
+            <strong>MotionEcho</strong> restores generative trajectories for distilled video generators via
+            lightweight, adaptive test-time teacher guidance, enabling accurate motion control without compromising
+            generation efficiency. Extensive experiments on multiple distilled video generation models demonstrate
+            that our method significantly improves motion fidelity and visual quality while retaining the efficiency
+            advantages of distilled generation.
+          </p>
+        <figure class="image is-fullwidth" style="max-width:1200px; margin:2rem auto;">
+            <img src="static/images/teacher_motion_guidance_updated-1.png" alt="Motion customization comparison on fast distilled video models">
+            <figcaption class="content has-text-justified" style="font-size:0.9rem; line-height:1.4;">
+              <strong>Visual comparison of motion customization on fast distilled video models.</strong>
+              Directly applying existing training-free methods to distilled models leads to severe degradation:
+              object motion may not follow the reference and dynamic camera motion can corrupt both structure and
+              background. MotionEcho transfers the reference motion while maintaining visual quality and text alignment
+              under highly accelerated few-step inference.
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End paper abstract -->
+
+
+<!-- Method -->
+<section class="section">
+    <div class="container is-max-desktop", style="margin-top: 40px;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <div class="content has-text-justified method-card">
+            <h2 class="title is-3 has-text-centered">Method Overview</h2>
+            <p>
+              Given a reference video, MotionEcho extracts motion priors to initialize the student model with a
+              motion-preserving noisy latent. During inference, the teacher and student models perform motion
+              customization using motion loss gradients, while the distilled student remains the efficient primary
+              backbone. Teacher guidance is applied through prediction interpolation at sub-interval endpoints to
+              correct the student's sampling trajectory. To preserve efficiency, an adaptive acceleration strategy
+              selectively triggers teacher guidance and truncates teacher denoising iterations, allowing the student
+              to generate the final video in a few steps with high motion fidelity.
+            </p>
+            <img src="static/images/pipeline_updated_v4-1.png" alt="Pipeline of MotionEcho"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- End Method -->
+
+  <section class="teaser">
+    <div class="container is-max-desktop", style="margin-top: 40px;">
+      <div class="hero-body">
+        <h2 class="subtitle has-text-centered">
+          <strong style="font-size: 28px;">Qualitative Evaluation</strong><br>
+        </h2>
+        <div class="content has-text-justified">
+          <p>
+            The examples below compare motion customization on fast distilled video generators. Each group
+            shows a reference video, the result produced by <strong>MotionEcho</strong>, and the result obtained
+            by directly applying a training-free motion guidance baseline to the distilled student model. Across
+            object motion, camera motion, and hybrid motion, direct guidance on the distilled trajectory often
+            produces motion drift, temporal artifacts, or structural degradation. MotionEcho restores the
+            student's sampling trajectory with selective teacher guidance, enabling the generated video to follow
+            the reference motion while preserving visual quality and fast few-step inference.
+          </p>
+          <p>
+            <strong>Legend:</strong>
+            <span style="color: rgb(0, 255, 157);">green prompts</span> denote <strong>MotionEcho</strong>;
+            <span style="color: rgb(55, 0, 255);">blue prompts</span> denote the direct training-free guidance baseline on the distilled model.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增的标题部分 -->
+    <!-- <div class="container is-max-desktop" style="margin-top: 20px;">
+      <div class="hero-body" style="display: flex; justify-content: space-between;">
+        <div style="flex: 1; text-align: center;">
+          <p style="font-size: 28px;">Camera</p>
+        </div>
+        <div style="flex: 1;"> </div>
+        <div style="flex: 1; text-align: center;">
+          <p style="font-size: 28px;">Object</p>
+        </div>
+        <div style="flex: 1;"></div>
+      </div>
+    </div> -->
+    <!-- GIF展示区域现在在它自己的容器中，并且没有最大宽度限制 -->
+    <div style="display: flex; justify-content: center;">
+      <div class="gif-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 0px;">
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;">
+            Reference Video <span style="color: red;">(Orbit Shot)</span>
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/camera_1.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(0, 255, 157);">"A island, on the ocean, sunny day."
+            <!-- <span style="color: rgb(0, 255, 157);">(MotionEcho)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/A_island,_on_the_ocean,_sunny_day_2025.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(55, 0, 255);">"A island, on the ocean, sunny day."
+            <!-- <span style="color: rgb(55, 0, 255);">(MC)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/A_island,_on_the_ocean,_sunny_day_2025_motionclone.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;">Reference Video</p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/object_01.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(0, 255, 157);">"A fox sitting in a snowy mountain."
+            <!-- <span style="color: rgb(0, 255, 157);">(MotionEcho)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/A_fox_sitting_in_a_snowy_mountain_936920.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(55, 0, 255);">"A fox sitting in a snowy mountain."
+            <!-- <span style="color: rgb(55, 0, 255);">(MC)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/A_fox_sitting_in_a_snowy_mountain_936920_motionclone.mp4" type="video/mp4">
+          </video>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- GIF展示区域现在在它自己的容器中，并且没有最大宽度限制 -->
+    <div style="display: flex; justify-content: center;">
+      <div class="gif-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 0px;">
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;">
+            Reference Video <span style="color: red;">(Pan Left)</span>
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/camera_02.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(0, 255, 157);">"desert is captured with a pan left camera."
+            <!-- <span style="color: rgb(0, 255, 157);">(MotionEcho)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/desert_captured_with_a_pan_left_679589.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(55, 0, 255);">"desert is captured with a pan left camera."
+            <!-- <span style="color: rgb(55, 0, 255);">(MC)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/desert_captured_with_a_pan_left_679589_motionclone.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;">Reference Video</p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/object_03.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(0, 255, 157);">"Monkeys play with coconuts."
+            <!-- <span style="color: rgb(0, 255, 157);">(MotionEcho)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/Monkeys_playing_with_coconuts_569328.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(55, 0, 255);">"Monkeys play with coconuts."
+            <!-- <span style="color: rgb(55, 0, 255);">(MC)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/Monkeys_playing_with_coconuts_569328_motionclone.mp4" type="video/mp4">
+          </video>
+
+        </div>
+      </div>
+    </div>
+    <!-- GIF展示区域现在在它自己的容器中，并且没有最大宽度限制 -->
+    <div style="display: flex; justify-content: center;">
+      <div class="gif-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 0px;">
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;">
+            Reference Video <span style="color: red;">(Tilt Up)</span>
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/camera_05.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(0, 255, 157);">"snowy filed is captured with a tilt up camera."
+            <!-- <span style="color: rgb(0, 255, 157);">(MotionEcho)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/snowy_filed_captured_with_a_tilt_up_739195.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(55, 0, 255);">"snowy filed is captured with a tilt up camera."
+            <!-- <span style="color: rgb(55, 0, 255);">(MC)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/snowy_filed_captured_with_a_tilt_up_739195_motionclone.mp4" type="video/mp4">
+          </video>
+
+        </div>
+
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;">Reference Video</p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/sample_leaves.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(0, 255, 157);">"Snowflakes falling in the wind."
+            <!-- <span style="color: rgb(0, 255, 157);">(MotionEcho)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/Snowflakes_falling_in_the_wind._9101.mp4" type="video/mp4">
+          </video>
+
+        </div>
+        <div style="text-align: center;">
+          <p style="font-family: 'Segoe Print', sans-serif;color: rgb(55, 0, 255);">"Snowflakes falling in the wind."
+            <!-- <span style="color: rgb(55, 0, 255);">(MC)</span> -->
+          </p>
+  <!--         <img src="static/images/0.gif" alt="MY ALT TEXT" style="margin: 0 10px; width: 400px;"/> -->
+          <video poster="" id="tree" autoplay controls muted loop style="width: 400px;">
+          <!-- Your video here -->
+          <source src="static/videos/Snowflakes_falling_in_the_wind._9101_motionclone.mp4" type="video/mp4">
+          </video>
+
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+<!-- Experiments -->
+<section class="section">
+    <div class="container is-max-desktop", style="margin-top: 40px;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths" id="quantitative-evaluation">
+          <h2 class="title is-3">Quantitative Evaluation</h2>
+          <div class="content has-text-justified">
+            <p>
+              We evaluate <strong>MotionEcho</strong> on distilled UNet- and DiT-based video generators using
+              text alignment, temporal consistency, motion fidelity, FID, and inference time. The results show
+              that teacher-guided trajectory correction improves motion fidelity and visual quality while keeping
+              the speed advantage of distilled generation. On TurboV2, MotionEcho remains effective from 16 steps
+              down to 4 steps; on Video-Blade with Wan2.1 teacher guidance, it consistently improves motion
+              preservation over training-free baselines while reducing inference cost. The user study below
+              summarizes human preferences over text alignment, temporal consistency, motion fidelity, and
+              appearance appeal.
+          </p>
+          <figure class="image is-fullwidth" style="max-width:1200px; margin:2rem auto;">
+          <img src="static/images/Motion_ECCV2026_Camera_Ready_12_table1.png" alt="Quantitative comparison of VideoCrafter2-based methods on TurboBench">
+          </figure>
+          <figure class="image is-fullwidth" style="max-width:1200px; margin:2rem auto;">
+          <img src="static/images/Motion_ECCV2026_Camera_Ready_13_table2.png" alt="Quantitative comparison of Wan2.1-1.3B-based methods on DavisBench">
+          </figure>
+          <figure class="image is-fullwidth" style="max-width:1200px; margin:2rem auto;">
+          <img src="static/images/Motion_ECCV2026_Camera_Ready_14_ablation.png" alt="Ablation study of the key components in MotionEcho">
+          </figure>
+          <figure class="image is-fullwidth" style="max-width:1200px; margin:2rem auto;">
+          <img src="static/images/userstudy_distribution_updated2-1.png" alt="Human evaluation results">
+          <figcaption class="content has-text-centered" style="font-size:0.9rem; line-height:1.4;">
+            User study results.
+          </figcaption>
+          </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<!-- End Experiments -->
+
+
+
+
+
+
+<section class="teaser example-section">
+  <div class="container is-max-desktop" style="margin-top: 40px;">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">MotionEcho for TurboV2 16 steps, 8 steps, 4 steps</h2>
+      </div>
+    </div>
+  </div>
+  <div id="turboCarousel" class="motion-carousel example-carousel" aria-label="TurboV2 MotionEcho examples">
+    <button class="motion-carousel-button motion-carousel-prev" type="button" aria-label="Previous TurboV2 example">&#9664;</button>
+    <div class="motion-carousel-track">
+      <div class="carousel-inner is-active">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A lion sitting on top of a cliff captured with a zoom out.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_07.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_lion_sitting_on_top_of_a_cliff_captured_with_a_zoom_out_692512_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_lion_sitting_on_top_of_a_cliff_captured_with_a_zoom_out_692512_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_lion_sitting_on_top_of_a_cliff_captured_with_a_zoom_out_692512_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A dolphin jumping into the ocean.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/02.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_dolphin_jumping_into_the_ocean_501348_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_dolphin_jumping_into_the_ocean_501348_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_dolphin_jumping_into_the_ocean_501348_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A ship sailing on the sea.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/hybrid_06.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_ship_sailing_on_the_sea_132352_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_ship_sailing_on_the_sea_132352_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_ship_sailing_on_the_sea_132352_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A fish swimming in the lake.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/hybrid_07.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_fish_swimming_in_the_lake_833647_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_fish_swimming_in_the_lake_833647_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_fish_swimming_in_the_lake_833647_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A boy is doing jumping jacks.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/object_06.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/a_boy_is_doing_jumping_jacks_395721_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/a_boy_is_doing_jumping_jacks_395721_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/a_boy_is_doing_jumping_jacks_395721_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A fox sitting in a snowy mountain.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/object_01.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_fox_sitting_in_a_snowy_mountain_936920.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_fox_sitting_in_a_snowy_mountain_936920_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_fox_sitting_in_a_snowy_mountain_936920_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>A motorbike driving in a forest.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/hybrid_03.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_motorbike_driving_in_a_forest_507767_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_motorbike_driving_in_a_forest_507767_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/A_motorbike_driving_in_a_forest_507767_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">TurboV2</span>
+              <h3>Tiger raises its head.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_cat.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--three">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 16 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/Tiger,_raises_its_head._2025_16steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/Tiger,_raises_its_head._2025_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/Tiger,_raises_its_head._2025_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <button class="motion-carousel-button motion-carousel-next" type="button" aria-label="Next TurboV2 example">&#9654;</button>
+  </div>
+  <br>
+</section>
+
+
+<section class="teaser example-section">
+  <div class="container is-max-desktop" style="margin-top: 40px;">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">MotionEcho for AD-L 8 steps, 4 steps</h2>
+      </div>
+    </div>
+  </div>
+  <div id="adlCarousel" class="motion-carousel example-carousel" aria-label="AD-L MotionEcho examples">
+    <button class="motion-carousel-button motion-carousel-prev" type="button" aria-label="Previous AD-L example">&#9664;</button>
+    <div class="motion-carousel-track">
+      <div class="carousel-inner is-active">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">AD-L</span>
+              <h3>A island, on the ocean, sunny day.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_1_sampled_original_size.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--two">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_1_A_island,_on_the_ocean,_sunny_day_2025_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_1_A_island,_on_the_ocean,_sunny_day_2025_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">AD-L</span>
+              <h3>Robot walks in the street.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_astronaut_original_size.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--two">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_astronaut_Robot,_walks_in_the_street._59_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_astronaut_Robot,_walks_in_the_street._59_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">AD-L</span>
+              <h3>Tiger raises its head.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_cat_original_size.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--two">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_cat_Tiger,_raises_its_head._2025_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/sample_cat_Tiger,_raises_its_head._2025_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">AD-L</span>
+              <h3>A fox perched atop a wooden fence.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_pan_down_original_size.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="step-comparison-grid step-comparison-grid--two">
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 8 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_pan_down_A_fox_perched_atop_a_wooden_fence_2025_8steps.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="dit-video-card dit-ours">
+              <p>MotionEcho 4 steps</p>
+              <video controls muted loop preload="metadata">
+                <source src="static/videos/camera_pan_down_A_fox_perched_atop_a_wooden_fence_2025_4steps.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <button class="motion-carousel-button motion-carousel-next" type="button" aria-label="Next AD-L example">&#9654;</button>
+  </div>
+  <br>
+</section>
+
+
+<section class="teaser dit-section">
+  <div class="container is-max-desktop" style="margin-top: 40px;">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">MotionEcho on DiT-based Video Generators</h2>
+      </div>
+    </div>
+  </div>
+  <div id="ditCarousel" class="motion-carousel example-carousel dit-carousel" aria-label="DiT-based MotionEcho examples">
+    <button class="motion-carousel-button motion-carousel-prev" type="button" aria-label="Previous DiT example">&#9664;</button>
+    <div class="motion-carousel-track">
+      <div class="carousel-inner is-active">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">CogVideoX</span>
+              <h3>Snowboarder gliding along a snowy slope.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="dit_examples/Q1-cogvideox/reference/original.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="dit-comparison-grid">
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-cogvideox/DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-cogvideox/ours-DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-cogvideox/Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-cogvideox/ours-Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-cogvideox/MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-cogvideox/ours-MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">Wan2.1</span>
+              <h3>A duck in a river swimming.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="dit_examples/Q1-wan/reference/original.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="dit-comparison-grid">
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-wan/DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-wan/ours-DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-wan/Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-wan/ours-Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-wan/MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q1-wan/ours-MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">CogVideoX</span>
+              <h3>Closeup aerial view of an ant crawling in a desert.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="dit_examples/Q2-cogvideox/reference/original.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="dit-comparison-grid">
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q2-cogvideox/DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q2-cogvideox/ours-DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q2-cogvideox/Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q2-cogvideox/ours-Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">Wan2.1</span>
+              <h3>Bear walking around in the grass.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="dit_examples/Q6-wan/reference/dog_49frames.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="dit-comparison-grid">
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q6-wan/DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q6-wan/ours-DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q6-wan/Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q6-wan/ours-Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q6-wan/MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q6-wan/ours-MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">Wan2.1</span>
+              <h3>A paper boat floating in a bathtub.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="dit_examples/Q7-wan/reference/blackswan_49frames.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="dit-comparison-grid">
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q7-wan/DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q7-wan/ours-DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q7-wan/Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DitFlow</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q7-wan/ours-Ditflow/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q7-wan/MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q7-wan/ours-MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-inner">
+        <article class="dit-example-card">
+          <div class="dit-example-header">
+            <div>
+              <span class="dit-model-tag">Wan2.1</span>
+              <h3>Jaguar jumping over a large rock.</h3>
+            </div>
+            <div class="dit-reference-card">
+              <p>Reference Video</p>
+              <video controls muted loop preload="metadata">
+                <source src="dit_examples/Q8-wan/reference/horsejump-high_49frames.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <div class="dit-comparison-grid dit-comparison-grid--compact">
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q8-wan/DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + DMT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q8-wan/ours-DMT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="dit-method-pair">
+              <div class="dit-video-card">
+                <p>MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q8-wan/MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="dit-video-card dit-ours">
+                <p>MotionEcho + MOFT</p>
+                <video controls muted loop preload="metadata">
+                  <source src="dit_examples/Q8-wan/ours-MOFT/results.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <button class="motion-carousel-button motion-carousel-next" type="button" aria-label="Next DiT example">&#9654;</button>
+  </div>
+  <br>
+</section>
+
+
+
+
+
+<!--BibTex citation -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre>
+        <code>@inproceedings{rong2026when,
+            title={When Distillation Breaks Motion Control: Restoring Generative Trajectories for Fast Video Generators},
+            author={Rong, Jintao and Xie, Xin and Yu, Xinyi and Ou, Linlin and Zhang, Xinyu and Shen, Chunhua and Gong, Dong},
+            booktitle={European Conference on Computer Vision},
+            year={2026},
+            url={https://euminds.github.io/motionecho/}
+          }
+        </code>
+</pre>
+    </div>
+</section>
+<!--End BibTex citation -->
+
+
+  <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+
+          <p>
+            Website template adapted from the
+            <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>.
+            Page content belongs to the MotionEcho authors.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+
+  </body>
+  </html>

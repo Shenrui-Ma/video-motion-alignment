@@ -1,0 +1,638 @@
+{
+  "reason": "User explicitly requested stop experiments now, via root; no further inference or MF launch authorized",
+  "unix": 1792429171.9201007,
+  "controller_state": {
+    "unix": 1792429156.5640945,
+    "status": "pending_or_running",
+    "current": "r114_long_0081_seed2026101701_forced",
+    "completed": [
+      "r114_long_0081_seed2026101701_native"
+    ],
+    "observation_error": null
+  },
+  "queue": {
+    "queue_running": [
+      [
+        1,
+        "def2c2f6-8571-44a7-9500-2a885042431a",
+        {
+          "1": {
+            "class_type": "UNETLoader",
+            "inputs": {
+              "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+              "weight_dtype": "default"
+            }
+          },
+          "2": {
+            "class_type": "CLIPLoader",
+            "inputs": {
+              "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+              "type": "minimax",
+              "device": "default"
+            }
+          },
+          "3": {
+            "class_type": "VAELoader",
+            "inputs": {
+              "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+            }
+          },
+          "4": {
+            "class_type": "VAELoader",
+            "inputs": {
+              "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+            }
+          },
+          "41": {
+            "class_type": "MiniMaxH3SigmaShift",
+            "inputs": {
+              "model": [
+                "1",
+                0
+              ],
+              "shift_video": 12.0,
+              "shift_audio": 3.0
+            }
+          },
+          "5": {
+            "class_type": "H3EventAuditReference",
+            "inputs": {
+              "clip": [
+                "2",
+                0
+              ],
+              "vae": [
+                "3",
+                0
+              ],
+              "ref_video": [
+                "23",
+                0
+              ],
+              "prompt": "subject_definitions:\n<Video 1> is the source video, providing the original visible subjects, camera framing, motion sequence, pacing and duration.\n<Subject 1> is The creamy white sauce in the container and on the chicken wing. Replace that sauce with spicy red sauce.\nSource context: A hand wearing a plastic glove dips a crispy fried chicken wing into a creamy white sauce, showcasing a variety of food items in the background.\n\nsummary:\n[video editing] Apply the requested edit to <Video 1> while retaining the visible action sequence and timing.\nRequested edit: Replace the creamy white sauce with a spicy red sauce\n\nretention_analysis:\n<Subject 1>: partially_preserved - apply the requested appearance or object edit while retaining the source motion and identity attributes that the edit leaves intact.\n<Video 1> (action and pacing): fully_preserved - the complete visible action sequence follows the original timing and duration.\n<Video 1> (scene and camera): fully_preserved - retain the scene, original camera framing and motion, lighting and shot structure.\nThe requested edit and visible source content determine the target appearance.\n\ndetailed_description:\nThe gloved hand holds the same chicken wing, lifts it away from the sauce container, and turns and holds it as shown in the reference. Preserve the hand, glove, chicken wing, container, surrounding food and camera view. Retain the visible sequence of contact and lifting at the original times.\nThe complete visible action sequence follows <Video 1> in its original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+              "width": 1312,
+              "height": 736,
+              "length": 124,
+              "audit_dir": "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/audit",
+              "run_id": "r114_long_0081_shared",
+              "semantic_fps": 2,
+              "phase_frames": 0
+            }
+          },
+          "6": {
+            "class_type": "H3EventAuditNoise",
+            "inputs": {
+              "noise_seed": 2026101701,
+              "audit_dir": "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/audit",
+              "run_id": "r114_long_0081_seed2026101701_forced",
+              "pair_id": "r114_long_0081_seed2026101701"
+            }
+          },
+          "7": {
+            "class_type": "BasicGuider",
+            "inputs": {
+              "model": [
+                "52",
+                0
+              ],
+              "conditioning": [
+                "51",
+                0
+              ]
+            }
+          },
+          "8": {
+            "class_type": "KSamplerSelect",
+            "inputs": {
+              "sampler_name": "euler"
+            }
+          },
+          "9": {
+            "class_type": "ManualSigmas",
+            "inputs": {
+              "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+            }
+          },
+          "10": {
+            "class_type": "SamplerCustomAdvanced",
+            "inputs": {
+              "noise": [
+                "6",
+                0
+              ],
+              "guider": [
+                "7",
+                0
+              ],
+              "sampler": [
+                "8",
+                0
+              ],
+              "sigmas": [
+                "9",
+                0
+              ],
+              "latent_image": [
+                "51",
+                1
+              ]
+            }
+          },
+          "11": {
+            "class_type": "VAEDecode",
+            "inputs": {
+              "samples": [
+                "10",
+                0
+              ],
+              "vae": [
+                "3",
+                0
+              ]
+            }
+          },
+          "12": {
+            "class_type": "VAEDecodeAudio",
+            "inputs": {
+              "samples": [
+                "10",
+                0
+              ],
+              "vae": [
+                "4",
+                0
+              ]
+            }
+          },
+          "13": {
+            "class_type": "CreateVideo",
+            "inputs": {
+              "images": [
+                "11",
+                0
+              ],
+              "audio": [
+                "12",
+                0
+              ],
+              "fps": 24.0,
+              "bit_depth": 8
+            }
+          },
+          "14": {
+            "class_type": "SaveVideo",
+            "inputs": {
+              "video": [
+                "13",
+                0
+              ],
+              "filename_prefix": "r114_long_0081_seed2026101701_forced",
+              "format": "mp4",
+              "codec": "h264",
+              "codec.encoding": "re-encode",
+              "codec.encoding.crf": 16.0
+            }
+          },
+          "22": {
+            "class_type": "LoadVideo",
+            "inputs": {
+              "file": "long_0081_video.mp4"
+            }
+          },
+          "23": {
+            "class_type": "GetVideoComponents",
+            "inputs": {
+              "video": [
+                "22",
+                0
+              ]
+            }
+          },
+          "50": {
+            "class_type": "H3TemporalRouter",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "51",
+                0
+              ],
+              "mode": "mass_preserve",
+              "alpha": 1.0,
+              "radius": 0,
+              "time_offset": 0,
+              "start_frame": 0,
+              "end_frame": 119,
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 6,
+              "step_end": 15,
+              "run_id": "r114_long_0081_seed2026101701_forced",
+              "audit_dir": "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/audit/router"
+            }
+          },
+          "51": {
+            "class_type": "H3PairConditionSnapshot",
+            "inputs": {
+              "positive": [
+                "5",
+                0
+              ],
+              "target": [
+                "5",
+                1
+              ],
+              "source_audit_dir": "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/audit",
+              "source_run_id": "r114_long_0081_shared",
+              "run_id": "r114_long_0081_seed2026101701_forced"
+            }
+          },
+          "52": {
+            "class_type": "H3X0Readout",
+            "inputs": {
+              "model": [
+                "50",
+                0
+              ],
+              "run_id": "r114_long_0081_seed2026101701_forced",
+              "output_dir": "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/audit/x0",
+              "width": 1312,
+              "height": 736,
+              "length": 124
+            }
+          }
+        },
+        {
+          "client_id": "h3-timing-ivebench-subject-host9-r114-20261018",
+          "create_time": 1792426725514
+        },
+        [
+          "14"
+        ]
+      ]
+    ],
+    "queue_pending": []
+  },
+  "service": {
+    "pid": 63341,
+    "gpu_uuid": "GPU-REDACTED",
+    "port": 8574,
+    "started_unix": 1792423728.8760703,
+    "root_attempt_token": "ea95fd2519994439aa4986644c6baeff",
+    "command": [
+      "/home/researcher/miniconda3/envs/comfyui/bin/python",
+      "-u",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/service_entry.py",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/compatibility_bootstrap.py",
+      "/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py",
+      "--listen",
+      "127.0.0.1",
+      "--port",
+      "8574",
+      "--base-directory",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019",
+      "--models-directory",
+      "/data5/researcher/ComfyUI/models",
+      "--disable-auto-launch",
+      "--disable-dynamic-vram",
+      "--disable-cuda-malloc",
+      "--use-pytorch-cross-attention",
+      "--reserve-vram",
+      "8",
+      "--enable-triton-backend",
+      "--preview-method",
+      "none",
+      "--disable-all-custom-nodes",
+      "--whitelist-custom-nodes",
+      "ComfyUI-KJNodes",
+      "H3EventAudit",
+      "H3PairAudit",
+      "H3TemporalRouter",
+      "H3X0Readout",
+      "--input-directory",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/input",
+      "--output-directory",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/output",
+      "--temp-directory",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/temp",
+      "--user-directory",
+      "/home/researcher/h3_runs/timing_ive_three_source_r114_20261019/user",
+      "--database-url",
+      "sqlite:////home/researcher/h3_runs/timing_ive_three_source_r114_20261019/screen.db"
+    ],
+    "identity": {
+      "uid": 1016,
+      "start_ticks": "2645264299",
+      "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/service_entry.py /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8574 --base-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019 --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout --input-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/input --output-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/output --temp-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/temp --user-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/user --database-url sqlite:////home/researcher/h3_runs/timing_ive_three_source_r114_20261019/screen.db "
+    },
+    "cache_none": false,
+    "host_available_kib": 222914504,
+    "admission": {
+      "ready_for_launch": true,
+      "scope": "own_user_video_jobs",
+      "existing_comfy_port": null,
+      "permitted_compute_processes": [
+        {
+          "pid": 33272,
+          "identity": {
+            "uid": 1016,
+            "start_ticks": "2645024823",
+            "cmdline_sha256": "a38aae57ed27b355ca444f3d3f560dd4c3c781cbb67b1507939bb0088502dd5b"
+          }
+        }
+      ]
+    },
+    "gpu_readiness": {
+      "observed_unix": 1792423728.6773028,
+      "memory_profile_sha256": "47aa0f8c2104d4937290abf4e614f14b7e6c301153079be77c2b9641eee5bbb3",
+      "required_free_bytes": 42949672960,
+      "processes": [
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 48702,
+          "used_memory_mib": "31138"
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 33272,
+          "used_memory_mib": "32012"
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 7230,
+          "used_memory_mib": "31268"
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 33675,
+          "used_memory_mib": "19690"
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 7231,
+          "used_memory_mib": "31466"
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 38710,
+          "used_memory_mib": "19814"
+        },
+        {
+          "gpu_uuid": "GPU-REDACTED",
+          "pid": 48703,
+          "used_memory_mib": "31138"
+        }
+      ],
+      "gpu_raw": "3, GPU-REDACTED, 31153, 49897, 100, 70\n",
+      "gpu_stderr": "",
+      "memory_free_mib": 49897.0,
+      "memory_used_mib": 31153.0,
+      "utilization_percent": 100.0,
+      "temperature_c": 70.0,
+      "status": "admitted"
+    },
+    "preexisting_compute_processes": [
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 48702,
+        "used_memory_mib": "31138"
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 33272,
+        "used_memory_mib": "32012"
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 7230,
+        "used_memory_mib": "31268"
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 33675,
+        "used_memory_mib": "19690"
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 7231,
+        "used_memory_mib": "31466"
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 38710,
+        "used_memory_mib": "19814"
+      },
+      {
+        "gpu_uuid": "GPU-REDACTED",
+        "pid": 48703,
+        "used_memory_mib": "31138"
+      }
+    ],
+    "existing_comfy_queue": {
+      "queue_running": [],
+      "queue_pending": []
+    },
+    "state": "started_readiness_unverified"
+  },
+  "controller": {
+    "pid": 64411,
+    "identity": {
+      "uid": 1016,
+      "start_ticks": "2645265188",
+      "cmdline": "python3 -u /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/run_queue.py --expected-pid 63341 --expected-start-ticks 2645264299 "
+    },
+    "role": "controller",
+    "service_pid": 63341,
+    "service_identity": {
+      "uid": 1016,
+      "start_ticks": "2645264299",
+      "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/service_entry.py /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/scripts/compatibility_bootstrap.py /data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI/main.py --listen 127.0.0.1 --port 8574 --base-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019 --models-directory /data5/researcher/ComfyUI/models --disable-auto-launch --disable-dynamic-vram --disable-cuda-malloc --use-pytorch-cross-attention --reserve-vram 8 --enable-triton-backend --preview-method none --disable-all-custom-nodes --whitelist-custom-nodes ComfyUI-KJNodes H3EventAudit H3PairAudit H3TemporalRouter H3X0Readout --input-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/input --output-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/output --temp-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/temp --user-directory /home/researcher/h3_runs/timing_ive_three_source_r114_20261019/user --database-url sqlite:////home/researcher/h3_runs/timing_ive_three_source_r114_20261019/screen.db "
+    }
+  },
+  "wrapper": {
+    "pid": 63276,
+    "identity": {
+      "uid": 1016,
+      "start_ticks": "2645264083",
+      "cmdline": "/home/researcher/miniconda3/envs/comfyui/bin/python -u audit/root_run_batch.py --execute --attempt root_three_source_attempt1 --peer-root /home/researcher/h3_runs/timing_ive_basketball_framing_repair_r117_20261019 "
+    }
+  },
+  "output_files": [
+    {
+      "path": "output/r114_long_0081_seed2026101701_native_00001_.mp4",
+      "bytes": 5425431
+    }
+  ],
+  "partial_x0_files": [
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step002.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step007.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step003.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step017.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step004.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step006.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step009.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/manifest.json",
+      "bytes": 25458
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step014.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step000.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step001.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step005.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step010.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step012.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step008.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step011.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step013.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step016.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step018.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_forced/x0_step015.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step002.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step019.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step007.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step003.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step017.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step004.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step006.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step009.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/manifest.json",
+      "bytes": 28353
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step014.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step000.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step001.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step005.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step010.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step012.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step008.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step011.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step013.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step016.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step018.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/x0_step015.pt",
+      "bytes": 13453400
+    },
+    {
+      "path": "audit/x0/r114_long_0081_seed2026101701_native/sampler_final.pt",
+      "bytes": 13453400
+    }
+  ]
+}

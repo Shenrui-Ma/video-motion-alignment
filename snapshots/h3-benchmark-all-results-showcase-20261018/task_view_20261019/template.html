@@ -28,6 +28,8 @@ function metricColumns(v){
  const m=v.mf||{};
  if(v.mode==='prompt_control')return {labels:['原提示词普通编辑','改写提示词普通编辑'],values:v.repair_mf?[v.repair_mf.old_native,v.repair_mf.new_native]:[m.native,m.alternative_native]};
  if(v.mode==='sampler_control')return {labels:['Euler','res_multistep'],values:[m.euler,m.res_multistep]};
+ if(v.mode==='positional_control')return {labels:['普通编辑','RoPE 时间坐标对齐'],values:[m.native,m.aligned]};
+ if(v.mode==='resumed_online_guidance')return {labels:['普通编辑','自动时序引导'],values:[m.native,m.visible_only]};if(v.mode==='reference_origin_control')return {labels:['普通编辑','参考分支相位引导'],values:[m.native,m.reference_origin]};
  if(typeof m.fixed_control==='number')return {labels:['普通编辑','固定时序引导','空间分布引导'],values:[m.native,m.fixed_control,m.guided]};
  if(typeof m.original_fixed==='number')return {labels:['普通编辑','固定6–14步','延长6–19步'],values:[m.native,m.original_fixed,m.guided]};
  if(v.mode==='native_only')return {labels:['普通编辑'],values:[m.native]};
@@ -35,7 +37,7 @@ function metricColumns(v){
 }
 function metricHTML(v,t){const c=metricColumns(v),vals=c.values,delta=vals.length===2&&vals.every(x=>typeof x==='number')?vals[1]-vals[0]:null;
  let s='<section><h3>'+esc(t.bench+' Motion Fidelity')+'</h3><table><thead><tr>'+c.labels.map(x=>'<th>'+esc(x)+'</th>').join('')+(delta!==null?'<th>变化</th>':'')+'</tr></thead><tbody><tr>'+vals.map(x=>'<td>'+numeric(x)+'</td>').join('')+(delta!==null?'<td>'+(delta>=0?'+':'')+delta.toFixed(4)+'</td>':'')+'</tr></tbody></table><p class="metric-note">官方整体运动保持评分，越高越好。'+(t.bench==='FlexiAct'?'FlexiAct 比较轨迹运动方向。':'IVEBench 比较轨迹位置与位移。')+'</p>';
- if(v.events?.events){let rows='';const sampler=v.mode==='sampler_control',names=sampler?['Euler','res_multistep']:['普通编辑',v.method],fields=sampler?['euler_frames','res_multistep_frames']:['native_frames','guided_frames'];
+ if(v.events?.events){let rows='';const sampler=v.mode==='sampler_control',names=sampler?['Euler','res_multistep']:['普通编辑',v.method],fields=sampler?['euler_frames','res_multistep_frames']:['native_frames',v.mode==='reference_origin_control'?'reference_origin_frames':'guided_frames'];
  for(const e of v.events.events){if(!e.source_frames||!e[fields[0]]||!e[fields[1]])continue;const format=(a)=>{const lo=(a[0]-e.source_frames[1])/v.events.fps,hi=(a[1]-e.source_frames[0])/v.events.fps;return lo.toFixed(2)+' ～ '+hi.toFixed(2)};rows+='<tr class="event-row" data-time="'+e.source_frames[0]/v.events.fps+'"><td>'+esc(e.name)+'</td><td>'+format(e[fields[0]])+'</td><td>'+format(e[fields[1]])+'</td></tr>';}
  if(rows)s+='<h3 style="margin-top:19px">动作时间差 · 秒</h3><table><tr><th>动作</th><th>'+esc(names[0])+'</th><th>'+esc(names[1])+'</th></tr>'+rows+'</table><p class="metric-note">正值为延后，负值为提前。区间来自逐帧事件标注。点击动作可跳到参考发生时刻。</p>';}
  return s+'</section>';}
@@ -43,6 +45,8 @@ function stopPlayers(){for(const v of players){v.pause();v.removeAttribute('src'
 function selectTask(key,version){const t=DATA.tasks.find(x=>x.key===key);if(!t)return;currentTask=t;currentVersion=version&&t.versions.includes(version)?version:t.current;renderNav();renderTask();history.replaceState(null,'','#'+encodeURIComponent(t.key));}
 function alignmentMark(value,available){return value===true?'<span class="mark yes" aria-label="对齐">✓</span>':value===false?'<span class="mark no" aria-label="存在动作或时间偏差">✗</span>':'<span class="mark unknown">'+(available?'待核验':'待生成')+'</span>';}
 function alignmentHTML(v){
+ if(v.mode==='positional_control')return '<div class="alignment-row"><strong>普通编辑：动作–时间对齐'+alignmentMark(v.alignment_native,true)+'</strong><strong>RoPE 时间坐标对齐：'+alignmentMark(v.alignment_alternative,v.has_alternative)+'</strong></div>';
+ if(v.mode==='reference_origin_control')return '<div class="alignment-row"><strong>普通编辑：动作–时间对齐'+alignmentMark(v.alignment_native,true)+'</strong><strong>参考分支相位引导：'+alignmentMark(v.alignment_guided,v.has_guided)+'</strong></div>';
  const labels=v.mode==='prompt_control'?['原提示词普通编辑','改写提示词普通编辑']:v.mode==='sampler_control'?['Euler 普通编辑','res_multistep 普通编辑']:['普通编辑','引导编辑'];
  const secondAvailable=v.has_guided||v.mode==='prompt_control'||v.mode==='sampler_control';
  return '<div class="alignment-row"><strong>'+labels[0]+'：动作–时间对齐'+alignmentMark(v.alignment_native,true)+'</strong><strong>'+labels[1]+'：'+(secondAvailable?'动作–时间对齐'+alignmentMark(v.alignment_guided,true):'<span class="mark unknown">尚无成片</span>')+'</strong></div>';

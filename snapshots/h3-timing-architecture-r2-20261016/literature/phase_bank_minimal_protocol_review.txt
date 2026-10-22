@@ -1,0 +1,59 @@
+相位匹配参考库：最少可否决实验的独立审查
+2026-10-16。只读审查，不实现、不运行新读出、无远程或GPU。本文只设计后续矩阵；当前获准执行的是 builder 的旧 .41 三候选 CPU 粗门，不能把矩阵设计写成已执行。
+
+已读：R13 analysis/pose/R13_FINAL_REVIEW.md；R12 analysis/phase_matched_reference_feasibility.txt；R2 literature/phase_matched_reference_bank_review.txt；旧 vae_phase_calibration、cross_identity 和 input_runtime_difference 的实际记录。
+
+1. 当前需要回答的问题
+R13在相同历史状态分叉，再用下一步native读取，n6 Full/native为6/10，n10为1/2，n14为0/0；n10 native分支与R12 native11实际端点逐位相等。它支持原生端点残留可被下一步观察，不支持用Full当步0代替latent状态完全修复。R12首次停点内部2而独立方向/腕4，后续及final为3/4。因此bank的最窄用途应是检验停止附近的小残留能否被读出，不应先承诺更通用的时延估计或新闭环。
+
+2. 立即可做的零新VAE粗门（root最新授权）
+输入为 .41 旧 B0/B4/B8、constant0，目标为同机 R2 native / R2 Full / R11 continuous6to19。固定source窗50–65、全画面、gap5，与三个真实RGB平移编码候选同槽比较，不额外对target自由扫描lag。它仍使用17RGB跨度，不能称细时间分辨率实验。
+必须在读目标分数前冻结：每条target的actual conditioning preparedRGB及reference raw SHA；实际目标normalization/shape；完整候选分数、每帧能量、共同支持和top2；未知/边缘规则；原pose标签仅作冻结后的比较。三个target不因结果差而删除。
+0与8是候选库边缘，分别记zero_or_advance_unresolved、out_of_range_or_boundary；不会获得安全停止资格。4是内部候选，但最小分数与非零top2 margin不等于校准置信。native独立lag14若被确定接受成4，是固定score范围外拒判失败；若0排名最好，至少反驳“粗库能可靠排除假0”的预期，不能因系统最终报告unknown就隐藏该排名。R2 Full真实约2，正好在0/4中间，无法用该三候选要求精确归类；R11约0只应检查近零排名，不能据库边界判定准确停止。constant0必须unknown。
+最少可否决点：真实大延后稳定偏向0，或内部4被当成可靠14替代，或constant被判运动，均阻止该固定粗观察器直接部署。三例均看似合理只允许进入更细矩阵，不算泛化或创新证明。本报告不事后要求raw-adjacent胜过gap5；此次与builder原设想不同的gap5由root先行指定，需在新协议中留痕。
+
+3. 不混用机器与处理路径
+旧 .41 bank preparedRGB=bc25b919266fb28d3f9cf5d1cf5a949f8e1be31d593201f5f39104032ccaa00d；B0=cc5c11db3015fcd8bf1179d346ce1e3743e734b94382e1a77e45a49d79623cc0。
+R12/.9 preparedRGB=1d27ac086cf51123e92092e0028255cd8a2e98b1839fef660389fe87b6323b42；B0=75140c3ce5f144cdce940b6cd84a56dc40c9a94f15fdc917e6ad712ba9e94734。
+同一源MP4不足以复用。.41 PyAV17与.9 PyAV16存在实际RGB差异，且相同身份图RGB也出现编码差异；不能将全部差异归于单一环节。针对R12停止问题的主矩阵应选.9、直接取实际preparedRGB tensor，在CPU按帧索引重排，避免每臂再次解码/压码。固定VAE权重、源码、精度、tile/overlap、通道顺序、几何及posterior均值路径；新B0重放应与actual cached reference逐位相等。若不等，停在来源复验，不允许把它作为phase结果继续比较。跨机bank只能另列敏感性，不与主格合计。
+
+4. 绝对0/2/4与增量0/2/4必须分开
+选定一个跨身份Sam RGB基准G，随后已知移位d∈{0,2,4}产生精确的“追加延迟”。它相对原人物R的真实延迟为L_G+d，绝不是自动等于d。
+可预先用已有.9旧all-step mass结果 s05_full_seed1_mass_x0_00001_.mp4 作一个开发锚：旧 FULL_MASS_1312_REVIEW 主窗双臂/右臂在两阈值均0，且已留独立几何证据。但腕阈值交叉有约1帧偏差，故不得称精确同步真值，更不是新盲测样本。也不能看bank输出后改选更有利的G。R3 Full若作为G，原独立lag约1，应保留该基准偏差。
+例如独立证据只允许把L_G记为[-1,1]，追加0/2/4得到[-1,1]/[1,3]/[3,5]。0格可用于近零必要检查，4格确定在2帧停止容差外；2格跨越停止边界，只能检查已知增量，不可强标安全/不安全。区间本身是操作性不确定性说明，不是统计置信区间。若必须声称绝对0/2/4细分类，需要先有足够精度的独立跨身份对齐标注，不能让bank自己生成标签。
+
+5. 最小完整矩阵与可复用编码
+已知origin o∈{0,1}与追加delay d∈{0,2,4}交叉；不令o=d。定义所有输入直接通过完整帧索引构造：
+  T_(o,d)(X)[t]=X[clip(t+o−d,0,T−1)], t=0…140。
+单独记录每个output t对应原始全局帧和填充标志。对同一全局事件W=[50,65]，本地观察窗为W−o；参考和目标两侧都使用同一个已知o。裁切起点不是未知待估计参数。否则输入只依赖o−d，无法从内容将origin与真实delay分开。
+源库 B_(o,j)=E(T_(o,j)R)，候选整数j=-2,-1,0,1,2,3,4,5,6。查询Y_(o,d)=E(T_(o,d)G)。只在同槽、同origin上比较，不再套一层自由lag scan。原±24范围不应伪称仍被支持：本矩阵只研究停止附近，边缘-2/6删失；范围外反例必须保留。
+编码去重不需要假定latent等变：o=0/1和j=-2…6的源输入只含10个唯一净shift(j−o)=-3…6。先用CPU逐帧映射及实际RGB SHA证明两个输入完全相同，才可共享其编码。注意多次crop/pad操作可能不等于此单次clip定义；必须按直接定义构造而非口头合并。这把候选从偶数5个增至整数9个而不增加两origin总source编码数，有助于避免强制偶数答案。
+目标六格净shift为0/2/4和-1/1/3，共六个不同RGB数组。即使G的sampler_final已保存，也不能替代E(G)：生成clean latent不保证等于解码RGB再编码结果。
+采用.9主矩阵的保守编码预算：10次source编码，其中B0复验计1次（不能既拿旧缓存又把复验说成零成本），其余9次；6次target编码；再1次实际恒定Sam RGB编码用于无运动拒判，共17次完整141帧VAE编码，零DiT。每个成功复验后缓存可反复用于所有固定窗口/端点。若已存在逐项来源吻合的相应编码，按实际hash清单抵扣，当前旧.41 B4/B8不能抵扣.9主门。
+这是覆盖本矩阵与一个真实恒定负控的最小明确预算，不宣称所有可能实验的全局最少。可以先只做origin0的5个偶数候选/3个target，其他项等失败门之后再补，但必须提前冻结整个矩阵和此顺序；首段通过不许先宣布成功。当前未授权执行这些新编码。
+
+6. 评分、成功与拒绝口径
+在读取任何新target分数前冻结一个主F及其同槽distance；新bank不能在raw-adjacent、gap5、ROI、channel中按target效果择优。粗门既然用gap5，完整矩阵若仍用gap5，只能先声称实际重编码替代latent平移，不能宣称已经消除17帧宽差分。若改短gap，另作预先指定方法和基线，不是静默更换主结果。
+各候选使用相同真实有效chunk支持、全空间/全部channel，不能随着候选选更好区域。共同支持应排除任何被外部填充影响的完整chunk，最后136…152不足17的块也不进入主评分；不删除主窗内部51帧chunk边界，因为这是要测试的结构。所有候选仍须继承finite、能量、coverage/no-clamp门。top2包括相邻1帧候选；旧separated_competitor=4会漏掉1/2帧歧义，不可原样套用。数值margin阈值只排除并列，不是可靠率保证。
+最少比较为：当前gap5原扫描；同一F下从单次B0进行latent插值的库；同一F下真实RGB时移重编码库。三者同窗、同候选、同共同支持；否则不能把多看上下文的收益归因于编码相位。无需为这些CPU基线另编码。
+必要通过（仍为开发门）：
+- 六个跨身份/origin格均可判，不用unknown删除困难格；两个origin各自的估计增量hatL2−hatL0=2、hatL4−hatL0=4。整数lag采用精确增量，不用旧±2容差让相邻类别重叠通过。
+- 同d跨origin的估计差最多1帧，并保留所有score与margin；这只是较原停止容差更严格的预设必要门，不是既有校准阈值或理论常数。
+- 对绝对独立已知的native端点，R12 index10方向/腕4不应被可靠判为≤2；R12 final3/4不强标精确4。若G的独立锚只有区间，依上节判断绝对安全类，2格保留boundary_unknown。
+- 恒定真实RGB必须unknown；现存明显大延后native若被可靠判为内部近零，固定观察器失败。只在库边缘或unknown不能算预测准确，但比错误安全停止更可取。
+- 真实重编码库至少解决插值库的一个预先列明错误或歧义，同时不制造新的可靠假近零，才有改表征的必要性。若二者等效，bank对当前问题没有实证增益；若只多unknown则尚不能驱动控制。
+这些门通过仍不是闭环收益，需要实际native x0域重验：重新编码RGB的查询是encoder流形，实际预测端点不一定在其中。R12现存native点无需新DiT/新VAE即可查询，先结合已归档独立pose，不能用final真值替代early真值。同一视频六种变换是相关控制，不是六个独立样本。
+
+7. 最容易造成假阳性的两点
+自匹配：B_d作为query再搜同一B_d，只证明索引/符号/文件读取与排序正确。重新编码完全相同RGB即使另存文件，也不是泛化。跨身份G与R必须不同实际像素/latent，原始hash和shift映射完整保留。
+origin混淆：同时把某个视频origin移动d、再把该d当期望delay，测到的是净移动，不是分离相位。应保持origin为已知实验因子，完整交叉d。用单origin测试成功无法证明起点稳健；用未知origin声称识别真delay在定义上不可辨识。
+
+8. 先例与主张边界
+沿用已核对原文，不追加泛搜：AF-LDM Fig.2及Eq.4已有shift→reencode/latent-shift对照：https://arxiv.org/html/2503.09419v1 ；APS已有显式polyphase选择：https://arxiv.org/html/2011.14214v2 ；PhaseFusion已有时间起点多视图：https://arxiv.org/html/2610.08649v1 ；FlowMotion已有source/target latent差分：https://github.com/HKUST-LongGroup/FlowMotion/blob/main/run.py 。
+本轮若通过，可支持冻结H3观察器中“实际编码响应校准改善物理时延辨别”这一有限机制结论。shift-bank公式、相位枚举、模板argmin不是新原语。当前粗门只能排除某些失败；完整矩阵也不自动变成新架构、安全概率保证或跨任务泛化。
+
+附录：当前CPU粗门冻结协议独立复核
+协议：R12/analysis/phase_bank_cpu_gate/PROTOCOL.json
+实际SHA：fe223f2a864ccf9662b811924913c5b382c8fa21631aa5f55435417d02854fc1。
+只读确认：三个actual conditioning文件SHA与协议相符，逐项读取native_vae_calls[1]，prepared RGB均bc25b…、clean reference均cc5c11…；三个下载sampler_final文件SHA、capture manifest SHA也均匹配。没有加载目标张量计算分数，没有运行测试或GPU。没有阻断此CPU粗门的科学问题，已通知builder可沿冻结协议执行。
+执行验收仍需由builder确认实际raw tensor SHA/finite/shape/normalization，插值stencil包括gap5两个端点都在有效chunk，实际CPU锁和CUDA未初始化。这些不是本文假称已验的项目。Full独立lag2在离散0/4之间，粗门不可要求精确类别。协议已将0/8删失、内部4不作精确估计、14误成0或内部4作为反例、constant拒判及全分数保留；不得事后换信号/ROI挽救。

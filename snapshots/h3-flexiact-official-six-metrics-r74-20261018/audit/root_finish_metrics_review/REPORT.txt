@@ -1,0 +1,9 @@
+R74 评分行政脚本修复完成。
+
+root_finish_metrics.py 现在逐目标读取 R72/R76 的实际 service.json，并核对 /proc 身份、owner、runtime root/GPU/port 和服务命令路径；已退出旧记录跳过，PID 重用或身份不完整拒绝。GO 前两次核对本用户 CUDA 进程均在已验证集合中，连同保留的服务设备最多两卡。其他用户进程允许。
+
+每个当前服务登记 tracker 精确身份；结束或异常时删除本 tracker 的登记，保留无关条目。登记前 scope 必须是 own_user_video_jobs。原 ready/输入 hash/输出/退出核验和 CPU 锁重试继续沿用。
+
+17 项 CPU 回归通过：新 PID、两个已知根、退出旧记录、PID 重用、命令与设备错配、外用户共享、未知己方进程、三卡拒绝、登记冲突/保留其他条目，以及真实 flock 竞争恢复、非锁错误和锁超时。首次 Mac 锁测试遇到 EAGAIN=35 与部署 Linux=11 差异；只在测试子进程归一化错误编号，生产匹配逻辑未因测试改变。
+
+实际 .41 只读导入和 live_peers() 通过：识别 R72 PID775202/start8073061，未导入 torch、未写 admission、未启动 GPU。完整冻结 consumer 的 105 项 SHA 保持一致。候选尚未部署/启动，root 审查后使用。

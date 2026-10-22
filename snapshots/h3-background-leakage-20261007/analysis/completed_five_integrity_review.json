@@ -1,0 +1,673 @@
+{
+  "created_at_utc": "2026-10-07T22:05:12.640443+00:00",
+  "reviewer": "/root/pilot_causal_review",
+  "scope": "Independent integrity audit of the five completed runs only; F/aligned_continuation_original excluded because unfinished at audit time.",
+  "write_scope": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/completed_five_integrity_review.json",
+  "method": {
+    "execution": "Local Python 3 standard library and existing ffprobe; no GPU, server, service or API operations.",
+    "media_probe_command_template": [
+      "/opt/homebrew/bin/ffprobe",
+      "-v",
+      "error",
+      "-count_frames",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "<absolute_video_path>"
+    ],
+    "sha256_method": "hashlib.sha256 over every file byte, streamed in 1048576-byte blocks.",
+    "graph_comparison": "Recursive exact JSON comparison of all dict keys, list order, scalar values and Python scalar types; no normalization for config/history/embedded prompt comparisons.",
+    "pair_comparison": "Same recursive exact diff, with only explicitly enumerated image/output-prefix differences allowed.",
+    "safetensors_header_method": "Read first 8 bytes as little-endian unsigned uint64 header length, then parse exactly that many bytes as JSON; no tensors loaded.",
+    "frame_verification": "ffprobe -count_frames nb_read_frames, cross-checked against analysis decoded_frame_count and predeclared expected count; verify avg_frame_rate and r_frame_rate are 24/1.",
+    "latent_grid_formula": "For native H3 video latent temporal length Tz=5k+2, represented pixel frames=17k+5. Thus Tz=57 represents192frames."
+  },
+  "runs": [
+    {
+      "name": "fresh_seg2_original",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/fresh_seg2_original.json",
+          "sha256": "1cb5a058791cd47fb1284be78d2f436447f7bd6cc838a83a2910b708c9c6f78b",
+          "bytes": 8321
+        },
+        "job": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/fresh_seg2_original_job.json",
+          "sha256": "aaeab5a57ade01c6ac343c395494bec6af89c510027ebf4126fa1bcc278f7ba3",
+          "bytes": 502
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/fresh_seg2_original_history.json",
+          "sha256": "93fea3166c1b7aea0f78d5563c9ffb5150c02701bd89611e01a0032bb09e41c0",
+          "bytes": 10310
+        },
+        "analysis": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/fresh_seg2_original/analysis.json",
+          "sha256": "a30c9274b92b42cb66ac3d76c4e43593121853a5a59f1297768d6d1908b22adb",
+          "bytes": 12187
+        },
+        "visual_review": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/fresh_seg2_original/visual_review.json",
+          "sha256": "98893719377c128fcd4a91b8a929732760e27a1f467758db2012b04e0b2a853f",
+          "bytes": 1312
+        },
+        "media": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/fresh_seg2_original_seed1459903066845096071_00001_.mp4",
+          "sha256": "71e1afe9ef212dc239f8460eca69834754391e987fcb31c28f8c7feb4fd3dd78",
+          "bytes": 4295234
+        }
+      },
+      "checks": {
+        "config_sha_matches_job": true,
+        "media_sha_matches_analysis": true,
+        "job_success": true,
+        "history_success_and_complete": true,
+        "prompt_id_matches_history": true,
+        "history_graph_exact_match": true,
+        "embedded_graph_exact_match": true,
+        "actual_decoded_count_matches_expected_and_analysis": true,
+        "reported_nb_frames_matches_decoded": true,
+        "fps_24": true,
+        "resolution_1344x768": true,
+        "history_output_filename_matches_media": true
+      },
+      "config_vs_history_exact_diff": [],
+      "config_vs_mp4_prompt_exact_diff": [],
+      "inputs": [
+        {
+          "node_id": "137",
+          "class_type": "LoadImage",
+          "graph_input": "yaoguang_reference.png",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/yaoguang_reference.png",
+            "sha256": "6c0c38fc5832e6c813e0312f43c7c53c3c091155fcb87cf681866c7adfab8789",
+            "bytes": 5167167
+          }
+        },
+        {
+          "node_id": "138",
+          "class_type": "LoadVideo",
+          "graph_input": "source_seg2.mp4",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/source_seg2.mp4",
+            "sha256": "3a065fcb5e7918ed6f0495ce0c55a612b24b878da8693d89cb9e89f21ad44e22",
+            "bytes": 41612448
+          }
+        }
+      ],
+      "media_probe": {
+        "command": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "error",
+          "-count_frames",
+          "-show_streams",
+          "-show_format",
+          "-of",
+          "json",
+          "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/fresh_seg2_original_seed1459903066845096071_00001_.mp4"
+        ],
+        "nb_read_frames": 158,
+        "nb_frames": 158,
+        "avg_frame_rate": "24/1",
+        "r_frame_rate": "24/1",
+        "width": 1344,
+        "height": 768
+      }
+    },
+    {
+      "name": "replay_part1b_original",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/replay_part1b_original.json",
+          "sha256": "0fda0399185560b6779ad30343abab1b4080d7c0878f87fbe1ad118d5344f66e",
+          "bytes": 8427
+        },
+        "job": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/replay_part1b_original_job.json",
+          "sha256": "36c82968866bd2463a4c81348d862f5df884f68bf73fbc57f11144d318cf9b02",
+          "bytes": 508
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/replay_part1b_original_history.json",
+          "sha256": "0b8dba416fdef382c433cc7a93e232760669c9a0c33fd9860d5cf5a25d899589",
+          "bytes": 10426
+        },
+        "analysis": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/replay_part1b_original/analysis.json",
+          "sha256": "3d85c7f0486d0bc44bc56f100fc0a4f386da95a4a2f14e5b397a5d49f6cb94b3",
+          "bytes": 12168
+        },
+        "visual_review": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/replay_part1b_original/visual_review.json",
+          "sha256": "48acb92c5809c8be520bb4a1fa5ad17df26e0c8c9181609224713f59a09c3fc8",
+          "bytes": 945
+        },
+        "media": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/replay_part1b_original_seed7328488203824146982_00001_.mp4",
+          "sha256": "e6cbb8989cdf2a08eb02b7b9d2770d47e71a2b24e1bb08e433f269f886ad54f5",
+          "bytes": 4519791
+        }
+      },
+      "checks": {
+        "config_sha_matches_job": true,
+        "media_sha_matches_analysis": true,
+        "job_success": true,
+        "history_success_and_complete": true,
+        "prompt_id_matches_history": true,
+        "history_graph_exact_match": true,
+        "embedded_graph_exact_match": true,
+        "actual_decoded_count_matches_expected_and_analysis": true,
+        "reported_nb_frames_matches_decoded": true,
+        "fps_24": true,
+        "resolution_1344x768": true,
+        "history_output_filename_matches_media": true
+      },
+      "config_vs_history_exact_diff": [],
+      "config_vs_mp4_prompt_exact_diff": [],
+      "inputs": [
+        {
+          "node_id": "137",
+          "class_type": "LoadImage",
+          "graph_input": "yaoguang_reference.png",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/yaoguang_reference.png",
+            "sha256": "6c0c38fc5832e6c813e0312f43c7c53c3c091155fcb87cf681866c7adfab8789",
+            "bytes": 5167167
+          }
+        },
+        {
+          "node_id": "138",
+          "class_type": "LoadVideo",
+          "graph_input": "source_independent_part1b.mp4",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/source_independent_part1b.mp4",
+            "sha256": "8682ed15b033941a20805a1c3497bddb3e79dff1fca481faaf87463a3f9985d4",
+            "bytes": 43636663
+          }
+        }
+      ],
+      "media_probe": {
+        "command": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "error",
+          "-count_frames",
+          "-show_streams",
+          "-show_format",
+          "-of",
+          "json",
+          "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/replay_part1b_original_seed7328488203824146982_00001_.mp4"
+        ],
+        "nb_read_frames": 175,
+        "nb_frames": 175,
+        "avg_frame_rate": "24/1",
+        "r_frame_rate": "24/1",
+        "width": 1344,
+        "height": 768
+      }
+    },
+    {
+      "name": "replay_part1b_neutral",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/replay_part1b_neutral.json",
+          "sha256": "a29e6ae8b4ae936d2fdff816b643ae08a2f75d63df555b3a59f472a05f21283c",
+          "bytes": 8424
+        },
+        "job": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/replay_part1b_neutral_job.json",
+          "sha256": "14b4aa714a4f5ec923a30784d58d93c808332531f916d09afe946bae160cca63",
+          "bytes": 506
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/replay_part1b_neutral_history.json",
+          "sha256": "d1b10d2e5be1ee2914e073660dc21c2a2a9e09f1b3c04e91a16eb71eef1fb616",
+          "bytes": 10422
+        },
+        "analysis": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/replay_part1b_neutral/analysis.json",
+          "sha256": "64936084c8d259ed58e5d5a9ad5169863702f5c092c222a0f3ef187258a8cd5e",
+          "bytes": 12164
+        },
+        "visual_review": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/replay_part1b_neutral/visual_review.json",
+          "sha256": "ef4a685b1c74e2f0ea27623747960aee2924f63806cf0cbad0fb179d56023afb",
+          "bytes": 979
+        },
+        "media": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/replay_part1b_neutral_seed7328488203824146982_00001_.mp4",
+          "sha256": "c6b4edaaced64b5ce02b66368db6f081e0f96fe32210e1894d605ca950b08917",
+          "bytes": 4774146
+        }
+      },
+      "checks": {
+        "config_sha_matches_job": true,
+        "media_sha_matches_analysis": true,
+        "job_success": true,
+        "history_success_and_complete": true,
+        "prompt_id_matches_history": true,
+        "history_graph_exact_match": true,
+        "embedded_graph_exact_match": true,
+        "actual_decoded_count_matches_expected_and_analysis": true,
+        "reported_nb_frames_matches_decoded": true,
+        "fps_24": true,
+        "resolution_1344x768": true,
+        "history_output_filename_matches_media": true
+      },
+      "config_vs_history_exact_diff": [],
+      "config_vs_mp4_prompt_exact_diff": [],
+      "inputs": [
+        {
+          "node_id": "137",
+          "class_type": "LoadImage",
+          "graph_input": "yaoguang_neutral.png",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/yaoguang_neutral.png",
+            "sha256": "a42e9424b0cac4676c5cc2b6b36a0aca95cfce604b2946998c86dd92a8d7cc3c",
+            "bytes": 3370500
+          }
+        },
+        {
+          "node_id": "138",
+          "class_type": "LoadVideo",
+          "graph_input": "source_independent_part1b.mp4",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/source_independent_part1b.mp4",
+            "sha256": "8682ed15b033941a20805a1c3497bddb3e79dff1fca481faaf87463a3f9985d4",
+            "bytes": 43636663
+          }
+        }
+      ],
+      "media_probe": {
+        "command": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "error",
+          "-count_frames",
+          "-show_streams",
+          "-show_format",
+          "-of",
+          "json",
+          "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/replay_part1b_neutral_seed7328488203824146982_00001_.mp4"
+        ],
+        "nb_read_frames": 175,
+        "nb_frames": 175,
+        "avg_frame_rate": "24/1",
+        "r_frame_rate": "24/1",
+        "width": 1344,
+        "height": 768
+      }
+    },
+    {
+      "name": "continuation_seg2_original",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/continuation_seg2_original.json",
+          "sha256": "a0076f1bcc7bec22e9580d4a73fbfdcc0f3b12b9a0ac6e5a2b1efbfb28ea1aa7",
+          "bytes": 15228
+        },
+        "job": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/continuation_seg2_original_job.json",
+          "sha256": "a1826153242e2274c8c7f2ec5af457be654996863621fde65cb6641de293fdc9",
+          "bytes": 515
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/continuation_seg2_original_history.json",
+          "sha256": "b088d546de68298bd4969848d1b7aded6a067da990f9658384c63eb834999fed",
+          "bytes": 17856
+        },
+        "analysis": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/continuation_seg2_original/analysis.json",
+          "sha256": "8c65310381a60031199b97b4ace91ccd7ae1d140c329607603b2f889f4c5e68d",
+          "bytes": 18833
+        },
+        "visual_review": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/continuation_seg2_original/visual_review.json",
+          "sha256": "6cd7f70c32fa6edebae7e986f2d18532bf8f1cc6f2319c269c5ada443b371ccf",
+          "bytes": 1382
+        },
+        "media": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/continuation_seg2_original_seed1459903066845096071_00001_.mp4",
+          "sha256": "b395c23800e70714b9cb5c2628bda3be5aecee1ad299b4fda1ce6c99430ebe7a",
+          "bytes": 3605189
+        }
+      },
+      "checks": {
+        "config_sha_matches_job": true,
+        "media_sha_matches_analysis": true,
+        "job_success": true,
+        "history_success_and_complete": true,
+        "prompt_id_matches_history": true,
+        "history_graph_exact_match": true,
+        "embedded_graph_exact_match": true,
+        "actual_decoded_count_matches_expected_and_analysis": true,
+        "reported_nb_frames_matches_decoded": true,
+        "fps_24": true,
+        "resolution_1344x768": true,
+        "history_output_filename_matches_media": true
+      },
+      "config_vs_history_exact_diff": [],
+      "config_vs_mp4_prompt_exact_diff": [],
+      "inputs": [
+        {
+          "node_id": "137",
+          "class_type": "LoadImage",
+          "graph_input": "yaoguang_reference.png",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/yaoguang_reference.png",
+            "sha256": "6c0c38fc5832e6c813e0312f43c7c53c3c091155fcb87cf681866c7adfab8789",
+            "bytes": 5167167
+          }
+        },
+        {
+          "node_id": "138",
+          "class_type": "LoadVideo",
+          "graph_input": "source_seg2.mp4",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/source_seg2.mp4",
+            "sha256": "3a065fcb5e7918ed6f0495ce0c55a612b24b878da8693d89cb9e89f21ad44e22",
+            "bytes": 41612448
+          }
+        },
+        {
+          "node_id": "150",
+          "class_type": "LoadMiniMaxH3AVLatent",
+          "graph_input": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input/historical_seg1_latent.safetensors",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/historical_seg1_latent.safetensors",
+            "sha256": "f59fbf423cc2789f1449c16627c6bf63f7b7c913176ef98eee3729561bd17036",
+            "bytes": 18265384
+          }
+        }
+      ],
+      "media_probe": {
+        "command": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "error",
+          "-count_frames",
+          "-show_streams",
+          "-show_format",
+          "-of",
+          "json",
+          "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/continuation_seg2_original_seed1459903066845096071_00001_.mp4"
+        ],
+        "nb_read_frames": 158,
+        "nb_frames": 158,
+        "avg_frame_rate": "24/1",
+        "r_frame_rate": "24/1",
+        "width": 1344,
+        "height": 768
+      },
+      "latent": {
+        "file": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/h3_latents/continuation_seg2_original_seed1459903066845096071_00001_.safetensors",
+          "sha256": "7d8e6d41a96a22d2428e00af0c04efe54d50e5c8dca7dafd0c3cf2afb86243a7",
+          "bytes": 22150936
+        },
+        "saved_header": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/continuation_seg2_original/latent_header.json",
+          "sha256": "690c73d66c3b4bef767a1b2d266c5e1116a883e9647ca61291f557c7396f81b3",
+          "bytes": 6183
+        },
+        "checks": {
+          "actual_header_equals_saved_header": true,
+          "full_frames_192": true,
+          "published_interval_22_to_180": true,
+          "hidden_tail_12": true,
+          "video_shape_expected": true,
+          "audio_shape_expected": true,
+          "fixed_history_hash_matches_manifest": true,
+          "history_path_matches_graph": true
+        },
+        "full_sample_frames": 192,
+        "published_half_open_interval": [
+          22,
+          180
+        ],
+        "published_frames": 158,
+        "hidden_tail_frames": 12,
+        "video_shape": [
+          1,
+          24,
+          57,
+          48,
+          84
+        ],
+        "audio_shape": [
+          1,
+          32,
+          2,
+          320
+        ],
+        "fixed_context": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/historical_seg1_latent.safetensors",
+          "sha256": "f59fbf423cc2789f1449c16627c6bf63f7b7c913176ef98eee3729561bd17036",
+          "bytes": 18265384
+        }
+      }
+    },
+    {
+      "name": "continuation_seg2_neutral",
+      "files": {
+        "config": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/configs/continuation_seg2_neutral.json",
+          "sha256": "4cf71a47c5de4cd537b0ad9d96dfb6a905032cd50a6b9c79acd23de551f46f9b",
+          "bytes": 15224
+        },
+        "job": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/continuation_seg2_neutral_job.json",
+          "sha256": "d4e723666f050315fdc6c3d040ec07f4169452a4fe25ed01cc45abe856eb31d5",
+          "bytes": 514
+        },
+        "history": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/logs/continuation_seg2_neutral_history.json",
+          "sha256": "2b73d01b9c98c2d6ea4c53a471d11e9d7551bf10ec21186e57d8aa6676466400",
+          "bytes": 17850
+        },
+        "analysis": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/continuation_seg2_neutral/analysis.json",
+          "sha256": "e677cc4cb1ec1138acacbff6ff55db50a62e43b995721f24f644bc9f83717b5c",
+          "bytes": 18830
+        },
+        "visual_review": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/continuation_seg2_neutral/visual_review.json",
+          "sha256": "b1732ab5bdb62c135b22431919f349773793e71a0b33e02dce3de4ae31b19fbd",
+          "bytes": 979
+        },
+        "media": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/continuation_seg2_neutral_seed1459903066845096071_00001_.mp4",
+          "sha256": "8a512dd6bd2d2a091b7d4c428664f0f877d64f0220b478b91db3b5c770571390",
+          "bytes": 4271488
+        }
+      },
+      "checks": {
+        "config_sha_matches_job": true,
+        "media_sha_matches_analysis": true,
+        "job_success": true,
+        "history_success_and_complete": true,
+        "prompt_id_matches_history": true,
+        "history_graph_exact_match": true,
+        "embedded_graph_exact_match": true,
+        "actual_decoded_count_matches_expected_and_analysis": true,
+        "reported_nb_frames_matches_decoded": true,
+        "fps_24": true,
+        "resolution_1344x768": true,
+        "history_output_filename_matches_media": true
+      },
+      "config_vs_history_exact_diff": [],
+      "config_vs_mp4_prompt_exact_diff": [],
+      "inputs": [
+        {
+          "node_id": "137",
+          "class_type": "LoadImage",
+          "graph_input": "yaoguang_neutral.png",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/yaoguang_neutral.png",
+            "sha256": "a42e9424b0cac4676c5cc2b6b36a0aca95cfce604b2946998c86dd92a8d7cc3c",
+            "bytes": 3370500
+          }
+        },
+        {
+          "node_id": "138",
+          "class_type": "LoadVideo",
+          "graph_input": "source_seg2.mp4",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/source_seg2.mp4",
+            "sha256": "3a065fcb5e7918ed6f0495ce0c55a612b24b878da8693d89cb9e89f21ad44e22",
+            "bytes": 41612448
+          }
+        },
+        {
+          "node_id": "150",
+          "class_type": "LoadMiniMaxH3AVLatent",
+          "graph_input": "/data5/researcher/h3_runs/background_leakage_pilot_20261007/input/historical_seg1_latent.safetensors",
+          "local_artifact": {
+            "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/historical_seg1_latent.safetensors",
+            "sha256": "f59fbf423cc2789f1449c16627c6bf63f7b7c913176ef98eee3729561bd17036",
+            "bytes": 18265384
+          }
+        }
+      ],
+      "media_probe": {
+        "command": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "error",
+          "-count_frames",
+          "-show_streams",
+          "-show_format",
+          "-of",
+          "json",
+          "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/continuation_seg2_neutral_seed1459903066845096071_00001_.mp4"
+        ],
+        "nb_read_frames": 158,
+        "nb_frames": 158,
+        "avg_frame_rate": "24/1",
+        "r_frame_rate": "24/1",
+        "width": 1344,
+        "height": 768
+      },
+      "latent": {
+        "file": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/outputs/h3_latents/continuation_seg2_neutral_seed1459903066845096071_00001_.safetensors",
+          "sha256": "8dd2550f2174b55d6f5139ac4a0a4bc2ad44d95fb132cac41fea1a6fb6193ee4",
+          "bytes": 22150936
+        },
+        "saved_header": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/analysis/continuation_seg2_neutral/latent_header.json",
+          "sha256": "3a5ec97bb44708e60024936b0b84c35476b43a8fb9546ddf28b49841fd9b236c",
+          "bytes": 6183
+        },
+        "checks": {
+          "actual_header_equals_saved_header": true,
+          "full_frames_192": true,
+          "published_interval_22_to_180": true,
+          "hidden_tail_12": true,
+          "video_shape_expected": true,
+          "audio_shape_expected": true,
+          "fixed_history_hash_matches_manifest": true,
+          "history_path_matches_graph": true
+        },
+        "full_sample_frames": 192,
+        "published_half_open_interval": [
+          22,
+          180
+        ],
+        "published_frames": 158,
+        "hidden_tail_frames": 12,
+        "video_shape": [
+          1,
+          24,
+          57,
+          48,
+          84
+        ],
+        "audio_shape": [
+          1,
+          32,
+          2,
+          320
+        ],
+        "fixed_context": {
+          "path": "/Users/researcher/DevProjects/h3-background-leakage-20261007/inputs/historical_seg1_latent.safetensors",
+          "sha256": "f59fbf423cc2789f1449c16627c6bf63f7b7c913176ef98eee3729561bd17036",
+          "bytes": 18265384
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "name": "replay_part1b",
+      "original": "replay_part1b_original",
+      "neutral": "replay_part1b_neutral",
+      "exact_diff": [
+        {
+          "pointer": "/137/inputs/image",
+          "kind": "value",
+          "left": "yaoguang_reference.png",
+          "right": "yaoguang_neutral.png"
+        },
+        {
+          "pointer": "/92/inputs/filename_prefix",
+          "kind": "value",
+          "left": "replay_part1b_original_seed7328488203824146982",
+          "right": "replay_part1b_neutral_seed7328488203824146982"
+        }
+      ],
+      "allowed_diff_pointers": [
+        "/137/inputs/image",
+        "/92/inputs/filename_prefix"
+      ],
+      "checks": {
+        "exact_diff_is_only_reference_image_and_output_prefixes": true,
+        "all_other_nodes_inputs_and_metadata_exactly_equal": true
+      }
+    },
+    {
+      "name": "continuation_seg2",
+      "original": "continuation_seg2_original",
+      "neutral": "continuation_seg2_neutral",
+      "exact_diff": [
+        {
+          "pointer": "/137/inputs/image",
+          "kind": "value",
+          "left": "yaoguang_reference.png",
+          "right": "yaoguang_neutral.png"
+        },
+        {
+          "pointer": "/155/inputs/filename_prefix",
+          "kind": "value",
+          "left": "h3_latents/continuation_seg2_original_seed1459903066845096071",
+          "right": "h3_latents/continuation_seg2_neutral_seed1459903066845096071"
+        },
+        {
+          "pointer": "/92/inputs/filename_prefix",
+          "kind": "value",
+          "left": "continuation_seg2_original_seed1459903066845096071",
+          "right": "continuation_seg2_neutral_seed1459903066845096071"
+        }
+      ],
+      "allowed_diff_pointers": [
+        "/137/inputs/image",
+        "/155/inputs/filename_prefix",
+        "/92/inputs/filename_prefix"
+      ],
+      "checks": {
+        "exact_diff_is_only_reference_image_and_output_prefixes": true,
+        "all_other_nodes_inputs_and_metadata_exactly_equal": true
+      }
+    }
+  ],
+  "limits": [
+    "This verifies file/configuration provenance and temporal geometry, not model-level causal mechanism or CUDA bitwise determinism.",
+    "AI visual review conclusions are separately supplied by pilot_historical_visual/root; this integrity audit does not produce new visual annotations.",
+    "Source/reference hashes describe local saved copies; no new remote hash comparison was executed in this audit.",
+    "No second seed or held-out identity is implied by having two matched workflow pairs.",
+    "Resource cleanup is not claimed here; final current-service and local-caffeinate cleanup remains root-owned."
+  ],
+  "all_checks_passed": true
+}

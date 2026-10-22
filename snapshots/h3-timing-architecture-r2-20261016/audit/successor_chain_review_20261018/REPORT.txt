@@ -1,0 +1,70 @@
+接续启动条件审查（R94 / R90 / R91 / R92 / R93）
+
+结论
+按 root 当前计划串行接续、启动时填写实际存活的 peer-root，可以使用现有封存包。
+没有需要为合法接续而删除的旧 PID/attempt 硬编码。R94 和 R90 均保留 R85 的固定
+历史前置；R90 没有自动等待 R94，R91/R92/R93 也没有跨包完成状态机，顺序由 root
+现行调度保证。无需修改封存 predecessor；当前要更新的是实际启动命令中的 peer。
+
+接续表
+GPU3 / ea95cb74…70a3：R85 → R94:8559 → R90:8555 → R91:8556。
+GPU0 / 0da8361f…4ea2：R89 → R92:8557 → R93:8558。
+所有五个包均 normal/reserve8、free>=40960MiB、最多两张己方 GPU；端口互不冲突。
+前一任务的端口不同，不能只靠新端口可绑定推断旧 GPU 服务已释放。
+
+1. R94 在 R85 之后
+configs/predecessor.json 精确绑定 R85 PID16003/start2634847475/GPU3，要求 rotate
+forced 最后任务 history success、/proc absent、CUDA allocation absent 和同 PID
+cleanup 两个布尔值通过。当前远端记录仍为该代次，末 pair Native 正在执行，故现在
+拒绝 R94 是预期行为。R85 正常完结后这份前置可满足。
+证据：R94 audit/root_run_batch.py:95–106、122；configs/predecessor.json。
+
+2. R90 在 R94 之后
+R90 verify_predecessor 仍核同一个 R85 历史代次。R94 执行不会改 R85 的 service/
+cleanup，所以 R94 正常结束不会令 R90 被旧 R85 前置阻塞。
+R90 未直接核 R94 success/exit；root 启动前须核 R94 本 attempt 的 ROOT_EXIT_RECEIPT、
+实际 service 身份和 /proc/CUDA 退出。R90 的 R85 raw noise/条件依赖是科学对照来源，
+应保留。R85 pair gate 只去 created_unix 的 canonical 比较已在原包处理。
+证据：R90 audit/root_run_native.py:95–118、134–141；ROOT_HANDOFF.txt:14、18、22。
+
+3. R91 在 R90 之后
+R91 无 predecessor 文件；root 核 R90 的实际 release 后启动即可。GPU3 与 R90 相同，
+端口改为8556。首对篮球完成后仍需要真实 pair gate 与 root 的 approve-rest；这项
+hold 属于计划内质量审核，和前序 GPU 释放无关。
+证据：R91 audit/root_run_batch.py:106–137；ROOT_HANDOFF.txt:22–27。
+
+4. R92 在 R89 之后、R93 在 R92 之后
+两个包均无硬编码前一根目录、PID 或 attempt。先核对应前一任务 exact release，
+再从当前 GPU3 实际存活任务选 peer。R92 每例 Native 后 guide/skip 最多等待1800秒；
+超时会释放并写 RELEASED_PENDING_REVIEW，不能把它当作全部五源完成。
+若顺序定义为 R92 全部结束后才 R93，应核 COMPLETE.all_sources_reviewed=true；
+若 root 决定在 pending 状态下转 R93，须明确保留 R92 尚未完成的源和审核任务。
+证据：R92/R93 audit/root_run_batch.py:134–160；ROOT_HANDOFF.txt 的终态说明。
+
+实际命令里的 peer 更新
+--peer-root 表示另一个当前存活的己方服务根，不是刚结束的 predecessor。
+R94/R90/R91 示例写了 R89；届时如 GPU0 已是 R92 或 R93，必须改为那个实际根。
+R92/R93 示例省略 peer；若 GPU3 此时仍有 R85/R94/R90/R91，必须追加该实际根。
+具体代次由 live_peers 读取该根当前 service.json，核 PID/UID/start/cmd、GPU/port；
+缺记录或已退出则跳过。传旧 R89 本身不会等待它，但会漏登已经启动的 R92/R93，
+随后 check_admission 拒绝未登记 own compute。每次 launch 都重新写本包 admission，
+旧 permitted 列表不会自动沿用。preCUDA 再读一次 peers 并双向登记后才 GO。
+证据：各 wrapper live_peers:9–24/update_peer:29–40；service.py:99–138。
+
+不能用“把尚未退出的同 GPU 前序传成 peer”代替释放核验。现有两卡上限按 UUID
+集合计算，同卡两个 own 服务可能仍算一张卡；真正的串行要求由 root 的 release
+核验保证。此处保持现行人工调度即可，无需改科学或封存代码。
+
+attempt 与重启
+每次 wrapper audit/<attempt>.mkdir(exist_ok=False)，attempt 必须唯一；不是硬编码
+固定旧 attempt。自己的 processes/service.json 即使已退出也会令首次启动入口拒绝，
+目的是保留恢复边界。五个未启动包当前远端均无 service/controller/cleanup 记录，
+admission 均为 pending/空 peer，没有旧 attempt 引用导致的首次启动阻断。
+R92/R93 也保留已有 job/decision/ledger 的重复启动拒绝；若 review 超时后恢复，
+须另走明确恢复操作，不能把原启动命令反复运行。
+
+核查范围
+本次只读五包 wrapper、runtime/admission/predecessor、service/launch/preflight/
+execution_gate 与 handoff。远端一次读小 JSON 和 /proc 存在性，未启 CUDA、未测
+当前空闲显存或重新验证大输入/PT。远端快照不是后续启动凭据；root 仍在启动时
+现场核 exact identity、release 与资源。没有修改任何封存文件。

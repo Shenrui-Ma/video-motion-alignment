@@ -1,0 +1,45 @@
+R148 五组：参考视频 / 普通编辑 / 时序引导 / 时序引导＋相位对齐
+本准备不生成新推理，不改R146记录，不改手工研究报告。
+
+已安装运行环境：
+PY=/Users/researcher/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3
+EVAL=/Users/researcher/DevProjects/h3-timing-phase-combined-eval-r148-20261020
+
+CPU回归：
+"$PY" -m unittest discover -s "$EVAL" -p 'test_validation.py'
+
+producer最终封存后运行 refresh_runtime_bindings.py --case <source_id>，逐SHA核科学合同与原固定参数。
+实际gate到达后加 --gate /absolute/actual/COMBINED_RUNTIME_GATE.json 绑定真实文件名。
+只有该步成功后binding才为READY；完整渲染入口仍会核COMPLETE与exactrelease。
+不要沿用R132或R146的完成收据。五组producer已逐SHA绑定，Sam含image+video布局与实际noise文件SHA；实际新成片仍待完成门。
+
+实际R148完成后，使用同一run的成片与三份收据：
+"$PY" "$EVAL/prepare_comparison.py" --case short_0252 \
+  --combined /absolute/actual/fixed_phase.mp4 \
+  --binding "$EVAL/runtime/short_0252.json" \
+  --gate /absolute/actual/COMBINED_RUNTIME_GATE.json \
+  --complete /absolute/actual/COMPLETE.json \
+  --release /absolute/actual/ROOT_EXIT_RECEIPT.json --validate-only
+
+验证通过后删去 --validate-only。其余source_id为short_0358、long_0039、long_0059、05_real_megumi_v。
+默认生成全部有效帧对照截图及完整四列视频，分别98/105/106/144/141帧；
+--frames 12,25,41,76,88可只导出指定截图，完整视频不裁短。
+输出review/<source_id>/PRESENTATION.json，目录存在时不覆盖。
+四列共1920px，下方54px黑底中文页脚；无顶部标题。
+
+评审规则：
+先看编辑完成、主体/非目标/场景与动作保持，再标冻结事件区间。
+缺失事件保持null；同时比较事件时刻与相邻阶段持续时间。
+旧8个MF分数直接复用，仅后验评估4个新IVE成片。
+Sam精确旧seed1311没有已核官方MF；后续按root资源交接统一准备source/native/fixed/new四份轨迹。
+实际sampling秒数从执行记录读取，loading/capture/decode另列；
+历史job_wall已保存，不用job_wall/20替代采样速度。
+没有去噪期间VAE/RGB/姿态观察器；旧自动路线不进入本轮评估。
+
+独立HTML（不内嵌大视频、不复制旧媒体、不改手工报告）：
+"$PY" "$EVAL/build_html.py"
+输出本目录 index.html + HTML_BUILD.json；支持四列原速同步播放/帧定位/全屏/窄屏横向滚动。
+每次新实际成片经验证后生成PRESENTATION，再重建本页即可。
+完整人工REVIEW.json须绑定combined_video_sha256、valid_frames、all_valid_frames_inspected、
+task_verdict_zh、timing_conclusion_zh、events。
+OFFICIAL_MF.json须含actual_generated_video_sha256、valid_frames、fps、crop_xywh和score。

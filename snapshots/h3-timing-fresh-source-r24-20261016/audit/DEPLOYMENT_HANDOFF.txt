@@ -1,0 +1,39 @@
+Sealed lane bundles (40 files each): see audit/seal_a.json and audit/seal_b.json.
+
+Root deploys each tar into a NEW directory:
+/data5/researcher/h3_runs/timing_fresh_source_r24_20261016/a
+/data5/researcher/h3_runs/timing_fresh_source_r24_20261016/b
+Bundle includes source videos/portrait/provenance. Never extract over a previously launched run.
+
+Static verification command (no GPU):
+python3 RUN/scripts/preflight.py --root RUN
+
+Root performs live exact-UUID/other-process resource admission and sets
+RUN/configs/admission.json ready_for_launch=true.
+Candidate resources: a GPU-REDACTED /8484;
+b GPU-REDACTED /8485.
+Other running owned-lane process must be registered with exact PID,
+identity.uid/start_ticks/cmdline_sha256 in permitted_compute_processes.
+Before starting second lane, root must register first lane; once second PID
+exists update first lane's permitted list before its next job. These administrative
+files are excluded from seal; source graphs/registry/science remain immutable.
+
+Launch (root only after source-only review and seal review):
+python3 RUN/scripts/launch_remote.py
+This starts exact registered service/supervisor/controller/watchdog. Controller
+submits four serial jobs. Model service remains retained1800s after last queued
+job, with total lifetime<=43200s and job timeout5400s. No cache-none or unload.
+To finish bounded hold early, set configs/queue.json finalize=true atomically;
+controller closes after queued work, not mid-job. Root may append only approved,
+hash-bound additional source batches with unique IDs and complete4job order.
+
+CPU integrity after four successes (can run during resident hold):
+env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/researcher/miniconda3/envs/comfyui/bin/python RUN/scripts/verify_batch.py --root RUN --output RUN/analysis/paired_integrity.json
+Use existing shared consumer.lock for heavy CPU verification/pose. Resident hold
+and exact-owned cleanup are reported separately. Generated motion assessment must
+use new source provenance windows: A44–61 /17–34 /82–99; B64–81 /23–40 /103–120.
+No old source05 hardcoded evaluator. No output or success claim has been made.
+
+Builder executed only one real .9 CPU staging smoke, exit0; no GPU/service launch.
+The measured extensions and test sources remain byte-identical in both sealed
+lanes. Evidence: configs/CPU_EVIDENCE.json plus local audit source/log manifests.

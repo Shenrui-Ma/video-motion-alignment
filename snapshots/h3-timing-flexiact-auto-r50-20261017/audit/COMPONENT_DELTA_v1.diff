@@ -1,0 +1,424 @@
+--- R45/scripts/decode_live_child.py
++++ R50/scripts/decode_live_child.py
+@@ -56,13 +56,15 @@
+     meta=payload['metadata']
+     for key in ('physical_index','branch','nfe_index','seed','sigma','sigma_next','condition_sha256','reference_sha256','raw_stream_signatures'):
+         require(meta[key] == r[key], 'Live endpoint metadata differs: '+key)
+-    for name,shape in (('video',(1,24,42,46,82)),('audio',(1,32,2,235))):
++    geometry=t.geometry_for(r['run_id'])
++    require(r.get('geometry')==geometry.video_geometry and r.get('observation_domain')==geometry.domain_record,'Live request geometry/domain differs')
++    for name,shape in zip(('video','audio'),geometry.stream_shapes):
+         v=payload[name]
+         require(v.device.type=='cpu' and v.dtype==torch.float32 and tuple(v.shape)==shape and bool(torch.isfinite(v).all()), 'Live tensor contract')
+     require([core.tensor_signature(payload[k]) for k in ('video','audio')]==r['normalized_stream_signatures'], 'Live normalized signatures')
+     require([core.tensor_signature(payload['video']),core.tensor_signature(payload['audio']*4)]==r['raw_stream_signatures'], 'Live audio/video normalization')
+     # Metadata only: exact video/audio objects returned, no tensor transformation.
+-    payload['metadata']=dict(meta,geometry={'frames':141,'width':1312,'height':736,'fps':24},normalization_stage='after_process_latent_out',request_sha256=REQUEST_SHA)
++    payload['metadata']=dict(meta,geometry=geometry.video_geometry,normalization_stage='after_process_latent_out',request_sha256=REQUEST_SHA)
+     return payload
+ 
+ 
+--- R45/scripts/pose_live_child.py
++++ R50/scripts/pose_live_child.py
+@@ -24,8 +24,12 @@
+    subprocess.run(command,check=True,timeout=240)
+    pose=output/'native.pose.json';raw=t.read_json(pose)
+    t.require(raw['video']['sha256']==t.sha(directory/'native.mp4'),'pose video hash differs')
+-   t.require(raw['video']['fps']==24 and raw['video']['width']==1312 and raw['video']['height']==736 and raw['video']['container_frame_count']==141 and [f['frame'] for f in raw['frames']]==list(range(141)),'pose geometry/timebase differs')
+-   subprocess.run([sys.executable,str(ROOT/'scripts/scan_current_pose.py'),'--source',str(ROOT/'configs/source.pose.json'),'--pose',str(pose),'--index',str(r['physical_index']),'--output',str(directory/'observer.json')],check=True,timeout=max(1,240-(time.monotonic()-start)))
++   from pose_domain import validate_pose
++   geometry=t.geometry_for(r['run_id']);validate_pose(pose,geometry)
++   case=t.case_for(r['run_id']);source=t.inside(str(t.ROOT/case['source_pose_path']),t.ROOT)
++   t.require(t.sha(source)==case['source_pose_sha256'],'wrong source pose for case')
++   case_path=directory/'geometry_case.json';t.write_new(case_path,{'geometry':geometry.video_geometry,'valid_frame_count':geometry.valid_frames})
++   subprocess.run([sys.executable,str(ROOT/'scripts/scan_current_pose.py'),'--source',str(source),'--pose',str(pose),'--index',str(r['physical_index']),'--output',str(directory/'observer.json'),'--geometry-case',str(case_path)],check=True,timeout=max(1,240-(time.monotonic()-start)))
+    t.write_new(directory/'pose_complete.json',{'status':'complete','request_sha256':t.sha(a.request),'lock_wait_seconds':wait,'pose_metric_seconds':time.monotonic()-start,'pose':str(pose),'observer':str(directory/'observer.json')})
+   finally:fcntl.flock(handle,fcntl.LOCK_UN)
+ if __name__=='__main__':main()
+--- R45/scripts/scan_current_pose.py
++++ R50/scripts/scan_current_pose.py
+@@ -1,66 +1,57 @@
+ """Whole-clip current-endpoint scan using frozen metrics and pairwise gain."""
+ import argparse,hashlib,json,time
+ from pathlib import Path
++import sys
++sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"extensions"))
++from H3AutomaticWindowRouter.geometry import LEGACY,Geometry
++from pose_domain import validate_pose,features
+ import timing_metrics as m
+ from pairwise_gain import compare
+ FEATURES=('arm_direction','left_arm_direction','right_arm_direction')
+ CONFIDENCE=(.3,.5)
+ 
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+-def valid_pose(path):
+-    raw=json.loads(Path(path).read_text())
+-    v=raw['video']
+-    if (v['fps'],v['width'],v['height'],v['container_frame_count'])!=(24,1312,736,141):raise ValueError('pose geometry/timebase mismatch')
+-    frames=raw['frames']
+-    if len(frames)!=141 or [r['frame'] for r in frames]!=list(range(141)) or any(abs(r['time_s']-i/24)>1e-8 for i,r in enumerate(frames)):
+-        raise ValueError('pose frame/time index mismatch')
+-    for row in frames:
+-        selected=row['selected_person']
+-        if selected is not None:
+-            p=row['persons'][selected]
+-            if len(p['coco17_xy'])!=17 or any(len(v)!=2 for v in p['coco17_xy']) or len(p['coco17_score'])!=17:raise ValueError('malformed pose joints')
+-    return raw
++def valid_pose(path,geometry=LEGACY):
++    return validate_pose(path,geometry)
+ 
+-def observe(source,target,index):
++def observe(source,target,index,geometry=LEGACY):
+     if type(index) is not int or not 0<=index<20:raise ValueError('current physical index')
+-    valid_pose(source);valid_pose(target);start=time.monotonic()
++    raw={"source":valid_pose(source,geometry),"target":valid_pose(target,geometry)};start=time.monotonic()
+     result={'schema':'r27-whole-timeline-observation-v1','physical_index':index,
+             'source_pose_sha256':sha(source),'edited_pose_sha256':sha(target),
+             'status':'measured','reasons':[],'windows':[],'thresholds':[.3,.5],
+-            'lag_sign':'positive means edited motion later','descriptor_scope':'bilateral/left/right arms only'}
++            'lag_sign':'positive means edited motion later','descriptor_scope':'bilateral/left/right arms only','observation_domain':geometry.domain_record}
+     loaded={}
+     for name,path in [('source',source),('target',target)]:
+         for c in CONFIDENCE:
+-            try:loaded[name,c]=m.load_pose(path,c)
++            try:loaded[name,c]=features(raw[name],geometry,c)
+             except ValueError as e:
+                 if str(e)!='Insufficient reliable torso anchors for scale normalization':raise
+                 result['reasons'].append({'input':name,'confidence':c,'reason':str(e)})
+     if result['reasons']:
+         return result|{'status':'unknown_visibility','scan_seconds':time.monotonic()-start}
+-    for length in (16,32):
+-        starts=sorted(set(range(0,141-length+1,4))|{141-length})
+-        for startframe in starts:
+-            window=[startframe,startframe+length-1]
+-            for feature in FEATURES:
+-                ds={str(c):m.local_diagnostic(loaded['source',c],loaded['target',c],window,24,feature) for c in CONFIDENCE}
+-                lags=[d['reliable_lag_frames'] for d in ds.values()];baseline='unknown'
+-                if all(x is not None for x in lags) and abs(lags[0]-lags[1])<=2:
+-                    if min(lags)>2:baseline='delayed_candidate'
+-                    elif max(lags)<-2:baseline='advanced_candidate'
+-                    elif all(abs(x)<=2 for x in lags):baseline='aligned'
+-                out={'window':window,'feature':feature,'baseline':baseline,'measurements':ds}
+-                if baseline in ('delayed_candidate','advanced_candidate'):
+-                    gain={str(c):compare(loaded['source',c],loaded['target',c],window,ds[str(c)]['reliable_lag_frames'],feature) for c in CONFIDENCE}
+-                    out['comparison']=gain
+-                    if any(d['status']=='unknown' for d in gain.values()):out['status']='unknown'
+-                    else:out.update(status='measured',min_gain=min(d['min_gain'] for d in gain.values()))
+-                else:out['status']='baseline_'+baseline
+-                result['windows'].append(out)
++    for window in geometry.windows():
++        for feature in FEATURES:
++            ds={str(c):m.local_diagnostic(loaded['source',c],loaded['target',c],window,24,feature) for c in CONFIDENCE}
++            lags=[d['reliable_lag_frames'] for d in ds.values()];baseline='unknown'
++            if all(x is not None for x in lags) and abs(lags[0]-lags[1])<=2:
++                if min(lags)>2:baseline='delayed_candidate'
++                elif max(lags)<-2:baseline='advanced_candidate'
++                elif all(abs(x)<=2 for x in lags):baseline='aligned'
++            out={'window':window,'feature':feature,'baseline':baseline,'measurements':ds}
++            if baseline in ('delayed_candidate','advanced_candidate'):
++                gain={str(c):compare(loaded['source',c],loaded['target',c],window,ds[str(c)]['reliable_lag_frames'],feature) for c in CONFIDENCE}
++                out['comparison']=gain
++                if any(d['status']=='unknown' for d in gain.values()):out['status']='unknown'
++                else:out.update(status='measured',min_gain=min(d['min_gain'] for d in gain.values()))
++            else:out['status']='baseline_'+baseline
++            result['windows'].append(out)
+     result['scan_seconds']=time.monotonic()-start
+     return m.clean(result)
+ 
+ def main():
+-    p=argparse.ArgumentParser();p.add_argument('--source',required=True);p.add_argument('--pose',required=True);p.add_argument('--index',type=int,required=True);p.add_argument('--output',required=True);a=p.parse_args()
+-    result=observe(a.source,a.pose,a.index)
++    p=argparse.ArgumentParser();p.add_argument('--source',required=True);p.add_argument('--pose',required=True);p.add_argument('--index',type=int,required=True);p.add_argument('--output',required=True);p.add_argument('--geometry-case',help='frozen case JSON; absent only for141 compatibility');a=p.parse_args()
++    geometry=Geometry.from_case(json.loads(Path(a.geometry_case).read_text())) if a.geometry_case else LEGACY
++    result=observe(a.source,a.pose,a.index,geometry)
+     with Path(a.output).open('x') as f:json.dump(result,f,allow_nan=False)
+ if __name__=='__main__':main()
+--- R45/extensions/H3AutomaticWindowRouter/__init__.py
++++ R50/extensions/H3AutomaticWindowRouter/__init__.py
+@@ -1,13 +1,14 @@
+ """Native-first current-step observer gate with optional same-state Full."""
+ from .core import Config, State, BlockPatch, PredictionProbe, SamplerAudit, KEY, POLICIES
+ from .guards import extract_reference
++from .transport import case_for
+ 
+ class H3AutomaticWindowRouter:
+     @classmethod
+     def INPUT_TYPES(cls):
+         return {'required': {'model': ('MODEL',), 'positive': ('CONDITIONING',),
+                 
+-                'run_id': ('STRING', {'default': 'r45_source28289_seed2026101701_auto'}),
++                'run_id': ('STRING', {'default': 'r50_source_chest_seed2026101701_auto'}),
+                 'audit_dir': ('STRING', {'default': '/tmp/h3-counterfactual'})}}
+     RETURN_TYPES = ('MODEL',)
+     FUNCTION = 'apply'
+@@ -16,7 +17,8 @@
+     def apply(self, model, positive, run_id, audit_dir):
+         import comfy.ldm.minimax.model as h3
+         from comfy.patcher_extension import WrappersMP
+-        config = Config(run_id, audit_dir)
++        case=case_for(run_id);g=case['geometry']
++        config = Config(run_id,audit_dir,g['width'],g['height'],g['frames'],valid_frames=case['valid_frame_count'])
+         diffusion = model.get_model_object('diffusion_model')
+         if not isinstance(diffusion, h3.MiniMaxH3Model) or (tuple(diffusion.patch_size), diffusion.latents_dim, len(diffusion.blocks)) != ((1, 2, 2), 24, 50):
+             raise ValueError('requires frozen H3 architecture')
+--- R45/extensions/H3AutomaticWindowRouter/core.py
++++ R50/extensions/H3AutomaticWindowRouter/core.py
+@@ -12,6 +12,7 @@
+ from .guards import extract_reference, official_basic_guider_class
+ from .transport import PROTOCOL_SHA
+ from .dynamic_support import make_gain
++from .geometry import Geometry
+ from .selector import Controller
+ from .live_observer import LivePoseObserver, parent_guard
+ from .pair_gate import HistoricalPairGate
+@@ -31,11 +32,11 @@
+     length: int = 141
+     policy: str = 'automatic_windows'
+     fixed_indices: str = ''
++    valid_frames: int = None
+ 
+     def __post_init__(self):
+         readout.CaptureConfig(self.run_id, self.audit_dir, self.width, self.height, self.length)
+-        if (self.width, self.height, self.length) != (1312, 736, 141):
+-            raise ValueError('R19 geometry is frozen')
++        self.geometry
+         if self.policy not in POLICIES:
+             raise ValueError('unknown native-observer policy')
+         indices = self.indices
+@@ -57,8 +58,13 @@
+         return values
+ 
+     @property
++    def geometry(self):
++        return Geometry(self.width,self.height,self.length,24,
++                        self.length if self.valid_frames is None else self.valid_frames)
++
++    @property
+     def shapes(self):
+-        return readout.CaptureConfig(self.run_id, self.audit_dir).shapes
++        return readout.CaptureConfig(self.run_id,self.audit_dir,self.width,self.height,self.length).shapes
+ 
+ 
+ 
+@@ -111,7 +117,7 @@
+         self.reference = reference.detach().to('cpu', copy=True).contiguous()
+         self.reference_signature = readout.tensor_signature(self.reference)
+         self.observer = observer
+-        self.controller = Controller()
++        self.controller = Controller(config.geometry)
+         self.query_gain = None
+         self.active_bins = []
+         self.live_observer = LivePoseObserver()
+@@ -129,7 +135,7 @@
+         self.sample_options = None
+         self.snapshots = Path(config.audit_dir) / (config.run_id + '_snapshots')
+         self.snapshots.mkdir(parents=True, exist_ok=False)
+-        super().__init__(metadata, 'mass_preserve', 1.0, 0, 0, 0, 140, 0, 50, 0, 40,
++        super().__init__(metadata, 'mass_preserve', 1.0, 0, 0, 0, config.length-1, 0, 50, 0, 40,
+                          config.run_id, config.audit_dir)
+         self.audit['counterfactual'] = {'schema': 'h3-automatic-window-current-step-v1',
+             'diagnostic_only': True, 'new_method_claim': False,
+@@ -359,7 +365,7 @@
+                         s.audit['counterfactual']['measurements'].append(measurement)
+                     s.transaction['decision'] = s.controller.select(n, measurement)
+                     s.active_bins = s.transaction['decision']['latent_bins']
+-                    s.query_gain = make_gain(s.active_bins) if s.active_bins else None
++                    s.query_gain = make_gain(s.active_bins,geometry=s.config.geometry) if s.active_bins else None
+                     s.pair_gate.decision(s, n, s.transaction['decision'])
+                     s.transaction['decision']['native_nfe_index'] = row['nfe_index']
+                 else:
+--- R45/extensions/H3AutomaticWindowRouter/dynamic_support.py
++++ R50/extensions/H3AutomaticWindowRouter/dynamic_support.py
+@@ -1,23 +1,46 @@
+-"""Physical intervals to unique H3 nominal time bins, with full spatial support."""
++"""Original overlap-to-bin rule with explicit full geometry and valid time domain."""
+ import importlib
+ from .dependencies import router, layout
+-QueryGain = importlib.import_module(router.__package__+'.mask').QueryGain
++from .geometry import LEGACY
++QueryGain = importlib.import_module(router.__package__ + '.mask').QueryGain
+ 
+-def bins_for(intervals):
+-    bins=set();mapping=[]
++
++def bins_for(intervals, geometry=LEGACY):
++    bins = set()
++    mapping = []
+     for value in intervals:
+-        if not isinstance(value,(list,tuple)) or len(value)!=2 or any(type(x) is not int for x in value):
++        if not isinstance(value, (list, tuple)) or len(value) != 2 or any(type(x) is not int for x in value):
+             raise ValueError('physical intervals require integer inclusive bounds')
+-        a,b=value
+-        if not 0<=a<=b<141:raise ValueError('physical interval outside141frames')
+-        lo,hi=layout.event_latent_range(a,b,42)
+-        bins.update(range(lo,hi));mapping.append({'physical_interval':[a,b],'latent_interval_half_open':[lo,hi]})
+-    return sorted(bins),mapping
++        a, b = value
++        if not 0 <= a <= b < geometry.valid_frames:
++            raise ValueError('physical interval outside valid observation domain')
++        lo, hi = layout.event_latent_range(a, b, geometry.latent_bins)
++        bins.update(range(lo, hi))
++        mapping.append({'physical_interval': [a, b], 'latent_interval_half_open': [lo, hi]})
++    return sorted(bins), mapping
+ 
+-def make_gain(bins,spatial_shape=(23,41)):
++
++def bin_coverage(bins, geometry=LEGACY):
++    """Descriptive only: actual execution still uses complete positional bins."""
++    spans = layout.frame_spans(geometry.latent_bins)
++    rows = []
++    for i in bins:
++        if type(i) is not int or not 0 <= i < geometry.latent_bins:
++            raise ValueError('invalid positional bin')
++        start = sum(spans[:i])
++        end = start + spans[i] - 1
++        rows.append({'bin': i, 'nominal_frames_inclusive': [start, end],
++                     'padding_spillover_frames': list(range(max(start, geometry.valid_frames), end + 1))})
++    return rows
++
++
++def make_gain(bins, spatial_shape=None, *, geometry=LEGACY):
+     import torch
+-    if list(bins)!=sorted(set(bins)) or any(type(i) is not int or not 0<=i<42 for i in bins):
+-        raise ValueError('bins require sorted unique integers0..41')
+-    values=torch.zeros((42,*spatial_shape),dtype=torch.float32,device='cpu')
+-    if bins:values[bins]=1
+-    return QueryGain(values,expected_shape=values.shape)
++    if list(bins) != sorted(set(bins)) or any(type(i) is not int or not 0 <= i < geometry.latent_bins for i in bins):
++        raise ValueError('bins require sorted unique in-range integers')
++    # spatial_shape permits only the inherited small dense-oracle test fixture.
++    spatial_shape = geometry.spatial_shape if spatial_shape is None else spatial_shape
++    values = torch.zeros((geometry.latent_bins, *spatial_shape), dtype=torch.float32, device='cpu')
++    if bins:
++        values[bins] = 1
++    return QueryGain(values, expected_shape=values.shape)
+--- R45/extensions/H3AutomaticWindowRouter/live_observer.py
++++ R50/extensions/H3AutomaticWindowRouter/live_observer.py
+@@ -32,7 +32,8 @@
+    'physical_index':n,'nfe_index':row['nfe_index'],'branch':'native','seed':s.seed,'sigma':row['sigma'],'sigma_next':row['sigma_next'],
+    'full_grid':s.grid.tolist(),'condition_sha256':s.initial_condition['sha256'],'reference_sha256':s.reference_signature['sha256'],
+    'endpoint_file':row['file'],'endpoint_file_sha256':row['file_sha256'],'normalized_stream_signatures':row['normalized_stream_signatures'],
+-   'raw_stream_signatures':row['raw_stream_signatures'],'created_unix':time.time()}
++   'raw_stream_signatures':row['raw_stream_signatures'],'created_unix':time.time(),
++   'geometry':s.config.geometry.video_geometry,'observation_domain':s.config.geometry.domain_record}
+   path=directory/'request.json';request_sha=t.write_new(path,r)
+   env=dict(os.environ,CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4')
+   process=t.run_child([sys.executable,str(t.ROOT/'scripts/run_observer.py'),'--request',str(path)],env,directory,'observer',1650,parent)
+@@ -48,8 +49,9 @@
+   t.require(decode['status']=='complete' and decode['snapshot_sha256']==row['file_sha256'] and decode['fallback_guard']['calls']==0,'invalid decode/fallback')
+   t.require(decode['request_sha256']==request_sha and decode['fallback_guard']['installed'],'unbound/unguarded decode')
+   t.require(pose['provenance']['providers']==['CPUExecutionProvider'] and pose['provenance']['device']=='cpu' and pose['provenance']['threads']==4,'pose placement')
+-  t.require(pose['extraction']=={'start':0,'end':None,'stride':1} and len(pose['frames'])==141,'pose full timebase')
+-  t.require(observer['edited_pose_sha256']==response['pose']['sha256'] and observer['source_pose_sha256']==t.read_json(t.ROOT/'configs/protocol.json')['observer']['source_pose_sha256'],'observer source binding')
++  t.require(pose['extraction']=={'start':0,'end':None,'stride':1} and len(pose['frames'])==s.config.length,'pose full timebase')
++  t.require(observer['edited_pose_sha256']==response['pose']['sha256'] and observer['source_pose_sha256']==t.case_for(s.config.run_id)['source_pose_sha256'],'observer source binding')
++  t.require(observer.get('observation_domain')==s.config.geometry.domain_record,'observer geometry/domain changed')
+   t.require(observer['schema']=='r27-whole-timeline-observation-v1' and observer['physical_index']==n,'current all-time scan identity')
+   return {'status':'complete','physical_index':n,'request_sha256':request_sha,'response_sha256':t.sha(response_path),
+    'request_file':str(path),'response_file':str(response_path),'observer':observer,'process':process,
+--- R45/extensions/H3AutomaticWindowRouter/pair_gate.py
++++ R50/extensions/H3AutomaticWindowRouter/pair_gate.py
+@@ -96,5 +96,5 @@
+         t.require(required<=self.done,'missing eligible historical comparisons')
+         s.audit['counterfactual']['native_preservation']={'zero_Full':self.first_on is None,'first_on':self.first_on,
+             'status':'pending_final_exact_check' if self.first_on is None else 'divergent_controlled_trajectory',
+-            'case_role':'source28289 Elon Musk transfer; parent closure required',
++            'case_role':'fixed FlexiAct human pair; all five retained; parent closure required',
+             'prefix_evidence':'all20 historical captures available; current Native through firstON inclusive; future permanently N/A'}
+--- R45/extensions/H3AutomaticWindowRouter/selector.py
++++ R50/extensions/H3AutomaticWindowRouter/selector.py
+@@ -1,9 +1,10 @@
+ """Frozen policy adapter. Technical failure aborts; reliable absence remains visible."""
+ from .automatic_window_policy import Policy
+ from .dynamic_support import bins_for
++from .geometry import LEGACY
+ 
+ class Controller:
+-    def __init__(self):self.policy=Policy(.5)
++    def __init__(self,geometry=LEGACY):self.policy=Policy(.5);self.geometry=geometry
+     def select(self,index,measurement):
+         if not isinstance(measurement,dict) or measurement.get('status')!='complete':
+             raise ValueError('observer execution failed or missing current measurement')
+@@ -12,11 +13,17 @@
+             raise ValueError('observer schema/current physical index mismatch')
+         if observer.get('status') not in ('measured','unknown_visibility'):
+             raise ValueError('invalid scientific observer status')
++        domain=observer.get('observation_domain')
++        if domain is not None and domain!=self.geometry.domain_record:
++            raise ValueError('observer valid-domain mismatch')
++        if domain is None and self.geometry!=LEGACY:
++            raise ValueError('new geometry requires explicit observer domain')
+         rows=observer['windows']
++        for row in rows:bins_for([row['window']],self.geometry)
+         if observer['status']=='unknown_visibility' and rows:
+             raise ValueError('unknown visibility cannot contain measured proposals')
+         decision=self.policy.update(index,rows)
+-        bins,mapping=bins_for(decision['physical_intervals'])
++        bins,mapping=bins_for(decision['physical_intervals'],self.geometry)
+         decision.update(chosen_full=bool(bins),latent_bins=bins,mapping=mapping,
+                         measurement_status=observer['status'],measurement_reasons=observer.get('reasons',[]),
+                         response_sha256=measurement.get('response_sha256'),request_sha256=measurement.get('request_sha256'))
+--- R45/extensions/H3AutomaticWindowRouter/transport.py
++++ R50/extensions/H3AutomaticWindowRouter/transport.py
+@@ -2,11 +2,11 @@
+ import hashlib,json,os,signal,subprocess,threading,time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[2]
+-PROTOCOL_SHA='71e610e7dd90294e195c84890fdcd18beefe1fefabf68f63fa9a107c29291f93'
++PROTOCOL_SHA='UNSEALED_R50_PARENT_PENDING'
+ DECODER_UUID='GPU-REDACTED'
+ MAIN_UUID='GPU-REDACTED'
+ SECOND_TASK_UUID='GPU-REDACTED'
+-REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_auto_source28289_r45_20261017')
++REMOTE_ROOT=Path('/data5/researcher/h3_runs/timing_flexiact_auto_r50_20261017')
+ def require(ok,message):
+  if not ok:raise ValueError(message)
+ def sha(path):
+@@ -78,13 +78,17 @@
+  return {'process':entry,'wall_seconds':time.monotonic()-start,'returncode':proc.returncode}
+ def require_parent_closure(root=ROOT):
+  root=Path(root);c=read_json(root/'configs/PARENT_CLOSURE.json')
+- require(c.get('ready') is True and c.get('status')=='READY','R45 WAITING_R42_PARENT_CLOSURE; no source pose or actual parent evidence may be inferred')
+- expected=set(c['required_actual_files']);actual=c.get('actual_file_sha256',{})
+- require(expected and set(actual)==expected,'actual R42 parent closure inventory incomplete')
+- for rel,digest in actual.items():
+-  require(isinstance(digest,str) and len(digest)==64 and sha(root/rel)==digest,'actual R42 parent closure changed: '+rel)
+- case=read_json(root/'configs/protocol.json')['cases'][0]
+- require(c['parent_run']==case['parent_run'] and c['parent_root']==case['parent_root'],'parent closure identity differs')
++ require(c.get('ready') is True and c.get('status')=='READY','R50 WAITING_R49_ACTUAL_ARCHIVES')
++ cases=read_json(root/'configs/protocol.json')['cases']
++ require(set(c['cases'])=={v['source_id'] for v in cases},'five-case parent closure incomplete')
++ for case in cases:
++  row=c['cases'][case['source_id']]
++  require(row['ready'] is True and row['parent_run']==case['parent_run'],'parent closure case identity differs')
++  expected=set(row['required_actual_files']);actual=row['actual_file_sha256']
++  require(expected and set(actual)==expected,'actual parent inventory incomplete')
++  for rel,digest in actual.items():
++   p=inside(str((root/rel).absolute()),root)
++   require(isinstance(digest,str) and len(digest)==64 and sha(p)==digest,'parent evidence changed: '+rel)
+  return c
+ 
+ def bindings(external=False):
+@@ -101,6 +105,8 @@
+  require(r['protocol_sha256']==PROTOCOL_SHA and r['bindings_sha256']==sha(ROOT/'configs/observer_bindings.json'),'request frozen bindings')
+  require(type(r['physical_index']) is int and 0<=r['physical_index']<=19,'request physical index')
+  case=case_for(r['run_id']);require(r['branch']=='native' and r['seed']==case['seed'],'request source')
++ geometry=geometry_for(r['run_id'])
++ require(r.get('geometry')==geometry.video_geometry and r.get('observation_domain')==geometry.domain_record,'request geometry/domain mismatch')
+  require(len(r['full_grid'])==21 and r['sigma']==r['full_grid'][r['physical_index']] and r['sigma_next']==r['full_grid'][r['physical_index']+1],'request grid')
+  endpoint=inside(r['endpoint_file'],ROOT/'audit/counterfactual')
+  require(sha(endpoint)==r['endpoint_file_sha256'],'request endpoint changed')
+@@ -168,3 +174,13 @@
+ def case_for(run_id):
+  rows=[r for r in read_json(ROOT/'configs/protocol.json')['cases'] if r['run_id']==run_id]
+  require(len(rows)==1,'run outside frozen case registry');return rows[0]
++
++
++def geometry_for(run_id):
++ # Imported by the standalone transport loader as well as the Comfy package.
++ import importlib.util,sys
++ path=ROOT/'extensions/H3AutomaticWindowRouter/geometry.py'
++ name='_r50_geometry_contract'
++ if name not in sys.modules:
++  spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec);sys.modules[name]=module;spec.loader.exec_module(module)
++ return sys.modules[name].Geometry.from_case(case_for(run_id))

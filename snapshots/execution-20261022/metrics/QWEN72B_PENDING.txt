@@ -1,0 +1,17 @@
+IS / CF 评测资源准备
+
+评测实现：IVEBench 2dcf8900ee65197f43854c76f61c66a32bb8dbfc 的 instruction_satisfaction.py / content_fidelity.py。
+官方评测模型：Qwen/Qwen2.5-VL-72B-Instruct，原精度权重约146.83GB。
+允许单列的量化配置：Qwen/Qwen2.5-VL-72B-Instruct-AWQ，权重约43.02GB。4bit AWQ GEMM，visual 保留原精度。
+
+2026-10-22 核查：.60 GPU2 可用约39611MiB，低于 AWQ 权重所需约41028MiB，另外还需视觉激活与 KV cache。
+Transformers v4.51.3 quantizer_awq.py 的 validate_environment 明确拒绝 CUDA GEMM 的 device_map 包含 CPU / disk。
+IPEX 是另一个 CPU / XPU 后端，不能直接作为这份 CUDA GEMM 权重加载的局部 CPU offload。
+因此目前两项状态为 pending_resource，未下载43GB或146GB权重，未用小模型替代。
+
+后续具备两张空闲 GPU 后的配置：CUDA_VISIBLE_DEVICES=<空闲卡0>,<空闲卡1>；独立 Python 环境；transformers==4.51.3、AutoAWQ 兼容版本、accelerate、qwen-vl-utils、ffmpeg。先确认实际兼容环境，再下载官方 AWQ 固定 revision；记录 evaluator_model_id、revision、quantization_config、dtype、每卡 max_memory。
+官方入口保持完整的源视频/编辑视频、指令、压缩与评分流程，只改变 from_pretrained 的模型路径和 max_memory；结果单列 AWQ evaluator 配置。
+模型宜常驻并批量处理 IS/CF，避免为每一条视频重新读取43GB权重。以官方类方法运行、每条结果及时原子保存，失败重试。
+不要在当前10项轻量评测队列里直接启用72B，以免单卡OOM。
+
+证据：qwen_awq_config.txt；Qwen2.5-VL-72B-Instruct-AWQ.files.json；transformers_awq.txt。
