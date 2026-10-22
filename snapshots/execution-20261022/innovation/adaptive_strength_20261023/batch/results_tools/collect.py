@@ -18,6 +18,7 @@ import field_audit
 import layer_audit
 import role5_audit
 import uniform_audit
+import fixed_budget_audit
 import summarize as metric_summary
 
 
@@ -188,23 +189,27 @@ def check_live(doc):
                     layer_audit.close(row.get('applied_energy'),sum(e*a*a for e,a in zip(energy,values)),'actual correction energy')
                 except (layer_audit.LayerAuditError,TypeError,KeyError,ZeroDivisionError) as error:
                     problems.append(f'step {n} layer {row.get("block")}: {error}')
-    elif doc.get('schema') == 'h3-temporal-gain-field-uniform-energy-v1':
-        if doc.get('feature_config', {}).get('mode') != 'gain_field_uniform_energy':
-            problems.append('uniform-energy mode mismatch')
+    elif doc.get('schema') in ('h3-temporal-gain-field-uniform-energy-v1', 'h3-temporal-gain-field-fixed-budget-v1'):
+        fixed_budget = doc['schema'] == 'h3-temporal-gain-field-fixed-budget-v1'
+        checker = fixed_budget_audit if fixed_budget else uniform_audit
+        check_layer = checker.check_budget_layer if fixed_budget else checker.check_uniform_layer
+        mode = 'gain_field_fixed_budget' if fixed_budget else 'gain_field_uniform_energy'
+        if doc.get('feature_config', {}).get('mode') != mode:
+            problems.append('energy-control mode mismatch')
         if doc.get('independent_field_trajectory_energy_matched') is not False:
             problems.append('invalid cross-trajectory energy claim')
         for n, forward in enumerate(doc.get('feature_forward_summaries', [])):
             seen = set()
             for row in forward.get('layers', []):
                 try:
-                    uniform_audit.require(forward.get('forward') == n and row.get('forward') == n,
-                                          'live uniform forward identity')
+                    checker.require(forward.get('forward') == n and row.get('forward') == n,
+                                          'live energy-control forward identity')
                     block = row.get('block')
-                    uniform_audit.require(type(block) is int and 0 <= block < 50 and block not in seen,
-                                          'live uniform block identity')
+                    checker.require(type(block) is int and 0 <= block < 50 and block not in seen,
+                                          'live energy-control block identity')
                     seen.add(block)
-                    uniform_audit.check_uniform_layer(row)
-                except (uniform_audit.FieldAuditError, TypeError, KeyError, ZeroDivisionError) as error:
+                    check_layer(row)
+                except (uniform_audit.FieldAuditError, fixed_budget_audit.FieldAuditError, TypeError, KeyError, ArithmeticError) as error:
                     problems.append(f'step {n} layer {row.get("block")}: {error}')
     elif doc.get('schema') in ('h3-temporal-gain-field-v1','h3-temporal-gain-field-role5-v1'):
         for forward in doc.get('feature_forward_summaries', []):
@@ -278,6 +283,15 @@ def curves(doc):
                          uniform_energy=row.get('uniform_energy'),
                          uniform_host_dispatch_seconds=row.get('uniform_host_dispatch_seconds'),
                          qp_scope='candidate_alpha only; alpha is applied uniform RMS')
+    if doc.get('schema') == 'h3-temporal-gain-field-fixed-budget-v1':
+        recorded = [row for f in doc.get('feature_forward_summaries', [])
+                    for row in f.get('layers', []) if row.get('applied')]
+        for point, row in zip(points, recorded):
+            point.update(candidate_alpha=row.get('candidate_alpha'),
+                         bin_energy=row.get('bin_energy'), fixed_budget=row.get('fixed_budget'),
+                         fallback=row.get('fixed_budget', {}).get('fallback_to_prior'),
+                         budget_host_dispatch_seconds=row.get('budget_host_dispatch_seconds'),
+                         qp_scope='candidate_alpha only; alpha is applied capped radial fixed-budget gain')
     if doc.get('schema') == 'h3-temporal-coverage-blend':
         points = [{'step': r['forward'], 'layer': r['block'], 'alpha': [doc.get('alpha')],
                    'alpha_mean': doc.get('alpha'), 'coverage_mix': r.get('coverage_mix'),
@@ -321,7 +335,8 @@ def inspect_row(plan, row, producer, output):
         expected_mode = {'dynamic_dof': 'dynamic_strength_dof', 'heads_budget': 'heads_budget',
                          'fixed0375': 'fixed', 'dynamic_anchor':'anchor', 'temporal_gain_field':'gain_field',
                          'causal_layer_budget':'layer_budget','temporal_gain_field_role5':'gain_field',
-                         'temporal_gain_field_uniform_energy':'gain_field_uniform_energy'}.get(method)
+                         'temporal_gain_field_uniform_energy':'gain_field_uniform_energy',
+                         'temporal_gain_field_fixed_budget':'gain_field_fixed_budget'}.get(method)
         if expected_mode and doc.get('feature_config', {}).get('mode') != expected_mode:
             out['issues'].append('audit feature mode differs from planned method')
         if method == 'coverage_blend25' and doc.get('schema') != 'h3-temporal-coverage-blend':
@@ -332,6 +347,8 @@ def inspect_row(plan, row, producer, output):
             out['issues'].append('role5 audit schema mismatch')
         if method == 'temporal_gain_field_uniform_energy' and doc.get('schema') != 'h3-temporal-gain-field-uniform-energy-v1':
             out['issues'].append('uniform-energy audit schema mismatch')
+        if method == 'temporal_gain_field_fixed_budget' and doc.get('schema') != 'h3-temporal-gain-field-fixed-budget-v1':
+            out['issues'].append('fixed-budget audit schema mismatch')
         out['issues'].extend(check_live(doc))
         out['completed_forward_calls'] = doc.get('completed_forward_calls', 0)
         out['alpha_curve_file'] = 'alpha_curves/' + plan['id'] + '.json'
@@ -360,11 +377,12 @@ def inspect_row(plan, row, producer, output):
                          'temporal_gain_field':field_audit.check_field,
                          'temporal_gain_field_role5':role5_audit.check_role5,
                          'temporal_gain_field_uniform_energy':uniform_audit.check_uniform,
+                         'temporal_gain_field_fixed_budget':fixed_budget_audit.check_budget,
                          'causal_layer_budget':layer_audit.check_layer_budget,
                          'dynamic_anchor':audit_check.check_anchor}.get(plan['metadata']['method'],audit_check.check_feature)
                 out['complete_audit'] = check(doc)
             except (audit_check.AuditError, field_audit.FieldAuditError, layer_audit.LayerAuditError,
-                    uniform_audit.FieldAuditError, TypeError, KeyError) as error:
+                    uniform_audit.FieldAuditError, fixed_budget_audit.FieldAuditError, TypeError, KeyError, ArithmeticError) as error:
                 out['issues'].append('complete audit: ' + str(error))
         else:
             out['reason'] = 'completed_result_missing_audit'

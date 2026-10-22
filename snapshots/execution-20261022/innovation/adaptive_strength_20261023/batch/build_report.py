@@ -13,8 +13,8 @@ B=Path(__file__).resolve().parent
 E=B.parents[2]
 REPO=E.parent
 TITLE='H3 动态强度与跨时刻混合'
-METHODS={'dynamic_dof':'DOF 动态强度（已搁置）','dynamic_anchor':'首步锚归一化动态强度','heads_budget':'Head 等能量分配','coverage_blend25':'跨时刻混合（25%）','fixed0375':'固定强度 α = 0.375','temporal_gain_field':'逐时间片动态强度','temporal_gain_field_role5':'同位置组切向动态强度（边界原算子）','temporal_gain_field_uniform_energy':'等能量均匀强度对照','causal_layer_budget':'基于前一步统计的层强度分配'}
-BIN_METHODS=('temporal_gain_field','temporal_gain_field_role5','temporal_gain_field_uniform_energy')
+METHODS={'dynamic_dof':'DOF 动态强度（已搁置）','dynamic_anchor':'首步锚归一化动态强度','heads_budget':'Head 等能量分配','coverage_blend25':'跨时刻混合（25%）','fixed0375':'固定强度 α = 0.375','temporal_gain_field':'逐时间片动态强度','temporal_gain_field_role5':'同位置组切向动态强度（边界原算子）','temporal_gain_field_uniform_energy':'等能量均匀强度对照','temporal_gain_field_fixed_budget':'固定能量预算动态强度','causal_layer_budget':'基于前一步统计的层强度分配'}
+BIN_METHODS=('temporal_gain_field','temporal_gain_field_role5','temporal_gain_field_uniform_energy','temporal_gain_field_fixed_budget')
 TASKS={'short_0252':'机舱 · 男性替换为年长女性','short_0358':'饮酒 · 为男性添加眼镜', 'long_0039':'书本 · 将书本改为蓝色', 'long_0059':'擦泪 · 在男性手中添加白手帕'}
 STATUS={'verified':'完成并核验','in_progress':'推理中','pending':'待执行','research_hold':'已搁置','attention_required':'待核查'}
 METRICS=[
@@ -122,6 +122,9 @@ def heatmap(curve,row):
   unit='video_bins' if row['method'] in BIN_METHODS else 'heads'
   q[unit+'_recorded']=len(p.get('alpha') or [])
   if row['method'] in BIN_METHODS:q['alpha_by_video_bin']=p['alpha']
+  if p.get('candidate_alpha') is not None:q['candidate_alpha_by_video_bin']=p['candidate_alpha']
+  for budget_key in ('uniform_energy','fixed_budget'):
+   if p.get(budget_key):q[budget_key]={k:p[budget_key].get(k) for k in ('candidate_total_energy','target_total_energy','applied_total_energy','energy_relative_error','fallback_reason','scope')}
   compact.append(q)
  if row['status']=='verified' and row['method']!='coverage_blend25' and len(points)!=1000:raise ValueError('incomplete 20x50 audit for completed feature case')
  cells=[]
@@ -134,7 +137,11 @@ def heatmap(curve,row):
     tip=f'去噪步 {s+1} / DiT 层 {l+1}（原索引 {s}, {l}）\nα 均值 {v:.6f}；min {p.get("alpha_min",v):.6f}；max {p.get("alpha_max",v):.6f}'
     for k,cn in [('temporal_energy','A'),('complement_energy','B'),('anchor_temporal','A₀'),('anchor_complement','B₀'),('normalized_temporal','vT/(vT+vN)'),('normalized_complement','vN/(vT+vN)')]:
      if finite(p.get(k)):tip+=f'\n{cn} = {p[k]:.7g}'
-    if p.get('fallback') is not None:tip+=f'\nfallback = {p["fallback"]}'
+    if p.get('fixed_budget'):
+     budget=p['fixed_budget']
+     if finite(budget.get('energy_relative_error')):tip+=f'\n固定预算相对误差 = {budget["energy_relative_error"]:.3g}'
+     if budget.get('fallback_reason')=='no_modifiable_bins':tip+='\n首步或无可调时间片：采用 α=.25'
+    elif p.get('fallback') is not None:tip+=f'\nfallback = {p["fallback"]}'
    cells.append(f'<rect class="heatcell" x="{62+l*19}" y="{38+s*13}" width="18" height="12" fill="{col}" data-tip="{esc(tip,quote=True)}"><title>{esc(tip)}</title></rect>')
  labels=''.join(text(62+(l-.5)*19,24,str(l),12,extra='text-anchor="middle"') for l in (1,10,20,30,40,50))
  labels+=''.join(text(50,47+(s-1)*13,str(s),12,extra='text-anchor="end"') for s in (1,5,10,15,20))+text(535,329,'DiT 层（1–50）',13,extra='text-anchor="middle"')
@@ -239,7 +246,7 @@ def conclusions(rows,anns,cases):
   out.insert(0,finding)
  pending=sum(r['method']=='dynamic_anchor' and r['status']!='verified' for r in rows)
  if pending:out.append(f'<strong>首步锚归一化是下一项验证。</strong>用当前层首次有效 A₀、B₀ 校准相对变化，替代按通道自由度校准。{pending} 个锚归一化任务尚未形成已核验成片。')
- for method,title in [('temporal_gain_field','逐时间片动态强度'),('temporal_gain_field_role5','同位置组切向动态强度'),('causal_layer_budget','按层强度分配'),('coverage_blend25','同时间与跨时刻混合'),('temporal_gain_field_uniform_energy','等能量均匀强度对照')]:
+ for method,title in [('temporal_gain_field','逐时间片动态强度'),('temporal_gain_field_role5','同位置组切向动态强度'),('causal_layer_budget','按层强度分配'),('coverage_blend25','同时间与跨时刻混合'),('temporal_gain_field_uniform_energy','等能量均匀强度对照'),('temporal_gain_field_fixed_budget','固定能量预算动态强度')]:
   completed=[r for r in rows if r['method']==method and r['status']=='verified']
   if not completed:continue
   details=[]
@@ -373,7 +380,7 @@ def build(args):
  total=len(rows);held=counts['research_hold'];done=counts['verified'];active=total-held
  header=f'<header><div class="eyebrow">RESEARCH PROGRESS · 2026 / 10 / 23</div><h1>{TITLE}</h1><p class="lede">在已有效的同时间弱引导 α = .25 基础上，分别检验<strong>动态强度、head 能量分配和跨时刻混合</strong>，同时记录动作时序、编辑质量与内部控制行为。</p><p class="small">数据快照：{esc(collected)} · 本页为完整单文件，视频与图表可离线打开。配对沿用历史实际 structured prompt / seed / 参考缓存 / 模型 / 几何，未统一改成简单提示词。</p><div class="stats"><span class="stat"><b>{done}</b>已核验成片</span><span class="stat"><b>{counts["in_progress"]}</b>推理中</span><span class="stat"><b>{counts["pending"]}</b>待执行</span><span class="stat"><b>{held}</b>已搁置</span></div><p class="small">计划共 {total} 项，其中 {held} 项研究性搁置；活动计划 {active} 项。指标统计只纳入完成且适用的结果。</p><nav class="nav"><a href="#findings">当前结论</a><a href="#methods">方法机制</a><a href="#cases">成片对照</a><a href="#plan">任务状态</a><a href="#definitions">指标释义</a></nav></header>'
  findings='<section id="findings"><h2>当前结论</h2>'+conclusions(rows,anns,cases)+cohort_means(cohorts)+'<details><summary>逐例配对结果</summary>'+paired_summary(rows,anns,cases)+'</details></section>'
- methods='<section id="methods"><h2>三个独立控制轴</h2><p>原 H3 Attention 输出为 O。同一输出 query 对全部参考视频的条件输出为 R，对同一时间 bin 的条件输出为 Sₜ；原参考概率质量为 m。共有修正写作 <strong>O′ = O + αm(Sₜ − R)</strong>，之后合并 heads 并经过 Wₒ。</p><div class="diagramscroll">'+svgs['anchor']+'</div><p class="small">首步锚方案已实现；实际视频表现见对应成片。其首个有效步使用 .25，此后每个去噪步、每层连续更新 α；c = (1−α₀)/α₀ 是由先验确定的正交补代价系数，μ 是偏离 .25 的正则权重，本次 μ = 1。图中的曲线示意 A/A₀ 与 B/B₀；实际日志为数值稳定性再除以两者共同的和，闭式解保持不变。实测热图只来自采样审计。</p><details><summary>DOF 版本为何已搁置</summary><p>早期版本以 A 与 B/(d−1) 比较。实际 H3 特征中的时间切向已占较大能量，再除以 127 会使正交补权重过小。已完成机舱案例的全部 1000 次 layer 调用达到 α = .5，因此改用每层实际首步 A₀/B₀ 的相对标定。</p></details><h3>逐时间片动态强度</h3><p>同一层的不同视频时间片分别计算 Aₜ、Bₜ，并以各自首个有效步归一化。联合求解 J(a)=Σₜ[(1−aₜ)²vTₜ+3aₜ²vNₜ+0.5(aₜ−.25)²]+.625Σₜ(aₜ₊₁−aₜ)²，约束 0≤aₜ≤.5。这里 vTₜ+vNₜ=1；相邻时间片项限制强度突变，数据不足和首尾时间片使用 .25。这个目标是严格凸三对角二次规划，运行日志记录实际系数与 KKT 误差。</p><h3>等能量均匀强度对照</h3><p>在同一次前向中先照原方法求出候选 aₜ，计算完整分辨率下各时间片的修正能量 Eₜ=‖Dₜ‖²。对可调时间片统一施加 b=√(ΣₜEₜaₜ²/ΣₜEₜ)，首步新锚、边界及无有效统计的时间片仍为 .25。这样保留本次候选的 Wₒ 前总修正能量，移除时间片间的强度差异，用于检验动态分配的作用。不同实验的后续轨迹会随输出改变；日志分别记录候选与实际施加的 α。</p><h3>参考编码位置组的对照</h3><p>H3 参考编码把每 17 帧分块变为 5 个 latent，邻接 latent 的编码位置角色不同。本轮另设独立对照：内部时间片以 t−5 与 t+5 的参考 Attention 特征构造切向，比较相同编码位置组；不足两侧完整邻域的时间片仍用原 t−1 / t+1 算子。QP、α 上限、首步锚和边界处理不变。该变更同时扩大时间跨度，实验单独记录；稀疏计算的原邻接切向只用于诊断，不参与控制。</p><h3>基于前一步统计的层分配</h3><p>汇总上一完整去噪步的 50 层数据后，为下一步分配每层 α。以局部时间方向的相对变化作为效用，以 ‖Dₗ‖²/‖Oₗ‖² 作为层尺度，求解线性效用最大化与二次预算约束。正常前两步使用 .25；后续记录计划预算、实际执行预算和当前步能量漂移。它与逐时间片方案分别测试。</p><div class="diagramscroll">'+svgs['heads']+'</div><p class="small">正收益 heads 未全部饱和时使用图中 KKT 形式。其容量不足时，剩余预算分配到零收益 heads；无有效方向信息时使用固定 .25。守恒量是 Wₒ 之前的修正能量。</p><div class="diagramscroll">'+svgs['coverage']+'</div><p class="small">混合时固定当前 Qₜ，分别读取相邻参考时刻的 Kⱼ/Vⱼ。实际 P 限定邻时刻支持并检查行列质量与期望时间顺序；求解失败回到同时间弱引导。混合比例 .25 与外层强度 α = .25 是两个独立参数。</p></section>'
+ methods='<section id="methods"><h2>三个独立控制轴</h2><p>原 H3 Attention 输出为 O。同一输出 query 对全部参考视频的条件输出为 R，对同一时间 bin 的条件输出为 Sₜ；原参考概率质量为 m。共有修正写作 <strong>O′ = O + αm(Sₜ − R)</strong>，之后合并 heads 并经过 Wₒ。</p><div class="diagramscroll">'+svgs['anchor']+'</div><p class="small">首步锚方案已实现；实际视频表现见对应成片。其首个有效步使用 .25，此后每个去噪步、每层连续更新 α；c = (1−α₀)/α₀ 是由先验确定的正交补代价系数，μ 是偏离 .25 的正则权重，本次 μ = 1。图中的曲线示意 A/A₀ 与 B/B₀；实际日志为数值稳定性再除以两者共同的和，闭式解保持不变。实测热图只来自采样审计。</p><details><summary>DOF 版本为何已搁置</summary><p>早期版本以 A 与 B/(d−1) 比较。实际 H3 特征中的时间切向已占较大能量，再除以 127 会使正交补权重过小。已完成机舱案例的全部 1000 次 layer 调用达到 α = .5，因此改用每层实际首步 A₀/B₀ 的相对标定。</p></details><h3>逐时间片动态强度</h3><p>同一层的不同视频时间片分别计算 Aₜ、Bₜ，并以各自首个有效步归一化。联合求解 J(a)=Σₜ[(1−aₜ)²vTₜ+3aₜ²vNₜ+0.5(aₜ−.25)²]+.625Σₜ(aₜ₊₁−aₜ)²，约束 0≤aₜ≤.5。这里 vTₜ+vNₜ=1；相邻时间片项限制强度突变，数据不足和首尾时间片使用 .25。这个目标是严格凸三对角二次规划，运行日志记录实际系数与 KKT 误差。</p><h3>等能量均匀强度对照</h3><p>在同一次前向中先照原方法求出候选 aₜ，计算完整分辨率下各时间片的修正能量 Eₜ=‖Dₜ‖²。对可调时间片统一施加 b=√(ΣₜEₜaₜ²/ΣₜEₜ)，首步新锚、边界及无有效统计的时间片仍为 .25。这样保留本次候选的 Wₒ 前总修正能量，移除时间片间的强度差异，用于检验动态分配的作用。不同实验的后续轨迹会随输出改变；日志分别记录候选与实际施加的 α。</p><h3>固定能量预算下的动态分配</h3><p>新增对照保留原二次规划得到的候选 aₜ，再统一乘以标量 c，并限制每个时间片的 α 不超过 .5。对可调时间片求解 ΣₜEₜ min(caₜ,.5)² = .25²ΣₜEₜ，固定边界和无有效统计的时间片仍用 .25。它保留时间片之间的分配差异，同时把当前前向的 Wₒ 前总修正能量固定为 α=.25 的预算；用于区分收益来自分配方式还是整体修正量。零能量或候选支持不足时明确回到 .25。机舱、饮酒、书本、手帕四个预定样例使用同一配置，运行结果逐项列在后文。</p><h3>参考编码位置组的对照</h3><p>H3 参考编码把每 17 帧分块变为 5 个 latent，邻接 latent 的编码位置角色不同。本轮另设独立对照：内部时间片以 t−5 与 t+5 的参考 Attention 特征构造切向，比较相同编码位置组；不足两侧完整邻域的时间片仍用原 t−1 / t+1 算子。QP、α 上限、首步锚和边界处理不变。该变更同时扩大时间跨度，实验单独记录；稀疏计算的原邻接切向只用于诊断，不参与控制。</p><h3>基于前一步统计的层分配</h3><p>汇总上一完整去噪步的 50 层数据后，为下一步分配每层 α。以局部时间方向的相对变化作为效用，以 ‖Dₗ‖²/‖Oₗ‖² 作为层尺度，求解线性效用最大化与二次预算约束。正常前两步使用 .25；后续记录计划预算、实际执行预算和当前步能量漂移。它与逐时间片方案分别测试。</p><div class="diagramscroll">'+svgs['heads']+'</div><p class="small">正收益 heads 未全部饱和时使用图中 KKT 形式。其容量不足时，剩余预算分配到零收益 heads；无有效方向信息时使用固定 .25。守恒量是 Wₒ 之前的修正能量。</p><div class="diagramscroll">'+svgs['coverage']+'</div><p class="small">混合时固定当前 Qₜ，分别读取相邻参考时刻的 Kⱼ/Vⱼ。实际 P 限定邻时刻支持并检查行列质量与期望时间顺序；求解失败回到同时间弱引导。混合比例 .25 与外层强度 α = .25 是两个独立参数。</p></section>'
  diagnostics='<section id="diagnostics"><h2>控制信号检查</h2><p><strong>底层引导算子一致。</strong>将三个新控制器的 α 固定为 .25 后，FP32、BF16、FP16 输出与原全程弱引导逐值一致；作用位置、有效时间范围和参考概率总质量也相同。当前对比主要检验强度如何分配。</p><p><strong>原始 latent 差分包含编码位置差异。</strong>实际 H3 VAE 每 17 帧独立编码为 5 个 latent。排除同一时刻后，饮酒参考自身的同组位置／跨组位置匹配代价为 .219／1.096，手帕为 .322／1.094。整段 latent 平移测试通过，但原生编辑的已知动作延迟未被读出，因此这版读出暂不接入控制器；Attention 内部统计另行检查。</p><p><strong>扩展样例筛查。</strong>按预先写定的条件检查五组已完成的扩展任务，仅比较参考视频和固定弱引导：四组改变了场景或动作，一组已经对齐，没有“编辑成功且仍有明确动作时差”的新增样例。</p></section>'
  planrows=[]
  for r in rows:

@@ -3,10 +3,10 @@ import argparse, fcntl, hashlib, json, os, shlex, subprocess, sys, time, traceba
 from pathlib import Path
 from metric_worker import atomic
 ROOT=Path(__file__).resolve().parent
-REMOTE='/data/researcher/h3_metrics_20261022'
-HOST='H3_SERVER'
+REMOTE='/data/research-user/h3_metrics_20261022'
+HOST='H3_HOST_RTX4090'
 SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=12','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3']
-PRODUCERS=[('H3_SERVER_B','/data4/researcher/h3_runs/benchmark_schedule_20261022'),('H3_SERVER_A','/home/researcher/h3_runs/benchmark_schedule_20261022_host9a'),('H3_SERVER_A','/home/researcher/h3_runs/benchmark_schedule_20261022_host9b')]
+PRODUCERS=[('H3_HOST_PRIMARY','/data4/research-user/h3_runs/benchmark_schedule_20261022'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/benchmark_schedule_20261022_host9a'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/benchmark_schedule_20261022_host9b'),('H3_HOST_AUXILIARY','/data4/research-user/h3_inference_20261023/run'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/adaptive_blend_20261023'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/adaptive_role5_20261023'),('H3_HOST_RTX4090','/data/research-user/h3_inference_20261023/run_uniform_energy')]
 
 def ssh(host,cmd,timeout=90):
  return subprocess.run(SSH+[host,cmd],capture_output=True,text=True,timeout=timeout,check=True).stdout
@@ -39,6 +39,9 @@ def metadata(m):
  # Public FlexiAct target CSV mismatches the squat motion; explicit adapter records actual requested task.
  return dict(id=100001,src_video_name=m['task_id']+'.mp4',category='subject_editing',subcategory='external_reference_motion_transfer',source_prompt=m['original_task']['source_row']['caption'],edit_prompt=m.get('prompt',m['recommended_prompt']),target_prompt='A man is doing squats.',adapter='FlexiAct reference-image motion transfer; text-only IVEBench compliance cannot score reference-image identity')
 
+def result_cohort(job_id, metadata):
+ return metadata.get('cohort') or ('main' if job_id.startswith('new_') else 'expansion')
+
 def add_result(host,result,manifest):
  m=result['metadata'];sid=m['task_id'];method=m['method'];rid=result['job_id']
  if any(j['id']==rid for j in manifest['jobs']):return False
@@ -48,18 +51,22 @@ def add_result(host,result,manifest):
  else:src=m['source_video'];src_host=host;digest=ssh(host,shlex.join(['sha256sum',src])).split()[0]
  transfer(src_host,src,source_dst,digest)
  dst=f'{REMOTE}/videos/{sid}/{rid}.mp4';transfer(host,file['path'],dst,file['sha256'])
- common=dict(task_id=sid,dataset=m['benchmark'],cohort='main' if rid.startswith('new_') else 'expansion',metadata=meta,metadata_file=f'{REMOTE}/metadata/{sid}.json',source_frames_parent=f'{REMOTE}/frames/source',valid_frames=m['valid_frames'],crop_xywh=m['evaluation_crop_xywh'],fps=m['fps'],seed=m.get('seed'),prompt=m.get('prompt',m.get('recommended_prompt')))
+ common=dict(task_id=sid,dataset=m['benchmark'],cohort=result_cohort(rid,m),metadata=meta,metadata_file=f'{REMOTE}/metadata/{sid}.json',source_frames_parent=f'{REMOTE}/frames/source',valid_frames=m['valid_frames'],crop_xywh=m['evaluation_crop_xywh'],fps=m['fps'],seed=m.get('seed'),prompt=m.get('prompt',m.get('recommended_prompt')))
  if not any(j['task_id']==sid and j['method']=='source' for j in manifest['jobs']):manifest['jobs'].append(dict(common,id=sid+'__source',method='source',target_frames_parent=f'{REMOTE}/frames/source',video=source_dst,sha256=digest))
  manifest['jobs'].append(dict(common,id=rid,method=method,target_frames_parent=f'{REMOTE}/frames/by_run/{rid}',video=dst,sha256=file['sha256'],timing=result.get('timing',{}),producer_result=result))
  return True
 
 def expected_jobs(manifest):
  out={j['id']:{k:j[k] for k in ['id','task_id','dataset','method']}|{'cohort':j.get('cohort','main')} for j in manifest['jobs']}
- for package in ['package','host9a','host9b']:
-  p=ROOT.parent/'inference'/package/'jobs.json'
+ # Original plans retain parked jobs while live manifests drain or run pilots.
+ paths=[ROOT.parent/'supervision/innovation_handoff/records'/host/'original_manifest.json' for host in ['host41','host9a','host9b']]
+ paths += [ROOT.parent/'inference'/package/'jobs.json' for package in ['package','host9a','host9b']]
+ paths += [ROOT.parent/'innovation/adaptive_strength_20261023/batch/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/anchor_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/field_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/layer_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/field_extension_two/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/role5_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/uniform_pilots/jobs.json']
+ paths += [ROOT.parent/'innovation/feature_gain_field_fixed_budget/pilots/jobs.json']
+ for p in paths:
   if not p.exists():continue
   for job in json.loads(p.read_text())['jobs']:
-   m=job['metadata'];cohort='main' if job['id'].startswith('new_') else 'expansion'
+   m=job['metadata'];cohort=result_cohort(job['id'],m)
    out[job['id']]=dict(id=job['id'],task_id=m['task_id'],dataset=m['benchmark'],method=m['method'],cohort=cohort)
    sid=m['task_id']+'__source'
    out.setdefault(sid,dict(id=sid,task_id=m['task_id'],dataset=m['benchmark'],method='source',cohort=cohort))
@@ -69,7 +76,7 @@ def synchronize(manifest):
  atomic(ROOT/'manifest.json',manifest)
  subprocess.run(['rsync','-az','-e',shlex.join(SSH),str(ROOT/'manifest.json'),HOST+':'+REMOTE+'/code/manifest.json'],check=True,timeout=120)
  python=REMOTE+'/venv/bin/python';code=REMOTE+'/code'
- ssh(HOST,shlex.join([python,code+'/prepare_frames.py','--manifest',code+'/manifest.json','--ffmpeg','/data3/researcher/vsr11/bin/ffmpeg']),timeout=1800)
+ ssh(HOST,shlex.join([python,code+'/prepare_frames.py','--manifest',code+'/manifest.json','--ffmpeg','/data3/research-user/vsr11/bin/ffmpeg']),timeout=1800)
  ensure_metric_service()
 
 def ensure_metric_service():

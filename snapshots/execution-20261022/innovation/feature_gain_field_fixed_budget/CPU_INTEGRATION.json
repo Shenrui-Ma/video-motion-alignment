@@ -1,0 +1,52 @@
+{
+  "audit": {
+    "passed": true,
+    "status": "passed",
+    "forwards": 20,
+    "blocks": 1000,
+    "alpha_min": 0.18012917041778564,
+    "alpha_max": 0.30979862809181213,
+    "alpha_mean": 0.24939079879011428,
+    "solver_failures": 0,
+    "max_kkt": 7.023123216320926e-08,
+    "created_bin_anchors": 250,
+    "candidate_alpha_min": 0.24778974056243896,
+    "candidate_alpha_max": 0.4177359342575073,
+    "candidate_alpha_mean": 0.28154506855351585,
+    "schema": "h3-temporal-gain-field-fixed-budget-v1",
+    "budget_fallbacks": 50,
+    "max_energy_relative_error": 4.812187473831234e-08,
+    "candidate_nonuniform_layers": 950,
+    "applied_nonuniform_layers": 950,
+    "capped_bins": 0,
+    "candidate_qp_verified": true,
+    "applied_fixed_budget_verified": true
+  },
+  "failure_injections": {
+    "wrong_applied_alpha": "duplicate alpha mismatch",
+    "changed_unknown_endpoint": "duplicate alpha mismatch",
+    "wrong_candidate_dose": "candidate_modifiable_energy mismatch",
+    "wrong_mask": "mask must equal successfully solved bins",
+    "wrong_energy_error": "energy_error mismatch",
+    "wrong_applied_modifiable_energy": "applied_modifiable_energy mismatch",
+    "wrong_candidate_kkt": "QP linear term",
+    "wrong_anchor": "normalized energy inconsistent with anchor",
+    "false_fallback": "fallback reason inconsistent",
+    "coherent_nonuniform_application": "applied gain not capped radial candidate",
+    "coherent_wrong_scale": "scale/log-scale disagree",
+    "wrong_fixed_dose_target": "target_total_energy mismatch",
+    "wrong_radial_solver_residual": "scalar root energy residual",
+    "wrong_cap_mask": "cap mask"
+  },
+  "fixture_sha256": "c13d7c84d3a0e372f0e803570042b1fb506c5386bb1cb08ae175da1065ca517f",
+  "fixture_bytes": 9622395,
+  "fixture_path": "/tmp/h3_fixed_budget_cpu_20261023/fixture/budget_complete.json",
+  "model_or_gpu_inference": false,
+  "scope": "actual state/block wrappers with dense CPU attention; 20 steps x 50 layers",
+  "cpu_cost": {
+    "scalar_solver_seconds_total": 0.055740099400281906,
+    "stats_copy_seconds_total": 0.02361482009291649,
+    "statistics_bytes_total": 112000,
+    "device": "CPU dense mock; no GPU timing claim"
+  }
+}

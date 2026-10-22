@@ -3,6 +3,7 @@ import argparse,json,statistics
 from pathlib import Path
 from metric_worker import METRICS,atomic
 METHODS=['native','early','fixed','late','split','global_weak']
+INNOVATION_METHODS=['direction_gated','partial_temporal_rope','temporal_coverage']
 
 def mean(xs):return statistics.mean(xs) if xs else None
 
@@ -12,7 +13,7 @@ def aggregate(rows,expected=None):
     lookup={(r.get('job_id',r['task_id']+'__'+r['method']),r['metric']):r for r in rows}
     sources={(x['dataset'],x['task_id']):x['score'] for x in rows if x.get('method')=='source' and x.get('metric')=='motion_fidelity' and x.get('status')=='done'}
     out={}
-    for scope in ['main_IVEBench','main_all','expansion_IVEBench','expansion_all']:
+    for scope in ['main_IVEBench','main_all','expansion_IVEBench','expansion_all','innovation_IVEBench','innovation_all']:
         cohort,ds=scope.split('_',1);jobs=[j for j in expected if j.get('cohort','main')==cohort and (ds=='all' or j['dataset']=='IVEBench')];groups={}
         for method in sorted({j['method'] for j in jobs}):
             jj=[j for j in jobs if j['method']==method];entry={}
@@ -30,7 +31,7 @@ def aggregate(rows,expected=None):
                 tt=[t for t in timings if t and t.get('scope','current_without_x0_capture')==tscope];ss=[t['sampling_seconds'] for t in tt if isinstance(t.get('sampling_seconds'),(int,float))];sp=[t['mean_sampling_step_seconds'] for t in tt if isinstance(t.get('mean_sampling_step_seconds'),(int,float))]
                 entry['timing']['by_scope'][tscope]={'mean_sampling_seconds':mean(ss),'n_sampling':len(ss),'mean_step_seconds':mean(sp),'n_step':len(sp)}
             groups[method]=entry
-        paired={};methods=METHODS if cohort=='main' else ['native','global_weak'];cases={(j['dataset'],j['task_id']) for j in jobs}
+        paired={};methods=METHODS if cohort=='main' else (INNOVATION_METHODS if cohort=='innovation' else ['native','global_weak']);cases={(j['dataset'],j['task_id']) for j in jobs}
         for metric in METRICS:
             complete=[]
             for case in cases:
@@ -38,6 +39,21 @@ def aggregate(rows,expected=None):
                 if all(by.get(m,{}).get('status')=='done' for m in methods):complete.append((case,by))
             paired[metric]={'n_complete_cases':len(complete),'case_ids':['|'.join(k) for k,_ in complete],'method_means':{m:mean([by[m]['score'] for _,by in complete]) for m in methods}}
         out[scope]={'methods':groups,'complete_paired_subset':paired}
+        if cohort=='innovation':
+            # Reuse frozen main-run controls without adding them to innovation method means.
+            controls=[j for j in expected if j.get('cohort','main')=='main' and (j['dataset'],j['task_id']) in cases and j['method'] in ['native','global_weak']]
+            comparisons={}
+            for method in INNOVATION_METHODS:
+                compared=['native','global_weak',method];result={}
+                for metric in METRICS:
+                    complete=[]
+                    for case in sorted(cases):
+                        cj=[j for j in controls+jobs if (j['dataset'],j['task_id'])==case and j['method'] in compared]
+                        by={j['method']:lookup.get((j['id'],metric),{}) for j in cj}
+                        if all(by.get(m,{}).get('status')=='done' for m in compared):complete.append((case,by))
+                    result[metric]={'n_complete_cases':len(complete),'case_ids':['|'.join(k) for k,_ in complete],'method_means':{m:mean([by[m]['score'] for _,by in complete]) for m in compared},'mean_delta_from_global_weak':mean([by[method]['score']-by['global_weak']['score'] for _,by in complete])}
+                comparisons[method]=result
+            out[scope]['paired_against_main_controls']=comparisons
     return out
 
 if __name__=='__main__':

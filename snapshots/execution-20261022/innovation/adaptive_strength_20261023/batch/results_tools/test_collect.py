@@ -11,6 +11,7 @@ import test_audit
 import test_summarize
 import test_field_audit
 import test_layer_audit
+import test_paired_cohorts
 
 
 def uniform_document():
@@ -36,7 +37,129 @@ def uniform_document():
     return doc
 
 
+def fixed_budget_document():
+    """Synthetic constant-QP proof; no actual inference result is fabricated."""
+    doc = test_field_audit.document()
+    doc.update(run_id='budget__a1', schema='h3-temporal-gain-field-fixed-budget-v1',
+               independent_field_trajectory_energy_matched=False)
+    doc['feature_config']['mode'] = 'gain_field_fixed_budget'
+    for forward in doc['feature_forward_summaries']:
+        for row in forward['layers']:
+            a, e, mask = row['alpha'], row['bin_energy'], row['control']['solver_succeeded']
+            selected = sum(x for x, m in zip(e, mask) if m); total = sum(e); active = any(mask)
+            row.update(candidate_alpha=a[:], alpha_mean=.25, alpha_min=.25, alpha_max=.25,
+                fixed_budget=dict(modifiable_mask=mask[:], candidate_alpha=a[:], applied_alpha=a[:],
+                    energy_floor=2**-126, applied_dtype='torch.float32', accumulation_dtype='float64',
+                    fallback_reason=None if active else 'no_modifiable_bins', fallback_to_prior=not active,
+                    no_modifiable_bins=not active, normalized_positive_support_capacity=.25 if active else 0.,
+                    normalized_target=.0625, zero_candidate_with_positive_energy=0,
+                    solver='uncapped_closed_form' if active else 'fixed_prior_fallback', iterations=0,
+                    log_scale=0. if active else None, scale=1. if active else None,
+                    scale_representation='float64', normalized_solver_residual=0.,
+                    cap_mask=[False]*len(a), modifiable_energy=selected, source_total_energy=total,
+                    target_modifiable_energy=.0625*selected, target_total_energy=.0625*total,
+                    candidate_modifiable_energy=.0625*selected, candidate_total_energy=.0625*total,
+                    applied_modifiable_energy=.0625*selected, applied_total_energy=.0625*total,
+                    energy_error=0., energy_relative_error=0.))
+    return doc
+
+
 class CollectorTests(unittest.TestCase):
+    def test_fixed_budget_complete_requires_result_and_media(self):
+        doc=fixed_budget_document();self.assertEqual(collect.check_live(doc),[])
+        plan={'id':'budget','metadata':{'task_id':'test_case','method':'temporal_gain_field_fixed_budget'}}
+        row={'actual_attempt_id':'budget__a1','audit':{'data':doc}}
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            self.assertEqual(collect.inspect_row(plan,{},'synthetic',root)['status'],'pending')
+            self.assertEqual(collect.inspect_row(plan,row,'synthetic',root)['status'],'in_progress')
+            row['result']={'data':{'job_id':'budget','attempt_id':'budget__a1'}}
+            self.assertEqual(collect.inspect_row(plan,row,'synthetic',root)['status'],'attention_required')
+            row['media']=[{'status':'verified'}]
+            result=collect.inspect_row(plan,row,'synthetic',root)
+        self.assertEqual(result['status'],'verified')
+        self.assertTrue(result['complete_audit']['applied_fixed_budget_verified'])
+        self.assertEqual(result['complete_audit']['budget_fallbacks'],50)
+        self.assertEqual(result['live_alpha_statistics']['fallback_layer_fraction'],.05)
+
+    def test_fixed_budget_partial_curve_separates_candidate_and_actual(self):
+        doc=fixed_budget_document();doc['feature_forward_summaries']=doc['feature_forward_summaries'][:2]
+        doc['completed_forward_calls']=2
+        plan={'id':'budget','metadata':{'task_id':'test_case','method':'temporal_gain_field_fixed_budget'}}
+        row={'actual_attempt_id':'budget__a1','audit':{'data':doc},'queue_state':{'status':'running'}}
+        with tempfile.TemporaryDirectory() as tmp:
+            result=collect.inspect_row(plan,row,'synthetic',Path(tmp))
+        self.assertEqual(result['status'],'in_progress');self.assertNotIn('complete_audit',result)
+        probe=doc['feature_forward_summaries'][1]['layers'][0]
+        probe['candidate_alpha']=[.25,.4,.25];probe['alpha']=[.25,.25,.25]
+        point=collect.curves(doc)['points'][50]
+        self.assertEqual(point['candidate_alpha'],[.25,.4,.25])
+        self.assertEqual(point['alpha'],[.25,.25,.25]);self.assertEqual(point['alpha_mean'],.25)
+        self.assertEqual(point['bin_energy'],probe['bin_energy'])
+        self.assertEqual(point['fixed_budget'],probe['fixed_budget'])
+        self.assertIn('candidate_alpha only',point['qp_scope'])
+
+    def test_fixed_budget_schema_mode_and_target_fail_closed(self):
+        plan={'id':'budget','metadata':{'task_id':'test_case','method':'temporal_gain_field_fixed_budget'}}
+        for fault in ('schema','mode','target','future_claim'):
+            doc=fixed_budget_document()
+            if fault=='schema':doc['schema']='h3-temporal-gain-field-v1'
+            elif fault=='mode':doc['feature_config']['mode']='gain_field'
+            elif fault=='target':doc['feature_forward_summaries'][1]['layers'][0]['fixed_budget']['target_total_energy']*=2
+            else:doc['independent_field_trajectory_energy_matched']=True
+            with self.subTest(fault=fault),tempfile.TemporaryDirectory() as tmp:
+                out=collect.inspect_row(plan,{'actual_attempt_id':'budget__a1','audit':{'data':doc}},'synthetic',Path(tmp))
+                self.assertEqual(out['status'],'attention_required')
+
+    def test_fixed_budget_overflow_is_an_issue_not_collector_crash(self):
+        doc=fixed_budget_document();row=doc['feature_forward_summaries'][1]['layers'][0]
+        row['bin_energy']=[1e308]*3
+        self.assertTrue(collect.check_live(doc))
+        row['bin_energy']=[float('nan'),1.,1.]
+        self.assertTrue(collect.check_live(doc))
+
+    def test_fixed_budget_remote_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for name in ('queue_state','graphs','audit/feature_gain_field_fixed_budget'):(root/name).mkdir(parents=True)
+            job={'id':'budget','graph':'graphs/b.json','metadata':{'method':'temporal_gain_field_fixed_budget'}}
+            (root/'jobs.json').write_text(json.dumps({'jobs':[job]}))
+            (root/'queue_state/state.json').write_text(json.dumps({'jobs':{'budget':{'attempts':1}}}))
+            (root/'graphs/b.json').write_text('{}')
+            (root/'audit/feature_gain_field_fixed_budget/budget__a1.json').write_text('{"synthetic_test_only":true}')
+            row=remote_probe.inference({'run_root':str(root),'jobs':[job]})['jobs'][0]
+        self.assertEqual(row['audit']['status'],'read')
+        self.assertIn('/feature_gain_field_fixed_budget/',row['audit']['path'])
+
+    def test_fixed_budget_four_cases_keep_two_cohorts_and_pending_denominator(self):
+        args=test_paired_cohorts.fixture();method='temporal_gain_field_fixed_budget'
+        for row in args[0]['jobs']+args[1]['cases']:row['method']=method
+        for v in args[4].values():v['annotation']['method']=method;v['provenance']['method']=method
+        report=test_paired_cohorts.mod.summarize(*args)
+        first=report['cohorts']['original_pilots']['methods'][method]
+        extension=report['cohorts']['book_handkerchief_extension']['methods'][method]
+        self.assertEqual(first['mean_absolute_event_offset_frames']['complete_mean'],3.)
+        self.assertEqual(extension['mean_absolute_event_offset_frames']['complete_mean'],35.)
+        args[0]['jobs'][3]['status']='pending'
+        report=test_paired_cohorts.mod.summarize(*args)
+        first=report['cohorts']['original_pilots']['methods'][method]['metrics']['motion_fidelity']
+        extension=report['cohorts']['book_handkerchief_extension']['methods'][method]['metrics']['motion_fidelity']
+        self.assertEqual(first['n_done'],2);self.assertIsNotNone(first['complete_mean'])
+        self.assertEqual((extension['n_done'],extension['n_expected']),(1,2))
+        self.assertIsNone(extension['complete_mean']);self.assertIsNotNone(extension['partial_mean'])
+
+    def test_fixed_budget_new_owner_does_not_take_old_case_jobs(self):
+        jobs={'jobs':[{'id':i,'metadata':{'task_id':t}} for i,t in
+                      [('old_a','a'),('old_b','b'),('budget_a','a'),('budget_b','b'),('budget_c','c'),('budget_d','d')]]}
+        sources={'sources':[{'name':'oldhost','task_id':'a','exclude_job_ids':['budget_a']},
+                   {'name':'oldhost_b','task_id':'b','exclude_job_ids':['budget_b']},
+                   {'name':'newhost','job_ids':['budget_a','budget_b','budget_c','budget_d']}]}
+        owners=collect.assign_sources(jobs,sources)
+        self.assertEqual(owners['old_a'],'oldhost');self.assertEqual(owners['old_b'],'oldhost_b')
+        self.assertEqual(sum(x=='newhost' for x in owners.values()),4)
+        sources['sources'][0]['exclude_job_ids']=[]
+        with self.assertRaisesRegex(ValueError,'duplicate producer'):collect.assign_sources(jobs,sources)
+
     def test_uniform_full_trace_and_candidate_applied_audit(self):
         doc = uniform_document()
         self.assertEqual(collect.check_live(doc), [])
