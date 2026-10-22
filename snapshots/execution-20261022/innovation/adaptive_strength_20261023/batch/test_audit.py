@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-from audit import AuditError, check_feature, check_coverage_blend
+from audit import AuditError, check_feature, check_anchored, check_coverage_blend
 
 
 def common(steps=2, blocks=3):
@@ -77,6 +77,52 @@ def coverage(steps=2, blocks=3):
                 'fallback_reason': 'low_signal' if fallback else None})
             a['forward_summaries'][n]['layer_stats'].append({'block':b, 'finite':True,'correction_ratio':.02})
     return a
+
+
+def anchored(steps=3, blocks=2, energies=None):
+    """Independent scalar fixture; never imports the tensor implementation."""
+    audit = feature('fixed', steps, blocks)
+    audit.update(schema='h3-anchored-guidance-v1', ambient_dimension_calibration=False,
+                 first_attention={'dtype': 'torch.float64'})
+    audit['feature_config'].update(mode='anchor', relative_floor=1e-8)
+    anchors = {}
+    for step, forward in enumerate(audit['feature_forward_summaries']):
+        for layer, row in enumerate(forward['layers']):
+            a, b, count = ((layer+1)*2.*(step+1), (layer+1)*3., 8)
+            if energies is not None:
+                a, b, count = energies[step]
+            valid = count > 0
+            if not valid:
+                a = b = 0.
+            scale = max(a,b)
+            eligible = valid and scale > 2.**-1022 and min(a,b) > 1e-8*scale
+            old = anchors.get(layer)
+            created = old is None and eligible
+            if created:
+                anchors[layer] = (a,b,step)
+            saved = anchors.get(layer)
+            a0,b0,anchor_step = saved if saved else (0.,0.,-1)
+            internal_a0,internal_b0 = (a0,b0) if saved else (1.,1.)
+            anchor_scale = max(internal_a0,internal_b0,2.**-1022)
+            adequate = scale > 2.**-1022 and scale > 1e-8*anchor_scale
+            vt = (a/max(scale,2.**-1022))*(internal_b0/anchor_scale)
+            vn = (b/max(scale,2.**-1022))*(internal_a0/anchor_scale)
+            norm=max(vt+vn,2.**-1022);vt,vn=vt/norm,vn/norm
+            used = old is not None and valid and adequate
+            raw = (vt+.25*(vt+vn)/2)/(vt+3*vn+(vt+vn)/2) if used else .25
+            alpha=min(.5,max(0.,raw))
+            control={'alpha':alpha, 'alpha_unclipped':raw,
+                'temporal_energy':a, 'complement_energy':b, 'valid_probe_count':count,
+                'inputs_valid':valid, 'normalized_temporal':vt, 'normalized_complement':vn,
+                'anchor_temporal':a0, 'anchor_complement':b0, 'anchor_step':anchor_step,
+                'anchor_created':created, 'initialized':saved is not None, 'used_anchor':used,
+                'fallback':not used and not created, 'low_current_energy':not adequate,
+                'effective_collateral':3., 'prior_weight':1., 'step_index':step,
+                'layer_index':layer, 'calibration':'first-valid-step temporal/complement energy ratio'}
+            row.update(mode='anchor', attention_calls=5, control=control,
+                       alpha=[alpha,alpha], alpha_mean=alpha, alpha_min=alpha, alpha_max=alpha,
+                       applied_energy=4*alpha**2, boundary_probes_excluded=True)
+    return audit
 
 
 class FeatureAuditTests(unittest.TestCase):
@@ -202,6 +248,81 @@ class CoverageAuditTests(unittest.TestCase):
     def test_missing_finite_evidence_rejected(self):
         a=coverage();a['forward_summaries'][0]['layer_stats'].pop()
         with self.assertRaises(AuditError):check_coverage_blend(a,2,3)
+
+
+class AnchorAuditTests(unittest.TestCase):
+    def test_causal_anchors_curves_and_scope(self):
+        result=check_anchored(anchored(),3,2)
+        self.assertEqual(result['anchor_created_count'],2)
+        self.assertEqual(result['anchor_used_count'],4)
+        self.assertEqual(result['fallback_count'],0)
+        self.assertEqual(result['alpha_by_step'][0]['mean'],.25)
+        self.assertGreater(result['alpha_by_step'][2]['mean'],result['alpha_by_step'][1]['mean'])
+        self.assertEqual(result['anchors_by_layer'][1],{'layer':1,'step':0,'temporal':4.,'complement':6.})
+        self.assertTrue(result['synthetic_test_only'])
+        self.assertIn('evaluated separately',result['evidence_scope'])
+
+    def test_delayed_first_valid_anchor_then_fallback(self):
+        audit=anchored(4,1,[(0.,0.,0),(2.,3.,8),(4.,3.,8),(0.,0.,0)])
+        result=check_anchored(audit,4,1)
+        self.assertEqual(result['anchor_created_count'],1)
+        self.assertEqual(result['anchor_used_count'],1)
+        self.assertEqual(result['fallback_count'],2)
+        self.assertEqual(result['anchors_by_layer'][0]['step'],1)
+
+    def test_no_eligible_signal_keeps_prior_without_anchor(self):
+        result=check_anchored(anchored(2,1,[(0.,4.,8),(0.,0.,0)]),2,1)
+        self.assertEqual(result['anchors_by_layer'],[])
+        self.assertEqual(result['anchor_created_count'],0)
+        self.assertEqual(result['fallback_count'],2)
+        self.assertEqual(result['alpha']['mean'],.25)
+
+    def test_cap_is_constrained_minimum_and_zero_component_is_allowed(self):
+        audit=anchored(3,1,[(2.,3.,8),(4.,0.,8),(0.,3.,8)])
+        result=check_anchored(audit,3,1)
+        self.assertEqual(result['alpha_by_step'][1]['mean'],.5)
+        self.assertLess(result['alpha_by_step'][2]['mean'],.25)
+
+    def test_anchor_reset_cross_layer_and_future_step_rejected(self):
+        for key,value in [('anchor_step',1),('anchor_temporal',4.),('anchor_created',True),
+                          ('layer_index',1),('step_index',2),('initialized',False)]:
+            audit=anchored();audit['feature_forward_summaries'][1]['layers'][0]['control'][key]=value
+            with self.subTest(key=key),self.assertRaises(AuditError):check_anchored(audit,3,2)
+
+    def test_first_step_and_closed_form_corruption_rejected(self):
+        for step,key,value in [(0,'used_anchor',True),(0,'anchor_step',1),(0,'anchor_temporal',3.),
+                               (0,'anchor_created',False),(1,'normalized_temporal',.9),
+                               (1,'alpha_unclipped',.1),(1,'effective_collateral',1.),
+                               (1,'low_current_energy',True),(1,'valid_probe_count',0)]:
+            audit=anchored();audit['feature_forward_summaries'][step]['layers'][0]['control'][key]=value
+            with self.subTest(step=step,key=key),self.assertRaises(AuditError):check_anchored(audit,3,2)
+
+    def test_anchor_scalar_configuration_and_fixed_mode(self):
+        audit=anchored();audit['feature_config']['mode']='fixed'
+        for forward in audit['feature_forward_summaries']:
+            for row in forward['layers']:
+                row.update(mode='fixed',attention_calls=3,alpha=[.25,.25],alpha_mean=.25,
+                           alpha_min=.25,alpha_max=.25,applied_energy=.25,control={})
+        result=check_anchored(audit,3,2)
+        self.assertEqual(result['alpha']['mean'],.25)
+        self.assertEqual(result['anchor_created_count'],0)
+        for key,value in [('ambient_dimension_calibration',True),('first_attention',None)]:
+            broken=anchored();broken[key]=value
+            with self.subTest(key=key),self.assertRaises(AuditError):check_anchored(broken,3,2)
+
+    def test_offline_counterfactual_and_wrong_schema_rejected(self):
+        audit=anchored();audit['offline_counterfactual']=True
+        with self.assertRaisesRegex(AuditError,'counterfactual'):check_anchored(audit,3,2)
+        with self.assertRaisesRegex(AuditError,'schema'):check_anchored(feature(),2,3)
+
+    def test_cli_auto_detects_anchor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src=Path(tmp)/'synthetic_anchor.json';src.write_text(json.dumps(anchored()))
+            command=[sys.executable,str(Path(__file__).with_name('audit.py')),str(src),
+                     '--steps','3','--blocks','2']
+            result=subprocess.run(command,capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertEqual(json.loads(result.stdout)['schema'],'h3-anchored-guidance-v1')
 
 
 class CLITests(unittest.TestCase):

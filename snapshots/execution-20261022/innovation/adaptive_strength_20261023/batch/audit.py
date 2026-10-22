@@ -158,15 +158,100 @@ def _control(row, mode, prior, cap, config):
     return control['fallback'], abs(allocated-requested)/max(requested, 1e-30)
 
 
+def _anchor_control(row, prior, cap, config, previous, step, layer, tiny):
+    """Replay causal anchor bookkeeping and its normalized scalar objective."""
+    c = row.get('control')
+    require(isinstance(c, dict), 'missing anchor control object')
+    for key in ('inputs_valid', 'anchor_created', 'initialized', 'used_anchor',
+                'fallback', 'low_current_energy'):
+        require(type(c.get(key)) is bool, 'anchor '+key+' must be boolean')
+    require(c.get('step_index') == step and c.get('layer_index') == layer,
+            'anchor controller identity mismatch')
+    require(c.get('calibration') == 'first-valid-step temporal/complement energy ratio',
+            'anchor calibration mismatch')
+    count = integer(c.get('valid_probe_count'), 'anchor valid_probe_count')
+    a, b, a0, b0 = [number(c.get(key), 'anchor '+key, minimum=0) for key in
+                    ('temporal_energy', 'complement_energy', 'anchor_temporal', 'anchor_complement')]
+    mu = number(config.get('prior_weight'), 'anchor prior_weight', minimum=0)
+    floor = number(config.get('relative_floor'), 'anchor relative_floor', minimum=0, maximum=1)
+    require(floor < 1, 'anchor relative_floor must be below one')
+    collateral = (1-prior)/prior
+    close(c.get('effective_collateral'), collateral, 'anchor effective collateral')
+    close(c.get('prior_weight'), mu, 'anchor recorded prior weight')
+    require(not c['inputs_valid'] or count > 0, 'valid anchor inputs lack probes')
+    if not c['inputs_valid']:
+        require(a == 0 and b == 0, 'invalid anchor input energies must be sanitized')
+    scale = max(a, b)
+    eligible = c['inputs_valid'] and scale > tiny and a > floor*scale and b > floor*scale
+    old_initialized = previous is not None
+    require(c['anchor_created'] == (not old_initialized and eligible),
+            'anchor must be created exactly at the first eligible layer step')
+    require(c['initialized'] == (old_initialized or c['anchor_created']),
+            'anchor initialization state mismatch')
+    anchor_step = c.get('anchor_step')
+    require(type(anchor_step) is int and anchor_step >= -1, 'invalid anchor_step')
+    if old_initialized:
+        require(a0 == previous['temporal'] and b0 == previous['complement'],
+                'persistent anchor changed within a run')
+        require(anchor_step == previous['step'], 'anchor step changed within a run')
+    elif c['anchor_created']:
+        require(a0 == a and b0 == b, 'first anchor differs from current energies')
+        require(anchor_step == step, 'anchor created from a different step')
+    else:
+        require(a0 == b0 == 0 and anchor_step == -1, 'uninitialized anchor must be empty')
+    if c['initialized']:
+        require(a0 > 0 and b0 > 0 and 0 <= anchor_step <= step, 'invalid saved anchor')
+    # Uninitialized controller state internally uses (1,1) until it can anchor.
+    internal_a0, internal_b0 = (a0, b0) if c['initialized'] else (1., 1.)
+    anchor_scale = max(internal_a0, internal_b0, tiny)
+    current_scale = max(scale, tiny)
+    vt = (a/current_scale)*(internal_b0/anchor_scale)
+    vn = (b/current_scale)*(internal_a0/anchor_scale)
+    norm = max(vt+vn, tiny)
+    vt, vn = vt/norm, vn/norm
+    close(c.get('normalized_temporal'), vt, 'anchor normalized temporal')
+    close(c.get('normalized_complement'), vn, 'anchor normalized complement')
+    adequate = scale > tiny and scale > floor*anchor_scale
+    require(c['low_current_energy'] == (not adequate), 'anchor low-energy flag mismatch')
+    require(not c['used_anchor'] or (old_initialized and c['inputs_valid'] and adequate),
+            'anchor used before initialization or with invalid energy')
+    require(c['fallback'] == (not c['used_anchor'] and not c['anchor_created']),
+            'anchor fallback flags disagree')
+    selected = number(c.get('alpha'), 'anchor selected alpha', minimum=0, maximum=cap)
+    for alpha in row['alpha']:
+        close(alpha, selected, 'anchor applied/control alpha')
+    raw = number(c.get('alpha_unclipped'), 'anchor unclipped alpha', minimum=0)
+    if c['used_anchor']:
+        variance = (vt+vn)/2
+        denominator = vt+collateral*vn+mu*variance
+        require(denominator > 0 and math.isfinite(denominator), 'invalid anchor objective denominator')
+        expected_raw = (vt+mu*prior*variance)/denominator
+        close(raw, expected_raw, 'anchor closed-form unclipped alpha')
+        close(selected, min(cap, max(0., expected_raw)), 'anchor constrained minimizer')
+        def objective(alpha):
+            return (1-alpha)**2*vt+collateral*alpha**2*vn+mu*(alpha-prior)**2*variance
+        require(objective(selected) <= objective(prior)+1e-7+2e-5*abs(objective(prior)),
+                'anchor objective increased')
+    else:
+        close(selected, prior, 'anchor initialization/fallback alpha')
+        close(raw, prior, 'anchor initialization/fallback unclipped alpha')
+    saved = {'step': anchor_step, 'temporal': a0, 'complement': b0} if c['initialized'] else None
+    return saved, c['fallback']
+
+
 def check_feature(audit, expected_steps=20, blocks=50):
     """Verify a completed feature-guidance audit; raise AuditError on failure."""
     require(isinstance(audit, dict), 'audit must be a JSON object')
-    require(audit.get('schema') == 'h3-feature-guidance-v1', 'wrong feature schema')
+    anchored = audit.get('schema') == 'h3-anchored-guidance-v1'
+    require(anchored or audit.get('schema') == 'h3-feature-guidance-v1', 'wrong feature schema')
+    require(not audit.get('offline_counterfactual') and audit.get('evidence_kind') != 'offline_counterfactual',
+            'offline counterfactual is not an executed guidance audit')
     steps, layers = _common(audit, expected_steps, blocks)
     config = audit.get('feature_config', {})
     require(isinstance(config, dict), 'feature_config must be an object')
     mode = config.get('mode')
-    require(mode in ('fixed', 'dynamic_strength', 'dynamic_strength_dof', 'heads_budget'), 'unknown mode')
+    allowed_modes = ('fixed', 'anchor') if anchored else ('fixed', 'dynamic_strength', 'dynamic_strength_dof', 'heads_budget')
+    require(mode in allowed_modes, 'unknown mode')
     prior = number(config.get('alpha_prior'), 'alpha_prior', minimum=0, maximum=1)
     cap = number(config.get('alpha_max'), 'alpha_max', minimum=prior, maximum=1)
     close(audit.get('alpha'), prior, 'audit alpha prior')
@@ -174,12 +259,21 @@ def check_feature(audit, expected_steps=20, blocks=50):
         require(audit.get(key) == 0, key + ': expected zero')
     if mode == 'dynamic_strength_dof' and prior > 0 and 'effective_collateral' in audit:
         close(audit['effective_collateral'], (1-prior)/prior, 'effective_collateral')
+    if anchored:
+        require(audit.get('ambient_dimension_calibration') is False, 'anchor must not use ambient DOF calibration')
+        require(config.get('basis') == 'centered', 'anchor basis must be centered')
+        if prior > 0:
+            close(audit.get('effective_collateral'), (1-prior)/prior, 'anchor audit effective collateral')
+    first_attention = audit.get('first_attention', {})
+    require(isinstance(first_attention, dict), 'first_attention must be an object')
+    tiny = 2.**-1022 if first_attention.get('dtype') == 'torch.float64' else 2.**-126
     boundary_flag = boundary_exclusion(audit['boundary_probes_excluded']) if 'boundary_probes_excluded' in audit else None
     summaries = audit.get('feature_forward_summaries')
     require(isinstance(summaries, list) and len(summaries) == expected_steps, 'missing feature summaries')
     values, routed, errors, dispatch = [], [], [], []
     per_step, per_block = [[] for _ in range(expected_steps)], [[] for _ in range(blocks)]
     fallback_count, boundary_rows = 0, []
+    anchors, anchor_created_count, anchor_used_count = {}, 0, 0
     for n, summary in enumerate(summaries):
         require(isinstance(summary, dict), 'feature summary must be an object')
         require(summary.get('forward') == n, 'feature forwards not ordered')
@@ -202,7 +296,7 @@ def check_feature(audit, expected_steps=20, blocks=50):
             require(row.get('finite_output') is True, label + ': missing finite output evidence')
             alpha = vector(row.get('alpha'), label+' alpha', minimum=0, maximum=cap)
             require(len(alpha) > 0, label + ': empty alpha')
-            if mode in ('dynamic_strength', 'dynamic_strength_dof'):
+            if mode in ('dynamic_strength', 'dynamic_strength_dof', 'anchor'):
                 for a in alpha:
                     close(a, alpha[0], label+' scalar/shared alpha')
             for key, val in (('alpha_mean', sum(alpha)/len(alpha)), ('alpha_min', min(alpha)), ('alpha_max', max(alpha))):
@@ -213,7 +307,13 @@ def check_feature(audit, expected_steps=20, blocks=50):
             number(row.get('applied_energy'), label+' applied_energy', minimum=0)
             close(row.get('correction_energy'), sum(energy), label+' full correction energy')
             close(row.get('applied_energy'), sum(a*a*e for a, e in zip(alpha, energy)), label+' applied energy')
-            fallback, error = _control(row, mode, prior, cap, config)
+            if mode == 'anchor':
+                anchors[b], fallback = _anchor_control(row, prior, cap, config, anchors.get(b), n, b, tiny)
+                anchor_created_count += int(row['control']['anchor_created'])
+                anchor_used_count += int(row['control']['used_anchor'])
+                error = None
+            else:
+                fallback, error = _control(row, mode, prior, cap, config)
             fallback_count += int(fallback)
             for source in (row, row['control']):
                 if 'boundary_probes_excluded' in source:
@@ -231,10 +331,24 @@ def check_feature(audit, expected_steps=20, blocks=50):
             'alpha': stats(values), 'alpha_by_step': [{'step': i, **stats(v)} for i,v in enumerate(per_step)],
             'alpha_by_layer': [{'layer': i, **stats(v)} for i,v in enumerate(per_block)],
             'fallback_count': fallback_count, 'head_budget_relative_error': stats(errors),
+            'anchor_created_count': anchor_created_count, 'anchor_used_count': anchor_used_count,
+            'anchors_by_layer': [{'layer': b, **value} for b,value in sorted(anchors.items()) if value is not None],
             'boundary_probes_excluded': boundary_flag, 'boundary_exclusion_records': boundary_rows,
             'budget_scope': 'attention correction before W_o; excludes head cross terms after projection',
             'controller_host_dispatch_seconds': {'total': sum(dispatch), **stats(dispatch)},
-            'timing_scope': 'host dispatch only; CUDA asynchronous; not GPU compute or end-to-end inference cost'}
+            'timing_scope': 'host dispatch only; CUDA asynchronous; not GPU compute or end-to-end inference cost',
+            'evidence_scope': 'execution and controller integrity only; video quality and motion metrics are evaluated separately',
+            'synthetic_test_only': audit.get('synthetic_test_only', False)}
+
+
+def check_anchored(audit, expected_steps=20, blocks=50):
+    require(isinstance(audit, dict) and audit.get('schema') == 'h3-anchored-guidance-v1',
+            'wrong anchored-guidance schema')
+    return check_feature(audit, expected_steps, blocks)
+
+
+# Singular spelling used by the read-only result collector.
+check_anchor = check_anchored
 
 
 def check_coverage_blend(audit, expected_steps=20, blocks=50):
@@ -306,7 +420,7 @@ def check_coverage_blend(audit, expected_steps=20, blocks=50):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('audit', type=Path)
-    parser.add_argument('--kind', choices=('auto', 'feature', 'coverage_blend'), default='auto')
+    parser.add_argument('--kind', choices=('auto', 'feature', 'anchor', 'coverage_blend'), default='auto')
     parser.add_argument('--steps', type=int, default=20)
     parser.add_argument('--blocks', type=int, default=50)
     parser.add_argument('--output', type=Path)
@@ -316,8 +430,11 @@ def main(argv=None):
         require(isinstance(audit, dict), 'audit must be a JSON object')
         kind = args.kind
         if kind == 'auto':
-            kind = 'feature' if audit.get('schema') == 'h3-feature-guidance-v1' else 'coverage_blend'
-        result = (check_feature if kind == 'feature' else check_coverage_blend)(audit, args.steps, args.blocks)
+            kind = {'h3-feature-guidance-v1': 'feature', 'h3-anchored-guidance-v1': 'anchor',
+                    'h3-temporal-coverage-blend': 'coverage_blend'}.get(audit.get('schema'))
+            require(kind is not None, 'unknown audit schema')
+        checker = {'feature': check_feature, 'anchor': check_anchored, 'coverage_blend': check_coverage_blend}[kind]
+        result = checker(audit, args.steps, args.blocks)
         result['input_audit'] = str(args.audit.resolve())
         raw = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False)+'\n'
         if args.output:

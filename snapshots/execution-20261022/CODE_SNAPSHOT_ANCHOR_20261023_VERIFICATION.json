@@ -1,0 +1,96 @@
+{
+  "schema": "h3-code-snapshot-verification-v2",
+  "timestamp": "2026-10-23T03:50:18.576470+08:00",
+  "scope": "sanitized source export; no GPU or experiment process operations",
+  "source_files": 44,
+  "python_ast_passed": 40,
+  "local_synthetic_tests": [
+    {
+      "suite": "audit_summary",
+      "tests": 43,
+      "passed": 43
+    },
+    {
+      "suite": "collector",
+      "tests": 16,
+      "passed": 16
+    },
+    {
+      "suite": "anchor_boundary",
+      "tests": 12,
+      "passed": 12
+    },
+    {
+      "suite": "allocator_budget",
+      "tests": 5,
+      "passed": 5
+    },
+    {
+      "suite": "port_claim",
+      "tests": 3,
+      "passed": 3
+    }
+  ],
+  "remote_cpu_tests": {
+    "status": "passed",
+    "tests": 62,
+    "skipped": 1,
+    "CUDA_VISIBLE_DEVICES": "",
+    "suites": [
+      {
+        "suite": "feature_anchor",
+        "tests": 19,
+        "skipped": 0,
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "suite": "anchor_controller",
+        "tests": 16,
+        "skipped": 1,
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "suite": "output_metric",
+        "tests": 8,
+        "skipped": 0,
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "suite": "temporal_gain_field",
+        "tests": 19,
+        "skipped": 0,
+        "exit_code": 0,
+        "passed": true
+      }
+    ],
+    "scope": "exported sanitized source; synthetic CPU tests; temporary directory removed"
+  },
+  "passing_tests": 140,
+  "skipped_tests": 1,
+  "skip_reason": "optional historical DOF trajectory fixture intentionally excluded",
+  "sensitive_scan": {
+    "categories": [
+      "private_key",
+      "github_token",
+      "cloud_key",
+      "quoted_secret",
+      "url_userinfo",
+      "personal_identity",
+      "gpu_uuid",
+      "private_network"
+    ],
+    "findings": 0
+  },
+  "source_and_export_hashes_match": true,
+  "frozen_method_ready_hashes_match": {
+    "feature_anchor": 8,
+    "temporal_gain_field": 5
+  },
+  "browser_check": "blocked_file_protocol",
+  "deployment_scripts": "syntax checked templates only; placeholders and external manifests required",
+  "new_feature_gain_field_runtime_included": false,
+  "export_whitespace": "trailing empty lines normalized; source files unchanged"
+}

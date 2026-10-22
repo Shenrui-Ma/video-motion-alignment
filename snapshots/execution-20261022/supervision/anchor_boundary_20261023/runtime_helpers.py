@@ -1,0 +1,412 @@
+import fcntl
+
+import hashlib
+
+import json
+
+import os
+
+from pathlib import Path
+
+import socket
+
+import sys
+
+import tempfile
+
+import time
+
+import urllib.request
+
+def read(path, default=None):
+    return json.loads(path.read_text()) if path.exists() else default
+
+def digest(document):
+    return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+def atomic(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=path.name + '.', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w') as stream:
+            json.dump(value, stream, ensure_ascii=False, indent=2)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+def identity(record, required_text, proc_root=Path('/proc'), uid=None):
+    if not record:
+        return {'state': 'missing_record'}
+    proc = proc_root / str(record['pid'])
+    try:
+        # comm may contain spaces; field 22 follows the final ')' plus 19 fields.
+        stat = (proc / 'stat').read_text()
+        ticks = stat.rsplit(')', 1)[1].split()[19]
+        actual_uid = proc.stat().st_uid
+        command = (proc / 'cmdline').read_bytes().replace(b'\0', b' ').decode(errors='replace')
+        matched = actual_uid == (os.getuid() if uid is None else uid) and ticks == str(record['start_ticks']) and required_text in command
+        return {'state': 'owned_alive' if matched else 'identity_mismatch', 'pid': record['pid'], 'uid': actual_uid, 'start_ticks': ticks}
+    except FileNotFoundError:
+        return {'state': 'exited', 'pid': record['pid']}
+
+def locked(path):
+    if not path.exists():
+        return False
+    with path.open('r+') as stream:
+        try:
+            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+        fcntl.flock(stream, fcntl.LOCK_UN)
+        return False
+
+def partition(manifest, states):
+    jobs = manifest['jobs']
+    ids = [job['id'] for job in jobs]
+    if len(ids) != len(set(ids)):
+        raise ValueError('Duplicate job IDs')
+    # Retain every state entry, including pending/submitting/unknown/failed.
+    # A pending record may already be waiting for service readiness inside run_job.
+    kept = [job for job in jobs if job['id'] in states]
+    parked = [job for job in jobs if job['id'] not in states]
+    return {**manifest, 'jobs': kept}, {**manifest, 'jobs': parked}
+
+def deployment_ready(worker, service, locks, listening, status, states):
+    return (worker['state'] == 'exited' and status.get('event') == 'finished'
+            and status.get('cleanup_code') == 0 and status.get('queue_exit_code') in (0, 1)
+            and service['state'] in ('exited', 'missing_record')
+            and not any(locks.values()) and not listening
+            and all(s.get('status') in ('completed', 'failed', 'invalid') for s in states.values()))
+
+def snapshot(root):
+    manifest = read(root / 'jobs.json')
+    if manifest is None:
+        raise ValueError('Missing manifest')
+    states = read(root / 'queue_state/state.json', {'jobs': {}})['jobs']
+    worker = identity(read(root / 'worker_pid.json'), str(root / 'scripts/host_worker.py'))
+    service_rec = read(root / 'service.json')
+    service = identity(service_rec, str(root))
+    locks = {name: locked(root / name) for name in ('worker.lock', 'queue_state/runner.lock')}
+    queue = None
+    api_error = None
+    port = service_rec.get('port') if service_rec else None
+    port = port or (8673 if root.name.endswith('host9a') else 8674)
+    listening = False
+    with socket.socket() as sock:
+        sock.settimeout(2)
+        listening = sock.connect_ex(('127.0.0.1', port)) == 0
+    if listening:
+        try:
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            with opener.open(f'http://127.0.0.1:{port}/queue', timeout=8) as response:
+                q = json.load(response)
+            queue = [{'prompt_id': row[1], 'job_id': (row[3] or {}).get('durable_job_id')} for row in q.get('queue_running', []) + q.get('queue_pending', [])]
+        except Exception as error:
+            api_error = str(error)
+    status = read(root / 'worker_status.json', {})
+    ready = deployment_ready(worker, service, locks, listening, status, states)
+    return {'root': str(root), 'checked_unix': time.time(), 'manifest': manifest,
+            'manifest_sha256': digest(manifest), 'states': states, 'worker': worker,
+            'service': service, 'locks': locks, 'api_queue': queue, 'api_error': api_error,
+            'port_listening': listening, 'worker_status': status, 'ready_for_deployment': ready}
+
+def main_gate(root):
+    doc = read(root / 'jobs.json')
+    states = read(root / 'queue_state/state.json', {'jobs': {}})['jobs']
+    ids = [job['id'] for job in doc['jobs'] if job['id'].startswith('new_')]
+    missing = [job for job in ids if states.get(job, {}).get('status') != 'completed']
+    return {'required': 24, 'total': len(ids), 'completed': len(ids) - len(missing), 'pending': missing,
+            'passed': len(ids) == 24 and len(set(ids)) == 24 and not missing}
+
+def validate_drain(snap, original=None):
+    if snap['worker']['state'] not in ('owned_alive', 'exited'):
+        raise ValueError('Worker identity cannot be verified')
+    if snap['service']['state'] == 'identity_mismatch':
+        raise ValueError('Service identity mismatch')
+    if snap['worker']['state'] == 'owned_alive' and not snap['locks']['worker.lock']:
+        raise ValueError('Owned worker lacks worker lock')
+    if snap['service']['state'] == 'owned_alive' and snap['api_error']:
+        raise ValueError('Live service API unavailable; inspect before drain')
+    # Every active API entry must map to our recorded manifest and durable state.
+    ids = {job['id'] for job in (original or snap['manifest'])['jobs']}
+    for row in snap['api_queue'] or []:
+        if row['job_id'] not in ids or row['job_id'] not in snap['states']:
+            raise ValueError('Active API job not reconciled to manifest/state')
+
+def drain(root, expected_hash):
+    directory = root / 'innovation_handoff'
+    directory.mkdir(exist_ok=True)
+    with (directory / 'drain.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        snap = snapshot(root)
+        if snap['manifest_sha256'] != expected_hash:
+            raise ValueError('Manifest changed since local preflight; retry inspection')
+        original_path = directory / 'original_manifest.json'
+        original = read(original_path)
+        validate_drain(snap, original)
+        if original is None:
+            original = snap['manifest']
+            atomic(original_path, original)
+        original_map = {j['id']: j for j in original['jobs']}
+        for job in snap['manifest']['jobs']:
+            if original_map.get(job['id']) != job:
+                raise ValueError('Manifest contains new/modified job after prior drain')
+        kept, parked = partition(original, snap['states'])
+        atomic(directory / 'parked_manifest.json', parked)
+        atomic(root / 'jobs.json', kept)
+        # Runner may have selected one job from its old manifest immediately before
+        # replacement. Never signal it; absorb any persisted intent on reinspection.
+        post = snapshot(root)
+        kept, parked = partition(original, post['states'])
+        atomic(directory / 'parked_manifest.json', parked)
+        atomic(root / 'jobs.json', kept)
+        return {'action': 'drained', 'kept': kept, 'parked': parked, 'snapshot': snapshot(root)}
+
+def dispatch(request):
+    root = Path(request['root'])
+    if request['action'] == 'main_gate':
+        return main_gate(root)
+    if request['action'] == 'inspect':
+        return snapshot(root)
+    if request['action'] == 'drain':
+        return drain(root, request['expected_hash'])
+    raise ValueError('Unknown action')
+
+def identity(record, required_text, proc_root=Path('/proc'), uid=None):
+ if not record:return {'state':'missing_record'}
+ proc=proc_root/str(record['pid'])
+ try:
+  fields=(proc/'stat').read_text().rsplit(')',1)[1].split();ticks=fields[19];actual_uid=proc.stat().st_uid
+  matched=actual_uid==(os.getuid() if uid is None else uid) and ticks==str(record['start_ticks'])
+  if matched and fields[0]=='Z':
+   if proc_root==Path('/proc') and int(fields[1])==os.getpid():
+    try:os.waitpid(record['pid'],os.WNOHANG)
+    except ChildProcessError:pass
+   return {'state':'exited','pid':record['pid'],'uid':actual_uid,'start_ticks':ticks,'zombie':True}
+  command=(proc/'cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')
+  return {'state':'owned_alive' if matched and required_text in command else 'identity_mismatch','pid':record['pid'],'uid':actual_uid,'start_ticks':ticks}
+ except FileNotFoundError:return {'state':'exited','pid':record['pid']}
+
+def reap_finished_children():
+ while True:
+  try:pid,_=os.waitpid(-1,os.WNOHANG)
+  except ChildProcessError:return
+  if pid==0:return
+
+import subprocess
+
+def merge_manifest(base,pilots):
+    ids=[j['id'] for j in base['jobs']+pilots['jobs']]
+    if len(ids)!=len(set(ids)):raise ValueError('Duplicate existing/pilot IDs')
+    return {**base,'jobs':base['jobs']+pilots['jobs']}
+
+def verify_assets(records):
+    for row in records:
+        path=Path(row['path'])
+        if path.is_symlink() or not path.is_file():raise ValueError('Missing/unexpected asset '+str(path))
+        h=hashlib.sha256()
+        with path.open('rb') as f:
+            for block in iter(lambda:f.read(1048576),b''):h.update(block)
+        if h.hexdigest()!=row['sha256']:raise ValueError('Asset SHA mismatch '+str(path))
+
+def launch_owned_worker(root,record_path,receipt):
+    # Child waits for the durable identity record before executing host_worker.
+    # Until then worker_status remains finished, so the existing supervisor stays idle.
+    rfd,wfd=os.pipe()
+    wrapper="import os,sys;f=int(sys.argv[1]);b=os.read(f,1);os.close(f);sys.exit(75) if b!=b'1' else None;os.execvp('python3',['python3','-u',sys.argv[2]])"
+    try:
+        with (root/'logs/worker.log').open('ab') as log:
+            child=subprocess.Popen(['python3','-u','-c',wrapper,str(rfd),str(root/'scripts/host_worker.py')],cwd=root,stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,pass_fds=(rfd,))
+        os.close(rfd);rfd=None
+        proc=Path('/proc')/str(child.pid)
+        ticks=(proc/'stat').read_text().rsplit(')',1)[1].split()[19]
+        if proc.stat().st_uid!=os.getuid():raise RuntimeError('New worker UID mismatch')
+        rec={'pid':child.pid,'start_ticks':ticks}
+        atomic(root/'worker_pid.json',rec)
+        receipt.update(phase='armed',worker=rec,armed_unix=time.time())
+        atomic(record_path,receipt)
+        os.write(wfd,b'1');os.close(wfd);wfd=None
+        receipt.update(phase='activated',activated_unix=time.time())
+        atomic(record_path,receipt)
+        return receipt
+    finally:
+        if rfd is not None:os.close(rfd)
+        if wfd is not None:os.close(wfd)
+
+def activate_request(req):
+    root=Path(req['root']);directory=root/'innovation_handoff';directory.mkdir(exist_ok=True)
+    with (directory/'activation.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        target=merge_manifest(req['base'],req['pilots']);target_hash=digest(target)
+        receipt_path=directory/'coverage_v2_remaining8_activation.json';receipt=read(receipt_path,{})
+        snap=snapshot(root)
+        if receipt and receipt.get('target_hash')!=target_hash:raise ValueError('Activation target changed')
+        if snap['manifest_sha256'] not in (digest(req['base']),target_hash):raise ValueError('Manifest changed outside activation')
+        if receipt.get('phase') in ('armed','activated'):
+            owned=identity(receipt.get('worker'),str(root/'scripts/host_worker.py'))
+            pilot_states={j['id']:snap['states'].get(j['id']) for j in req['pilots']['jobs']}
+            if owned['state']=='owned_alive' or any(pilot_states.values()):
+                return {'status':'already_activated','manifest':target,'receipt':receipt,'worker':owned}
+            if owned['state']=='identity_mismatch':raise ValueError('Activation worker identity mismatch')
+            # Child failed before any pilot submission: normal stopped-state gates
+            # below decide whether a retry can safely launch another worker.
+        if not snap['ready_for_deployment']:
+            return {'status':'not_ready','worker':snap['worker'],'service':snap['service'],'worker_status':snap['worker_status'],'locks':snap['locks'],'port_listening':snap['port_listening']}
+        if any(snap['states'].get(j['id'],{}).get('status')!='completed' for j in req['base']['jobs']):
+            raise ValueError('Every retained old job must be completed')
+        verify_assets(req['assets'])
+        if req['action']=='prepare':
+            if snap['manifest_sha256']!=target_hash:atomic(root/'jobs.json',target)
+            receipt.update(phase='prepared',target_hash=target_hash,base_hash=digest(req['base']),prepared_unix=time.time(),verified_assets=len(req['assets']))
+            atomic(receipt_path,receipt)
+            return {'status':'prepared','manifest':target,'receipt':receipt}
+        if req['action']!='activate' or snap['manifest_sha256']!=target_hash:raise ValueError('Activation requires prepared target manifest')
+        # Recheck after file verification, since it can take several seconds.
+        fresh=snapshot(root)
+        if not fresh['ready_for_deployment'] or fresh['manifest_sha256']!=target_hash:return {'status':'not_ready'}
+        result=launch_owned_worker(root,receipt_path,receipt)
+        return {'status':'activated','manifest':target,'receipt':result}
+
+import math
+
+def verify_outputs_and_timing(root,states,jid):
+ attempt=states[jid]['attempt_id'];result=read(root/'queue_state/results'/f'{jid}.json');assert result['files']
+ for f in result['files']:
+  p=Path(f['path']);assert p.stat().st_size>0
+  h=hashlib.sha256()
+  with p.open('rb') as stream:
+   for chunk in iter(lambda:stream.read(1048576),b''):h.update(chunk)
+  assert h.hexdigest()==f['sha256']
+ timing=read(root/'audit/timing'/f'{attempt}.json');assert len(timing['steps'])==20 and timing['passed'] and timing['status']=='complete'
+ for k in ('sampler_wall_seconds','mean_sampling_step_seconds'):assert math.isfinite(timing[k]) and timing[k]>0
+ return {'id':jid,'attempt_id':attempt,'files':result['files'],'sampler_wall_seconds':timing['sampler_wall_seconds'],'mean_sampling_step_seconds':timing['mean_sampling_step_seconds']}
+
+def verify_coverage_audit(a):
+ assert a['schema']=='h3-temporal-coverage-v1' and a['status']!='failed'
+ assert a['completed_forward_calls']==20 and a['completed_calls']==1000 and a['native_override_calls']==1000
+ assert a['alpha']==.25 and a['step_interval_half_open']==[0,20] and a['block_interval_half_open']==[0,50]
+ c=a['coverage_config'];expected={'radius':2,'entropy':.5,'temporal_penalty':.25,'iterations':128,'tolerance':.0002,'min_quality_span':.001,'minimum_mean_gap':0.}
+ assert all(c[k]==v for k,v in expected.items())
+ calls=a['coverage_calls'];assert len(calls)==1000 and len({(r['forward'],r['block']) for r in calls})==1000
+ applied=[r for r in calls if r['applied']];assert len(applied)==a['routed_calls']>0
+ for r in applied:
+  assert r['reason'] in ('balanced','identity')
+  assert all(math.isfinite(r[k]) for k in ('row_error','column_error','quality_span','transport_fraction'))
+  assert r['row_error']<=c['tolerance'] and r['column_error']<=c['tolerance']
+ layers=[l for f in a['forward_summaries'] for l in f.get('layer_stats',[])];assert len(layers)==len(applied)
+ assert all(l['finite'] and math.isfinite(l['correction_ratio']) for l in layers)
+ assert any(l['correction_ratio']>0 for l in layers)
+ reasons={}
+ for r in calls:reasons[r['reason']]=reasons.get(r['reason'],0)+1
+ return {'status':'passed','completed_forward_calls':20,'completed_calls':1000,'effective_routed_calls':len(applied),'fallback_and_route_reasons':reasons,'coverage_config':c,'mean_sampled_correction_ratio':sum(l['correction_ratio'] for l in layers)/len(layers)}
+
+def check_v2(a):
+ assert a['schema']=='h3-temporal-coverage-v2' and a['status']!='failed'
+ assert a['completed_forward_calls']==20 and a['completed_calls']==1000 and a['native_override_calls']==1000
+ assert a['alpha']==.25 and a['step_interval_half_open']==[0,20] and a['block_interval_half_open']==[0,50]
+ c=a['coverage_config'];assert c['solver']=='damped_newton_cpu_float64' and c['fallback_policy']=='same_time_weak' and c['iterations']==64 and c['tolerance']==.0002
+ calls=a['coverage_calls'];assert len(calls)==1000 and len({(x['forward'],x['block']) for x in calls})==1000
+ solved=[x for x in calls if x.get('routing_solved')];fallback=[x for x in calls if x.get('reason')=='same_time_fallback']
+ assert len(solved)+len(fallback)==1000 and a['routed_calls']==1000
+ assert a['coverage_solved_calls']==len(solved) and a['same_time_fallback_calls']==len(fallback)
+ assert solved,'No successfully solved coverage calls'
+ for x in calls:assert x['applied'] and x['solver_iterations']<=64 and math.isfinite(x['solver_seconds']) and x['solver_seconds']>=0
+ for x in solved:assert x['row_error']<=c['tolerance'] and x['column_error']<=c['tolerance']
+ layers=[l for f in a['forward_summaries'] for l in f.get('layer_stats',[])];assert len(layers)==1000
+ assert all(x['finite'] and math.isfinite(x['correction_ratio']) for x in layers)
+ assert any(x['correction_ratio']>0 for x in layers)
+ return {'status':'passed','solved_calls':len(solved),'same_time_fallback_calls':len(fallback),'solved_fraction':len(solved)/1000,'solver_seconds_total':a['solver_wall_seconds'],'solver_iterations_mean':sum(x['solver_iterations'] for x in calls)/1000,'solver_iterations_max':max(x['solver_iterations'] for x in calls),'fallback_reasons':{k:sum(x.get('fallback_reason')==k for x in fallback) for k in {x.get('fallback_reason') for x in fallback}},'coverage_config':c}
+
+def install_service_at_boundary(req):
+ root=Path(req['root']);change=req['service_change'];path=Path(change['path'])
+ with (root/'innovation_handoff/activation.lock').open('a') as lock:
+  fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  snap=snapshot(root)
+  if not snap['ready_for_deployment']:return False
+  assert snap['manifest_sha256'] in (digest(req['base']),digest(merge_manifest(req['base'],req['pilots'])))
+  oldhash=hashlib.sha256(path.read_bytes()).hexdigest()
+  if oldhash==change['after_sha256']:return True
+  assert oldhash==change['before_sha256'],'Service script changed outside handoff'
+  staged=Path(change['staged_path']);raw=staged.read_bytes();assert hashlib.sha256(raw).hexdigest()==change['after_sha256']
+  compile(raw,str(path),'exec')
+  temp=path.with_name(path.name+'.coverage_v2.tmp');temp.write_bytes(raw);os.replace(temp,path)
+  atomic(root/'innovation_handoff/coverage_v2_service_installed.json',{'status':'installed_at_natural_exit','before':oldhash,'after':change['after_sha256'],'unix':time.time()});return True
+
+def guard(req):
+ root=Path(req['root']);d=root/'innovation_handoff';status=d/'coverage_v2_status.json'
+ with (d/'coverage_v2.lock').open('a') as lock:
+  fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  atomic(d/'coverage_v2_pid.json',{'pid':os.getpid(),'start_ticks':Path('/proc',str(os.getpid()),'stat').read_text().rsplit(')',1)[1].split()[19],'uid':os.getuid()})
+  deadline=time.time()+48*3600;activated=False;verified=False
+  while time.time()<deadline:
+   reap_finished_children();states=read(root/'queue_state/state.json',{'jobs':{}})['jobs']
+   if not activated:
+    if any(states.get(j,{}).get('status') in ('failed','failed_exhausted','invalid') for j in req['prerequisite_ids']):raise RuntimeError('Prerequisite failed')
+    if not all(states.get(j,{}).get('status')=='completed' for j in req['prerequisite_ids']):
+     atomic(status,{'status':'waiting_running_v1_job','unix':time.time()});time.sleep(30);continue
+    if not verified:
+     rows=[]
+     for j in req['prerequisite_ids']:
+      row=verify_outputs_and_timing(root,states,j);a=read(root/'audit/temporal_coverage'/f"{row['attempt_id']}.json")
+      assert a['schema']=='h3-temporal-coverage-v1' and a['completed_forward_calls']==20 and a['completed_calls']==1000
+      row['old_routed_calls']=a['routed_calls'];rows.append(row)
+     atomic(d/'coverage_v2_prerequisite_verified.json',{'rows':rows,'unix':time.time()});verified=True
+    if not install_service_at_boundary(req):atomic(status,{'status':'waiting_natural_exit','unix':time.time()});time.sleep(30);continue
+    result=activate_request({**req,'action':'prepare'})
+    if result['status']=='not_ready':time.sleep(30);continue
+    if result['status']!='already_activated':result=activate_request({**req,'action':'activate'})
+    if result['status']=='not_ready':time.sleep(30);continue
+    activated=True;atomic(d/'coverage_v2_active_manifest.json',result['manifest'])
+   ids=[j['id'] for j in req['pilots']['jobs']]
+   if any(states.get(j,{}).get('status') in ('failed','failed_exhausted','invalid') for j in ids):raise RuntimeError('V2 pilot failed')
+   if all(states.get(j,{}).get('status')=='completed' for j in ids):
+    rows=[]
+    for j in ids:
+     row=verify_outputs_and_timing(root,states,j);row['audit']=check_v2(read(root/'audit/temporal_coverage_v2'/f"{row['attempt_id']}.json"));rows.append(row)
+    atomic(d/'coverage_v2_verified.json',{'status':'passed','rows':rows,'unix':time.time()});atomic(status,{'status':'two_pilots_complete_waiting_review','unix':time.time()});return
+   atomic(status,{'status':'pilots_running','states':{j:states.get(j,{}).get('status','not_started') for j in ids},'unix':time.time()});time.sleep(60)
+  raise TimeoutError('V2 pilot guard expired')
+
+def preceding_status(states, ids):
+ failed=[j for j in ids if states.get(j,{}).get('status') in ('failed','failed_exhausted','invalid','blocked')]
+ if failed:raise RuntimeError('Failed prerequisite: '+','.join(failed))
+ return all(states.get(j,{}).get('status')=='completed' for j in ids)
+
+def verify_completed(root,states,ids):
+ rows=[]
+ for jid in ids:
+  if states.get(jid,{}).get('status')!='completed':raise ValueError('Job incomplete '+jid)
+  row=verify_outputs_and_timing(root,states,jid)
+  row['audit']=check_v2(read(root/'audit/temporal_coverage_v2'/f"{row['attempt_id']}.json"));rows.append(row)
+ return rows
+
+def guard(req):
+ root=Path(req['root']);directory=root/'innovation_handoff';status=directory/'coverage_v2_remaining8_status.json'
+ with (directory/'coverage_v2_remaining8.lock').open('a') as lock:
+  fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  atomic(directory/'coverage_v2_remaining8_pid.json',{'pid':os.getpid(),'start_ticks':Path('/proc',str(os.getpid()),'stat').read_text().rsplit(')',1)[1].split()[19],'uid':os.getuid()})
+  expires=time.time()+48*3600;activated=False;verified=False
+  while time.time()<expires:
+   reap_finished_children()
+   states=read(root/'queue_state/state.json',{'jobs':{}})['jobs']
+   if not activated:
+    if not preceding_status(states,req['pilot_ids']):
+     atomic(status,{'status':'waiting_two_coverage_pilots','unix':time.time(),'states':{i:states.get(i,{}).get('status') for i in req['pilot_ids']}});time.sleep(30);continue
+    if not verified:
+     rows=verify_completed(root,states,req['pilot_ids']);atomic(directory/'coverage_v2_remaining8_pilot_verification.json',{'status':'passed','rows':rows,'unix':time.time()});verified=True
+    first=activate_request({**req,'action':'prepare'})
+    if first['status']=='not_ready':
+     atomic(status,{'status':'waiting_natural_exit','unix':time.time(),'snapshot':first});time.sleep(30);continue
+    result=first if first['status']=='already_activated' else activate_request({**req,'action':'activate'})
+    if result['status']=='not_ready':time.sleep(30);continue
+    atomic(directory/'coverage_v2_remaining8_active_manifest.json',result['manifest']);activated=True
+   ids=[j['id'] for j in req['pilots']['jobs']]
+   failed=[j for j in ids if states.get(j,{}).get('status') in ('failed','failed_exhausted','blocked','invalid')]
+   if failed:raise RuntimeError('Coverage remaining8 failed: '+','.join(failed))
+   if all(states.get(j,{}).get('status')=='completed' for j in ids):
+    rows=verify_completed(root,states,ids);atomic(directory/'coverage_v2_remaining8_verified.json',{'status':'passed','rows':rows,'unix':time.time()});atomic(status,{'status':'completed','count':8,'unix':time.time()});return
+   atomic(status,{'status':'running','unix':time.time(),'states':{j:states.get(j,{}).get('status','not_started') for j in ids}});time.sleep(60)
+  raise TimeoutError('Coverage remaining8 48h guard expired')
