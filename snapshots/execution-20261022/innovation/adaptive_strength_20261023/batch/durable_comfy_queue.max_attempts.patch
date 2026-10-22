@@ -1,0 +1,22 @@
+--- durable_comfy_queue.py
++++ durable_comfy_queue.after.py
+@@ -330,6 +330,10 @@
+ 
+     def run_job(self, job, manifest_dir):
+         job_id = job['id']
++        max_attempts = job.get('max_attempts', self.args.max_attempts)
++        if 'max_attempts' in job and (type(max_attempts) is not int or
++                not 1 <= max_attempts <= self.args.max_attempts):
++            raise ValueError('Job max_attempts must be a positive integer no greater than --max-attempts')
+         graph_path = Path(job['graph'])
+         if not graph_path.is_absolute():
+             graph_path = manifest_dir / graph_path
+@@ -345,7 +349,7 @@
+             raise ValueError(f'Graph changed for existing job {job_id}; use a new job ID')
+         if state['status'] == 'completed':
+             return True
+-        while state['attempts'] < self.args.max_attempts or state.get('prompt_id') or state.get('status') in ('submitting', 'submission_unknown'):
++        while state['attempts'] < max_attempts or state.get('prompt_id') or state.get('status') in ('submitting', 'submission_unknown'):
+             if state['status'] in ('submitting', 'submission_unknown'):
+                 deadline = time.monotonic() + self.args.recovery_seconds
+                 while True:
