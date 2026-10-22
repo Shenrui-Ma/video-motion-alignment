@@ -13,7 +13,115 @@ import test_field_audit
 import test_layer_audit
 
 
+def uniform_document():
+    """Synthetic old-field proof augmented by a separately checkable RMS."""
+    doc = test_field_audit.document()
+    doc.update(run_id='uniform__a1', schema='h3-temporal-gain-field-uniform-energy-v1',
+               independent_field_trajectory_energy_matched=False)
+    doc['feature_config']['mode'] = 'gain_field_uniform_energy'
+    for forward in doc['feature_forward_summaries']:
+        for row in forward['layers']:
+            a, e, mask = row['alpha'], row['bin_energy'], row['control']['solver_succeeded']
+            denominator = sum(x for x, selected in zip(e, mask) if selected)
+            selected = sum(x*y*y for x, y, active in zip(e, a, mask) if active)
+            total = sum(x*y*y for x, y in zip(e, a))
+            row.update(candidate_alpha=a[:], alpha_mean=.25, alpha_min=.25, alpha_max=.25,
+                uniform_energy=dict(modifiable_mask=mask[:], uniform_alpha=.25,
+                    candidate_alpha=a[:], applied_alpha=a[:], modifiable_energy=denominator,
+                    candidate_modifiable_energy=selected, applied_modifiable_energy=selected,
+                    candidate_total_energy=total, applied_total_energy=total,
+                    energy_error=0., energy_relative_error=0., energy_floor=2**-126,
+                    near_zero_energy_fallback=(denominator == 0), no_modifiable_bins=not any(mask),
+                    accumulation_dtype='float64', applied_dtype='torch.float32'))
+    return doc
+
+
 class CollectorTests(unittest.TestCase):
+    def test_uniform_full_trace_and_candidate_applied_audit(self):
+        doc = uniform_document()
+        self.assertEqual(collect.check_live(doc), [])
+        plan = {'id':'uniform','metadata':{'task_id':'test_case','method':'temporal_gain_field_uniform_energy'}}
+        row = {'queue_state':{'status':'completed','attempts':1},'actual_attempt_id':'uniform__a1',
+               'result':{'data':{'job_id':'uniform','attempt_id':'uniform__a1'}},
+               'audit':{'data':doc},'media':[{'status':'verified'}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            out = collect.inspect_row(plan,row,'synthetic',Path(tmp))
+        self.assertEqual(out['status'],'verified')
+        self.assertTrue(out['complete_audit']['candidate_qp_verified'])
+        self.assertTrue(out['complete_audit']['applied_uniform_energy_verified'])
+        self.assertEqual(out['complete_audit']['uniform_energy_fallbacks'],50)
+
+    def test_uniform_partial_stays_in_progress_and_curves_use_applied(self):
+        doc = uniform_document();doc['feature_forward_summaries'] = doc['feature_forward_summaries'][:2]
+        doc['completed_forward_calls'] = 2
+        plan = {'id':'uniform','metadata':{'task_id':'test_case','method':'temporal_gain_field_uniform_energy'}}
+        row = {'queue_state':{'status':'running','attempts':1},'actual_attempt_id':'uniform__a1','audit':{'data':doc}}
+        with tempfile.TemporaryDirectory() as tmp:
+            out = collect.inspect_row(plan,row,'synthetic',Path(tmp))
+        self.assertEqual(out['status'],'in_progress')
+        self.assertNotIn('complete_audit',out)
+        # Curve extraction itself preserves differing candidate/application vectors.
+        probe = doc['feature_forward_summaries'][1]['layers'][0]
+        probe['candidate_alpha'] = [.25,.12,.25]
+        probe['alpha'] = [.25,.2,.25];probe['alpha_mean'] = sum(probe['alpha'])/3
+        point = collect.curves(doc)['points'][50]
+        self.assertEqual(point['alpha'],[.25,.2,.25])
+        self.assertEqual(point['candidate_alpha'],[.25,.12,.25])
+        self.assertEqual(point['alpha_mean'],sum(probe['alpha'])/3)
+        self.assertIn('candidate_alpha only',point['qp_scope'])
+
+    def test_uniform_schema_and_mode_cannot_be_substituted(self):
+        plan = {'id':'uniform','metadata':{'task_id':'test_case','method':'temporal_gain_field_uniform_energy'}}
+        for key in ('schema','mode'):
+            doc = uniform_document()
+            if key == 'schema':doc['schema'] = 'h3-temporal-gain-field-v1'
+            else:doc['feature_config']['mode'] = 'gain_field'
+            row = {'actual_attempt_id':'uniform__a1','audit':{'data':doc}}
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as tmp:
+                out = collect.inspect_row(plan,row,'synthetic',Path(tmp))
+                self.assertEqual(out['status'],'attention_required')
+
+    def test_uniform_coherent_candidate_output_energy_forgery_rejected(self):
+        doc = uniform_document();row = doc['feature_forward_summaries'][1]['layers'][0]
+        a = [.25,.4,.25];u = row['uniform_energy'];e = row['bin_energy']
+        row['alpha'] = a[:];row['candidate_alpha'] = a[:];row['control']['alpha'] = a[:]
+        u['candidate_alpha'] = a[:];u['applied_alpha'] = a[:];u['uniform_alpha'] = .4
+        total = sum(x*y*y for x,y in zip(e,a));selected = e[1]*a[1]**2
+        u.update(candidate_modifiable_energy=selected,applied_modifiable_energy=selected,
+                 candidate_total_energy=total,applied_total_energy=total)
+        row['applied_energy'] = total
+        self.assertTrue(any('KKT' in error for error in collect.check_live(doc)))
+        doc = uniform_document()
+        doc['feature_forward_summaries'][1]['layers'][0]['uniform_energy']['applied_modifiable_energy'] += 1
+        self.assertTrue(any('modifiable energy' in error for error in collect.check_live(doc)))
+
+    def test_uniform_remote_audit_path_uses_actual_isolated_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name in ('queue_state','graphs','audit/feature_gain_field_uniform_energy'):
+                (root/name).mkdir(parents=True)
+            job = {'id':'uniform','graph':'graphs/u.json','metadata':{'method':'temporal_gain_field_uniform_energy'}}
+            (root/'jobs.json').write_text(json.dumps({'jobs':[job]}))
+            (root/'queue_state/state.json').write_text(json.dumps({'jobs':{'uniform':{'attempts':1}}}))
+            (root/'graphs/u.json').write_text('{}')
+            (root/'audit/feature_gain_field_uniform_energy/uniform__a1.json').write_text('{"synthetic_test_only":true}')
+            row = remote_probe.inference({'run_root':str(root),'jobs':[job]})['jobs'][0]
+        self.assertEqual(row['audit']['status'],'read')
+        self.assertIn('/feature_gain_field_uniform_energy/',row['audit']['path'])
+
+    def test_uniform_unique_owner_preserves_other_same_task_jobs(self):
+        jobs = {'jobs':[{'id':jid,'metadata':{'task_id':task}} for jid,task in
+                       [('old_air','a'),('old_drink','b'),('uniform_drink','b'),('uniform_air','a')]]}
+        sources = {'sources':[{'name':'host41','task_id':'a','exclude_job_ids':['uniform_air']},
+                   {'name':'host60','task_id':'b','exclude_job_ids':['uniform_drink']},
+                   {'name':'host81_uniform','job_ids':['uniform_drink','uniform_air']}]}
+        owners = collect.assign_sources(jobs,sources)
+        self.assertEqual(owners,{'old_air':'host41','old_drink':'host60',
+                                 'uniform_drink':'host81_uniform','uniform_air':'host81_uniform'})
+        sources['sources'][1]['exclude_job_ids'] = []
+        with self.assertRaisesRegex(ValueError,'duplicate producer'):
+            collect.assign_sources(jobs,sources)
+
     def test_role5_method_requires_its_schema_and_valid_neighbor_evidence(self):
         doc=test_field_audit.document();doc['run_id']='role5__a1'
         doc['schema']='h3-temporal-gain-field-role5-v1'

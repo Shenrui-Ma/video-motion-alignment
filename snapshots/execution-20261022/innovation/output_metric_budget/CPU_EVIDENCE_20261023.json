@@ -1,0 +1,56 @@
+{
+  "scope": "local CPU stdlib algebra and cached source-interface inspection",
+  "tests_run": 11,
+  "passed": true,
+  "failures": 0,
+  "errors": 0,
+  "elapsed_seconds": 0.005763333989307284,
+  "test_file_sha256": "bd4ed52181f844a15d9e0c1ef393e86147ee783aadc0d6fd19abbe4a427dd346",
+  "model_source_sha256": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+  "cost_table": {
+    "shape": {
+      "heads": 56,
+      "head_dim": 128,
+      "input": 7168,
+      "output": 5376,
+      "total_query_probes": 8,
+      "convrot_group": 256,
+      "output_row_tile": 256,
+      "sketch_k": 32,
+      "validation_queries": 8
+    },
+    "MAC": {
+      "pair_sparse_projection": 616562688,
+      "rotate_sparse_head_inputs": 14680064,
+      "full_cross_head_gram": 134873088,
+      "pair_path_total": 766115840,
+      "one_gate_row_sketch_build": 1233125376,
+      "blackbox_head_secants_base_plus_56_heads": 17572036608,
+      "actual_quantized_validation_three_inputs": 924844032
+    },
+    "bytes_FP32": {
+      "temporary_weight_row_tile": 7340032,
+      "temporary_effects_tile": 458752,
+      "rotated_sparse_inputs": 458752,
+      "gram": 12544,
+      "full_effects_if_retained": 9633792,
+      "full_float_weight_not_needed": 154140672,
+      "one_sketch_B": 917504
+    },
+    "measured_runtime": false
+  },
+  "counterexample": {
+    "pre_energy_base": 0.125,
+    "pre_energy_candidate": 0.125,
+    "eps": 0.001,
+    "post_base": 6.25e-08,
+    "post_candidate": 0.125,
+    "post_energy_ratio": 2000000
+  },
+  "not_run": [
+    "CUDA kernels",
+    "actual model projection",
+    "full video",
+    "runtime integration"
+  ]
+}

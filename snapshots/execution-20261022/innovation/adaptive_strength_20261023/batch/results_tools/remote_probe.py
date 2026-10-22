@@ -59,6 +59,7 @@ def inference(request):
                       'dynamic_anchor': 'feature_anchor',
                       'temporal_gain_field': 'feature_gain_field',
                       'temporal_gain_field_role5': 'feature_gain_field_role5',
+                      'temporal_gain_field_uniform_energy': 'feature_gain_field_uniform_energy',
                       'causal_layer_budget':'feature_layer_budget'}.get(method, 'feature_guidance')
         row = {'job_id': job_id, 'registered': actual is not None,
                'queue_state': job_state, 'actual_attempt_id': attempt,
