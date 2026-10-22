@@ -14,6 +14,8 @@ HERE = Path(__file__).resolve().parent
 BATCH = HERE.parent
 sys.path.insert(0, str(BATCH))
 import audit as audit_check
+import field_audit
+import layer_audit
 import summarize as metric_summary
 
 
@@ -83,8 +85,12 @@ def assign_sources(planned, config):
     if len(set(names)) != len(names):
         raise ValueError('duplicate source name')
     for source in config['sources']:
+        include=set(source.get('job_ids',[]));exclude=set(source.get('exclude_job_ids',[]))
+        if not (include|exclude)<=set(ids) or include&exclude:
+            raise ValueError('invalid explicit producer job selection: '+source['name'])
         for job in planned['jobs']:
-            if job['metadata']['task_id'] != source['task_id']:
+            selected=(job['metadata']['task_id']==source.get('task_id') or job['id'] in include)
+            if not selected or job['id'] in exclude:
                 continue
             if job['id'] in ownership:
                 raise ValueError('duplicate producer ownership: '+job['id'])
@@ -159,6 +165,34 @@ def check_live(doc):
                         audit_check.close(row.get('applied_energy'), sum(a*a*e for a,e in zip(values,energies)), 'applied energy')
                 except (audit_check.AuditError, TypeError, KeyError, ZeroDivisionError) as error:
                     problems.append(label + ': ' + str(error))
+    elif doc.get('schema') == 'h3-causal-layer-budget-v1':
+        # Partial liveness checks only. The independent full causal/KKT replay
+        # runs below once a complete result and its output SHA exist.
+        for n,forward in enumerate(doc.get('feature_forward_summaries', [])):
+            seen=set()
+            for row in forward.get('layers', []):
+                try:
+                    layer_audit.require(forward.get('forward')==n and row.get('forward')==n,'live forward identity')
+                    block=row.get('block')
+                    layer_audit.require(type(block) is int and 0<=block<50 and block not in seen,'live block identity');seen.add(block)
+                    layer_audit.require(row.get('finite_output') is True and row.get('applied') is True,'nonfinite/inactive layer')
+                    values=layer_audit.vector(row.get('alpha'),doc['first_attention']['heads'],'actual alpha',0,.5)
+                    layer_audit.require(all(a==values[0] for a in values),'layer alpha varies across heads')
+                    layer_audit.require(row.get('plan_source_forward')==n-1 and row.get('plan_for_forward')==n,'noncausal layer plan')
+                    local=layer_audit.flag(row.get('local_fallback_to_prior'),'local fallback')
+                    layer_audit.close(values[0],.25 if local else row.get('requested_alpha'),'applied plan',2e-7,1e-8)
+                    if n<2:layer_audit.close(values[0],.25,'first two steps',0,1e-12)
+                    energy=layer_audit.vector(row.get('head_energy'),len(values),'head energy',0)
+                    layer_audit.close(row.get('applied_energy'),sum(e*a*a for e,a in zip(energy,values)),'actual correction energy')
+                except (layer_audit.LayerAuditError,TypeError,KeyError,ZeroDivisionError) as error:
+                    problems.append(f'step {n} layer {row.get("block")}: {error}')
+    elif doc.get('schema') == 'h3-temporal-gain-field-v1':
+        for forward in doc.get('feature_forward_summaries', []):
+            for row in forward.get('layers', []):
+                try:
+                    field_audit.check_layer(row)
+                except (field_audit.FieldAuditError,TypeError,KeyError,ZeroDivisionError) as error:
+                    problems.append(f"step {row.get('forward')} layer {row.get('block')}: {error}")
     elif doc.get('schema') == 'h3-temporal-coverage-blend':
         for row in doc.get('coverage_calls', []):
             try:
@@ -180,12 +214,15 @@ def curves(doc):
         for row in forward.get('layers', []):
             if not row.get('applied'):
                 continue
-            control = row.get('control', {})
+            control = row.get('control') or row.get('quality_calibration', {})
             points.append({'step': row['forward'], 'layer': row['block'], 'alpha': row.get('alpha'),
                 'alpha_mean': row.get('alpha_mean'), 'alpha_min': row.get('alpha_min'), 'alpha_max': row.get('alpha_max'),
                 'reference_mass_mean': row.get('reference_mass_mean'),
                 'correction_energy': row.get('correction_energy'), 'applied_energy': row.get('applied_energy'),
-                'fallback': control.get('fallback'), 'valid_probe_count': control.get('valid_probe_count'),
+                'fallback': row.get('local_fallback_to_prior',control.get('fallback')), 'valid_probe_count': control.get('valid_probe_count'),
+                'plan_source_forward':row.get('plan_source_forward'),
+                'requested_alpha':row.get('requested_alpha'),
+                'relative_correction_energy':row.get('relative_correction_energy'),
                 'temporal_variance': control.get('temporal_variance'),
                 'complement_variance': control.get('complement_variance'),
                 'temporal_energy': control.get('temporal_energy'),
@@ -197,6 +234,9 @@ def curves(doc):
                 'used_anchor': control.get('used_anchor'),
                 'normalized_temporal': control.get('normalized_temporal'),
                 'normalized_complement': control.get('normalized_complement'),
+                'fallback_to_prior': control.get('fallback_to_prior'),
+                'solver_succeeded': control.get('solver_succeeded'),
+                'usable_evidence': control.get('usable_evidence'),
                 'boundary_probes_excluded': row.get('boundary_probes_excluded', doc.get('boundary_probes_excluded'))})
     if doc.get('schema') == 'h3-temporal-coverage-blend':
         points = [{'step': r['forward'], 'layer': r['block'], 'alpha': [doc.get('alpha')],
@@ -209,6 +249,7 @@ def curves(doc):
             'applied_correction_scope': 'all selected valid video bins, including endpoints; attention output before W_o',
             'feature_config': doc.get('feature_config'), 'coverage_config': doc.get('coverage_config'),
             'timing_scope': 'actual producer timing; cross-host differences are not isolated module cost',
+            'layer_budget_summaries':doc.get('layer_budget_summaries'),
             'points': points}
 
 
@@ -237,7 +278,8 @@ def inspect_row(plan, row, producer, output):
             out['issues'].append('audit run_id differs from actual attempt')
         method = plan['metadata']['method']
         expected_mode = {'dynamic_dof': 'dynamic_strength_dof', 'heads_budget': 'heads_budget',
-                         'fixed0375': 'fixed', 'dynamic_anchor':'anchor'}.get(method)
+                         'fixed0375': 'fixed', 'dynamic_anchor':'anchor', 'temporal_gain_field':'gain_field',
+                         'causal_layer_budget':'layer_budget'}.get(method)
         if expected_mode and doc.get('feature_config', {}).get('mode') != expected_mode:
             out['issues'].append('audit feature mode differs from planned method')
         if method == 'coverage_blend25' and doc.get('schema') != 'h3-temporal-coverage-blend':
@@ -269,9 +311,11 @@ def inspect_row(plan, row, producer, output):
         if doc:
             try:
                 check = {'coverage_blend25':audit_check.check_coverage_blend,
+                         'temporal_gain_field':field_audit.check_field,
+                         'causal_layer_budget':layer_audit.check_layer_budget,
                          'dynamic_anchor':audit_check.check_anchor}.get(plan['metadata']['method'],audit_check.check_feature)
                 out['complete_audit'] = check(doc)
-            except (audit_check.AuditError, TypeError, KeyError) as error:
+            except (audit_check.AuditError, field_audit.FieldAuditError, layer_audit.LayerAuditError, TypeError, KeyError) as error:
                 out['issues'].append('complete audit: ' + str(error))
         else:
             out['reason'] = 'completed_result_missing_audit'
@@ -322,7 +366,7 @@ def main():
     report['planned_jobs']={'path':str(args.jobs.resolve()),'sha256':hashlib.sha256(args.jobs.read_bytes()).hexdigest(),
                             'count':len(planned['jobs']),'ownership':ownership}
     for source in config['sources']:
-        jobs = [j for j in planned['jobs'] if j['metadata']['task_id'] == source['task_id']]
+        jobs = [j for j in planned['jobs'] if ownership[j['id']] == source['name']]
         cache_path = output/'snapshots'/(source['name']+'.json')
         previous = read(cache_path, {})
         request = dict(source, jobs=jobs, known={k: v['version'] for k,v in artifacts(previous).items()},

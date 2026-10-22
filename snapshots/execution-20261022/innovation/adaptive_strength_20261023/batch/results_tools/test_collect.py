@@ -9,9 +9,62 @@ import collect
 import remote_probe
 import test_audit
 import test_summarize
+import test_field_audit
+import test_layer_audit
 
 
 class CollectorTests(unittest.TestCase):
+    def test_layer_full_trace_and_live_noncausal_failure(self):
+        doc=test_layer_audit.synthetic_trace(steps=20,blocks=50);doc['run_id']='layer__a1'
+        self.assertEqual(collect.check_live(doc),[])
+        self.assertEqual(len(collect.curves(doc)['layer_budget_summaries']),20)
+        plan={'id':'layer','metadata':{'task_id':'test_case','method':'causal_layer_budget'}}
+        row={'queue_state':{'status':'completed','attempts':1},'actual_attempt_id':'layer__a1',
+             'result':{'data':{'job_id':'layer','attempt_id':'layer__a1'}},'audit':{'data':doc},
+             'media':[{'status':'verified'}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(collect.inspect_row(plan,row,'synthetic',Path(tmp))['status'],'verified')
+            doc['feature_forward_summaries'][3]['layers'][0]['plan_source_forward']=1
+            bad=collect.inspect_row(plan,row,'synthetic',Path(tmp))
+            self.assertEqual(bad['status'],'attention_required')
+            self.assertTrue(any('noncausal' in x for x in bad['issues']))
+
+    def test_explicit_single_job_transfer_preserves_other_task_jobs(self):
+        jobs={'jobs':[{'id':i,'metadata':{'task_id':t}} for i,t in
+                      [('air','a'),('drink_old','b'),('drink_new','b')]]}
+        sources={'sources':[{'name':'host41','task_id':'a','job_ids':['drink_new']},
+                            {'name':'host60','task_id':'b','exclude_job_ids':['drink_new']}]}
+        self.assertEqual(collect.assign_sources(jobs,sources),
+                         {'air':'host41','drink_old':'host60','drink_new':'host41'})
+        sources['sources'][1]['exclude_job_ids']=[]
+        with self.assertRaisesRegex(ValueError,'duplicate producer'):
+            collect.assign_sources(jobs,sources)
+
+    def test_explicit_selection_rejects_unknown_conflicting_and_stale_ownership(self):
+        jobs={'jobs':[self.plan()]};source={'name':'host','task_id':'test_case'}
+        for extra in ({'job_ids':['typo']},{'exclude_job_ids':['typo']},
+                      {'job_ids':['example'],'exclude_job_ids':['example']}):
+            with self.assertRaisesRegex(ValueError,'invalid explicit'):
+                collect.assign_sources(jobs,{'sources':[dict(source,**extra)]})
+        jobs['collection_plan']={'ownership':{'example':'old_host'}}
+        with self.assertRaisesRegex(ValueError,'configured producers differ'):
+            collect.assign_sources(jobs,{'sources':[source]})
+
+    def test_field_live_curves_and_completed_audit(self):
+        doc=test_field_audit.document();doc['run_id']='field__a1'
+        self.assertEqual(collect.check_live(doc),[])
+        curve=collect.curves(doc)
+        self.assertEqual(len(curve['points']),1000)
+        self.assertEqual(curve['points'][50]['anchor_temporal'],[1.,2.,1.])
+        plan={'id':'field','metadata':{'task_id':'test_case','method':'temporal_gain_field'}}
+        row={'queue_state':{'status':'completed','attempts':1},'actual_attempt_id':'field__a1',
+             'result':{'data':{'job_id':'field','attempt_id':'field__a1'}},'audit':{'data':doc},
+             'media':[{'status':'verified'}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(collect.inspect_row(plan,row,'synthetic',Path(tmp))['status'],'verified')
+            doc['feature_forward_summaries'][4]['layers'][0]['alpha'][1]=.3
+            self.assertEqual(collect.inspect_row(plan,row,'synthetic',Path(tmp))['status'],'attention_required')
+
     def plan(self):
         return {'id':'example','metadata':{'task_id':'test_case','method':'dynamic_dof'}}
 
