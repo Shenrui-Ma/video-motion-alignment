@@ -1,0 +1,165 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>六段提示词 · 五组普通编辑</title><style>body{margin:0;background:#f5f6f8;color:#18202b;font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}main{max-width:1500px;margin:36px auto;padding:0 24px}h1{font-size:30px}h2{font-size:23px}section{background:white;border:1px solid #dce1e8;border-radius:12px;padding:24px;margin:24px 0}video{width:100%;background:black;border-radius:6px}.sub,small{color:#667180}small{display:block;font-size:11px;font-weight:400}.scroll{overflow:auto;margin:12px 0}table{width:100%;border-collapse:collapse;font-size:14px;white-space:nowrap}th,td{padding:12px 9px;text-align:center;border-bottom:1px solid #e6e9ee}th:first-child{text-align:left}.mf{border-left:2px solid #a8d9b8;border-right:2px solid #a8d9b8;background:#f3fbf5}thead .mf{border-top:2px solid #a8d9b8}tbody tr:last-child .mf{border-bottom:2px solid #a8d9b8}.best{color:#168c48}pre{white-space:pre-wrap;font:13px/1.6 monospace}details{margin-top:16px;color:#57616e}summary{cursor:pointer}</style><main><h1>六段提示词 · 五组普通编辑</h1><p>每组依次展示参考视频、原提示词普通编辑、六段简写普通编辑。</p><section><h2>五组平均指标</h2><p>六段简写的MF均值下降0.0156，五组中两组上升；SC上升0.0180，BC上升0.0026。IS与CF均值持平，运动保真度和语义保真度未获得整体改善。</p><p class="sub">原提示词：机舱使用三段格式并附通用保留指令；饮酒、红发、手帕使用详细六段；医生使用官方一句话。新版统一为六段简写，仅summary填写官方指令，其余字段标为未指定。前四组同时改变了提示词内容，医生组仅比较格式。</p><div class="scroll"><table><thead><tr><th>提示词</th><th class="mf">MF ↑<small>运动保真度·相对参考</small></th><th class="">SC ↑<small>主体一致性</small></th><th class="">BC ↑<small>背景一致性</small></th><th class="">TF ↑<small>时序稳定性</small></th><th class="">MS ↑<small>运动平滑度</small></th><th class="">VTSS ↑<small>编辑文本匹配</small></th><th class="">OSC ↑<small>整体语义一致性</small></th><th class="">PSC ↑<small>目标语义一致性</small></th><th class="">SF ↑<small>语义保真度</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="mf">-0.1923<b class="best"> ✓</b></td><td class="">0.9288</td><td class="">0.9575</td><td class="">0.9849</td><td class="">0.9940</td><td class="">0.0612</td><td class="">0.2400</td><td class="">0.1817<b class="best"> ✓</b></td><td class="">0.8928<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="mf">-0.2079</td><td class="">0.9468<b class="best"> ✓</b></td><td class="">0.9601<b class="best"> ✓</b></td><td class="">0.9865<b class="best"> ✓</b></td><td class="">0.9950<b class="best"> ✓</b></td><td class="">0.0617<b class="best"> ✓</b></td><td class="">0.2401<b class="best"> ✓</b></td><td class="">0.1789</td><td class="">0.8771</td></tr><tr><th>六段简写 − 原提示词</th><td class="mf">-0.0156</td><td class="">+0.0180</td><td class="">+0.0026</td><td class="">+0.0016</td><td class="">+0.0010</td><td class="">+0.0005</td><td class="">+0.0000</td><td class="">-0.0027</td><td class="">-0.0157</td></tr></tbody></table></div><div class="scroll"><table><thead><tr><th>提示词</th><th class="">IS ↑<small>指令满足度 /5</small></th><th class="">CF ↑<small>内容保真度 /5</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">4.4000<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">4.4000<b class="best"> ✓</b></td></tr><tr><th>六段简写 − 原提示词</th><td class="">+0.0000</td><td class="">+0.0000</td></tr></tbody></table></div><p class="sub">MF显示相对参考视频的差值；差值行显示六段简写减原提示词。九项数值指标和IS/CF均为越高越好，绿色勾表示本表最高值。IS/CF使用Qwen2.5-VL-72B 4-bit AWQ与官方评分提示词；原版在.41评测，新版在.60采用CPU跨卡转运，配置记录分别保留。QA在这五项任务中不适用。</p></section><section><h2>角色替换 — 机舱男子替换为年长女人</h2><p class="sub">IVEBench · short_0252 · Replace the man with an elderly woman</p><video controls playsinline preload="metadata" src="assets/d0c0a111a96859e78f3c58a8c36ce9d17ffd888854259c89106da07ca76d7e44.mp4"></video><p>六段简写相比原提示词，MF变化 -0.0059。</p><div class="scroll"><table><thead><tr><th>提示词</th><th class="mf">MF ↑<small>运动保真度·相对参考</small></th><th class="">SC ↑<small>主体一致性</small></th><th class="">BC ↑<small>背景一致性</small></th><th class="">TF ↑<small>时序稳定性</small></th><th class="">MS ↑<small>运动平滑度</small></th><th class="">VTSS ↑<small>编辑文本匹配</small></th><th class="">OSC ↑<small>整体语义一致性</small></th><th class="">PSC ↑<small>目标语义一致性</small></th><th class="">SF ↑<small>语义保真度</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="mf">-0.1867<b class="best"> ✓</b></td><td class="">0.9528<b class="best"> ✓</b></td><td class="">0.9641</td><td class="">0.9885</td><td class="">0.9930</td><td class="">0.0516</td><td class="">0.2362<b class="best"> ✓</b></td><td class="">0.1723</td><td class="">0.8988<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="mf">-0.1926</td><td class="">0.9508</td><td class="">0.9659<b class="best"> ✓</b></td><td class="">0.9890<b class="best"> ✓</b></td><td class="">0.9932<b class="best"> ✓</b></td><td class="">0.0541<b class="best"> ✓</b></td><td class="">0.2336</td><td class="">0.1729<b class="best"> ✓</b></td><td class="">0.8930</td></tr><tr><th>六段简写 − 原提示词</th><td class="mf">-0.0059</td><td class="">-0.0020</td><td class="">+0.0018</td><td class="">+0.0004</td><td class="">+0.0002</td><td class="">+0.0025</td><td class="">-0.0026</td><td class="">+0.0006</td><td class="">-0.0059</td></tr></tbody></table></div><div class="scroll"><table><thead><tr><th>提示词</th><th class="">IS ↑<small>指令满足度 /5</small></th><th class="">CF ↑<small>内容保真度 /5</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">5.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">5.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 − 原提示词</th><td class="">+0.0000</td><td class="">+0.0000</td></tr></tbody></table></div><details><summary>实际提示词与比较设置</summary><p>原提示词：三段格式，含通用保留指令。两版采用相同seed、H3权重、Euler 20步、分辨率与采样帧数；均为普通编辑。</p><h3>原提示词</h3><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this edit.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;.
+Replace the man with an elderly woman
+
+retention_analysis:
+&lt;Video 1&gt;: Preserve the source video&#x27;s people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.</pre><h3>六段简写</h3><pre>subject_definitions:
+&lt;Video 1&gt;: source video.
+
+summary:
+[video editing] Replace the man with an elderly woman
+
+retention_analysis:
+Not specified.
+
+detailed_description:
+Not specified.
+
+overall_soundscape:
+Not specified.
+
+non_diegetic_music:
+Not specified.</pre></details></section><section><h2>外观编辑 — 饮酒男子戴上眼镜</h2><p class="sub">IVEBench · short_0358 · Add a pair of glasses to the man.</p><video controls playsinline preload="metadata" src="assets/cd31b256049e7abebb29951f23a7bbd11a658b213f6c4884a9ee636df9ed62cd.mp4"></video><p>六段简写相比原提示词，MF变化 -0.0780。</p><div class="scroll"><table><thead><tr><th>提示词</th><th class="mf">MF ↑<small>运动保真度·相对参考</small></th><th class="">SC ↑<small>主体一致性</small></th><th class="">BC ↑<small>背景一致性</small></th><th class="">TF ↑<small>时序稳定性</small></th><th class="">MS ↑<small>运动平滑度</small></th><th class="">VTSS ↑<small>编辑文本匹配</small></th><th class="">OSC ↑<small>整体语义一致性</small></th><th class="">PSC ↑<small>目标语义一致性</small></th><th class="">SF ↑<small>语义保真度</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="mf">-0.1081<b class="best"> ✓</b></td><td class="">0.9754</td><td class="">0.9662</td><td class="">0.9930<b class="best"> ✓</b></td><td class="">0.9960<b class="best"> ✓</b></td><td class="">0.0567</td><td class="">0.2383<b class="best"> ✓</b></td><td class="">0.1448<b class="best"> ✓</b></td><td class="">0.9887<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="mf">-0.1861</td><td class="">0.9799<b class="best"> ✓</b></td><td class="">0.9806<b class="best"> ✓</b></td><td class="">0.9918</td><td class="">0.9958</td><td class="">0.0573<b class="best"> ✓</b></td><td class="">0.2305</td><td class="">0.1403</td><td class="">0.9009</td></tr><tr><th>六段简写 − 原提示词</th><td class="mf">-0.0780</td><td class="">+0.0045</td><td class="">+0.0144</td><td class="">-0.0013</td><td class="">-0.0002</td><td class="">+0.0006</td><td class="">-0.0077</td><td class="">-0.0045</td><td class="">-0.0878</td></tr></tbody></table></div><div class="scroll"><table><thead><tr><th>提示词</th><th class="">IS ↑<small>指令满足度 /5</small></th><th class="">CF ↑<small>内容保真度 /5</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">5.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">4.0000</td></tr><tr><th>六段简写 − 原提示词</th><td class="">+0.0000</td><td class="">-1.0000</td></tr></tbody></table></div><details><summary>实际提示词与比较设置</summary><p>原提示词：详细六段格式，含场景与动作保留描述。两版采用相同seed、H3权重、Euler 20步、分辨率与采样帧数；均为普通编辑。</p><h3>原提示词</h3><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for the target video edit and supplies its composition, camera, and temporal structure.
+Source caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.
+&lt;Subject 1&gt; is the man drinking a beer in &lt;Video 1&gt;.
+&lt;Subject 2&gt; is the other man listening attentively in &lt;Video 1&gt;.
+&lt;Subject 3&gt; is the diner scene and table in &lt;Video 1&gt;.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;.
+Add a pair of glasses to the man.
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person&#x27;s other appearance and actions.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.
+&lt;Subject 3&gt; (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.
+&lt;Video 1&gt; (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.
+
+detailed_description:
+[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.
+The two men are &lt;Subject 1&gt; and &lt;Subject 2&gt;, and the setting is &lt;Subject 3&gt;, as shown in &lt;Video 1&gt;.
+
+overall_soundscape:
+The benchmark specifies no audio edit.
+
+non_diegetic_music:
+The benchmark specifies no music edit.</pre><h3>六段简写</h3><pre>subject_definitions:
+&lt;Video 1&gt;: source video.
+
+summary:
+[video editing] Add a pair of glasses to the man.
+
+retention_analysis:
+Not specified.
+
+detailed_description:
+Not specified.
+
+overall_soundscape:
+Not specified.
+
+non_diegetic_music:
+Not specified.</pre></details></section><section><h2>外观编辑 — 女子头发改为红色</h2><p class="sub">IVEBench · short_0085 · Change the woman&#x27;s hair to red</p><video controls playsinline preload="metadata" src="assets/80004dfa8f513bcdef2e12bda8c909386bcc70898fc81d28d7b4108c9577efcb.mp4"></video><p>六段简写相比原提示词，MF变化 -0.0085。</p><div class="scroll"><table><thead><tr><th>提示词</th><th class="mf">MF ↑<small>运动保真度·相对参考</small></th><th class="">SC ↑<small>主体一致性</small></th><th class="">BC ↑<small>背景一致性</small></th><th class="">TF ↑<small>时序稳定性</small></th><th class="">MS ↑<small>运动平滑度</small></th><th class="">VTSS ↑<small>编辑文本匹配</small></th><th class="">OSC ↑<small>整体语义一致性</small></th><th class="">PSC ↑<small>目标语义一致性</small></th><th class="">SF ↑<small>语义保真度</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="mf">-0.1950<b class="best"> ✓</b></td><td class="">0.9545</td><td class="">0.9639</td><td class="">0.9926</td><td class="">0.9957<b class="best"> ✓</b></td><td class="">0.0657<b class="best"> ✓</b></td><td class="">0.2660<b class="best"> ✓</b></td><td class="">0.1816</td><td class="">0.9229<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="mf">-0.2035</td><td class="">0.9644<b class="best"> ✓</b></td><td class="">0.9721<b class="best"> ✓</b></td><td class="">0.9927<b class="best"> ✓</b></td><td class="">0.9957</td><td class="">0.0639</td><td class="">0.2655</td><td class="">0.1868<b class="best"> ✓</b></td><td class="">0.9122</td></tr><tr><th>六段简写 − 原提示词</th><td class="mf">-0.0085</td><td class="">+0.0099</td><td class="">+0.0082</td><td class="">+0.0001</td><td class="">-0.0000</td><td class="">-0.0018</td><td class="">-0.0005</td><td class="">+0.0053</td><td class="">-0.0107</td></tr></tbody></table></div><div class="scroll"><table><thead><tr><th>提示词</th><th class="">IS ↑<small>指令满足度 /5</small></th><th class="">CF ↑<small>内容保真度 /5</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">5.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">5.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 − 原提示词</th><td class="">+0.0000</td><td class="">+0.0000</td></tr></tbody></table></div><details><summary>实际提示词与比较设置</summary><p>原提示词：详细六段格式，含场景与动作保留描述。两版采用相同seed、H3权重、Euler 20步、分辨率与采样帧数；均为普通编辑。</p><h3>原提示词</h3><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.
+&lt;Subject 1&gt; is the blonde woman holding a light-colored cup beside the window in &lt;Video 1&gt;. Her identity, hairstyle shape, visible hand motion and gaze come from the source; only her hair color becomes red.
+&lt;Subject 2&gt; is the original cup, window, background, clothing and unedited scene content in &lt;Video 1&gt;.
+Source context: A woman with long blonde hair is holding a cup and smiling while looking out of a window.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;. Change the woman’s hair color to red, preserving her identity, cup-lowering performance and the original scene colors.
+Requested edit: Change the woman&#x27;s hair to red
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - apply the requested edit. Change only the hair color from blonde to red. Preserve the same woman, facial features, hairstyle shape, smile, gaze, body pose and complete hand and cup-lowering motion.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - preserve the original cup, window, clothing, background, lighting and all colors outside the edited hair, with their source positions and interactions.
+&lt;Video 1&gt; (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.
+The requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.
+
+detailed_description:
+The target video retains the photographic appearance, lighting and camera composition of &lt;Video 1&gt;.
+[Shot 1] The same woman with red hair holds the original light-colored cup by the window. Her smiling, turning gaze and gradual cup-lowering motion follow &lt;Video 1&gt;. The original photographic lighting, background and unedited colors remain throughout.
+The complete visible action sequence and all its phases follow &lt;Video 1&gt; in their original order and timing.
+
+overall_soundscape:
+No specific soundscape is requested.
+
+non_diegetic_music:
+No specific music is requested.
+</pre><h3>六段简写</h3><pre>subject_definitions:
+&lt;Video 1&gt;: source video.
+
+summary:
+[video editing] Change the woman&#x27;s hair to red
+
+retention_analysis:
+Not specified.
+
+detailed_description:
+Not specified.
+
+overall_soundscape:
+Not specified.
+
+non_diegetic_music:
+Not specified.</pre></details></section><section><h2>物体编辑 — 男子手中添加白手帕</h2><p class="sub">IVEBench · long_0059 · Add a white handkerchief in the man&#x27;s hand</p><video controls playsinline preload="metadata" src="assets/b121e915f646ba1203c0618cf1c4db1efc0639a7c40e20eefa5ed88b8fc12245.mp4"></video><p>六段简写相比原提示词，MF变化 +0.0034。</p><div class="scroll"><table><thead><tr><th>提示词</th><th class="mf">MF ↑<small>运动保真度·相对参考</small></th><th class="">SC ↑<small>主体一致性</small></th><th class="">BC ↑<small>背景一致性</small></th><th class="">TF ↑<small>时序稳定性</small></th><th class="">MS ↑<small>运动平滑度</small></th><th class="">VTSS ↑<small>编辑文本匹配</small></th><th class="">OSC ↑<small>整体语义一致性</small></th><th class="">PSC ↑<small>目标语义一致性</small></th><th class="">SF ↑<small>语义保真度</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="mf">-0.1960</td><td class="">0.8756</td><td class="">0.9422</td><td class="">0.9942</td><td class="">0.9959</td><td class="">0.0660</td><td class="">0.2432</td><td class="">0.2149</td><td class="">0.8867</td></tr><tr><th>六段简写 · 普通编辑</th><td class="mf">-0.1926<b class="best"> ✓</b></td><td class="">0.8776<b class="best"> ✓</b></td><td class="">0.9460<b class="best"> ✓</b></td><td class="">0.9946<b class="best"> ✓</b></td><td class="">0.9961<b class="best"> ✓</b></td><td class="">0.0669<b class="best"> ✓</b></td><td class="">0.2457<b class="best"> ✓</b></td><td class="">0.2217<b class="best"> ✓</b></td><td class="">0.8938<b class="best"> ✓</b></td></tr><tr><th>六段简写 − 原提示词</th><td class="mf">+0.0034</td><td class="">+0.0020</td><td class="">+0.0039</td><td class="">+0.0004</td><td class="">+0.0002</td><td class="">+0.0008</td><td class="">+0.0025</td><td class="">+0.0068</td><td class="">+0.0071</td></tr></tbody></table></div><div class="scroll"><table><thead><tr><th>提示词</th><th class="">IS ↑<small>指令满足度 /5</small></th><th class="">CF ↑<small>内容保真度 /5</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">5.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">4.0000</td></tr><tr><th>六段简写 − 原提示词</th><td class="">+0.0000</td><td class="">-1.0000</td></tr></tbody></table></div><details><summary>实际提示词与比较设置</summary><p>原提示词：详细六段格式，含场景与动作保留描述。两版采用相同seed、H3权重、Euler 20步、分辨率与采样帧数；均为普通编辑。</p><h3>原提示词</h3><pre>subject_definitions:
+&lt;Video 1&gt; is the source video for the target video edit and supplies its composition, camera, and temporal structure.
+Source caption: A man with a bald head and a black shirt is looking down and wiping his eye with his hand.
+&lt;Subject 1&gt; is the hand of the bald man in the black shirt in &lt;Video 1&gt;.
+&lt;Subject 2&gt; is the bald man, including his face and black shirt, in &lt;Video 1&gt;.
+&lt;Subject 3&gt; is the remaining source scene and objects in &lt;Video 1&gt;.
+
+summary:
+[video editing] The target video is an edited version of &lt;Video 1&gt;.
+Add a white handkerchief in the man&#x27;s hand
+
+retention_analysis:
+&lt;Subject 1&gt; (appears in [Shot 1]): partially_preserved - Apply the edit requested in the summary; preserve its other source properties and actions.
+&lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - Preserve these source people and objects, including their appearance and actions.
+&lt;Subject 3&gt; (appears in [Shot 1]): fully_preserved - Preserve the remaining source scene and objects.
+&lt;Video 1&gt; (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.
+
+detailed_description:
+[Shot 1] A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand
+The edited subject is &lt;Subject 1&gt;; the other source people and objects are &lt;Subject 2&gt;, and the remaining setting is &lt;Subject 3&gt;, as shown in &lt;Video 1&gt;.
+
+overall_soundscape:
+The benchmark specifies no audio edit.
+
+non_diegetic_music:
+The benchmark specifies no music edit.</pre><h3>六段简写</h3><pre>subject_definitions:
+&lt;Video 1&gt;: source video.
+
+summary:
+[video editing] Add a white handkerchief in the man&#x27;s hand
+
+retention_analysis:
+Not specified.
+
+detailed_description:
+Not specified.
+
+overall_soundscape:
+Not specified.
+
+non_diegetic_music:
+Not specified.</pre></details></section><section><h2>角色替换 — 浴室女子替换为医生</h2><p class="sub">IVEBench · short_0343 · Replace the woman with a doctor</p><video controls playsinline preload="metadata" src="assets/59d47164b4aeab7a5ef38abdee6ba1ae5dd5b2c5a0d27a52b3d4a3d15fe681c2.mp4"></video><p>六段简写相比原提示词，MF变化 +0.0110。</p><div class="scroll"><table><thead><tr><th>提示词</th><th class="mf">MF ↑<small>运动保真度·相对参考</small></th><th class="">SC ↑<small>主体一致性</small></th><th class="">BC ↑<small>背景一致性</small></th><th class="">TF ↑<small>时序稳定性</small></th><th class="">MS ↑<small>运动平滑度</small></th><th class="">VTSS ↑<small>编辑文本匹配</small></th><th class="">OSC ↑<small>整体语义一致性</small></th><th class="">PSC ↑<small>目标语义一致性</small></th><th class="">SF ↑<small>语义保真度</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="mf">-0.2757</td><td class="">0.8857</td><td class="">0.9511<b class="best"> ✓</b></td><td class="">0.9560</td><td class="">0.9892</td><td class="">0.0659</td><td class="">0.2165</td><td class="">0.1948<b class="best"> ✓</b></td><td class="">0.7669</td></tr><tr><th>六段简写 · 普通编辑</th><td class="mf">-0.2648<b class="best"> ✓</b></td><td class="">0.9611<b class="best"> ✓</b></td><td class="">0.9360</td><td class="">0.9644<b class="best"> ✓</b></td><td class="">0.9940<b class="best"> ✓</b></td><td class="">0.0665<b class="best"> ✓</b></td><td class="">0.2250<b class="best"> ✓</b></td><td class="">0.1728</td><td class="">0.7857<b class="best"> ✓</b></td></tr><tr><th>六段简写 − 原提示词</th><td class="mf">+0.0110</td><td class="">+0.0754</td><td class="">-0.0151</td><td class="">+0.0085</td><td class="">+0.0048</td><td class="">+0.0006</td><td class="">+0.0085</td><td class="">-0.0219</td><td class="">+0.0188</td></tr></tbody></table></div><div class="scroll"><table><thead><tr><th>提示词</th><th class="">IS ↑<small>指令满足度 /5</small></th><th class="">CF ↑<small>内容保真度 /5</small></th></tr></thead><tbody><tr><th>原提示词 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">2.0000</td></tr><tr><th>六段简写 · 普通编辑</th><td class="">5.0000<b class="best"> ✓</b></td><td class="">4.0000<b class="best"> ✓</b></td></tr><tr><th>六段简写 − 原提示词</th><td class="">+0.0000</td><td class="">+2.0000</td></tr></tbody></table></div><details><summary>实际提示词与比较设置</summary><p>原提示词：官方一句话指令。两版采用相同seed、H3权重、Euler 20步、分辨率与采样帧数；均为普通编辑。</p><h3>原提示词</h3><pre>Replace the woman with a doctor</pre><h3>六段简写</h3><pre>subject_definitions:
+&lt;Video 1&gt;: source video.
+
+summary:
+[video editing] Replace the woman with a doctor
+
+retention_analysis:
+Not specified.
+
+detailed_description:
+Not specified.
+
+overall_soundscape:
+Not specified.
+
+non_diegetic_music:
+Not specified.</pre></details></section></main></html>
