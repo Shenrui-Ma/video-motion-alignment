@@ -16,6 +16,7 @@ sys.path.insert(0, str(BATCH))
 import audit as audit_check
 import field_audit
 import layer_audit
+import role5_audit
 import summarize as metric_summary
 
 
@@ -186,11 +187,22 @@ def check_live(doc):
                     layer_audit.close(row.get('applied_energy'),sum(e*a*a for e,a in zip(energy,values)),'actual correction energy')
                 except (layer_audit.LayerAuditError,TypeError,KeyError,ZeroDivisionError) as error:
                     problems.append(f'step {n} layer {row.get("block")}: {error}')
-    elif doc.get('schema') == 'h3-temporal-gain-field-v1':
+    elif doc.get('schema') in ('h3-temporal-gain-field-v1','h3-temporal-gain-field-role5-v1'):
         for forward in doc.get('feature_forward_summaries', []):
             for row in forward.get('layers', []):
                 try:
-                    field_audit.check_layer(row)
+                    checked=row
+                    if doc['schema']=='h3-temporal-gain-field-role5-v1':
+                        bins=row['latent_bin_indices'];lo,hi=bins[0],bins[-1]+1
+                        mask=[lo+5<=i<hi-5 for i in bins]
+                        shadow=forward['forward'] in (0,9,19) and row['block'] in (8,25,42) and len(bins)>=11
+                        field_audit.require(row['role5_mask']==mask,'live role5 mask')
+                        field_audit.require(row['neighbor_previous']==[max(lo,i-(5 if m else 1)) for i,m in zip(bins,mask)],'live previous indices')
+                        field_audit.require(row['neighbor_following']==[min(hi-1,i+(5 if m else 1)) for i,m in zip(bins,mask)],'live following indices')
+                        field_audit.require(('shadow' in row)==shadow and row['shadow_attention_calls']==2*shadow,'live shadow schedule')
+                        field_audit.require(row['attention_calls']==5+2*shadow,'live role5 call count')
+                        checked=dict(row,attention_calls=5)
+                    field_audit.check_layer(checked)
                 except (field_audit.FieldAuditError,TypeError,KeyError,ZeroDivisionError) as error:
                     problems.append(f"step {row.get('forward')} layer {row.get('block')}: {error}")
     elif doc.get('schema') == 'h3-temporal-coverage-blend':
@@ -279,13 +291,15 @@ def inspect_row(plan, row, producer, output):
         method = plan['metadata']['method']
         expected_mode = {'dynamic_dof': 'dynamic_strength_dof', 'heads_budget': 'heads_budget',
                          'fixed0375': 'fixed', 'dynamic_anchor':'anchor', 'temporal_gain_field':'gain_field',
-                         'causal_layer_budget':'layer_budget'}.get(method)
+                         'causal_layer_budget':'layer_budget','temporal_gain_field_role5':'gain_field'}.get(method)
         if expected_mode and doc.get('feature_config', {}).get('mode') != expected_mode:
             out['issues'].append('audit feature mode differs from planned method')
         if method == 'coverage_blend25' and doc.get('schema') != 'h3-temporal-coverage-blend':
             out['issues'].append('coverage blend audit schema mismatch')
         if method == 'dynamic_anchor' and doc.get('schema') != 'h3-anchored-guidance-v1':
             out['issues'].append('anchor audit schema mismatch')
+        if method == 'temporal_gain_field_role5' and doc.get('schema') != 'h3-temporal-gain-field-role5-v1':
+            out['issues'].append('role5 audit schema mismatch')
         out['issues'].extend(check_live(doc))
         out['completed_forward_calls'] = doc.get('completed_forward_calls', 0)
         out['alpha_curve_file'] = 'alpha_curves/' + plan['id'] + '.json'
@@ -312,6 +326,7 @@ def inspect_row(plan, row, producer, output):
             try:
                 check = {'coverage_blend25':audit_check.check_coverage_blend,
                          'temporal_gain_field':field_audit.check_field,
+                         'temporal_gain_field_role5':role5_audit.check_role5,
                          'causal_layer_budget':layer_audit.check_layer_budget,
                          'dynamic_anchor':audit_check.check_anchor}.get(plan['metadata']['method'],audit_check.check_feature)
                 out['complete_audit'] = check(doc)

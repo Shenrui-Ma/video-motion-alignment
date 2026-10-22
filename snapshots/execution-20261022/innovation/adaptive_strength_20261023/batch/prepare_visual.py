@@ -15,7 +15,7 @@ FONT = "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"
 LABELS = {"source": "参考视频", "native": "Baseline", "global_weak": "α = 0.25",
           "dynamic_dof": "动态 α（维数校准）", "heads_budget": "Attention head 分配",
           "coverage_blend25": "同时间与跨时刻混合", "fixed0375": "α = 0.375",
-          "dynamic_anchor": "动态 α（首步校准）", "temporal_gain_field":"动态 α（按视频时间分配）", "causal_layer_budget":"动态 α（按层分配）"}
+          "dynamic_anchor": "动态 α（首步校准）", "temporal_gain_field":"动态 α（按视频时间分配）", "temporal_gain_field_role5":"动态 α（同位置组切向）", "causal_layer_budget":"动态 α（按层分配）"}
 
 
 def digest(path):
@@ -61,7 +61,7 @@ def main():
     parser.add_argument("--sha256", required=True)
     args = parser.parse_args()
     jobs = json.loads((P / "jobs.json").read_text())["jobs"]
-    for extra in ("anchor_pilots/jobs.json","field_pilots/jobs.json","layer_pilots/jobs.json"):
+    for extra in ("anchor_pilots/jobs.json","field_pilots/jobs.json","layer_pilots/jobs.json","field_extension_two/jobs.json","role5_pilots/jobs.json"):
         extra_plan = P / extra
         if extra_plan.is_file():
             jobs += json.loads(extra_plan.read_text())["jobs"]
@@ -76,14 +76,17 @@ def main():
     dest.mkdir(parents=True, exist_ok=True)
     extract(args.video, dest / "frames", count)
     sheet(dest / "frames", range(0, count, 4), dest / "overview.jpg", LABELS[method])
-    crop = (0, 65, 430, 380) if task == "short_0358" else (108, 60, 552, 432)
+    crop = {'short_0358':(0,65,430,380), 'short_0252':(108,60,552,432)}.get(task)
     for start in range(0, count, 36):
         sheet(dest / "frames", range(start, min(count, start + 36)),
               dest / f"detail_{start:03d}.jpg", LABELS[method], crop=crop)
     manifest = json.loads((E / "metrics/manifest.json").read_text())["jobs"]
     controls = [next(j for j in manifest if j["task_id"] == task and j["method"] == m)
                 for m in ("source", "native", "global_weak")]
-    videos = [OLD / task / (j["method"] + ".mp4") for j in controls] + [args.video]
+    control_root = OLD / task
+    if not control_root.is_dir():
+        control_root = OUT.parent / 'controls' / task
+    videos = [control_root / (j["method"] + ".mp4") for j in controls] + [args.video]
     for video, control in zip(videos, controls):
         assert digest(video) == control["sha256"], "Historical control SHA mismatch"
         assert control["valid_frames"] == count

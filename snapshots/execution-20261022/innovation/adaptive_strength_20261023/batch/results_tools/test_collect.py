@@ -14,6 +14,28 @@ import test_layer_audit
 
 
 class CollectorTests(unittest.TestCase):
+    def test_role5_method_requires_its_schema_and_valid_neighbor_evidence(self):
+        doc=test_field_audit.document();doc['run_id']='role5__a1'
+        doc['schema']='h3-temporal-gain-field-role5-v1'
+        doc['shadow_schedule']={'steps':[0,9,19],'layers':[8,25,42]}
+        for forward in doc['feature_forward_summaries']:
+            for row in forward['layers']:
+                n=len(row['alpha']);self.assertEqual(n,3)
+                row.update(latent_bin_indices=list(range(n)),role5_mask=[False]*n,
+                           neighbor_previous=[0,0,1],neighbor_following=[1,2,2],
+                           shadow_attention_calls=0,seam_bin_indices=[],seam_statistics=[])
+        self.assertEqual(collect.check_live(doc),[])
+        plan={'id':'role5','metadata':{'task_id':'test_case','method':'temporal_gain_field_role5'}}
+        row={'queue_state':{'status':'completed','attempts':1},'actual_attempt_id':'role5__a1',
+             'result':{'data':{'job_id':'role5','attempt_id':'role5__a1'}},'audit':{'data':doc},
+             'media':[{'status':'verified'}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(collect.inspect_row(plan,row,'synthetic',Path(tmp))['status'],'verified')
+            bad=copy.deepcopy(row);bad['audit']['data']['schema']='h3-temporal-gain-field-v1'
+            self.assertEqual(collect.inspect_row(plan,bad,'synthetic',Path(tmp))['status'],'attention_required')
+            bad=copy.deepcopy(row);bad['audit']['data']['feature_forward_summaries'][2]['layers'][0]['neighbor_previous'][1]=1
+            self.assertEqual(collect.inspect_row(plan,bad,'synthetic',Path(tmp))['status'],'attention_required')
+
     def test_layer_full_trace_and_live_noncausal_failure(self):
         doc=test_layer_audit.synthetic_trace(steps=20,blocks=50);doc['run_id']='layer__a1'
         self.assertEqual(collect.check_live(doc),[])
