@@ -1,0 +1,59 @@
+{
+  "schema": "h3-live-content-phase-calibration-plan-v1",
+  "status": "frozen_before_new_videos",
+  "case_id": "short_0358",
+  "methods": [
+    "native",
+    "global_weak"
+  ],
+  "observation": {
+    "steps_zero_based": [
+      9,
+      19
+    ],
+    "layer_zero_based": 25,
+    "spatial_probes": 8,
+    "heads": "all_56",
+    "key_support": "all_valid_reference_bins",
+    "event_use": "group query rows only after complete output annotation"
+  },
+  "source_video_provenance": {
+    "sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+    "job_id": "short_0358__source"
+  },
+  "events": [
+    {
+      "id": "bottle_lowered",
+      "source_interval_frames": [
+        14,
+        18
+      ],
+      "native_interval_frames": null,
+      "global_weak_interval_frames": null
+    },
+    {
+      "id": "bottle_reaches_lips",
+      "source_interval_frames": [
+        37,
+        40
+      ],
+      "native_interval_frames": null,
+      "global_weak_interval_frames": null
+    },
+    {
+      "id": "bottle_leaves_lips",
+      "source_interval_frames": [
+        80,
+        84
+      ],
+      "native_interval_frames": null,
+      "global_weak_interval_frames": null
+    }
+  ],
+  "preserve_event_set": true,
+  "new_annotation_rule": "Use complete new final videos and the same event definitions/source; retain every event and interval. Do not copy old native or weak intervals. Invisible events remain explicit missing observations.",
+  "old_video_status": "historical controls retained separately; not the new capture trajectory",
+  "release_rule": "Only use captures from their own complete 20-step audited trajectory and SHA-bound new final video; no failed historical replay gate substitution.",
+  "numerics": "Existing FP32 RMS content definition and FP64 all-head sparse LSE unchanged; separate pre-frozen QK numerical oracle required.",
+  "alpha_control_deployed": false
+}

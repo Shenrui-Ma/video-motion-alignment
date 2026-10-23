@@ -1,0 +1,6 @@
+本轮已完成：26项CPU测试通过；DESIGN.md、CACHE_AND_CAPTURE.md、TEST_RESULTS.json、NUMERICAL_EXAMPLES.json齐全。
+结论：只值得下一步被动信号校准，尚不放行新动态alpha控制器。外观/真实延后的不可辨识、静态/周期、role掩盖小移位、稀疏遗漏等负例成立；当前Attention已固定Q/K，alpha输出修正对原p的导数为0，混合后p的误差自动收缩属于循环目标。
+缓存已实际CPU只读核查：四份native/weak均有20个x0文件；step9含完整video/audio；初始noise也有完整两流，CUDA未初始化。x0不是实际x_n，尚不能直接复用。
+下一最小动作：严格按实际Euler、sigma顺序、nested两流、audio_scale=4、normalization和noise_scale恢复x_n；保持FP32运算次序和完整条件/权重身份。再以相同步旧保存x0做一次独立前向核验，video/audio分别比较，不能仅端点比较；通过后才抓Q/K。若身份或同状态核验失败，再考虑四条完整控制重放，不重建video-only状态。
+预定采集：饮酒0358/手帕0059的native+weak，零基层25、步9/19、固定8 probes、全部heads；先做Q_C/Q_R/K_R被动观察及source self校准，无控制变化。完整raw约103.7MiB留远端，只回小结果。
+未做：未实现/部署采集hook，未提交GPU、重放、VAE或新视频，未改运行节点、队列、其他报告。

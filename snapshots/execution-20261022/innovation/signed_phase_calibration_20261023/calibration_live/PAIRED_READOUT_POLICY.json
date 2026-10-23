@@ -1,0 +1,29 @@
+{
+  "schema": "h3-live-paired-content-readout-policy-v1",
+  "frozen_before_new_outputs": true,
+  "plan_sha256": "d0a3b95f861b0392b1dcef2cdb7122209758a5d80f3130ae3e50fc1841b90d78",
+  "primary_query_support": "identical physical query bins for native and weak, all valid times retained",
+  "primary_paired_quantity": "E_pweak[reference frame]-E_pnative[reference frame] at the same query time, separately by each head and probe",
+  "event_summary_query_support": "only frozen source intervals, identical in the two trajectories",
+  "generated_event_selected_rows": "descriptive only; never evidence of phase-readout validity",
+  "mandatory_diagnostics": [
+    "reference-self drift",
+    "self-drift-subtracted paired signal",
+    "time-constant bias removed, separate from raw signal"
+  ],
+  "negative_controls": [
+    "uniform probability independent of output event time",
+    "known synthetic two-bin content delay",
+    "reference-only drift",
+    "temporal permutation",
+    "constant appearance bias",
+    "missing source event support"
+  ],
+  "selection": "all56heads/all8probes; no head/step/window choice from result",
+  "observation_steps": [
+    9,
+    19
+  ],
+  "controller_deployed": false,
+  "phase_validity_decision": "assess both steps, every predefined event and null controls; do not infer from only event-selected phase means"
+}

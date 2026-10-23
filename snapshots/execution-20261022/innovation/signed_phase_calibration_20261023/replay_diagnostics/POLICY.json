@@ -1,0 +1,33 @@
+{
+  "schema": "h3-passive-qk-numerical-diagnostic-policy-v1",
+  "frozen_before_capture_result": true,
+  "expected_dtype": "torch.bfloat16",
+  "expected_geometry": {
+    "heads": 56,
+    "head_dim": 128,
+    "rot_dim": 96,
+    "spatial_probes": 8
+  },
+  "head_gate": {
+    "nrmse": 0.01,
+    "p99_abs_over_actual_rms": 0.03,
+    "max_abs_over_actual_rms": 0.1,
+    "aggregation": "all heads separately for all3 branches, full128 channels",
+    "rms_floor": 1e-08
+  },
+  "primary_reference": "literal frozen eager _rms_rope1; H3 partial96/128 triton entry delegates to eager",
+  "extra_diagnostics": [
+    "rot96",
+    "tail32",
+    "exact_fraction",
+    "explicit_FP32_RMS_then_cast_normdtype",
+    "inverse_actual_matrix_to_pre_RoPE_materialized_norm"
+  ],
+  "dtype_other_than_BF16": "hold_requires_new_prefrozen_policy",
+  "does_not_modify_historical_AV_gate": true,
+  "semantic_phase_validated": false,
+  "sources": {
+    "eager_sha256": "aee33a18bb5fe75ce24ebad389b830c9d5775d52723fc7df4864598547b2257c",
+    "triton_sha256": "68a5760334a9cfd72717374f2107d5260d3b86683b9b6205bbc2f00c1ad08e6e"
+  }
+}

@@ -1,0 +1,17 @@
+Status: CPU implementation complete; review-only first probe. No GPU was started by this agent.
+
+36 CPU tests passed, including actual frozen KSAMPLER/CFGGuider predict and original H3 Attention.forward with the real eager in-place RMS+RoPE. The original KSAMPLER internal k_callback is accepted but never called. Each finite sampler calls the original model-predict wrapper once at historical step9 (not step0), retaining full21 sigmas and complete AV.
+
+Four historical trajectories were reconstructed with the original FP32 Euler operation order. All4 final video and audio tensors match the recorded sampler endpoint elementwise. RECONSTRUCT_VALIDATED_41/9 additionally rechecked every original x0 metadata/tensor/file and final signature using final reconstruct.py. Historical intermediate noisy x_n was not saved; the next gate compares an actual same-state predicted x0 against the old step9 x0, so endpoint agreement is not used as sufficient release evidence.
+
+First graph: first_probe/graph.json, diff: first_probe/GRAPH_DIFF.json. Scope is short_0358 native, step9, layer25. It performs exactly two model forwards (capture off/on), writes no old audit path, runs no VAE, does not generate a video and does not execute a20step trajectory. Original native Flash override remains active via H3StudySchedule fixed with same frozen core, alpha1/native and original step6..14 membership. Noise uses the original SHA-pinned two-stream file; conditioning uses existing verified H3TrustedConditionCache. Model/shift/full sigma graph nodes are unchanged. Existing x0 recorder and all original writers are removed or moved to isolated output paths before construction.
+
+Resource owner stages the package as H3PassiveReplay custom node plus the graph; parent must authorize actual launch after independent review and path/source identity check. The first diagnostic runs only on the isolated .81 service, with its existing memory budget. The code does not submit itself or modify any active manifest.
+
+Frozen gates: hook off/on fullFP32 AV elementwise equality. Historical x0 for each stream: NRMSE<=1e-4, P99abs/oldRMS<=1e-3, maxabs/oldRMS<=1e-2. Shape,dtype,metadata,source/cache/video/graph identities must match. Failure records REPLAY_GATE passed=false and stops; no automatic tolerance change, whole-video replay or next capture.
+
+Output: <isolated root>/gate_short0358_native_step009/{off,on}/denoised.pt; on/qk.pt; REPLAY_GATE.json. Only passed receipt releases Q/K to calibration. gate.qk_sha256 and original_video_sha256 bind capture to exact displayed historical control; capture.forward_identity equals gate.input_identity.
+
+Capture preserves raw preNorm/preRoPE and actual postNorm/RoPE Q_C,Q_R,K_R [T,8,56,128], true RMS weights/eps, actual rotation matrices and packed positions. The full geometry is saved; complete physical-time masks exclude partial/padded bins (drink105frames->31/32 bins, handkerchief144->42/47). Six BF16 tensors for all8 planned captures are about207MiB remote, not local. This observes attention content retrieval; it has not been validated as generated action phase.
+
+CPU rerun: CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python -m unittest -v test_replay test_one_forward test_noise_graph, from this package. Remote CPU fixture: H3_HOST_SECONDARY /tmp/h3_signed_phase_replay_20261023/cpu_package. Temporary source/state directories retained for pending gate; no GPU loaded.
