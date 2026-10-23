@@ -1,0 +1,49 @@
+{
+  "schema": "temporal-gain-field-prototype-v1",
+  "status": "CPU_verified_prototype_only",
+  "created_at": "2026-10-23T03:32:14.903991",
+  "files_sha256": {
+    "prototype.py": "fb933955d9021bc2db8b69456c5624623de6f916db04eed98ac97db123d8ec22",
+    "test_temporal_gain_field.py": "a4c89a53766113546bd97f1b799165b3ab37a6a72d5fa1f306e6f41dca496a8e",
+    "benchmark_cpu.py": "abd25af7d838011d32c710c2d859121a5594b8b041637e810bd0f50be9ad18b8",
+    "DESIGN.md": "2dc494a2cbbde662b8e5f67f23d1b02bab02a101e7e579dd738b9c948a6ab2ed",
+    "LAYER_NEXT.md": "4eda852fd6e129030c2ec74ba42da16ea4883519b4be1e98e06949e11d967418"
+  },
+  "tests": {
+    "count": 19,
+    "passed": true,
+    "evidence": "test_result.json"
+  },
+  "cpu_timing": {
+    "scope": "synthetic CPU-only; excludes GPU synchronization, copies and attention; not measured inference overhead",
+    "python": "3.10.19",
+    "torch": "2.5.1+cu121",
+    "threads": 1,
+    "rows": [
+      {
+        "bins": 29,
+        "calls": 1000,
+        "mean_ms": 0.8811745122075081,
+        "median_ms": 0.8734893053770065,
+        "p95_ms": 0.9388290345668793,
+        "max_active_set_iterations": 2,
+        "failed_segments": 0,
+        "projected_cpu_seconds_per_20_steps_50_layers": 0.8811745122075081
+      },
+      {
+        "bins": 41,
+        "calls": 1000,
+        "mean_ms": 0.9290746562182903,
+        "median_ms": 0.9201373904943466,
+        "p95_ms": 1.0032616555690765,
+        "max_active_set_iterations": 2,
+        "failed_segments": 0,
+        "projected_cpu_seconds_per_20_steps_50_layers": 0.9290746562182903
+      }
+    ],
+    "host": "H3_HOST_CONFIGURE_LOCALLY",
+    "CUDA_VISIBLE_DEVICES": ""
+  },
+  "deployment": "none",
+  "updated_at": "2026-10-23T03:49:09.491728+08:00"
+}

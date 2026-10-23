@@ -1,0 +1,139 @@
+{
+  "status": "actual_sampling_verified",
+  "time": 1792737486.9094386,
+  "worker": {
+    "state": "owned_alive",
+    "pid": 460761,
+    "uid": 1004,
+    "start_ticks": "4748685"
+  },
+  "service": {
+    "state": "owned_alive",
+    "pid": 460766,
+    "uid": 1004,
+    "start_ticks": "4748715"
+  },
+  "api": [
+    {
+      "prompt_id": "7dc5587c-9932-4fba-84c3-d9faad1b5257",
+      "job_id": "expand_short_0362_native"
+    }
+  ],
+  "locks": {
+    "worker.lock": true,
+    "queue_state/runner.lock": true
+  },
+  "audit": {
+    "path": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/router/expand_short_0362_native__a1.json",
+    "sha256": "739ed7ce6896cd78c58348eba6a6023e14d2db6f5e59b5c5103f9f1490c18a56",
+    "completed_forward_calls": 1,
+    "native_override_calls": 50,
+    "routed_calls": 0
+  },
+  "gpu7": "GPU-REPLACE-WITH-DEVICE-UUID, 51, 301.42 W, 11734 MiB, 100 %\n",
+  "backend": {
+    "schema": "h3-backend-dispatch-audit-v1",
+    "pid": 460766,
+    "started_unix_ns": 1792737069440952857,
+    "flush_every": 1000,
+    "count_semantics": "Attempted calls to backend exports, including nested backend delegation.",
+    "count_freshness": "Periodic snapshots may lag; flush() or normal process exit captures current counts.",
+    "backends": {
+      "cuda": {
+        "status": "imported"
+      },
+      "triton": {
+        "status": "imported"
+      },
+      "eager": {
+        "status": "imported"
+      }
+    },
+    "operations": {
+      "cuda.int8_linear": {
+        "status": "installed",
+        "attempted_calls": 1,
+        "successful_calls": 1,
+        "failed_calls": 0,
+        "registry_resolves_wrapper": true,
+        "wraps_existing_row_guard": false,
+        "first_call": {
+          "unix_ns": 1792737445538926720,
+          "tensor_arguments": {
+            "x": {
+              "shape": [
+                45557,
+                5376
+              ],
+              "dtype": "torch.bfloat16",
+              "device": "cuda:0"
+            },
+            "weight": {
+              "shape": [
+                21504,
+                5376
+              ],
+              "dtype": "torch.int8",
+              "device": "cuda:0"
+            },
+            "weight_scale": {
+              "shape": [
+                21504,
+                1
+              ],
+              "dtype": "torch.float32",
+              "device": "cuda:0"
+            }
+          },
+          "outcome": "returned"
+        }
+      },
+      "cuda.w4a8_int8_linear": {
+        "status": "installed",
+        "attempted_calls": 0,
+        "successful_calls": 0,
+        "failed_calls": 0,
+        "registry_resolves_wrapper": true,
+        "wraps_existing_row_guard": false
+      },
+      "triton.int8_linear": {
+        "status": "installed",
+        "attempted_calls": 0,
+        "successful_calls": 0,
+        "failed_calls": 0,
+        "registry_resolves_wrapper": true,
+        "wraps_existing_row_guard": true
+      },
+      "triton.w4a8_int8_linear": {
+        "status": "installed",
+        "attempted_calls": 0,
+        "successful_calls": 0,
+        "failed_calls": 0,
+        "registry_resolves_wrapper": true,
+        "wraps_existing_row_guard": false
+      },
+      "eager.int8_linear": {
+        "status": "installed",
+        "attempted_calls": 0,
+        "successful_calls": 0,
+        "failed_calls": 0,
+        "registry_resolves_wrapper": true,
+        "wraps_existing_row_guard": false
+      },
+      "eager.w4a8_int8_linear": {
+        "status": "installed",
+        "attempted_calls": 0,
+        "successful_calls": 0,
+        "failed_calls": 0,
+        "registry_resolves_wrapper": true,
+        "wraps_existing_row_guard": false
+      }
+    },
+    "logging_errors": []
+  },
+  "logtail": "ization\n\u001b[32m[INFO]\u001b[0m Using mixed precision operations\n\u001b[32m[INFO]\u001b[0m Native ops: float8_e5m2, asym_w4a8_int8, convrot_w4a4, int8_tensorwise, float8_e4m3fn , emulated ops: mxfp8, nvfp4\n\u001b[32m[INFO]\u001b[0m model weight dtype torch.bfloat16, manual cast: torch.bfloat16\n\u001b[32m[INFO]\u001b[0m model_type FLOW_AV\n\u001b[32m[INFO]\u001b[0m Requested to load MiniMaxH3\n\u001b[32m[INFO]\u001b[0m Unloaded partially: 7043.43 MB freed, 7916.78 MB remains loaded, 710.94 MB buffer reserved, lowvram patches: 0\n\u001b[32m[INFO]\u001b[0m loaded completely; 27330.27 MB usable, 19996.14 MB loaded, full load: True\n\n  0%|          | 0/20 [00:00<?, ?it/s]\n  5%|\u258c         | 1/20 [00:29<09:21, 29.57s/it]",
+  "tests": {
+    "inherited_pair_guard": 6,
+    "metrics_expected_unique": true
+  }
+}

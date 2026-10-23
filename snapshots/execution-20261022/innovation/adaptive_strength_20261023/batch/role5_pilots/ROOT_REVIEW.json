@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "review_scope": "source diff against frozen field, Q/K/V layout, same-Q shadow isolation, own anchors, unchanged QP/boundaries; independent torch-free audit failure injection",
+  "cpu_fixture_sha256": "b5c4ebfe89c60ea64d11199755e84f29ec89586af5b226f970f87e47669b1d39",
+  "full_wrapper_audit": {
+    "passed": true,
+    "status": "passed",
+    "forwards": 20,
+    "blocks": 1000,
+    "alpha_min": 0.2354431450366974,
+    "alpha_max": 0.2650091052055359,
+    "alpha_mean": 0.24941565749843916,
+    "solver_failures": 0,
+    "max_kkt": 7.247941002930247e-08,
+    "created_bin_anchors": 650,
+    "schema": "h3-temporal-gain-field-role5-v1",
+    "shadow_calls": 9,
+    "additional_probe_attention_calls": 18,
+    "seam_records_checked": 4000,
+    "shadow_anchors": 15,
+    "input_modified": false
+  },
+  "rejected_mutations": {
+    "wrong_neighbor": "previous indices",
+    "role_mask": "role5 interior mask",
+    "output_alpha": "applied bin energy",
+    "first_step_gain": "first-step prior",
+    "shadow_count": "shadow call count",
+    "missing_shadow": "missing/unexpected shadow",
+    "shadow_anchor": "shadow anchor changed",
+    "shadow_false_common_Q": "shadow shared-input contract",
+    "shadow_nan": "shadow finite statistics",
+    "seam_alpha": "seam alpha",
+    "nonfinite_output": "inactive/nonfinite field",
+    "wrong_smoothness": "frozen QP parameters"
+  },
+  "ready_sha256": "8b5e0b52adb7dcaa738fd5985d66bf7c112cc4530e2d8f220d1ade4045b20b2b",
+  "adapter_sha256": "e8834bf06877323980a073c6228de827547fa1ff5f1df185c6f692d363be0f19",
+  "adapter_change": "imports only: base_audit -> existing identical field_audit",
+  "gpu_evidence": false,
+  "collector_integration": {
+    "tests": 21,
+    "passed": true,
+    "complete_real_wrapper_cpu": "verified 20x50 with 9 shadow records",
+    "evidence_kind": "CPU integration, not video inference",
+    "checked_at": "2026-10-23T05:23:35.886788+08:00"
+  }
+}

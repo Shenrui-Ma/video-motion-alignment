@@ -1,0 +1,15 @@
+【用户结束本批未开始任务】2026-10-22撤出short0114/crouch/long0167，保留short0343当前推理；本CPUguard105514已单独停止。详见../../../../temporal_coverage/host41/after_partial7/HANDOFF.txt，勿恢复原8条guard。
+
+部分时间RoPE频带：同主10组剩余8条
+
+Guard: .41 scripts/partial_remaining8_handoff.py, PID105514/start1202597/UID1004。
+新guard只等待两pilot completed，核验每条20forward/1000block、finite/nonzero correction、delta derivation、MP4 SHA与20步timing，通过后等待旧worker/service自然结束，再原子更新38→46任务清单并启动一条worker。持有独立guard锁及全局activation锁，不启动并行视频推理。
+新receipt/status前缀partial_remaining8。旧partial_failover guard维持原职能、自然结束；已撤销旧partial guard不恢复。
+
+仅节点50的干预方法与节点14的输出前缀变更；其余节点逐字段相同。8条graph SHA冻结，66项输入/cache/节点/启动脚本SHA远端核对通过，在线H3PartialRoPE schema通过，7项CPU测试通过。
+20步全程、alpha.25、全部50层、pairs8–15、整段有效时间，delta_mode=reference_origin。
+真实缓存CPU重建且未初始化CUDA：long0039 Δ=-107，long0059 Δ=-158，short0085与short0274 Δ=-73。四条新输入通过原H3StudyReference计算conditioning，运行时从PackedLayout验证全部时间bin后求delta，严禁统一硬编码-107。
+
+等待两pilot完成期间已经启动CPU guard；active manifest仍由实际远端激活receipt决定，非预先标记完成。
+
+已激活：manifest46，worker109058/start1218569，service109103/start1218603。首条long0039 API running；main10 partial另8条已顺序接续。两pilot verification和activation receipt存于同目录；后续guard将对8条分别执行相同audit/成片SHA/timing检查。

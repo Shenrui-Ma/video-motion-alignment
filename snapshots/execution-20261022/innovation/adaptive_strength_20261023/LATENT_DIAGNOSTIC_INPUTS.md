@@ -26,7 +26,7 @@
 
 ## 确切输入路径
 
-`.41` 的 SSH alias 为 `H3_HOST_PRIMARY`；`.9` 为 `H3_HOST_SECONDARY`。以下远端目录已实际读到 complete manifest，21 个 `.pt` 均有 stat，未读取大张量。
+`.41` 的 SSH alias 为 `H3_HOST_CONFIGURE_LOCALLY`；`.9` 为 `H3_HOST_CONFIGURE_LOCALLY`。以下远端目录已实际读到 complete manifest，21 个 `.pt` 均有 stat，未读取大张量。
 
 ### 饮酒：三份都在 .41
 

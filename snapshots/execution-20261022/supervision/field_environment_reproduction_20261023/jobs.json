@@ -1,0 +1,67 @@
+{
+  "jobs": [
+    {
+      "id": "environment_short0358_temporal_gain_field_20261023",
+      "graph": "graphs/temporal_gain_field_graph.json",
+      "metadata": {
+        "original_task": {
+          "id": 358,
+          "src_video_name": "short_0358.mp4",
+          "category": "subject_editing",
+          "subcategory": "add new subject",
+          "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+          "edit_prompt": "Add a pair of glasses to the man.",
+          "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+          "target_span": "glasses",
+          "target_phrase": "the man is wearing a pair of glasses"
+        },
+        "evaluation_metadata": {
+          "id": 358,
+          "src_video_name": "short_0358.mp4",
+          "category": "subject_editing",
+          "subcategory": "add new subject",
+          "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+          "edit_prompt": "Add a pair of glasses to the man.",
+          "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+          "target_span": "glasses",
+          "target_phrase": "the man is wearing a pair of glasses"
+        },
+        "task_id": "short_0358",
+        "benchmark": "IVEBench",
+        "title": "外观编辑 — 给饮酒男子戴眼镜",
+        "reference_image": null,
+        "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "recommended_prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "prompt_protocol": "historical_R149_R150_preserved",
+        "seed": 2026101701,
+        "valid_frames": 105,
+        "fps": 24,
+        "evaluation_crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ],
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 107,
+          "fps": 24
+        },
+        "sampling_steps": 20,
+        "cohort": "field_environment_reproduction",
+        "method": "temporal_gain_field",
+        "reference_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/source.mp4",
+        "source_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/source.mp4",
+        "host": "H3_HOST_CONFIGURE_LOCALLY",
+        "remote_root": "/data/research-user/h3_inference_20261023/field_environment_reproduction_20261023",
+        "actual_producer": "host81_field_environment_reproduction",
+        "comparison_scope": "one frozen original temporal_gain_field trajectory compared with the new native/global_weak controls in the same runtime; separate environment reproduction cohort",
+        "producer_host": "host81_field_environment_reproduction",
+        "purpose": "single frozen original-field reproduction under the new live control environment"
+      },
+      "max_attempts": 1,
+      "expected_output_prefix": "environment_short0358_temporal_gain_field_20261023/"
+    }
+  ]
+}

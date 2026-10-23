@@ -1,0 +1,9 @@
+状态：reference-only 可辨识性提案与 NumPy 合成 oracle 已完成；不进入 GPU/动态控制。
+
+DESIGN.md给出两类读出：中心化线性时间码的列空间/谱增益条件；完整概率指纹的 Hellinger候选集合与分辨率证书。优先推荐后者做诊断，前者用于揭示逆问题放大，而非训练集拟合后直接部署。
+12项CPU测试覆盖非对角置换仍可辨识、静态、五角色周期别名、秩一可恢复标量、近静态病态逆、Cauchy误差界、空间probe留出失败、外观伪装不可辨识、双峰均值假时间、分离证书、已知content shift/列置换、支持与非法输入拒绝。
+
+真实数据尚未拟合。下一最小动作需新reference-only契约：仅远端已有NPZ内qrn_kn/qrw_kw；固定layer25、steps9/19、全56heads/8probes/31valid bins，偶奇probe双向留出，报告全距离/谱/分辨率曲线，不读取generated输出收益调head或阈值。
+即使reference验证通过，外观变化可与真实时间移位产生相同指纹，故仍缺generated域的语义辨识与alpha方向导数。
+
+原calibration_live政策与actual_run_20261023结论、READY、queues、视频、报告均未修改。本目录无模型加载、网络或GPU执行。

@@ -1,6 +1,6 @@
 # 跨输出时刻分配参考视频时间覆盖
 
-状态：独立 CPU 原型；未接入主 64 条推理。新增文件全部位于本目录，冻结 `inference/package/custom_nodes/H3Study/{core,layout,schedule}.py` 保持原样。模块导入不会注册节点、patch 模型或连接服务；`enabled=False` 是适配器默认值。
+状态：独立 CPU 原型，已增加 Comfy 节点入口；未运行 GPU 视频实验。新增文件全部位于本目录，冻结 `inference/package/custom_nodes/H3Study/{core,layout,schedule}.py` 保持原样。包导入只公布节点映射，不 patch 模型或连接服务；`enabled=False` 为默认值。
 
 ## 研究假设和现有修正的关系
 
@@ -61,7 +61,7 @@ candidate = attach_h3_coverage(
 
 ## 验证与待验证项
 
-在既有 H3_SERVER_A `comfyui` Python 环境运行 CPU 小张量测试，显式设置 `CUDA_VISIBLE_DEVICES=''`、`OMP_NUM_THREADS=1`、`MKL_NUM_THREADS=1`。可复跑入口（工作目录为本包父目录）：
+在既有 H3_HOST_CONFIGURE_LOCALLY `comfyui` Python 环境运行 CPU 小张量测试，显式设置 `CUDA_VISIBLE_DEVICES=''`、`OMP_NUM_THREADS=1`、`MKL_NUM_THREADS=1`。可复跑入口（工作目录为本包父目录）：
 
 ```sh
 CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -m temporal_coverage.verify_cpu
@@ -70,3 +70,43 @@ CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -m temporal_c
 测试覆盖：行概率、列覆盖上界、所有输出偏好同一参考时刻、边界邻域、倒序均值修复、padding/NaN 隔离、identity、自定义 support、不可行/低信号/未收敛回退、质量估计与小 dense oracle 一致、临时 matmul 形状上界、开关和 α=0、原生输出回退、每 query 参考总概率保持、窗口外和非参考权重不变、输入不被原地修改。
 
 证据见 `cpu_validation.json`、`cpu_test_output.txt`，包含 Python/Torch 版本、源码 SHA-256、测试计数及 `cuda_initialized_after_tests=false`。本地另通过 `py_compile` 语法检查。未运行 CUDA/Flash、ComfyUI 模型 patch 的完整集成、H3 推理、VAE 解码、视频指标或性能测量；也未修改主任务图、运行服务及冻结 core。
+
+
+## 2026-10-22 Comfy 节点接入
+
+节点类型 `H3TemporalCoverage`，输入 MODEL、positive CONDITIONING，输出一个 MODEL，执行函数 `apply`。复制本目录为独立 custom_nodes 包，冻结 H3Study 位于同级目录，或用 `H3_COVERAGE_FROZEN_ROOT` 指定其绝对路径。第一次启用时验证 core/layout/schedule 三个 SHA-256，再导入现有实现。关闭节点直接返回原 model 对象，不读取冻结依赖或创建 audit。
+
+用于当前20步全程弱引导对比的节点输入：
+
+```json
+{
+  "class_type": "H3TemporalCoverage",
+  "inputs": {
+    "model": ["FRESH_MODEL_NODE_ID", 0],
+    "positive": ["POSITIVE_CONDITIONING_NODE_ID", 0],
+    "enabled": true,
+    "alpha": 0.25,
+    "start_frame": 0,
+    "end_frame": -1,
+    "step_start": 0,
+    "step_end": 20,
+    "block_start": 0,
+    "block_end": 50,
+    "radius": 2,
+    "entropy": 0.5,
+    "temporal_penalty": 0.25,
+    "iterations": 128,
+    "tolerance": 0.0002,
+    "min_quality_span": 0.001,
+    "minimum_mean_gap": 0.0,
+    "run_id": "UNIQUE_RUN_ID",
+    "audit_dir": "/ABSOLUTE/AUDIT/DIRECTORY"
+  }
+}
+```
+
+`end_frame=-1` 根据唯一参考视频的 latent_t 与 H3 `(1,4,4,4,4)` 位置分段计算最后有效位置帧；也可传入包含端点的像素帧区间。step/block 区间为零基、左闭右开。`[0,20)` 对应第1至20次前向；`[0,50)` 对应全部50层。全程方案须使用20步采样图，节点不会改变采样器步数。输入 model 须来自既有方法 patch 之前，禁止把本节点叠在旧 H3Study 引导节点之后。
+
+初始对比固定上述参数，保留相同 prompt、seed、输入、sigma 与输出尺寸。`radius=0` 是退化到同时间修正的接口检查配置；主方法测试 radius=2。关闭/回退情况写入独立 audit。节点未添加额外 DiT 前向或中间 VAE 解码。
+
+CPU接口验证新增7项：节点注册及默认值、关闭路径无副作用、全时间/全步骤/全层参数传递、手动区间与求解器参数传递、非法区间拒绝、真实冻结 RouterState 配合模拟 Comfy model 安装50个patch、冻结依赖校验。原22项数值测试继续通过，总计29项，证据见 `cpu_validation.json` 与 `cpu_test_output.txt`。真实 Comfy、CUDA/Flash和视频效果待 GPU 实验验证。

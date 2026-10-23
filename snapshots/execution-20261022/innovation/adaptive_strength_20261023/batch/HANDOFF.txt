@@ -1,0 +1,55 @@
+2026-10-23 新三方向首批实验（更新以STATUS及实时身份为准）
+
+优先级：内部Attention特征动态alpha；同时间弱引导与跨时刻覆盖混合；等修正能量的head分配。无RGB/pose/per-step VAE观察器。用户最新授权新结果成片视觉和固定小动作帧偏移检查。
+
+科学配置：0252机舱、0358饮酒；沿用每组历史实际prompt（并非两条均官方一句prompt）/seed/cache/模型/完整1312x736x107帧/20步。对照复用同案例native/global_weak alpha=.25。新方法dynamic_dof、heads_budget、coverage_blend25、固定alpha=.375共8条，独立不叠加。canonical jobs.json保持全部8用于汇总。
+动态控制：参考Attention同query相邻时间bin中心差分；首末有效bin只排除控制统计，仍参与修正；DOF方差归一化，闭式二次目标解alpha在[0,.5]，无有效统计回退.25。head方案保持W_o前修正L2预算与alpha=.25一致。混合P=.75I+.25Pcoverage，alpha=.25；beta不是alpha。
+
+验证：22 controller CPU + 58 attention/node/blend CPU + 34 audit/summary tests；fp16/bf16三模式6个真实Flash小张量GPU检查；队列原14+新9共23测试；boundary guard9测试。新视频效果尚待真实推理。
+
+任务归属：.41 ready request只4机舱（dynamic→heads→blend→fixed），等待旧coverage long0167/0085结束后56→60。CPUguard28993/start287950，旧worker5439/start21062/service6945/start39269 GPU7持续。只在旧服务自然退出边界部署service whitelist与queue patch；request20资产SHA。guard支持additional_file_changes。四饮酒唯一移交.60，SOURCE_RELEASE在host60_transfer/，目标supervision/host60_inference_20261023/HANDOFF及后续runtime记录；顺序fixed→dynamic→heads→blend。不得重复放回.41。
+
+新8条max_attempts=1。已提交/未知提交的恢复仍继续追踪同prompt；确定执行失败后不自动同配置重跑。诊断后才能做针对性修复/新尝试。队列patch仅在安全边界生效，不影响旧运行任务。
+
+audit.py校验20forward/1000block、alpha/finite、DOF公式/能量预算、blend路由/对角质量。summarize.py需显式fresh summary rows与manifest，禁止使用旧缓存均值。visual_protocol.json在推理前冻结事件定义，编辑完成与同事件偏移分开看，缺动作不记0。资源agent负责.60接入metric relay，root核对。
+
+.81继续9数值+QA适用性；Qwen AWQ IS/CF配置单列，.41 GPU1+2当前13视频26项增量由metrics/qwen_runtime/host41_incremental_20261023唯一负责，不重复启动.60旧delegated批次。
+不改用户手工研究报告，不下载大媒体到本地，不碰他人进程，.41最多一自有视频推理。
+
+## 2026-10-23 03:12 动态强度首轮反馈与首步锚接续
+DOF机舱20步/1000层完成，所有alpha=.5，MF .813650（同例alpha.25 .820370），逐帧三事件与alpha.25同区间、均值0帧。维数归一化在真实特征中饱和；DOF饮酒未提交置research_hold，保留计划记录不恢复。固定alpha.375饮酒完成，MF .900421（alpha.25 .898978），三事件偏移0/-1/-3.5帧、平均绝对1.5，与alpha.25 1.333接近。全部可审计成片、SHA、timing、标注在batch/results_tools/latest及showcases/adaptive_strength_20261023。
+新H3AnchoredGuidance独立节点35CPU+独立review通过。每层首有效步保存A0/B0并用alpha.25，后续以A/A0与B/B0解受限二次目标，cap.5。已加入拒绝同patchedMODEL重复采样保护；audit新9测试，collector原8+新8测试。原8+anchor2计划独立合并，DOF饮酒hold不计完成。图仅node14/50变更，真实prompt/seed/cache/几何一致。
+.41当前heads机舱保持worker51324/service51328，边界guard57860等待其自然完成，再anchor→blend→fixed；未提交blend/fixed暂存。 .60固定完成，anchor→heads→blend唯一归属。仅anchor先在allocator20GiB/reserve6GiB/min27GiB尝试一次，成功且峰值/完整审计通过才同cap接对照，否则恢复26GiB并等33GiB；科学帧数不变。运行身份查supervision/anchor_boundary_20261023/HANDOFF。 .81 relay已加anchor2并7测试，PID43109。AWQ累计104已完成，无旧活worker，之后按新成片增量接入。
+已实现W_o诱导PSD Gram预算CPU原型，8数学测试；仅设计/小张量阶段，未上线或宣称视频收益。详见innovation/output_metric_budget。手工研究报告保持不动。
+
+## 2026-10-23 06:00 当前覆盖前述旧批次安排
+collector/read-only计划已20条=19active+DOF饮酒hold，actual唯一owner以results_tools/sources.json和all_jobs.json为准。13新成片；动态时间field饮酒MF.90406061/弱.89897782，机舱.81545512/弱.82037028，书本.90434065/弱.91259603；冻结全部事件分别.5/0/0帧。手帕正在.41GPU7，.9GPU1 role5机舱→饮酒，.9GPU3 blend饮酒。身份见STATUS最后段和相应supervision/HANDOFF，禁止恢复旧guard/跨队列重复移交。
+uniform-energy两独立pilot已正式授权并在.81GPU5激活：run_uniform_energy/port8679，worker60908/start781935547、guard60913/start781935552，service60920，UID1016；饮酒prompt63e23fec-6811-4960-8964-6fa9864d4249，完整审计通过才接机舱，第一次失败不重复原配。cap19.5/reserve6/min22500MiB及CUDAinit后二次margin1536MiB，保护他人1706MiB进程。独立审计目标候选QP和实际均匀RMS分开。science READY f494b28d...，TARGET_RECEIPT SHA2443b115e2f8a1d07ba9cdd8144caa1c0e96cf0f6d6bb72d99d24b4aa0885556，27collectorCPU测试；runtime首步尚待检查。15科学源码和两图cacheSHA对齐，relay7producer已接。
+报告源码支持uniform增量；prepare_visual.py完整支持两新job/标签，全部新成片均获本次用户视觉授权；始终冻结原3事件，book/手帕分别5/3事件，不补造缺项。原2pilot与book/手帕扩展各自按预定分母2统计。用户手工报告v1未修改。AWQ额外134/134已完成，后续新成片批量接入由resource唯一协调，勿重启旧waiter。
+
+## 2026-10-23 06:46 新增五条成片与等能量对照
+当前20计划=19active+DOF饮酒hold，18条20×50/成片SHA/计时已核验，18条均已完成冻结事件逐帧检查。新增手帕field、blend饮酒、role5机舱、uniform两条；原生controls/对照SHA/事件分母检查通过，独立展示已18内嵌视频和19实际热图。未改手工研究报告。
+手帕field MF .8113822490866203 vs弱 .810574743824783，事件0/0/+1、均值.333与弱相同；书本/手帕完整两例MF .8578614494871876 vs弱 .8615853886358562，事件均值同.166667。原机舱/饮酒field两例MF .8597578665617196 vs弱 .8596740518415195；分母分组保留，不合并。
+uniform饮酒MF .8999315511261237，低于field .9040606101394844；事件均值1.166667 vsfield .5（区间保留）。uniform机舱MF .8157833526763296，事件0，与field/弱同区间。两条候选QP+实际能量审计通过，最大同前向相对误差1.108e-7；每条50首步fallback为无候选先验.25，不是求解故障。混合两例MF .8578369802653464 vs弱 .8596740518415195，饮酒事件1.166667/机舱0，1000/1000有效路由。role5机舱MF .8199734713737621、事件0。
+.41 field和.9blend服务自然退出；.81uniform两例及guard自然退出。只剩.9GPU1 role5饮酒15/20约111s/步，worker42107/start2673627473、service42111/start2673627510、guard4972/start2673399349 UID1016；读取supervision/runtime_0637_20261023/EXTRA_CHECK.json。官方relay143视频zeroerror，uniform机舱余项持续。AWQ七视频14项合批coordinator31876已6/7prepared，只等role5饮酒；入口metrics/qwen_runtime/host41_field_role_uniform_incremental_20261023，旧134不变，单次模型加载和自动归还，不重复提交。
+下一科学控制先CPU实现：innovation/feature_gain_field_fixed_budget。保持原field候选QP，选择标量c使完整D加权 ΣE clip(c*a,0,.5)^2=.25²ΣE；固定/未知/端点.25，乘法路径不可达明确fallback。检验固定弱引导剂量下时间分配，原2与扩展2全测而非按收益选例。当前只是mathagent实现/独立review准备，未GPU部署；需真实wrapper20×50、有限性/零支持/上限等反例和签审通过后再决定实际接续。
+
+## 2026-10-23 07:14 全部19项完成与固定预算对照发布
+本批19active均完成完整20×50审计、成片SHA、九数值与冻结事件视觉；DOF饮酒维持hold。role5饮酒MF .8982783850、偏移1.333333与弱相同；role5两例MF .8591259282，低于弱.8596740518。所有19成片已补入独立动态报告，54个该页AWQ成绩逐输入SHA检查。新增AWQ14项已归还，额外累计148/148；导出器遗漏field扩展/role5/uniform的清单问题已修复，7测试通过。
+下一对照fixed_budget独立审查APPROVED：57CPU单测+2冻结图检查、真实wrapper20×50、14失败注入，另300组100位Decimal独立oracle及对抗审计通过。READY5b32848ead9252fee90b9dfbd484e9c339853016cba2e0c31f711d1c26d43e95。root已正式释放原四核心例GPU部署，保持候选QP及参数，用完整D能量径向缩放至本次forward固定alpha.25预算；不按收益选例。此刻部署中，实际owner/进度以新receipt为准。手工研究报告未改。
+
+2026-10-23 07:20 fixed_budget实际三路首两步核验通过，各100层候选QP与实际固定预算独立审计有效：.41GPU7手帕worker145632/service145637、.9GPU1书本worker56034/service56045、.81GPU5饮酒worker3940/service3947；机舱仅计划，由饮酒完整20×50/峰值/成片/自然退出guard门槛后接续。三例第二步出现非均匀alpha，budget relative error抽例均小于1e-8，所有值finite。唯一receipt/完整身份在supervision/fixed_budget_release_20261023，禁止重复提交。collector24=19verified/3in_progress/1pending/1hold，0来源或审计错误；官方relay新增四条，AWQ四片合批等待。最终独立report包含19视频、22实测热图及54AWQ值，保留新任务pending均值和原两组cohort分母。
+
+2026-10-23 07:23 固定预算与接入代码已备份私有GitHub75d21cd8c81710c04c47d6ee26ff682deeeaaaf2，remote tree f77332781fa0ba52ee94f74b1c6693436b5ade09匹配。50源文件+2清单约397KB，131CPU测试，敏感0、源漂移0；备份补齐旧snapshot缺少的aggregate.py，未改实际运行源码。receipt supervision/code_snapshot_fixed_budget_20261023/receipt.json。三路真实新推理及完整审计guard继续。
+
+## 2026-10-23 07:42 固定预算饮酒完整结果
+fixed_budget饮酒20×50完成，采样1195.918秒/59.796秒每步，峰值与完整数学审计通过：950层非均匀α、50首步先验、max energy relative error3.107e-8。MF .8881982346，低于弱.8989778215与原field.9040606101；冻结三事件[14,19]/[36,39]/[78,81]，MAE1.333333，与弱相同，原field为.5。眼镜编辑成功、两人/构图保持；完整105帧与历史对照已检查，标注SHA见runtime_0737 ROOT_REPORT_CHECK。九数值当前6完成/3待测，AWQ等待四片合批；不补0。独立报告已20成片/23热图，原2与扩展2分别保留待齐分母。其余三条继续真实推理：.41手帕12/20、.9书本11/20，.81机舱已自然接续worker24768/start782530875 service24774/start782530919 UID1016，guard3942仍负责。无队列故障，无新科学配置。四例全跑完再比较，不因单例取消其余任务；手工研究报告未改。
+
+## 2026-10-23 08:16 固定预算四组完整结果
+fixed_budget四例全部完成20×50审计、九数值36项与冻结动作逐帧检查。机舱MF .8195360084（弱.8203702822），饮酒.8881982346（弱.8989778215），书本.9180203222（弱.9125960334），手帕.8040717395（弱.8105747438）。四例事件区间均与弱相同，MAE分别0/1.333333/0/.333333。原两例配对均值.8538671215 vs弱.8596740518；书本手帕扩展两例.8610460308 vs弱.8615853886，固定分母各2。保留书本正结果；按预定消融判断，平方切向能量作为强度分配效用已搁置，后续先做独立有符号相位信号的可辨识性和CPU校准，不再继续调该能量代理的系数。
+独立动态报告已23内嵌视频/23实际热图，媒体SHA、原生controls、全部事件、配对均值与指标静态检查通过；手工v1未改。ROOT_REPORT_CHECK.json保存完整证据。AWQ8项已安全转.41GPU1+6实际加载，旧148保留，最终返回待资源agent验证。已批准原parked顺序三组真实IVE扩展0135机械臂/0161男人换孩子/0166狗换猫的native+weak共6条唯一接续，实际提交以新receipt为准；未增加新科学GPU配置。
+
+2026-10-23 08:27 本轮收尾：fixedbudget新4片AWQ8/8已全部成功归还，额外累计156（保留148），canonical62done/2DOFholdpending/0invalid。报告已再次刷新新8项，23视频/23热图与媒体/事件/配对均值检查通过，131163446bytes。新3对真实IVE扩展唯一归属见extension_three/HANDOFF：0135机械臂在.41GPU7 worker180740/service180751/guard180741；0166狗换猫在.9GPU1 worker27660/service27686/guard27661，均已API提交且预处理有实际计算/加载进展；0161男人换孩子由.41guard183608在前对完成后接续。未把预处理记为采样，首步observer71953自动记录，无重复提交。
+review_0807独立重算53输入与4000条能量审计，确认两cohort固定预算未获一致收益，平方切向能量效用已搁置。新signed_phase_calibration数学oracle26项root独立通过，包含明确的不可辨识/误报反例；这只验证方程与失败边界，尚未验证真实Attention相位，也没有GPU控制器。实际H3局部链与最小被动采集计划在review_0807/H3_SOURCE_MAP_AND_CAPTURE.md，旧video+audio x0及两路noiseCPU核对存在，下一步先验证精确Euler中间状态和只读捕获。math代理仍在整理独立HANDOFF，勿重复实现。心跳已更新最新4完成、AWQ156和真实扩展owner，保持ACTIVE。
+
+08:29补充：math/HANDOFF.txt、DESIGN.md、CACHE_AND_CAPTURE.md与26项测试/反例证据已全部交付，READY SHA226dad43df27caf9ddc71c408780e5dfbaa89faeb7745ff4302d73fbea7477ce。当前仅CPU及被动采集设计就绪；未实现或部署hook、未提交GPU校准。下一步按实际Euler双流与相同步旧x0前向核验中间状态，再只读抓取预定Q/K。覆盖上文math仍整理状态。

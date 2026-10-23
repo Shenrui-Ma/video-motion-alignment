@@ -1,0 +1,9 @@
+2026-10-23 用户要求今天专注.41 GPU burn，H3研究先停等命令；本交接只管理非.41研究调度。
+
+已停止本地原relay5173(UID501/start2026-10-23 13:35:49)、returnwatch67193(UID501/start11:58:18)，均核身份并在无活子进程边界结束。cn.h3.metrics.relay.20261022与cn.h3.qwen.download.20261022两个原launchd标签已卸载，复查不存在。原下载PID78652已自然结束，launchd当时不断重启同一原脚本；25文件已全部verified，只在重复哈希校验。实际停止当前PID80257/start16:45:15，等待其唯一SSH child退出成Z后才结束父进程，未杀传输child，不属于其他thread新下载。
+
+.81 metric_service40864/UID1016/start776971791在确认无活子进程边界停止，未对metric_worker或模型发信号。停止relay先于停止服务，防自动重建。随后独立进程扫描确认.81没有本研究H3/metrics活进程。.9与.60的原pair均已完成，无本研究活worker/service/后继guard；没有重启或改清单。 .9仍有8条其他项目202608旧tail日志，全部未动。三个远端已有queue_state前后逐项相同。
+
+只写本research_pause_20261023目录。未修改成功结果、科学配置、原队列、报告、主STATUS或automation；未接触.41任何远端进程/监控/GPU burn。最后本地本项目常驻仅root维护的.41 local_watch14801与kernel_reconnect81672，均未触碰。
+
+证据SUMMARY.json及LOCAL_PAUSE/HOST81_PAUSE/*_before/*_after。恢复必须等用户新指令；旧heartbeat不构成自动恢复，不恢复旧.60waiter/取消/hold任务。.41原AWQ T状态由root管理，本任务未触碰。

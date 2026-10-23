@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-10-23T03:56:48.592727+08:00",
+  "status": "READY_FOR_GPU_PILOTS",
+  "independent_audit_tests": 11,
+  "test_output": "test_applied_and_reported_alpha_must_match (test_field_audit.AuditTests.test_applied_and_reported_alpha_must_match) ... ok\ntest_duplicate_layer_rejected (test_field_audit.AuditTests.test_duplicate_layer_rejected) ... ok\ntest_failed_solver_is_counted_and_uses_prior (test_field_audit.AuditTests.test_failed_solver_is_counted_and_uses_prior) ... ok\ntest_fake_solver_success_rejected_by_independent_kkt (test_field_audit.AuditTests.test_fake_solver_success_rejected_by_independent_kkt) ... ok\ntest_false_energy_normalization_rejected (test_field_audit.AuditTests.test_false_energy_normalization_rejected) ... ok\ntest_nonfinite_rejected (test_field_audit.AuditTests.test_nonfinite_rejected) ... ok\ntest_overwritten_anchor_rejected_even_when_ratio_unchanged (test_field_audit.AuditTests.test_overwritten_anchor_rejected_even_when_ratio_unchanged) ... ok\ntest_unsupported_smoothing_edge_rejected (test_field_audit.AuditTests.test_unsupported_smoothing_edge_rejected) ... ok\ntest_valid_twenty_by_fifty_trace (test_field_audit.AuditTests.test_valid_twenty_by_fifty_trace) ... ok\ntest_wrong_dose_rejected (test_field_audit.AuditTests.test_wrong_dose_rejected) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.015s\n\nOK\n",
+  "cpu_real_wrapper_audit": {
+    "passed": true,
+    "forwards": 20,
+    "blocks": 1000,
+    "alpha_min": 0.24778974056243896,
+    "alpha_max": 0.4177359342575073,
+    "alpha_mean": 0.28154506855351585,
+    "solver_failures": 0,
+    "max_kkt": 7.023123216320926e-08,
+    "created_bin_anchors": 250,
+    "fixture": "actual state/block factory, dense CPU attention, changing Value features",
+    "model_or_gpu_inference": false,
+    "outer_runtime_counts_checked": true
+  },
+  "review": {
+    "scope": "attention application, per-bin memory-safe broadcast, anchor immutability, independent coefficient/KKT/dose replay, frozen graphs",
+    "issues_remaining": []
+  },
+  "earlier_integration_fixture_failure": "Audit already passed; fixture required alpha_min<.24 although no such mathematical requirement. Replaced with >.05 observed coefficient range to test nonconstant path; full replay rerun passed.",
+  "gpu_validation": "not yet run; first real forward must be audited before continuation",
+  "sha256": {
+    "field_audit.py": "2d1c0979b6497730cb4a2d81424de536467f839d5a13ae1fa68f9c42930ccdc8",
+    "test_field_audit.py": "faf59047c2922e0b4cb55253c8ad8b0e0248cc03813edd336878f855dfa36c64",
+    "cpu_field_integration.py": "48d8e68eb652b2f8f3889a78b51447e47dece6bda1a9b633be6d72e219e6f880",
+    "build_field.py": "39b899986ec25d166152ab64744d1f25995d5f7f64fdec43a94ee09d81df1906",
+    "field_pilots/jobs.json": "0b936757cbee3cb84d62de0217281511867f8dbc8c703a5b57a53cb5251f5ab3",
+    "field_pilots/SCIENCE_CHECK.json": "506e9d2f5616115e8a495b30e9c397744076cf0463bec4698052341e310fc17f"
+  },
+  "final_revision_at": "2026-10-23T04:01:26.441553+08:00"
+}

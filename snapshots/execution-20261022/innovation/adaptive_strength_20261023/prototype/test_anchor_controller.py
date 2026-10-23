@@ -125,9 +125,7 @@ class AnchorTests(unittest.TestCase):
     def test_actual_attention_energy_fixture_matches_counterfactual(self):
         import json
         from pathlib import Path
-        fixture_path=Path(__file__).with_name('anchor_real_energy_fixture.json')
-        if not fixture_path.exists():self.skipTest('Optional historical run fixture excluded from source-only snapshot')
-        fixture=json.loads(fixture_path.read_text())
+        fixture=json.loads(Path(__file__).with_name('anchor_real_energy_fixture.json').read_text())
         states={};values=[]
         self.assertGreaterEqual(len(fixture['rows']),150)
         for row in fixture['rows']:

@@ -1,0 +1,8 @@
+只读设计完成，未实现/部署、未读取真实张量、0 GPU/0扰动。
+主文档 DESIGN.md，确切来源与state/QK哈希 INPUT_MAP.json。
+已核缓存→minimax_refs→extra_conds→cond_video_latents→.999坐标噪声→patchify/投影的实际链，model_base SHA匹配新同环境。
+完整±5bin时移缺外侧上下文及VAE边界证据，禁止补帧/roll。建议候选是内部[5,10)与[10,15)同角色5bin双射对换，只称编码内容干预。原K_R固定、目标AV x_n/sigma/位置不动；先2次新零扰动前向gate，通过才2次交换前向；单前向adapter尚待实现和审查。
+先前124/124通过同时改变空间身份和head联合聚合，不能把改善单因果归为空间池化。纯位置码仍可全过，下一步才检验内容敏感性。
+role-wise重复为周期而非静态，任意latent通道变化不等于外观改变；真实静态/自然时间移位/跨外观条件目前未就绪。
+旧REPLAY_GATE=false保持。root下一轮决定/冻结POLICY与实现范围，不按设计当已部署或已通过。
+条件噪声补充：.999Z+.001noise可给绝对bin形成稳定指纹。只换Z，不换noise；当前capture没单存noise。源码按CPU Generator/seed可重建，但尚未实际核验，须保存noise/augmented_rows SHA并复用同一noise，纳入新零扰动rawAV x0/QK逐元素门槛；不能精确恢复则新被动记录，旧失败REPLAY不可借用。

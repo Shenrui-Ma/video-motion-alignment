@@ -1,0 +1,1168 @@
+{
+  "result": {
+    "sha256": "ead3f4236f61624df001390d64df33cc72065e67386a0edc6e4c5ffc908fe7a5",
+    "data": {
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "graph_sha256": "a2c471d9519c400dbf55541d6a944ae6c5d11da5c32a8e8a97eea05c304cd8bd",
+      "attempt_id": "adapt41_short_0358_temporal_gain_field__a1",
+      "metadata": {
+        "original_task": {
+          "id": 358,
+          "src_video_name": "short_0358.mp4",
+          "category": "subject_editing",
+          "subcategory": "add new subject",
+          "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+          "edit_prompt": "Add a pair of glasses to the man.",
+          "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+          "target_span": "glasses",
+          "target_phrase": "the man is wearing a pair of glasses"
+        },
+        "evaluation_metadata": {
+          "id": 358,
+          "src_video_name": "short_0358.mp4",
+          "category": "subject_editing",
+          "subcategory": "add new subject",
+          "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+          "edit_prompt": "Add a pair of glasses to the man.",
+          "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+          "target_span": "glasses",
+          "target_phrase": "the man is wearing a pair of glasses"
+        },
+        "task_id": "short_0358",
+        "benchmark": "IVEBench",
+        "title": "外观编辑 — 给饮酒男子戴眼镜",
+        "cohort": "adaptive_research_20261023",
+        "method": "temporal_gain_field",
+        "reference_video": "/workspace/research-user/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_video.mp4",
+        "source_video": "/data4/research-user/h3_runs/benchmark_schedule_20261022/input/short_0358_video.mp4",
+        "reference_image": null,
+        "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "recommended_prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "prompt_protocol": "historical_R149_R150_preserved",
+        "seed": 2026101701,
+        "valid_frames": 105,
+        "fps": 24,
+        "evaluation_crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ],
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 107,
+          "fps": 24
+        },
+        "sampling_steps": 20,
+        "innovation_parameters": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "5",
+            0
+          ],
+          "enabled": true,
+          "start_frame": 0,
+          "end_frame": 104,
+          "run_id": "adapt41_short_0358_temporal_gain_field__a1",
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 0,
+          "step_end": 20,
+          "mode": "gain_field",
+          "alpha_prior": 0.25,
+          "alpha_max": 0.5,
+          "prior_weight": 1.0,
+          "probes": 8,
+          "basis": "centered",
+          "audit_dir": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/feature_gain_field",
+          "smoothness": 0.625
+        },
+        "comparison_outputs": {
+          "native": {
+            "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/native.mp4",
+            "sha256": "04510e08e359c2b22614bc12a0fdcbfffb35e9cbcef1d0a2f0a7dbc92c069c2e"
+          },
+          "global_weak": {
+            "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/global_weak.mp4",
+            "sha256": "28d8939fbd43890414c5ff7fe967f9f0721b4e56d7d7e8514665b576cb83c582"
+          }
+        },
+        "timing_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/timing/adapt41_short_0358_temporal_gain_field__a1.json",
+        "host": "H3_HOST_CONFIGURE_LOCALLY",
+        "remote_root": "/data4/research-user/h3_runs/benchmark_schedule_20261022",
+        "steps": 20,
+        "innovation_status": "independent_gain_field_pilot_pending_runtime_check",
+        "attention_formula": "O + alpha(step,layer,bin)*m_ref*(S_same - R_all)",
+        "graph_sha256": "e873b55380cb02fcc125e923bc9d1d9c90d03976a8b32d95baab1a5b25cc840a",
+        "comparison_scope": "same historical prompt/seed/cache/model/geometry; reused native/global_weak",
+        "reference_source_job": "innov41_short_0358_temporal_coverage_v2",
+        "strength_scope": "pre-output-projection attention correction",
+        "calibration": "per-run/layer/video-time-bin first-valid-step energy anchor",
+        "alpha_scope": "current layer and denoising step; vector over video-time bins, shared across heads",
+        "temporal_regularization": "box-constrained strictly convex tridiagonal QP; mu=1, lambda=.625",
+        "no_evidence_rule": "fixed alpha=.25; smoothing edges cut; selected-window endpoints fixed .25",
+        "producer_host": "host41",
+        "source_job_id": "adapt41_short_0358_temporal_gain_field"
+      },
+      "files": [
+        {
+          "path": "/data4/research-user/h3_runs/benchmark_schedule_20261022/output/adapt41_short_0358_temporal_gain_field/adapt41_short_0358_temporal_gain_field__a1_00001_.mp4",
+          "bytes": 1974816,
+          "sha256": "89eb7a646a0f6f2ac6856491dd2bd4d84ec8b903f4ff015e3203e0f2bddec26b",
+          "probe": {
+            "programs": [],
+            "streams": [
+              {
+                "codec_name": "h264",
+                "width": 1312,
+                "height": 736,
+                "duration": "4.458333",
+                "nb_frames": "107"
+              }
+            ],
+            "format": {
+              "duration": "4.459000"
+            }
+          }
+        }
+      ],
+      "timing": {
+        "execution_seconds": 1161.2639999389648,
+        "sampling_seconds": 1137.0018062229992,
+        "sampling_step_seconds": [
+          56.03276232099961,
+          56.40077991399994,
+          56.45146960999955,
+          56.540255701000206,
+          56.62664636900081,
+          56.6353718729988,
+          56.67944996500046,
+          56.59357781499966,
+          56.852030650001325,
+          56.820534315998884,
+          56.913350443001036,
+          56.9713906399993,
+          56.96410688800097,
+          57.21756142799859,
+          57.06741492400033,
+          57.15853425900059,
+          57.17635186500047,
+          57.404428189998725,
+          57.190417761999925,
+          57.303166612000496
+        ],
+        "mean_sampling_step_seconds": 56.84998007724998,
+        "sampling_source": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/timing/adapt41_short_0358_temporal_gain_field__a1.json"
+      },
+      "submit_to_validation_seconds": 1163.132786989212
+    }
+  },
+  "history": {
+    "sha256": "dee60a12de6b2511e50b2fd87f54b632df67fb1722f4f22e77e6fc44e476626c",
+    "data": {
+      "prompt": [
+        1,
+        "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+        {
+          "1": {
+            "class_type": "UNETLoader",
+            "inputs": {
+              "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+              "weight_dtype": "default"
+            }
+          },
+          "3": {
+            "class_type": "VAELoader",
+            "inputs": {
+              "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+            }
+          },
+          "4": {
+            "class_type": "VAELoader",
+            "inputs": {
+              "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+            }
+          },
+          "41": {
+            "class_type": "MiniMaxH3SigmaShift",
+            "inputs": {
+              "model": [
+                "1",
+                0
+              ],
+              "shift_video": 12.0,
+              "shift_audio": 3.0
+            }
+          },
+          "5": {
+            "class_type": "H3TrustedConditionCache",
+            "inputs": {
+              "cache_manifest": "/data4/research-user/h3_runs/benchmark_schedule_20261022/innovation_cache/short_0358/manifest.json",
+              "manifest_sha256": "82b30ced59426452998953e445758754945fc5518f1a777f51712972fd2a7e55"
+            }
+          },
+          "6": {
+            "class_type": "RandomNoise",
+            "inputs": {
+              "noise_seed": 2026101701
+            }
+          },
+          "7": {
+            "class_type": "BasicGuider",
+            "inputs": {
+              "model": [
+                "52",
+                0
+              ],
+              "conditioning": [
+                "5",
+                0
+              ]
+            }
+          },
+          "8": {
+            "class_type": "KSamplerSelect",
+            "inputs": {
+              "sampler_name": "euler"
+            }
+          },
+          "9": {
+            "class_type": "ManualSigmas",
+            "inputs": {
+              "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0"
+            }
+          },
+          "10": {
+            "class_type": "SamplerCustomAdvanced",
+            "inputs": {
+              "noise": [
+                "6",
+                0
+              ],
+              "guider": [
+                "7",
+                0
+              ],
+              "sampler": [
+                "8",
+                0
+              ],
+              "sigmas": [
+                "9",
+                0
+              ],
+              "latent_image": [
+                "5",
+                1
+              ]
+            }
+          },
+          "11": {
+            "class_type": "VAEDecode",
+            "inputs": {
+              "samples": [
+                "10",
+                0
+              ],
+              "vae": [
+                "3",
+                0
+              ]
+            }
+          },
+          "12": {
+            "class_type": "VAEDecodeAudio",
+            "inputs": {
+              "samples": [
+                "10",
+                0
+              ],
+              "vae": [
+                "4",
+                0
+              ]
+            }
+          },
+          "13": {
+            "class_type": "CreateVideo",
+            "inputs": {
+              "images": [
+                "11",
+                0
+              ],
+              "audio": [
+                "12",
+                0
+              ],
+              "fps": 24.0,
+              "bit_depth": 8
+            }
+          },
+          "14": {
+            "class_type": "SaveVideo",
+            "inputs": {
+              "video": [
+                "13",
+                0
+              ],
+              "filename_prefix": "adapt41_short_0358_temporal_gain_field/adapt41_short_0358_temporal_gain_field__a1",
+              "format": "mp4",
+              "codec": "h264",
+              "codec.encoding": "re-encode",
+              "codec.encoding.crf": 16.0
+            }
+          },
+          "50": {
+            "class_type": "H3TemporalGainField",
+            "inputs": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "5",
+                0
+              ],
+              "enabled": true,
+              "start_frame": 0,
+              "end_frame": 104,
+              "run_id": "adapt41_short_0358_temporal_gain_field__a1",
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20,
+              "mode": "gain_field",
+              "alpha_prior": 0.25,
+              "alpha_max": 0.5,
+              "prior_weight": 1.0,
+              "probes": 8,
+              "basis": "centered",
+              "audit_dir": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/feature_gain_field",
+              "smoothness": 0.625
+            }
+          },
+          "52": {
+            "class_type": "H3StudyTiming",
+            "inputs": {
+              "model": [
+                "50",
+                0
+              ],
+              "run_id": "adapt41_short_0358_temporal_gain_field__a1",
+              "output_dir": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/timing"
+            }
+          }
+        },
+        {
+          "durable_job_id": "adapt41_short_0358_temporal_gain_field",
+          "durable_attempt_token": "c9cb5ebc-46ed-4925-b8e5-aa26acabeccc",
+          "durable_attempt_id": "adapt41_short_0358_temporal_gain_field__a1",
+          "durable_metadata": {
+            "original_task": {
+              "id": 358,
+              "src_video_name": "short_0358.mp4",
+              "category": "subject_editing",
+              "subcategory": "add new subject",
+              "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+              "edit_prompt": "Add a pair of glasses to the man.",
+              "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+              "target_span": "glasses",
+              "target_phrase": "the man is wearing a pair of glasses"
+            },
+            "evaluation_metadata": {
+              "id": 358,
+              "src_video_name": "short_0358.mp4",
+              "category": "subject_editing",
+              "subcategory": "add new subject",
+              "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+              "edit_prompt": "Add a pair of glasses to the man.",
+              "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+              "target_span": "glasses",
+              "target_phrase": "the man is wearing a pair of glasses"
+            },
+            "task_id": "short_0358",
+            "benchmark": "IVEBench",
+            "title": "外观编辑 — 给饮酒男子戴眼镜",
+            "cohort": "adaptive_research_20261023",
+            "method": "temporal_gain_field",
+            "reference_video": "/workspace/research-user/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_video.mp4",
+            "source_video": "/data4/research-user/h3_runs/benchmark_schedule_20261022/input/short_0358_video.mp4",
+            "reference_image": null,
+            "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+            "recommended_prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+            "prompt_protocol": "historical_R149_R150_preserved",
+            "seed": 2026101701,
+            "valid_frames": 105,
+            "fps": 24,
+            "evaluation_crop_xywh": [
+              16,
+              8,
+              1280,
+              720
+            ],
+            "geometry": {
+              "width": 1312,
+              "height": 736,
+              "frames": 107,
+              "fps": 24
+            },
+            "sampling_steps": 20,
+            "innovation_parameters": {
+              "model": [
+                "41",
+                0
+              ],
+              "positive": [
+                "5",
+                0
+              ],
+              "enabled": true,
+              "start_frame": 0,
+              "end_frame": 104,
+              "run_id": "adapt41_short_0358_temporal_gain_field__a1",
+              "block_start": 0,
+              "block_end": 50,
+              "step_start": 0,
+              "step_end": 20,
+              "mode": "gain_field",
+              "alpha_prior": 0.25,
+              "alpha_max": 0.5,
+              "prior_weight": 1.0,
+              "probes": 8,
+              "basis": "centered",
+              "audit_dir": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/feature_gain_field",
+              "smoothness": 0.625
+            },
+            "comparison_outputs": {
+              "native": {
+                "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/native.mp4",
+                "sha256": "04510e08e359c2b22614bc12a0fdcbfffb35e9cbcef1d0a2f0a7dbc92c069c2e"
+              },
+              "global_weak": {
+                "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/global_weak.mp4",
+                "sha256": "28d8939fbd43890414c5ff7fe967f9f0721b4e56d7d7e8514665b576cb83c582"
+              }
+            },
+            "timing_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/timing/adapt41_short_0358_temporal_gain_field__a1.json",
+            "host": "H3_HOST_CONFIGURE_LOCALLY",
+            "remote_root": "/data4/research-user/h3_runs/benchmark_schedule_20261022",
+            "steps": 20,
+            "innovation_status": "independent_gain_field_pilot_pending_runtime_check",
+            "attention_formula": "O + alpha(step,layer,bin)*m_ref*(S_same - R_all)",
+            "graph_sha256": "e873b55380cb02fcc125e923bc9d1d9c90d03976a8b32d95baab1a5b25cc840a",
+            "comparison_scope": "same historical prompt/seed/cache/model/geometry; reused native/global_weak",
+            "reference_source_job": "innov41_short_0358_temporal_coverage_v2",
+            "strength_scope": "pre-output-projection attention correction",
+            "calibration": "per-run/layer/video-time-bin first-valid-step energy anchor",
+            "alpha_scope": "current layer and denoising step; vector over video-time bins, shared across heads",
+            "temporal_regularization": "box-constrained strictly convex tridiagonal QP; mu=1, lambda=.625",
+            "no_evidence_rule": "fixed alpha=.25; smoothing edges cut; selected-window endpoints fixed .25",
+            "producer_host": "host41",
+            "source_job_id": "adapt41_short_0358_temporal_gain_field"
+          },
+          "client_id": "durable-queue-c9cb5ebc-46ed-4925-b8e5-aa26acabeccc",
+          "create_time": 1792700985684
+        },
+        [
+          "14"
+        ]
+      ],
+      "outputs": {
+        "14": {
+          "images": [
+            {
+              "filename": "adapt41_short_0358_temporal_gain_field__a1_00001_.mp4",
+              "subfolder": "adapt41_short_0358_temporal_gain_field",
+              "type": "output"
+            }
+          ],
+          "animated": [
+            true
+          ]
+        }
+      },
+      "status": {
+        "status_str": "success",
+        "completed": true,
+        "messages": [
+          [
+            "execution_start",
+            {
+              "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+              "timestamp": 1792700985685
+            }
+          ],
+          [
+            "execution_cached",
+            {
+              "nodes": [
+                "1",
+                "3",
+                "4",
+                "41",
+                "8",
+                "9"
+              ],
+              "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+              "timestamp": 1792700985689
+            }
+          ],
+          [
+            "execution_success",
+            {
+              "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+              "timestamp": 1792702146949
+            }
+          ]
+        ]
+      },
+      "meta": {
+        "14": {
+          "node_id": "14",
+          "display_node": "14",
+          "parent_node": null,
+          "real_node_id": "14"
+        }
+      }
+    }
+  },
+  "cache": {
+    "sha256": "82b30ced59426452998953e445758754945fc5518f1a777f51712972fd2a7e55",
+    "data": {
+      "schema": "r144-original-clean-condition-cache-v1",
+      "source_id": "short_0358",
+      "seed": 2026101701,
+      "source_video_sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "parent_root": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020",
+      "shared_run_id": "r123_short_0358_shared",
+      "conditioning": {
+        "file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/innovation_cache/short_0358/r123_short_0358_shared_conditioning.json",
+        "sha256": "299abd65e23d8e2c954728a1be778898ab0438493899966432b336c4b3cbdcff"
+      },
+      "tensors": [
+        {
+          "role": "reference_vae_latent",
+          "file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/innovation_cache/short_0358/27b35d491b84f5c12a5b0f91ec91c2bb1b94b6b5c249a3e55476e0f2cb443e22.pt",
+          "sha256": "3c1cb0d2668f72169873271782be51aad0d2295203a1790e4c57f16884595dfd",
+          "tensor_signature": {
+            "shape": [
+              1,
+              24,
+              32,
+              46,
+              82
+            ],
+            "dtype": "torch.float32",
+            "sha256": "1ad0955cfa27b1215d5e8c8334d844944143040ce9e8f0f8a8e9618dc13d1081"
+          },
+          "bytes": 11589965
+        },
+        {
+          "role": "conditioning_embedding",
+          "file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/innovation_cache/short_0358/c120ae30c08cb56d8ab884498f7f8c982d41ed904d2a471d1d0b6721d95477b3.pt",
+          "sha256": "9d6822a0a395f53ced80edf1371996bdcdb09b2be0b81c533053e3278e261283",
+          "tensor_signature": {
+            "shape": [
+              1,
+              5125,
+              5120
+            ],
+            "dtype": "torch.float32",
+            "sha256": "c25419c67547bf1932642a28b4ffe5b1ccb021960ce2e3be661002cecfd2732e"
+          },
+          "bytes": 104962381
+        },
+        {
+          "role": "conditioning_tags",
+          "file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/innovation_cache/short_0358/a6669d52d93c5a6ffb3d52046d6f2f3f643ecf814adcc575e9983e6242b65d33.pt",
+          "sha256": "e8e56001b5d91d5e2368375e4db4e2cd912e86dcf6cbccc43229e8d55880a158",
+          "tensor_signature": {
+            "shape": [
+              5125
+            ],
+            "dtype": "torch.int64",
+            "sha256": "0e2466f3fb25d3a0e73fdc1461aa8e46d52663cb7d9df4d749c39b558bde747c"
+          },
+          "bytes": 43405
+        },
+        {
+          "role": "conditioning_position",
+          "file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/innovation_cache/short_0358/8c6b95a54be66273dcbc49dfbb4f8cbf11af3a34f638036dbb6d5249b92f1d44.pt",
+          "sha256": "0fc5f8bf23bb55b76b1512488b54823da0b7b8c5e4582997f318919fc2328831",
+          "tensor_signature": {
+            "shape": [
+              65833,
+              3
+            ],
+            "dtype": "torch.float64",
+            "sha256": "737b24445da7970b17f41a34dedaf2e091cca1cbe827e904ea178a849053dd01"
+          },
+          "bytes": 1582413
+        }
+      ],
+      "CPU_compatibility_sources": {
+        "comfy/ldm/minimax/model.py": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+        "comfy/ldm/modules/attention.py": "9cafaafaf93ff53e8cbefb5e4a204014019985df2da8c1996bf40f1235fc2960",
+        "comfy/model_base.py": "6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68",
+        "comfy/model_patcher.py": "26da6710a7d84e8e98ea3e0f0bc07b88cfef3f99a7f7d59daa71e650512c6ed4",
+        "comfy_extras/nodes_minimax_h3.py": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+        "comfy/model_sampling.py": "8afdc665272589a567792bb652389df7d4a83f69574c2b7e5b3d533d55592990",
+        "comfy/samplers.py": "f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f",
+        "comfy/ldm/minimax/vae.py": "40c4bf2db63279e0d13eb8de2c8a4602207a90cf9350f94afbee7aeed8b757ea",
+        "comfy/text_encoders/qwen3vl.py": "1004f4184c8ca5da74e4147a706bc4f1c9bd1a19ae63db74f3cab88ded0f0255"
+      },
+      "source_video": "/data4/research-user/h3_runs/benchmark_schedule_20261022/input/short_0358_video.mp4"
+    }
+  },
+  "field_service_log": {
+    "boot": {
+      "schema": "h3-backend-dispatch-audit-v1",
+      "pid": 86424,
+      "started_unix_ns": 1792699836934631362,
+      "flush_every": 1000,
+      "count_semantics": "Attempted calls to backend exports, including nested backend delegation.",
+      "count_freshness": "Periodic snapshots may lag; flush() or normal process exit captures current counts.",
+      "backends": {
+        "cuda": {
+          "status": "imported"
+        },
+        "triton": {
+          "status": "imported"
+        },
+        "eager": {
+          "status": "imported"
+        }
+      },
+      "operations": {
+        "cuda.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "cuda.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "triton.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": true
+        },
+        "triton.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "eager.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "eager.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        }
+      },
+      "logging_errors": []
+    },
+    "line_range_1based": [
+      3708,
+      3877
+    ],
+    "next_boot": {
+      "schema": "h3-backend-dispatch-audit-v1",
+      "pid": 101878,
+      "started_unix_ns": 1792702197193921637,
+      "flush_every": 1000,
+      "count_semantics": "Attempted calls to backend exports, including nested backend delegation.",
+      "count_freshness": "Periodic snapshots may lag; flush() or normal process exit captures current counts.",
+      "backends": {
+        "cuda": {
+          "status": "imported"
+        },
+        "triton": {
+          "status": "imported"
+        },
+        "eager": {
+          "status": "imported"
+        }
+      },
+      "operations": {
+        "cuda.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "cuda.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "triton.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": true
+        },
+        "triton.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "eager.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "eager.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        }
+      },
+      "logging_errors": []
+    },
+    "selected_lines": [
+      "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend cuda: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+      "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend triton: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'int8_linear', 'na3d', 'quantize_and_rotate_rowwise', 'quantize_int8_rowwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'w4a8_int8_linear']}",
+      "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_mxfp8', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_mxfp8', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+      "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}",
+      "\u001b[32m[INFO]\u001b[0m Total VRAM 48508 MB, total RAM 114688 MB",
+      "\u001b[32m[INFO]\u001b[0m pytorch version: 2.11.0+cu130",
+      "\u001b[32m[INFO]\u001b[0m Set vram state to: NORMAL_VRAM",
+      "\u001b[32m[INFO]\u001b[0m Device: cuda:0 NVIDIA GeForce RTX 4090 : native",
+      "\u001b[32m[INFO]\u001b[0m Using pytorch attention",
+      "\u001b[32m[INFO]\u001b[0m model weight dtype torch.bfloat16, manual cast: torch.bfloat16",
+      "\u001b[32m[INFO]\u001b[0m loaded completely; 33276.42 MB usable, 19996.14 MB loaded, full load: True",
+      "\u001b[32m[INFO]\u001b[0m loaded completely; 18879.87 MB usable, 577.08 MB loaded, full load: True",
+      "\u001b[32m[INFO]\u001b[0m loaded completely; 18040.03 MB usable, 4966.19 MB loaded, full load: True",
+      "\u001b[32m[INFO]\u001b[0m \u001b[32mPrompt executed in 00:19:01\u001b[0m",
+      "\u001b[32m[INFO]\u001b[0m \u001b[32mPrompt executed in 00:19:21\u001b[0m"
+    ]
+  },
+  "current_source_sha": {
+    "custom_nodes/H3TemporalGainField/nodes.py": "e14a8f012d6b79ff2eb06d26e2be8318ae8647ff69400976edd46e66642bbb05",
+    "custom_nodes/H3TemporalGainField/components.py": "ebf0c773a76c60115cfede12c8a6b7ad5eb937af548a068f5a947c65755c4042",
+    "custom_nodes/H3TemporalGainField/__init__.py": "cc7a3e00f8ac3382f5dc4beaf313da22e88df1a3cdf1d634e60d412c07444691",
+    "custom_nodes/H3TemporalGainField/controller.py": "b5d72b897ad918a282140bf98d9a62d36083a85d4935cd8e326839eddea06ce7",
+    "custom_nodes/H3TemporalGainField/attention.py": "01c325199e4229eb1d1a1580663dabe60476766ce9ad7bd36c045a06b9a96a08",
+    "custom_nodes/H3TemporalGainField/frozen.py": "fdaaab4d352eba8779abfb731e3b93577f15d5d69d3688b5c9c163b0a8a01e8b",
+    "custom_nodes/H3Study/layout.py": "d71a0a34956c1c57e534f906df3dc954bc6b4ab02b33f78f0b0ba913e6acca08",
+    "custom_nodes/H3Study/schedule.py": "8cc187efc98c00280c321368c7471066970ae2aa633f52dd885160dc4190ae89",
+    "custom_nodes/H3Study/__init__.py": "f54d172fb9918e6ffdfed007e013a9005cb7c7a9c16374d718f31f6824ab2154",
+    "custom_nodes/H3Study/core.py": "2dba7d615092491ad5b696b81ae2c0d41e9cae3760046aeefbdf33ad0d543691"
+  },
+  "matching_events": [
+    {
+      "time": 1792699808.6092162,
+      "event": "completed",
+      "job_id": "adapt41_short_0252_fixed0375",
+      "prompt_id": "95b67885-2b9b-4570-81c4-c44fbba27ba8"
+    },
+    {
+      "time": 1792699808.6201475,
+      "event": "queue_finished"
+    },
+    {
+      "time": 1792699842.6690905,
+      "event": "submitted",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "attempt": 1
+    },
+    {
+      "time": 1792699842.673283,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792699847.6865585,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792699852.69797,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792699907.8228333,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792699962.9430172,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700018.0638316,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700073.182665,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700128.3026767,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700183.421537,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700238.5434625,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700293.6639283,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700348.78398,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700403.9031467,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700459.0236034,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700514.1431327,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700569.2630165,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700624.3828254,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700679.500476,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700739.777025,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700794.89601,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700850.0153387,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700905.1357849,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700960.257528,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700965.272165,
+      "event": "progress",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d",
+      "status": "running"
+    },
+    {
+      "time": 1792700985.5944338,
+      "event": "completed",
+      "job_id": "adapt41_short_0252_temporal_gain_field",
+      "prompt_id": "91caffc3-e6ce-4102-9137-5b4855e4fc2d"
+    },
+    {
+      "time": 1792700985.8616288,
+      "event": "submitted",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "attempt": 1
+    },
+    {
+      "time": 1792700985.8678522,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792700990.8820016,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701046.0131614,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701106.1440525,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701161.2646966,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701216.383366,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701271.4977484,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701331.6260734,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701386.746374,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701441.86607,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701502.0029368,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701557.1249237,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701612.2468302,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701672.3768516,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701727.4980347,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701787.668256,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701842.7751207,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701897.89347,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792701958.0264728,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792702013.1448512,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792702073.4206934,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792702128.5416372,
+      "event": "progress",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b",
+      "status": "running"
+    },
+    {
+      "time": 1792702148.856292,
+      "event": "completed",
+      "job_id": "adapt41_short_0358_temporal_gain_field",
+      "prompt_id": "769dad83-5c6a-46c6-a12c-3f03c5c78f6b"
+    },
+    {
+      "time": 1792702148.867622,
+      "event": "queue_finished"
+    }
+  ]
+}

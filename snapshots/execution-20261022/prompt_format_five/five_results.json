@@ -1,0 +1,697 @@
+[
+  {
+    "job_id": "promptfmt_short_0252_six_section_native",
+    "prompt_id": "37e1a639-b9a1-424f-a6ed-47c57262f141",
+    "graph_sha256": "a9903ee7828660b96cfb67de5236bff5e6490c57719ccd31e5060f391552f766",
+    "attempt_id": "promptfmt_short_0252_six_section_native__a1",
+    "metadata": {
+      "cohort": "prompt_format",
+      "task_id": "short_0252",
+      "benchmark": "IVEBench",
+      "dataset": "IVEBench",
+      "title": "机舱：男性替换为年长女性",
+      "prompt_variant": "six_section",
+      "method": "six_section_native",
+      "guidance_method": "native",
+      "prompt": "subject_definitions:\n<Video 1>: source video.\n\nsummary:\n[video editing] Replace the man with an elderly woman\n\nretention_analysis:\nNot specified.\n\ndetailed_description:\nNot specified.\n\noverall_soundscape:\nNot specified.\n\nnon_diegetic_music:\nNot specified.",
+      "prompt_sha256": "d51db471a5cb2f4c7d299f07cb63f99ec80c1ba68d3d276fe8bf0e2a7ea54d59",
+      "official_edit_prompt": "Replace the man with an elderly woman",
+      "original_task": {
+        "id": 252,
+        "src_video_name": "short_0252.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+        "edit_prompt": "Replace the man with an elderly woman",
+        "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+        "target_span": "elderly woman",
+        "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+      },
+      "prompt_protocol": "minimal_six_section_format",
+      "seed": 2026101703,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "valid_frames": 98,
+      "fps": 24,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "steps": 20,
+      "reference_video": "/workspace/research-user/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/inputs/short_0252_video.mp4",
+      "reference_image": null,
+      "source_video": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/input/short_0252_video.mp4",
+      "reference_image_remote": null,
+      "source_video_sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+      "graph_input_names": {
+        "video": "short_0252_video.mp4",
+        "image": null
+      },
+      "graph_sha256": "785f9cd915a9f51be06fcfad61e62ede35b280eced215f2316939c86815cd0f2",
+      "conditioning_policy": "encode_current_prompt_with_H3StudyReference; no historical tensor cache",
+      "timing_file": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0252_six_section_native__a1.json",
+      "scientific_variable": "minimal six-section format containing the verbatim official edit instruction; compare with archived prior results using their recorded prompt provenance",
+      "template_file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/graphs/new_short_0343_native.json",
+      "template_sha256": "59fd9245a2e0462b5da88699eba2687315a496b43e41075db6751e8b9a1da530",
+      "model_names": {
+        "1": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        },
+        "2": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        },
+        "3": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        },
+        "4": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "sampler": "euler",
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+      "reference_size": "match",
+      "schedule": "native",
+      "router_alpha": 1.0,
+      "runtime_validation": "pending",
+      "source_host41_graph_sha256": "c3be892c3a88362ce23277211a5be73ca9ce144e2fe31b204722948c95adeb10",
+      "execution_host": "H3_HOST_CONFIGURE_LOCALLY",
+      "execution_root": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a"
+    },
+    "files": [
+      {
+        "path": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/output/promptfmt_short_0252_six_section_native/promptfmt_short_0252_six_section_native__a1_00001_.mp4",
+        "bytes": 2351150,
+        "sha256": "6bd792c9e995c8b0f0f721dfda2a33c8ac5d8aa017e9af52dcea28029879e3f7",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "codec_name": "h264",
+              "width": 1312,
+              "height": 736,
+              "duration": "4.458333",
+              "nb_frames": "107"
+            }
+          ],
+          "format": {
+            "duration": "4.459000"
+          }
+        }
+      }
+    ],
+    "timing": {
+      "execution_seconds": 936.7090001106262,
+      "sampling_seconds": 848.7726538926363,
+      "sampling_step_seconds": [
+        52.705764789134264,
+        41.60907522216439,
+        41.839246340096,
+        41.89203145354986,
+        41.902552511543036,
+        41.92281996458769,
+        41.914776146411896,
+        41.92151299118996,
+        41.92247676849365,
+        41.91653647646308,
+        41.926872279495,
+        41.93891053274274,
+        41.932583659887314,
+        41.923740681260824,
+        41.925364043563604,
+        41.92372379079461,
+        41.91182778030634,
+        41.914526168257,
+        41.91668612509966,
+        41.90809905529022
+      ],
+      "mean_sampling_step_seconds": 42.438456339016554,
+      "sampling_source": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0252_six_section_native__a1.json"
+    },
+    "submit_to_validation_seconds": 939.9943981170654
+  },
+  {
+    "job_id": "promptfmt_short_0358_six_section_native",
+    "prompt_id": "3ec301f1-6388-4b9d-b6c7-9b1b646867ea",
+    "graph_sha256": "5f2695a011e89ff89d7f7de37779f1b77506b0fc0061d1b945e4fc8b79d9377c",
+    "attempt_id": "promptfmt_short_0358_six_section_native__a1",
+    "metadata": {
+      "cohort": "prompt_format",
+      "task_id": "short_0358",
+      "benchmark": "IVEBench",
+      "dataset": "IVEBench",
+      "title": "外观编辑 — 给饮酒男子戴眼镜",
+      "prompt_variant": "six_section",
+      "method": "six_section_native",
+      "guidance_method": "native",
+      "prompt": "subject_definitions:\n<Video 1>: source video.\n\nsummary:\n[video editing] Add a pair of glasses to the man.\n\nretention_analysis:\nNot specified.\n\ndetailed_description:\nNot specified.\n\noverall_soundscape:\nNot specified.\n\nnon_diegetic_music:\nNot specified.",
+      "prompt_sha256": "2750e003060381cd06226da08c955912cdccbdcb6bfaa32b80f01ce21c42bb59",
+      "official_edit_prompt": "Add a pair of glasses to the man.",
+      "original_task": {
+        "id": 358,
+        "src_video_name": "short_0358.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+        "edit_prompt": "Add a pair of glasses to the man.",
+        "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+        "target_span": "glasses",
+        "target_phrase": "the man is wearing a pair of glasses"
+      },
+      "prompt_protocol": "minimal_six_section_format",
+      "seed": 2026101701,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "valid_frames": 105,
+      "fps": 24,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "steps": 20,
+      "reference_video": "/workspace/research-user/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_video.mp4",
+      "reference_image": null,
+      "source_video": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/input/short_0358_video.mp4",
+      "reference_image_remote": null,
+      "source_video_sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+      "graph_input_names": {
+        "video": "short_0358_video.mp4",
+        "image": null
+      },
+      "graph_sha256": "5017ccf913115e3164f90b32b561d4955de4cc4c99b6983149a6de0a7b6c91ec",
+      "conditioning_policy": "encode_current_prompt_with_H3StudyReference; no historical tensor cache",
+      "timing_file": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0358_six_section_native__a1.json",
+      "scientific_variable": "minimal six-section format containing the verbatim official edit instruction; compare with archived prior results using their recorded prompt provenance",
+      "template_file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/graphs/new_short_0343_native.json",
+      "template_sha256": "59fd9245a2e0462b5da88699eba2687315a496b43e41075db6751e8b9a1da530",
+      "model_names": {
+        "1": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        },
+        "2": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        },
+        "3": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        },
+        "4": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "sampler": "euler",
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+      "reference_size": "match",
+      "schedule": "native",
+      "router_alpha": 1.0,
+      "runtime_validation": "pending",
+      "source_host41_graph_sha256": "f3cdd44add644223eb7f15a1fbfed7ee170701f47a07fc6862095de12ae78716",
+      "execution_host": "H3_HOST_CONFIGURE_LOCALLY",
+      "execution_root": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a"
+    },
+    "files": [
+      {
+        "path": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/output/promptfmt_short_0358_six_section_native/promptfmt_short_0358_six_section_native__a1_00001_.mp4",
+        "bytes": 2106831,
+        "sha256": "dfb7f58a7cbeed2ed62909f9ebe69dcb6c308d1473fd483dbc3d04ffe537bc25",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "codec_name": "h264",
+              "width": 1312,
+              "height": 736,
+              "duration": "4.458333",
+              "nb_frames": "107"
+            }
+          ],
+          "format": {
+            "duration": "4.459000"
+          }
+        }
+      }
+    ],
+    "timing": {
+      "execution_seconds": 911.8320000171661,
+      "sampling_seconds": 849.350607611239,
+      "sampling_step_seconds": [
+        52.88717093318701,
+        41.906020168215036,
+        41.91951899975538,
+        41.92047470062971,
+        41.930253867059946,
+        41.926359087228775,
+        41.928768306970596,
+        41.92885782569647,
+        41.91631896793842,
+        41.94957231730223,
+        41.942361790686846,
+        41.93107460066676,
+        41.92896154895425,
+        41.918522387742996,
+        41.90413914993405,
+        41.90806409716606,
+        41.90363894402981,
+        41.901951007544994,
+        41.90963255614042,
+        41.885548394173384
+      ],
+      "mean_sampling_step_seconds": 42.46736048255116,
+      "sampling_source": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0358_six_section_native__a1.json"
+    },
+    "submit_to_validation_seconds": 913.8060665130615
+  },
+  {
+    "job_id": "promptfmt_short_0085_six_section_native",
+    "prompt_id": "3a888015-5c33-4e26-a33b-ae1309df36f0",
+    "graph_sha256": "519eeaf5611db40462acbbd8e25934e114e5d94cd057b9af83258c65904a285c",
+    "attempt_id": "promptfmt_short_0085_six_section_native__a1",
+    "metadata": {
+      "cohort": "prompt_format",
+      "task_id": "short_0085",
+      "benchmark": "IVEBench",
+      "dataset": "IVEBench",
+      "title": "外观编辑 — 将窗边女子的头发改红",
+      "prompt_variant": "six_section",
+      "method": "six_section_native",
+      "guidance_method": "native",
+      "prompt": "subject_definitions:\n<Video 1>: source video.\n\nsummary:\n[video editing] Change the woman's hair to red\n\nretention_analysis:\nNot specified.\n\ndetailed_description:\nNot specified.\n\noverall_soundscape:\nNot specified.\n\nnon_diegetic_music:\nNot specified.",
+      "prompt_sha256": "be86f233f4afe9339169d6932c4f1a66abf0a7e884599b1553638256c67f6026",
+      "official_edit_prompt": "Change the woman's hair to red",
+      "original_task": {
+        "id": 85,
+        "src_video_name": "short_0085.mp4",
+        "category": "attribute_editing",
+        "subcategory": "color adjustment",
+        "source_prompt": "A woman with long blonde hair is holding a cup and smiling while looking out of a window.",
+        "edit_prompt": "Change the woman's hair to red",
+        "target_prompt": "A woman with long red hair is holding a cup and smiling while looking out of a window, with warmer and more saturated colors",
+        "target_span": "red",
+        "target_phrase": "A woman with long red hair"
+      },
+      "prompt_protocol": "minimal_six_section_format",
+      "seed": 2026101701,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "valid_frames": 66,
+      "fps": 24,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "steps": 20,
+      "reference_video": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/inputs/short_0085_video.mp4",
+      "reference_image": null,
+      "source_video": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/input/short_0085_video.mp4",
+      "reference_image_remote": null,
+      "source_video_sha256": "9f96b1a51d3107843d897633463a1e6b88f29ed8b33a52f5ac65d2e2b1b4cee3",
+      "graph_input_names": {
+        "video": "short_0085_video.mp4",
+        "image": null
+      },
+      "graph_sha256": "d06aff29e37ad62dfc333c8031812bbcc8644f726d735a7be80aecde3388152e",
+      "conditioning_policy": "encode_current_prompt_with_H3StudyReference; no historical tensor cache",
+      "timing_file": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0085_six_section_native__a1.json",
+      "scientific_variable": "minimal six-section format containing the verbatim official edit instruction; compare with archived prior results using their recorded prompt provenance",
+      "template_file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/graphs/new_short_0343_native.json",
+      "template_sha256": "59fd9245a2e0462b5da88699eba2687315a496b43e41075db6751e8b9a1da530",
+      "model_names": {
+        "1": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        },
+        "2": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        },
+        "3": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        },
+        "4": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "sampler": "euler",
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+      "reference_size": "match",
+      "schedule": "native",
+      "router_alpha": 1.0,
+      "runtime_validation": "pending",
+      "source_host41_graph_sha256": "65132e149cc8904f3283c7426e1a9e07ee51120ef3d77e10b3132f3ef7e5cead",
+      "execution_host": "H3_HOST_CONFIGURE_LOCALLY",
+      "execution_root": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a"
+    },
+    "files": [
+      {
+        "path": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/output/promptfmt_short_0085_six_section_native/promptfmt_short_0085_six_section_native__a1_00001_.mp4",
+        "bytes": 1161904,
+        "sha256": "bbed82ffddd1c1c2490a3ccd6fef8754765a73c40133af062b785e8116743118",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "codec_name": "h264",
+              "width": 1312,
+              "height": 736,
+              "duration": "3.041667",
+              "nb_frames": "73"
+            }
+          ],
+          "format": {
+            "duration": "3.042000"
+          }
+        }
+      }
+    ],
+    "timing": {
+      "execution_seconds": 501.50300002098083,
+      "sampling_seconds": 456.24448397383094,
+      "sampling_step_seconds": [
+        30.738965902477503,
+        22.38863755390048,
+        22.39604840427637,
+        22.39623124524951,
+        22.400797378271818,
+        22.404083851724863,
+        22.411441847682,
+        22.39917628839612,
+        22.403420615941286,
+        22.40592711791396,
+        22.40586854889989,
+        22.398049663752317,
+        22.38267681375146,
+        22.394585635513067,
+        22.414503931999207,
+        22.38491829484701,
+        22.38514419272542,
+        22.37993809208274,
+        22.37224179506302,
+        22.379826687276363
+      ],
+      "mean_sampling_step_seconds": 22.81212419308722,
+      "sampling_source": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0085_six_section_native__a1.json"
+    },
+    "submit_to_validation_seconds": 504.9935963153839
+  },
+  {
+    "job_id": "promptfmt_long_0059_six_section_native",
+    "prompt_id": "be71932d-2f0c-44a3-a1e6-be9d10986548",
+    "graph_sha256": "783548d8e122bf490fb1412247f87f199c82011838d2fcf5292d378bf9e0fa10",
+    "attempt_id": "promptfmt_long_0059_six_section_native__a1",
+    "metadata": {
+      "cohort": "prompt_format",
+      "task_id": "long_0059",
+      "benchmark": "IVEBench",
+      "dataset": "IVEBench",
+      "title": "物体编辑 — 换成白色手帕擦眼",
+      "prompt_variant": "six_section",
+      "method": "six_section_native",
+      "guidance_method": "native",
+      "prompt": "subject_definitions:\n<Video 1>: source video.\n\nsummary:\n[video editing] Add a white handkerchief in the man's hand\n\nretention_analysis:\nNot specified.\n\ndetailed_description:\nNot specified.\n\noverall_soundscape:\nNot specified.\n\nnon_diegetic_music:\nNot specified.",
+      "prompt_sha256": "c25d2fb4d60808a29fe2bbfe147551f7de47668ef98e112a5cd7b40185b9aa3b",
+      "official_edit_prompt": "Add a white handkerchief in the man's hand",
+      "original_task": {
+        "id": 59,
+        "src_video_name": "long_0059.mp4",
+        "category": "subject_editing",
+        "subcategory": "add new subject",
+        "source_prompt": "A man with a bald head and a black shirt is looking down and wiping his eye with his hand.",
+        "edit_prompt": "Add a white handkerchief in the man's hand",
+        "target_prompt": "A man with a bald head and a black shirt is looking down and wiping his eye with a white handkerchief in his hand",
+        "target_span": "white handkerchief",
+        "target_phrase": "a white handkerchief"
+      },
+      "prompt_protocol": "minimal_six_section_format",
+      "seed": 2026101701,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 158,
+        "fps": 24
+      },
+      "valid_frames": 144,
+      "fps": 24,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "steps": 20,
+      "reference_video": "/workspace/research-user/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/inputs/long_0059_video.mp4",
+      "reference_image": null,
+      "source_video": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/input/long_0059_video.mp4",
+      "reference_image_remote": null,
+      "source_video_sha256": "d8d60f728e4d4e7a8d06566689a12f7816383765f610b467476a5fe955056c79",
+      "graph_input_names": {
+        "video": "long_0059_video.mp4",
+        "image": null
+      },
+      "graph_sha256": "117e23b68ba9631461539c7d8cdae6f7f774c215cc4b9ee77389ba334edb4fc6",
+      "conditioning_policy": "encode_current_prompt_with_H3StudyReference; no historical tensor cache",
+      "timing_file": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_long_0059_six_section_native__a1.json",
+      "scientific_variable": "minimal six-section format containing the verbatim official edit instruction; compare with archived prior results using their recorded prompt provenance",
+      "template_file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/graphs/new_short_0343_native.json",
+      "template_sha256": "59fd9245a2e0462b5da88699eba2687315a496b43e41075db6751e8b9a1da530",
+      "model_names": {
+        "1": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        },
+        "2": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        },
+        "3": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        },
+        "4": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "sampler": "euler",
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+      "reference_size": "match",
+      "schedule": "native",
+      "router_alpha": 1.0,
+      "runtime_validation": "pending",
+      "source_host41_graph_sha256": "4049e8a30fb9f508c7c6a12dc3183fc36dd17e53151e19052e2b54021ecdcc5c",
+      "execution_host": "H3_HOST_CONFIGURE_LOCALLY",
+      "execution_root": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a"
+    },
+    "files": [
+      {
+        "path": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/output/promptfmt_long_0059_six_section_native/promptfmt_long_0059_six_section_native__a1_00001_.mp4",
+        "bytes": 2660456,
+        "sha256": "8dbe017d5c04379622d8710c0305e4cd0b5693b5d1e8cac3e4f0fee76805845c",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "codec_name": "h264",
+              "width": 1312,
+              "height": 736,
+              "duration": "6.583333",
+              "nb_frames": "158"
+            }
+          ],
+          "format": {
+            "duration": "6.584000"
+          }
+        }
+      }
+    ],
+    "timing": {
+      "execution_seconds": 1776.739000082016,
+      "sampling_seconds": 1685.9544764645398,
+      "sampling_step_seconds": [
+        94.901292540133,
+        83.83749670535326,
+        83.79625050351024,
+        83.7522770576179,
+        83.84512025490403,
+        83.75250842794776,
+        83.64616405591369,
+        83.70410619303584,
+        83.72705242037773,
+        83.74064695090055,
+        83.73385163396597,
+        83.77367639541626,
+        83.7566465511918,
+        83.7502018995583,
+        83.71754383668303,
+        83.72592004016042,
+        83.73835052549839,
+        83.6812950335443,
+        83.6687902957201,
+        83.7019972987473
+      ],
+      "mean_sampling_step_seconds": 84.29755943100899,
+      "sampling_source": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_long_0059_six_section_native__a1.json"
+    },
+    "submit_to_validation_seconds": 1778.0194013118744
+  },
+  {
+    "job_id": "promptfmt_short_0343_six_section_native",
+    "prompt_id": "bfe5800e-17ca-423c-b203-9ca0802d3433",
+    "graph_sha256": "7f0bc29d6a79372783235b604f4485ea5c5c23685725d0e5a385896d7ea67901",
+    "attempt_id": "promptfmt_short_0343_six_section_native__a1",
+    "metadata": {
+      "cohort": "prompt_format",
+      "task_id": "short_0343",
+      "benchmark": "IVEBench",
+      "dataset": "IVEBench",
+      "title": "浴室照镜：人物改为医生",
+      "prompt_variant": "six_section",
+      "method": "six_section_native",
+      "guidance_method": "native",
+      "prompt": "subject_definitions:\n<Video 1>: source video.\n\nsummary:\n[video editing] Replace the woman with a doctor\n\nretention_analysis:\nNot specified.\n\ndetailed_description:\nNot specified.\n\noverall_soundscape:\nNot specified.\n\nnon_diegetic_music:\nNot specified.",
+      "prompt_sha256": "c7a7c1209e12401af643bb4d57efc2513c1e91dbb1e888c6a94f11e2fd9f4650",
+      "official_edit_prompt": "Replace the woman with a doctor",
+      "original_task": {
+        "id": 343,
+        "src_video_name": "short_0343.mp4",
+        "category": "subject_editing",
+        "subcategory": "replace existing subject",
+        "source_prompt": "A woman is standing in front of a mirror in a bathroom, looking at her phone. She appears to be in a hospital or medical facility, as indicated by the background and her attire.",
+        "edit_prompt": "Replace the woman with a doctor",
+        "target_prompt": "A doctor is standing in front of a mirror in a bathroom, looking at her phone. She appears to be in a hospital or medical facility, as indicated by the background and her attire.",
+        "target_span": "doctor",
+        "target_phrase": "A doctor is standing in front of a mirror in a bathroom"
+      },
+      "prompt_protocol": "minimal_six_section_format",
+      "seed": 2026101701,
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 73,
+        "fps": 24
+      },
+      "valid_frames": 61,
+      "fps": 24,
+      "evaluation_crop_xywh": [
+        16,
+        8,
+        1280,
+        720
+      ],
+      "steps": 20,
+      "reference_video": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/inputs/short_0343_video.mp4",
+      "reference_image": null,
+      "source_video": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/input/short_0343_video.mp4",
+      "reference_image_remote": null,
+      "source_video_sha256": "db9a7226627631466eef2f2739e592034ddedf989db369935f51bddbe9923831",
+      "graph_input_names": {
+        "video": "short_0343_video.mp4",
+        "image": null
+      },
+      "graph_sha256": "0ff103472d67feefc17be06f761f6cc0a15eeda4474db8a2a87babde08865a36",
+      "conditioning_policy": "encode_current_prompt_with_H3StudyReference; no historical tensor cache",
+      "timing_file": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0343_six_section_native__a1.json",
+      "scientific_variable": "minimal six-section format containing the verbatim official edit instruction; compare with archived prior results using their recorded prompt provenance",
+      "template_file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/graphs/new_short_0343_native.json",
+      "template_sha256": "59fd9245a2e0462b5da88699eba2687315a496b43e41075db6751e8b9a1da530",
+      "model_names": {
+        "1": {
+          "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        },
+        "2": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax",
+          "device": "default"
+        },
+        "3": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        },
+        "4": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "sampler": "euler",
+      "sigmas": "1,0.995633187773,0.990825688073,0.985507246377,0.979591836735,0.972972972973,0.965517241379,0.957055214724,0.947368421053,0.936170212766,0.923076923077,0.90756302521,0.888888888889,0.865979381443,0.837209302326,0.8,0.75,0.679245283019,0.571428571429,0.387096774194,0",
+      "reference_size": "match",
+      "schedule": "native",
+      "router_alpha": 1.0,
+      "runtime_validation": "pending",
+      "source_host41_graph_sha256": "872af2a1007670367d49451246a6bf07bfcd7e0dda49a86d8f6ca13643664896",
+      "execution_host": "H3_HOST_CONFIGURE_LOCALLY",
+      "execution_root": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a"
+    },
+    "files": [
+      {
+        "path": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/output/promptfmt_short_0343_six_section_native/promptfmt_short_0343_six_section_native__a1_00001_.mp4",
+        "bytes": 1846990,
+        "sha256": "f5b59c355bb1481e8d2448a1f966b3e2468880d286e27be46652249f4a0b40d0",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "codec_name": "h264",
+              "width": 1312,
+              "height": 736,
+              "duration": "3.041667",
+              "nb_frames": "73"
+            }
+          ],
+          "format": {
+            "duration": "3.042000"
+          }
+        }
+      }
+    ],
+    "timing": {
+      "execution_seconds": 502.64999985694885,
+      "sampling_seconds": 456.257037229836,
+      "sampling_step_seconds": [
+        30.71102061867714,
+        22.394790939986706,
+        22.392996728420258,
+        22.3998481631279,
+        22.398332189768553,
+        22.4133027382195,
+        22.39298665151,
+        22.399756286293268,
+        22.388321559876204,
+        22.3928019143641,
+        22.408018674701452,
+        22.395939100533724,
+        22.395149048417807,
+        22.388084825128317,
+        22.39448143169284,
+        22.402924224734306,
+        22.398932870477438,
+        22.405410319566727,
+        22.384962141513824,
+        22.397012796252966
+      ],
+      "mean_sampling_step_seconds": 22.81275366116315,
+      "sampling_source": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/promptfmt_short_0343_six_section_native__a1.json"
+    },
+    "submit_to_validation_seconds": 505.054785490036
+  }
+]

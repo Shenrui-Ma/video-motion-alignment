@@ -112,8 +112,8 @@ $$c=\min\left(1,\frac{\rho\operatorname{RMS}(O)}{\operatorname{RMS}(\alpha_0gD)+
 
 代码依据与校验：
 
-- /Users/researcher/DevProjects/video-motion-alignment/execution-20261022/inference/package/custom_nodes/H3Study/core.py；SHA256 `2dba7d615092491ad5b696b81ae2c0d41e9cae3760046aeefbdf33ad0d543691`。
-- /Users/researcher/DevProjects/video-motion-alignment/execution-20261022/inference/package/custom_nodes/H3Study/schedule.py；SHA256 `8cc187efc98c00280c321368c7471066970ae2aa633f52dd885160dc4190ae89`。
+- /workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/custom_nodes/H3Study/core.py；SHA256 `2dba7d615092491ad5b696b81ae2c0d41e9cae3760046aeefbdf33ad0d543691`。
+- /workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/package/custom_nodes/H3Study/schedule.py；SHA256 `8cc187efc98c00280c321368c7471066970ae2aa633f52dd885160dc4190ae89`。
 
 ## 8. CPU原型与验证
 

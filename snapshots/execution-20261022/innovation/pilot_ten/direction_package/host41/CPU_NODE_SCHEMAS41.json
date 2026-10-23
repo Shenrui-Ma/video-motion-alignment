@@ -1,0 +1,387 @@
+{
+  "status": "passed",
+  "schemas": {
+    "H3DirectionRuntime": {
+      "H3DirectionGatedSchedule": {
+        "required": {
+          "model": [
+            "MODEL"
+          ],
+          "positive": [
+            "CONDITIONING"
+          ],
+          "enabled": [
+            "BOOLEAN",
+            {
+              "default": true
+            }
+          ],
+          "mode": [
+            [
+              "native",
+              "mass_preserve",
+              "direction_gated"
+            ],
+            {
+              "default": "direction_gated"
+            }
+          ],
+          "schedule": [
+            [
+              "fixed",
+              "native",
+              "early",
+              "late",
+              "split",
+              "global_weak"
+            ],
+            {
+              "default": "global_weak"
+            }
+          ],
+          "selected_layers": [
+            "STRING",
+            {
+              "default": "all"
+            }
+          ],
+          "alpha": [
+            "FLOAT",
+            {
+              "default": 0.45,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "min_routing_offset": [
+            "FLOAT",
+            {
+              "default": 0.25,
+              "min": 0.0
+            }
+          ],
+          "min_concentration": [
+            "FLOAT",
+            {
+              "default": 0.15,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "min_tangent_norm": [
+            "FLOAT",
+            {
+              "default": 1e-06,
+              "min": 0.0
+            }
+          ],
+          "query_chunk": [
+            "INT",
+            {
+              "default": 16,
+              "min": 1,
+              "max": 64
+            }
+          ],
+          "key_chunk": [
+            "INT",
+            {
+              "default": 512,
+              "min": 1,
+              "max": 2048
+            }
+          ],
+          "record_cuda_timing": [
+            "BOOLEAN",
+            {
+              "default": true
+            }
+          ],
+          "start_frame": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0
+            }
+          ],
+          "end_frame": [
+            "INT",
+            {
+              "default": 60,
+              "min": 0
+            }
+          ],
+          "run_id": [
+            "STRING"
+          ],
+          "audit_dir": [
+            "STRING"
+          ]
+        }
+      }
+    },
+    "H3TemporalCoverage": {
+      "H3TemporalCoverage": {
+        "required": {
+          "model": [
+            "MODEL"
+          ],
+          "positive": [
+            "CONDITIONING"
+          ],
+          "enabled": [
+            "BOOLEAN",
+            {
+              "default": false
+            }
+          ],
+          "alpha": [
+            "FLOAT",
+            {
+              "default": 0.25,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "start_frame": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0
+            }
+          ],
+          "end_frame": [
+            "INT",
+            {
+              "default": -1,
+              "min": -1,
+              "tooltip": "Inclusive source frame; -1 selects the last valid reference positional frame."
+            }
+          ],
+          "step_start": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 19,
+              "tooltip": "Zero-based inclusive denoising step; 0 starts at step 1."
+            }
+          ],
+          "step_end": [
+            "INT",
+            {
+              "default": 20,
+              "min": 1,
+              "max": 20,
+              "tooltip": "Zero-based exclusive denoising step; 20 includes step 20."
+            }
+          ],
+          "block_start": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 49
+            }
+          ],
+          "block_end": [
+            "INT",
+            {
+              "default": 50,
+              "min": 1,
+              "max": 50
+            }
+          ],
+          "radius": [
+            "INT",
+            {
+              "default": 2,
+              "min": 0,
+              "max": 255
+            }
+          ],
+          "entropy": [
+            "FLOAT",
+            {
+              "default": 0.5,
+              "min": 1e-06
+            }
+          ],
+          "temporal_penalty": [
+            "FLOAT",
+            {
+              "default": 0.25,
+              "min": 0.0
+            }
+          ],
+          "iterations": [
+            "INT",
+            {
+              "default": 128,
+              "min": 1
+            }
+          ],
+          "tolerance": [
+            "FLOAT",
+            {
+              "default": 0.0002,
+              "min": 1e-06,
+              "max": 0.999
+            }
+          ],
+          "min_quality_span": [
+            "FLOAT",
+            {
+              "default": 0.001,
+              "min": 0.0
+            }
+          ],
+          "minimum_mean_gap": [
+            "FLOAT",
+            {
+              "default": 0.0,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "run_id": [
+            "STRING",
+            {
+              "default": "coverage_run"
+            }
+          ],
+          "audit_dir": [
+            "STRING",
+            {
+              "default": "",
+              "tooltip": "Absolute directory for unique run audit JSON."
+            }
+          ]
+        }
+      }
+    },
+    "H3PartialRoPE": {
+      "H3PartialRoPE": {
+        "required": {
+          "model": [
+            "MODEL"
+          ],
+          "positive": [
+            "CONDITIONING"
+          ],
+          "enabled": [
+            "BOOLEAN",
+            {
+              "default": false
+            }
+          ],
+          "frequency_mask": [
+            "STRING",
+            {
+              "default": "[0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]"
+            }
+          ],
+          "delta_frames": [
+            "FLOAT",
+            {
+              "default": 0.0,
+              "min": -240.0,
+              "max": 240.0
+            }
+          ],
+          "alpha": [
+            "FLOAT",
+            {
+              "default": 1.0,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "schedule": [
+            [
+              "native",
+              "fixed",
+              "early",
+              "late",
+              "split",
+              "global_weak",
+              "all"
+            ]
+          ],
+          "start_frame": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0
+            }
+          ],
+          "end_frame": [
+            "INT",
+            {
+              "default": 60,
+              "min": 0
+            }
+          ],
+          "block_start": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 49
+            }
+          ],
+          "block_end": [
+            "INT",
+            {
+              "default": 50,
+              "min": 1,
+              "max": 50
+            }
+          ],
+          "run_id": [
+            "STRING",
+            {
+              "default": "partial_rope_unique_run"
+            }
+          ],
+          "audit_dir": [
+            "STRING",
+            {
+              "default": "/tmp/h3-partial-rope"
+            }
+          ]
+        },
+        "optional": {
+          "delta_mode": [
+            [
+              "explicit",
+              "reference_origin"
+            ],
+            {
+              "default": "explicit"
+            }
+          ]
+        }
+      }
+    },
+    "H3TrustedConditionCache": {
+      "H3TrustedConditionCache": {
+        "required": {
+          "cache_manifest": [
+            "STRING"
+          ],
+          "manifest_sha256": [
+            "STRING"
+          ]
+        }
+      }
+    }
+  },
+  "frozen_h3study_root": "/data4/research-user/h3_runs/benchmark_schedule_20261022/custom_nodes/H3Study",
+  "frozen_h3study_hashes": {
+    "core.py": "2dba7d615092491ad5b696b81ae2c0d41e9cae3760046aeefbdf33ad0d543691",
+    "layout.py": "d71a0a34956c1c57e534f906df3dc954bc6b4ab02b33f78f0b0ba913e6acca08",
+    "schedule.py": "8cc187efc98c00280c321368c7471066970ae2aa633f52dd885160dc4190ae89"
+  },
+  "cuda_initialized": false
+}

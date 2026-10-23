@@ -1,0 +1,84 @@
+{
+  "time": 1792745162.95422,
+  "reason": "user_requested_pause_all_H3_research_pending_further_command",
+  "actions": [
+    {
+      "label": "cn.h3.metrics.relay.20261022",
+      "source": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/watch_outputs.py",
+      "launchctl_before": "{\n\t\"StandardOutPath\" = \"/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/watcher.log\";\n\t\"LimitLoadToSessionType\" = \"Aqua\";\n\t\"StandardErrorPath\" = \"/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/watcher.err\";\n\t\"Label\" = \"cn.h3.metrics.relay.20261022\";\n\t\"OnDemand\" = false;\n\t\"LastExitStatus\" = 15;\n\t\"PID\" = 5173;\n\t\"Program\" = \"/usr/bin/python3\";\n\t\"ProgramArguments\" = (\n\t\t\"/usr/bin/python3\";\n\t\t\"/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/watch_outputs.py\";\n\t\t\"--hours\";\n\t\t\"48\";\n\t);\n};\n",
+      "identity_before": {
+        "pid": 5173,
+        "ppid": 1,
+        "uid": 501,
+        "start": "Fri Oct 23 13:35:49 2026",
+        "state": "S",
+        "command": "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/watch_outputs.py --hours 48"
+      },
+      "suspended_before_child_drain": 1792745162.964631,
+      "children_after_drain": [],
+      "launchctl_remove_code": 0,
+      "launchctl_remove_stderr": "",
+      "identity_after": null,
+      "label_present_after": false,
+      "status": "stopped_and_autostart_removed"
+    },
+    {
+      "label": "cn.h3.qwen.download.20261022",
+      "source": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/download_qwen.py",
+      "launchctl_before": "{\n\t\"StandardOutPath\" = \"/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/qwen_download.log\";\n\t\"LimitLoadToSessionType\" = \"Aqua\";\n\t\"StandardErrorPath\" = \"/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/qwen_download.err\";\n\t\"Label\" = \"cn.h3.qwen.download.20261022\";\n\t\"OnDemand\" = false;\n\t\"LastExitStatus\" = 0;\n\t\"PID\" = 80257;\n\t\"Program\" = \"/usr/bin/python3\";\n\t\"ProgramArguments\" = (\n\t\t\"/usr/bin/python3\";\n\t\t\"/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/download_qwen.py\";\n\t);\n};\n",
+      "identity_before": {
+        "pid": 80257,
+        "ppid": 1,
+        "uid": 501,
+        "start": "Fri Oct 23 16:45:15 2026",
+        "state": "S",
+        "command": "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/download_qwen.py"
+      },
+      "suspended_before_child_drain": 1792745163.023494,
+      "children_after_drain": [
+        {
+          "pid": 80535,
+          "ppid": 80257,
+          "uid": 501,
+          "start": "Fri Oct 23 16:45:59 2026",
+          "state": "Z",
+          "command": "<defunct>"
+        }
+      ],
+      "status": "stopped_and_autostart_removed",
+      "drain_resolution": "only already-exited Z child remained; not an active transfer; no child signalled",
+      "children_at_final_boundary": [
+        {
+          "pid": 80535,
+          "ppid": 80257,
+          "uid": 501,
+          "start": "Fri Oct 23 16:45:59 2026",
+          "state": "Z",
+          "command": "<defunct>"
+        }
+      ],
+      "identity_after": null,
+      "label_present_after": false,
+      "launchctl_remove_code": 0
+    },
+    {
+      "label": null,
+      "source": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/qwen_runtime/host41_extension_live_incremental_20261023/return_watch.py",
+      "identity_before": {
+        "pid": 67193,
+        "ppid": 1,
+        "uid": 501,
+        "start": "Fri Oct 23 11:58:18 2026",
+        "state": "Ss",
+        "command": "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python /workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/metrics/qwen_runtime/host41_extension_live_incremental_20261023/return_watch.py"
+      },
+      "suspended_before_child_drain": 1792745223.1009762,
+      "children_after_drain": [],
+      "identity_after": null,
+      "label_present_after": false,
+      "status": "stopped_and_autostart_removed"
+    }
+  ],
+  "scope": "local original H3 relay, completed original AWQ downloader and return watcher only; no remote process operations",
+  "finished": 1792745288.723575
+}

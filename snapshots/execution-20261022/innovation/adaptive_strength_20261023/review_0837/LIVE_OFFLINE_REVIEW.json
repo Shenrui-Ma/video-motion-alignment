@@ -1,0 +1,49 @@
+{
+  "schema": "h3-independent-live-offline-review-v1",
+  "decision": "APPROVED_OFFLINE_NEW_TRAJECTORY_DIAGNOSTICS_AFTER_OWN_GATE",
+  "reviewed_at": "2026-10-23T01:41:24.760523+00:00",
+  "scope": "Read-only offline CPU definition; no actual new captures or event interpretation evaluated",
+  "test_evidence": {
+    "execution": "H3_HOST_CONFIGURE_LOCALLY CPU CUDA_VISIBLE_DEVICES empty, OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1",
+    "suite": "test_evaluate_live test_paired_readout test_live_readout_independent",
+    "passed": 20,
+    "seconds": 0.118,
+    "author_tests": 15,
+    "independent_tests": 5,
+    "log_sha256": "9517d0915546dceab192b95ad0f837da0ed25f57ff9129cecdaac97ea112096c"
+  },
+  "sources": {
+    "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/signed_phase_calibration_20261023/calibration_live/test_paired_readout.py": "b64a646751af9176f23098c36ecc8c14949e83bddbfe58e3e67b4c2c9a310b4d",
+    "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/signed_phase_calibration_20261023/calibration_live/evaluate_live.py": "b588ffea1b59a1636de0503dcc0dbe9884ac82ff3a65e5d8ead236a29a6ed0ea",
+    "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/signed_phase_calibration_20261023/calibration_live/test_evaluate_live.py": "7826abe73f57f6af754eabc7c1f99dad3293a549786388132428bc2b3eb4297d",
+    "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/signed_phase_calibration_20261023/calibration_live/paired_readout.py": "e3b90f7898ad397342fe3ba6fa63908e3c429a683c2ec638aa4e037b63a40f1d",
+    "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/signed_phase_calibration_20261023/calibration/evaluate_probabilities.py": "4ad4f4314d958079f842a93b5bc0b4b4ac0e65522c5b3ce887ba6454143538e9",
+    "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/adaptive_strength_20261023/review_0837/test_live_readout_independent.py": "fafa363db27c30876a2ff7484fb67e81fedb88699af37f654df6c420a3b39b80"
+  },
+  "gates": {
+    "historical_failed_gate_unchanged": true,
+    "new_live_contract_requires20forwards1000blocks": true,
+    "new_videos_SHA_and_annotations_required": true,
+    "numerical_same_capture_policy_required": true,
+    "phase_semantics_validated": false
+  },
+  "statistical_review": [
+    "Primary same-query weak-native reference mean avoids event-index target leakage.",
+    "Source event query bins are identical across methods and not derived from new generated event timing.",
+    "All heads and probes are retained; missing source support stays missing.",
+    "Reference self drift and DC subtraction remain secondary and do not overwrite primary raw quantity.",
+    "Cross-key Shapley-style symmetric differences algebraically sum to total retrieval shift; they attribute Q/K changes, not motion/appearance causality."
+  ],
+  "pending": [],
+  "not_tested": [
+    "New live GPU trajectories (not yet released by this reviewer).",
+    "Semantic action-phase identifiability on actual new paired outputs."
+  ],
+  "runtime_contract_derivation": "Root generated analysis contracts from runtime contract bytes with parent SHA; numerical policy SHA fixed",
+  "policy_sha256": {
+    "PLAN.json": "d0a3b95f861b0392b1dcef2cdb7122209758a5d80f3130ae3e50fc1841b90d78",
+    "PAIRED_READOUT_POLICY.json": "4efa8edf27063ab3c116e13725f21159d1b59db8eaf9ea7cf3a772119cd7140e",
+    "CROSS_KEY_POLICY.json": "6e20a0325f13d26315f07f8ea6ce1a4de2b016204375df6ac9470519f2779283"
+  },
+  "resolved_cross_shape_bug": "Explicit equality of all four H,T,P,T shapes; 56-to-1 head broadcasting regression passed."
+}

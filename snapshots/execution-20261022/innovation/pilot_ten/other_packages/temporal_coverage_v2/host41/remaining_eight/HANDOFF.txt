@@ -1,0 +1,15 @@
+跨时刻参考覆盖 v2：已完成两pilot实核，继续同主10组其余8条。
+机舱与饮酒均20forwards/1000blocks，1000 solved/0 fallback，finite修正和视频SHA通过；最大列误差9.86144e-5/9.97813e-5，小于2e-4；行误差4.44e-16。机舱总采样1185.648s、均59.282s/步，饮酒1220.376s、均61.019s/步。CPU求解总耗时3.854s/3.488s，平均3.803/3.762次Newton，最大11/7。
+
+两pilot原worker237672/service237683自然退出后，独立guard271114/start2525561/UID1004通过67资产SHA，48→56清单已激活。新worker271158/start2526096，新service271162/start2526139，仍.41 GPU7、单个视频推理进程。
+运行根目录 /data4/research-user/h3_runs/benchmark_schedule_20261022
+脚本 scripts/coverage_v2_remaining8_handoff.py
+状态/receipt innovation_handoff/coverage_v2_remaining8_{pid,status,launch,activation,pilot_verification,active_manifest,verified}.json
+
+顺序：long0039、long0059、short0085、short0274、short0343、short0114、crouch_movie_man4、long0167。
+每组图与已完成direction图除节点50方法和节点14输出名外完全一致，prompt/seed/cache/model/geometry保持。方法H3TemporalCoverageV2，20步全程alpha0.25，radius2/entropy.5/penalty.25/maxNewton64/tolerance.0002，同时间weak兜底；独立配置，不叠加其他新方法。
+9项CPU接续测试通过，覆盖48→56唯一清单、两pilot门槛、失败拒绝、旧partial取消3条未恢复、图不变、Z状态识别与回收。模型算法代码与33项已过CPU测试及两真实pilot完全相同。
+旧v1剩7条仍blocked_by_routing_diagnostic，partial取消3条保持取消；新8条id后缀temporal_coverage_v2。
+新guard审计每条成片SHA、20步timing、coverage_solved_calls/同时间fallback比例、solver耗时；8条完成写verified后返回，自动评测relay接入新视频。未做视觉检查、未改用户报告。
+
+最新实查首条long0039已API running：prompt3bd15635-258a-461c-897c-2deacb1c1e0b，attempt innov41_long_0039_temporal_coverage_v2__a1；见FIRST_STARTED.json。

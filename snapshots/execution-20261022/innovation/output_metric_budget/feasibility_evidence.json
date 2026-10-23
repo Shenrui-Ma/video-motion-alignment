@@ -1,0 +1,149 @@
+{
+  "model_path": "/data3/research-user/ComfyUI-H3/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+  "header_bytes": 95416,
+  "header_sha256": "c1a65ff59085cbed8a6ea7c935ae7e58b1d2f870239df54c58a68fb7989e1cd8",
+  "selected_metadata": {
+    "blocks.0.attn.out_proj.weight": {
+      "dtype": "I8",
+      "shape": [
+        5376,
+        7168
+      ],
+      "data_offsets": [
+        1702685792,
+        1741220960
+      ]
+    },
+    "blocks.0.attn.out_proj.weight_scale": {
+      "dtype": "F32",
+      "shape": [
+        5376,
+        1
+      ],
+      "data_offsets": [
+        742432,
+        763936
+      ]
+    },
+    "blocks.0.attn.out_proj.comfy_quant": {
+      "dtype": "U8",
+      "shape": [
+        72
+      ],
+      "data_offsets": [
+        20970269792,
+        20970269864
+      ],
+      "value": {
+        "format": "int8_tensorwise",
+        "convrot": true,
+        "convrot_groupsize": 256
+      }
+    },
+    "blocks.49.attn.out_proj.comfy_quant": {
+      "dtype": "U8",
+      "shape": [
+        72
+      ],
+      "data_offsets": [
+        20970282464,
+        20970282536
+      ],
+      "value": {
+        "format": "int8_tensorwise",
+        "convrot": true,
+        "convrot_groupsize": 256
+      }
+    }
+  },
+  "weight_tensor_bytes_read": 0,
+  "backend_audit": {
+    "pid": 61307,
+    "started_unix_ns": 1792696343625713534,
+    "cuda_int8": {
+      "status": "installed",
+      "attempted_calls": 11000,
+      "successful_calls": 11000,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": false,
+      "first_call": {
+        "unix_ns": 1792696355649193144,
+        "tensor_arguments": {
+          "x": {
+            "shape": [
+              65547,
+              5376
+            ],
+            "dtype": "torch.bfloat16",
+            "device": "cuda:0"
+          },
+          "weight": {
+            "shape": [
+              21504,
+              5376
+            ],
+            "dtype": "torch.int8",
+            "device": "cuda:0"
+          },
+          "weight_scale": {
+            "shape": [
+              21504,
+              1
+            ],
+            "dtype": "torch.float32",
+            "device": "cuda:0"
+          }
+        },
+        "outcome": "returned"
+      }
+    },
+    "triton_int8": {
+      "status": "installed",
+      "attempted_calls": 0,
+      "successful_calls": 0,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": true
+    }
+  },
+  "read_at": "2026-10-23T04:07:24.117207+08:00",
+  "sources": {
+    "comfy_ops.py": {
+      "sha256": "428b83aba285d22d64511aa8e98254403ab34c0b12d72a832973578d76abda42",
+      "bytes": 79226
+    },
+    "comfy_model_management.py": {
+      "sha256": "ef3f3af0657c1b022ad69b25928fa52dd429db9aed9cb688e89c7fbe68ab50cd",
+      "bytes": 72019
+    },
+    "comfy_quant_ops.py": {
+      "sha256": "196e45349f46e5ca69f6b2251bbe01d4f8eb5d26f8ad38d62b1c002d80fb2089",
+      "bytes": 9881
+    },
+    "kitchen_backends_cuda___init__.py": {
+      "sha256": "4f09f943122d4a0387149151676cb3335ced980bb342d88d84f9161419e28859",
+      "bytes": 158554
+    },
+    "comfy_model_patcher.py": {
+      "sha256": "26da6710a7d84e8e98ea3e0f0bc07b88cfef3f99a7f7d59daa71e650512c6ed4",
+      "bytes": 102084
+    },
+    "kitchen_tensor_int8_utils.py": {
+      "sha256": "4776532e7394c56262cc02c48217a20b520d123c2bf9539eaf77cf0ff32ff1b8",
+      "bytes": 2151
+    },
+    "kitchen_tensor_base.py": {
+      "sha256": "1779b95ec16d2f3db1adcdbf448b931104ad6f609849afec7d03c999cfc819eb",
+      "bytes": 18126
+    },
+    "kitchen_tensor_int8.py": {
+      "sha256": "df5fea37f408a224060c7d89d5a074e4c59eda4937020fcc5693c465934cb3a0",
+      "bytes": 13751
+    },
+    "kitchen_backends_eager___init__.py": {
+      "sha256": "8a92e2b0b1b80781fe401fecba658bb7f79962c73ba2a463d4a44488feda375d",
+      "bytes": 24861
+    }
+  }
+}

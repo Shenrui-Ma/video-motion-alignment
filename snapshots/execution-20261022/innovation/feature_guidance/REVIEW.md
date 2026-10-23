@@ -12,7 +12,7 @@
 
 ### 已修复 P2：低层配置可记录 secants，实际却运行 centered
 
-位置：[attention.py](/workspace/video-motion-alignment/execution-20261022/innovation/feature_guidance/attention.py:20)，`FeatureConfig.__post_init__` 与 `feature_attention` 的 DOF 分支。
+位置：[attention.py](/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/feature_guidance/attention.py:20)，`FeatureConfig.__post_init__` 与 `feature_attention` 的 DOF 分支。
 
 `FeatureConfig(mode='dynamic_strength_dof', basis='secants')` 当前通过类级校验。`nodes.py` 会拒绝这个组合，但直接使用 `attach`／`feature_attention` 时，DOF 函数固定用 centered，而 audit 的 `feature_config` 记录 secants。这可能污染消融配置标签。
 
@@ -22,7 +22,7 @@
 
 ### 已修复 P3：DOF 模式的 effective collateral 应单独记入 audit
 
-位置：[prototype/controller.py](/workspace/video-motion-alignment/execution-20261022/innovation/adaptive_strength_20261023/prototype/controller.py:140)。
+位置：[prototype/controller.py](/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/adaptive_strength_20261023/prototype/controller.py:140)。
 
 DOF 模式使用 `c=(1-alpha_prior)/alpha_prior`；默认 prior=.25 时 c=3。节点仍接受 `collateral=1` 并存进配置，但此参数只作用于原始 `dynamic_strength`。数值实现正确，建议在 DOF 返回结果里加 `effective_collateral`，或明确该 mode 下 config.collateral 未使用。最小测试：prior=.25 时有效值为 3；更改 legacy collateral 不改变 DOF 结果。
 

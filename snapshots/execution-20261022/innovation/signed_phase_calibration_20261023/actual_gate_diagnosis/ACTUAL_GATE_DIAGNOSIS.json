@@ -1,0 +1,134 @@
+{
+  "schema": "h3-failed-historical-gate-diagnosis-v1",
+  "gate_passed": false,
+  "streams": {
+    "video": {
+      "hook_exact_equal": true,
+      "old_rms": 0.9789378251662502,
+      "nrmse": 0.022714303894599875,
+      "p99_abs_over_old_rms": 0.07471189152562946,
+      "max_abs_over_old_rms": 2.16664503690443,
+      "historical_pass": false
+    },
+    "audio": {
+      "hook_exact_equal": true,
+      "old_rms": 0.4086784638653452,
+      "nrmse": 0.028419892391736885,
+      "p99_abs_over_old_rms": 0.08053329803553803,
+      "max_abs_over_old_rms": 0.28634070031505204,
+      "historical_pass": false
+    }
+  },
+  "hook_raw_AV_exact_equal": true,
+  "confirmed": [
+    "Actual off/on complete AV outputs are elementwise equal; capture did not cause this mismatch.",
+    "Step9 sigma0.936170220375061, full21sigmas, original noise/hash, complete AV geometry match.",
+    "Original recorder saves current-sigma denoised before Euler update; saved audio is raw audio/4. Independent source review found no callback off-by-one.",
+    "Native route_attention/TemporalAttentionOverride/RouterState algorithms match; EventBlockPatch difference is override_class indirection only.",
+    "Historical .41 and current .81 execute different numerical backend environments: historical CUDA INT8 vs current Triton INT8; dtype labels remain BF16/INT8/FP32scale."
+  ],
+  "not_established": [
+    "No isolated experiment has attributed the2–3% error magnitude to one backend operator.",
+    "Historical intermediate x_n was not recorded; CPU endpoint equality does not independently verify every historical intermediate GPU state.",
+    "RMS/RoPE/other backend selections were not all individually counted."
+  ],
+  "interpretation": "The checkpoint and source identities do not imply identical numerical execution across these runtimes. Historical-equivalence gate failed and no phase calibration is released.",
+  "decision": "Stop historical replay expansion. Prepare one native and one full weak0.25 control trajectory in the same current environment with passive capture of their own step9/19 states, then bind actual new videos and annotate the same event definitions.",
+  "new_gpu_submitted_by_this_agent": false,
+  "no_threshold_relaxation": true,
+  "backend_evidence": {
+    "historical41.json": {
+      "evidence_sha256": "6eaf84844bb5c8187c5ef6882db8c722ff380400bd77282c74c8762dd098361a",
+      "operations": {
+        "cuda.int8_linear": {
+          "successful_calls": 8000,
+          "attempted_calls": 8000,
+          "failed_calls": 0
+        },
+        "cuda.w4a8_int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "triton.int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "triton.w4a8_int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "eager.int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "eager.w4a8_int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        }
+      },
+      "selected_runtime_lines": [
+        "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend cuda: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+        "\u001b[32m[INFO]\u001b[0m pytorch version: 2.11.0+cu130",
+        "\u001b[32m[INFO]\u001b[0m Set vram state to: NORMAL_VRAM",
+        "\u001b[32m[INFO]\u001b[0m Device: cuda:0 NVIDIA GeForce RTX 4090 : native",
+        "\u001b[32m[INFO]\u001b[0m loaded completely;  14960.20 MB loaded, full load: True",
+        "\u001b[32m[INFO]\u001b[0m loaded completely; 22069.55 MB usable, 4966.19 MB loaded, full load: True",
+        "\u001b[32m[INFO]\u001b[0m model weight dtype torch.bfloat16, manual cast: torch.bfloat16",
+        "\u001b[32m[INFO]\u001b[0m Unloaded partially: 11192.21 MB freed, 3767.99 MB remains loaded, 711.08 MB buffer reserved, lowvram patches: 0",
+        "\u001b[32m[INFO]\u001b[0m loaded completely; 29399.03 MB usable, 19996.14 MB loaded, full load: True",
+        "\u001b[32m[INFO]\u001b[0m loaded completely; 15094.61 MB usable, 577.08 MB loaded, full load: True",
+        "\u001b[32m[INFO]\u001b[0m loaded completely; 14261.43 MB usable, 4966.19 MB loaded, full load: True",
+        "\u001b[32m[INFO]\u001b[0m Unloaded partially: 2955.18 MB freed, 812.82 MB remains loaded, 711.08 MB buffer reserved, lowvram patches: 0"
+      ]
+    },
+    "replay81.json": {
+      "evidence_sha256": "7ec229c9d9fbc2949ad10040bbbdb279e4216d20fe7312d10183465a8e62632a",
+      "operations": {
+        "cuda.int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "cuda.w4a8_int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "triton.int8_linear": {
+          "successful_calls": 1,
+          "attempted_calls": 1,
+          "failed_calls": 0
+        },
+        "triton.w4a8_int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "eager.int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        },
+        "eager.w4a8_int8_linear": {
+          "successful_calls": 0,
+          "attempted_calls": 0,
+          "failed_calls": 0
+        }
+      },
+      "selected_runtime_lines": [
+        "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend cuda: {'available': True, 'disabled': True, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+        "\u001b[32m[INFO]\u001b[0m pytorch version: 2.5.1+cu121",
+        "\u001b[32m[INFO]\u001b[0m Set vram state to: LOW_VRAM",
+        "\u001b[32m[INFO]\u001b[0m Device: cuda:0 NVIDIA GeForce RTX 4090 : native",
+        "\u001b[32m[INFO]\u001b[0m model weight dtype torch.bfloat16, manual cast: torch.bfloat16",
+        "\u001b[32m[INFO]\u001b[0m loaded partially; 7193.10 MB usable, 6436.04 MB loaded, 13560.11 MB offloaded, 918.83 MB buffer reserved, lowvram patches: 0",
+        "\u001b[32m[INFO]\u001b[0m loaded partially; 6616.26 MB usable, 5847.60 MB loaded, 14148.54 MB offloaded, 918.83 MB buffer reserved, lowvram patches: 0"
+      ]
+    }
+  }
+}

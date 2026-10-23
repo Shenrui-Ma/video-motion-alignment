@@ -40,7 +40,7 @@ def select_gpu():
     c=json.loads(claim.read_text())
     try:
      actual=(Path('/proc')/str(c['pid'])/'stat').read_text().split()[21]
-     if actual==c['start_ticks'] and time.time()-c['unix']<900:continue
+     if actual==c['start_ticks'] and time.time()-c['unix']<900 and c['pid']!=os.getpid():continue
     except FileNotFoundError:pass
    ident=(Path('/proc')/str(os.getpid())/'stat').read_text().split()[21]
    claim.write_text(json.dumps({'pid':os.getpid(),'start_ticks':ident,'unix':time.time()}))
@@ -66,7 +66,7 @@ def main():
    except Exception as e:log('admission_retry',error=str(e));time.sleep(60)
   else:log('resource_wait_expired');return
   port=8673 if str(ROOT).endswith('host9a') else 8674 if str(ROOT).endswith('host9b') else 8672
-  command=[sys.executable,str(ROOT/'queue/durable_comfy_queue.py'),'--manifest',str(ROOT/'jobs.json'),'--state-dir',str(ROOT/'queue_state'),'--comfy-url',f'http://127.0.0.1:{port}','--output-root',str(ROOT/'output'),'--max-attempts','3','--max-service-restarts','6','--restart-command',json.dumps([sys.executable,str(ROOT/'scripts/manage_service.py'),'restart'])]
+  command=[sys.executable,str(ROOT/'queue/durable_comfy_queue.py'),'--manifest',str(ROOT/'jobs.json'),'--state-dir',str(ROOT/'queue_state'),'--comfy-url',f'http://127.0.0.1:{port}','--output-root',str(ROOT/'output'),'--max-attempts','1','--max-service-restarts','6','--restart-command',json.dumps([sys.executable,str(ROOT/'scripts/manage_service.py'),'restart'])]
   code=None
   try:
    for attempt in range(3):

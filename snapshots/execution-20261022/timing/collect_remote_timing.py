@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).parent
-BASE = Path('/Users/researcher/DevProjects')
+BASE = Path('/workspace/research-user/DevProjects')
 TARGETS = {'short_0252','short_0358','long_0039','long_0059','short_0085','short_0274'}
 requests = {}
 for directory in ['h3-guidance-schedule-eval-r149-20261020','h3-guidance-schedule-eval-r150-20261021']:

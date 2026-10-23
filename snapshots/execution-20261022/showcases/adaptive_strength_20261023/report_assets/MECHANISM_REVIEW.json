@@ -1,0 +1,26 @@
+{
+  "status": "passed_with_report_clarifications",
+  "browser_check": "blocked_file_protocol",
+  "inference_code_modified": false,
+  "source_sha256": {
+    "feature_anchor/attention.py": "ace9a9a9331f3f49110b003298f0be82f087b6e429a16645ca8fe3c6b25c6402",
+    "feature_anchor/anchor_controller.py": "7635521eec6a7e91e6351e2ccf8e9e2a9c8058397b866fbe6fa618b7b596ddea",
+    "feature_anchor/components.py": "ebf0c773a76c60115cfede12c8a6b7ad5eb937af548a068f5a947c65755c4042",
+    "feature_guidance/controller.py": "5866553482afbe3b92bb1bdfe235f95392596cb576165b62c167688f5a88be3f",
+    "coverage_blend/attention.py": "0826345c03c8b1a08bb3cfe90a1ef7e4abc2afe241c387b51f72d1c67f690069",
+    "coverage_blend/routing.py": "23882430fcd18a2498b73c5327b41d251742842c6e48fd7bcf5178133d72c868"
+  },
+  "checks": {
+    "anchor": "first valid step anchors A0/B0 and emits .25; per-layer per-run state; continuous coefficient thereafter",
+    "objective": "c=(1-alpha0)/alpha0=3; mu=prior_weight=1; no independent lambda setting in anchor node",
+    "normalization": "implementation logs common-sum-normalized vt/vn; hover labels corrected; optimizer unchanged",
+    "projection": "same output query; neighbors change only reference K/V; mass-scaled orthogonal decomposition; endpoint statistics excluded",
+    "heads": "full-resolution head correction energy before W_o; KKT interior/capped solution plus zero-utility residual/fallback branches now described",
+    "coverage": "fixed current query for every reference bin; .75I+.25P distinct from outer alpha .25; solver fallback documented"
+  },
+  "validation": [
+    "generator AST",
+    "three SVG XML parses"
+  ],
+  "report_rebuild": "deferred until parent provides next anchor annotations"
+}

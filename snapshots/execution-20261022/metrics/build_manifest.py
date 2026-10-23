@@ -1,8 +1,8 @@
 import json, hashlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
-DEV=Path('/Users/researcher/DevProjects')
-REMOTE='/data/researcher/h3_metrics_20261022'
+DEV=Path('/workspace/research-user/DevProjects')
+REMOTE='/data/research-user/h3_metrics_20261022'
 
 def build():
     inv=json.loads((DEV/'h3-timing-auto-motion-r26-20261017/literature/benchmark_selection_20261017/IVE_FULL_600_INVENTORY.json').read_text())

@@ -1,0 +1,13 @@
+旧6组与当前host9a的配对
+
+科学设置一致：Euler 20步、相同ManualSigmas、sigma shift12/3、原seed、原prompt、原geometry、有效帧、50层、alpha=.25、全20步、全有效视频时间。
+原H3EventAuditReference在semantic_fps=2、phase=0时仅审计并原样转发官方MiniMaxH3ReferenceToVideo.execute；当前H3StudyReference调用相同官方入口。审计本身无新增条件。旧6历史graph的每步CPU x0 capture为被动记录，无逐步VAE解码。
+
+部署差异：host9a仅白名单H3Study，历史graph含H3CachedReferenceConditioning/H3PairConditionSnapshot/H3X0Readout/H3EventAuditNoise，不能直接原样提交。应转换节点并保留原条件，或加载对应缓存；保持原seed与初始噪声，移除仅审计节点。缓存原始位置及SHA见catalog和6份CONDITION_CACHE文件。
+
+重新运行对照的判定：
+1. 仅主机或PyTorch版本不同不追加实验（遵照用户明确要求）。
+2. 缓存复用或条件/初始噪声一致性校验通过，可复用原native/global_weak成片；强制重跑清单为空。
+3. 如迁移导致实际条件或初始噪声改变，受影响任务补跑global_weak作为新方法主对照；需要同条件普通编辑展示时再补native。无需重跑固定区间。
+
+尚未执行远端缓存存在性及张量比对，未据此启动任务。以上是代码/graph核对后的部署要求。

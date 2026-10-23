@@ -16,9 +16,9 @@ for _ in range(8):
  if not loc:break
  url=urllib.parse.urljoin(url,loc)
 else:raise RuntimeError('Too many redirects')
-dest='/data/researcher/h3_metrics_20261022/weights/'+(a.dest or a.filename)
+dest='/data/research-user/h3_metrics_20261022/weights/'+(a.dest or a.filename)
 import shlex
-ssh=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=12','H3_SERVER']
+ssh=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=12','H3_HOST_CONFIGURE_LOCALLY']
 target=subprocess.Popen(ssh+['cat > '+shlex.quote(dest+'.partial')],stdin=subprocess.PIPE)
 with open(root/(Path(a.filename).name+'.download.log'),'w') as log:
  proc=subprocess.Popen(['curl','--interface','en0','--noproxy','*','--resolve',host+':443:'+address,'-fS','--connect-timeout','10','--max-time','1800',url],stdout=target.stdin,stderr=log)

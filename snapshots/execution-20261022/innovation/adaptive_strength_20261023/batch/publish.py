@@ -9,7 +9,7 @@ import tarfile
 
 P=Path(__file__).resolve().parent
 REMOTE='/data4/research-user/h3_runs/benchmark_schedule_20261022'
-SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','research-gpu-host']
+SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','H3_HOST_CONFIGURE_LOCALLY']
 req=json.loads((P/'handoff_request.json').read_text())
 assert req['status']=='ready' and req['cpu_tests']['passed']
 assert len(req['base']['jobs'])==56 and len(req['pilots']['jobs']) in (4,8)

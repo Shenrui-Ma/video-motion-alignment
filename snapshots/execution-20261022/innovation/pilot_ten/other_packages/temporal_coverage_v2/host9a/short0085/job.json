@@ -1,0 +1,114 @@
+{
+  "id": "innov41_short_0085_temporal_coverage_v2",
+  "graph": "graphs/innov41_short_0085_temporal_coverage_v2.json",
+  "expected_output_prefix": "innov41_short_0085_temporal_coverage_v2/",
+  "progress_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/logs/comfy.log",
+  "metadata": {
+    "original_task": {
+      "id": 85,
+      "src_video_name": "short_0085.mp4",
+      "category": "attribute_editing",
+      "subcategory": "color adjustment",
+      "source_prompt": "A woman with long blonde hair is holding a cup and smiling while looking out of a window.",
+      "edit_prompt": "Change the woman's hair to red",
+      "target_prompt": "A woman with long red hair is holding a cup and smiling while looking out of a window, with warmer and more saturated colors",
+      "target_span": "red",
+      "target_phrase": "A woman with long red hair"
+    },
+    "evaluation_metadata": {
+      "id": 85,
+      "src_video_name": "short_0085.mp4",
+      "category": "attribute_editing",
+      "subcategory": "color adjustment",
+      "source_prompt": "A woman with long blonde hair is holding a cup and smiling while looking out of a window.",
+      "edit_prompt": "Change the woman's hair to red",
+      "target_prompt": "A woman with long red hair is holding a cup and smiling while looking out of a window, with warmer and more saturated colors",
+      "target_span": "red",
+      "target_phrase": "A woman with long red hair"
+    },
+    "task_id": "short_0085",
+    "benchmark": "IVEBench",
+    "title": "\u5916\u89c2\u7f16\u8f91 \u2014 \u5c06\u7a97\u8fb9\u5973\u5b50\u7684\u5934\u53d1\u6539\u7ea2",
+    "cohort": "innovation",
+    "method": "temporal_coverage_v2",
+    "reference_video": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/inputs/short_0085_video.mp4",
+    "source_video": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/input/short_0085_video.mp4",
+    "reference_image": null,
+    "prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the blonde woman holding a light-colored cup beside the window in <Video 1>. Her identity, hairstyle shape, visible hand motion and gaze come from the source; only her hair color becomes red.\n<Subject 2> is the original cup, window, background, clothing and unedited scene content in <Video 1>.\nSource context: A woman with long blonde hair is holding a cup and smiling while looking out of a window.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Change the woman\u2019s hair color to red, preserving her identity, cup-lowering performance and the original scene colors.\nRequested edit: Change the woman's hair to red\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Change only the hair color from blonde to red. Preserve the same woman, facial features, hairstyle shape, smile, gaze, body pose and complete hand and cup-lowering motion.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the original cup, window, clothing, background, lighting and all colors outside the edited hair, with their source positions and interactions.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] The same woman with red hair holds the original light-colored cup by the window. Her smiling, turning gaze and gradual cup-lowering motion follow <Video 1>. The original photographic lighting, background and unedited colors remain throughout.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+    "recommended_prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the blonde woman holding a light-colored cup beside the window in <Video 1>. Her identity, hairstyle shape, visible hand motion and gaze come from the source; only her hair color becomes red.\n<Subject 2> is the original cup, window, background, clothing and unedited scene content in <Video 1>.\nSource context: A woman with long blonde hair is holding a cup and smiling while looking out of a window.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Change the woman\u2019s hair color to red, preserving her identity, cup-lowering performance and the original scene colors.\nRequested edit: Change the woman's hair to red\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Change only the hair color from blonde to red. Preserve the same woman, facial features, hairstyle shape, smile, gaze, body pose and complete hand and cup-lowering motion.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the original cup, window, clothing, background, lighting and all colors outside the edited hair, with their source positions and interactions.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] The same woman with red hair holds the original light-colored cup by the window. Her smiling, turning gaze and gradual cup-lowering motion follow <Video 1>. The original photographic lighting, background and unedited colors remain throughout.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+    "prompt_protocol": "historical_R149_R150_preserved",
+    "seed": 2026101701,
+    "valid_frames": 66,
+    "fps": 24,
+    "evaluation_crop_xywh": [
+      16,
+      8,
+      1280,
+      720
+    ],
+    "geometry": {
+      "width": 1312,
+      "height": 736,
+      "frames": 73,
+      "fps": 24
+    },
+    "sampling_steps": 20,
+    "innovation_parameters": {
+      "model": [
+        "41",
+        0
+      ],
+      "positive": [
+        "5",
+        0
+      ],
+      "enabled": true,
+      "alpha": 0.25,
+      "start_frame": 0,
+      "end_frame": 65,
+      "run_id": "{attempt_id}",
+      "block_start": 0,
+      "block_end": 50,
+      "audit_dir": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/temporal_coverage_v2",
+      "step_start": 0,
+      "step_end": 20,
+      "radius": 2,
+      "entropy": 0.5,
+      "temporal_penalty": 0.25,
+      "iterations": 64,
+      "tolerance": 0.0002,
+      "min_quality_span": 0.001,
+      "minimum_mean_gap": 0.0
+    },
+    "comparison_outputs": {
+      "native": {
+        "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0085/native.mp4",
+        "sha256": "3c1a717e5ea39b2b0740df845b80cb7a9cc37d8d5df5e314344b631ceb91ba95"
+      },
+      "global_weak": {
+        "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0085/global_weak.mp4",
+        "sha256": "59cab6b6cafff2912dcc4b5d5ac3d1f993dafabb7148d83a2f5f58cc3f806f6e"
+      }
+    },
+    "timing_file": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a/audit/timing/{attempt_id}.json",
+    "host": "H3_HOST_CONFIGURE_LOCALLY",
+    "remote_root": "/home/research-user/h3_runs/benchmark_schedule_20261022_host9a",
+    "steps": 20,
+    "attention_formula": "O + alpha*m_ref*(sum_j P[t,j]*Attention(Q_t,K_j,V_j)-Attention(Q_t,K_all_ref,V_all_ref))",
+    "coverage_unit": "unit conditional probability per latent bin; rows and columns normalized to one",
+    "routing_constraints": "radius2; entropic Sinkhorn; nondecreasing expected reference-bin time",
+    "solver": "damped_newton_cpu_float64",
+    "fallback_policy": "same_time_weak",
+    "solver_change": "Same entropy-regularized transport objective, bounded dual Newton instead of fixed128 Sinkhorn; max64 Newton steps and24 Armijo reductions",
+    "innovation_status": "prepared_gpu_unverified",
+    "graph_sha256": "daaf9ca044f6a36eb11ee07c25e98b3824be9cec7fc3123bf092c746e2d75d80",
+    "transferred_from": "H3_HOST_CONFIGURE_LOCALLY",
+    "execution_budget": {
+      "allocator_gib": 18,
+      "reserve_vram_gib": 14,
+      "minimum_free_mib": 25000,
+      "gpu_index": 3,
+      "max_attempts": 1
+    }
+  }
+}

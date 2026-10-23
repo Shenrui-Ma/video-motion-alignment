@@ -1,0 +1,100 @@
+{
+  "official_commit": "2dcf8900ee65197f43854c76f61c66a32bb8dbfc",
+  "metrics": {
+    "subject_consistency": {
+      "model": "facebookresearch/dino dino_vits16",
+      "status": "verified_actual_score_host81",
+      "proof": "evaluation/results/short_0252__source/subject_consistency.json"
+    },
+    "background_consistency": {
+      "model": "OpenAI CLIP ViT-B/32",
+      "status": "cached_host81"
+    },
+    "temporal_flickering": {
+      "model": null,
+      "status": "ready"
+    },
+    "motion_smoothness": {
+      "model": "AMT-G",
+      "status": "verified_actual_score_host81",
+      "proof": "evaluation/results/short_0252__source/motion_smoothness.json"
+    },
+    "vtss": {
+      "model": "Koala-36M Training_Suitability_Assessment infer.pth",
+      "status": "verified_actual_score_host81",
+      "proof": "evaluation/results/short_0252__source/vtss.json"
+    },
+    "overall_semantic_consistency": {
+      "model": "alibaba-pai VideoCLIP-XL-v2",
+      "status": "verified_actual_score_host81",
+      "proof": "evaluation/results/short_0252__source/overall_semantic_consistency.json"
+    },
+    "phrase_semantic_consistency": {
+      "model": "alibaba-pai VideoCLIP-XL-v2",
+      "status": "verified_actual_score_host81",
+      "proof": "evaluation/results/short_0252__source/phrase_semantic_consistency.json"
+    },
+    "instruction_satisfaction": {
+      "model": "Qwen2.5-VL-72B-Instruct",
+      "status": "missing_weight_and_gpu_capacity"
+    },
+    "quantity_accuracy": {
+      "model": "GroundingDINO SwinB",
+      "status": "not_applicable_for_selected_tasks",
+      "official_rule": "category == quantity_modification"
+    },
+    "semantic_fidelity": {
+      "model": "alibaba-pai VideoCLIP-XL-v2",
+      "status": "verified_actual_score_host81",
+      "proof": "evaluation/results/short_0252__source/semantic_fidelity.json"
+    },
+    "motion_fidelity": {
+      "model": "CoTracker3 baseline_offline.pth",
+      "status": "ready_host81",
+      "sha256": "da09bbac871f7398e5b29c4de5213652658949737bc158840b101678ba8ad1df"
+    },
+    "content_fidelity": {
+      "model": "Qwen2.5-VL-72B-Instruct",
+      "status": "missing_weight_and_gpu_capacity"
+    }
+  },
+  "network": {
+    "official_code_download_bytes": 1068863,
+    "code_route": "local proxy, text only",
+    "weights_route": "Existing CoTracker copied through internal SSH; DINO/VideoCLIP/AMT/Koala downloaded with physical en0-bound curl and real-IP TLS DNS pinning, streamed via SSH to host81 without local checkpoint copies.",
+    "tested_direct_failure": [
+      "host81 hf-mirror.com HTTPS and HTTP",
+      "host81 modelscope.cn and www.modelscope.cn",
+      "Mac hf-mirror.com",
+      "Mac modelscope.cn and www.modelscope.cn"
+    ],
+    "route_proofs": [
+      "MODEL_DOWNLOAD_ROUTE_CHECK.json",
+      "PHYSICAL_INTERFACE_ROUTE_CHECK.json",
+      "infer.pth.download.json",
+      "amt-g.pth.download.json",
+      "VIDEOCLIP_DOWNLOAD.json"
+    ]
+  },
+  "aggregation": {
+    "scopes": [
+      "IVEBench-only 9 tasks once complete",
+      "all 10 mixed-dataset tasks separately labelled"
+    ],
+    "missing_policy": "missing/failed/not_applicable excluded with count; never zero-filled",
+    "MF_delta": "paired mean of MF(source, edited) minus MF(source, source)",
+    "reference_self": "actually run source against source using identical official settings"
+  },
+  "official_code_issues": {
+    "get_average_score.py": "parse_args returns 2 values but main unpacks 5; custom aggregation records raw metric means and denominators rather than running broken upstream entrypoint"
+  },
+  "qwen_awq_capacity": {
+    "repo": "Qwen/Qwen2.5-VL-72B-Instruct-AWQ",
+    "bytes": 43021049574,
+    "gpu2_free_MiB": 39611,
+    "quantization": "4bit AWQ GEMM; visual remains unquantized",
+    "cpu_offload": "Transformers AWQ GEMM quantizer rejects CPU/disk in device_map",
+    "status": "official_AWQ_download_running; evaluation_environment_and_two_free_GPUs_pending",
+    "download_manifest": "qwen_download_manifest.json"
+  }
+}

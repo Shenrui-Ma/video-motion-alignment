@@ -15,7 +15,7 @@ from pathlib import Path
 import torch
 
 from .core import PartialTemporalRotation, partial_phase_attention
-from .layout import conditioning_metadata, event_latent_range, validate_layout
+from .layout import FRAME_RESCALE, conditioning_metadata, event_latent_range, frame_spans, validate_layout
 
 # Same zero-based membership as frozen H3Study/schedule.py. Alpha is explicit.
 SCHEDULES = {
@@ -75,11 +75,13 @@ def validate_runtime(h3, diffusion, model):
 class PartialPhaseState:
     def __init__(self, metadata, rotation, *, enabled, alpha, schedule,
                  start_frame, end_frame, block_start, block_end, run_id, audit_dir,
-                 runtime_source_hashes):
+                 runtime_source_hashes, delta_mode="explicit"):
         if type(enabled) is not bool or isinstance(alpha, bool) or not math.isfinite(float(alpha)) or not 0 <= alpha <= 1:
             raise ValueError("invalid enabled/alpha")
         if schedule not in SCHEDULES:
             raise ValueError("unregistered schedule")
+        if delta_mode not in ("explicit", "reference_origin"):
+            raise ValueError("invalid delta_mode")
         if type(block_start) is not int or type(block_end) is not int or not 0 <= block_start < block_end <= 50:
             raise ValueError("invalid half-open block interval")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", run_id):
@@ -94,6 +96,7 @@ class PartialPhaseState:
         if self.path.exists():
             raise FileExistsError(self.path)
         self.metadata, self.rotation = metadata, rotation
+        self.delta_mode = delta_mode
         self.enabled, self.alpha, self.active_steps = enabled, float(alpha), SCHEDULES[schedule]
         self.start_frame, self.end_frame = start_frame, end_frame
         self.block_start, self.block_end = block_start, block_end
@@ -106,6 +109,8 @@ class PartialPhaseState:
             "block_interval_half_open": [block_start, block_end],
             "pixel_interval_inclusive": [start_frame, end_frame],
             "rotation": rotation.metadata(), "metadata": metadata,
+            "delta_mode": delta_mode,
+            "delta_resolved": delta_mode == "explicit",
             "runtime_source_hashes": runtime_source_hashes,
             "backend": "aten._scaled_dot_product_flash_attention.default",
             "correction": "alpha*m_ref*(A(R_selected(delta)Q,K_ref,V_ref)-A(Q,K_ref,V_ref))",
@@ -137,6 +142,14 @@ class PartialPhaseState:
                     raise ValueError("packed temporal coordinate mismatch")
             if self.plan is not None and plan != self.plan:
                 raise ValueError("layout changed within a fixed-geometry experiment")
+            if self.delta_mode == "reference_origin":
+                delta, evidence = reference_origin_delta(self.metadata, layout, plan)
+                if self.plan is not None and not math.isclose(delta, self.rotation.delta_frames, abs_tol=1e-8, rel_tol=0):
+                    raise ValueError("reference-output origin offset changed")
+                self.rotation = PartialTemporalRotation(self.rotation.inv_freq, delta,
+                    [int(value) for value in self.rotation.frequency_mask])
+                self.audit.update(rotation=self.rotation.metadata(), delta_resolved=True,
+                    delta_derivation=evidence)
             self.plan, self.layout_object = plan, layout
             self.audit["validated_layout"] = plan
         return self.plan
@@ -228,6 +241,39 @@ class PartialBlockPatch:
             raise
 
 
+def reference_origin_delta(metadata, layout, plan):
+    """Resolve the physical-frame offset from actual packed video coordinates."""
+    reference = next(r for r in metadata["refs"] if r["kind"] in ("video", "video_audio"))
+    count, rows = reference["latent_t"], plan["frame_rows"]
+    coordinates = layout.position_ids
+    if count < 1 or rows < 1 or tuple(coordinates.shape) != (plan["seq_len"], 3):
+        raise ValueError("empty or malformed packed temporal layout")
+    prefix, cursor = [], 0
+    for span in frame_spans(count):
+        prefix.append(cursor * FRAME_RESCALE)
+        cursor += span
+    origins = []
+    for key in ("reference_video_segment", "target_video_segment"):
+        start, stop = plan[key]
+        if not 0 <= start < stop <= len(coordinates) or stop-start != count*rows:
+            raise ValueError("video interval does not match temporal bin geometry")
+        times = coordinates[start:stop:rows, 0].detach().cpu().tolist()
+        if not all(math.isfinite(t) for t in times):
+            raise ValueError("nonfinite packed temporal coordinates")
+        if any(not math.isclose(t-times[0], offset, abs_tol=1e-7, rel_tol=0)
+               for t, offset in zip(times, prefix)):
+            raise ValueError("packed video coordinates violate H3 5/3 temporal mapping")
+        origins.append(times[0])
+    difference = origins[0] - origins[1]
+    return difference / FRAME_RESCALE, {
+        "reference_origin_rope": origins[0], "output_origin_rope": origins[1],
+        "delta_rope_units": difference, "frame_rescale": FRAME_RESCALE,
+        "delta_physical_frames": difference / FRAME_RESCALE,
+        "formula": "(reference_origin_rope-output_origin_rope)/(5/3)",
+        "validated_temporal_bins": count,
+    }
+
+
 class H3PartialRoPE:
     @classmethod
     def INPUT_TYPES(cls):
@@ -244,23 +290,25 @@ class H3PartialRoPE:
             "block_end": ("INT", {"default": 50, "min": 1, "max": 50}),
             "run_id": ("STRING", {"default": "partial_rope_unique_run"}),
             "audit_dir": ("STRING", {"default": "/tmp/h3-partial-rope"}),
-        }}
+        }, "optional": {"delta_mode": (["explicit", "reference_origin"], {"default": "explicit"})}}
 
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply"
     CATEGORY = "research/H3PartialRoPE"
 
     def apply(self, model, positive, enabled, frequency_mask, delta_frames, alpha,
-              schedule, start_frame, end_frame, block_start, block_end, run_id, audit_dir):
+              schedule, start_frame, end_frame, block_start, block_end, run_id, audit_dir,
+              delta_mode="explicit"):
         import comfy.ldm.minimax.model as h3
 
         diffusion = model.get_model_object("diffusion_model")
         hashes = validate_runtime(h3, diffusion, model)
-        rotation = PartialTemporalRotation(diffusion.rope.inv_freq, delta_frames, frequency_mask)
+        rotation = PartialTemporalRotation(diffusion.rope.inv_freq,
+            0.0 if delta_mode == "reference_origin" else delta_frames, frequency_mask)
         state = PartialPhaseState(conditioning_metadata(positive), rotation, enabled=enabled,
             alpha=alpha, schedule=schedule, start_frame=start_frame, end_frame=end_frame,
             block_start=block_start, block_end=block_end, run_id=run_id, audit_dir=audit_dir,
-            runtime_source_hashes=hashes)
+            runtime_source_hashes=hashes, delta_mode=delta_mode)
         cloned = model.clone()
         for index in range(50):
             cloned.set_model_patch_replace(PartialBlockPatch(state, index), "dit", "double_block", index)

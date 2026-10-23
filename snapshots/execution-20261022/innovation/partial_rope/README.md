@@ -32,7 +32,7 @@
 
 ## 真实源码与 checkpoint 证据
 
-2026-10-22 只读获取 H3_SERVER_A 当前冻结 `comfy/ldm/minimax/model.py` 与 Kitchen eager RoPE；另核对 H3_SERVER_B 的 model.py，完整文件 SHA256 与 host9 相同。原文件、路径及 SHA256 在 `sources/`。适配器用规范化 AST 摘要核对位置生成和 Attention.forward，源码改变时拒绝启用，避免静默套用其他布局。
+2026-10-22 只读获取 H3_HOST_CONFIGURE_LOCALLY 当前冻结 `comfy/ldm/minimax/model.py` 与 Kitchen eager RoPE；另核对 H3_HOST_CONFIGURE_LOCALLY 的 model.py，完整文件 SHA256 与 host9 相同。原文件、路径及 SHA256 在 `sources/`。适配器用规范化 AST 摘要核对位置生成和 Attention.forward，源码改变时拒绝启用，避免静默套用其他布局。
 
 1. `MiniMaxH3Model.rope_freqs` 先将三轴位置乘以实际 16 项 `inv_freq`，再构造 `[t16,h16,w16,t16,h16,w16]`，共 96 维。
 2. `rope_rotation_table` 使用前 48 个角生成二维旋转矩阵。
@@ -47,9 +47,9 @@
 CPU 小张量测试只需要已有 PyTorch，无 ComfyUI 导入和新增依赖：
 
 ```bash
-cd /Users/researcher/DevProjects/video-motion-alignment/execution-20261022/innovation/partial_rope
+cd /workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/partial_rope
 CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-  /Users/researcher/DevProjects/diffsynth-h3-next-study-20261013/.venv/bin/python \
+  /workspace/research-user/DevProjects/diffsynth-h3-next-study-20261013/.venv/bin/python \
   -m unittest discover -s tests -v
 ```
 

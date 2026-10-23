@@ -1,0 +1,10 @@
+Direction selection, remaining eight main-cohort tasks on .41.
+
+prepare_remaining.py copies original ten-cohort prompt/seed/geometry/frozen direction settings, changes host paths and IDs only. Existing two-pilot manifest is retained separately in jobs.json. remaining_jobs.json contains eight additional jobs.
+remaining_deployment_receipt.json: 29 data assets and 12 graphs/cache manifests, each SHA verified. CPU_REPLAY_REMAINING.json: four historic conditioning caches exactly reconstructed on CPU, CUDA not initialized. direction_ten_schema_check.json: all ten graphs validated against live Comfy node schemas.
+
+activate_remaining.py checks both pilots completed, verifies output SHA, 20 sampling steps, 1,000 direction calls, nonzero finite correction, zero intermediate VAE decode and zero added full DiT passes. It then waits for the existing worker/service to finish and invokes the existing guarded prepare/activate protocol with a separate direction_remaining_activation receipt. It appends eight jobs to the preserved 28-job manifest and restarts the dedicated worker at the natural exit boundary. Exit 75 means wait; other failures stop and record evidence. It does not signal inference processes.
+
+pilot_watch.py timing parser now supports H3Study's steps: [{step, seconds}]. Ten watcher tests and five activation guard tests pass. Watcher was restarted after exact UID/PID/start_ticks verification; video service was unchanged. Samples before and after restart remain in the same JSONL.
+
+Activated 2026-10-22 12:40:48 local time: worker 110418 (ticks 542229), service 110431 (ticks 542292), GPU3 UUID GPU-REPLACE-WITH-DEVICE-UUID. Both pilots completed with 1,000 direction calls each. long_0039 submitted; remaining seven follow in the durable queue. See records/host41/remaining_activation.json and remaining_start_evidence.json.

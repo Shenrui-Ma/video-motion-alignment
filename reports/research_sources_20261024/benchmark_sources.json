@@ -1,0 +1,403 @@
+{
+  "schema": "benchmark-factual-handoff-sources-v1",
+  "review_date": "2026-10-24",
+  "scope": "Factual dataset, evaluation and result handoff; recipient develops research plan",
+  "sources": [
+    {
+      "id": "ivebench_paper",
+      "title": "IVEBench: Modern Benchmark Suite for Instruction-Guided Video Editing Assessment",
+      "version": "arXiv:2510.11647v2",
+      "url": "https://arxiv.org/html/2510.11647v2",
+      "pdf": "https://openreview.net/pdf?id=n0wVbCxcob",
+      "reading_scope": "Full main text and appendices A–H; protocol, weighting, input handling, failure list and human evaluation checked",
+      "evidence_locations": [
+        "Section 3",
+        "Table 2",
+        "Table 3",
+        "Table 4",
+        "Appendix C",
+        "Appendix D",
+        "Table A2"
+      ],
+      "facts": {
+        "source_videos": 600,
+        "instructions": 600,
+        "short": 400,
+        "short_frame_range": [
+          32,
+          128
+        ],
+        "long": 200,
+        "long_frame_range": [
+          129,
+          1024
+        ],
+        "edit_categories": 8,
+        "edit_subcategories": 35,
+        "official_metric_count": 12,
+        "AnyV2V_long_OOM": 65,
+        "StableV2V_long_OOM": 102,
+        "AnyV2V_effective_long": 135,
+        "StableV2V_effective_long": 98
+      }
+    },
+    {
+      "id": "ivebench_code",
+      "title": "Official IVEBench implementation",
+      "url": "https://github.com/RyanChenYN/IVEBench",
+      "reading_scope": "README and local frozen metric implementation; full metric_worker, motion_fidelity implementation, Qwen runtime provenance inspected",
+      "local_official_commit": "2dcf8900ee65197f43854c76f61c66a32bb8dbfc",
+      "local_paths": [
+        "snapshots/execution-20261022/metrics/metric_worker.py",
+        "snapshots/execution-20261022/metrics/official_source/metrics/fidelity/motion_fidelity.py",
+        "snapshots/execution-20261022/metrics/qwen_runtime/README.txt"
+      ],
+      "facts": {
+        "QA_applies_to": "quantity_modification",
+        "MF_excluded_categories": [
+          "subject_motion_editing",
+          "camera_motion_editing"
+        ],
+        "MF_excluded_subcategory": "event effect",
+        "evaluation_seed": 0
+      }
+    },
+    {
+      "id": "ivebench_data",
+      "title": "Official IVEBench dataset",
+      "url": "https://huggingface.co/datasets/Coraxor/IVEBench",
+      "reading_scope": "Official dataset entry and paper protocol; existing local manifests retain original metadata"
+    },
+    {
+      "id": "flexiact_paper",
+      "title": "FlexiAct: Towards Flexible Action Control in Heterogeneous Scenarios",
+      "version": "arXiv:2505.03730v1",
+      "url": "https://arxiv.org/html/2505.03730v1",
+      "doi": "10.1145/3721238.3730683",
+      "reading_scope": "Full main paper including implementation, dataset, comparison, ablation and discussion",
+      "evidence_locations": [
+        "Section 4.1",
+        "Section 4.2",
+        "Table 1"
+      ],
+      "facts": {
+        "paper_eval_pairs": 250,
+        "paper_action_categories": 25,
+        "target_images_per_action": 10,
+        "backbone": "CogVideoX-5B-I2V",
+        "official_metric_names": [
+          "Text Similarity",
+          "Motion Fidelity",
+          "Temporal Consistency",
+          "Appearance Consistency"
+        ]
+      }
+    },
+    {
+      "id": "flexiact_code",
+      "title": "Official FlexiAct repository",
+      "url": "https://github.com/shiyi-zh0408/FlexiAct",
+      "project": "https://shiyi-zh0408.github.io/projectpages/FlexiAct/",
+      "reading_scope": "README including dataset layout, training, inference and evaluation; local pinned source selection manifest inspected"
+    },
+    {
+      "id": "flexiact_data",
+      "title": "Public FlexiAct dataset inventory",
+      "url": "https://huggingface.co/datasets/shiyi0408/FlexiAct/tree/69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+      "api": "https://huggingface.co/api/datasets/shiyi0408/FlexiAct/tree/main?recursive=true&limit=1000",
+      "reading_scope": "Read complete recursive file listing and all 15 val_image.csv files, counted csv.DictReader rows and hashed each CSV",
+      "facts": {
+        "dataset_sha": "69d7747f93e1b913a3dca306bf8e91ee74fea7d4",
+        "tree_entries": 356,
+        "val_csv_count": 15,
+        "val_csv_rows": 89,
+        "groups": [
+          {
+            "path": "benchmark/captions/animal/dogjump/val_image.csv",
+            "rows": 5,
+            "sha256": "93c0a57ceacbd2cc97a115fe29d61f3566eb64b00b39765a687204562055aa3f"
+          },
+          {
+            "path": "benchmark/captions/animal/dogstand/val_image.csv",
+            "rows": 3,
+            "sha256": "709a7b9da3b28c64d64c2208e0ee231ec6f600723c967f824131480d851caf5f"
+          },
+          {
+            "path": "benchmark/captions/animal/kangaroo/val_image.csv",
+            "rows": 3,
+            "sha256": "f8c3260a0e3ebc7256f3d66d63ecf28d2511c1d7c4a0758fbce4d5290e514b0c"
+          },
+          {
+            "path": "benchmark/captions/camera/camera_forward/val_image.csv",
+            "rows": 8,
+            "sha256": "6047e58668d85f6e35948fd3979429e08270fbf92ff5ba5272aae4e55b1af64a"
+          },
+          {
+            "path": "benchmark/captions/camera/camera_rotate/val_image.csv",
+            "rows": 8,
+            "sha256": "6047e58668d85f6e35948fd3979429e08270fbf92ff5ba5272aae4e55b1af64a"
+          },
+          {
+            "path": "benchmark/captions/camera/camera_zoom_out/val_image.csv",
+            "rows": 8,
+            "sha256": "6047e58668d85f6e35948fd3979429e08270fbf92ff5ba5272aae4e55b1af64a"
+          },
+          {
+            "path": "benchmark/captions/camera/camera_zoom_out2/val_image.csv",
+            "rows": 8,
+            "sha256": "6047e58668d85f6e35948fd3979429e08270fbf92ff5ba5272aae4e55b1af64a"
+          },
+          {
+            "path": "benchmark/captions/human/chest/val_image.csv",
+            "rows": 8,
+            "sha256": "e39e16668c03363bb18e7dce085150c5685c3ed49d6a02e67f97d1ec4e1a3521"
+          },
+          {
+            "path": "benchmark/captions/human/crouch/val_image.csv",
+            "rows": 6,
+            "sha256": "e824a83e1f1661014925515e84dd21cb0e2330c72b2d933484fd850cbe7ae97f"
+          },
+          {
+            "path": "benchmark/captions/human/fitness/val_image.csv",
+            "rows": 11,
+            "sha256": "ec1e6b2c7e4c2aba14e9d4f751a209b258c1be029a0d117b9e6418125ac80ce6"
+          },
+          {
+            "path": "benchmark/captions/human/human2animal_1/val_image.csv",
+            "rows": 2,
+            "sha256": "1330a826c6f12048fa4f2e4a15c030a943f6df54b9fb710552a2de0c8c2c0db2"
+          },
+          {
+            "path": "benchmark/captions/human/human2animal_2/val_image.csv",
+            "rows": 3,
+            "sha256": "58bdae0753e01a20e06a97c32b56d117fe8790404f6a28d0070447cc4694c448"
+          },
+          {
+            "path": "benchmark/captions/human/human2animal_3/val_image.csv",
+            "rows": 2,
+            "sha256": "224fa8784152cabc8616a7642049bf977d9fff19571a4257e2408a49e729642c"
+          },
+          {
+            "path": "benchmark/captions/human/one_leg/val_image.csv",
+            "rows": 5,
+            "sha256": "d4c51394350efb6c29fbde1875b934937e07a12107d5a258b070ed3e33ef9157"
+          },
+          {
+            "path": "benchmark/captions/human/rotate/val_image.csv",
+            "rows": 9,
+            "sha256": "ac069e97f4ce5405df19d484789ef9a71bb8843f1dbf4849cdbd1c393741f1b8"
+          }
+        ],
+        "original_videos": [
+          "benchmark/reference_videos/animal/dogjump.mp4",
+          "benchmark/reference_videos/animal/dogstand.mp4",
+          "benchmark/reference_videos/animal/kangaroo.mp4",
+          "benchmark/reference_videos/camera/camera_forward.mp4",
+          "benchmark/reference_videos/camera/camera_rotate.mp4",
+          "benchmark/reference_videos/camera/camera_zoom_out.mp4",
+          "benchmark/reference_videos/camera/camera_zoom_out2.mp4",
+          "benchmark/reference_videos/human/chest.mp4",
+          "benchmark/reference_videos/human/crouch.mp4",
+          "benchmark/reference_videos/human/fitness.mp4",
+          "benchmark/reference_videos/human/human2animal_1.mp4",
+          "benchmark/reference_videos/human/human2animal_2.mp4",
+          "benchmark/reference_videos/human/human2animal_3.mp4",
+          "benchmark/reference_videos/human/one_leg.mp4",
+          "benchmark/reference_videos/human/rotate.mp4"
+        ]
+      },
+      "unresolved": "The paper uses 250 pairs across 25 actions; this revision exposes 89 CSV pairs across 15 original reference sources. The remaining paper pair manifest is not present in this inventory."
+    },
+    {
+      "id": "editvid_paper",
+      "title": "EditVid",
+      "version": "arXiv:2609.04190v1",
+      "url": "https://arxiv.org/html/2609.04190v1",
+      "reading_scope": "Full main paper and appendices, with Section 5.1 and Table 3 evaluation scope checked",
+      "evidence_locations": [
+        "Section 5.1",
+        "Table 3",
+        "Appendices"
+      ],
+      "facts": {
+        "IVE_total": 0.6847,
+        "IVE_quality": 0.8114,
+        "IVE_compliance": 0.4587,
+        "IVE_fidelity": 0.7839,
+        "custom_dataset_count": 50,
+        "custom_general": 24,
+        "custom_subject": 26
+      },
+      "unresolved": "Actual IVE evaluated sample count, short/long breakdown and per-task completion list are not specified in the inspected paper. Its 50 curated examples are a separate dataset."
+    },
+    {
+      "id": "editvid_code",
+      "title": "Official EditVid repository",
+      "url": "https://github.com/PLAN-Lab/EditVid",
+      "reading_scope": "README, inference setup and released example layout",
+      "facts": {
+        "base_model": "FLUX.2-klein-9B",
+        "checkpoint_access": "gated model access",
+        "license_readme": "Apache-2.0",
+        "bundled_examples": 6
+      },
+      "project_url_status": {
+        "url": "https://plan-lab.github.io/editvid",
+        "observed": "404 during this review"
+      }
+    },
+    {
+      "id": "liveditor_paper",
+      "title": "Lightning Unified Video Editing via In-Context Sparse Attention",
+      "version": "arXiv:2605.04569v1",
+      "url": "https://arxiv.org/html/2605.04569v1",
+      "reading_scope": "Full main text and appendices A–J, including algorithms and proof",
+      "evidence_locations": [
+        "Appendix A",
+        "Appendix E.2",
+        "Table 13"
+      ],
+      "facts": {
+        "IVE_evaluated_split": "short",
+        "IVE_requested_videos": 400,
+        "IVE_metrics_reported": 12,
+        "ISA_total_rounded": 0.67,
+        "full_attention_total_rounded": 0.66,
+        "ISA_MF_rounded": 0.81,
+        "full_attention_MF_rounded": 0.83,
+        "base_model": "Wan2.2 high-noise branch"
+      },
+      "unresolved": "Paper does not provide a per-task IVE completion manifest in the inspected text.",
+      "source_math_check": {
+        "location": "Appendix F, Step 2",
+        "claim_in_source": "Softmax Jacobian spectral norm equals p_max*(1-p_max).",
+        "counterexample": "For p=(1/2,1/2), J=diag(p)-p p^T=[[1/4,-1/4],[-1/4,1/4]] has eigenvalues 0 and 1/2. Its spectral norm is 1/2, while p_max*(1-p_max)=1/4.",
+        "scope": "This checks the displayed equality only."
+      }
+    },
+    {
+      "id": "liveditor_code",
+      "title": "Official LIVEditor repository and checkpoint",
+      "url": "https://github.com/xie-lab-ml/Lightning-Unified-Video-Editor-via-In-Context-Sparse-Attention",
+      "checkpoint": "https://huggingface.co/sst12345/liveditor",
+      "reading_scope": "Repository README and model card",
+      "facts": {
+        "base_model_modelcard": "Wan-AI/Wan2.2-T2V-A14B",
+        "released_checkpoint": true,
+        "attention_implementations": [
+          "Triton",
+          "TileLang"
+        ]
+      }
+    },
+    {
+      "id": "ave_paper",
+      "title": "Transforming Image Editors into Video Editors",
+      "version": "arXiv:2610.11037v1",
+      "url": "https://arxiv.org/html/2610.11037v1",
+      "reading_scope": "Full main text and Appendix: motion encoder architecture and training",
+      "evidence_locations": [
+        "Section 4.1",
+        "Table 2",
+        "Table 3",
+        "Table 5",
+        "Table 6",
+        "Appendix"
+      ],
+      "facts": {
+        "IVE_reported_splits": [
+          "short",
+          "long"
+        ],
+        "short_total_percent": 70.58,
+        "long_total_percent": 68.75,
+        "motion_encoder_layers": 6,
+        "trainable_parameters_paper": 710000000,
+        "stage2_training_samples_paper": 500000,
+        "backbone": "Wan2.2-I2V-A14B"
+      },
+      "unresolved": "No exact completed-task manifest or failure denominator is provided in inspected text. Main paper refers to remaining IVE metrics in appendix; inspected HTML appendix contains motion architecture/training, without that full metric table. Motion column caption says smoothness while listed baseline numbers match IVEBench MF times 100."
+    },
+    {
+      "id": "ave_code",
+      "title": "Official AVE release",
+      "url": "https://github.com/wangf3014/AVE",
+      "reading_scope": "README including exact distinction between paper and released variant",
+      "facts": {
+        "released_variant": "zero-shot pipeline",
+        "paper_trained_motion_encoder_released": false,
+        "paper_trained_control_branch_released": false,
+        "paper_multi_image_editor_weights_released": false,
+        "release_image_editor": "Nano Banana / Gemini multi-turn editing",
+        "release_video_backbone": "frozen Wan2.2"
+      }
+    },
+    {
+      "id": "kiwi_scope_check",
+      "title": "Kiwi-Edit: Versatile Video Editing via Instruction and Reference Guidance",
+      "version": "arXiv:2603.02175v4",
+      "url": "https://arxiv.org/html/2603.02175v4",
+      "reading_scope": "Scope search and benchmark sections only; not a full-paper read in this lane",
+      "facts": {
+        "IVE_table_in_inspected_text": false,
+        "benchmarks_named": [
+          "OpenVE-Bench",
+          "VIE-Bench",
+          "RefVIE-Bench"
+        ]
+      },
+      "note": "Kiwi IVE scores in EditVid Table 3 are secondary evaluation results from EditVid."
+    }
+  ],
+  "local_evidence": [
+    {
+      "path": "reports/handoff_20261024/evidence/extension_metrics.json",
+      "description": "16 expansion pairs and 4 ive_real_extension pairs, exact per-video metrics/SHA and cohort aggregate",
+      "exists": true,
+      "sha256": "6599b4bf4f05d27e3da27ddc7ad28adea3185620257e262195d42e1c7ea76863"
+    },
+    {
+      "path": "snapshots/execution-20261022/timing/event_offset_completion_20261022/SUMMARY.json",
+      "description": "Frozen AI event protocol, per-event offsets and group summaries",
+      "exists": true,
+      "sha256": "1d12dbb35a5c67017f34681ac0df40c679cc4b104da4654a86f68e8bf52656a5"
+    },
+    {
+      "path": "snapshots/execution-20261022/timing/event_offset_completion_20261022/VALIDATION.json",
+      "description": "Case/event coverage and evidence validation",
+      "exists": true,
+      "sha256": "ceb97efadaa7935d3649afc69e440449d56d4c98cca88931c466b2a26a35d8c8"
+    },
+    {
+      "path": "snapshots/execution-20261022/timing/event_offset_completion_20261022/short_0358/ANNOTATION.json",
+      "description": "105-frame drinking event annotations",
+      "exists": true,
+      "sha256": "b3d85eeb6f9fd1384a12c739edfcccf7028d47388cd5e68b74ed96d60609b22e"
+    },
+    {
+      "path": "snapshots/execution-20261022/supervision/field_environment_reproduction_20261023/FINAL_PAIRED_1451.json",
+      "description": "Same-environment native/weak/field comparison",
+      "exists": true,
+      "sha256": "eafc542f3b895c90f4c215e2b18b4b54bffa2107e601bffe2aa514b7ebc731d5"
+    },
+    {
+      "path": "snapshots/h3-timing-flexiact-expanded-r66-20261018/configs/source_selection/SELECTED_8_MANIFEST.json",
+      "description": "8 selected pairs, 6 crosspairs plus 2 official pairs; pinned asset hashes",
+      "exists": true,
+      "sha256": "166874bd16c67af17b74ae4a0a8ea4ad8dcf0cc2782af8478b11451ad435dbe1"
+    },
+    {
+      "path": "snapshots/execution-20261022/metrics/metric_worker.py",
+      "description": "Official applicability, task identity, status and seed handling",
+      "exists": true,
+      "sha256": "1cad63da9dbc0c8512a79a189f35764d949c795237589679db07c38538391c41"
+    },
+    {
+      "path": "snapshots/execution-20261022/metrics/official_source/metrics/fidelity/motion_fidelity.py",
+      "description": "CoTracker trajectory metric implementation",
+      "exists": true,
+      "sha256": "4be44656ba92ef7f12af58be2db500ec70d3dda93d9d91d81c9681e7ffd3c0ef"
+    }
+  ],
+  "recipient_requirement": "User requests recipient to read full originals alongside summaries. Reading scopes above describe this collection pass, not the recipient's future reading."
+}

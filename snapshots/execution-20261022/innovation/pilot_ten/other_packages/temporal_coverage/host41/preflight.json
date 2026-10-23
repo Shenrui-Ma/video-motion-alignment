@@ -1,0 +1,220 @@
+{
+  "status": "passed",
+  "assets": 27,
+  "schema": {
+    "H3TemporalCoverage": {
+      "input": {
+        "required": {
+          "model": [
+            "MODEL"
+          ],
+          "positive": [
+            "CONDITIONING"
+          ],
+          "enabled": [
+            "BOOLEAN",
+            {
+              "default": false
+            }
+          ],
+          "alpha": [
+            "FLOAT",
+            {
+              "default": 0.25,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "start_frame": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0
+            }
+          ],
+          "end_frame": [
+            "INT",
+            {
+              "default": -1,
+              "min": -1,
+              "tooltip": "Inclusive source frame; -1 selects the last valid reference positional frame."
+            }
+          ],
+          "step_start": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 19,
+              "tooltip": "Zero-based inclusive denoising step; 0 starts at step 1."
+            }
+          ],
+          "step_end": [
+            "INT",
+            {
+              "default": 20,
+              "min": 1,
+              "max": 20,
+              "tooltip": "Zero-based exclusive denoising step; 20 includes step 20."
+            }
+          ],
+          "block_start": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 49
+            }
+          ],
+          "block_end": [
+            "INT",
+            {
+              "default": 50,
+              "min": 1,
+              "max": 50
+            }
+          ],
+          "radius": [
+            "INT",
+            {
+              "default": 2,
+              "min": 0,
+              "max": 255
+            }
+          ],
+          "entropy": [
+            "FLOAT",
+            {
+              "default": 0.5,
+              "min": 1e-06
+            }
+          ],
+          "temporal_penalty": [
+            "FLOAT",
+            {
+              "default": 0.25,
+              "min": 0.0
+            }
+          ],
+          "iterations": [
+            "INT",
+            {
+              "default": 128,
+              "min": 1
+            }
+          ],
+          "tolerance": [
+            "FLOAT",
+            {
+              "default": 0.0002,
+              "min": 1e-06,
+              "max": 0.999
+            }
+          ],
+          "min_quality_span": [
+            "FLOAT",
+            {
+              "default": 0.001,
+              "min": 0.0
+            }
+          ],
+          "minimum_mean_gap": [
+            "FLOAT",
+            {
+              "default": 0.0,
+              "min": 0.0,
+              "max": 1.0
+            }
+          ],
+          "run_id": [
+            "STRING",
+            {
+              "default": "coverage_run"
+            }
+          ],
+          "audit_dir": [
+            "STRING",
+            {
+              "default": "",
+              "tooltip": "Absolute directory for unique run audit JSON."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "positive",
+          "enabled",
+          "alpha",
+          "start_frame",
+          "end_frame",
+          "step_start",
+          "step_end",
+          "block_start",
+          "block_end",
+          "radius",
+          "entropy",
+          "temporal_penalty",
+          "iterations",
+          "tolerance",
+          "min_quality_span",
+          "minimum_mean_gap",
+          "run_id",
+          "audit_dir"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MODEL"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "MODEL"
+      ],
+      "name": "H3TemporalCoverage",
+      "display_name": "H3 Reference Time Coverage (Research)",
+      "description": "",
+      "python_module": "custom_nodes.H3TemporalCoverage",
+      "category": "research/H3TemporalCoverage",
+      "output_node": false,
+      "has_intermediate_output": false,
+      "search_aliases": []
+    }
+  },
+  "rows": [
+    {
+      "id": "innov41_short_0252_temporal_coverage",
+      "cache_manifest_sha256": "9d433b34360e2f8f144c074874704b465a6d7dabb4ddda7fe9c81ba7c2528c83",
+      "node_schema": "passed"
+    },
+    {
+      "id": "innov41_short_0358_temporal_coverage",
+      "cache_manifest_sha256": "82b30ced59426452998953e445758754945fc5518f1a777f51712972fd2a7e55",
+      "node_schema": "passed"
+    }
+  ],
+  "current": {
+    "worker": {
+      "state": "owned_alive",
+      "pid": 109058,
+      "uid": 1004,
+      "start_ticks": "1218569"
+    },
+    "service": {
+      "state": "owned_alive",
+      "pid": 109103,
+      "uid": 1004,
+      "start_ticks": "1218603"
+    },
+    "api_queue": [
+      {
+        "prompt_id": "495b8d03-87e6-43ef-bc25-4ba0a2f5cb05",
+        "job_id": "innov41_long_0059_partial_temporal_rope"
+      }
+    ]
+  },
+  "manifest_count": 46
+}

@@ -1,7 +1,7 @@
 """Activate one independently reviewed field reproduction under unique ownership."""
 from pathlib import Path
 import hashlib,json,subprocess,shlex,time
-D=Path(__file__).parent;E=D.parents[1];P=E/'innovation/feature_gain_field';S=D/'INDEPENDENT_SIGNOFF.json';R='/data/research-user/h3_inference_20261023/field_environment_reproduction_20261023';H='H3_HOST_RTX4090';sha=lambda b:hashlib.sha256(b).hexdigest()
+D=Path(__file__).parent;E=D.parents[1];P=E/'innovation/feature_gain_field';S=D/'INDEPENDENT_SIGNOFF.json';R='/data/research-user/h3_inference_20261023/field_environment_reproduction_20261023';H='H3_HOST_CONFIGURE_LOCALLY';sha=lambda b:hashlib.sha256(b).hexdigest()
 # ROOT_RELEASE and copied independent signoff are pinned by an explicit activation authorization.
 authorization=json.loads((D/'ACTIVATION_AUTHORIZATION.json').read_text())
 for name in ['ROOT_RELEASE.json','INDEPENDENT_SIGNOFF.json','READY.json']:
@@ -45,7 +45,7 @@ with (r/'activation.lock').open('a') as lock:
  with (r/'logs/supervisor.log').open('ab',buffering=0) as log:
   p=subprocess.Popen(['python3','-u',str(r/'scripts/field_supervisor.py')],stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
  st=(Path('/proc')/str(p.pid)/'stat').read_text().rsplit(')',1)[1].split()
- rec={'schema':'h3-field-environment-owner-receipt-v1','owner':'host81_field_environment_reproduction','host':'H3_HOST_RTX4090','root':str(r),'cohort':'field_environment_reproduction','pid':p.pid,'uid':os.getuid(),'start_ticks':st[19],'time':time.time(),'gpu':row,'protected_other_processes':other,'jobs':[j['id'] for j in json.loads((r/'jobs.json').read_text())['jobs']],'maximum_attempts_each':1,'science_ready_sha256':data['release']['science_ready_sha256'],'root_release_sha256':data['release']['root_release_sha256']}
+ rec={'schema':'h3-field-environment-owner-receipt-v1','owner':'host81_field_environment_reproduction','host':'H3_HOST_CONFIGURE_LOCALLY','root':str(r),'cohort':'field_environment_reproduction','pid':p.pid,'uid':os.getuid(),'start_ticks':st[19],'time':time.time(),'gpu':row,'protected_other_processes':other,'jobs':[j['id'] for j in json.loads((r/'jobs.json').read_text())['jobs']],'maximum_attempts_each':1,'science_ready_sha256':data['release']['science_ready_sha256'],'root_release_sha256':data['release']['root_release_sha256']}
  (r/'STARTED.json').write_text(json.dumps(rec,indent=2)+'\n');print(json.dumps(rec))
 '''.replace('ROOT',repr(R))
 p=subprocess.run(['ssh','-o','ConnectTimeout=20','-o','ServerAliveInterval=5','-o','ServerAliveCountMax=1',H,'python3 -'],input=code.replace('data=json.load(sys.stdin)', 'data='+repr({'files':files,'release':release})),text=True,capture_output=True,timeout=60);(D/'LAST_LAUNCH_TRANSPORT.json').write_text(json.dumps({'time':time.time(),'returncode':p.returncode,'stdout':p.stdout,'stderr':p.stderr},indent=2)+'\n');p.check_returncode();out=json.loads(p.stdout);(D/'STARTED.json').write_text(json.dumps(out,indent=2)+'\n');(D/'LAUNCH_RELEASE.json').write_text(json.dumps(release,indent=2)+'\n');print(json.dumps(out))

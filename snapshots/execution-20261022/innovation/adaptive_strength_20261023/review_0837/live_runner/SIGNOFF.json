@@ -1,0 +1,82 @@
+{
+  "schema": "h3-live-calibration-runner-independent-review-v1",
+  "reviewed_at_utc": "2026-10-23T02:22:59.949761+00:00",
+  "decision": "APPROVED_CPU_OFFLINE_RUNNER_AFTER_ALL_NEW_LIVE_INPUT_GATES",
+  "blocking_findings": [],
+  "ready_sha256": "13123f6435cb3b1104c63c6aba7fa55fb4c77febbc38fea38c74861e61669a21",
+  "run_sha256": "2c48560c53d3065ed5f57891d53599e5ba33feca9a0f0bee163d183114f1448d",
+  "reviewed_ready_assets": {
+    "run.py": "2c48560c53d3065ed5f57891d53599e5ba33feca9a0f0bee163d183114f1448d",
+    "test_runner.py": "65c46fbf700c6176e43056c57a36c0d8ac4e3c71d339492cb524ab672aac7ac7",
+    "DEPENDENCIES.json": "e714ca0929128146385d52ab14ac258e5e9df96c10c94de3caa46863147b81b1",
+    "README.md": "0fe0a68f7120bf7241a3d68083930e26447bb259af3942ed40a02151088143d7",
+    "HANDOFF.txt": "9bf2e19c8a067c0ca950480ef4c1fd7f6768d5cc15a3d841207773def1861ee7",
+    "CPU_TEST_LOG.txt": "6ded954c7e8bf859fa7336b80732d53e216802be1b93e7fdf0b117ed703ac487",
+    "CPU_TEST_RESULTS.json": "7b0e17011d31ddd3f9c1ec198f791ff8cf0e6e641d97a7b11d94c4cc1e72e90f"
+  },
+  "dependency_and_science_hashes_verified": true,
+  "source_changed_during_review": false,
+  "input_snapshot_sha256": "b36e66bd0eaf482451787e8170dcf279b8e2cbed199554614916fd6bc3318070",
+  "tests": {
+    "total": 22,
+    "author_tests": 20,
+    "independent_tests": 2,
+    "passed": 22,
+    "failed": 0,
+    "seconds": 11.238,
+    "process_exit_code": 0,
+    "host": "H3_HOST_CONFIGURE_LOCALLY",
+    "cpu_only": true,
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    },
+    "test_log_sha256": "db4db8e047484188e197cf4546e55755e80bed0e618f938f17d4de482714988e",
+    "independent_test_sha256": "a7562142ccd61b02fc748db2c45eedb503da73ee222957b168a33489adf52b6d",
+    "author_fixture": "Synthetic full production tensor geometry, synthetic video byte identities and numerical receipts; no trained-model or actual-video evidence."
+  },
+  "independent_numeric_checks": [
+    "All six Q/K probability pairings equal a separate flattened-key softmax oracle at rtol=atol=1e-12.",
+    "All time/head/probe values retained; invalid query/key bins zero; symmetric DeltaQ+DeltaK equals the paired total.",
+    "Uniform Q/K with different generated-event labels yields exactly zero same-query primary difference while the descriptive event-selected quantity changes by three frames."
+  ],
+  "gate_checks": [
+    "Both exact frozen new science contracts, complete 20 model forwards and 1000 blocks, zero extra forwards.",
+    "Both actual video byte hashes and new 105-valid-frame annotation records, all three frozen source events, explicit missing statuses.",
+    "All four step9/19 captures, raw FP32 full AV x/x0 byte and tensor signatures, all21 sigmas and initial noise hash.",
+    "Each capture numerical receipt tied to its byte hash, forward identity and unchanged numerical policy; three branches times all56 heads each independently checked.",
+    "All four captures share 32 positional bins,31 complete-valid bins, fixed8 probes, all56 heads, exact norm weights/eps and position/RoPE metadata.",
+    "All prerequisites checked before probability evaluation. Missing unfinished input is pending; known failure/mismatch is invalid; either status writes no probability output.",
+    "Historical replay gate schema cannot satisfy the new live trajectory gate; old failed replay gate remains unchanged."
+  ],
+  "policy_checks": {
+    "frozen_dependencies_unchanged": true,
+    "same_query_primary_all_time_support": true,
+    "source_event_windows_not_generated_event_selection": true,
+    "event_selected_rows_descriptive_only": true,
+    "cross_key_attribution_motion_appearance_causal_claim": false,
+    "semantic_phase_validated": false,
+    "alpha_control_deployed": false
+  },
+  "fixed_minor_findings_before_freeze": [
+    "Unfinished observation is classified pending, failed observation invalid.",
+    "Missing required method/step is pending, additional unknown method/step invalid."
+  ],
+  "execution_boundaries": [
+    "This approval permits CPU orchestration only after both new live trajectories, four numerical receipts and fresh paired annotations satisfy the frozen input gates.",
+    "The runner trusts prior video frame inspection and numerical oracle attestations, while rehashing their actual linked files and independently testing all per-head threshold fields. It does not decode the video or recompute the numerical oracle.",
+    "This review ran only synthetic CPU fixtures; no actual captures, probability analyses, GPU calls, queue writes or deployments were performed.",
+    "Primary retrieval changes remain a diagnostic; their correspondence with action phase must be assessed using the new paired results."
+  ],
+  "files_written": [
+    "REVIEW_PLAN.json",
+    "test_independent_runner.py",
+    "INPUT_SNAPSHOT.json",
+    "cpu_review_sources.tar.gz",
+    "CPU_TEST_LOG.txt",
+    "SIGNOFF.json",
+    "HANDOFF.md"
+  ]
+}

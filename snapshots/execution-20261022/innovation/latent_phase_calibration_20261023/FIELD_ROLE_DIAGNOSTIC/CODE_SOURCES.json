@@ -1,0 +1,600 @@
+{
+  "scope": "read-only implemented signal definition; actual run identity comes from input audit SHA",
+  "sources": [
+    {
+      "file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/feature_gain_field/attention.py",
+      "sha256": "01c325199e4229eb1d1a1580663dabe60476766ce9ad7bd36c045a06b9a96a08",
+      "excerpts": [
+        {
+          "start": 83,
+          "end": 132,
+          "lines": [
+            {
+              "line": 83,
+              "text": "    # Energy is measured at full resolution, before W_o, for each video bin."
+            },
+            {
+              "line": 84,
+              "text": "    correction_view=correction.reshape(1,heads,t,s,d)"
+            },
+            {
+              "line": 85,
+              "text": "    bin_energy=torch.linalg.vector_norm(correction_view,dim=(0,1,3,4)).square()"
+            },
+            {
+              "line": 86,
+              "text": "    alpha=torch.full((t,),config.alpha_prior,device=q.device,dtype=dtype)"
+            },
+            {
+              "line": 87,
+              "text": "    control={}"
+            },
+            {
+              "line": 88,
+              "text": "    if config.mode!='fixed':"
+            },
+            {
+              "line": 89,
+              "text": "        # Fixed stratified probes cover each spatial frame; all attention heads"
+            },
+            {
+              "line": 90,
+              "text": "        # participate. No QK probability grid or intermediate RGB is needed."
+            },
+            {
+              "line": 91,
+              "text": "        ids=torch.linspace(0,s-1,min(s,config.probes),device=q.device).round().long()"
+            },
+            {
+              "line": 92,
+              "text": "        indices=(torch.arange(t,device=q.device)[:,None]*s+ids[None,:]).flatten()"
+            },
+            {
+              "line": 93,
+              "text": "        nprobe=len(ids)"
+            },
+            {
+              "line": 94,
+              "text": "        probeq=qe.index_select(2,indices).reshape(heads,t,nprobe,d).permute(1,0,2,3).contiguous()"
+            },
+            {
+              "line": 95,
+              "text": "        bins=torch.arange(lo,hi,device=q.device);nt=(rb-ra)//s"
+            },
+            {
+              "line": 96,
+              "text": "        grouped_k=kr[0].reshape(heads,nt,s,d).permute(1,0,2,3)"
+            },
+            {
+              "line": 97,
+              "text": "        grouped_v=vr[0].reshape(heads,nt,s,d).permute(1,0,2,3)"
+            },
+            {
+              "line": 98,
+              "text": "        def neighbor(idx):"
+            },
+            {
+              "line": 99,
+              "text": "            a,_=counted(probeq,grouped_k[idx].contiguous(),grouped_v[idx].contiguous())"
+            },
+            {
+              "line": 100,
+              "text": "            return a.permute(1,0,2,3)"
+            },
+            {
+              "line": 101,
+              "text": "        # The configured valid window can end before padded reference bins."
+            },
+            {
+              "line": 102,
+              "text": "        # Keep the tangent inside that window rather than observing padding."
+            },
+            {
+              "line": 103,
+              "text": "        previous=neighbor((bins-1).clamp_min(lo));following=neighbor((bins+1).clamp_max(hi-1))"
+            },
+            {
+              "line": 104,
+              "text": "        sp=same.index_select(2,indices).reshape(heads,t,nprobe,d)"
+            },
+            {
+              "line": 105,
+              "text": "        rp=ref.index_select(2,indices).reshape(heads,t,nprobe,d)"
+            },
+            {
+              "line": 106,
+              "text": "        mp=mass.index_select(2,indices).reshape(heads,t,nprobe).clone()"
+            },
+            {
+              "line": 107,
+              "text": "        # A one-sided endpoint tangent contains S_same itself, biasing its"
+            },
+            {
+              "line": 108,
+              "text": "        # projection energy upward. Estimate alpha only from interior bins;"
+            },
+            {
+              "line": 109,
+              "text": "        # Endpoints keep the fixed prior; no smoothing edge crosses them."
+            },
+            {
+              "line": 110,
+              "text": "        mp[:,0,:]=0"
+            },
+            {
+              "line": 111,
+              "text": "        mp[:,-1,:]=0"
+            },
+            {
+              "line": 112,
+              "text": "        started=time.perf_counter()"
+            },
+            {
+              "line": 113,
+              "text": "        components=temporal_components(sp,rp,previous,following,mp,"
+            },
+            {
+              "line": 114,
+              "text": "            basis='centered',relative_signal_floor=config.relative_floor)"
+            },
+            {
+              "line": 115,
+              "text": "        aa,bb,nn=summarize_probe_components(components)"
+            },
+            {
+              "line": 116,
+              "text": "        transfer_started=time.perf_counter()"
+            },
+            {
+              "line": 117,
+              "text": "        # One explicit small device-to-host transfer of 3 x T sufficient stats."
+            },
+            {
+              "line": 118,
+              "text": "        # This may synchronize the current stream; report it separately."
+            },
+            {
+              "line": 119,
+              "text": "        cpu_stats=torch.stack((aa,bb,nn.to(aa.dtype))).to(device='cpu',dtype=torch.float64)"
+            },
+            {
+              "line": 120,
+              "text": "        record['statistics_transfer_seconds']=time.perf_counter()-transfer_started"
+            },
+            {
+              "line": 121,
+              "text": "        solver_started=time.perf_counter()"
+            },
+            {
+              "line": 122,
+              "text": "        value,next_state,control=update_gain_field(cpu_stats[0],cpu_stats[1],cpu_stats[2],"
+            },
+            {
+              "line": 123,
+              "text": "            state=controller_state,step_index=step_index,layer_index=layer_index,"
+            },
+            {
+              "line": 124,
+              "text": "            prior_weight=config.prior_weight,smoothness=config.smoothness,"
+            },
+            {
+              "line": 125,
+              "text": "            relative_floor=config.relative_floor,"
+            },
+            {
+              "line": 126,
+              "text": "            bin_coordinates=torch.arange(lo,hi,dtype=torch.float64))"
+            },
+            {
+              "line": 127,
+              "text": "        record['controller_cpu_seconds']=time.perf_counter()-solver_started"
+            },
+            {
+              "line": 128,
+              "text": "        record['statistics_transfer_bytes']=cpu_stats.numel()*cpu_stats.element_size()"
+            },
+            {
+              "line": 129,
+              "text": "        # Per-bin gain is shared by every head and spatial token in that bin."
+            },
+            {
+              "line": 130,
+              "text": "        alpha=value.to(device=q.device,dtype=dtype)"
+            },
+            {
+              "line": 131,
+              "text": "        if controller_state_out is not None:"
+            },
+            {
+              "line": 132,
+              "text": "            controller_state_out['next_state']=next_state"
+            }
+          ]
+        },
+        {
+          "start": 137,
+          "end": 151,
+          "lines": [
+            {
+              "line": 137,
+              "text": "    applied_energy=(alpha.square()*bin_energy).sum()"
+            },
+            {
+              "line": 138,
+              "text": "    correction_view.mul_(alpha[None,None,:,None,None])"
+            },
+            {
+              "line": 139,
+              "text": "    correction.add_(full[:,:,qa:qb].to(dtype))"
+            },
+            {
+              "line": 140,
+              "text": "    changed=correction.to(full.dtype)"
+            },
+            {
+              "line": 141,
+              "text": "    finite=torch.isfinite(changed).all()"
+            },
+            {
+              "line": 142,
+              "text": "    full[:,:,qa:qb].copy_(changed)"
+            },
+            {
+              "line": 143,
+              "text": "    record.update(applied=True,alpha=alpha.detach(),control=control,"
+            },
+            {
+              "line": 144,
+              "text": "        head_energy=head_energy.detach(),bin_energy=bin_energy.detach(),"
+            },
+            {
+              "line": 145,
+              "text": "        latent_bin_indices=list(range(lo,hi)),reference_mass_mean=mass.mean().detach(),"
+            },
+            {
+              "line": 146,
+              "text": "        correction_energy=correction_energy.detach(),"
+            },
+            {
+              "line": 147,
+              "text": "        applied_energy=applied_energy.detach(),finite_output=finite.detach())"
+            },
+            {
+              "line": 148,
+              "text": "    if diagnostics is not None:diagnostics.update(record)"
+            },
+            {
+              "line": 149,
+              "text": "    return packed(full)"
+            },
+            {
+              "line": 150,
+              "text": ""
+            },
+            {
+              "line": 151,
+              "text": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/feature_gain_field/components.py",
+      "sha256": "ebf0c773a76c60115cfede12c8a6b7ad5eb937af548a068f5a947c65755c4042",
+      "excerpts": [
+        {
+          "start": 37,
+          "end": 74,
+          "lines": [
+            {
+              "line": 37,
+              "text": "    valid &= torch.isfinite(mass) & (mass > 0) & (mass <= 1)"
+            },
+            {
+              "line": 38,
+              "text": "    s, r, p, n = [torch.nan_to_num(x, nan=0., posinf=0., neginf=0.) for x in xs]"
+            },
+            {
+              "line": 39,
+              "text": "    m = torch.nan_to_num(mass.to(dtype), nan=0., posinf=0., neginf=0.).clamp(0, 1)"
+            },
+            {
+              "line": 40,
+              "text": "    e = s - r"
+            },
+            {
+              "line": 41,
+              "text": "    tangent = n - p"
+            },
+            {
+              "line": 42,
+              "text": "    scale = (s.square().mean(-1) + r.square().mean(-1)"
+            },
+            {
+              "line": 43,
+              "text": "             + p.square().mean(-1) + n.square().mean(-1)) / 4"
+            },
+            {
+              "line": 44,
+              "text": "    floor = torch.finfo(dtype).tiny"
+            },
+            {
+              "line": 45,
+              "text": "    if basis == \"centered\":"
+            },
+            {
+              "line": 46,
+              "text": "        t2 = tangent.square().sum(-1)"
+            },
+            {
+              "line": 47,
+              "text": "        projected = tangent * ((e * tangent).sum(-1) / t2.clamp_min(floor)).unsqueeze(-1)"
+            },
+            {
+              "line": 48,
+              "text": "        signal = t2 / same.shape[-1]"
+            },
+            {
+              "line": 49,
+              "text": "    else:"
+            },
+            {
+              "line": 50,
+              "text": "        # Ridge-stabilized 2x2 Gram inverse; this is an explicitly different ablation."
+            },
+            {
+              "line": 51,
+              "text": "        a, b = s - p, n - s"
+            },
+            {
+              "line": 52,
+              "text": "        aa, ab, bb = a.square().sum(-1), (a * b).sum(-1), b.square().sum(-1)"
+            },
+            {
+              "line": 53,
+              "text": "        reg = ridge * (aa + bb).clamp_min(floor)"
+            },
+            {
+              "line": 54,
+              "text": "        ga, gb = aa + reg, bb + reg"
+            },
+            {
+              "line": 55,
+              "text": "        ea, eb = (e * a).sum(-1), (e * b).sum(-1)"
+            },
+            {
+              "line": 56,
+              "text": "        det = (ga * gb - ab.square()).clamp_min(floor)"
+            },
+            {
+              "line": 57,
+              "text": "        x, y = (gb * ea - ab * eb) / det, (ga * eb - ab * ea) / det"
+            },
+            {
+              "line": 58,
+              "text": "        projected = a * x.unsqueeze(-1) + b * y.unsqueeze(-1)"
+            },
+            {
+              "line": 59,
+              "text": "        signal = (aa + bb) / same.shape[-1]"
+            },
+            {
+              "line": 60,
+              "text": "    valid &= signal > relative_signal_floor * scale.clamp_min(floor)"
+            },
+            {
+              "line": 61,
+              "text": "    valid &= torch.isfinite(projected).all(-1)"
+            },
+            {
+              "line": 62,
+              "text": "    d = m.unsqueeze(-1) * e"
+            },
+            {
+              "line": 63,
+              "text": "    dt = m.unsqueeze(-1) * projected"
+            },
+            {
+              "line": 64,
+              "text": "    dn = d - dt"
+            },
+            {
+              "line": 65,
+              "text": "    # Invalid probes are excluded from controller sufficient statistics. The"
+            },
+            {
+              "line": 66,
+              "text": "    # caller still keeps the original same-time path as its numerical fallback."
+            },
+            {
+              "line": 67,
+              "text": "    energies = {\"total_energy\": d.square().sum(-1),"
+            },
+            {
+              "line": 68,
+              "text": "                \"temporal_energy\": dt.square().sum(-1),"
+            },
+            {
+              "line": 69,
+              "text": "                \"complement_energy\": dn.square().sum(-1)}"
+            },
+            {
+              "line": 70,
+              "text": "    energies = {k: torch.where(valid, v, torch.zeros_like(v)) for k, v in energies.items()}"
+            },
+            {
+              "line": 71,
+              "text": "    return {**energies, \"valid\": valid, \"input_finite\": torch.stack(["
+            },
+            {
+              "line": 72,
+              "text": "        torch.isfinite(x).all(-1) for x in xs]).all(0) & torch.isfinite(mass),"
+            },
+            {
+              "line": 73,
+              "text": "        \"tangent_signal\": signal, \"feature_scale\": scale}"
+            },
+            {
+              "line": 74,
+              "text": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/innovation/feature_gain_field/controller.py",
+      "sha256": "b5d72b897ad918a282140bf98d9a62d36083a85d4935cd8e326839eddea06ce7",
+      "excerpts": [
+        {
+          "start": 151,
+          "end": 184,
+          "lines": [
+            {
+              "line": 151,
+              "text": "    usable=initialized&valid&(scale>tiny)&(scale>relative_floor*anchor_scale)"
+            },
+            {
+              "line": 152,
+              "text": "    vt=(a/scale.clamp_min(tiny))*(B0/anchor_scale)"
+            },
+            {
+              "line": 153,
+              "text": "    vn=(b/scale.clamp_min(tiny))*(A0/anchor_scale)"
+            },
+            {
+              "line": 154,
+              "text": "    total=(vt+vn).clamp_min(tiny);vt,vn=vt/total,vn/total"
+            },
+            {
+              "line": 155,
+              "text": "    c=vt+3*vn+prior_weight*(vt+vn)/2"
+            },
+            {
+              "line": 156,
+              "text": "    rhs=vt+prior_weight*.25*(vt+vn)/2"
+            },
+            {
+              "line": 157,
+              "text": "    alpha=torch.full((n,),.25,dtype=torch.float64)"
+            },
+            {
+              "line": 158,
+              "text": "    local_alpha=alpha.clone();local_alpha[usable]=(rhs[usable]/c[usable]).clamp(0,.5)"
+            },
+            {
+              "line": 159,
+              "text": "    edge_weights=torch.zeros(max(0,n-1),dtype=torch.float64)"
+            },
+            {
+              "line": 160,
+              "text": "    if n>1:"
+            },
+            {
+              "line": 161,
+              "text": "        spacings=coords[1:]-coords[:-1]"
+            },
+            {
+              "line": 162,
+              "text": "        edge_weights=torch.median(spacings)/spacings"
+            },
+            {
+              "line": 163,
+              "text": "        edge_weights*=usable[:-1]&usable[1:]"
+            },
+            {
+              "line": 164,
+              "text": "    segment_reports=[];solved=torch.zeros(n,dtype=torch.bool)"
+            },
+            {
+              "line": 165,
+              "text": "    for start,end in _runs(usable.tolist()):"
+            },
+            {
+              "line": 166,
+              "text": "        edges=smoothness*edge_weights[start:end-1]"
+            },
+            {
+              "line": 167,
+              "text": "        diagonal=c[start:end].clone()"
+            },
+            {
+              "line": 168,
+              "text": "        if end-start>1:"
+            },
+            {
+              "line": 169,
+              "text": "            diagonal[:-1]+=edges;diagonal[1:]+=edges"
+            },
+            {
+              "line": 170,
+              "text": "        solution,report=solve_box_tridiagonal(diagonal,-edges,rhs[start:end],max_iterations=solver_iterations)"
+            },
+            {
+              "line": 171,
+              "text": "        if report['converged']:"
+            },
+            {
+              "line": 172,
+              "text": "            alpha[start:end]=solution;solved[start:end]=True"
+            },
+            {
+              "line": 173,
+              "text": "        report.update(interval_half_open=[start,end],evidence_bins=end-start)"
+            },
+            {
+              "line": 174,
+              "text": "        segment_reports.append(report)"
+            },
+            {
+              "line": 175,
+              "text": "    next_state={'initialized':next_initialized.clone(),'anchor_temporal':A0.clone(),'anchor_complement':B0.clone(),"
+            },
+            {
+              "line": 176,
+              "text": "                'anchor_step':next_anchor_step.clone(),'last_step':step_index,'layer_index':layer_index,'settings':settings}"
+            },
+            {
+              "line": 177,
+              "text": "    return alpha,next_state,{"
+            },
+            {
+              "line": 178,
+              "text": "        'alpha':alpha.clone(),'unsmoothed_alpha':local_alpha,'temporal_energy':a,'complement_energy':b,"
+            },
+            {
+              "line": 179,
+              "text": "        'valid_probe_count':torch.where(torch.isfinite(count)&(count>0),count,torch.zeros_like(count)),"
+            },
+            {
+              "line": 180,
+              "text": "        'anchor_created':created,'initialized':next_initialized.clone(),'anchor_step':next_anchor_step.clone(),"
+            },
+            {
+              "line": 181,
+              "text": "        'anchor_temporal':A0.clone(),'anchor_complement':B0.clone(),"
+            },
+            {
+              "line": 182,
+              "text": "        'usable_evidence':usable,'solver_succeeded':solved,'fallback_to_prior':~solved,"
+            },
+            {
+              "line": 183,
+              "text": "        'normalized_temporal':vt,'normalized_complement':vn,'quadratic_diagonal':c,'quadratic_rhs':rhs,"
+            },
+            {
+              "line": 184,
+              "text": "        'edge_weights':edge_weights,'segments':segment_reports,'prior_weight':prior_weight,'smoothness':smoothness,"
+            }
+          ]
+        },
+        {
+          "start": 190,
+          "end": 186,
+          "lines": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "tests": 20,
+  "errors": 5,
+  "stage": "first CPU fixture, before explicit inference context",
+  "error_excerpt": "RuntimeError: Output 0 of ViewBackward0 is a view and is being modified inplace. This view is the output of a function that returns multiple views.",
+  "cause": "fixture left autograd enabled while executing original H3 inference-only in-place RMS+RoPE",
+  "resolution": "use inference context; original H3/Eager kernels unchanged",
+  "full_log_retained": false,
+  "later_result": "30 tests passed"
+}

@@ -259,6 +259,17 @@ def conclusions(rows,anns,cases):
    line+='事件平均偏移 '+num(a.get('mean_absolute_offset_frames') if a else None,3)+' 帧。'
    details.append(line)
   out.insert(0,'<strong>'+title+'已完成 '+str(len(completed))+' 例。</strong>'+''.join(details))
+ fixed=[r for r in rows if r['method']=='temporal_gain_field_fixed_budget' and r['status']=='verified']
+ if {r['task_id'] for r in fixed}==set(TASKS):
+  differences=[];same_events=[]
+  for r in fixed:
+   c=cases.get(r['job_id'],{});mf=score(c,'motion_fidelity');weak=score(c.get('controls',{}).get('global_weak',{}),'motion_fidelity')
+   if mf is not None and weak is not None:differences.append(mf-weak)
+   a,o=anns.get(r['job_id'],(None,None))
+   same_events.append(bool(a and o and all(e.get('new_interval')==unique(o['events'],'id')[e['id']].get('global_weak') for e in a['events'])))
+  if len(differences)==4 and all(same_events):
+   wins=sum(d>0 for d in differences);losses=sum(d<0 for d in differences)
+   out.insert(0,f'<strong>固定修正能量后，动态时间分配未取得一致收益。</strong>四例中 {wins} 例 MF 提高、{losses} 例下降，全部冻结动作区间与固定 α=.25 相同。平方切向能量作为强度分配依据的方案已搁置，保留全部消融结果；下一步先检验 Attention 内部信号能否区分动作提前与滞后，再确定控制强度。')
  if not out:out.append('按已核验成片、真实指标和逐帧标注更新；当前结果见下方案例表。')
  return '<ol class="findings">'+''.join('<li>'+x+'</li>' for x in out)+'</ol>'
 
@@ -407,7 +418,7 @@ def build(args):
   if 'controls' not in video:raise ValueError('missing native controls')
   raw=base64.b64decode(video['src'].split(',',1)[1],validate=True)
   if sha(raw) not in {m['sha256'] for m in MEDIA}:raise ValueError('embedded media changed')
- for bad in ('/Users/','/data4/','/home/','PRIVATE_HOST_PREFIX_','ssh-ed25519','BEGIN PRIVATE KEY'):
+ for bad in ('/Users/','/data4/','/home/','CASIA_','ssh-ed25519','BEGIN PRIVATE KEY'):
   if bad in html:raise ValueError('private execution detail leaked: '+bad)
  args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(html)
  checks={'schema':'h3-report-structure-checks-v1','status':'passed','report_sha256':sha(html.encode()),'report_bytes':len(html.encode()),'completed_cases':done,'embedded_videos':len(parser.videos),'measured_heatmaps':len(compact),'heatmap_grid_cells':parser.cells,'recorded_layer_points':{k:len(v) for k,v in compact.items()},'plan_count':total,'research_hold':held,'active_plan':active,'media':MEDIA,'input_sha256':dict(INPUTS),'external_asset_count':len(parser.external),'html_ids_unique':True,'media_sha_verified':True,'annotation_intervals_verified':True,'browser_check':'blocked_file_protocol','browser_check_reason':'CUA safety policy accepts only http/https and prohibits alternate-browser or local-HTTP bypass; no bypass attempted.','visual_review':'browser page review not performed; static and media checks only','gpu_or_queue_operations':False,'awq_verified_job_count':len(awq_evidence),'awq_verified_score_count':sum(m['status']=='done' for r in awq_evidence.values() for m in r['metrics']),'awq_input_sha_verified':True}

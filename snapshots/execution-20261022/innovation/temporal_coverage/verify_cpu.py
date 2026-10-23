@@ -19,7 +19,8 @@ def main():
     if torch.cuda.is_initialized():
         raise RuntimeError("CUDA was already initialized")
     torch.set_num_threads(1)
-    suite = unittest.defaultTestLoader.loadTestsFromName("temporal_coverage.test_temporal_coverage")
+    suite = unittest.defaultTestLoader.loadTestsFromNames([
+        "temporal_coverage.test_temporal_coverage", "temporal_coverage.test_nodes"])
     with (root / "cpu_test_output.txt").open("w") as stream:
         result = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
     report = {

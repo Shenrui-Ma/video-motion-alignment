@@ -5,7 +5,7 @@ base=json.loads((P/'jobs.json').read_text());base['jobs']=[j for j in base['jobs
 lanes={'host41':base,'host9a':{'jobs':[]},'host9b':{'jobs':[]}}
 for i,t in enumerate(tasks):
  lane='host41' if i%2==0 else ('host9a' if i%4==1 else 'host9b')
- remote='/data4/researcher/h3_runs/benchmark_schedule_20261022' if lane=='host41' else '/home/researcher/h3_runs/benchmark_schedule_20261022_'+lane
+ remote='/data4/research-user/h3_runs/benchmark_schedule_20261022' if lane=='host41' else '/home/research-user/h3_runs/benchmark_schedule_20261022_'+lane
  g=json.loads(Path(t['graph_template']).read_text())
  old={k:v for k,v in g['5']['inputs'].items() if k in ['clip','vae','ref_video','ref_image','width','height','length']};old['prompt']=t['recommended_prompt'];g['5']={'class_type':'H3StudyReference','inputs':old}
  for k in ['51','52']:g.pop(k,None)
@@ -19,7 +19,7 @@ for i,t in enumerate(tasks):
   (target/'graphs'/f'{jid}.json').write_text(json.dumps(a,ensure_ascii=False,indent=2))
   dest=target/'input'/t['graph_input_names']['video']
   if not dest.exists():shutil.copy2(t['reference_video'],dest)
-  lanes[lane]['jobs'].append({'id':jid,'graph':f'graphs/{jid}.json','expected_output_prefix':jid+'/','progress_file':remote+'/logs/comfy.log','metadata':{**t,'method':method,'timing_file':remote+'/audit/timing/{attempt_id}.json','source_video':remote+'/input/'+t['graph_input_names']['video'],'host':'H3_SERVER_B' if lane=='host41' else 'H3_SERVER_A','remote_root':remote,'steps':20}})
+  lanes[lane]['jobs'].append({'id':jid,'graph':f'graphs/{jid}.json','expected_output_prefix':jid+'/','progress_file':remote+'/logs/comfy.log','metadata':{**t,'method':method,'timing_file':remote+'/audit/timing/{attempt_id}.json','source_video':remote+'/input/'+t['graph_input_names']['video'],'host':'H3_HOST_CONFIGURE_LOCALLY' if lane=='host41' else 'H3_HOST_CONFIGURE_LOCALLY','remote_root':remote,'steps':20}})
 for lane,manifest in lanes.items():
  target=P if lane=='host41' else R/'inference'/lane
  tmp=target/'jobs.json.tmp';tmp.write_text(json.dumps(manifest,ensure_ascii=False,indent=2));tmp.replace(target/'jobs.json');print(lane,len(manifest['jobs']))

@@ -1,0 +1,156 @@
+{
+  "case_id": "short_0358",
+  "fps": 24,
+  "annotation_source": "AI visual frame annotation",
+  "frame_indexing": "zero_based",
+  "events": [
+    {
+      "id": "bottle_lowered",
+      "label": "放低酒瓶",
+      "definition": "放低酒瓶",
+      "source": [
+        14,
+        18
+      ],
+      "native": [
+        14,
+        19
+      ],
+      "global_weak": [
+        14,
+        19
+      ],
+      "partial_temporal_rope": [
+        12,
+        17
+      ],
+      "note": "手臂在12–17帧下压进入低位；相对参考略提前，过渡范围有重叠。",
+      "offset_frames": {
+        "native": 0.5,
+        "global_weak": 0.5,
+        "partial_temporal_rope": -1.5
+      },
+      "offset_range_frames": {
+        "native": [
+          -4,
+          5
+        ],
+        "global_weak": [
+          -4,
+          5
+        ],
+        "partial_temporal_rope": [
+          -6,
+          3
+        ]
+      }
+    },
+    {
+      "id": "bottle_reaches_lips",
+      "label": "瓶口到嘴、开始饮酒",
+      "definition": "瓶口到嘴、开始饮酒",
+      "source": [
+        37,
+        40
+      ],
+      "native": [
+        46,
+        49
+      ],
+      "global_weak": [
+        36,
+        39
+      ],
+      "partial_temporal_rope": [
+        36,
+        39
+      ],
+      "note": "35帧瓶口仍接近嘴唇，36–39帧进入接触并开始饮酒，与全程弱引导接近。",
+      "offset_frames": {
+        "native": 9.0,
+        "global_weak": -1.0,
+        "partial_temporal_rope": -1.0
+      },
+      "offset_range_frames": {
+        "native": [
+          6,
+          12
+        ],
+        "global_weak": [
+          -4,
+          2
+        ],
+        "partial_temporal_rope": [
+          -4,
+          2
+        ]
+      }
+    },
+    {
+      "id": "bottle_leaves_lips",
+      "label": "瓶口离嘴",
+      "definition": "瓶口离嘴",
+      "source": [
+        80,
+        84
+      ],
+      "native": [
+        91,
+        94
+      ],
+      "global_weak": [
+        78,
+        81
+      ],
+      "partial_temporal_rope": [
+        92,
+        95
+      ],
+      "note": "91帧仍贴嘴，92–95帧逐步离嘴下降；参考80–84帧已经完成该过渡，末段延后仍明显。",
+      "offset_frames": {
+        "native": 10.5,
+        "global_weak": -2.5,
+        "partial_temporal_rope": 11.5
+      },
+      "offset_range_frames": {
+        "native": [
+          7,
+          14
+        ],
+        "global_weak": [
+          -6,
+          1
+        ],
+        "partial_temporal_rope": [
+          8,
+          15
+        ]
+      }
+    }
+  ],
+  "means": {
+    "native": 6.666666666666667,
+    "global_weak": 1.3333333333333333,
+    "partial_temporal_rope": 4.666666666666667
+  },
+  "video_provenance": {
+    "source": {
+      "sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+      "job_id": "short_0358__source"
+    },
+    "native": {
+      "sha256": "04510e08e359c2b22614bc12a0fdcbfffb35e9cbcef1d0a2f0a7dbc92c069c2e",
+      "job_id": "short_0358__native"
+    },
+    "global_weak": {
+      "sha256": "28d8939fbd43890414c5ff7fe967f9f0721b4e56d7d7e8514665b576cb83c582",
+      "job_id": "short_0358__global_weak"
+    },
+    "partial_temporal_rope": {
+      "sha256": "df08167d7fa204532b9202921520c29a6e0d58b557c9b11a5312fcfe7e1ffc5a",
+      "job_id": "innov41_short_0358_partial_temporal_rope"
+    }
+  },
+  "protocol": "沿用冻结参考和三事件定义；全片每8帧扫描，事件附近连续逐帧复核；偏移取过渡区间中点差，均值取绝对值。范围表示视觉边界定位范围。",
+  "visual_conclusion": "部分RoPE频带使瓶口到嘴的时刻接近参考；饮酒结束时瓶口离嘴仍延后约11.5帧。三事件平均绝对偏移4.67帧，普通编辑6.67帧，全程弱引导1.33帧。"
+}

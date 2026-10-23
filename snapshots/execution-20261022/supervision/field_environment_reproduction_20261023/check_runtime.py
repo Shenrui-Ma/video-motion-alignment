@@ -27,9 +27,9 @@ def get(host,code):
  p=subprocess.run(['ssh','-o','ConnectTimeout=8','-o','ServerAliveInterval=5','-o','ServerAliveCountMax=1',host,shlex.join(['python3','-c',code])],capture_output=True,text=True,timeout=45);assert p.returncode==0,p.stderr;return json.loads(p.stdout)
 with concurrent.futures.ThreadPoolExecutor() as ex:
  fs={
- 'host41':ex.submit(get,'H3_HOST_PRIMARY',extension.replace('ROOT',repr('/data4/research-user/h3_runs/benchmark_schedule_20261022')).replace('CASES',repr(['short_0220','long_0174'])).replace('GUARDS',repr(['extension_followon_0220_20261023','extension_followon_0174_20261023']))),
- 'host9':ex.submit(get,'H3_HOST_SECONDARY',extension.replace('ROOT',repr('/home/research-user/h3_runs/adaptive_role5_20261023')).replace('CASES',repr(['short_0166','short_0185'])).replace('GUARDS',repr(['extension_three_20261023','extension_followon_0185_20261023']))),
- 'host81':ex.submit(get,'H3_HOST_RTX4090',live)}
+ 'host41':ex.submit(get,'H3_HOST_CONFIGURE_LOCALLY',extension.replace('ROOT',repr('/data4/research-user/h3_runs/benchmark_schedule_20261022')).replace('CASES',repr(['short_0220','long_0174'])).replace('GUARDS',repr(['extension_followon_0220_20261023','extension_followon_0174_20261023']))),
+ 'host9':ex.submit(get,'H3_HOST_CONFIGURE_LOCALLY',extension.replace('ROOT',repr('/home/research-user/h3_runs/adaptive_role5_20261023')).replace('CASES',repr(['short_0166','short_0185'])).replace('GUARDS',repr(['extension_three_20261023','extension_followon_0185_20261023']))),
+ 'host81':ex.submit(get,'H3_HOST_CONFIGURE_LOCALLY',live)}
  out={}
  for k,f in fs.items():
   try:out[k]=f.result()

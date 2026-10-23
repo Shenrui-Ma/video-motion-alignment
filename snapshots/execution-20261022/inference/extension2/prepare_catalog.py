@@ -4,8 +4,8 @@ from fractions import Fraction
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
 RUN=ROOT.parents[1]
-DEV=Path('/Users/researcher/DevProjects')
-REMOTE='/home/researcher/h3_runs/benchmark_schedule_20261022_host9a'
+DEV=Path('/workspace/research-user/DevProjects')
+REMOTE='/home/research-user/h3_runs/benchmark_schedule_20261022_host9a'
 INVENTORY=DEV/'h3-timing-auto-motion-r26-20261017/literature/benchmark_selection_20261017/IVE_FULL_600_INVENTORY.json'
 TEMPLATE=RUN/'inference/host9a/graphs/expand_short_0353_native.json'
 RAW_IDS=['short_0039','short_0185','short_0220','short_0308','short_0309','short_0318','short_0394','short_0395']
@@ -57,7 +57,7 @@ def main():
    g['50']['inputs'].update(mode='native' if method=='native' else 'mass_preserve',alpha=1.0 if method=='native' else .25,end_frame=t['valid_frames']-1,schedule=method)
    g['14']['inputs']['filename_prefix']=jid+'/{attempt_id}'
    save(ROOT/'graphs'/f'{jid}.json',g)
-   jobs.append({'id':jid,'graph':f'graphs/{jid}.json','expected_output_prefix':jid+'/','progress_file':REMOTE+'/logs/comfy.log','metadata':{**t,'method':method,'timing_file':REMOTE+'/audit/timing/{attempt_id}.json','source_video':REMOTE+'/input/'+t['graph_input_names']['video'],'host':'H3_SERVER_A','remote_root':REMOTE,'steps':20}})
+   jobs.append({'id':jid,'graph':f'graphs/{jid}.json','expected_output_prefix':jid+'/','progress_file':REMOTE+'/logs/comfy.log','metadata':{**t,'method':method,'timing_file':REMOTE+'/audit/timing/{attempt_id}.json','source_video':REMOTE+'/input/'+t['graph_input_names']['video'],'host':'H3_HOST_CONFIGURE_LOCALLY','remote_root':REMOTE,'steps':20}})
  catalog={'schema':'h3-expanded-ive-catalog-v1','created_date':'2026-10-22','count':len(tasks),'selection_uses_observed_method_effect':False,'excluded_ids':sorted(excluded),'task_order':[t['task_id'] for t in tasks],'tasks':tasks,'protocol':{'seed':2026101701,'steps':20,'sampler':'euler','prompt':'verbatim official edit_prompt','methods':['native','global_weak'],'weak_alpha':.25,'weak_steps':[0,20],'blocks':[0,50],'geometry':'Reuse prepared inputs or inherited 1280x720 content padded to 1312x736; 24fps nearest PTS, final-frame padding to 17k+5','visual_review':False}}
  save(ROOT/'catalog.json',catalog);save(ROOT/'jobs_append.json',{'jobs':jobs});save(ROOT/'jobs_append_ready.json',{'jobs':jobs[:4]});save(ROOT/'assets_to_transfer.json',{'remote_root':REMOTE,'files':transfers,'total_bytes':sum(t['bytes'] for t in transfers),'note':'Reference original files in place; no local video copies. Prepared inputs first; original inputs require prepare_remote_inputs.py.'})
  print(json.dumps({'tasks':len(tasks),'jobs':len(jobs),'ready_jobs':4,'transfer_bytes':sum(t['bytes'] for t in transfers),'geometry':{t['task_id']:[t['geometry']['frames'],t['valid_frames']] for t in tasks}},indent=2))

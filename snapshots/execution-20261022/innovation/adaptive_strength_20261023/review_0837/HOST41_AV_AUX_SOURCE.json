@@ -1,0 +1,256 @@
+{
+  "files": [
+    {
+      "path": "/data3/research-user/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_sampling.py",
+      "sha256": "8afdc665272589a567792bb652389df7d4a83f69574c2b7e5b3d533d55592990",
+      "nodes": [
+        {
+          "name": "reshape_sigma",
+          "line": 24,
+          "source": "def reshape_sigma(sigma, noise_dim):\n    if sigma.nelement() == 1:\n        return sigma.view(())\n    else:\n        return sigma.view(sigma.shape[:1] + (1,) * (noise_dim - 1))"
+        },
+        {
+          "name": "CONST",
+          "line": 86,
+          "source": "class CONST:\n    def calculate_input(self, sigma, noise):\n        return noise\n\n    def calculate_denoised(self, sigma, model_output, model_input):\n        sigma = reshape_sigma(sigma, model_output.ndim)\n        return model_input - model_output * sigma\n\n    def noise_scaling(self, sigma, noise, latent_image, max_denoise=False):\n        sigma = reshape_sigma(sigma, noise.ndim)\n        s = getattr(self, \"noise_scale\", 1.0)\n        return sigma * (s * noise) + (1.0 - sigma) * latent_image\n\n    def inverse_noise_scaling(self, sigma, latent):\n        sigma = reshape_sigma(sigma, latent.ndim)\n        return latent / (1.0 - sigma)"
+        },
+        {
+          "name": "ModelSamplingDiscreteFlow",
+          "line": 294,
+          "source": "class ModelSamplingDiscreteFlow(torch.nn.Module):\n    def __init__(self, model_config=None):\n        super().__init__()\n        if model_config is not None:\n            sampling_settings = model_config.sampling_settings\n        else:\n            sampling_settings = {}\n\n        self.set_noise_scale(sampling_settings.get(\"noise_scale\", 1.0))\n        self.set_parameters(\n            shift=sampling_settings.get(\"shift\", 1.0),\n            multiplier=sampling_settings.get(\"multiplier\", 1000),\n        )\n\n    def set_parameters(self, shift=1.0, timesteps=1000, multiplier=1000):\n        self.shift = shift\n        self.multiplier = multiplier\n        ts = self.sigma((torch.arange(1, timesteps + 1, 1) / timesteps) * multiplier)\n        self.register_buffer('sigmas', ts)\n\n    def set_noise_scale(self, noise_scale):\n        self.noise_scale = float(noise_scale)\n\n    @property\n    def sigma_min(self):\n        return self.sigmas[0]\n\n    @property\n    def sigma_max(self):\n        return self.sigmas[-1]\n\n    def timestep(self, sigma):\n        return sigma * self.multiplier\n\n    def sigma(self, timestep):\n        return time_snr_shift(self.shift, timestep / self.multiplier)\n\n    def percent_to_sigma(self, percent):\n        if percent <= 0.0:\n            return 1.0\n        if percent >= 1.0:\n            return 0.0\n        return time_snr_shift(self.shift, 1.0 - percent)"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/model_base.py",
+      "sha256": "6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68",
+      "nodes": [
+        {
+          "name": "model_sampling",
+          "line": 114,
+          "source": "def model_sampling(model_config, model_type):\n    s = comfy.model_sampling.ModelSamplingDiscrete\n\n    if model_type == ModelType.EPS:\n        c = comfy.model_sampling.EPS\n    elif model_type == ModelType.V_PREDICTION:\n        c = comfy.model_sampling.V_PREDICTION\n    elif model_type == ModelType.V_PREDICTION_EDM:\n        c = comfy.model_sampling.V_PREDICTION\n        s = comfy.model_sampling.ModelSamplingContinuousEDM\n    elif model_type == ModelType.FLOW:\n        c = comfy.model_sampling.CONST\n        s = comfy.model_sampling.ModelSamplingDiscreteFlow\n    elif model_type == ModelType.STABLE_CASCADE:\n        c = comfy.model_sampling.EPS\n        s = comfy.model_sampling.StableCascadeSampling\n    elif model_type == ModelType.EDM:\n        c = comfy.model_sampling.EDM\n        s = comfy.model_sampling.ModelSamplingContinuousEDM\n    elif model_type == ModelType.V_PREDICTION_CONTINUOUS:\n        c = comfy.model_sampling.V_PREDICTION\n        s = comfy.model_sampling.ModelSamplingContinuousV\n    elif model_type == ModelType.FLUX:\n        c = comfy.model_sampling.CONST\n        s = comfy.model_sampling.ModelSamplingFlux\n    elif model_type == ModelType.IMG_TO_IMG:\n        c = comfy.model_sampling.IMG_TO_IMG\n    elif model_type == ModelType.FLOW_COSMOS:\n        c = comfy.model_sampling.COSMOS_RFLOW\n        s = comfy.model_sampling.ModelSamplingCosmosRFlow\n    elif model_type == ModelType.IMG_TO_IMG_FLOW:\n        c = comfy.model_sampling.IMG_TO_IMG_FLOW\n    elif model_type == ModelType.V_PREDICTION_DDPM:\n        c = comfy.model_sampling.V_PREDICTION_DDPM\n    elif model_type == ModelType.FLOW_AV:\n        c = comfy.model_sampling.CONST\n        s = comfy.model_sampling.ModelSamplingAV\n\n    class ModelSampling(s, c):\n        pass\n\n    return ModelSampling(model_config)"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/nested_tensor.py",
+      "sha256": "d4d1f56e90bbf1b758de069a0949d6c26c0329cd3894188124a65235aa704aeb",
+      "nodes": [
+        {
+          "name": "NestedTensor",
+          "line": 3,
+          "source": "class NestedTensor:\n    def __init__(self, tensors):\n        self.tensors = list(tensors)\n        self.is_nested = True\n\n    def _copy(self):\n        return NestedTensor(self.tensors)\n\n    def apply_operation(self, other, operation):\n        o = self._copy()\n        if isinstance(other, NestedTensor):\n            for i, t in enumerate(o.tensors):\n                o.tensors[i] = operation(t, other.tensors[i])\n        else:\n            for i, t in enumerate(o.tensors):\n                o.tensors[i] = operation(t, other)\n        return o\n\n    def __add__(self, b):\n        return self.apply_operation(b, lambda x, y: x + y)\n\n    def __sub__(self, b):\n        return self.apply_operation(b, lambda x, y: x - y)\n\n    def __mul__(self, b):\n        return self.apply_operation(b, lambda x, y: x * y)\n\n    # def __itruediv__(self, b):\n    #     return self.apply_operation(b, lambda x, y: x / y)\n\n    def __truediv__(self, b):\n        return self.apply_operation(b, lambda x, y: x / y)\n\n    def __getitem__(self, *args, **kwargs):\n        return self.apply_operation(None, lambda x, y: x.__getitem__(*args, **kwargs))\n\n    def unbind(self):\n        return self.tensors\n\n    def to(self, *args, **kwargs):\n        o = self._copy()\n        for i, t in enumerate(o.tensors):\n            o.tensors[i] = t.to(*args, **kwargs)\n        return o\n\n    def new_ones(self, *args, **kwargs):\n        return self.tensors[0].new_ones(*args, **kwargs)\n\n    def float(self):\n        return self.to(dtype=torch.float)\n\n    def cpu(self):\n        return self.to(device=\"cpu\")\n\n    def chunk(self, *args, **kwargs):\n        return self.apply_operation(None, lambda x, y: x.chunk(*args, **kwargs))\n\n    def size(self):\n        return self.tensors[0].size()\n\n    @property\n    def shape(self):\n        return self.tensors[0].shape\n\n    @property\n    def ndim(self):\n        dims = 0\n        for t in self.tensors:\n            dims = max(t.ndim, dims)\n        return dims\n\n    @property\n    def device(self):\n        return self.tensors[0].device\n\n    @property\n    def dtype(self):\n        return self.tensors[0].dtype\n\n    @property\n    def layout(self):\n        return self.tensors[0].layout\n\n    def __repr__(self):\n        return f\"{type(self).__name__}({self.tensors!r})\""
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/ops.py",
+      "sha256": "428b83aba285d22d64511aa8e98254403ab34c0b12d72a832973578d76abda42",
+      "nodes": [
+        {
+          "name": "RMSNorm",
+          "line": 680,
+          "source": "class RMSNorm(torch.nn.RMSNorm, CastWeightBiasOp):\n        def reset_parameters(self):\n            self.bias = None\n            return None\n\n        def forward_comfy_cast_weights(self, input):\n            with CastBiasWeightContext(self if self.weight is not None else None, input, offloadable=True) as (weight, bias):\n                return torch.nn.functional.rms_norm(input, self.normalized_shape, weight, self.eps)\n\n        def forward(self, *args, **kwargs):\n            run_every_op()\n            if self.comfy_cast_weights or len(self.weight_function) > 0 or len(self.bias_function) > 0:\n                return self.forward_comfy_cast_weights(*args, **kwargs)\n            else:\n                return super().forward(*args, **kwargs)"
+        },
+        {
+          "name": "RMSNorm",
+          "line": 845,
+          "source": "class RMSNorm(disable_weight_init.RMSNorm):\n        comfy_cast_weights = True"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy/supported_models.py",
+      "sha256": "007f8d1cc2e0d11c0b16c538f79c8f9a9d4e7513c79df405a7457435d14ee0b5",
+      "nodes": [
+        {
+          "name": "MiniMaxH3",
+          "line": 962,
+          "source": "class MiniMaxH3(supported_models_base.BASE):\n    unet_config = {\n        \"image_model\": \"minimax_h3\",\n    }\n\n    sampling_settings = {\n        \"shift\": 12.0,\n        \"audio_shift\": 3.0,\n    }\n\n    unet_extra_config = {}\n    latent_format = latent_formats.MiniMaxH3AV\n\n    memory_usage_factor = 0.114\n\n    supported_inference_dtypes = [torch.bfloat16, torch.float32]\n\n    vae_key_prefix = [\"vae.\"]\n    text_encoder_key_prefix = [\"text_encoders.\"]\n\n    def get_model(self, state_dict, prefix=\"\", device=None):\n        return model_base.MiniMaxH3(self, device=device)\n\n    def clip_target(self, state_dict={}, prefix=\"\"):\n        pref = self.text_encoder_key_prefix[0]\n        detect = comfy.text_encoders.hunyuan_video.llama_detect(state_dict, \"{}qwen3vl_32b.transformer.\".format(pref))\n        return supported_models_base.ClipTarget(comfy.text_encoders.minimax.MiniMaxH3Tokenizer, comfy.text_encoders.minimax.te(**detect))"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/silverwolf_486_ref2va4_clean/ComfyUI/comfy_extras/nodes_minimax_h3.py",
+      "sha256": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+      "nodes": [
+        {
+          "name": "MiniMaxH3SigmaShift",
+          "line": 366,
+          "source": "class MiniMaxH3SigmaShift(io.ComfyNode):\n    \"\"\"Set the video/audio flow shifts coherently.\n\n    The video shift drives the sampler's sigma schedule (ModelSamplingAV); both\n    values are also handed to the DiT, which inverts the video schedule to the\n    shared base grid and derives the audio schedule from it.\n    \"\"\"\n\n    @classmethod\n    def define_schema(cls):\n        return io.Schema(\n            node_id=\"MiniMaxH3SigmaShift\",\n            description=\"Set the video/audio flow shifts.\",\n            display_name=\"ModelSamplingMiniMaxH3\",\n            search_aliases=[\"sigma shift\", \"minimax shift\"],\n            category=\"model/patch/minimax\",\n            inputs=[\n                io.Model.Input(\"model\"),\n                io.Float.Input(\"shift_video\", default=12.0, min=0.01, max=100.0, step=0.01),\n                io.Float.Input(\"shift_audio\", default=3.0, min=0.01, max=100.0, step=0.01),\n            ],\n            outputs=[io.Model.Output()],\n        )\n\n    @classmethod\n    def execute(cls, model, shift_video, shift_audio) -> io.NodeOutput:\n        m = model.clone()\n\n        class ModelSamplingAdvanced(comfy.model_sampling.ModelSamplingAV, comfy.model_sampling.CONST):\n            pass\n\n        original = m.get_model_object(\"model_sampling\")\n        model_sampling = ModelSamplingAdvanced(model.model.model_config)\n        model_sampling.set_parameters(shift=shift_video, audio_shift=shift_audio)\n        if hasattr(original, \"noise_scale\"):\n            model_sampling.set_noise_scale(original.noise_scale)\n        m.add_object_patch(\"model_sampling\", model_sampling)\n\n        to = m.model_options[\"transformer_options\"] = m.model_options.get(\"transformer_options\", {}).copy()\n        to[\"minimax_h3_sigma_shift_video\"] = shift_video\n        to[\"minimax_h3_sigma_shift_audio\"] = shift_audio\n        return io.NodeOutput(m)"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/closure_tutorials_53592/01-anime/runtime_deps/comfy_kitchen/__init__.py",
+      "sha256": "e19ad20021eb35986c9cfce19c4ee2fdc813f2783aeeae46559d62b649744117",
+      "nodes": [
+        {
+          "name": "rms_rope_split_half",
+          "line": 723,
+          "source": "def rms_rope_split_half(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"Apply per-head RMSNorm and split-half RoPE to query and key tensors.\n\n    Split-half layout: pair i uses elements [i] and [i + rot_dim//2]. rot_dim\n    restricts the rotation to a head-dim prefix (partial rotary; the norm\n    always spans the full head_dim); 0 rotates everything.\n    \"\"\"\n    return torch.ops.comfy_kitchen.rms_rope_split_half(q, k, freqs_cis, q_scale, k_scale, epsilon, rot_dim)"
+        },
+        {
+          "name": "rms_rope_split_half_",
+          "line": 741,
+          "source": "def rms_rope_split_half_(\n    q: torch.Tensor, k: torch.Tensor, freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor, k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6, rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"Apply RMSNorm and split-half RoPE in place (inference only).\n\n    rot_dim restricts the rotation to a head-dim prefix (partial rotary; the\n    norm always spans the full head_dim); 0 rotates everything.\n    \"\"\"\n    torch.ops.comfy_kitchen.rms_rope_split_half_(\n        q, k, freqs_cis, q_scale, k_scale, epsilon, rot_dim\n    )\n    return q, k"
+        },
+        {
+          "name": "rms_rope_split_half1",
+          "line": 757,
+          "source": "def rms_rope_split_half1(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    \"\"\"Apply per-head RMSNorm followed by split-half RoPE to a single tensor.\n\n    Split-half layout: pair k uses elements [k] and [k + head_dim//2].\n    \"\"\"\n    return torch.ops.comfy_kitchen.rms_rope_split_half1(x, freqs_cis, scale, epsilon)"
+        },
+        {
+          "name": "rms_rope_split_half1_",
+          "line": 770,
+          "source": "def rms_rope_split_half1_(\n    x: torch.Tensor, freqs_cis: torch.Tensor, scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    \"\"\"Apply RMSNorm and split-half RoPE in place (inference only).\"\"\"\n    torch.ops.comfy_kitchen.rms_rope_split_half1_(x, freqs_cis, scale, epsilon)\n    return x"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/closure_tutorials_53592/01-anime/runtime_deps/comfy_kitchen/backends/cuda/__init__.py",
+      "sha256": "4f09f943122d4a0387149151676cb3335ced980bb342d88d84f9161419e28859",
+      "nodes": [
+        {
+          "name": "rms_rope_split_half1",
+          "line": 2979,
+          "source": "def rms_rope_split_half1(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    return _rms_rope1_cuda(x, freqs_cis, scale, epsilon, split_half=True, inplace=False)"
+        },
+        {
+          "name": "rms_rope_split_half1_",
+          "line": 2988,
+          "source": "def rms_rope_split_half1_(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    check_rope_inplace(x, readonly=(freqs_cis, scale))\n    return _rms_rope1_cuda(x, freqs_cis, scale, epsilon, split_half=True, inplace=True)"
+        },
+        {
+          "name": "rms_rope_split_half",
+          "line": 2998,
+          "source": "def rms_rope_split_half(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    return _rms_rope_cuda(\n        q, k, freqs_cis, q_scale, k_scale, epsilon,\n        split_half=True, inplace=False, rot_dim=rot_dim,\n    )"
+        },
+        {
+          "name": "rms_rope_split_half_",
+          "line": 3013,
+          "source": "def rms_rope_split_half_(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    if k_scale is None:\n        k_scale = q_scale\n    check_rope_inplace(q, k, readonly=(freqs_cis, q_scale, k_scale))\n    return _rms_rope_cuda(\n        q, k, freqs_cis, q_scale, k_scale, epsilon,\n        split_half=True, inplace=True, rot_dim=rot_dim,\n    )"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/closure_tutorials_53592/01-anime/runtime_deps/comfy_kitchen/backends/eager/rope.py",
+      "sha256": "aee33a18bb5fe75ce24ebad389b830c9d5775d52723fc7df4864598547b2257c",
+      "nodes": [
+        {
+          "name": "rms_rope_split_half1",
+          "line": 120,
+          "source": "def rms_rope_split_half1(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    return _rms_rope1(x, freqs_cis, scale, epsilon, split_half=True)"
+        },
+        {
+          "name": "rms_rope_split_half",
+          "line": 129,
+          "source": "def rms_rope_split_half(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    if k_scale is None:\n        k_scale = q_scale\n    return (\n        _rms_rope1(q, freqs_cis, q_scale, epsilon, split_half=True, rot_dim=rot_dim),\n        _rms_rope1(k, freqs_cis, k_scale, epsilon, split_half=True, rot_dim=rot_dim),\n    )"
+        },
+        {
+          "name": "rms_rope_split_half1_",
+          "line": 169,
+          "source": "def rms_rope_split_half1_(\n    x: torch.Tensor, freqs_cis: torch.Tensor, scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    check_rope_inplace(x, readonly=(freqs_cis, scale))\n    x.copy_(rms_rope_split_half1(x, freqs_cis, scale, epsilon))\n    return x"
+        },
+        {
+          "name": "rms_rope_split_half_",
+          "line": 178,
+          "source": "def rms_rope_split_half_(\n    q: torch.Tensor, k: torch.Tensor, freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor, k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6, rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    if k_scale is None:\n        k_scale = q_scale\n    check_rope_inplace(q, k, readonly=(freqs_cis, q_scale, k_scale))\n    q_out, k_out = rms_rope_split_half(q, k, freqs_cis, q_scale, k_scale, epsilon, rot_dim=rot_dim)\n    q.copy_(q_out)\n    k.copy_(k_out)\n    return q, k"
+        },
+        {
+          "name": "_op_rms_rope_split_half",
+          "line": 262,
+          "source": "def _op_rms_rope_split_half(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    kwargs = {\n        \"q\": q,\n        \"k\": k,\n        \"freqs_cis\": freqs_cis,\n        \"q_scale\": q_scale,\n        \"k_scale\": k_scale,\n        \"epsilon\": epsilon,\n        \"rot_dim\": rot_dim,\n    }\n    impl = registry.get_implementation(\"rms_rope_split_half\", kwargs=kwargs)\n    return impl(**kwargs)"
+        },
+        {
+          "name": "_op_rms_rope_split_half_fake",
+          "line": 285,
+          "source": "def _op_rms_rope_split_half_fake(\n    q, k, freqs_cis, q_scale, k_scale=None, epsilon=1e-6, rot_dim=0\n):\n    return torch.empty_like(q), torch.empty_like(k)"
+        },
+        {
+          "name": "_op_rms_rope_split_half1",
+          "line": 292,
+          "source": "def _op_rms_rope_split_half1(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    kwargs = {\n        \"x\": x,\n        \"freqs_cis\": freqs_cis,\n        \"scale\": scale,\n        \"epsilon\": epsilon,\n    }\n    impl = registry.get_implementation(\"rms_rope_split_half1\", kwargs=kwargs)\n    return impl(**kwargs)"
+        },
+        {
+          "name": "_op_rms_rope_split_half1_fake",
+          "line": 309,
+          "source": "def _op_rms_rope_split_half1_fake(x, freqs_cis, scale, epsilon=1e-6):\n    return torch.empty_like(x)"
+        },
+        {
+          "name": "_op_rms_rope_split_half_",
+          "line": 398,
+          "source": "def _op_rms_rope_split_half_(\n    q: torch.Tensor, k: torch.Tensor, freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor, k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6, rot_dim: int = 0,\n) -> None:\n    kwargs = {\n        \"q\": q, \"k\": k, \"freqs_cis\": freqs_cis, \"q_scale\": q_scale,\n        \"k_scale\": k_scale, \"epsilon\": epsilon, \"rot_dim\": rot_dim,\n    }\n    registry.get_implementation(\"rms_rope_split_half_\", kwargs=kwargs)(**kwargs)"
+        },
+        {
+          "name": "_op_rms_rope_split_half_fake_",
+          "line": 411,
+          "source": "def _op_rms_rope_split_half_fake_(\n    q, k, freqs_cis, q_scale, k_scale=None, epsilon=1e-6, rot_dim=0\n):\n    return None"
+        },
+        {
+          "name": "_op_rms_rope_split_half1_",
+          "line": 420,
+          "source": "def _op_rms_rope_split_half1_(\n    x: torch.Tensor, freqs_cis: torch.Tensor, scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> None:\n    kwargs = {\"x\": x, \"freqs_cis\": freqs_cis, \"scale\": scale, \"epsilon\": epsilon}\n    registry.get_implementation(\"rms_rope_split_half1_\", kwargs=kwargs)(**kwargs)"
+        },
+        {
+          "name": "_op_rms_rope_split_half1_fake_",
+          "line": 429,
+          "source": "def _op_rms_rope_split_half1_fake_(x, freqs_cis, scale, epsilon=1e-6):\n    return None"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/closure_tutorials_53592/01-anime/runtime_deps/comfy_kitchen/backends/triton/rms_rope.py",
+      "sha256": "68a5760334a9cfd72717374f2107d5260d3b86683b9b6205bbc2f00c1ad08e6e",
+      "nodes": [
+        {
+          "name": "rms_rope_split_half1",
+          "line": 213,
+          "source": "def rms_rope_split_half1(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    return _rms_rope(x, freqs_cis, scale, epsilon, split_half=True)"
+        },
+        {
+          "name": "rms_rope_split_half1_",
+          "line": 222,
+          "source": "def rms_rope_split_half1_(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    check_rope_inplace(x, readonly=(freqs_cis, scale))\n    return _rms_rope(x, freqs_cis, scale, epsilon, split_half=True, inplace=True)"
+        },
+        {
+          "name": "rms_rope_split_half",
+          "line": 232,
+          "source": "def rms_rope_split_half(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    if k_scale is None:\n        k_scale = q_scale\n    if rot_dim and rot_dim != q.shape[-1]:\n        # partial rotary is not fused in the triton kernel\n        return _eager_rope.rms_rope_split_half(\n            q, k, freqs_cis, q_scale, k_scale, epsilon, rot_dim=rot_dim)\n    return (\n        _rms_rope(q, freqs_cis, q_scale, epsilon, split_half=True),\n        _rms_rope(k, freqs_cis, k_scale, epsilon, split_half=True),\n    )"
+        },
+        {
+          "name": "rms_rope_split_half_",
+          "line": 253,
+          "source": "def rms_rope_split_half_(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    if k_scale is None:\n        k_scale = q_scale\n    if rot_dim and rot_dim != q.shape[-1]:\n        # partial rotary is not fused in the triton kernel\n        return _eager_rope.rms_rope_split_half_(\n            q, k, freqs_cis, q_scale, k_scale, epsilon, rot_dim=rot_dim)\n    check_rope_inplace(q, k, readonly=(freqs_cis, q_scale, k_scale))\n    return (\n        _rms_rope(q, freqs_cis, q_scale, epsilon, split_half=True, inplace=True),\n        _rms_rope(k, freqs_cis, k_scale, epsilon, split_half=True, inplace=True),\n    )"
+        }
+      ]
+    },
+    {
+      "path": "/data3/research-user/h3_runs/closure_tutorials_53592/01-anime/runtime_deps/comfy_kitchen/backends/hip/__init__.py",
+      "sha256": "6c7c9baf8c05358b6684283568cc6af0f9b04005c34776cc57b8da88574f46e6",
+      "nodes": [
+        {
+          "name": "rms_rope_split_half1",
+          "line": 1670,
+          "source": "def rms_rope_split_half1(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    return _rms_rope(x, None, freqs_cis, scale, None, epsilon, True)[0]"
+        },
+        {
+          "name": "rms_rope_split_half1_",
+          "line": 1679,
+          "source": "def rms_rope_split_half1_(\n    x: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    scale: torch.Tensor,\n    epsilon: float = 1e-6,\n) -> torch.Tensor:\n    check_rope_inplace(x, readonly=(freqs_cis, scale))\n    return _rms_rope(x, None, freqs_cis, scale, None, epsilon, True, inplace=True)[0]"
+        },
+        {
+          "name": "rms_rope_split_half",
+          "line": 1689,
+          "source": "def rms_rope_split_half(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    return _rms_rope_pair(q, k, freqs_cis, q_scale, k_scale, epsilon, True, rot_dim=rot_dim)"
+        },
+        {
+          "name": "rms_rope_split_half_",
+          "line": 1701,
+          "source": "def rms_rope_split_half_(\n    q: torch.Tensor,\n    k: torch.Tensor,\n    freqs_cis: torch.Tensor,\n    q_scale: torch.Tensor,\n    k_scale: torch.Tensor | None = None,\n    epsilon: float = 1e-6,\n    rot_dim: int = 0,\n) -> tuple[torch.Tensor, torch.Tensor]:\n    if k_scale is None:\n        k_scale = q_scale\n    check_rope_inplace(q, k, readonly=(freqs_cis, q_scale, k_scale))\n    return _rms_rope_pair(q, k, freqs_cis, q_scale, k_scale, epsilon, True, inplace=True,\n                          rot_dim=rot_dim)"
+        }
+      ]
+    }
+  ],
+  "no_import": true
+}

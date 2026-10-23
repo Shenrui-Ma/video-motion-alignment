@@ -1,0 +1,252 @@
+{
+  "jobs": [
+    {
+      "id": "adapt41_short_0252_temporal_gain_field_role5",
+      "graph": "graphs/adapt41_short_0252_temporal_gain_field_role5.json",
+      "expected_output_prefix": "adapt41_short_0252_temporal_gain_field_role5/",
+      "progress_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/logs/comfy.log",
+      "metadata": {
+        "original_task": {
+          "id": 252,
+          "src_video_name": "short_0252.mp4",
+          "category": "subject_editing",
+          "subcategory": "replace existing subject",
+          "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+          "edit_prompt": "Replace the man with an elderly woman",
+          "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+          "target_span": "elderly woman",
+          "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+        },
+        "evaluation_metadata": {
+          "id": 252,
+          "src_video_name": "short_0252.mp4",
+          "category": "subject_editing",
+          "subcategory": "replace existing subject",
+          "source_prompt": "A man and a young boy are seated next to each other on an airplane. The man is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at him attentively.",
+          "edit_prompt": "Replace the man with an elderly woman",
+          "target_prompt": "A woman and a young boy are seated next to each other on an airplane. The woman is holding an oxygen mask and appears to be demonstrating how to use it, while the boy looks at her attentively.",
+          "target_span": "elderly woman",
+          "target_phrase": "elderly woman and a young boy are seated next to each other on an airplane"
+        },
+        "task_id": "short_0252",
+        "benchmark": "IVEBench",
+        "title": "机舱：男性替换为年长女性",
+        "cohort": "adaptive_research_20261023",
+        "method": "temporal_gain_field_role5",
+        "reference_video": "/workspace/research-user/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/inputs/short_0252_video.mp4",
+        "source_video": "/data4/research-user/h3_runs/benchmark_schedule_20261022/input/short_0252_video.mp4",
+        "reference_image": null,
+        "prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+        "recommended_prompt": "subject_definitions:\n<Video 1> is the source video for this edit.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nReplace the man with an elderly woman\n\nretention_analysis:\n<Video 1>: Preserve the source video's people, scene, framing, camera motion, and actions, except for changes explicitly requested in the summary.",
+        "prompt_protocol": "historical_R149_R150_preserved",
+        "seed": 2026101703,
+        "valid_frames": 98,
+        "fps": 24,
+        "evaluation_crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ],
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 107,
+          "fps": 24
+        },
+        "sampling_steps": 20,
+        "innovation_parameters": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "5",
+            0
+          ],
+          "enabled": true,
+          "start_frame": 0,
+          "end_frame": 97,
+          "run_id": "{attempt_id}",
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 0,
+          "step_end": 20,
+          "mode": "gain_field",
+          "alpha_prior": 0.25,
+          "alpha_max": 0.5,
+          "prior_weight": 1.0,
+          "probes": 8,
+          "basis": "centered",
+          "audit_dir": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/feature_gain_field_role5",
+          "smoothness": 0.625
+        },
+        "comparison_outputs": {
+          "native": {
+            "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0252/native.mp4",
+            "sha256": "5317e356d7a12e12b09799b56ec61bc0c20c03dda73e3d0478c0ca9d6c5adc7b"
+          },
+          "global_weak": {
+            "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0252/global_weak.mp4",
+            "sha256": "50747cb1b1ce7f50d14f92a1ee0e6bf7505126e81de18d6b616bd459d9b4fa01"
+          }
+        },
+        "timing_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/timing/{attempt_id}.json",
+        "host": "H3_HOST_CONFIGURE_LOCALLY",
+        "remote_root": "/data4/research-user/h3_runs/benchmark_schedule_20261022",
+        "steps": 20,
+        "innovation_status": "review_only_not_deployed",
+        "attention_formula": "O + alpha(step,layer,bin)*m_ref*(S_same - R_all)",
+        "graph_sha256": "684d3a75bbc40805b261cfe77be506cfbb6f01ddcd1ac570d5f444be803db1de",
+        "comparison_scope": "same historical prompt/seed/cache/model/geometry; reused native/global_weak",
+        "reference_source_job": "innov41_short_0252_temporal_coverage_v2",
+        "strength_scope": "pre-output-projection attention correction",
+        "calibration": "per-run/layer/video-time-bin first-valid-step energy anchor",
+        "alpha_scope": "current layer and denoising step; vector over video-time bins, shared across heads",
+        "temporal_regularization": "box-constrained strictly convex tridiagonal QP; mu=1, lambda=.625",
+        "no_evidence_rule": "fixed alpha=.25; smoothing edges cut; selected-window endpoints fixed .25",
+        "baseline_field_job": "adapt41_short_0252_temporal_gain_field",
+        "tangent_operator": "same-position-role +/-5 where a full neighborhood exists; original +/-1 boundary",
+        "intervention_scope": "neighbor indices only; role matching and temporal span change jointly",
+        "shadow_diagnostics": {
+          "steps": [
+            0,
+            9,
+            19
+          ],
+          "layers": [
+            8,
+            25,
+            42
+          ],
+          "scope": "same Q/D/m/probes; common interior; independent step-zero +/-1 anchors; no control effect"
+        }
+      },
+      "max_attempts": 1
+    },
+    {
+      "id": "adapt41_short_0358_temporal_gain_field_role5",
+      "graph": "graphs/adapt41_short_0358_temporal_gain_field_role5.json",
+      "expected_output_prefix": "adapt41_short_0358_temporal_gain_field_role5/",
+      "progress_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/logs/comfy.log",
+      "metadata": {
+        "original_task": {
+          "id": 358,
+          "src_video_name": "short_0358.mp4",
+          "category": "subject_editing",
+          "subcategory": "add new subject",
+          "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+          "edit_prompt": "Add a pair of glasses to the man.",
+          "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+          "target_span": "glasses",
+          "target_phrase": "the man is wearing a pair of glasses"
+        },
+        "evaluation_metadata": {
+          "id": 358,
+          "src_video_name": "short_0358.mp4",
+          "category": "subject_editing",
+          "subcategory": "add new subject",
+          "source_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.",
+          "edit_prompt": "Add a pair of glasses to the man.",
+          "target_prompt": "Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.",
+          "target_span": "glasses",
+          "target_phrase": "the man is wearing a pair of glasses"
+        },
+        "task_id": "short_0358",
+        "benchmark": "IVEBench",
+        "title": "外观编辑 — 给饮酒男子戴眼镜",
+        "cohort": "adaptive_research_20261023",
+        "method": "temporal_gain_field_role5",
+        "reference_video": "/workspace/research-user/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/inputs/short_0358_video.mp4",
+        "source_video": "/data4/research-user/h3_runs/benchmark_schedule_20261022/input/short_0358_video.mp4",
+        "reference_image": null,
+        "prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "recommended_prompt": "subject_definitions:\n<Video 1> is the source video for the target video edit and supplies its composition, camera, and temporal structure.\nSource caption: Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively.\n<Subject 1> is the man drinking a beer in <Video 1>.\n<Subject 2> is the other man listening attentively in <Video 1>.\n<Subject 3> is the diner scene and table in <Video 1>.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>.\nAdd a pair of glasses to the man.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - Add glasses as requested; preserve the source person's other appearance and actions.\n<Subject 2> (appears in [Shot 1]): fully_preserved - Preserve the other source person and his actions.\n<Subject 3> (appears in [Shot 1]): fully_preserved - Preserve the source scene, table, and objects.\n<Video 1> (composition, camera, and temporal structure): fully_preserved - Preserve the source framing, camera motion, cuts, and action timing.\n\ndetailed_description:\n[Shot 1] Two men are sitting at a table in a diner, one of them is drinking a beer and the other is listening attentively, and one of the men is wearing a pair of glasses.\nThe two men are <Subject 1> and <Subject 2>, and the setting is <Subject 3>, as shown in <Video 1>.\n\noverall_soundscape:\nThe benchmark specifies no audio edit.\n\nnon_diegetic_music:\nThe benchmark specifies no music edit.",
+        "prompt_protocol": "historical_R149_R150_preserved",
+        "seed": 2026101701,
+        "valid_frames": 105,
+        "fps": 24,
+        "evaluation_crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ],
+        "geometry": {
+          "width": 1312,
+          "height": 736,
+          "frames": 107,
+          "fps": 24
+        },
+        "sampling_steps": 20,
+        "innovation_parameters": {
+          "model": [
+            "41",
+            0
+          ],
+          "positive": [
+            "5",
+            0
+          ],
+          "enabled": true,
+          "start_frame": 0,
+          "end_frame": 104,
+          "run_id": "{attempt_id}",
+          "block_start": 0,
+          "block_end": 50,
+          "step_start": 0,
+          "step_end": 20,
+          "mode": "gain_field",
+          "alpha_prior": 0.25,
+          "alpha_max": 0.5,
+          "prior_weight": 1.0,
+          "probes": 8,
+          "basis": "centered",
+          "audit_dir": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/feature_gain_field_role5",
+          "smoothness": 0.625
+        },
+        "comparison_outputs": {
+          "native": {
+            "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/native.mp4",
+            "sha256": "04510e08e359c2b22614bc12a0fdcbfffb35e9cbcef1d0a2f0a7dbc92c069c2e"
+          },
+          "global_weak": {
+            "remote_metrics_video": "/data/research-user/h3_metrics_20261022/videos/short_0358/global_weak.mp4",
+            "sha256": "28d8939fbd43890414c5ff7fe967f9f0721b4e56d7d7e8514665b576cb83c582"
+          }
+        },
+        "timing_file": "/data4/research-user/h3_runs/benchmark_schedule_20261022/audit/timing/{attempt_id}.json",
+        "host": "H3_HOST_CONFIGURE_LOCALLY",
+        "remote_root": "/data4/research-user/h3_runs/benchmark_schedule_20261022",
+        "steps": 20,
+        "innovation_status": "review_only_not_deployed",
+        "attention_formula": "O + alpha(step,layer,bin)*m_ref*(S_same - R_all)",
+        "graph_sha256": "8f63f4ea3a2af269977301a4e989205866dcb789007a1cf9ac9e13cc059b8319",
+        "comparison_scope": "same historical prompt/seed/cache/model/geometry; reused native/global_weak",
+        "reference_source_job": "innov41_short_0358_temporal_coverage_v2",
+        "strength_scope": "pre-output-projection attention correction",
+        "calibration": "per-run/layer/video-time-bin first-valid-step energy anchor",
+        "alpha_scope": "current layer and denoising step; vector over video-time bins, shared across heads",
+        "temporal_regularization": "box-constrained strictly convex tridiagonal QP; mu=1, lambda=.625",
+        "no_evidence_rule": "fixed alpha=.25; smoothing edges cut; selected-window endpoints fixed .25",
+        "baseline_field_job": "adapt41_short_0358_temporal_gain_field",
+        "tangent_operator": "same-position-role +/-5 where a full neighborhood exists; original +/-1 boundary",
+        "intervention_scope": "neighbor indices only; role matching and temporal span change jointly",
+        "shadow_diagnostics": {
+          "steps": [
+            0,
+            9,
+            19
+          ],
+          "layers": [
+            8,
+            25,
+            42
+          ],
+          "scope": "same Q/D/m/probes; common interior; independent step-zero +/-1 anchors; no control effect"
+        }
+      },
+      "max_attempts": 1
+    }
+  ]
+}

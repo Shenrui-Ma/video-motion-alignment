@@ -1,0 +1,9 @@
+CPU候选包完成，32测试通过，真实捕获读取0、GPU前向0。
+只拥有本目录，旧设计/旧POLICY/runtime/STATUS/报告未改。
+POLICY固定native step9/19、layer25、56×8、31validbins、[5,10)↔[10,15)、原K字典、坐标noise与多模态conditioning/目标AV保持。
+core.py：索引/patchify/坐标noise/无别名构造、preRoPE固定K读出、直接平方差、全部bin与margin/并列集合、固定62=20交换+42未交换分母。provenance.py：SHA先验/严格NPZ成员拒绝，模型入口无条件pending。
+真实noise恢复、单forward adapter、原rawAV/QK新zero gate、独立审查与rootGPU发布尚缺；旧REPLAY_GATE=false不改。最多2zero+2swap是候选预算，未执行。
+位置/noise/未动Qwen3VL视觉context/目标x_n均可影响仍认坐标的结果，不能单因果归因；latent通道旋转不等于纯外观变化。
+下一步先独立review具体修正；若通过仅CPU就绪，不自动投GPU。
+噪声recipe明确patchified [30176,96] CPU float32、每条件同seed2026101701重置、不加step。真实prepared payload引用别名尚未实现，单列pending；纯CPU数组构造已测无别名。
+独立审查提出配对汇总step/逐bin完整性缺口，已窄修：内部step绑定外键、未知step拒绝、逐bin0..30唯一有序/来源π/交换标志核对并重算计数，新增两测试含8个负例；科学POLICY/公式不变。

@@ -1,62 +1,53 @@
 # Video Motion Alignment
 
-研究视频编辑与动作迁移中的动作时间错位，以及推理阶段的时序控制。当前主要实验模型为 MiniMax H3，素材来自 FlexiAct 和 IVEBench。
+面向 CVPR 2027 的动作细粒度控制视频编辑研究。现有实现基于 MiniMax H3，在 MM Self-Attention 中调节生成视频 query 对参考视频 tokens 的时间读取；数据与任务来自 FlexiAct、IVEBench 及记录在案的历史素材。
 
-本仓库是研究源码备份，保存主要方法、实验版本、运行脚本、评测代码、提示词与展示页生成器。各版本放在 `snapshots/` 下，名称对应本地实验目录，方便恢复与核对历史修改。
+## 报告与已有结果
 
-## 展示与研究进展
+- [研究进展 V1.1](reports/cloud/视频编辑中动作时间对齐-研究进展V1.1.html)：方法、同帧对照、实际结果与历史状态。
+- [全部报告与视频展示](reports/cloud/README.md)：下载整个 `reports/cloud/` 后离线打开 HTML，保留 `assets/` 相对位置。
+- [相关工作资料](reports/RELATED_WORK_RESEARCH_20261024.md)：论文的机制、模型、指标、来源与阅读覆盖。
+- [相关论文完整来源索引](reports/research_sources_20261024/literature_sources.json)及[数据集与评测来源](reports/research_sources_20261024/benchmark_sources.json)。
 
-[报告与视频展示](reports/cloud/README.md) 包含实验对照、提示词对照、研究时间轴和进展报告。下载整个 `reports/cloud` 目录后，用浏览器打开其中的 HTML；视频与图片保存在同目录的 `assets` 中，重复素材只保存一份。原始单文件报告保留在本机。
+当前用户选定固定弱引导 α=.25。direction、partial RoPE、coverage、多种动态强度与分配方法已有 GPU 实验，内部 Attention 诊断也保存了实际读取结果。具体效果以配对指标、视频和审计记录为准。研究推理与评测队列当前按用户要求暂停；本次同步只整理已有资料。
 
-`tools/export_reports.py` 从本地报告生成去重媒体副本，并验证媒体 SHA-256、资源引用和源文件完整性。导出时去除机器路径与服务器标识，凭据扫描发现异常即停止。
+## 实现与完整证据入口
 
-## 2026-10-22 代码备份
-
-最新批次代码位于 [execution-20261022 快照](snapshots/execution-20261022)。包含冻结的时间对齐 Attention、持久推理队列、服务器进程管理、IVEBench 评测与三项待 GPU 验证的独立实现。
-
-- [按修正方向调整 heads 与强度](snapshots/execution-20261022/innovation/direction_runtime)：17 项 CPU 测试通过；层范围手动指定。
-- [部分时间 RoPE 频带补偿](snapshots/execution-20261022/innovation/partial_rope)：23 项 CPU 测试通过。
-- [跨时刻参考覆盖分配](snapshots/execution-20261022/innovation/temporal_coverage)：22 项 CPU 测试通过。
-- [R148 相位组合](snapshots/h3-timing-phase-combined-r148-20261020)、[R150 区间对照](snapshots/h3-guidance-schedule-r150-20261021)、[双向 Attention](snapshots/h3-reference-feedback-r151-20261021) 保留对应实现及配置。
-
-原始运行目录及用户手工编辑的报告保留在本机；本仓库同步脱敏副本。模型、素材与成片继续保存在实验服务器。恢复运行前需重新配置服务器、路径与设备标识。
-
-## 早期代码入口
-
-| 内容 | 路径 |
+| 资料 | 位置 |
 |---|---|
-| 参考 Attention 输出的时序重分配 | [R113 / H3TemporalRouter](snapshots/h3-timing-oxygen-seed-replication-r113-host41-20261019/extensions/H3TemporalRouter) |
-| 对应点匹配与跨时刻 Value 读取 | [R115 / H3TemporalRouter](snapshots/h3-timing-ive-long0174-correspondence-r115-20261019/extensions/H3TemporalRouter) |
-| 自动窗口与在线动作观察器原型 | [R86 / H3AutomaticWindowRouter](snapshots/h3-timing-oxygen-online-r86-20261018/extensions/H3AutomaticWindowRouter) |
-| 原始架构实验与分析 | [R2](snapshots/h3-timing-architecture-r2-20261016) |
-| 配对推理、噪声与时间轴核验 | [R113 / postrun](snapshots/h3-timing-oxygen-seed-replication-r113-host41-20261019/analysis/postrun) |
-| 按任务展示实验结果 | [展示页生成器](snapshots/h3-benchmark-all-results-showcase-20261018/scripts/build_task_showcase.py) |
-| 实验视频清单与已有指标 | [实验清单](snapshots/h3-benchmark-all-results-showcase-20261018/inventory) |
+| 当前固定 Attention 引导 | [H3Study](snapshots/execution-20261022/inference/package/custom_nodes/H3Study/) |
+| 实际 H3 主干与包装层源码 | [冻结模型来源](snapshots/execution-20261022/innovation/signed_phase_calibration_20261023/replay_live_pair/sources/) |
+| 新十例完整指标 | [main10](snapshots/execution-20261022/summaries/main10_20261022/) |
+| 新十例逐事件时间标注 | [event_offset_completion](snapshots/execution-20261022/timing/event_offset_completion_20261022/) |
+| direction / coverage / partial 等结果 | [innovation summaries](snapshots/execution-20261022/summaries/innovation_20261022/) |
+| 扩展二十对完整九指标 | [extension_metrics.json](reports/research_sources_20261024/evidence/extension_metrics.json) |
+| 昨夜23条动态/控制实验 | [完整指标、实际曲线、分组结果](snapshots/execution-20261022/innovation/adaptive_strength_20261023/batch/results_tools/latest/) |
+| field同环境饮酒复验 | [FINAL_PAIRED_1451.json](snapshots/execution-20261022/supervision/field_environment_reproduction_20261023/FINAL_PAIRED_1451.json) |
+| Attention内部诊断 | [signed_phase_calibration](snapshots/execution-20261022/innovation/signed_phase_calibration_20261023/) |
+| IVEBench评测实现 | [metric_worker.py](snapshots/execution-20261022/metrics/metric_worker.py)、[官方源码](snapshots/execution-20261022/metrics/official_source/) |
+| 早期完整样例清单 | [FlexiAct / IVEBench inventory](snapshots/h3-benchmark-all-results-showcase-20261018/inventory/) |
+| 所有已同步研究文件 | [PROJECT_FILE_INDEX.json](reports/research_sources_20261024/PROJECT_FILE_INDEX.json) |
+| 本地视频和报告媒体映射 | [MEDIA_INDEX.json](reports/research_sources_20261024/MEDIA_INDEX.json) |
 
-## 实验协议
+## 仓库与恢复
 
-普通编辑与引导编辑使用相同提示词、输入、随机种子和采样设置。先检查人物或物体编辑是否完成，再比较动作顺序、幅度和事件发生时间。官方 Motion Fidelity 与逐事件时间检查分别记录，保留失败和效果接近的结果。
-
-2026-10-19 起，新实验优先逐字使用 benchmark 提供的任务文本：IVEBench 使用 `edit_prompt`；FlexiAct 保留对应官方任务描述。提示词写法的变化单独作为实验变量。此前已有简短指令、六段 H3 适配提示词等历史版本，均按实际记录保留。
-
-当前固定引导在部分样例中改善局部事件时间。对应点 Value 读取的新增实验表现接近普通编辑。自动观察器仍有可见性与触发覆盖问题；各实现的实际状态以对应实验记录为准。
-
-## 备份与恢复
-
-`EXPORT_MANIFEST.json` 记录每个源文件和导出文件的 SHA-256。上传前对凭据、账号路径和服务器标识做了处理。模型权重、视频、图片、latent、运行环境和第三方 vendor 目录另行存放。
-
-恢复到新机器时，需要配置模型、数据及服务器路径，并重新生成部署清单。历史代码中保留的文件哈希描述原始实验；脱敏后的文件使用 `export_sha256` 校验。该快照保存研究过程，运行入口及依赖以具体实验目录的配置为准。
-
-校验本次备份文件：
+`snapshots/` 按原研究目录保存源码、配置、测试、实验和分析。`snapshots/execution-20261022/` 是最新统一流水线及后续方法的公开副本。早期各目录中的计划、“待运行”和运行约束均保留原时点记录；后续实际完成记录与对应结果同时存在。
 
 ```bash
+git clone https://github.com/Shenrui-Ma/video-motion-alignment.git
+cd video-motion-alignment
 python3 tools/verify_export.py
+python3 tools/verify_handoff.py
 ```
 
-## 数据与方法来源
+[历史导出清单](EXPORT_MANIFEST.json)与[本次资料清单](reports/research_sources_20261024/EXPORT_MANIFEST.json)记录原始 SHA、公开副本 SHA 和文件位置。大于 5 MiB 的科学文本以完整无损 gzip 分发，可用 Python 的 `gzip.open(path, 'rt')` 读取。媒体按 SHA 去重，保留原文件字节。
 
-- [FlexiAct](https://github.com/shiyi-zh0408/FlexiAct)：将参考视频中的动作迁移到目标图片主体，允许目标场景和构图变化。
-- [IVEBench](https://github.com/RyanChenYN/IVEBench)：根据编辑指令修改原视频，评估编辑完成与保留内容。
-- 论文与社区实现的具体引用保留在相关方法说明中。参考 Attention、时空对应和位置编码等已有思路的来源应随后续论文继续列明。
+本仓库是研究快照，尚未整理成单一可安装软件包。服务器路径和设备标识已替换为配置占位符；模型权重、原始大张量及部分服务器全分辨率视频有独立存储。公开包包含可访问视频、原始指标、输入/输出 SHA 和来源记录。用户手工报告与本地实验目录保持原样。
 
-本仓库尚未统一整理为可安装的软件包。第三方依赖各自适用其原许可；当前备份不新增对第三方代码的许可授权。
+## 数据和代码来源
+
+- [FlexiAct](https://github.com/shiyi-zh0408/FlexiAct)
+- [IVEBench](https://github.com/RyanChenYN/IVEBench)
+- H3及所用社区实现、其它论文与仓库见相关工作来源记录。
+
+第三方代码、数据和模型各自适用其原许可；本备份不新增对第三方内容的许可授权。

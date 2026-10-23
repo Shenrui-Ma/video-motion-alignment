@@ -1,0 +1,4119 @@
+{
+  "schema": "h3-historical-sampling-timing-v1",
+  "scope": "Retained six cases from R149/R150; excludes four newly generated cases. CPU extraction only. All 36 trajectories have 20 Euler updates.",
+  "measurement_notes": [
+    "Reported averages use recorded sampling intervals, never end-to-end job time divided by steps.",
+    "Exact 24 recorder timers include x0 capture and audit I/O; individual callbacks include setup in the first interval and prior Euler update in later intervals.",
+    "Twelve historical tqdm timings report rounded loop total and final average; no exact individual step timing was recorded.",
+    "Recorder timestamp envelope is retained separately and does not replace sampler measurement.",
+    "Per-method all-case averages describe observed runs with mixed hardware; use matched subsets for method comparisons.",
+    "Historical prompt hashes are preserved; these six cases retain their historical prompts."
+  ],
+  "records": [
+    {
+      "case_id": "short_0252",
+      "method": "native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "seed": 2026101703,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 90.84,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1816,
+      "recorder_envelope_wall_seconds": 1816.777771949768,
+      "run_id": "r141_short_0252_seed2026101703_native",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "5feea2a8a15c3dac43867dedd1d7a8cd971078b3218226f5f58528c4c35101ed",
+      "job_wall_seconds": 1987.7887527942657,
+      "capture_seconds": 135.3310619816184,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/incoming_pairs/short_0252/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "35538eed18e9b17bf0222176e69edf5d17b1869e03343d9fbcdfc30e918358c6",
+        "remote_log": "/home/research-user/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/logs/comfyui.log",
+        "remote_log_sha256": "12bd435f4de2a785622933535e8774c04fa903741a383aa940a8c214a4a2c74b",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r141_short_0252_seed2026101703_native",
+          "graph_sha256": "5feea2a8a15c3dac43867dedd1d7a8cd971078b3218226f5f58528c4c35101ed",
+          "submitted_unix": 1792469612.2661133,
+          "status": "success",
+          "prompt_id": "fa04b105-e429-4d6c-8d19-d9fcdf07bdd5",
+          "file": "/home/research-user/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/logs/r141_short_0252_seed2026101703_native_job.json",
+          "sha256": "467a584775002fe0e6db10b4b09031521b09f40388c63f76b9d7955d41c98011"
+        },
+        "log_block_index_zero_based": 0,
+        "closing_progress_text": "20/20 [30:16<00:00, 90.84s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/home/research-user/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/audit/x0/r141_short_0252_seed2026101703_native/manifest.json",
+          "sha256": "f209db5af6e2d8b32ece771495fd4d28cb4495c353d98e952e20b49a37f723fd"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "native",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 97,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0252",
+      "method": "early",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "seed": 2026101703,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 49.746510774700006,
+      "per_step_seconds": [
+        54.355342028999985,
+        54.49641108300011,
+        54.4070395079998,
+        54.42348462300015,
+        54.438497222000024,
+        54.382723969999915,
+        54.44048072999976,
+        54.397982501000115,
+        54.50849420900022,
+        45.87076498499982,
+        45.99364186399998,
+        45.82932010000013,
+        45.97070828999995,
+        45.76877563200014,
+        45.84610475299996,
+        45.829581982000036,
+        46.037672839999686,
+        46.05215358900023,
+        46.06233447299974,
+        45.81870111100034
+      ],
+      "sampler_wall_seconds": 995.2414825569999,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0252_seed2026101703_early",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 5,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "99c8ca926c8d68c57c8b045fc6d2c76e36f3abda8e1e6773b6c728eb67e855c8",
+      "job_wall_seconds": 1117.561145067215,
+      "after_last_callback_seconds": 0.311267062999832,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0252/early/GATE.json",
+        "gate_sha256": "889148764040ea450ab532984029c8a84112d4148a050aa228f867644fb25f5f",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0252/early.json",
+        "timing_sha256": "fcd3b4e0d2a1043a6f8a4d7f98cade8ab10d774124a2aadcbb52833b51ed3924"
+      }
+    },
+    {
+      "case_id": "short_0252",
+      "method": "fixed",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "seed": 2026101703,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 96.52,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1930,
+      "recorder_envelope_wall_seconds": 1930.4082412719727,
+      "run_id": "r141_short_0252_seed2026101703_forced",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "76bd6344a69404e6816cc930f0f690c387d6a2513b3315b90f6b07eac97360e1",
+      "job_wall_seconds": 1967.907763004303,
+      "capture_seconds": 78.7158311009407,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-oxygen-generic-retention-metrics-r141b-host9-20261020/incoming_pairs/short_0252/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "35538eed18e9b17bf0222176e69edf5d17b1869e03343d9fbcdfc30e918358c6",
+        "remote_log": "/home/research-user/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/logs/comfyui.log",
+        "remote_log_sha256": "12bd435f4de2a785622933535e8774c04fa903741a383aa940a8c214a4a2c74b",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r141_short_0252_seed2026101703_forced",
+          "graph_sha256": "76bd6344a69404e6816cc930f0f690c387d6a2513b3315b90f6b07eac97360e1",
+          "submitted_unix": 1792471830.9786015,
+          "status": "success",
+          "prompt_id": "7e127ddf-1325-424f-b269-735dbb8f5cc3",
+          "file": "/home/research-user/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/logs/r141_short_0252_seed2026101703_forced_job.json",
+          "sha256": "cb12e336e06f748c3d743582b76db57607244649778f6382d3a436688be3ab97"
+        },
+        "log_block_index_zero_based": 1,
+        "closing_progress_text": "20/20 [32:10<00:00, 96.52s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/home/research-user/h3_runs/timing_oxygen_generic_retention_r141b_host9_20261020/audit/x0/r141_short_0252_seed2026101703_forced/manifest.json",
+          "sha256": "f4134a9f758df642280b34782c7d5b3201768d7069c22f77dec618d11795286a"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 97,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0252",
+      "method": "late",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "seed": 2026101703,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 49.765047727700015,
+      "per_step_seconds": [
+        45.660031661000176,
+        45.868494647999796,
+        45.87876791899998,
+        45.855252786000165,
+        45.810688691999985,
+        45.878987482999946,
+        45.8516063750003,
+        45.8373946239999,
+        45.978883100000076,
+        46.076893775999906,
+        45.954189717999725,
+        54.524633215999984,
+        54.455929715000366,
+        54.47493931600002,
+        54.46670296000002,
+        54.55789957499974,
+        54.606203841000024,
+        54.56619223300004,
+        54.53192347799995,
+        54.46533943800023
+      ],
+      "sampler_wall_seconds": 995.5435140240002,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0252_seed2026101703_late",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 5,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "cff497c8f66e1543565e4e327aa409339341fc0681072a5e2e89f239ca71d6c3",
+      "job_wall_seconds": 1020.3057770729065,
+      "after_last_callback_seconds": 0.2425594699998328,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0252/late/GATE.json",
+        "gate_sha256": "4af182ee004f4af76c7f91f225fcff105d1ebf36e358ae4175d275ebc4de4c8b",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0252/late.json",
+        "timing_sha256": "16b0307735a80fe528977bc01a6c869121653732319690c2f59232c75ee605b8"
+      }
+    },
+    {
+      "case_id": "short_0252",
+      "method": "split",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "seed": 2026101703,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 49.73091686500002,
+      "per_step_seconds": [
+        54.358337326000765,
+        54.515034387000014,
+        54.49623563399928,
+        54.41525239800012,
+        45.85936826299985,
+        45.828239188000225,
+        45.82838492599967,
+        45.98520293199999,
+        45.85358739700041,
+        45.95968999199977,
+        45.99546223700054,
+        45.870447853999394,
+        45.951753440000175,
+        45.82032870600051,
+        45.89562832699994,
+        54.46405260599931,
+        54.36650091499996,
+        54.3828506610007,
+        54.37450366599933,
+        54.39747644500039
+      ],
+      "sampler_wall_seconds": 994.8779955680002,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0252_seed2026101703_split",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 5,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "f6b0e2284cc28c5eb998645265e2a28520f5b90f70ac5e0724ca7091bc71f976",
+      "job_wall_seconds": 1020.7447326183319,
+      "after_last_callback_seconds": 0.25965826799983915,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0252/split/GATE.json",
+        "gate_sha256": "c24939e630cc44d90ada4a2c3c82add96096d0f42cd762f99876fe4151183724",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0252/split.json",
+        "timing_sha256": "f4355a94c6e5f4351b616480dd3470375b1d397eb90970cc3186632158572e19"
+      }
+    },
+    {
+      "case_id": "short_0252",
+      "method": "global_weak",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 98,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "da333b61b5fb98641b36392032c785dfd1f7cc03541ae03ed057ec5e5a02b031",
+      "seed": 2026101703,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 54.371412558600014,
+      "per_step_seconds": [
+        54.20859378000023,
+        54.338826688000154,
+        54.33235781699932,
+        54.41539888100033,
+        54.23079095200046,
+        54.38302004599973,
+        54.33350845099994,
+        54.33260344199971,
+        54.34750957600045,
+        54.43260182499944,
+        54.4162454490006,
+        54.44127938899965,
+        54.45606041100018,
+        54.4331326219999,
+        54.349684028999945,
+        54.372810517999824,
+        54.39920876399992,
+        54.37426221500027,
+        54.45711575699988,
+        54.37324056000034
+      ],
+      "sampler_wall_seconds": 1087.6722825120005,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0252_seed2026101703_global_weak",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 5,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "b27c19f2d14d92cb997981734714799796205ac0e5ad73453787bef449495411",
+      "job_wall_seconds": 1112.8238725662231,
+      "after_last_callback_seconds": 0.24403134000021964,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0252/global_weak/GATE.json",
+        "gate_sha256": "10761448cf1202548083532d82a717578a80764749c74f1f977352d04551c4ac",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0252/global_weak.json",
+        "timing_sha256": "d0902fcd2d1e34a9f5e80ca68126f549b2721231357ad755e6dda8cd7f2eb640"
+      }
+    },
+    {
+      "case_id": "short_0358",
+      "method": "native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 46.41,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 928,
+      "recorder_envelope_wall_seconds": 928.4816603660583,
+      "run_id": "r123_short_0358_seed2026101701_native",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1",
+      "job_wall_seconds": 1047.0428144931793,
+      "capture_seconds": 75.74510881997412,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "6c4f6a6039eda434e0b4d3fc2c8dcc4185a9ebd1cc1601470cf51000ad39b196",
+        "remote_log": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/logs/comfyui.log",
+        "remote_log_sha256": "f3dd82aa44c80caa698abe1b93bc0d2da05ca0fcaa1b794138ea70c5859953e9",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r123_short_0358_seed2026101701_native",
+          "graph_sha256": "1b802b2a88887d4f3863d3317eb4df63ce674e162b9fe24d78a098e2615697c1",
+          "submitted_unix": 1792436383.3121145,
+          "status": "success",
+          "prompt_id": "58d0bfb6-e3c7-4df1-962b-298218100fa1",
+          "file": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/logs/r123_short_0358_seed2026101701_native_job.json",
+          "sha256": "99d46684181fb4dabf8f32cd7cc89eecd24f7f0d3c7e54bf4fd1a39f0e58bade"
+        },
+        "log_block_index_zero_based": 0,
+        "closing_progress_text": "20/20 [15:28<00:00, 46.41s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/x0/r123_short_0358_seed2026101701_native/manifest.json",
+          "sha256": "19bc711dda60c773f8a113d6353acaf4de58957cf5e5931988b48d5504213298"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "native",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 104,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0358",
+      "method": "early",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.37105824195,
+      "per_step_seconds": [
+        54.99010993800039,
+        55.4297893060002,
+        55.43109972599996,
+        55.54788895999991,
+        55.44798161899962,
+        55.69603071000074,
+        55.63117281599989,
+        55.70657112599929,
+        55.621582383000714,
+        46.37812363000012,
+        46.16939587899924,
+        46.19311287000073,
+        46.294511202999274,
+        46.32640374099992,
+        46.19488994600033,
+        46.19490516600035,
+        46.17662581900004,
+        45.953065234999485,
+        46.084808757000246,
+        45.95309600899964
+      ],
+      "sampler_wall_seconds": 1007.6773775620004,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0358_seed2026101701_early",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 5,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "629cf182862de3bf4a3a11717fa22e4fcce524797261d9d84736202f29e8fd3a",
+      "job_wall_seconds": 1040.523131608963,
+      "after_last_callback_seconds": 0.25621272300031706,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0358/early/GATE.json",
+        "gate_sha256": "0cec5b5098ec05a139703288f4999cba7f35906cf5f50ee8e3d4b88233ddd7f4",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0358/early.json",
+        "timing_sha256": "9b48d43b64238d457468c45044467dacea42763b22d9a5ab86d373e5bad5253c"
+      }
+    },
+    {
+      "case_id": "short_0358",
+      "method": "fixed",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.64,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1012,
+      "recorder_envelope_wall_seconds": 1013.0081989765167,
+      "run_id": "r123_short_0358_seed2026101701_forced",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509",
+      "job_wall_seconds": 1047.088725566864,
+      "capture_seconds": 45.58575316311908,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-prompt-envelope-metrics-r123-20261020/variants/full_context/incoming_pairs/short_0358/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "6c4f6a6039eda434e0b4d3fc2c8dcc4185a9ebd1cc1601470cf51000ad39b196",
+        "remote_log": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/logs/comfyui.log",
+        "remote_log_sha256": "f3dd82aa44c80caa698abe1b93bc0d2da05ca0fcaa1b794138ea70c5859953e9",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r123_short_0358_seed2026101701_forced",
+          "graph_sha256": "81d29997266e309dd886844c3f54e980aa6b6f26bd3b0be2abd799a8caf24509",
+          "submitted_unix": 1792437810.8791766,
+          "status": "success",
+          "prompt_id": "c8fcc46d-252a-44f9-8cd4-f67bbf2a42d1",
+          "file": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/logs/r123_short_0358_seed2026101701_forced_job.json",
+          "sha256": "73679bdf7d6908d58059f27165522202669215ef9f6d3f07a6ab4befe7c3c542"
+        },
+        "log_block_index_zero_based": 1,
+        "closing_progress_text": "20/20 [16:52<00:00, 50.64s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020/audit/x0/r123_short_0358_seed2026101701_forced/manifest.json",
+          "sha256": "9b556ae819745b3e8ec43e49dd6d386cd781124b775fe0cc9471c1ce87f36d7b"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 104,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0358",
+      "method": "late",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.422833119449976,
+      "per_step_seconds": [
+        45.85910358299952,
+        46.27775810700041,
+        46.32638321400009,
+        46.23597504600002,
+        46.25115682900014,
+        46.34438637199946,
+        46.2280702019998,
+        46.24305001300036,
+        46.20266901299965,
+        46.23509641700002,
+        46.20293769300042,
+        55.598066622999795,
+        55.57158761299979,
+        55.54785966000054,
+        55.58109534600044,
+        55.550505066999904,
+        55.52338331699866,
+        55.52182929300034,
+        55.540670554000826,
+        55.61507842699939
+      ],
+      "sampler_wall_seconds": 1008.7078082510006,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0358_seed2026101701_late",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 5,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "6e51903bcdeb09c7ca1a56a93af06f50b07970d00f088f3d7f77234d956047cf",
+      "job_wall_seconds": 1035.4620232582092,
+      "after_last_callback_seconds": 0.25114586200106714,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0358/late/GATE.json",
+        "gate_sha256": "d0d0905690b9c8a7e48bbbb4b195f2c5792efe49434e658ff7d4b28a4d3094c5",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0358/late.json",
+        "timing_sha256": "3bad022d918e6137e4e8baabafe5d7c005e522381f30bceefc33ff8a7b81b83b"
+      }
+    },
+    {
+      "case_id": "short_0358",
+      "method": "split",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.334827173899974,
+      "per_step_seconds": [
+        55.562110376999044,
+        55.45618391900098,
+        55.52316469699872,
+        55.50439033099974,
+        46.07817851800064,
+        46.09253806699962,
+        46.01136783699985,
+        46.05930687,
+        46.04427995700098,
+        46.07954379699913,
+        46.10204724899995,
+        46.09484441600034,
+        46.11128608800027,
+        46.10158829700049,
+        46.09502718499971,
+        55.53221762300018,
+        55.52952082899901,
+        55.540735054000834,
+        55.57365280299928,
+        55.60455956400074
+      ],
+      "sampler_wall_seconds": 1006.9644791629999,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0358_seed2026101701_split",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 6,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "794ecc27a4ab3e872a8bcea6f0505715f77078fc9d847df2211268d2aae2933e",
+      "job_wall_seconds": 1039.9289491176605,
+      "after_last_callback_seconds": 0.2679356850003387,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0358/split/GATE.json",
+        "gate_sha256": "eb7c4c940b8718bc0189e9b300a3bc05249ff771affff9d2dda183df5544d8fe",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0358/split.json",
+        "timing_sha256": "1738cf05cb99ec1577404660609ecd362f564b3d6dbec69c8f6286481251f0d0"
+      }
+    },
+    {
+      "case_id": "short_0358",
+      "method": "global_weak",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 105,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 55.604476487099966,
+      "per_step_seconds": [
+        55.62002433899943,
+        55.43080338999971,
+        55.58933597700161,
+        55.62916818999838,
+        55.63093664700136,
+        55.580652214999645,
+        55.60426737299895,
+        55.622568650000176,
+        55.63768304900077,
+        55.65576147499996,
+        55.664147715999206,
+        55.63757934300156,
+        55.63090182899941,
+        55.647373084999344,
+        55.63757029200133,
+        55.62249110199991,
+        55.58085723199838,
+        55.546482363000905,
+        55.55620418000035,
+        55.56472129499889
+      ],
+      "sampler_wall_seconds": 1112.323809984,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r149_short_0358_seed2026101701_global_weak",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 6,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "a729792cf2625720f81a6b00499c6dd1e49fb048de2d551e92af93f490b84bd0",
+      "job_wall_seconds": 1146.7296805381775,
+      "after_last_callback_seconds": 0.23428024200075015,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/actual/short_0358/global_weak/GATE.json",
+        "gate_sha256": "4138c2625f7282b0cb3e138b7bdc071ce4ec0ed353d24fea1398eae876a40902",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r149-20261020/runtime/short_0358/global_weak.json",
+        "timing_sha256": "a0ec54d0fe92163d30fdaf6f7043f7e0757927b5e57c11b99ce6ee414e11dd61"
+      }
+    },
+    {
+      "case_id": "long_0039",
+      "method": "native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 106,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 90.4,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1808,
+      "recorder_envelope_wall_seconds": 1808.0775637626648,
+      "run_id": "r122_long_0039_seed2026101701_native",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 3,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "5ef3cccaa2ddf51198cbac01efb024e99d77b0e7c8bc6301f84705542aa508bd",
+      "job_wall_seconds": 1987.9718718528748,
+      "capture_seconds": 134.737582154572,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "14b6d357ef07a1d0aaa00648011be499b652421394871a315940142efc12247c",
+        "remote_log": "/home/research-user/h3_runs/timing_ive_generic_retention_r122_20261020/logs/comfyui.log",
+        "remote_log_sha256": "ff03f4d904a402149632b4c08fa99bab5f8566820cc63bb5c4ca38c3d14b1c96",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r122_long_0039_seed2026101701_native",
+          "graph_sha256": "5ef3cccaa2ddf51198cbac01efb024e99d77b0e7c8bc6301f84705542aa508bd",
+          "submitted_unix": 1792434772.1426263,
+          "status": "success",
+          "prompt_id": "2cd69574-7060-4128-87d5-79880318923a",
+          "file": "/home/research-user/h3_runs/timing_ive_generic_retention_r122_20261020/logs/r122_long_0039_seed2026101701_native_job.json",
+          "sha256": "352801cea6e3bfac222793b0fe3b1c640fa4f28a555fda7cfd725ad760c753cf"
+        },
+        "log_block_index_zero_based": 0,
+        "closing_progress_text": "20/20 [30:08<00:00, 90.40s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/home/research-user/h3_runs/timing_ive_generic_retention_r122_20261020/audit/x0/r122_long_0039_seed2026101701_native/manifest.json",
+          "sha256": "554f1501521ea53828e261c7a482977b1d3ad9497b32c8c710971f8750b9b81b"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "native",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 105,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "long_0039",
+      "method": "early",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 106,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.05787774504997,
+      "per_step_seconds": [
+        55.22099532299944,
+        55.16414361700117,
+        55.25611032300003,
+        55.26272486099879,
+        55.28997327700199,
+        55.273349359998974,
+        55.305500978000055,
+        55.29026143300143,
+        55.28120814899739,
+        45.893230032001156,
+        45.844978386998264,
+        45.768685345999984,
+        45.73698096600128,
+        45.79498013600096,
+        45.8185239839986,
+        45.78659796899956,
+        45.810489217001304,
+        45.7702355750007,
+        45.7949668609981,
+        45.79361910700027
+      ],
+      "sampler_wall_seconds": 1001.4003371950002,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0039_seed2026101701_early",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 6,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "8c0c3c17d823ef7bcb6b8173428c93eb8537eaa79f434368255e3b6b64f9a841",
+      "job_wall_seconds": 1039.1718876361847,
+      "after_last_callback_seconds": 0.24278229400079,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0039/early/GATE.json",
+        "gate_sha256": "63930cbae83ca0409e3f19ff4af3052dd028d58d065ce036f7a169ac624b1e48",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0039/early.json",
+        "timing_sha256": "e94eed0dc1bf0a8fc88e30b6415970516b221658ee6ffb893ae325bb112b7f1f"
+      }
+    },
+    {
+      "case_id": "long_0039",
+      "method": "fixed",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 106,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 96.72,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1934,
+      "recorder_envelope_wall_seconds": 1934.4310684204102,
+      "run_id": "r122_long_0039_seed2026101701_forced",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 3,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "6a04347273accfbbc8dd9efd418914665b33727af54c4918a2965031c74fe26c",
+      "job_wall_seconds": 1987.9140980243683,
+      "capture_seconds": 78.21740225702524,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-generic-retention-metrics-r122-20261020/incoming_pairs/long_0039/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "14b6d357ef07a1d0aaa00648011be499b652421394871a315940142efc12247c",
+        "remote_log": "/home/research-user/h3_runs/timing_ive_generic_retention_r122_20261020/logs/comfyui.log",
+        "remote_log_sha256": "ff03f4d904a402149632b4c08fa99bab5f8566820cc63bb5c4ca38c3d14b1c96",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r122_long_0039_seed2026101701_forced",
+          "graph_sha256": "6a04347273accfbbc8dd9efd418914665b33727af54c4918a2965031c74fe26c",
+          "submitted_unix": 1792437352.4247425,
+          "status": "success",
+          "prompt_id": "b8d9a1ae-23df-4b55-b01e-79c715eeb597",
+          "file": "/home/research-user/h3_runs/timing_ive_generic_retention_r122_20261020/logs/r122_long_0039_seed2026101701_forced_job.json",
+          "sha256": "63800ca7535bd11ee3a63a731f2d174a39626d59bc555d077eec3211df296d36"
+        },
+        "log_block_index_zero_based": 1,
+        "closing_progress_text": "20/20 [32:14<00:00, 96.72s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/home/research-user/h3_runs/timing_ive_generic_retention_r122_20261020/audit/x0/r122_long_0039_seed2026101701_forced/manifest.json",
+          "sha256": "a089059d8d7858b11f58396a2695a3181f4539fd669eab97d2c2cb95ba983dca"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 105,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "long_0039",
+      "method": "late",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 106,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.3371209610501,
+      "per_step_seconds": [
+        46.41716653600088,
+        46.35376780599836,
+        45.95368797999981,
+        46.08493766399988,
+        46.00396318200001,
+        46.1867321000027,
+        46.09280117899834,
+        45.99464212100065,
+        46.076276276999124,
+        46.02780799000175,
+        46.04477878599937,
+        55.91291110699967,
+        55.53179172199816,
+        55.53985785700206,
+        55.52381465899816,
+        55.380658812002366,
+        55.381742244000634,
+        55.44825958199726,
+        55.39679969400095,
+        55.39002192300177
+      ],
+      "sampler_wall_seconds": 1006.9851246079998,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0039_seed2026101701_late",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 7,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "706554ce9bce6653c145336f52922d99a77e56db0a2336b7f82113b5255eda8f",
+      "job_wall_seconds": 1250.163425207138,
+      "after_last_callback_seconds": 0.24270538699784083,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0039/late/GATE.json",
+        "gate_sha256": "28979fec960fb5d6c893987069e5e6c04d931e4af8765bd429bd39db1ce10590",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0039/late.json",
+        "timing_sha256": "0803003c1ed4c40e5adbbdb0c90cb20e8d8e83cb653e1efe8cd35c755d52d973"
+      }
+    },
+    {
+      "case_id": "long_0039",
+      "method": "split",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 106,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 50.23438438989997,
+      "per_step_seconds": [
+        54.929761080999015,
+        55.29050877099871,
+        55.36262977200022,
+        55.44000476700239,
+        46.12004876299761,
+        46.042819627000426,
+        46.003298388000985,
+        46.13461278300019,
+        45.91176560999884,
+        45.99478497000018,
+        46.13440771800015,
+        45.93638277300124,
+        45.95962070200039,
+        46.044928716997674,
+        46.1599356020015,
+        55.40638849500101,
+        55.45651771199846,
+        55.42964063399995,
+        55.48134352600027,
+        55.448287387000164
+      ],
+      "sampler_wall_seconds": 1004.9467827119988,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0039_seed2026101701_split",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 7,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "8c136f9fca566b17334cc20bcd120534ed941ba865d36d106fb5771e23d704f2",
+      "job_wall_seconds": 1030.5126559734344,
+      "after_last_callback_seconds": 0.25909491399943363,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0039/split/GATE.json",
+        "gate_sha256": "10830b01c8f0342a3aa67a41211170546ba846be78652e1e5b1e2eab2d83a62b",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0039/split.json",
+        "timing_sha256": "12c8f3f475149a6926ce50b0b47310a7dea1eb2fcbf50aa2c373608c925cbe15"
+      }
+    },
+    {
+      "case_id": "long_0039",
+      "method": "global_weak",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 107,
+        "valid_frames": 106,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "66014119dd7e6d4aa426e88ab59bd26f95e1bd82b14a412658a728174a63b22d",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 55.92915170919987,
+      "per_step_seconds": [
+        55.90556618999835,
+        55.80714050000097,
+        55.88159694500064,
+        55.95640240099965,
+        55.987625597997976,
+        56.013950528998976,
+        55.9639887250014,
+        55.945443529999466,
+        55.85563190200264,
+        55.90381064199755,
+        55.94754910700067,
+        55.92998733100103,
+        55.854032257000654,
+        55.84725252299904,
+        55.88716098800069,
+        55.90564133099906,
+        55.939437712000654,
+        55.962722601998394,
+        56.05641517700133,
+        56.03167819399823
+      ],
+      "sampler_wall_seconds": 1118.8377169089981,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0039_seed2026101701_global_weak",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "2fb3075796b177f0488c60f6b659d50e6d163329d7e2a8665794df8dd4d893b2",
+      "job_wall_seconds": 1156.1150488853455,
+      "after_last_callback_seconds": 0.2546827250007482,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0039/global_weak/GATE.json",
+        "gate_sha256": "1f3485f718e8dc68b8adba1cc83a8f6dbc738268e3a1713816dca6da22b93f08",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0039/global_weak.json",
+        "timing_sha256": "15940ccf84ca85751d1ad7bb9fc2732b3f4fec91ac2602af68175a90bf4e27a4"
+      }
+    },
+    {
+      "case_id": "long_0059",
+      "method": "native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 158,
+        "valid_frames": 144,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 181.77,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 3635,
+      "recorder_envelope_wall_seconds": 3635.586441516876,
+      "run_id": "r126_long_0059_seed2026101701_native",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 3,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "fc469517b61a87f724bba83c58505dc00208294cfde957125839f7f0d9a89213",
+      "job_wall_seconds": 3878.7320654392242,
+      "capture_seconds": 145.3414146155119,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "00e21a6c73654be1eafaafc08a278a3f1c7a3827ac08b9938e1603a6e1daa55b",
+        "remote_log": "/home/research-user/h3_runs/timing_ive_handkerchief_full_context_r126_20261020/logs/comfyui.log",
+        "remote_log_sha256": "907660cc373d948602caff9f2f4decebfab83d9027679b05b052a71d2aab5e99",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r126_long_0059_seed2026101701_native",
+          "graph_sha256": "fc469517b61a87f724bba83c58505dc00208294cfde957125839f7f0d9a89213",
+          "submitted_unix": 1792442862.8839045,
+          "status": "success",
+          "prompt_id": "2ac71582-92ce-4da2-a02b-68fbb14edac0",
+          "file": "/home/research-user/h3_runs/timing_ive_handkerchief_full_context_r126_20261020/logs/r126_long_0059_seed2026101701_native_job.json",
+          "sha256": "3e986f271a78f78e3dde5768401cddfd3527ff9386be05f146ea6797fb201a1c"
+        },
+        "log_block_index_zero_based": 0,
+        "closing_progress_text": "20/20 [1:00:35<00:00, 181.77s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/home/research-user/h3_runs/timing_ive_handkerchief_full_context_r126_20261020/audit/x0/r126_long_0059_seed2026101701_native/manifest.json",
+          "sha256": "de8e5d935980e17f8d421f281f328dacf691e4084cc0e0dc6823cdbdfbaea02b"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "native",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 143,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "long_0059",
+      "method": "early",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 158,
+        "valid_frames": 144,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 102.12966246279993,
+      "per_step_seconds": [
+        111.98992037700009,
+        111.94529725800021,
+        111.92641069399906,
+        112.00962892399912,
+        111.92653598000106,
+        111.78681421099827,
+        112.01733601700107,
+        112.10894152399851,
+        112.15102987499995,
+        94.16872231600064,
+        94.24429214600241,
+        94.16058637300011,
+        94.05269047099864,
+        94.06087274400124,
+        93.96900778899726,
+        93.7442184850006,
+        94.06947687499996,
+        94.04784052600007,
+        94.06982599299954,
+        94.14380067800084
+      ],
+      "sampler_wall_seconds": 2042.9274299949975,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0059_seed2026101701_early",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "452ef7aa9346d1146e2cab8280d6a43f40c079318009a2bf0e8d7ddc2e6a2b49",
+      "job_wall_seconds": 2087.7837495803833,
+      "after_last_callback_seconds": 0.33418073899883893,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0059/early/GATE.json",
+        "gate_sha256": "11e9474016b38f9c05767f303f5cb3de73e69ac202b578180c9eed0c9a840b7b",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0059/early.json",
+        "timing_sha256": "62fa27701778a08878610bba0c1c598cd220ae4e1388a1ff206e47b28b2d01d9"
+      }
+    },
+    {
+      "case_id": "long_0059",
+      "method": "fixed",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 158,
+        "valid_frames": 144,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 195.06,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 3901,
+      "recorder_envelope_wall_seconds": 3901.211860895157,
+      "run_id": "r126_long_0059_seed2026101701_forced",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 3,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "d456c9e05c016208c099af3fdb8a3317c376aee1561c6f0dc78de784b92a6ceb",
+      "job_wall_seconds": 3959.282639980316,
+      "capture_seconds": 84.57532178238034,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-handkerchief-full-context-metrics-r126-20261020/incoming_pairs/long_0059/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "00e21a6c73654be1eafaafc08a278a3f1c7a3827ac08b9938e1603a6e1daa55b",
+        "remote_log": "/home/research-user/h3_runs/timing_ive_handkerchief_full_context_r126_20261020/logs/comfyui.log",
+        "remote_log_sha256": "907660cc373d948602caff9f2f4decebfab83d9027679b05b052a71d2aab5e99",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r126_long_0059_seed2026101701_forced",
+          "graph_sha256": "d456c9e05c016208c099af3fdb8a3317c376aee1561c6f0dc78de784b92a6ceb",
+          "submitted_unix": 1792447321.6123753,
+          "status": "success",
+          "prompt_id": "dc8f2f82-a9f3-46b4-96cc-33aa3ac7bfc9",
+          "file": "/home/research-user/h3_runs/timing_ive_handkerchief_full_context_r126_20261020/logs/r126_long_0059_seed2026101701_forced_job.json",
+          "sha256": "179c64455a1742bc878b182a272c6980498215ba8328b6b2c0197ed92b2e8aeb"
+        },
+        "log_block_index_zero_based": 1,
+        "closing_progress_text": "20/20 [1:05:01<00:00, 195.06s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/home/research-user/h3_runs/timing_ive_handkerchief_full_context_r126_20261020/audit/x0/r126_long_0059_seed2026101701_forced/manifest.json",
+          "sha256": "a8a5a0ad4ef1c6da5fd27dfe76e1701994ede658ff0fbac183abb9cbb54b6e95"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 143,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "long_0059",
+      "method": "late",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 158,
+        "valid_frames": 144,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 102.07332522879987,
+      "per_step_seconds": [
+        94.05194693199883,
+        94.2195916419987,
+        94.08577051400061,
+        94.04464312100026,
+        94.08730855700196,
+        94.03666014699775,
+        93.95315772400136,
+        94.11170274899996,
+        94.06195998800104,
+        94.16337438299888,
+        94.25403820800057,
+        112.09414219199971,
+        112.16265180499977,
+        111.90228812699934,
+        111.88803489999918,
+        111.73591716200099,
+        111.50275261099887,
+        111.82058911700005,
+        111.72770672300248,
+        111.56226797399722
+      ],
+      "sampler_wall_seconds": 2041.792597489999,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0059_seed2026101701_late",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "389ab2d0f1be4ae55eef84c256ad8b6ea145370244aac4dba2b80b72b90c4235",
+      "job_wall_seconds": 2088.3725168704987,
+      "after_last_callback_seconds": 0.3260929140014923,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0059/late/GATE.json",
+        "gate_sha256": "62e285cf75cf9ba6dbd58c08be5ab4f07e328ae4c8d4f4ff2d178ef3f2ff7292",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0059/late.json",
+        "timing_sha256": "db3c1d5d33cf979022cce5eba1a1ff90c4a03d29031517249864f4d704a6bcaa"
+      }
+    },
+    {
+      "case_id": "long_0059",
+      "method": "split",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 158,
+        "valid_frames": 144,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 101.98619483110015,
+      "per_step_seconds": [
+        111.91543248400194,
+        111.91207429600036,
+        111.98771770099847,
+        111.92784768199999,
+        94.01106752600026,
+        94.03043138400244,
+        93.92860234499676,
+        93.72858747700229,
+        93.96164478599894,
+        93.71138607800094,
+        93.86979632799921,
+        93.97784853199846,
+        94.05350569400252,
+        94.13583071299945,
+        94.04474427799869,
+        111.82887375700011,
+        111.71196680499997,
+        111.7802177520025,
+        111.77037878599731,
+        111.43594221800231
+      ],
+      "sampler_wall_seconds": 2040.060075010002,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0059_seed2026101701_split",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "9602f55b6f7ee7fc786e00217b10b133483ae60754d180ef6279091d5a881f93",
+      "job_wall_seconds": 2082.818892478943,
+      "after_last_callback_seconds": 0.33617838799909805,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0059/split/GATE.json",
+        "gate_sha256": "729b7e7d1e999ee812cf7108f9877626f55d7b0e3f6adccd9ccbe53fed381e7a",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0059/split.json",
+        "timing_sha256": "3f3e78db414fc562b78c06a6c90508598165445b9d652c34ef1b0b13e0d85044"
+      }
+    },
+    {
+      "case_id": "long_0059",
+      "method": "global_weak",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 158,
+        "valid_frames": 144,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "9a80385c1d187e238bcdab38247d32a9cc40b28327c7b52c7b833a8aa183aee6",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 111.87949874415008,
+      "per_step_seconds": [
+        111.70001401000263,
+        111.89486940699862,
+        112.07195486400087,
+        112.14432985799795,
+        111.97718798999995,
+        111.85473789000025,
+        111.9189356120005,
+        111.6940646510011,
+        111.69024924900077,
+        111.88638267499846,
+        112.01104874900193,
+        111.99660772099742,
+        112.02867521699955,
+        111.97140923400002,
+        111.84484956300003,
+        111.85358852100035,
+        111.74705443100174,
+        111.78682348900111,
+        111.71963386099742,
+        111.7975578910009
+      ],
+      "sampler_wall_seconds": 2237.9160602110023,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_long_0059_seed2026101701_global_weak",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "2b080be1254271f50052a810e846ec106dc01ee39d55a761d488fd50f2195abc",
+      "job_wall_seconds": 2281.1426634788513,
+      "after_last_callback_seconds": 0.3260853280007723,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/long_0059/global_weak/GATE.json",
+        "gate_sha256": "a5404bad41ceca70e9dc778532b166bdb472fc256c3f28da65a1d02cbdfccb8b",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/long_0059/global_weak.json",
+        "timing_sha256": "47e89037ee1734ddc7d79307ce365231aa70983f113c3e3b02737827fb797b1a"
+      }
+    },
+    {
+      "case_id": "short_0085",
+      "method": "native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 66,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5f3524c155f69a295c73e104bf9ae7f442fc3ce47b54d0ac1ef18dae07f478ba",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 49.11,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 982,
+      "recorder_envelope_wall_seconds": 982.2966933250427,
+      "run_id": "r89_short_0085_seed2026101701_native",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "c2b41e599f1fd1832ccc623721ff6eebb6b0316155fb1831050e46280e6ef92d",
+      "job_wall_seconds": 1104.0376155376434,
+      "capture_seconds": 82.0125419870019,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/incoming/short_0085/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "056ec14ef9870f7ce905a7c8f9a9067d1b5bad50df9056e0e3467212f347e885",
+        "remote_log": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/comfyui.log",
+        "remote_log_sha256": "f144b6abff8c28ae60fc2b19514eca951ec953766301ee040ac2df30e4e012c6",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r89_short_0085_seed2026101701_native",
+          "graph_sha256": "c2b41e599f1fd1832ccc623721ff6eebb6b0316155fb1831050e46280e6ef92d",
+          "submitted_unix": 1792331954.2291818,
+          "status": "success",
+          "prompt_id": "2be39e68-6eb8-428f-9dfe-d0b6a2f522f8",
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/r89_short_0085_seed2026101701_native_job.json",
+          "sha256": "4fa9148cb5a2db9cf45333d3249c16451267e8efef92f4dff95f70f0ee68f47d"
+        },
+        "log_block_index_zero_based": 8,
+        "closing_progress_text": "20/20 [16:22<00:00, 49.11s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/audit/x0/r89_short_0085_seed2026101701_native/manifest.json",
+          "sha256": "537c156a6ac1330ec8442e88b46c6a11625f08835c7e8b557b5a14ad321815e8"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "native",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 65,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0085",
+      "method": "early",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 66,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5f3524c155f69a295c73e104bf9ae7f442fc3ce47b54d0ac1ef18dae07f478ba",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 52.83089987728745,
+      "per_step_seconds": [
+        73.18115438520908,
+        56.43881732970476,
+        56.3558146469295,
+        56.64239090308547,
+        56.46937294304371,
+        56.35735398158431,
+        56.402905467897654,
+        56.61872072890401,
+        56.41189784556627,
+        48.23532034084201,
+        48.28024595603347,
+        48.49513203278184,
+        48.3483011610806,
+        48.208171635866165,
+        48.26238592341542,
+        48.47708949074149,
+        48.31869266927242,
+        48.54855367168784,
+        48.24722506478429,
+        48.31845136731863
+      ],
+      "sampler_wall_seconds": 1056.6607239320874,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0085_seed2026101701_early",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "4284a1ce223019cd061bfc445f33485f7310ac1191951da778dbe6d7b9154652",
+      "job_wall_seconds": 1101.0746564865112,
+      "after_last_callback_seconds": 0.042726386338472366,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0085/early/GATE.json",
+        "gate_sha256": "b2104f2448f219a940ad05ae45d5223bed52e7d2020d62cb767025f3ebe4409c",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0085/early.json",
+        "timing_sha256": "5c0d211249d24abd6d908104dafae5bcb3b9221989a3c48126c83e919b657091"
+      }
+    },
+    {
+      "case_id": "short_0085",
+      "method": "fixed",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 66,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5f3524c155f69a295c73e104bf9ae7f442fc3ce47b54d0ac1ef18dae07f478ba",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 51.91,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1038,
+      "recorder_envelope_wall_seconds": 1038.4385032653809,
+      "run_id": "r89_short_0085_seed2026101701_forced",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "42d359c52632ec607c6783e1a1a8de81fc26cc989c1724f2e34adce6150a9ad5",
+      "job_wall_seconds": 1083.9661793708801,
+      "capture_seconds": 46.144328977912664,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/incoming/short_0085/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "056ec14ef9870f7ce905a7c8f9a9067d1b5bad50df9056e0e3467212f347e885",
+        "remote_log": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/comfyui.log",
+        "remote_log_sha256": "f144b6abff8c28ae60fc2b19514eca951ec953766301ee040ac2df30e4e012c6",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r89_short_0085_seed2026101701_forced",
+          "graph_sha256": "42d359c52632ec607c6783e1a1a8de81fc26cc989c1724f2e34adce6150a9ad5",
+          "submitted_unix": 1792333058.7104087,
+          "status": "success",
+          "prompt_id": "f2b61e2e-10f7-42a9-a3ed-f7334dde9f08",
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/r89_short_0085_seed2026101701_forced_job.json",
+          "sha256": "73927b2356d2b759c597bd523dc5880db16022608a06120deb54fd10ea1daec7"
+        },
+        "log_block_index_zero_based": 9,
+        "closing_progress_text": "20/20 [17:18<00:00, 51.91s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/audit/x0/r89_short_0085_seed2026101701_forced/manifest.json",
+          "sha256": "70ebec586bb9aca60f0410db94344e9391c4914a41072fcc7900e6b9e04f4c16"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 65,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0085",
+      "method": "late",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 66,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5f3524c155f69a295c73e104bf9ae7f442fc3ce47b54d0ac1ef18dae07f478ba",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 52.00725224111229,
+      "per_step_seconds": [
+        48.39494135975838,
+        48.342618990689516,
+        48.18998108804226,
+        48.462694216519594,
+        48.34030954167247,
+        48.25736556574702,
+        48.26088532805443,
+        48.47277555987239,
+        48.535733699798584,
+        48.37715405598283,
+        48.39716016501188,
+        56.362372782081366,
+        56.6547125056386,
+        56.2616310454905,
+        56.35678870975971,
+        56.62401996180415,
+        56.45573700219393,
+        56.389542035758495,
+        56.40758481621742,
+        56.60103639215231
+      ],
+      "sampler_wall_seconds": 1040.1826259829104,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0085_seed2026101701_late",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "0eb61472501ae60f0a5f84f6d5601d6cdcb56d48c11f9bcb9bdad90c855d24b6",
+      "job_wall_seconds": 1064.9394297599792,
+      "after_last_callback_seconds": 0.03758116066455841,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0085/late/GATE.json",
+        "gate_sha256": "0569000380d65e8f5bf69e511de4e8d65eae98973acb459d522fe03de5c1ff26",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0085/late.json",
+        "timing_sha256": "6754043c3aa4fc37fc3b693eb8b8e5cf73601fe2fc950ad81fa4a3653ae02d39"
+      }
+    },
+    {
+      "case_id": "short_0085",
+      "method": "split",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 66,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5f3524c155f69a295c73e104bf9ae7f442fc3ce47b54d0ac1ef18dae07f478ba",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 52.00675809346139,
+      "per_step_seconds": [
+        56.55852771550417,
+        56.37477599456906,
+        56.61132465302944,
+        56.46428766846657,
+        48.19505214691162,
+        48.213314201682806,
+        48.493299305438995,
+        48.36871675401926,
+        48.25655171275139,
+        48.15238840132952,
+        48.53528017923236,
+        48.536645762622356,
+        48.38524753600359,
+        48.25914088264108,
+        48.297056153416634,
+        56.71680444478989,
+        56.4725300334394,
+        56.41396513581276,
+        56.36629697307944,
+        56.46395621448755
+      ],
+      "sampler_wall_seconds": 1040.174346294254,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0085_seed2026101701_split",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "2c6a0605bf77ca3056b92a094f56b4128a5a8f80268177db49b61f76bcf5bf8a",
+      "job_wall_seconds": 1065.393366098404,
+      "after_last_callback_seconds": 0.03918442502617836,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0085/split/GATE.json",
+        "gate_sha256": "1a3293dd28083b9d755427a21056368631a9bba22b89023c7eef6b063031c431",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0085/split.json",
+        "timing_sha256": "dcae1d951f09de20a6807d86db703739b1db4c002c2a378b6e28ea87eefa78eb"
+      }
+    },
+    {
+      "case_id": "short_0085",
+      "method": "global_weak",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 66,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "5f3524c155f69a295c73e104bf9ae7f442fc3ce47b54d0ac1ef18dae07f478ba",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 56.474758023023604,
+      "per_step_seconds": [
+        56.467720814049244,
+        56.392507299780846,
+        56.435370679944754,
+        56.471116643399,
+        56.40648253634572,
+        56.63835025951266,
+        56.51280952617526,
+        56.41113084927201,
+        56.418105971068144,
+        56.672405041754246,
+        56.46800942718983,
+        56.49029576405883,
+        56.451828107237816,
+        56.66213095188141,
+        56.47544724494219,
+        56.16456579044461,
+        56.66957917064428,
+        56.45954576134682,
+        56.36841528862715,
+        56.45934333279729
+      ],
+      "sampler_wall_seconds": 1129.5332645960152,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0085_seed2026101701_global_weak",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "38ac03472fd4ae8a43067031ce40a501fac74f0367f8d29c23df11e06164f46b",
+      "job_wall_seconds": 1157.0695674419403,
+      "after_last_callback_seconds": 0.038104135543107986,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0085/global_weak/GATE.json",
+        "gate_sha256": "af4d050a7524e76754ae12e788352ddac37e760b40d59f7d7b5a1664d72a1ca6",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0085/global_weak.json",
+        "timing_sha256": "779dad29ab57435791335c4b05f56678194a193f410139b2683489f53b567523"
+      }
+    },
+    {
+      "case_id": "short_0274",
+      "method": "native",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 72,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 49.04,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 980,
+      "recorder_envelope_wall_seconds": 980.995468378067,
+      "run_id": "r89_short_0274_seed2026101701_native",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "5c0147fc2177116f9db4563f71012ccba8720ea86a28a6976b5f650be8dec48b",
+      "job_wall_seconds": 1104.1877596378326,
+      "capture_seconds": 82.01481855288148,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/incoming/short_0274/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "aaf6465a88498f67aa456ae96242d172f5b3eb58f815ff4a900441aa7d58968c",
+        "remote_log": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/comfyui.log",
+        "remote_log_sha256": "f144b6abff8c28ae60fc2b19514eca951ec953766301ee040ac2df30e4e012c6",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r89_short_0274_seed2026101701_native",
+          "graph_sha256": "5c0147fc2177116f9db4563f71012ccba8720ea86a28a6976b5f650be8dec48b",
+          "submitted_unix": 1792329763.5689836,
+          "status": "success",
+          "prompt_id": "6002cf89-3f5c-4e93-bf7c-d9d898cdbed6",
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/r89_short_0274_seed2026101701_native_job.json",
+          "sha256": "051cab62d13bd993345d240c692faf257ff6592cd83af9680a16c23be70d6441"
+        },
+        "log_block_index_zero_based": 6,
+        "closing_progress_text": "20/20 [16:20<00:00, 49.04s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/audit/x0/r89_short_0274_seed2026101701_native/manifest.json",
+          "sha256": "903e8f9c571f99fec3be5cb211239736bcd66cbd2168bf666f50fc155ccf3b70"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "native",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 71,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0274",
+      "method": "early",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 72,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 53.17821338437498,
+      "per_step_seconds": [
+        74.24485594034195,
+        57.12151263281703,
+        57.10194183140993,
+        57.385704670101404,
+        57.17207685485482,
+        57.20572744309902,
+        57.090817250311375,
+        57.42283509671688,
+        57.215887274593115,
+        48.29237659275532,
+        48.18957708030939,
+        48.481720983982086,
+        48.353545129299164,
+        48.26121297851205,
+        48.227017384022474,
+        48.455714613199234,
+        48.38101787120104,
+        48.25397856160998,
+        48.166836600750685,
+        48.53991089761257
+      ],
+      "sampler_wall_seconds": 1063.6065985374153,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0274_seed2026101701_early",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "18d3938e221aa4c80172a0d4db9d3818c008b2e896962f0e7b490e02ee3f5e40",
+      "job_wall_seconds": 1105.640209197998,
+      "after_last_callback_seconds": 0.042330849915742874,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0274/early/GATE.json",
+        "gate_sha256": "eef98c3e9f6f7a0c14dd980f5572dc14c58c8d8be2a29170588417d6819f9fb2",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0274/early.json",
+        "timing_sha256": "857d38d9cd6a814bf226adafa4ec630732eeb84ea865c674fae4f1a199270306"
+      }
+    },
+    {
+      "case_id": "short_0274",
+      "method": "fixed",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 72,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 52.22,
+      "per_step_seconds": null,
+      "sampler_wall_seconds": null,
+      "sampler_elapsed_seconds_rounded": 1044,
+      "recorder_envelope_wall_seconds": 1044.536608695984,
+      "run_id": "r89_short_0274_seed2026101701_forced",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 0,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "ff36d4390ed421edfd815be5641cb1411067e64d1cda19bbd4fa8a605576ee5c",
+      "job_wall_seconds": 1085.4600064754486,
+      "capture_seconds": 46.27120890468359,
+      "measurement_basis": "tqdm_final_sampler_loop",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": 1,
+        "mean_step_seconds": 0.01
+      },
+      "scope": "Euler sampling loop including every-step CPU x0 capture and audit writes; tqdm final closing average. Recorder envelope is a separate wall-clock timestamp difference including initial/final manifest writes, final tensor capture and endpoint check.",
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-ive-subject-capacity-metrics-r89-20261018/incoming/short_0274/PAIR_RUNTIME_GATE.json",
+        "gate_sha256": "aaf6465a88498f67aa456ae96242d172f5b3eb58f815ff4a900441aa7d58968c",
+        "remote_log": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/comfyui.log",
+        "remote_log_sha256": "f144b6abff8c28ae60fc2b19514eca951ec953766301ee040ac2df30e4e012c6",
+        "local_remote_evidence": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/timing/remote_H3_HOST_CONFIGURE_LOCALLY",
+        "job": {
+          "name": "r89_short_0274_seed2026101701_forced",
+          "graph_sha256": "ff36d4390ed421edfd815be5641cb1411067e64d1cda19bbd4fa8a605576ee5c",
+          "submitted_unix": 1792330868.2566009,
+          "status": "success",
+          "prompt_id": "a58ae060-2aff-4c47-b24b-2c9b75e4b2b8",
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/logs/r89_short_0274_seed2026101701_forced_job.json",
+          "sha256": "5bf13edae3e66b074a69760a5881e44441c524a8e4dfcccd690a0325bc146804"
+        },
+        "log_block_index_zero_based": 7,
+        "closing_progress_text": "20/20 [17:24<00:00, 52.22s/it]",
+        "binding_method": "chronological submitted jobs matched to got-prompt blocks; equal counts, all successful, graph SHA256 matched",
+        "recorder_manifest": {
+          "file": "/data5/research-user/h3_runs/timing_ive_subject_capacity_r89_20261018/audit/x0/r89_short_0274_seed2026101701_forced/manifest.json",
+          "sha256": "47b59bb3fb6f4af024aa18a317a2bd42dc9ef1d6291da0318e4e9bd64ee0aded"
+        }
+      },
+      "configured_router_inputs": {
+        "mode": "mass_preserve",
+        "alpha": 1.0,
+        "radius": 0,
+        "time_offset": 0,
+        "start_frame": 0,
+        "end_frame": 71,
+        "block_start": 0,
+        "block_end": 50,
+        "step_start": 6,
+        "step_end": 15
+      },
+      "missing_reason": "Historical runs have no monotonic sampler wrapper or per-callback timing; exact sampler_wall_seconds and individual per_step_seconds are null."
+    },
+    {
+      "case_id": "short_0274",
+      "method": "late",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 72,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 52.35122126359492,
+      "per_step_seconds": [
+        48.649216413497925,
+        48.23800653219223,
+        48.29631493613124,
+        48.5096852555871,
+        48.36144741624594,
+        48.354175079613924,
+        48.21261693164706,
+        48.53296858072281,
+        48.37623078003526,
+        48.2154707275331,
+        48.266620460897684,
+        57.306459315121174,
+        57.240233428776264,
+        57.15007708221674,
+        57.13437845185399,
+        57.417936362326145,
+        57.105858970433474,
+        57.17380802705884,
+        57.13237835094333,
+        57.35054216906428
+      ],
+      "sampler_wall_seconds": 1047.0636291131377,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0274_seed2026101701_late",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "404254fe239e596e0d82c55359042680201e1ebbda3a56262304e84d2dba78b7",
+      "job_wall_seconds": 1075.0834140777588,
+      "after_last_callback_seconds": 0.039203841239213943,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0274/late/GATE.json",
+        "gate_sha256": "510e0f6fd90e56383fe2caaa05990a176c033d0b13304ed43c7abff087c735ec",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0274/late.json",
+        "timing_sha256": "ab458b717474973e6ee9b5d77e9920ed8b7a5091751904464764ab09f6e75397"
+      }
+    },
+    {
+      "case_id": "short_0274",
+      "method": "split",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 72,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 52.33998108804226,
+      "per_step_seconds": [
+        57.326099164783955,
+        57.04690159112215,
+        57.23216941207647,
+        57.1599931307137,
+        48.24569268524647,
+        48.47666999325156,
+        48.509960077703,
+        48.336849462240934,
+        48.29056887701154,
+        48.27278754487634,
+        48.45349495485425,
+        48.368906699121,
+        48.29707184806466,
+        48.201499819755554,
+        48.54048276692629,
+        57.22495625540614,
+        57.1254050321877,
+        57.11622042581439,
+        57.33637932687998,
+        57.237512692809105
+      ],
+      "sampler_wall_seconds": 1046.835934907198,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0274_seed2026101701_split",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "3aaff432b82fe15e6ab085fbae233ff41288063bdd558eb90eca353209f63035",
+      "job_wall_seconds": 1075.6277658939362,
+      "after_last_callback_seconds": 0.036313146352767944,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 1.0,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0274/split/GATE.json",
+        "gate_sha256": "b73fd5a2cb3ae25b98aa4122e4f91962d6fae37a7fa7c2420f442b53a1343f7c",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0274/split.json",
+        "timing_sha256": "ee8a5a672e324182ae4da4e76b0f91c2d148031e9fbef25141b80d2c613cb038"
+      }
+    },
+    {
+      "case_id": "short_0274",
+      "method": "global_weak",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "sampled_frames": 73,
+        "valid_frames": 72,
+        "fps": 24,
+        "crop_xywh": [
+          16,
+          8,
+          1280,
+          720
+        ]
+      },
+      "prompt_sha256": "79cf1736b81d542c206042626f65395ace7ca468342c89d6e23cc787329a0863",
+      "seed": 2026101701,
+      "includes_x0_cpu_capture": true,
+      "includes_audit_io": true,
+      "per_step_vae_decode": false,
+      "mean_step_seconds": 57.2861400840804,
+      "per_step_seconds": [
+        57.41154644265771,
+        57.49120515957475,
+        57.18912219628692,
+        57.283553555607796,
+        57.479580130428076,
+        57.382530242204666,
+        57.31039905175567,
+        57.28231827914715,
+        57.4924677349627,
+        57.36881307885051,
+        57.25079421326518,
+        57.07893395796418,
+        57.41553905233741,
+        56.959008764475584,
+        57.09726141765714,
+        57.369745675474405,
+        57.186244413256645,
+        57.173838436603546,
+        57.07087787613273,
+        57.42902200296521
+      ],
+      "sampler_wall_seconds": 1145.7598027847707,
+      "sampler_elapsed_seconds_rounded": null,
+      "recorder_envelope_wall_seconds": null,
+      "run_id": "r150_short_0274_seed2026101701_global_weak",
+      "host": "H3_HOST_CONFIGURE_LOCALLY",
+      "gpu_index": 2,
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "steps": 20,
+      "NFE": 20,
+      "graph_sha256": "6626dd0770fb08ee2e05596651c6503c5d814ff6e90d4296565eda3cbd7bc686",
+      "job_wall_seconds": 1172.0180604457855,
+      "after_last_callback_seconds": 0.0370011031627655,
+      "measurement_basis": "monotonic_passive_recorder_wrapper",
+      "measurement_resolution": {
+        "sampler_elapsed_seconds": null,
+        "mean_step_seconds": null
+      },
+      "scope": "entire original PassiveRecorder/KSAMPLER call including audit I/O; callback endpoints occur after synchronized CPU x0 capture; first interval includes sampler setup; each later interval includes previous Euler update and current prediction/capture",
+      "actual_routed_steps_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "alpha": 0.25,
+      "evidence": {
+        "gate": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/actual/short_0274/global_weak/GATE.json",
+        "gate_sha256": "5e281660e4a305d006f5dd0df69d35bd30cc0a501903a52989669becf2ff1ea1",
+        "runtime": "/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/runtime/short_0274/global_weak.json",
+        "timing_sha256": "3e2ac0544fa8c73065a373e638127015341a08e92734e8e1f1d3cdb6dea642c2"
+      }
+    }
+  ],
+  "observed_per_method": {
+    "native": {
+      "n": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "hosts": [
+        "H3_HOST_CONFIGURE_LOCALLY",
+        "H3_HOST_CONFIGURE_LOCALLY"
+      ],
+      "measurement_bases": [
+        "tqdm_final_sampler_loop"
+      ],
+      "sampler_wall_seconds": {
+        "n": 0,
+        "mean": null,
+        "unit": "seconds"
+      },
+      "sampler_elapsed_seconds_rounded": {
+        "n": 6,
+        "mean": 1691.5,
+        "unit": "seconds"
+      },
+      "mean_step_seconds": {
+        "n": 6,
+        "mean": 84.595,
+        "unit": "seconds"
+      },
+      "job_wall_seconds": {
+        "n": 6,
+        "mean": 1851.6268132925034,
+        "unit": "seconds"
+      }
+    },
+    "early": {
+      "n": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "hosts": [
+        "H3_HOST_CONFIGURE_LOCALLY",
+        "H3_HOST_CONFIGURE_LOCALLY"
+      ],
+      "measurement_bases": [
+        "monotonic_passive_recorder_wrapper"
+      ],
+      "sampler_wall_seconds": {
+        "n": 6,
+        "mean": 1194.5856582964168,
+        "unit": "seconds"
+      },
+      "sampler_elapsed_seconds_rounded": {
+        "n": 0,
+        "mean": null,
+        "unit": "seconds"
+      },
+      "mean_step_seconds": {
+        "n": 6,
+        "mean": 59.719037081027054,
+        "unit": "seconds"
+      },
+      "job_wall_seconds": {
+        "n": 6,
+        "mean": 1248.6257965962093,
+        "unit": "seconds"
+      }
+    },
+    "fixed": {
+      "n": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "hosts": [
+        "H3_HOST_CONFIGURE_LOCALLY",
+        "H3_HOST_CONFIGURE_LOCALLY"
+      ],
+      "measurement_bases": [
+        "tqdm_final_sampler_loop"
+      ],
+      "sampler_wall_seconds": {
+        "n": 0,
+        "mean": null,
+        "unit": "seconds"
+      },
+      "sampler_elapsed_seconds_rounded": {
+        "n": 6,
+        "mean": 1809.8333333333333,
+        "unit": "seconds"
+      },
+      "mean_step_seconds": {
+        "n": 6,
+        "mean": 90.51166666666667,
+        "unit": "seconds"
+      },
+      "job_wall_seconds": {
+        "n": 6,
+        "mean": 1855.2699020703633,
+        "unit": "seconds"
+      }
+    },
+    "late": {
+      "n": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "hosts": [
+        "H3_HOST_CONFIGURE_LOCALLY",
+        "H3_HOST_CONFIGURE_LOCALLY"
+      ],
+      "measurement_bases": [
+        "monotonic_passive_recorder_wrapper"
+      ],
+      "sampler_wall_seconds": {
+        "n": 6,
+        "mean": 1190.0458832448412,
+        "unit": "seconds"
+      },
+      "sampler_elapsed_seconds_rounded": {
+        "n": 0,
+        "mean": null,
+        "unit": "seconds"
+      },
+      "mean_step_seconds": {
+        "n": 6,
+        "mean": 59.49280009028453,
+        "unit": "seconds"
+      },
+      "job_wall_seconds": {
+        "n": 6,
+        "mean": 1255.7210977077484,
+        "unit": "seconds"
+      }
+    },
+    "split": {
+      "n": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "hosts": [
+        "H3_HOST_CONFIGURE_LOCALLY",
+        "H3_HOST_CONFIGURE_LOCALLY"
+      ],
+      "measurement_bases": [
+        "monotonic_passive_recorder_wrapper"
+      ],
+      "sampler_wall_seconds": {
+        "n": 6,
+        "mean": 1188.9766022757422,
+        "unit": "seconds"
+      },
+      "sampler_elapsed_seconds_rounded": {
+        "n": 0,
+        "mean": null,
+        "unit": "seconds"
+      },
+      "mean_step_seconds": {
+        "n": 6,
+        "mean": 59.43884374023396,
+        "unit": "seconds"
+      },
+      "job_wall_seconds": {
+        "n": 6,
+        "mean": 1219.1710603634517,
+        "unit": "seconds"
+      }
+    },
+    "global_weak": {
+      "n": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "hosts": [
+        "H3_HOST_CONFIGURE_LOCALLY",
+        "H3_HOST_CONFIGURE_LOCALLY"
+      ],
+      "measurement_bases": [
+        "monotonic_passive_recorder_wrapper"
+      ],
+      "sampler_wall_seconds": {
+        "n": 6,
+        "mean": 1305.3404894994644,
+        "unit": "seconds"
+      },
+      "sampler_elapsed_seconds_rounded": {
+        "n": 0,
+        "mean": null,
+        "unit": "seconds"
+      },
+      "mean_step_seconds": {
+        "n": 6,
+        "mean": 65.25757293435899,
+        "unit": "seconds"
+      },
+      "job_wall_seconds": {
+        "n": 6,
+        "mean": 1337.6498155593872,
+        "unit": "seconds"
+      }
+    }
+  },
+  "matched_subsets": [
+    {
+      "name": "native_vs_fixed",
+      "matching": "host_and_measurement_basis",
+      "n_cases": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "methods": {
+        "native": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "tqdm_final_sampler_loop"
+          ],
+          "sampler_wall_seconds": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 6,
+            "mean": 1691.5,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 84.595,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1851.6268132925034,
+            "unit": "seconds"
+          }
+        },
+        "fixed": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "tqdm_final_sampler_loop"
+          ],
+          "sampler_wall_seconds": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 6,
+            "mean": 1809.8333333333333,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 90.51166666666667,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1855.2699020703633,
+            "unit": "seconds"
+          }
+        }
+      }
+    },
+    {
+      "name": "native_vs_fixed",
+      "matching": "host_gpu_and_measurement_basis",
+      "n_cases": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "methods": {
+        "native": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "tqdm_final_sampler_loop"
+          ],
+          "sampler_wall_seconds": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 6,
+            "mean": 1691.5,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 84.595,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1851.6268132925034,
+            "unit": "seconds"
+          }
+        },
+        "fixed": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "tqdm_final_sampler_loop"
+          ],
+          "sampler_wall_seconds": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 6,
+            "mean": 1809.8333333333333,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 90.51166666666667,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1855.2699020703633,
+            "unit": "seconds"
+          }
+        }
+      }
+    },
+    {
+      "name": "new_schedule_methods",
+      "matching": "host_and_measurement_basis",
+      "n_cases": 6,
+      "cases": [
+        "short_0252",
+        "short_0358",
+        "long_0039",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "methods": {
+        "early": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 6,
+            "mean": 1194.5856582964168,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 59.719037081027054,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1248.6257965962093,
+            "unit": "seconds"
+          }
+        },
+        "late": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 6,
+            "mean": 1190.0458832448412,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 59.49280009028453,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1255.7210977077484,
+            "unit": "seconds"
+          }
+        },
+        "split": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 6,
+            "mean": 1188.9766022757422,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 59.43884374023396,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1219.1710603634517,
+            "unit": "seconds"
+          }
+        },
+        "global_weak": {
+          "n": 6,
+          "cases": [
+            "short_0252",
+            "short_0358",
+            "long_0039",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 6,
+            "mean": 1305.3404894994644,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 6,
+            "mean": 65.25757293435899,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 6,
+            "mean": 1337.6498155593872,
+            "unit": "seconds"
+          }
+        }
+      }
+    },
+    {
+      "name": "new_schedule_methods",
+      "matching": "host_gpu_and_measurement_basis",
+      "n_cases": 4,
+      "cases": [
+        "short_0252",
+        "long_0059",
+        "short_0085",
+        "short_0274"
+      ],
+      "methods": {
+        "early": {
+          "n": 4,
+          "cases": [
+            "short_0252",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 4,
+            "mean": 1289.609058755375,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 4,
+            "mean": 64.47132162479059,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 4,
+            "mean": 1353.0149400830269,
+            "unit": "seconds"
+          }
+        },
+        "late": {
+          "n": 4,
+          "cases": [
+            "short_0252",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 4,
+            "mean": 1281.145591652512,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 4,
+            "mean": 64.04921161530177,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 4,
+            "mean": 1312.1752844452858,
+            "unit": "seconds"
+          }
+        },
+        "split": {
+          "n": 4,
+          "cases": [
+            "short_0252",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 4,
+            "mean": 1280.4870879448636,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 4,
+            "mean": 64.01596271940096,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 4,
+            "mean": 1311.1461892724037,
+            "unit": "seconds"
+          }
+        },
+        "global_weak": {
+          "n": 4,
+          "cases": [
+            "short_0252",
+            "long_0059",
+            "short_0085",
+            "short_0274"
+          ],
+          "hosts": [
+            "H3_HOST_CONFIGURE_LOCALLY",
+            "H3_HOST_CONFIGURE_LOCALLY"
+          ],
+          "measurement_bases": [
+            "monotonic_passive_recorder_wrapper"
+          ],
+          "sampler_wall_seconds": {
+            "n": 4,
+            "mean": 1400.2203525259472,
+            "unit": "seconds"
+          },
+          "sampler_elapsed_seconds_rounded": {
+            "n": 0,
+            "mean": null,
+            "unit": "seconds"
+          },
+          "mean_step_seconds": {
+            "n": 4,
+            "mean": 70.00295235246352,
+            "unit": "seconds"
+          },
+          "job_wall_seconds": {
+            "n": 4,
+            "mean": 1430.7635409832,
+            "unit": "seconds"
+          }
+        }
+      }
+    },
+    {
+      "name": "all_six_methods",
+      "matching": "host_and_measurement_basis",
+      "n_cases": 0,
+      "cases": [],
+      "reason": "Historical native/fixed use tqdm loop timing; other schedules use full recorder timing. Three cases also change hosts across methods."
+    }
+  ],
+  "per_host": {
+    "H3_HOST_CONFIGURE_LOCALLY": {
+      "native": {
+        "n": 5,
+        "cases": [
+          "short_0252",
+          "long_0039",
+          "long_0059",
+          "short_0085",
+          "short_0274"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "tqdm_final_sampler_loop"
+        ],
+        "sampler_wall_seconds": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 5,
+          "mean": 1844.2,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 5,
+          "mean": 92.232,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 5,
+          "mean": 2012.543613052368,
+          "unit": "seconds"
+        }
+      },
+      "early": {
+        "n": 2,
+        "cases": [
+          "short_0085",
+          "short_0274"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 2,
+          "mean": 1060.1336612347513,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 2,
+          "mean": 53.00455663083122,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 2,
+          "mean": 1103.3574328422546,
+          "unit": "seconds"
+        }
+      },
+      "fixed": {
+        "n": 5,
+        "cases": [
+          "short_0252",
+          "long_0039",
+          "long_0059",
+          "short_0085",
+          "short_0274"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "tqdm_final_sampler_loop"
+        ],
+        "sampler_wall_seconds": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 5,
+          "mean": 1969.4,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 5,
+          "mean": 98.486,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 5,
+          "mean": 2016.9061373710633,
+          "unit": "seconds"
+        }
+      },
+      "late": {
+        "n": 2,
+        "cases": [
+          "short_0085",
+          "short_0274"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 2,
+          "mean": 1043.623127548024,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 2,
+          "mean": 52.1792367523536,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 2,
+          "mean": 1070.011421918869,
+          "unit": "seconds"
+        }
+      },
+      "split": {
+        "n": 2,
+        "cases": [
+          "short_0085",
+          "short_0274"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 2,
+          "mean": 1043.505140600726,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 2,
+          "mean": 52.173369590751825,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 2,
+          "mean": 1070.51056599617,
+          "unit": "seconds"
+        }
+      },
+      "global_weak": {
+        "n": 2,
+        "cases": [
+          "short_0085",
+          "short_0274"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 2,
+          "mean": 1137.646533690393,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 2,
+          "mean": 56.880449053552,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 2,
+          "mean": 1164.543813943863,
+          "unit": "seconds"
+        }
+      }
+    },
+    "H3_HOST_CONFIGURE_LOCALLY": {
+      "native": {
+        "n": 1,
+        "cases": [
+          "short_0358"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "tqdm_final_sampler_loop"
+        ],
+        "sampler_wall_seconds": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 1,
+          "mean": 928,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 1,
+          "mean": 46.41,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 1,
+          "mean": 1047.0428144931793,
+          "unit": "seconds"
+        }
+      },
+      "early": {
+        "n": 4,
+        "cases": [
+          "short_0252",
+          "short_0358",
+          "long_0039",
+          "long_0059"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 4,
+          "mean": 1261.8116568272494,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 4,
+          "mean": 63.07627730612498,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 4,
+          "mean": 1321.2599784731865,
+          "unit": "seconds"
+        }
+      },
+      "fixed": {
+        "n": 1,
+        "cases": [
+          "short_0358"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "tqdm_final_sampler_loop"
+        ],
+        "sampler_wall_seconds": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 1,
+          "mean": 1012,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 1,
+          "mean": 50.64,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 1,
+          "mean": 1047.088725566864,
+          "unit": "seconds"
+        }
+      },
+      "late": {
+        "n": 4,
+        "cases": [
+          "short_0252",
+          "short_0358",
+          "long_0039",
+          "long_0059"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 4,
+          "mean": 1263.2572610932498,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 4,
+          "mean": 63.14958175924999,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 4,
+          "mean": 1348.575935602188,
+          "unit": "seconds"
+        }
+      },
+      "split": {
+        "n": 4,
+        "cases": [
+          "short_0252",
+          "short_0358",
+          "long_0039",
+          "long_0059"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 4,
+          "mean": 1261.7123331132502,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 4,
+          "mean": 63.07158081497503,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 4,
+          "mean": 1293.5013075470924,
+          "unit": "seconds"
+        }
+      },
+      "global_weak": {
+        "n": 4,
+        "cases": [
+          "short_0252",
+          "short_0358",
+          "long_0039",
+          "long_0059"
+        ],
+        "hosts": [
+          "H3_HOST_CONFIGURE_LOCALLY"
+        ],
+        "measurement_bases": [
+          "monotonic_passive_recorder_wrapper"
+        ],
+        "sampler_wall_seconds": {
+          "n": 4,
+          "mean": 1389.1874674040002,
+          "unit": "seconds"
+        },
+        "sampler_elapsed_seconds_rounded": {
+          "n": 0,
+          "mean": null,
+          "unit": "seconds"
+        },
+        "mean_step_seconds": {
+          "n": 4,
+          "mean": 69.44613487476248,
+          "unit": "seconds"
+        },
+        "job_wall_seconds": {
+          "n": 4,
+          "mean": 1424.2028163671494,
+          "unit": "seconds"
+        }
+      }
+    }
+  }
+}

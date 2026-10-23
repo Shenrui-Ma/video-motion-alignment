@@ -3,7 +3,7 @@
 import hashlib,json,re,statistics
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
-PROJECTS=Path('/Users/researcher/DevProjects')
+PROJECTS=Path('/workspace/research-user/DevProjects')
 CASES=['short_0252','short_0358','long_0039','long_0059','short_0085','short_0274']
 METHODS=['native','early','fixed','late','split','global_weak']
 def read(p): return json.loads(Path(p).read_text())

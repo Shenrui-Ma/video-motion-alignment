@@ -1,0 +1,93 @@
+{
+  "schema": "h3-content-coordinate-adapter-policy-v1",
+  "cohort": "content_coordinate_calibration",
+  "state_source": "new_same_environment_live_native_only",
+  "steps": [
+    9,
+    19
+  ],
+  "layer": 25,
+  "heads": 56,
+  "probes": 8,
+  "valid_bins": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "swap_pairs": [
+    [
+      5,
+      10
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      7,
+      12
+    ],
+    [
+      8,
+      13
+    ],
+    [
+      9,
+      14
+    ]
+  ],
+  "calls": [
+    "zero9",
+    "zero19",
+    "swap9",
+    "swap19"
+  ],
+  "max_independent_model_calls": 4,
+  "swap_gate": "both_new_zero_gates_exact",
+  "initially_authorized_model_calls": 0,
+  "noise": {
+    "shape": [
+      30176,
+      96
+    ],
+    "seed": 2026101701,
+    "dtype": "torch.float32",
+    "generator": "private CPU Generator reset per conditioning item; no step offset",
+    "swap": false,
+    "augmentation": 0.999
+  },
+  "conditioning": "single process_conds; fixed Qwen multimodal presentation, target AV, sigma, role and position; only reference latent content changes",
+  "interpretation": "Source-following supports sensitivity to this reference latent pathway. Coordinate-following may arise from position, coordinate noise, unchanged multimodal Qwen presentation or target trajectory; no single-cause attribution. Encoded block exchange is not a natural video shift.",
+  "history_replay_gate": "not_used; old false preserved",
+  "outputs": "diagnostic tensors/JSON only; no trajectory/video or alpha controller",
+  "production_entry_scope": "two_zero_only",
+  "root_actual_zero_review_required_before_swap": true
+}

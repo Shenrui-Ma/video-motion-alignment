@@ -1,0 +1,19 @@
+【已被用户新范围替代】现等待7条已开始partial，详见after_partial7/HANDOFF.txt。旧10条门槛guard已停止，勿恢复。
+
+跨输出时刻参考时间覆盖：.41两pilot等待接续
+
+范围：short0252和short0358，仅两条。独立coverage方法，与普通编辑、全程弱引导配对；未叠加direction或partialRoPE。
+GPU7仍由partial方法使用，当前worker109058/start1218569、service109103/start1218603保持。
+新CPU guard149136/start1563906/UID1004，scripts/coverage_pilots_handoff.py；status/receipt命名innovation_handoff/coverage_*。
+先等partial同10条全部completed，逐条核验20forward/1000block/有限非零修正、成片SHA和20步timing，再等旧worker/service自然退出，独立activation锁内原子添加两条，清单46→48。此刻清单仍46；没有提前提交coverage。
+
+方法：每个H3 DiT层从当前Q/K确定性抽取最多8个空间query和4个heads，估计输出/参考latent bin的T×T匹配质量。对±2bin邻域作128轮log-domain Sinkhorn，熵权重.5，时间距离平方惩罚.25，行列和误差阈值.0002；quality span低于.001回退原输出。期望参考时间倒序时以identity凸混合恢复非降顺序。得到P后，以sum_j P[t,j]*Attention(Q_t,K_j,V_j)替换参考组内分配，保留每query的参考总概率m_ref，用alpha.25混合回原Attention输出。
+覆盖单位为latent bin的条件概率，行列和各1；minimum_mean_gap=0是期望时间非降约束。不是光流，也没有VAE/DWPose或额外DiT前向。
+图中20步全程、全50层、原有效时间范围；prompt/seed/真实缓存/模型/geometry全部沿已运行.41同case图，只有节点50方法和节点14输出改变。
+
+验证：.41同环境29个CPU数值/节点测试通过，CUDA未初始化；12个guard/图/审计测试通过（含4个Z进程身份与非阻塞回收测试）。27个远端依赖/资产SHA和在线H3TemporalCoverage schema通过；生产node五个源码hash与既有已测版本相同。
+审计要求：20次前向、1000层、1000coverage记录；记录实际routed_calls和回退原因分布，校验行列预算、有限非零修正及成片计时。不是要求所有层都触发；若全部回退则核验失败，停止扩展并报告。
+
+生命周期修正：UID/startticks相符且state Z时视为exited；非阻塞waitpid只回收自有子进程。仅重启等待中的CPUcoverage guard，当前partial推理worker/service前后身份一致。partial_remaining8 guard是单次激活后完成即退出，无native→weak式第二阶段阻塞；新coverage能识别其子进程Z态，不需打断现有partial guard。
+完成两pilot后guard写coverage_pilots_verified.json并返回；后8条未安排，等待两pilot运行核验和后续调度。
+后续激活后再同步inference/package/jobs.json，勿提前把当前46改48。

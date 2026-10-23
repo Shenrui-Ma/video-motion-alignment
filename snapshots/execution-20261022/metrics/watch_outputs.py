@@ -4,9 +4,9 @@ from pathlib import Path
 from metric_worker import atomic
 ROOT=Path(__file__).resolve().parent
 REMOTE='/data/research-user/h3_metrics_20261022'
-HOST='H3_HOST_RTX4090'
+HOST='H3_HOST_CONFIGURE_LOCALLY'
 SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=12','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3']
-PRODUCERS=[('H3_HOST_PRIMARY','/data4/research-user/h3_runs/benchmark_schedule_20261022'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/benchmark_schedule_20261022_host9a'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/benchmark_schedule_20261022_host9b'),('H3_HOST_AUXILIARY','/data4/research-user/h3_inference_20261023/run'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/adaptive_blend_20261023'),('H3_HOST_SECONDARY','/home/research-user/h3_runs/adaptive_role5_20261023'),('H3_HOST_RTX4090','/data/research-user/h3_inference_20261023/run_uniform_energy'),('H3_HOST_RTX4090','/data/research-user/h3_inference_20261023/live_phase_pair_20261023')]
+PRODUCERS=[('H3_HOST_CONFIGURE_LOCALLY','/data4/research-user/h3_runs/benchmark_schedule_20261022'),('H3_HOST_CONFIGURE_LOCALLY','/home/research-user/h3_runs/benchmark_schedule_20261022_host9a'),('H3_HOST_CONFIGURE_LOCALLY','/home/research-user/h3_runs/benchmark_schedule_20261022_host9b'),('H3_HOST_CONFIGURE_LOCALLY','/data4/research-user/h3_inference_20261023/run'),('H3_HOST_CONFIGURE_LOCALLY','/home/research-user/h3_runs/adaptive_blend_20261023'),('H3_HOST_CONFIGURE_LOCALLY','/home/research-user/h3_runs/adaptive_role5_20261023'),('H3_HOST_CONFIGURE_LOCALLY','/data/research-user/h3_inference_20261023/run_uniform_energy'),('H3_HOST_CONFIGURE_LOCALLY','/data/research-user/h3_inference_20261023/live_phase_pair_20261023'),('H3_HOST_CONFIGURE_LOCALLY','/data/research-user/h3_inference_20261023/field_environment_reproduction_20261023'),('H3_HOST_CONFIGURE_LOCALLY','/data4/research-user/h3_inference_20261023/run_extension0395'), ('H3_HOST_CONFIGURE_LOCALLY', '/data4/research-user/h3_runs/power_stress_20261023/gpu4'), ('H3_HOST_CONFIGURE_LOCALLY', '/data4/research-user/h3_runs/power_stress_20261023/gpu6'), ('H3_HOST_CONFIGURE_LOCALLY', '/data4/research-user/h3_runs/power_stress_20261023/gpu3')]
 
 def ssh(host,cmd,timeout=90):
  return subprocess.run(SSH+[host,cmd],capture_output=True,text=True,timeout=timeout,check=True).stdout
@@ -63,7 +63,9 @@ def expected_jobs(manifest):
  paths += [ROOT.parent/'inference'/package/'jobs.json' for package in ['package','host9a','host9b']]
  paths += [ROOT.parent/'innovation/adaptive_strength_20261023/batch/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/anchor_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/field_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/layer_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/field_extension_two/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/role5_pilots/jobs.json', ROOT.parent/'innovation/adaptive_strength_20261023/batch/uniform_pilots/jobs.json']
  paths += [ROOT.parent/'innovation/feature_gain_field_fixed_budget/pilots/jobs.json']
- paths += [ROOT.parent/'supervision/live_phase_pair_20261023/jobs.json']
+ paths += [ROOT.parent/'supervision/live_phase_pair_20261023/jobs.json', ROOT.parent/'supervision/field_environment_reproduction_20261023/jobs.json']
+ paths += [ROOT.parent/'supervision/extension_0395_host60_20261023/jobs.json']
+ paths += [ROOT.parent/'supervision/host41_power_stress_20261023/jobs.json']
  for p in paths:
   if not p.exists():continue
   for job in json.loads(p.read_text())['jobs']:

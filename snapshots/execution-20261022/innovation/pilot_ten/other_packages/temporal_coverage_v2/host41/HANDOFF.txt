@@ -1,0 +1,16 @@
+跨时刻参考覆盖 v2：收敛修复与明确同时间弱引导兜底。
+
+旧pilot保持原结果：0252有效路由10/1000，0358有效3/1000；990/997次not_converged直接native。实际列误差中位数.003915/.005227，阈值.0002，时间bin数29/32。audit未存原始quality矩阵，无法逐列重放历史问题。
+CPU合成相同29/32 bin与相近quality跨度，128轮误差0.02、float32/64一致；2048轮可收敛，窄带扩散速度是主要问题。证据 ../temporal_coverage/host41/routing_diagnostic（绝对路径可由项目innovation目录定位）。
+
+新独立节点H3TemporalCoverageV2，旧模块未改：同一熵正则运输目标，改用CPU float64阻尼Newton，梯度为列质量-1，Hessian diag(colsum)-P.T P，固定最后列势能消除规范自由度，最多64轮、每轮最多24次Armijo回溯。每轮行质量通过softmax精确归一；列阈值仍0.0002，内部求解采用一半阈值留出float32转换余量。原radius2/entropy.5/penalty.25/单调期望时间约束保留。
+失败明确使用同时间Attention alpha.25，不直接native；audit单列coverage_solved_calls、same_time_fallback_calls、solver_wall_seconds，以及每block迭代数、耗时、fallback原因。纠正张量非有限仍返回native并以nonfinite_correction记录，整片audit会阻止通过。
+CPU33测试通过（正常29/32/48 bins、病态、不可行支撑、有限值、padding、same-time公式、节点50块）；7队列测试通过。默认44 CPU线程32bin合成例4次Newton约.043秒；线上实际总耗时由pilot记录。
+
+.41root /data4/research-user/h3_runs/benchmark_schedule_20261022，UID1004 GPU7最多一个视频推理。
+当前long0039 v1保留完成，worker213327/start2073113、service213331/start2073149；其余7条v1仍blocked_by_routing_diagnostic，未恢复。
+新guard226325/start2159963，scripts/coverage_v2_handoff.py，先等待long0039成片/timing并等待旧worker/service自然退出。
+新模块和两图已部署，27资产SHA已预检；manage_service仅stage，结束边界核对旧SHA后仅加H3TemporalCoverageV2 whitelist。然后通过独立receipt coverage_v2_activation.json将46清单→48，追加0252与0358 v2两pilot。每组prompt/seed/cache/model/geometry不变，20步alpha.25独立模块，无叠加。
+CPUguard有独立锁、原子清单/哈希、PID/UID/start_ticks、Z态识别与回收。不会停止当前推理。两pilot完成写coverage_v2_verified.json并等待审阅；不会自动扩剩余8。
+运行证据innovation_handoff/coverage_v2_{pid,status,launch,activation,verified}.json；本地本目录相应JSON。
+后续应核查实际solved/fallback比例、20forwards1000blocks、成片SHA、采样/逐步耗时与指标；禁止恢复旧53目标guard及旧v1余7。

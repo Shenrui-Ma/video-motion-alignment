@@ -2,10 +2,10 @@
 import argparse,fcntl,json,os,signal,socket,subprocess,time,urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-CORE='/data5/researcher/h3_runs/short_event_pilot_20261013/ComfyUI'
-PYTHON='/home/researcher/miniconda3/envs/comfyui/bin/python'
-DEPS='/data5/researcher/h3_runs/short_event_pilot_20261013/runtime_deps'
-MODELS='/data5/researcher/ComfyUI/models'
+CORE='/data5/research-user/h3_runs/short_event_pilot_20261013/ComfyUI'
+PYTHON='/home/research-user/miniconda3/envs/comfyui/bin/python'
+DEPS='/data5/research-user/h3_runs/short_event_pilot_20261013/runtime_deps'
+MODELS='/data5/research-user/ComfyUI/models'
 PORT=8673
 GPU=json.loads((ROOT/'gpu.json').read_text())['gpu_uuid'] if (ROOT/'gpu.json').exists() else ''
 def read_record():
@@ -46,7 +46,7 @@ def start():
   result=stop(r)
   if not result['stopped']:raise RuntimeError('Unresponsive own service could not be stopped')
  # Advisory host lock held by the real model process, released on crash/reboot.
- lock=open('/tmp/h3-video-inference-shenrui-ma-'+GPU+'.lock','a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ lock=open('/tmp/h3-video-inference-research-user-'+GPU+'.lock','a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
  for p in [CORE+'/main.py',PYTHON,DEPS,MODELS]:
   if not Path(p).exists():raise RuntimeError('Missing runtime '+p)
  rows=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader,nounits'],text=True,timeout=20)
@@ -65,13 +65,15 @@ def start():
   image_only='EmptyLatentImage' in types and 'SaveImage' in types and not any(any(w in t.lower() for w in ['video','h3','wan','hunyuan','ltx','mochi']) for t in types)
   if not image_only:raise RuntimeError('Existing interactive work may include video inference')
  with socket.socket() as s:
+  # Match asyncio listener reuse semantics after a clean service shutdown.
+  s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
   s.bind(('127.0.0.1',PORT))
  env=dict(os.environ,CUDA_VISIBLE_DEVICES=GPU,PYTHONPATH=DEPS+os.pathsep+str(ROOT/'scripts'),OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4',TOKENIZERS_PARALLELISM='false',PYTHONDONTWRITEBYTECODE='1',LC_ALL='C',LANG='C',NO_PROXY='*',no_proxy='*')
  for k in ['http_proxy','https_proxy','all_proxy','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY']:env.pop(k,None)
- args=[PYTHON,'-u',str(ROOT/'scripts/compatibility_bootstrap.py'),CORE+'/main.py','--listen','127.0.0.1','--port',str(PORT),'--base-directory',str(ROOT),'--models-directory',MODELS,'--disable-auto-launch','--disable-dynamic-vram','--disable-cuda-malloc','--use-pytorch-cross-attention','--reserve-vram','8','--enable-triton-backend','--preview-method','none','--disable-all-custom-nodes','--whitelist-custom-nodes','ComfyUI-KJNodes','H3Study','--input-directory',str(ROOT/'input'),'--output-directory',str(ROOT/'output'),'--temp-directory',str(ROOT/'temp'),'--user-directory',str(ROOT/'user'),'--database-url','sqlite:///'+str(ROOT/'study.db')]
+ args=[PYTHON,'-u',str(ROOT/'scripts/budget_bootstrap.py'),str(ROOT/'scripts/compatibility_bootstrap.py'),CORE+'/main.py','--listen','127.0.0.1','--port',str(PORT),'--base-directory',str(ROOT),'--models-directory',MODELS,'--disable-auto-launch','--disable-dynamic-vram','--lowvram','--disable-cuda-malloc','--use-pytorch-cross-attention','--reserve-vram','14','--enable-triton-backend','--preview-method','none','--disable-all-custom-nodes','--whitelist-custom-nodes','ComfyUI-KJNodes','H3Study','H3DirectionRuntime','H3TemporalCoverage','H3TemporalCoverageV2','H3PartialRoPE','H3TrustedConditionCache','--input-directory',str(ROOT/'input'),'--output-directory',str(ROOT/'output'),'--temp-directory',str(ROOT/'temp'),'--user-directory',str(ROOT/'user'),'--database-url','sqlite:///'+str(ROOT/'study.db')]
  for n in ['logs','input','output','temp','user']:(ROOT/n).mkdir(exist_ok=True)
  link=ROOT/'custom_nodes/ComfyUI-KJNodes'
- if not link.exists():link.symlink_to('/data5/researcher/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes')
+ if not link.exists():link.symlink_to('/data5/research-user/h3_runs/short_event_pilot_20261013/custom_nodes/ComfyUI-KJNodes')
  with (ROOT/'logs/comfy.log').open('ab',buffering=0) as log:p=subprocess.Popen(args,cwd=CORE,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,pass_fds=(lock.fileno(),))
  rec={'pid':p.pid,'start_ticks':(Path('/proc')/str(p.pid)/'stat').read_text().split()[21],'gpu_uuid':GPU,'port':PORT,'started_unix':time.time(),'command':args}
  temporary=ROOT/('service.json.'+str(os.getpid())+'.tmp')

@@ -7,7 +7,7 @@ PYTHON='/data3/research-user/ComfyUI/.venv/bin/python'
 DEPS='/data3/research-user/h3_runs/closure_tutorials_53592/01-anime/runtime_deps'
 MODELS='/data3/research-user/ComfyUI-H3/models'
 PORT=8672
-GPU='GPU-REPLACE_WITH_TARGET_UUID'
+GPU='GPU-REPLACE-WITH-DEVICE-UUID'
 def read_record():
  p=ROOT/'service.json';return json.loads(p.read_text()) if p.exists() else None
 def alive(r):

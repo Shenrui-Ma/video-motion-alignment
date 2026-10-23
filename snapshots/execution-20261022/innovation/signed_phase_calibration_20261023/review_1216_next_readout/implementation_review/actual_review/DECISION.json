@@ -1,0 +1,110 @@
+{
+  "schema": "h3-probe-identity-actual-independent-decision-v1",
+  "created_at": "2026-10-23T04:39:40.717317+00:00",
+  "technical_result": "PASS_REFERENCE_ONLY_FULL_ARRAY_RECOMPUTATION",
+  "scientific_decision": "CONTINUE_TO_INDEPENDENT_CONTENT_POSITION_CALIBRATION_PROPOSAL_ONLY",
+  "summary_sha256": "2080a1974656a92d35f39de04e50e9c0c72299b53c256c1479c482c5583ccb64",
+  "array_check_sha256": "bb2243c14c0340e86b8372ac04130ce04c2f627ad595a7b81f1f17c85e3e3c84",
+  "review_script_sha256": "714901714b83ee873eedbabf1805132d045ef34a6515f128cd4af504817da9fd",
+  "scope": {
+    "case": "short_0358",
+    "layer": 25,
+    "steps": [
+      9,
+      19
+    ],
+    "all_heads": 56,
+    "all_query_probes": 8,
+    "valid_bins": 31,
+    "directions": 4,
+    "correlated_grid_points": 124,
+    "independent_video_count": 1,
+    "query_probe_identity_preserved": true,
+    "key_space": "existing eight sampled spatial keys pooled within each reference time"
+  },
+  "results": [
+    {
+      "step": 9,
+      "dictionary": "qrn_kn",
+      "query": "qrw_kw",
+      "result_sha256": "972b74eb0459bf21216e78ee8875f938ed17f281cd0f5d72baf4d6baf683c086",
+      "max_matrix_abs_error": 1.3322676295501878e-15,
+      "oracle_minimum_margin": 0.06675360615325243,
+      "production_minimum_margin": 0.06675360615325243,
+      "unique_correct": 31,
+      "tested_bins": 31,
+      "mean_best_absolute_nominal_frame_error": 0.0,
+      "mean_worst_absolute_nominal_frame_error": 0.0
+    },
+    {
+      "step": 9,
+      "dictionary": "qrw_kw",
+      "query": "qrn_kn",
+      "result_sha256": "c628e7aa845a3f151aca7f10e98aedc6413d3ce45cb8bd239c86b39e18a193f8",
+      "max_matrix_abs_error": 1.3322676295501878e-15,
+      "oracle_minimum_margin": 0.06687842110390581,
+      "production_minimum_margin": 0.06687842110390581,
+      "unique_correct": 31,
+      "tested_bins": 31,
+      "mean_best_absolute_nominal_frame_error": 0.0,
+      "mean_worst_absolute_nominal_frame_error": 0.0
+    },
+    {
+      "step": 19,
+      "dictionary": "qrn_kn",
+      "query": "qrw_kw",
+      "result_sha256": "213a458b4c1e2c09e05971e37acc5e56277e8edf97f50685dd6784911e6c1b9a",
+      "max_matrix_abs_error": 8.326672684688674e-16,
+      "oracle_minimum_margin": 0.0706791879008068,
+      "production_minimum_margin": 0.07067918790080678,
+      "unique_correct": 31,
+      "tested_bins": 31,
+      "mean_best_absolute_nominal_frame_error": 0.0,
+      "mean_worst_absolute_nominal_frame_error": 0.0
+    },
+    {
+      "step": 19,
+      "dictionary": "qrw_kw",
+      "query": "qrn_kn",
+      "result_sha256": "454ea25297e4346eeee610c37b5ea89bfc708acdfbe59ba8b88d7010a7b006ab",
+      "max_matrix_abs_error": 8.326672684688674e-16,
+      "oracle_minimum_margin": 0.07112353481228614,
+      "production_minimum_margin": 0.07112353481228607,
+      "unique_correct": 31,
+      "tested_bins": 31,
+      "mean_best_absolute_nominal_frame_error": 0.0,
+      "mean_worst_absolute_nominal_frame_error": 0.0
+    }
+  ],
+  "independent_max_matrix_abs_error": 1.3322676295501878e-15,
+  "all124_unique_correct": true,
+  "all_nominal_frame_errors": 0,
+  "interpretation": [
+    "The frozen full-support zero-shift STOP test passed in every predeclared direction and valid bin; no head, step or time was selected.",
+    "The result establishes stable same-coordinate reference fingerprints across the two conditional trajectories at each sampled step.",
+    "A pure positional code C_t=e_t passes exactly the same test even with static visual content. The current capture set therefore does not identify content displacement or action delay.",
+    "The old cross-spatial test and this test differ in both preservation of spatial identity and joint multihead fingerprinting. Their contrast is not a single-factor causal attribution to spatial pooling.",
+    "The 124 cells are correlated observations of one source clip, not 124 independent samples. Nominal-bin centers are not precise VAE receptive fields or pixel action timestamps."
+  ],
+  "next_evidence_required": {
+    "status": "proposal_only_separate_review_and_authorization_required",
+    "fixed_observer": "Keep the same layer, steps, all heads/probes, normalization, retrieval, key support and frozen source dictionary.",
+    "content_coordinate_separation": "Known positive and negative content-time changes while query positional coordinates remain fixed; form test query distributions against the original fixed reference K dictionary.",
+    "nulls": [
+      "Static reference must remain temporally ambiguous or explicitly rejected, not decoded from position alone.",
+      "Time-preserving appearance changes must keep the known coordinate or report out-of-support; a confident wrong shift is failure."
+    ],
+    "mapping": "Predefine common valid support, non-circular boundary handling and exact transformation before observing data. A role-preserving five-bin shift is nominal17frames, a coarse content/position test; finer action timing would still need its own evidence.",
+    "method_limit": "Reference-domain calibration first. Generated-query transfer and the actual H3 local-chain directional derivative are separate unmeasured quantities.",
+    "run_scope": "Potential bounded passive forward captures only after a separate plan is approved; this decision schedules none."
+  },
+  "preserved_guards": {
+    "production_tie_tolerance_unchanged": 1.4210854715202004e-14,
+    "generated_probability_members_decoded": false,
+    "production_runner_reexecuted": false,
+    "large_arrays_downloaded": false,
+    "gpu_calls": 0,
+    "alpha_controller_released": false,
+    "running_sources_or_policies_modified": false
+  }
+}

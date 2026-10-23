@@ -55,7 +55,7 @@ class SignedPhaseTests(unittest.TestCase):
     def test_static_pose_has_no_identifiable_phase(self):
         t=np.arange(15,dtype=float); z=np.zeros_like(t)
         r=phase(z,t,2,np.zeros_like(t))
-        self.assertAlmostEqual(r['retrieval_error'],5,places=14)
+        self.assertEqual(r['retrieval_error'],5)
         self.assertEqual(r['signed_sensitivity'],0)
         self.assertEqual(box_linearized_ls(5,0)['status'],'unobserved_sensitivity')
 

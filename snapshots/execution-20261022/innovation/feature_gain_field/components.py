@@ -71,3 +71,4 @@ def temporal_components(same, reference, previous, following, mass, *,
     return {**energies, "valid": valid, "input_finite": torch.stack([
         torch.isfinite(x).all(-1) for x in xs]).all(0) & torch.isfinite(mass),
         "tangent_signal": signal, "feature_scale": scale}
+

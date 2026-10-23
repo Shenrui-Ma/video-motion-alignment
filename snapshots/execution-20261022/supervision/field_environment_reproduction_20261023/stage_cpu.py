@@ -2,7 +2,7 @@
 from pathlib import Path
 import subprocess,shlex,json,hashlib
 from check_science import D,E,F,B,R,sha,check
-H='H3_HOST_RTX4090';L=E/'supervision/live_phase_pair_20261023'
+H='H3_HOST_CONFIGURE_LOCALLY';L=E/'supervision/live_phase_pair_20261023'
 check(json.loads((D/'graph.json').read_text()),json.loads((D/'jobs.json').read_text()))
 science=json.loads((D/'SCIENCE_CHECK.json').read_text());liveassets=json.loads((L/'DEPLOY_ASSETS.json').read_text())
 files={'custom_nodes/H3TemporalGainField/'+n:(F/n).read_bytes().hex() for n in science['frozen_six_sources']}

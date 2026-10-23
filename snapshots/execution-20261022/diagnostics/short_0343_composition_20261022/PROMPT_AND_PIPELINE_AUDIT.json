@@ -1,0 +1,35 @@
+{
+  "task_id": "short_0343",
+  "old_prompt": "subject_definitions:\n<Video 1> is the source video for this local video edit, providing the original camera framing, shot structure, visible action sequence, pacing and duration.\n<Subject 1> is the ponytailed woman standing in front of the bathroom mirror in <Video 1>, including her reflection. The target appearance is a doctor in professional medical clothing; her source body position and phone-handling performance are retained.\n<Subject 2> is the original bathroom, mirror, reflected room, sink area and the original phone in <Video 1>.\nSource context: A woman is standing in front of a mirror in a bathroom, looking at her phone. She appears to be in a hospital or medical facility, as indicated by the background and her attire.\n\nsummary:\n[video editing] The target video is an edited version of <Video 1>. Replace the woman’s appearance with that of a doctor, preserving the original phone-handling action, mirror correspondence and bathroom.\nRequested edit: Replace the woman with a doctor\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): partially_preserved - apply the requested edit. Give the woman the appearance and professional clothing of a doctor. Preserve her screen position, head movements, hand positions, phone-lifting and handling sequence, with the same corresponding movement in the mirror.\n<Subject 2> (appears in [Shot 1]): fully_preserved - preserve the bathroom, mirror, reflected space, original phone and all scene objects, including their appearance, position and interaction.\n<Video 1> (cut and pacing structure): fully_preserved - preserve the original camera framing and movement, shot continuity, visible action order, timing and duration.\nThe requested edit defines the appearance change. The visible subject definitions and unchanged source content govern scene details.\n\ndetailed_description:\nThe target video retains the photographic appearance, lighting and camera composition of <Video 1>.\n[Shot 1] A doctor stands at the original bathroom mirror, with the same viewpoint and matching reflection. At the opening her head is lowered as in <Video 1>. Her phone comes into view and her hands handle it following the complete source motion. The phone, bathroom and mirror remain in their original places.\nThe complete visible action sequence and all its phases follow <Video 1> in their original order and timing.\n\noverall_soundscape:\nNo specific soundscape is requested.\n\nnon_diegetic_music:\nNo specific music is requested.\n",
+  "new_prompt": "Replace the woman with a doctor",
+  "equal_graph_nodes": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "41",
+    "8",
+    "9",
+    "11",
+    "12",
+    "13",
+    "22",
+    "23"
+  ],
+  "changed_nodes": [
+    "52",
+    "6",
+    "7",
+    "5",
+    "14",
+    "51",
+    "50",
+    "10"
+  ],
+  "seed": 2026101701,
+  "same_reference_sha256": "db9a7226627631466eef2f2739e592034ddedf989db369935f51bddbe9923831",
+  "old_snapshot_and_live_ref_encoder_sha256": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+  "reference_path_verified": "LoadVideo -> GetVideoComponents -> H3StudyReference -> MiniMaxH3ReferenceToVideo ref_videos; text encoder visual items and VAE video refs",
+  "prompt_hypothesis": "Loss of explicit source-video/mirror/background/action-retention description is the largest identified conditioning difference; causal isolation requires prompt-only replay on current runtime.",
+  "other_changes": "Audit/cache/x0/noise wrappers replaced with passive timing and RandomNoise; old reference wrapper defaults2fps/phase0 delegate unchanged; no prompt-only causal replay performed in this audit."
+}

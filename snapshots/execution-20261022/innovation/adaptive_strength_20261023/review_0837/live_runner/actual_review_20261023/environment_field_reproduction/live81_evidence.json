@@ -1,0 +1,287 @@
+{
+  "logs/backend_dispatch_audit.json": {
+    "sha256": "1b72a2e48fe1af68ae7d0c04255a1aa6af8aa5a6e7647517197dc505e843fa13",
+    "data": {
+      "schema": "h3-backend-dispatch-audit-v1",
+      "pid": 32141,
+      "started_unix_ns": 1792721079372544617,
+      "flush_every": 1000,
+      "count_semantics": "Attempted calls to backend exports, including nested backend delegation.",
+      "count_freshness": "Periodic snapshots may lag; flush() or normal process exit captures current counts.",
+      "backends": {
+        "cuda": {
+          "status": "imported"
+        },
+        "triton": {
+          "status": "imported"
+        },
+        "eager": {
+          "status": "imported"
+        }
+      },
+      "operations": {
+        "cuda.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "cuda.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "triton.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 4000,
+          "successful_calls": 4000,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": true,
+          "first_call": {
+            "unix_ns": 1792721107767725805,
+            "tensor_arguments": {
+              "x": {
+                "shape": [
+                  65833,
+                  5376
+                ],
+                "dtype": "torch.bfloat16",
+                "device": "cuda:0"
+              },
+              "weight": {
+                "shape": [
+                  21504,
+                  5376
+                ],
+                "dtype": "torch.int8",
+                "device": "cuda:0"
+              },
+              "weight_scale": {
+                "shape": [
+                  21504,
+                  1
+                ],
+                "dtype": "torch.float32",
+                "device": "cuda:0"
+              }
+            },
+            "outcome": "returned"
+          }
+        },
+        "triton.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "eager.int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        },
+        "eager.w4a8_int8_linear": {
+          "status": "installed",
+          "attempted_calls": 0,
+          "successful_calls": 0,
+          "failed_calls": 0,
+          "registry_resolves_wrapper": true,
+          "wraps_existing_row_guard": false
+        }
+      },
+      "logging_errors": []
+    }
+  },
+  "service.json": {
+    "sha256": "222c4901013728e02092230c2633766a0462751f427a496a55100e3a6b485019",
+    "data": {
+      "pid": 32141,
+      "start_ticks": "783414250",
+      "gpu_uuid": "GPU-REPLACE-WITH-DEVICE-UUID",
+      "port": 8685,
+      "started_unix": 1792721073.8645303,
+      "command": [
+        "/data/research-user/h3_inference_20261023/env/bin/python",
+        "-u",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023/scripts/budget_bootstrap.py",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023/scripts/compatibility_bootstrap.py",
+        "/data/research-user/h3_inference_20261023/core/main.py",
+        "--listen",
+        "127.0.0.1",
+        "--port",
+        "8685",
+        "--base-directory",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023",
+        "--models-directory",
+        "/data/research-user/h3_inference_20261023/models",
+        "--disable-auto-launch",
+        "--disable-dynamic-vram",
+        "--lowvram",
+        "--disable-cuda-malloc",
+        "--use-pytorch-cross-attention",
+        "--reserve-vram",
+        "6",
+        "--enable-triton-backend",
+        "--preview-method",
+        "none",
+        "--disable-all-custom-nodes",
+        "--whitelist-custom-nodes",
+        "ComfyUI-KJNodes",
+        "H3Study",
+        "H3TrustedConditionCache",
+        "H3LivePhase",
+        "--input-directory",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023/input",
+        "--output-directory",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023/output",
+        "--temp-directory",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023/temp",
+        "--user-directory",
+        "/data/research-user/h3_inference_20261023/live_phase_pair_20261023/user",
+        "--database-url",
+        "sqlite:////data/research-user/h3_inference_20261023/live_phase_pair_20261023/study.db"
+      ]
+    }
+  },
+  "cache": {
+    "sha256": "ad361d036ee933cc0a72ad549ce384c883f0025922d3ee5c586370029be963f2",
+    "data": {
+      "schema": "r144-original-clean-condition-cache-v1",
+      "source_id": "short_0358",
+      "seed": 2026101701,
+      "source_video_sha256": "ed48b90939dd7387f5a4e56a371394e899b600baa230740544ec75ea9fd531fd",
+      "prompt_sha256": "5ea69610fb7e51081d4bdc30ba4f6ab27dff99f9bef9f0157c541cb2250acad4",
+      "geometry": {
+        "width": 1312,
+        "height": 736,
+        "frames": 107,
+        "fps": 24
+      },
+      "parent_root": "/data4/research-user/h3_runs/timing_ive_prompt_envelope_full_format_r123_20261020",
+      "shared_run_id": "r123_short_0358_shared",
+      "conditioning": {
+        "file": "/data/research-user/h3_inference_20261023/run/innovation_cache/short_0358/r123_short_0358_shared_conditioning.json",
+        "sha256": "299abd65e23d8e2c954728a1be778898ab0438493899966432b336c4b3cbdcff"
+      },
+      "tensors": [
+        {
+          "role": "reference_vae_latent",
+          "file": "/data/research-user/h3_inference_20261023/run/innovation_cache/short_0358/27b35d491b84f5c12a5b0f91ec91c2bb1b94b6b5c249a3e55476e0f2cb443e22.pt",
+          "sha256": "3c1cb0d2668f72169873271782be51aad0d2295203a1790e4c57f16884595dfd",
+          "tensor_signature": {
+            "shape": [
+              1,
+              24,
+              32,
+              46,
+              82
+            ],
+            "dtype": "torch.float32",
+            "sha256": "1ad0955cfa27b1215d5e8c8334d844944143040ce9e8f0f8a8e9618dc13d1081"
+          },
+          "bytes": 11589965
+        },
+        {
+          "role": "conditioning_embedding",
+          "file": "/data/research-user/h3_inference_20261023/run/innovation_cache/short_0358/c120ae30c08cb56d8ab884498f7f8c982d41ed904d2a471d1d0b6721d95477b3.pt",
+          "sha256": "9d6822a0a395f53ced80edf1371996bdcdb09b2be0b81c533053e3278e261283",
+          "tensor_signature": {
+            "shape": [
+              1,
+              5125,
+              5120
+            ],
+            "dtype": "torch.float32",
+            "sha256": "c25419c67547bf1932642a28b4ffe5b1ccb021960ce2e3be661002cecfd2732e"
+          },
+          "bytes": 104962381
+        },
+        {
+          "role": "conditioning_tags",
+          "file": "/data/research-user/h3_inference_20261023/run/innovation_cache/short_0358/a6669d52d93c5a6ffb3d52046d6f2f3f643ecf814adcc575e9983e6242b65d33.pt",
+          "sha256": "e8e56001b5d91d5e2368375e4db4e2cd912e86dcf6cbccc43229e8d55880a158",
+          "tensor_signature": {
+            "shape": [
+              5125
+            ],
+            "dtype": "torch.int64",
+            "sha256": "0e2466f3fb25d3a0e73fdc1461aa8e46d52663cb7d9df4d749c39b558bde747c"
+          },
+          "bytes": 43405
+        },
+        {
+          "role": "conditioning_position",
+          "file": "/data/research-user/h3_inference_20261023/run/innovation_cache/short_0358/8c6b95a54be66273dcbc49dfbb4f8cbf11af3a34f638036dbb6d5249b92f1d44.pt",
+          "sha256": "0fc5f8bf23bb55b76b1512488b54823da0b7b8c5e4582997f318919fc2328831",
+          "tensor_signature": {
+            "shape": [
+              65833,
+              3
+            ],
+            "dtype": "torch.float64",
+            "sha256": "737b24445da7970b17f41a34dedaf2e091cca1cbe827e904ea178a849053dd01"
+          },
+          "bytes": 1582413
+        }
+      ],
+      "CPU_compatibility_sources": {
+        "comfy/ldm/minimax/model.py": "0d5edcf32b4b98d704eaa51de60ed71f507d0c7d9845947f566647dc76fb8dfe",
+        "comfy/ldm/modules/attention.py": "9cafaafaf93ff53e8cbefb5e4a204014019985df2da8c1996bf40f1235fc2960",
+        "comfy/model_base.py": "6280712f8315f00f19a1ada53e48bf243c818b017fa751b3412092fa0f381e68",
+        "comfy/model_patcher.py": "26da6710a7d84e8e98ea3e0f0bc07b88cfef3f99a7f7d59daa71e650512c6ed4",
+        "comfy_extras/nodes_minimax_h3.py": "62ec72d4f3b879640dbd41b959a6c1112a82b77478509323094f49dae17fffdb",
+        "comfy/model_sampling.py": "8afdc665272589a567792bb652389df7d4a83f69574c2b7e5b3d533d55592990",
+        "comfy/samplers.py": "f2c264ca9d394612f828e3ffe167c856a278a10e1711b269f0ba65dccb66393f",
+        "comfy/ldm/minimax/vae.py": "40c4bf2db63279e0d13eb8de2c8a4602207a90cf9350f94afbee7aeed8b757ea",
+        "comfy/text_encoders/qwen3vl.py": "1004f4184c8ca5da74e4147a706bc4f1c9bd1a19ae63db74f3cab88ded0f0255"
+      },
+      "source_video": "/data/research-user/h3_inference_20261023/run/input/short_0358_video.mp4"
+    }
+  },
+  "selected_log_lines": [
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend triton: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'int8_linear', 'na3d', 'quantize_and_rotate_rowwise', 'quantize_int8_rowwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'w4a8_int8_linear']}",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend cuda: {'available': True, 'disabled': True, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+    "\u001b[32m[INFO]\u001b[0m Total VRAM 24217 MB, total RAM 257706 MB",
+    "\u001b[32m[INFO]\u001b[0m pytorch version: 2.5.1+cu121",
+    "\u001b[32m[INFO]\u001b[0m Set vram state to: LOW_VRAM",
+    "\u001b[32m[INFO]\u001b[0m Device: cuda:0 NVIDIA GeForce RTX 4090 : native",
+    "\u001b[32m[INFO]\u001b[0m model weight dtype torch.bfloat16, manual cast: torch.bfloat16",
+    "\u001b[32m[INFO]\u001b[0m loaded partially; 7193.10 MB usable, 6436.04 MB loaded, 13560.11 MB offloaded, 918.83 MB buffer reserved, lowvram patches: 0",
+    "\u001b[32m[INFO]\u001b[0m loaded completely; 6003.01 MB usable, 577.08 MB loaded, full load: True",
+    "\u001b[32m[INFO]\u001b[0m Unloaded partially: 404.55 MB freed, 6031.49 MB remains loaded, 918.83 MB buffer reserved, lowvram patches: 0",
+    "\u001b[32m[INFO]\u001b[0m loaded completely; 5573.72 MB usable, 4966.19 MB loaded, full load: True",
+    "\u001b[32m[INFO]\u001b[0m \u001b[32mPrompt executed in 00:16:55\u001b[0m",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend cuda: {'available': True, 'disabled': True, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}",
+    "\u001b[32m[INFO]\u001b[0m Found comfy_kitchen backend triton: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'int8_linear', 'na3d', 'quantize_and_rotate_rowwise', 'quantize_int8_rowwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'w4a8_int8_linear']}",
+    "\u001b[32m[INFO]\u001b[0m Total VRAM 24217 MB, total RAM 257706 MB",
+    "\u001b[32m[INFO]\u001b[0m pytorch version: 2.5.1+cu121",
+    "\u001b[32m[INFO]\u001b[0m Set vram state to: LOW_VRAM",
+    "\u001b[32m[INFO]\u001b[0m Device: cuda:0 NVIDIA GeForce RTX 4090 : native",
+    "\u001b[32m[INFO]\u001b[0m model weight dtype torch.bfloat16, manual cast: torch.bfloat16",
+    "\u001b[32m[INFO]\u001b[0m loaded partially; 7193.10 MB usable, 6436.04 MB loaded, 13560.11 MB offloaded, 918.83 MB buffer reserved, lowvram patches: 0",
+    "\u001b[32m[INFO]\u001b[0m loaded completely; 6003.01 MB usable, 577.08 MB loaded, full load: True",
+    "\u001b[32m[INFO]\u001b[0m Unloaded partially: 404.55 MB freed, 6031.49 MB remains loaded, 918.83 MB buffer reserved, lowvram patches: 0",
+    "\u001b[32m[INFO]\u001b[0m loaded completely; 5573.72 MB usable, 4966.19 MB loaded, full load: True",
+    "\u001b[32m[INFO]\u001b[0m \u001b[32mPrompt executed in 00:20:07\u001b[0m"
+  ],
+  "current_source_sha": {
+    "custom_nodes/H3Study/__init__.py": "f54d172fb9918e6ffdfed007e013a9005cb7c7a9c16374d718f31f6824ab2154",
+    "custom_nodes/H3Study/layout.py": "d71a0a34956c1c57e534f906df3dc954bc6b4ab02b33f78f0b0ba913e6acca08",
+    "custom_nodes/H3Study/core.py": "2dba7d615092491ad5b696b81ae2c0d41e9cae3760046aeefbdf33ad0d543691",
+    "custom_nodes/H3Study/schedule.py": "8cc187efc98c00280c321368c7471066970ae2aa633f52dd885160dc4190ae89"
+  }
+}

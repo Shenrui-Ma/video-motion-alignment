@@ -1,0 +1,73 @@
+{
+  "schema": "h3-postcapture-analysis-independent-review-v1",
+  "timestamp": "2026-10-23T01:28:48.285147+00:00",
+  "scope": "Offline CPU tools; no actual QK payload evaluated",
+  "decision": "APPROVED_NUMERICAL_DEFINITION_ONLY_SEMANTIC_PHASE_HELD",
+  "evaluator": {
+    "sha256": "4ad4f4314d958079f842a93b5bc0b4b4ac0e65522c5b3ce887ba6454143538e9",
+    "algorithm_and_indices": "approved",
+    "primary_definition": "FP32 per-head raw RMS followed by FP64 sparse content logits, spatial LSE, time softmax; all heads/probes; fully valid bins only",
+    "tests": {
+      "independent_dense_oracle": 3,
+      "actual_failed_gate_rejected": true,
+      "rejection": "successful raw AV replay and passive gate required"
+    }
+  },
+  "diagnostics": {
+    "ready_sha256": "fdcfa74926529e671246b64006cec6e4e9d6c66902c4813c6dc244351dfb20e9",
+    "policy_sha256": "a7652ec0ada8eb5e9262a5f3de06efb25973a0d6699c068ba7fe39afaae852c9",
+    "independent_package_tests_passed": 9,
+    "one_bad_head_out_of_56_rejected": true,
+    "inplace_dtype_oracle_finding": {
+      "status": "fixed_and_regression_passed",
+      "trigger": "BF16 raw Q/K with FP32 RMSNorm weight",
+      "observed_prediction_dtype": "torch.float32",
+      "actual_inplace_copy_dtype": "torch.bfloat16",
+      "synthetic_exact_fraction_before_copy_emulation": 0.7540364861488342,
+      "required_fix": "Emulate final q.copy_(eager_out) dtype conversion in reapply; add mixed-weight dtype regression."
+    },
+    "files_sha256": {
+      "CPU_TEST_LOG.txt": "f76a547c7f7568717fad99a339a4eafe53ff9663f391bfbebaf1a349674642b2",
+      "POLICY.json": "a7652ec0ada8eb5e9262a5f3de06efb25973a0d6699c068ba7fe39afaae852c9",
+      "README.md": "483c574f44776fc81cf2ef08e4f0048267ea35e86b413abb74d38a13dd5ff0e6",
+      "TEST_RESULTS.json": "f7e92e36d3138aa0970955ddec1eb9393fafe6f121d7743eca6490a9d47b577d",
+      "diagnose.py": "2a02359d27242d2cd9481e8531d7ab8144da26b4f35eeb36ca38b0caedb9a069",
+      "frozen_eager_rope.py.txt": "aee33a18bb5fe75ce24ebad389b830c9d5775d52723fc7df4864598547b2257c",
+      "frozen_triton_rms_rope.py.txt": "68a5760334a9cfd72717374f2107d5260d3b86683b9b6205bbc2f00c1ad08e6e",
+      "test_diagnose.py": "3a756d314c68d9a9ed9b40d7dbec07f1d491056c25dd44581507414889ff4444"
+    }
+  },
+  "actual_gate": {
+    "sha256": "5b758b52b5a8cd057462cf81665bef58aca4e0f15348056396989464e1d5bba8",
+    "raw_AV_hook_exact_equal": true,
+    "video_nrmse": 0.022714303894599875,
+    "audio_nrmse": 0.028419892391736885,
+    "passed": false
+  },
+  "no_relaxed_thresholds": true,
+  "actual_probabilities_computed": false,
+  "actual_qk_numerical_analysis_run": false,
+  "source_callback_review": {
+    "original_source_sha256": "98fc129e5a6754ce63e50d7c9a7067f042f43a95c5456b3224d7a9d466884be3",
+    "callback_semantics": "current sigma denoised before Euler update; copied raw then audio/4; original arguments unmodified",
+    "native_route_difference": "Only override_class indirection; route_attention and state math AST identical."
+  },
+  "allowed_input": {
+    "capture_sha256": "2fa2d5ea2bc9d079681442d2c64c8e817d62fa712327e94ae002a1bc2bece018",
+    "case": "short_0358",
+    "method": "native",
+    "step": 9,
+    "layer": 25
+  },
+  "allowed_operations": [
+    "Offline CPU mathematical Q/K interpretation with existing unchanged per-head numerical policy"
+  ],
+  "forbidden_operations": [
+    "event or semantic phase analysis of failed historical trajectory",
+    "setting old replay passed true",
+    "changing frozen thresholds",
+    "GPU execution",
+    "new alpha/control"
+  ],
+  "reason": "The actual off/on full AV outputs are exactly equal, sufficient for auditing raw-to-actual QK numerical definition; historical trajectory error still blocks semantic timing calibration."
+}

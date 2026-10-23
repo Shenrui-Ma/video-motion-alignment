@@ -6,8 +6,8 @@ IVEBench 评测执行交接（2026-10-22）
 保留六组历史任务36条编辑与6条参考；新增三条IVE与一条FlexiAct由推理队列完成后自动接入。
 
 执行位置
-.81 H3_SERVER: /data/researcher/h3_metrics_20261022
-GPU0 UUID GPU-REDACTED；保留已有VSR服务，与它空队列状态下共卡。
+.81 H3_HOST_CONFIGURE_LOCALLY: /data/research-user/h3_metrics_20261022
+GPU0 UUID GPU-REPLACE-WITH-DEVICE-UUID；保留已有VSR服务，与它空队列状态下共卡。
 环境 venv/bin/python，独立venv继承原comfyui的PyTorch，只在本venv补依赖。
 code/ 为镜像代码；videos/ 为内网传输视频；frames/ 为统一有效帧与裁剪后的PNG缓存；evaluation/results/<job>/<metric>.json 为每条原始分数。
 evaluation/summary.json 含全量行、完整性计数、分方法均值、六方法齐全的配对均值。
@@ -30,8 +30,8 @@ Mac launchd cn.h3.metrics.relay.20261022：90秒轮询 .41/.9a/.9b 的成功结�
 远端 metric_service.py：48小时CPU监督器，按enabled_metrics.json启动单GPU实际待评测任务；空队列无GPU占用。
 每条每项失败重试最多3次、单项40分钟超时，失败后继续下一项；原子写入，重复启动用flock防重。
 Mac launchd cn.h3.qwen.download.20261022：官方AWQ固定revision c8b87d4b81f34b6a147577a310d7e75f0698f6c2；11个分片合计43.02GB，分片SHA校验、断点续传、48h期限，不申请GPU。
-AWQ存到.60 /data3/researcher/h3_metrics_20261022/weights/Qwen2.5-VL-72B-Instruct-AWQ。
-.60根分区空间不足，后续环境、缓存、TMPDIR全部放/data3/researcher/h3_metrics_20261022。
+AWQ存到.60 /data3/research-user/h3_metrics_20261022/weights/Qwen2.5-VL-72B-Instruct-AWQ。
+.60根分区空间不足，后续环境、缓存、TMPDIR全部放/data3/research-user/h3_metrics_20261022。
 
 资源与下一项
 AWQ官方CUDA GEMM不支持CPU/disk offload；单40GB卡放不下权重和激活。等两张真正空闲GPU，再部署独立兼容环境及批量常驻IS/CF evaluator。
@@ -42,7 +42,7 @@ AWQ官方CUDA GEMM不支持CPU/disk offload；单40GB卡放不下权重和激活
 Mac：launchctl remove cn.h3.metrics.relay.20261022；launchctl remove cn.h3.qwen.download.20261022。
 远端只停止本目录的metric_service.py监督器，并让当前metric_worker.py完成；当前durable_metrics.py --once一轮结束自动释放。
 勿停止其他用户进程和旧VSR服务。中止下载留下.partial可续传。
-恢复：相同launchctl submit命令可重启脚本；远端服务以nohup venv/bin/python code/metric_service.py --root /data/researcher/h3_metrics_20261022 --hours 48启动。
+恢复：相同launchctl submit命令可重启脚本；远端服务以nohup venv/bin/python code/metric_service.py --root /data/research-user/h3_metrics_20261022 --hours 48启动。
 
 计时
 历史36条从timing/historical_six_cases_timing.json读取：包含每步x0 CPU拷贝和audit I/O。
@@ -52,3 +52,75 @@ Mac：launchctl remove cn.h3.metrics.relay.20261022；launchctl remove cn.h3.qwe
 网络
 轻量权重和AWQ采用curl --interface en0 --noproxy '*' +真实IP TLS解析，逐重定向确认，流式SSH写服务器；Mac不保留大权重。
 DNS查询和少量源码元数据走代理；视频在内网SSH传输。路径证据见各download.json和PHYSICAL_INTERFACE_ROUTE_CHECK.json。
+
+2026-10-22 12:39 Qwen AWQ .41部署更新（替代上文“尚未启动GPU”状态）
+已在.41 /data4/research-user/h3_metrics_qwen_20261022 部署独立评测，43.02GB权重、环境和主70条输入均经内网直传及SHA校验；未在Mac存大文件，传输临时服务已关闭。当前worker PID106659、UID1004、start_ticks521666，GPU4+5，避开GPU3视频服务。运行前动态检查两张空卡；实际卡记录qwen_runtime/evaluation_awq/actual_gpu_admission.json。
+环境：torch2.5.1+cu121、transformers4.51.3、autoawq0.2.9。加载适配修复model.rotary_emb非持久buffer的CUDA位置，并将visual与dense lm_head明确排除AWQ转换；decoder packed buffers要求int32，浮点计算FP16。原官方IS/CF compute函数和提示词保持。配置ID qwen25vl72b_awq4bit_fp16_c8b87d4b81f3，单列AWQ结果。真实checkpoint单层GPU测试及6项CPU测试通过；CPU假分数测试不计入结果。
+当前实际成功IS/CF为0；修复后的完整模型正在重新加载，先对short_0252__native完成IS与CF，两项成功后同一进程自动继续主70条。此前CPU/CUDA和误量化lm_head导致的失败记录保留于first_failed_device_placement_*。最新日志evaluation_retry.log（追加日志，早期错误勿当作当前状态）；身份worker_identity.json；加载核验qwen_runtime/loading_audit.json及packed_buffer_audit.json；首条状态qwen_runtime/evaluation_awq/first_sample_validation.json在本轮完成前仍可能是前轮失败值，需按时间核对。
+恢复入口：ssh H3_HOST_CONFIGURE_LOCALLY，nohup python3 -u /data4/research-user/h3_metrics_qwen_20261022/restart_verified.py > /data4/research-user/h3_metrics_qwen_20261022/restart.log 2>&1 < /dev/null &。先检查当前worker身份和存活；入口有flock、PID/UID/start_ticks复核、输入与权重验证，存活时拒绝重复提交。每项失败最多3次，成功项按配置跳过；批次运行结束释放自己的GPU。无两张空卡时退出等待后续跟进，当前不自动占其他用户卡。只管理本专用目录worker，勿改动视频queue/service。
+
+2026-10-22 12:46 Qwen AWQ 首条验证通过并持续批量评测
+当前PID106659/UID1004/start_ticks521666仍存活，GPU4+5。完整加载audit无missing/unexpected/mismatched/error，1120个AWQ packed buffers均int32，输出lm_head为dense Linear。short_0252__native实际IS=5、CF=5，分别34.5秒/21.2秒；截至12:46已完成3条视频的6项IS/CF，0失败，主70条继续。first_sample_validation.json现为本轮通过状态。
+小结果同步：python3 metrics/qwen_runtime/host41/sync_results.py；只经SSH读取小JSON，保存到host41/snapshot及snapshot_status.json。AWQ结果保持单列，不混入原精度IS/CF。远端结果路径qwen_runtime/evaluation_awq/results/<job>/；同机2卡同一常驻模型顺序评测，成功项按配置可续跑。完成后worker自行退出释放显存。
+
+12:49批次确认：8/70条视频的16项IS/CF已完成，0运行失败；PID106659身份匹配。单项约15–35秒。原始结果附模型文字理由。source/source的short_0252 CF=1，理由却描述了角色替换，与相同源/目标输入冲突；这是该AWQ评测的自一致性异常，保留分数及原文供后续分析。聚合需把source行和编辑方法分开，AWQ配置也与原精度分开。
+
+2026-10-22 14:20：五条prompt_format任务已移交.9 host9a GPU0，result来源目录不变，method=six_section_native，cohort=prompt_format；完成后单独汇总。Qwen健康GPU2+7恢复11失败，129成功保留；worker281953，GPU4/5异常排除。
+
+2026-10-22 16:40 当前状态（覆盖旧资源状态）
+.81 metric_service已切换GPU2 UUID GPU-REPLACE-WITH-DEVICE-UUID，supervisor40864/start776971791；94视频的846项数值指标完成，QA94不适用；继续自动接入新成片。主70条Qwen AWQ IS/CF140项全部成功并已释放模型，独立汇总qwen_runtime/host41/summary_awq；原精度未运行。最新小JSON快照latest_results_snapshot_20261022_1640.json；current_summary.json为早期快照，请勿视为实时计数。
+
+2026-10-23 04:40 latest entry (history retained): .81 /data/research-user/h3_metrics_20261022/code/manifest.json contains133videos; evaluation/summary.json has1197 done numeric items plus133 QA not_applicable. All producer outputs arrive through local metrics/watch_outputs.py (launchd cn.h3.metrics.relay.20261022); 4producers .41/.9a/.9b/.60 remain registered, expected jobs include original8+anchor2+field2+layer2. Field0358 transferred to.41; layer2 currently unique.41 until host81 deployment READY and explicit transfer receipt. Host81 is preparing a separate H3 runtime and is not yet a producer.
+AWQ canonical user-facing smallJSON is metrics/qwen_runtime/adaptive_awq_scores.json, generated by export_adaptive_awq.py --refresh from original result JSONs with input/result SHA and exact configuration_id; collector's nine-metric snapshot alone does not contain AWQ. Main70=140AWQ items completed; extra59=118completed_returned. Additional4videos8items currently running host41_field_incremental_20261023, sup93434/start1195343 andworker93440/start1195376. Prior118preserved. Auto-returnwatch82621 merges only new8 and refreshes exporter; inspect that directory HANDOFF/target_snapshot/snapshot_status for actual state. Original precision and AWQ CPUbridge labels remain separate.
+Runtime boundary ownership: supervision/temporal_field_boundary_20261023/ for field2 and0358 transfer; supervision/layer_boundary_20261023/ for layer2 (guard88209/start1080722 waitingfield2 audit+naturalexit); supervision/host81_inference_20261023/ for isolated resource preparation, no source withdrawal until fullREADY. Do not restore canceledpartial3, blockedcoveragev1, or heldDOFdrinking.
+
+04:43 update: field_incremental4videos8items completed_returned; all118previous success SHA preserved, aggregate126. RETURNED.json andtarget_snapshot.json hold actual results. Returnwatch refreshescombinedsource snapshot andadaptive_awq_scores. AWQworker93440/supervisor93434 naturally completed.
+
+05:10 resource/relay update: field2 expected manifest batch/field_extension_two/jobs.json registered; .41 layer2 followed by field2 independent waitingguard106798. AWQ field_incremental8 all returned; cumulative126actualsuccessful items, canonical qwen_runtime/adaptive_awq_scores.json refreshed. New unique blend producer H3_HOST_CONFIGURE_LOCALLY:/home/research-user/h3_runs/adaptive_blend_20261023 registered, existing4 producers kept. Relay5tests passed and identity-checked idle restart receipt supervision/blend_host9_transfer_20261023/RELAY_RESTART.json. .81 CPUruntime staging is not a producer and owns no inference task.
+
+05:24 role5 two-pilot expectedplans registered at batch/role5_pilots/jobs.json, distinct methodlabel; actualinferencewaits.41 afterfieldextension2. Relay6tests passed andidle restart receipt supervision/role5_boundary_20261023/RELAY_RESTART.json. NewAWQ pending truefinished clips now include temporal_gain_field drinking andcausal_layer_budget aircraft; layerdrinking finishingsoon. Old126success preserved/returned, nextincrement should append onlynewfinished/framesprepared IDs andreuse sameCPUbridge config.
+
+2026-10-23 05:33: AWQ layer_incremental_20261023 started on .41 GPU1+2, supervisor113336/start1515503 and worker113385/start1515537 UID1004. New4 clips/8 IS-CF: field drinking, layer aircraft/drinking, expand2_short0039_global_weak. Old126 successful scores SHA preserved; target and return watcher in metrics/qwen_runtime/host41_layer_incremental_20261023/HANDOFF.txt. Same official CPU-bridge AWQ execution config. Source60 delegated until completed return. Nine-metric relay current expected plans include field extension2 and role5two; .9 blend producer retained.
+
+2026-10-23 05:40: layer_incremental_20261023 completed_returned8, aggregate134/134 nofailed; canonical refreshed. Role5 producer now H3_HOST_CONFIGURE_LOCALLY:/home/research-user/h3_runs/adaptive_role5_20261023 (unique transfer source .41 role5 guard stopped; current .41 field preserved). watch_outputs PRODUCERS6,6tests passed and idle relay restarted. Full20x50 role5 audit before secondpilot.
+
+2026-10-23 uniform: official9 relay7 producers includes host81_uniform root/run_uniform_energy, canonical uniform_pilots/jobs.json expected2. Safe idle restart recorded supervision/host81_uniform_resource_20261023/RELAY_RESTART.json. AWQ134 completed retained; book/new output batch later, no duplicate AWQ loading.
+
+2026-10-23 06:39 UTC+8: .41 field book+handkerchief both complete20forward/1000block, worker112155/service112160 naturally exited queue0 cleanup0; no pending old canceled job restored. .9 blend0358 completed20/20 and naturally exited; role5 aircraft fullaudit passed, drinking prompt45a484fd-a7e3-4b1b-b8a6-71780da66b6b at11/20 (~111s/step), service42111/start2673627510, guard4972/start2673399349 owned. .81 uniform drinking fullaudit+memory passed, aircraft prompt49d236ed-0975-4054-8e77-661d42a9563e at18/20 (~58s/step), worker15626/start782064911/service15671/start782065111, guard60913/start781935552 owned. No runtime fault. All snapshots stored runtime_0637_20261023.
+AWQ prior134 completed/returned and .41 priorworkers confirmed exited. One new 7video/14item increment prepared: field long0039/0059, blend0358, role5two, uniformtwo. Local coordinator31876 (UID501 start06:39:08) waits all7 real clips and prepared frames; discovery currently5ready, remainingrole5drinking/uniformaircraft. Directory metrics/qwen_runtime/host41_field_role_uniform_incremental_20261023; eventualtarget .41 /data4/research-user/h3_metrics_qwen_20261022/qwen_runtime/field_role_uniform_incremental_20261023. Claim source .60 once allready, preserve134SHA, exact official evaluator byteSHA30af2974588beb6d13b0f0c4d4c1e7d712b8a9f72a2dde7a59b49b27958f7f6c; GPU1+2 health/free41196/48494 meets37500MiB admission, cap30GiB each unchanged. Launch verifies prioridentity and locks, returnwatch automatically publishes14/148 and canonical AWQ exporter. No model loading until all7ready to avoid duplicate72B loads. Renderer/collector/scientificsources unchanged. Official9 relay142 videos zeroerrors.
+
+2026-10-23 07:07 check: role5both fullaudit passed/naturallyfinished. AWQ field-role-uniform increment14/14 completed/returned to source; preserved134 total148, zero failed. Canonical exporter now includes field_extension_two/role5_pilots/uniform_pilots, seven tests pass, refreshed54done/2pending/0invalid. Pending2 are unrun DOF0358 held. No new scientific GPU job. .41 GPU7free48494/.81GPU5free22501; runtime_0707_20261023/RESOURCE_PLAN.json only stages resourceplan pending root science approval.
+
+2026-10-23 07:17: fixed-budget原四例经root正式释放后已部署。唯一owner映射见OWNERS.json与各host*/TARGET_RECEIPT.json。.41既有R41追加手帕long0059（manifest68，worker145632/start2132839，GPU7仅一自有video）；.9复用已退出role5root追加书本long0039（manifest3，worker56034/start2673984895，GPU1 cap26/reserve6/min33792，其他PID60095受保护）；.81复用已退出uniformroot追加饮酒0358（manifest3，worker3940/start782401530，GPU5cap19.5/reserve6/min22500+postCUDA1536）以及仅planned机舱0252，饮酒full20x50/audit/videoSHA/timing/peak通过且service自然退出才追加。全部15科学文件SHA冻结READY5b32848e...，各图仅必要path/cache映射，seed/prompt/model/geometry逐项一致；CPU schema/cacheSHA和三host GPU fp16/bf16 tinyFlash通过。6runtimegate tests通过。首两步100层check_first.py正在运行，写各hostFIRST_FORWARD.json。三host远端innovation_handoff/fixed_budget_20261023保存guard/结果与计划，旧角色与uniform结果保留。官方relay仍7producers，加独立fixed_budget_original_four计划，8relaytests通过，安全idle重启。AWQ新4视频8项coordinator46875等待全片ready后合批，目标metrics/qwen_runtime/host41_fixed_budget_incremental_20261023，旧148成功保留；不提前加载72B。没有科学代码改动、报告或collector改动。
+
+2026-10-23 07:37 heartbeat: three fixed-budget runtime identities/API/locks/guards verified, latest completed layer independently re-audited; no faults and no corrective mutation. .41 handkerchief12/20 (145632/145637 guard145633), .9 book11/20 (56034/56045 guard56035). .81 drinking full20x50/1000block+peak+videoSHA/timing passed; outputSHA969257f894eb267ccf03d47c9bb3ba0bb18c4a2c4be7cce8d57360d80a3d5129,1195.918s sampling/59.796sstep,alpha.0914616-.4531941 mean.24697448,energyerr3.107e-8; firstanchor50fallback expected,950nonuniform layers. Guard3942 naturally appended aircraft, newworker24768/start782530875 service24774/start782530919, APIe2798b58-289e-489e-9e32-1365936a032e now sampling (initial0forward). Drinking completeexactvideo/timing/audit inDRINKING_COMPLETED.json. Officialrelay145videos zeroerrors; drinkingprepared and AWQcoordinator46875 sees1/4ready, waits other3 to avoid repeated72B load. Prior148scores remain intact. No new jobs or scientific changes. Source snapshots host*.json andMETRICS_CHECK.json.
+
+2026-10-23 08:07 runtime update: 08:07 heartbeat runtime check: fixed-budget four complete; all three guards/workers/services naturally exited; API endpoints closed and no active submission. Each full20x50/1000block audit passed, no solver failures; fifty first-anchor fallbacks expected,950 nonuniform applied layers. Exact output paths/videoSHA/auditSHA/timing in COMPLETED_FOUR.json, original snapshots host*.json. Host81 both whole-service peak reserved below19.5GiB cap. No scientific configuration changed.
+AWQ four newvideos/eight metrics fully prepared. OriginalGPU2 free5774MiB blocked existing37500 admission, whileGPU1free41196/GPU6free42518. Tiny finiteCUDA+host-copy probes passed on1/6. Verified oldsupervisor175667/UID1004/start2421222 CPUwaiting, no modelworker, terminated onlythisCPU supervisor; acquired batch/global deploymentlocks; changed only GPU UUID resource selectors (launch1/batch2 occurrences), kept oldbytes+SHA receipt, all official functions unchanged. New supervisor177292/start2460312,worker177298/start2460347 actual model load. Same30GiBcap percard and37500MiBminimum. AWQ_RESOURCE_SWITCH.json records exact before/afterSHA. Existing returnwatch continues, preserving148 then returning8→156; no duplicate input scores.
+Official9 current1323done +147QA N/A, new fixedbudget drinking/book/handkerchief9each complete, aircraft pending/normalrelay. MF drinking.8881982345756952,book.9180203222051633,handkerchief.8040717394645523. All were automatically relayed.
+Prepared next genuine extension candidates only, not submitted: original parked order short0135(roboticarm124frames),long0161(man→child107frames),short0166(dog→cat124frames). Existing metadata/sourcegraphs andSHA captured EXTENSION_CANDIDATES.json; all3absent from officialmetricsmanifest. Await rootcandidate review before uniqueownership/actualsubmission. No extra scientific variants or canceled jobs restored.
+
+
+2026-10-23 08:20 extension continuation: 本批未测真实IVE扩展3对/6条，官方原prompt、seed2026101701、20步、完整几何与原H3Study源四文件SHA均保持。normal native与global_weak alpha.25分别独立，max_attempts1。6项runtime门槛测试通过，所有source/target receipt字节SHA逐项核对。
+.41 GPU7 UUID GPU-REPLACE-WITH-DEVICE-UUID：short0135画家手替换机械臂124帧，原GPU独占准入（不得有任何其他compute），Comfy reserve8GiB，端口8672。worker180740/start2504437/service180751/start2504522，guard180741/start2504486。native真实APIprompt76fc8b20-e5bf-43f2-8243-a65c3e234fe4，当前读取模型/预处理未完成首步；只有此一个自有video。guard在native成片/SHA/20步+1000block审计通过且服务自然退出后才appendweak并启worker。
+.9 GPU1 UUID GPU-REPLACE-WITH-DEVICE-UUID：short0166狗替换猫124帧，cap26GiB/reserve6GiB/min33792MiB，共享保护他人原已分配。worker27660/start2674354229/service27686/start2674354265，guard27661/start2674354229，端口8678。native真实APIprompt542bc57c-9021-469e-b627-56e2c9970c9a；正在原图文本CPU编码/参考VAE，尚未首步，同native通过后再weak策略。
+long0161男人替换孩子107帧：.81无原图需要的32B文本权重且没有现成同prompt参考缓存，经root授权改接.41上述short0135两条后的自然结束边界，不部署新cache方案、不搬大文本模型。唯一归属host41_extension_followon，guard183608/start2510896等待。只在前一对RESULTpassed且worker/service退出/API关闭/锁释放后appendnative，native完整审计后weak；路径r41/innovation_handoff/extension_followon_0161_20261023。
+旧.9source parked移除恰好这6条，其他条目保留，SOURCE_RELEASE与TARGET_RECEIPT存host41_extension/host9_extension/host41_followon各目录；.81准备图没有提交、没有owner。OWNERS.json统一入口。两个现跑guard目录为各root/innovation_handoff/extension_three_20261023。所有guard错误写RESULT失败而不重复相同配置。
+官方metrics relay现有7producers保持，expected_jobs已逐项确认这6条在原计划内；新片自动接入，sourcevideo metadata已重映射目标同SHA副本。采样audits/router和audit/timing由原H3Study节点逐步记录。AWQ fixedbudget前批8项在.41GPU1+6正常计算，returnwatch自动148→156，独立记录metrics/qwen_runtime/host41_fixed_budget_incremental_20261023。新扩展未安排AWQ空输入，等成片后合批。
+check_sampling.py只读核验API身份与实际timing；FIRST_SAMPLING_WATCH.json为本机最多60分钟只读观察器，首步写各host/FIRST_SAMPLING.json，不提交/重启。未记录首步前不声称已采样。
+
+
+08:22: fixedbudget AWQ8/8 completed_returned, preserved148 aggregate156 nofail. Canonical adaptive_awq_scores62done/2pending(heldDOFdrinking)/0invalid. Actual .41 AWQsupervisor177292/start2460312 andworker177298/start2460347 both /proc absent; naturallyreleasedGPUs1+6. RETURNED.json inqwen_runtime/host41_fixed_budget_incremental_20261023. Extension native2 still healthypreprocessing; readonly firstsamplingobserver71953 persists.
+
+2026-10-23 08:37 heartbeat: no faults, no runtime mutation, no duplicate dispatch. .41 GPU7 short0135 native10/20,500completeblocks, recent59.75–59.80s/step; worker180740/start2504437,service180751/start2504522,guard180741/start2504486,UID1004/API76fc8b20-e5bf-43f2-8243-a65c3e234fe4. .9 GPU1 short0166 native2/20,100completeblocks,steps136.44/119.23s; worker27660/start2674354229,service27686/start2674354265,guard27661/start2674354229,UID1016/API542bc57c-9021-469e-b627-56e2c9970c9a. Eachnative completion will be audited before guard submits its weak companion at a natural exit boundary. .41long0161 followon183608/start2510896 healthywaitingpriorpair. LiveIDs/locks/API snapshots saved host*.json. FIRST_SAMPLING files present; read-onlyobserver saw bothstartand naturallyfinished.
+Officialnine1332done/148QA N/A. AWQ156 completed_returned,0failed,prior148preserved; oldsup177292/worker177298 no /proc entries. No new video yet and no extraAWQload needed. Metricservice40864 identity/command captured METRICS_AND_RESOURCES.json; relay stays active.
+Read-only nextresourceassessment: .81GPU5 UUIDGPU-REPLACE-WITH-DEVICE-UUID free22501MiB util0, otherUID1001 PID62100/start781512094 occupies1706MiB. Prior validated H3cap19.5GiB/reserve6GiB(in-cap)/min22500+postcontext1536 margin remains a candidate; no newcalibration orGPU model loaded. Other81cards free17146/10461/20125/20125/10461MiB. Any newpassiveQ/Kcalibration awaits science/reviewrelease and freshadmission. Preserveothers, .41oneownvideo.
+
+
+2026-10-23 live_phase_pair: new independent calibration cohort phase_calibration_pair (not main10 or innovation means), two new full107-frame trajectories native→global_weak. Uniqueproducer H3_HOST_CONFIGURE_LOCALLY:/data/research-user/h3_inference_20261023/live_phase_pair_20261023, jobs at supervision/live_phase_pair_20261023/jobs.json. Native firstactualforward passed, guard15715/service15723 with identity in STARTED/FIRST_FORWARD. Queue_state result adapter exposes actualnewvideoSHA only after complete20×50/two callback capture gate; existing7 producers preserved, relay9tests and safe idle restart complete. AWQ futurebatch with these newclips and realextension outputs, prior156 scores retained; no model reload for pendingclips.
+
+2026-10-23 short0185 followon: one originalparkedpair uniquely assigned .9 adaptive_role5 ownerhost9_extension_0185; guard2132/start2674921508 waits current0166weak fullpair+idle boundary then native→weak under existing26/6/min33792 budget. Same officialprompt/seed/full107geometry and4H3Study sourceSHAs. Evidence supervision/extension_0185_20261023/{SOURCE_RELEASE,TARGET_RECEIPT,VERIFIED,HANDOFF}. No newproducer required, expected IDs already present;0220 untouched.
+
+2026-10-23 09:57 extension/live AWQ bounded continuation: qwen_runtime/host41_extension_live_incremental_20261023/COORDINATOR_STARTED.json records local PID20026 UID501 start Fri Oct23 09:57:00; CPU-only waiting for exact10 videos/20IS-CF items (0135/0161/0166/0185 native+weak, live0358 native+weak). Prior156 preserved; expected176. No0220. FrozenIDs and unique ownership/health checks precede 72B load; original CPU-bridge config and30GiB cap. Current discovery has5 target edited videos ready; remaining5 pending. Eight-producer nine-metric relay includes live pair and existing0185 targetproducer.
+
+2026-10-23 10:05 approved0220 pair now uniquely host41_extension_0220 at existingfirstproducer. expected_jobs alreadyincludesboth IDs fromoriginalplan; no relayreboot needed. Evidence supervision/extension_0220_20261023/METRICS_COVERAGE.json. AWQ frozen10unchanged,0220laterincrement.

@@ -73,7 +73,7 @@ short_0274 | 全程弱引导 | .9/2 | 1145.76 | 57.29
 historical_six_cases_timing.json：36 条完整记录、来源、哈希、每步时间、主机/GPU、prompt/graph 哈希、各方法及匹配子集均值。
 build_historical_timing.py：完全从本地证据重新生成统计。
 collect_remote_timing.py：只读抓取原日志与元数据；原始日志合计约 246 KB。
-remote_H3_SERVER_A.json / remote_H3_SERVER_B.json：原始日志证据。
+remote_H3_HOST_CONFIGURE_LOCALLY / remote_H3_HOST_CONFIGURE_LOCALLY：原始日志证据。
 
 复算：python3 build_historical_timing.py
 验证：36 个唯一 sample-method 记录；每条 20 步；24 条 callback 和尾部时间之和等于 sampler_wall；12 条原始 job graph SHA256 与历史对照配置一致。

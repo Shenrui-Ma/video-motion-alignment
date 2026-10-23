@@ -1,0 +1,32 @@
+Current user scope: FIVE six-section ordinary edits, no guided version and no new raw-prompt version.
+
+Append ONLY jobs_append.json (identical payload to package/jobs.json):
+promptfmt_short_0252_six_section_native
+promptfmt_short_0358_six_section_native
+promptfmt_short_0085_six_section_native
+promptfmt_long_0059_six_section_native
+promptfmt_short_0343_six_section_native
+
+Graphs are package/graphs/<job_id>.json. deployment_files.json lists the exact six small deployment files and SHA256 hashes, approximately 43 KB total. Do not copy all graphs into a queue. Fifteen other generated graphs are prepared_unscheduled; all_twenty_comparisons.json and reuse.json are preparation/reference archives, not live manifests.
+
+The only six-section content:
+subject_definitions: <Video 1>: source video.
+summary: [video editing] <verbatim official edit_prompt>
+retention_analysis: Not specified.
+detailed_description: Not specified.
+overall_soundscape: Not specified.
+non_diegetic_music: Not specified.
+
+No source/target caption, event timing, camera, background or action-retention instruction is added. The six-section scaffold supplies task type and a source-video identifier. It tests a minimal format wrapper, rather than detailed prompt enrichment.
+
+Every active graph uses H3StudyReference to encode its actual new prompt. No historical conditioning tensor cache, intermediate VAE decoder, DWPose, or X0 recorder is present. ComfyUI may reuse identical new six-section conditioning if the same graph is later reused; it cannot fetch the old prompt cache because no such cache node exists.
+
+Recipe: frozen case source, seed, resolution, frame counts, 24 fps, Euler, original 20 sigmas, original model/CLIP/VAE weights, video/audio shift 12/3, original evaluation crop. Native mode; alpha parameter 1.0 is inert when mode=native. H3StudyTiming records actual per-step and sampling duration. Metadata method=six_section_native, cohort=prompt_format.
+
+Current graph roots target .41 /data4/research-user/h3_runs/benchmark_schedule_20261022; parent verified all five named input videos already exist there. assets.json contains local source and expected SHA256, so compare remote hash rather than re-upload videos.
+
+CPU tests: python3 test_package.py; nine test groups passed, covering count/selection, prompt-only graph difference, guidance-only difference on unscheduled preparations, exact prompts, frozen recipe, input hashes, reference links, no old condition caches, doctor raw archival equivalence. GPU node schema and runtime execution remain parent deployment checks.
+
+Existing prior four showcase prompts were enriched adaptations; doctor raw was the exact official instruction. Their outputs can be shown as historical comparisons with their actual prompt text, but the four older outputs should not be labeled raw-instruction controls.
+
+No live queue, service, metric implementation, or user report was modified by this preparation agent.

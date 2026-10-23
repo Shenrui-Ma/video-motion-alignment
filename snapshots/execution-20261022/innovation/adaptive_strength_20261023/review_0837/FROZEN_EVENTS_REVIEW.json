@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "source_sha256": "47e74ca45a90150150baacf77107ecc821f3239409f179adf4cca6076433dff7",
+  "events": [
+    {
+      "case": "short_0358",
+      "event": "bottle_lowered",
+      "unchanged_native_weak": true,
+      "native_delay_lower": -4
+    },
+    {
+      "case": "short_0358",
+      "event": "bottle_reaches_lips",
+      "unchanged_native_weak": false,
+      "native_delay_lower": 6
+    },
+    {
+      "case": "short_0358",
+      "event": "bottle_leaves_lips",
+      "unchanged_native_weak": false,
+      "native_delay_lower": 7
+    },
+    {
+      "case": "long_0059",
+      "event": "hand_approaches_eye",
+      "unchanged_native_weak": true,
+      "native_delay_lower": -2
+    },
+    {
+      "case": "long_0059",
+      "event": "eye_wiping_contact",
+      "unchanged_native_weak": true,
+      "native_delay_lower": -3
+    },
+    {
+      "case": "long_0059",
+      "event": "hand_leaves_face",
+      "unchanged_native_weak": false,
+      "native_delay_lower": 13
+    }
+  ],
+  "checks": [
+    "historical event intervals exact",
+    "all source/native/weak video SHA match frozen controls",
+    "fps/valid frames exact",
+    "protocol byte SHA",
+    "offset/midpoint/uncertainty recalculated",
+    "3 unchanged plus 3 distinct delayed events"
+  ],
+  "circularity_review": "labels select reporting rows only; full valid reference support remains unchanged; not an unsupervised evaluation",
+  "warning": "different generated event rows are intentional; do not reuse source rows as generated rows or truncate reference support to event bins"
+}

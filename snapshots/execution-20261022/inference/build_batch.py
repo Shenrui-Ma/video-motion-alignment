@@ -3,8 +3,8 @@ import copy,hashlib,json,shutil
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'inference/package'
-REMOTE='/data4/researcher/h3_runs/benchmark_schedule_20261022'
-TEMPLATE=Path('/Users/researcher/DevProjects/h3-guidance-schedule-r150-20261021/final_global_host41/cases/long_0039')
+REMOTE='/data4/research-user/h3_runs/benchmark_schedule_20261022'
+TEMPLATE=Path('/workspace/research-user/DevProjects/h3-guidance-schedule-r150-20261021/final_global_host41/cases/long_0039')
 def write(p,d):
  p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
 for d in ['input','output','logs','temp','user','graphs','custom_nodes/H3Study','scripts','audit/timing','audit/router']:(OUT/d).mkdir(parents=True,exist_ok=True)

@@ -1,0 +1,174 @@
+{
+  "case_id": "short_0252",
+  "dataset": "IVEBench",
+  "fps": 24,
+  "valid_frames": 98,
+  "annotation_source": "AI visual frame annotation, current source/native/weak boundary frames rechecked and partial full-span overview plus event-adjacent consecutive frames inspected",
+  "frame_index": "zero_based",
+  "offset_definition": "generated transition midpoint minus source transition midpoint; positive means delayed",
+  "events": [
+    {
+      "id": "hands_leave_lap",
+      "label": "双手离腿并向面罩靠近",
+      "definition": "双手离腿并向面罩靠近",
+      "source": [
+        42,
+        45
+      ],
+      "native": [
+        58,
+        61
+      ],
+      "global_weak": [
+        42,
+        45
+      ],
+      "partial_temporal_rope": [
+        58,
+        61
+      ],
+      "notes": "57帧左手先抬，58帧右手开始离腿，59–61帧双手持续向面罩靠近；双手事件按58–61记录。",
+      "offset_frames": {
+        "native": 16.0,
+        "global_weak": 0.0,
+        "partial_temporal_rope": 16.0
+      },
+      "offset_interval_frames": {
+        "native": [
+          13,
+          19
+        ],
+        "global_weak": [
+          -3,
+          3
+        ],
+        "partial_temporal_rope": [
+          13,
+          19
+        ]
+      }
+    },
+    {
+      "id": "grasp_mask_cup",
+      "label": "接触并握住黄色面罩杯",
+      "definition": "接触并握住黄色面罩杯",
+      "source": [
+        48,
+        51
+      ],
+      "native": [
+        62,
+        65
+      ],
+      "global_weak": [
+        48,
+        51
+      ],
+      "partial_temporal_rope": [
+        63,
+        66
+      ],
+      "notes": "62帧左手仍接近杯体；63帧指尖开始与杯缘重叠，64–66帧逐渐形成抓持。透明袋、杯缘和指尖遮挡使接触定位采用63–66过渡区间。",
+      "offset_frames": {
+        "native": 14.0,
+        "global_weak": 0.0,
+        "partial_temporal_rope": 15.0
+      },
+      "offset_interval_frames": {
+        "native": [
+          11,
+          17
+        ],
+        "global_weak": [
+          -3,
+          3
+        ],
+        "partial_temporal_rope": [
+          12,
+          18
+        ]
+      }
+    },
+    {
+      "id": "right_hand_raise",
+      "label": "右手离杯并持带向胸前上方抬起",
+      "definition": "右手离杯并持带向胸前上方抬起",
+      "source": [
+        69,
+        75
+      ],
+      "native": [
+        85,
+        89
+      ],
+      "global_weak": [
+        69,
+        75
+      ],
+      "partial_temporal_rope": [
+        83,
+        89
+      ],
+      "notes": "82帧右手仍靠近杯侧；83帧开始离杯抬带，84–86帧持续上抬，87–89帧进入胸前上方。按83–89过渡区间记录。",
+      "offset_frames": {
+        "native": 15.0,
+        "global_weak": 0.0,
+        "partial_temporal_rope": 14.0
+      },
+      "offset_interval_frames": {
+        "native": [
+          10,
+          20
+        ],
+        "global_weak": [
+          -6,
+          6
+        ],
+        "partial_temporal_rope": [
+          8,
+          20
+        ]
+      }
+    }
+  ],
+  "mean_absolute_offset_frames": {
+    "native": 15.0,
+    "global_weak": 0.0,
+    "partial_temporal_rope": 15.0
+  },
+  "video_provenance": [
+    {
+      "method": "source",
+      "sha256": "1cb246924154d0344a7d198436477cad0b3af533f5297ebbcebf3f5f990c32d5",
+      "video": "/data/research-user/h3_metrics_20261022/videos/short_0252/source.mp4"
+    },
+    {
+      "method": "native",
+      "sha256": "5317e356d7a12e12b09799b56ec61bc0c20c03dda73e3d0478c0ca9d6c5adc7b",
+      "video": "/data/research-user/h3_metrics_20261022/videos/short_0252/native.mp4"
+    },
+    {
+      "method": "global_weak",
+      "sha256": "50747cb1b1ce7f50d14f92a1ee0e6bf7505126e81de18d6b616bd459d9b4fa01",
+      "video": "/data/research-user/h3_metrics_20261022/videos/short_0252/global_weak.mp4"
+    },
+    {
+      "method": "partial_temporal_rope",
+      "sha256": "71bec9ad9d84cd15dd309d2971a65257a24ef6edf7cea3a19b23fb35a941a785",
+      "video": "/data/research-user/h3_metrics_20261022/videos/short_0252/innov41_short_0252_partial_temporal_rope.mp4"
+    }
+  ],
+  "historical_annotations_sha256": "42e18f683e335d951ef1329ba9acaf01bea63a104ca79c716a44086618f6bb93",
+  "visual_conclusion": "部分RoPE频带的三个动作仍整体延后，平均绝对偏移15.0帧，与普通编辑15.0帧接近；全程α=0.25为0.0帧。该样例的局部动作时间对齐未改善。",
+  "uncertainty": "事件以过渡区间标注，杯缘与手指遮挡造成数帧定位范围；原始区间和偏移范围均保留。",
+  "evidence_files": [
+    "partial_overview.jpg",
+    "partial_hands_detail.jpg",
+    "partial_raise_detail.jpg",
+    "source_events.jpg",
+    "native_events.jpg",
+    "global_weak_events.jpg",
+    "comparison_frame_052.jpg",
+    "comparison_frame_075.jpg"
+  ]
+}

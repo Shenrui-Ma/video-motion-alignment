@@ -1,0 +1,164 @@
+{
+  "schema": "h3-field-live-environment-review-v1",
+  "created_at": "2026-10-23T03:11:30.314819+00:00",
+  "decision": "RECOMMEND_ONE_FROZEN_FIELD_REPRODUCTION_IN_NEW_PAIR_ENVIRONMENT",
+  "gpu_started": false,
+  "queue_or_report_changed": false,
+  "case": "short_0358",
+  "selection_basis": "explicit reproduction of the already known positive drinking case, not an unbiased new cohort or a parameter search",
+  "evidence_sha256": {
+    "field41_evidence.json": "9a1e595f48e393cf3add6457e8f89663eaa3f0c2d30e31f38f4602d388d99085",
+    "live81_evidence.json": "9591fa048ef5cf870068c700f4f5e201ab0f02b9dbd530c4e0bd6c7689ce14ad",
+    "READY.json": "35b52289d4ef6aa1347ea4da8effbbf9adf8994206b3e2a26660d68a149f4e3f",
+    "metrics.json": "9fea0b64fb9bc15da7789023787f3b3c134dc202358ad122918384b8a160cc00"
+  },
+  "confirmed_equal": {
+    "cache": {
+      "source_video_sha256": true,
+      "prompt_sha256": true,
+      "geometry": true,
+      "seed": true,
+      "CPU_compatibility_sources": true,
+      "conditioning_json_sha256": true,
+      "all_tensor_files_and_signatures": true
+    },
+    "science_graph_nodes_exact": {
+      "1": true,
+      "8": true,
+      "9": true,
+      "41": true
+    },
+    "current_H3Study_source_bytes": {
+      "custom_nodes/H3Study/layout.py": true,
+      "custom_nodes/H3Study/schedule.py": true,
+      "custom_nodes/H3Study/__init__.py": true,
+      "custom_nodes/H3Study/core.py": true
+    },
+    "field_runtime_sources_match_frozen_ready_currently_and_deployment_manifest": {
+      "attention.py": true,
+      "controller.py": true,
+      "__init__.py": true,
+      "frozen.py": true,
+      "components.py": true,
+      "nodes.py": true
+    }
+  },
+  "confirmed_different": {
+    "field": {
+      "host": "41",
+      "pid_from_log_time_bracket": 86424,
+      "pytorch": "2.11.0+cu130",
+      "memory_mode": "NORMAL_VRAM",
+      "model_loaded_mb": 19996.14,
+      "full_model_load": true,
+      "cuda_backend_available": true,
+      "cuda_backend_disabled": false,
+      "triton_backend_available": true,
+      "per_job_linear_dispatch_counter_found": false,
+      "attention_backend": "aten._scaled_dot_product_flash_attention.default",
+      "noise_node": "RandomNoise(seed=2026101701)",
+      "output_sha256": "89eb7a646a0f6f2ac6856491dd2bd4d84ec8b903f4ff015e3203e0f2bddec26b"
+    },
+    "new_live_pair": {
+      "host": "81",
+      "pytorch": "2.5.1+cu121",
+      "memory_mode": "LOW_VRAM",
+      "full_model_load": false,
+      "weak_pid": 32141,
+      "weak_actual_triton_int8_success": 4000,
+      "weak_actual_cuda_int8_success": 0,
+      "cuda_backend_disabled": true,
+      "noise_node": "H3HistoricalNoise with saved file and tensor SHA",
+      "noise_tensor_sha256": "564dd8a5d999279ffed272b8df53211610648f4e985d53e29feab5f94118eda8",
+      "model_checkpoint_sha256": "9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779"
+    }
+  },
+  "unknowns": [
+    "The field process startup confirms CUDA INT8 available/enabled, but its terminal per-process INT8 dispatch counter was not preserved in the inspected records. The October20 CUDA8000 evidence belongs to historical controls, not field PID86424.",
+    "Current source hash equality plus the deployment manifest supports the intended frozen field package; it is not an independent old-process memory dump.",
+    "Field used seeded RandomNoise without a saved per-run noise tensor. Its bitwise identity to the old captured noise now used by livepair was not attested.",
+    "The field graph names the same checkpoint. This review did not rehash the 20.97GB old field checkpoint or establish its historical inode. New livepair has an independently verified checkpoint hash.",
+    "The version/backend/offload changes were bundled. Neither MF shifts nor the old failed x0 replay isolate one numerical cause."
+  ],
+  "metrics": {
+    "old_native": 0.8918736328044945,
+    "old_weak": 0.8989778214900273,
+    "old_field": 0.9040606101394844,
+    "new_native": 0.8900692178656217,
+    "new_weak": 0.9019736572666829,
+    "old_field_minus_old_weak": 0.005082788649457104,
+    "new_weak_minus_old_weak": 0.002995835776655631,
+    "new_native_minus_old_native": -0.0018044149388728448,
+    "old_field_minus_new_weak_cross_environment_not_effect": 0.002086952872801473,
+    "new_weak_minus_new_native_same_environment": 0.011904439401061229
+  },
+  "visual_events": {
+    "source_inclusive": [
+      [
+        14,
+        18
+      ],
+      [
+        37,
+        40
+      ],
+      [
+        80,
+        84
+      ]
+    ],
+    "historical_field_mae": 0.5,
+    "historical_weak_mae": 1.3333333333333333,
+    "new_native_mae": 6.666666666666667,
+    "new_weak_mae": 1.3333333333333333,
+    "new_field": "not_run"
+  },
+  "reproduction_contract": {
+    "method": "temporal_gain_field",
+    "package_ready_sha256": "35b52289d4ef6aa1347ea4da8effbbf9adf8994206b3e2a26660d68a149f4e3f",
+    "parameters": {
+      "mode": "gain_field",
+      "alpha_prior": 0.25,
+      "alpha_max": 0.5,
+      "prior_weight": 1.0,
+      "smoothness": 0.625,
+      "probes": 8,
+      "basis": "centered"
+    },
+    "scope": {
+      "steps": [
+        0,
+        20
+      ],
+      "blocks": [
+        0,
+        50
+      ],
+      "frames_inclusive": [
+        0,
+        104
+      ],
+      "output_frames": 107,
+      "valid_frames": 105,
+      "geometry": [
+        1312,
+        736
+      ],
+      "fps": 24
+    },
+    "requirements": [
+      "Use the exact .81 environment, core/runtime asset hashes, checkpoint, memory/offload configuration and actual INT8 dispatch path of the new pair; bind dispatch evidence to the new job PID.",
+      "Load the exact new-pair saved noise file/tensor and cached conditioning/reference tensors; match complete structured prompt, AV sigma schedule, shift(12,3), Euler, seed and geometry. Compare payload hashes, not relocated manifest bytes alone.",
+      "Use unchanged original field source and parameters, including original +/-1 tangent, QP, anchors, endpoint mask, alpha_prior=.25, alpha_max=.5, mu=1, smoothness=.625, all50 layers/all20 steps. No role5, fixed-budget or new controller substitution.",
+      "Validate method audit20x50, finite outputs, actual alpha/anchors/KKT, no added DiT/VAE calls, and completed video hash before metrics. Passive observation may remain only after compatibility/output-invariance checks; do not add action guidance through the observer.",
+      "Run the same official9 metrics on105 valid frames with crop[16,8,1280,720] and same evaluator assets. Reannotate all3 frozen events in the new video; do not reuse old output intervals or select only the good action.",
+      "Report newfield minus newweak as the primary paired difference, newnative as context, and oldfield as historical reproduction context. Retain every outcome and no retry for a favorable seed."
+    ],
+    "decision_rule": [
+      "If MF and complete-event alignment improvement repeat without editing-quality loss, record local reproducibility of the known positive case under the new environment; broader claims still use prespecified cohorts.",
+      "If the gain disappears or reverses, keep the original result and mark this positive case environment-sensitive/not reproduced in the second environment; do not tune coefficients using the same case.",
+      "If only a tiny MF difference appears with unchanged event intervals, report it as a descriptive metric change, not a recovered-action improvement. Annotation interval uncertainty is preserved.",
+      "This is a single additional reproduction, not reopening the paused energy-proxy coefficient search or validating the unsigned phase readout."
+    ]
+  }
+}

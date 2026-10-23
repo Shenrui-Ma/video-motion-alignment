@@ -1,0 +1,16 @@
+Partial temporal RoPE pilots on .41
+
+Graph IDs: innov41_short_0252_partial_temporal_rope and innov41_short_0358_partial_temporal_rope.
+Graph changes relative to corresponding direction pilot: node 50 method plus node 14 output ID. Conditioning cache, prompt, seed, model/LoRA, sigma schedule, dimensions and 20 sampling steps are exact. Alpha .25 across all steps/all 50 layers. Temporal pair mask is [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]. The node reads actual diffusion.rope.inv_freq. delta is derived from actual PackedLayout reference/output origin coordinates after validating every video bin. Actual cache CPU replay derives -107 physical frames for both pilots. This is the packed sequence origin offset.
+
+Validation: 32 partial module CPU tests, 6 handoff/audit guard tests, two graph consistency checks, actual Comfy source hashes, installed node file hashes and live API schemas passed. Runtime phase compensation must still execute in the two scheduled real GPU pilots.
+
+Host-local bounded CPU guard:
+/data4/research-user/h3_runs/benchmark_schedule_20261022/scripts/partial_pilot_handoff.py
+PID 189483, start_ticks 727997, UID 1004. No GPU allocation. It polls local state every 60 seconds for up to 24 hours, waits for all ten direction jobs complete and worker/service natural exit, then uses the existing identity/locks/port/manifest/SHA guarded prepare/activate protocol. A separate partial_activation.json receipt ensures idempotency. No signal is sent to any inference process. The existing durable worker enforces GPU3 and single video inference.
+
+Guard status: innovation_handoff/partial_guard_status.json
+After activation: partial_pilots_activation.json and partial_pilots_active_manifest.json.
+After both pilots: partial_pilots_verified.json contains actual frequency mask/inv_freq/delta, 1,000 compensated blocks per video, finite nonzero correction RMS, timing and file SHA verification. The guard then exits with partial_pilots_complete_waiting_review; it does not append the remaining eight.
+
+The local active manifest remains the current 36-job direction manifest until actual handoff. Root should synchronize remote partial_pilots_active_manifest.json into inference/package/jobs.json on activation and let the metrics relay add the two new IDs. Current reports and metrics source files are untouched.

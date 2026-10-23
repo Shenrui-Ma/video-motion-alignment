@@ -1,0 +1,300 @@
+{
+  "schema": "h3-temporal-coverage-v2",
+  "run_id": "innov41_short_0085_temporal_coverage_v2__a1",
+  "mode": "mass_preserve",
+  "alpha": 0.25,
+  "radius": 0,
+  "time_offset": 0,
+  "block_interval_half_open": [
+    0,
+    50
+  ],
+  "step_interval_half_open": [
+    0,
+    20
+  ],
+  "pixel_interval_inclusive": [
+    0,
+    65
+  ],
+  "backend": "aten._scaled_dot_product_flash_attention.default",
+  "metric_scope": "sampled at most8heads x128queries x16channels per routed layer; mean/max refmass sampled",
+  "metadata": {
+    "text_len": 4272,
+    "context_shape": [
+      1,
+      4272,
+      5120
+    ],
+    "refs": [
+      {
+        "kind": "video",
+        "index": 0,
+        "latent_t": 22,
+        "latent_h": 46,
+        "latent_w": 82,
+        "latent_shape": [
+          1,
+          24,
+          22,
+          46,
+          82
+        ],
+        "frame_rows": 943,
+        "ref_audio_t": 0
+      }
+    ]
+  },
+  "created_unix": 1792683697.7279558,
+  "started_calls": 1,
+  "completed_calls": 0,
+  "native_override_calls": 1,
+  "routed_calls": 1,
+  "diagnostic_calls": 0,
+  "calls_by_block": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "calls_by_forward": [
+    0
+  ],
+  "routed_by_block": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "routed_by_forward": [
+    1
+  ],
+  "completed_forward_calls": 0,
+  "forward_summaries": [],
+  "temporal_readouts": [],
+  "status": "failed",
+  "updated_unix": 1792683730.5583766,
+  "routing_implementation": "standalone temporal_coverage.coverage_attention",
+  "coverage_config": {
+    "radius": 2,
+    "entropy": 0.5,
+    "temporal_penalty": 0.25,
+    "iterations": 64,
+    "tolerance": 0.0002,
+    "min_quality_span": 0.001,
+    "minimum_mean_gap": 0.0,
+    "max_bins": 256,
+    "solver": "damped_newton_cpu_float64",
+    "fallback_policy": "same_time_weak"
+  },
+  "coverage_calls": [
+    {
+      "applied": true,
+      "reason": "balanced",
+      "row_error": 2.220446049250313e-16,
+      "column_error": 3.271437833873847e-05,
+      "quality_span": 1.163789737224579,
+      "transport_fraction": 1.0,
+      "solver_iterations": 3,
+      "solver_seconds": 0.018104102462530136,
+      "attention_calls": 7,
+      "window_half_open": [
+        0,
+        20
+      ],
+      "routing_solved": true,
+      "fallback_policy": "same_time_weak",
+      "block": 0,
+      "forward": 0
+    }
+  ],
+  "coverage_solved_calls": 1,
+  "same_time_fallback_calls": 0,
+  "solver_wall_seconds": 0.018104102462530136,
+  "coverage_scope": "unit conditional probability per latent bin in selected window",
+  "order_constraint": "nondecreasing expected reference-bin time",
+  "production_validation": "not run",
+  "validated_layout": {
+    "seq_len": 46008,
+    "segments": [
+      [
+        0,
+        4272,
+        "text"
+      ],
+      [
+        4272,
+        25018,
+        "ref_img"
+      ],
+      [
+        25018,
+        25262,
+        "audio"
+      ],
+      [
+        25262,
+        46008,
+        "video"
+      ]
+    ],
+    "signature": [
+      4272,
+      22,
+      46,
+      82,
+      122
+    ],
+    "reference_index": 0,
+    "reference_kind": "video",
+    "reference_video_segment": [
+      4272,
+      25018
+    ],
+    "reference_image_segments": [],
+    "target_video_segment": [
+      25262,
+      46008
+    ],
+    "latent_interval_half_open": [
+      0,
+      20
+    ],
+    "pixel_interval_inclusive": [
+      0,
+      65
+    ],
+    "position_bin_coverage_inclusive": [
+      0,
+      67
+    ],
+    "key_interval_half_open": [
+      4272,
+      23132
+    ],
+    "query_interval_half_open": [
+      25262,
+      44122
+    ],
+    "key_first_time_coordinate": 4272.0,
+    "query_first_time_coordinate": 4393.666666666667,
+    "frame_rows": 943
+  },
+  "sample_sigmas": [
+    1.0,
+    0.9956331849098206,
+    0.9908257126808167,
+    0.9855072498321533,
+    0.9795918464660645,
+    0.9729729890823364,
+    0.9655172228813171,
+    0.9570552110671997,
+    0.9473684430122375,
+    0.936170220375061,
+    0.9230769276618958,
+    0.9075630307197571,
+    0.8888888955116272,
+    0.8659793734550476,
+    0.8372092843055725,
+    0.800000011920929,
+    0.75,
+    0.6792452931404114,
+    0.5714285969734192,
+    0.3870967626571655,
+    0.0
+  ],
+  "expected_sampling_steps": 20,
+  "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 472.00 MiB. GPU 0 has a total capacity of 79.15 GiB of which 10.80 GiB is free. Process 59765 has 30.73 GiB memory in use. Process 31073 has 19.47 GiB memory in use. Including non-PyTorch memory, this process has 18.10 GiB memory in use. 18.00 GiB allowed; Of the allocated memory 17.08 GiB is allocated by PyTorch, and 516.79 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)')"
+}

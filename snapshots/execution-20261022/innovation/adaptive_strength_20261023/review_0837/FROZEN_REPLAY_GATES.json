@@ -1,0 +1,67 @@
+{
+  "schema": "h3-replay-independent-preregistered-gates-v1",
+  "status": "frozen_before_gpu_replay",
+  "created_at": "2026-10-23T00:46:05.059142+00:00",
+  "authorization": "root confirmed thresholds before GPU results",
+  "cases": [
+    "short_0358",
+    "long_0059"
+  ],
+  "methods": [
+    "native",
+    "global_weak"
+  ],
+  "steps_zero_based": [
+    9,
+    19
+  ],
+  "layer_zero_based": 25,
+  "heads": 56,
+  "spatial_probes_per_bin": 8,
+  "cpu_reconstruction": {
+    "oracle": "real sample_euler/CONST AST, same FP32 sequence and complete video+audio packed state",
+    "elementwise_equal_required": true,
+    "endpoint_check_alone_sufficient": false
+  },
+  "history_x0_comparison": {
+    "comparison_space": "after_process_latent_out; video unchanged and audio divided by actual audio_scale=4",
+    "required_dtype": "torch.float32",
+    "required_streams": [
+      "video",
+      "audio"
+    ],
+    "per_stream": {
+      "relative_l2_max": 0.0001,
+      "p99_absolute_error_divided_by_reference_rms_max": 0.001,
+      "max_absolute_error_divided_by_reference_rms_max": 0.01,
+      "reference_rms_floor": 1e-08
+    },
+    "exact_identity_checks": [
+      "model checkpoint bytes",
+      "runtime core/patch/kernel provenance",
+      "graph scientific nodes",
+      "conditioning cache tensors and structured prompt",
+      "seed and initial dual-stream noise",
+      "sigma_video and derived sigma_audio",
+      "sampler and extra options",
+      "target latent shapes",
+      "normalization and audio scale",
+      "state-step identity",
+      "reference layout and padding"
+    ],
+    "nonfinite_or_wrong_dtype_rejected": true,
+    "zero_energy_reference": "use absolute denominator floor; do not divide by zero",
+    "passing_claim": "finite replay eligibility only; not original QKV identity"
+  },
+  "passive_capture": {
+    "same_state_hook_on_off": "both complete FP32 video and audio output tensors elementwise equal",
+    "capture_clone_no_alias": true,
+    "no_input_or_output_mutation": true,
+    "no_rng_mutation": true,
+    "captured_tensor_dtype": "actual projection output dtype preserved; no forced cast before copy",
+    "exceptions": "diagnostic fails explicitly; model output path not silently replaced",
+    "overhead_measured": true
+  },
+  "failed_gate_policy": "stop real action calibration and diagnose targeted cause; no automatic tolerance relaxation or four full-clip reruns",
+  "no_gpu_performed": true
+}
