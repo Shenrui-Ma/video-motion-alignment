@@ -1,0 +1,254 @@
+{
+  "schema": "h3-reference-only-diagnostic-policy-v1",
+  "case": "short_0358",
+  "layer_zero_based": 25,
+  "steps": [
+    9,
+    19
+  ],
+  "shape": [
+    56,
+    32,
+    8,
+    32
+  ],
+  "valid_bins": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false
+  ],
+  "physical_frame_spans_inclusive": [
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      9,
+      12
+    ],
+    [
+      13,
+      16
+    ],
+    [
+      17,
+      17
+    ],
+    [
+      18,
+      21
+    ],
+    [
+      22,
+      25
+    ],
+    [
+      26,
+      29
+    ],
+    [
+      30,
+      33
+    ],
+    [
+      34,
+      34
+    ],
+    [
+      35,
+      38
+    ],
+    [
+      39,
+      42
+    ],
+    [
+      43,
+      46
+    ],
+    [
+      47,
+      50
+    ],
+    [
+      51,
+      51
+    ],
+    [
+      52,
+      55
+    ],
+    [
+      56,
+      59
+    ],
+    [
+      60,
+      63
+    ],
+    [
+      64,
+      67
+    ],
+    [
+      68,
+      68
+    ],
+    [
+      69,
+      72
+    ],
+    [
+      73,
+      76
+    ],
+    [
+      77,
+      80
+    ],
+    [
+      81,
+      84
+    ],
+    [
+      85,
+      85
+    ],
+    [
+      86,
+      89
+    ],
+    [
+      90,
+      93
+    ],
+    [
+      94,
+      97
+    ],
+    [
+      98,
+      101
+    ],
+    [
+      102,
+      102
+    ],
+    [
+      103,
+      106
+    ]
+  ],
+  "spatial_ids": [
+    0,
+    135,
+    269,
+    404,
+    538,
+    673,
+    807,
+    942
+  ],
+  "decoded_npz_keys": [
+    "qrn_kn",
+    "qrw_kw",
+    "valid_bins",
+    "physical_frame_spans_inclusive",
+    "spatial_ids"
+  ],
+  "reference_branches": [
+    "qrn_kn",
+    "qrw_kw"
+  ],
+  "folds": [
+    {
+      "train": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "test": [
+        1,
+        3,
+        5,
+        7
+      ]
+    },
+    {
+      "train": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "test": [
+        0,
+        2,
+        4,
+        6
+      ]
+    }
+  ],
+  "curve_resolution": "all strictly positive pairwise physical time-center distances, without selecting a best value",
+  "candidate_radius": "max sqrt-probability distance of training probes from templates built using other training probes; fixed before held-out probes are evaluated",
+  "heldout_max_radius": "descriptive only; never substituted for train radius or called independent coverage",
+  "linear_code": "centered unregularized minimum-norm least squares, numerical SVD rank threshold only; no fitted regularization search",
+  "norm": "Euclidean distance after elementwise sqrt(probabilities), sqrt(2) times conventional Hellinger",
+  "head_selection": "none; both folds/steps/reference branches computed separately for every head",
+  "production_acceptance_threshold": null,
+  "generated_probabilities_decoded": false,
+  "generated_events_or_benefits_used": false,
+  "upstream": {
+    "status_sha256": "4fa0427c154c43d094234ccce8eed7bd1cf608779f2f61244afefa5a0d77130b",
+    "summary_sha256": "be4f3013efa10e0c245c58e25da21afbf842a58de906e4a2da9caeaae0fb2f10",
+    "runner_ready_sha256": "13123f6435cb3b1104c63c6aba7fa55fb4c77febbc38fea38c74861e61669a21",
+    "runner_signoff_sha256": "78806a45e4e2d8a4c84f270ef80e110e4f0055e61a5d639c32488023908b4907",
+    "npz_sha256": {
+      "9": "c0dfe29af88aebb21fa5bc10c46b2fb8be97926f4c90926c79e84076251596cf",
+      "19": "caeaaf71efd2b5c70e0d8e224849adea6eca96e4a79275e63eab59e6cafede2f"
+    }
+  },
+  "interpretation": "Reference-coordinate identifiability only. No generated-domain semantic validity, alpha signal, confidence guarantee, or controller release follows.",
+  "linear_numerical_rank_cutoff": "float64 eps * max(centered_template.shape) * spectral_norm(uncentered_template)",
+  "distance_numerical_tie_tolerance": "64 * float64 eps, absolute sqrt-probability Euclidean distance",
+  "loo_sample_size_note": "training radius compares each training probe to the other three probes; held-out distances use all four training probes. This empirical radius does not guarantee cross-fold or generated-domain coverage.",
+  "cross_reference_dictionary_transfer": "not implemented or evaluated in this package"
+}

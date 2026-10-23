@@ -1,0 +1,12 @@
+状态：review-only；reference-only CPU诊断包已实现，真实输入未执行。
+独占目录：reference_self_diagnostic_20261023；未修改旧calibration_live、runner、视频节点、policy、gate、报告或队列。
+
+入口：python run.py --inputs INPUTS.json --output NEW_DIRECTORY。
+生产入口先核READY资产，再读取固定POLICY；只解码qrn_kn/qrw_kw及3个几何元数据成员。两真实NPZ SHA已在POLICY固定，上游STATUS必须完整且匹配。
+固定layer25、steps9/19、56heads×8probes、31valid bins。偶奇probe双向留出；主要LOO训练半径候选集合、完整Hellinger矩阵/所有时间分辨率曲线/所有并列候选；辅助线性码谱/逆增益/逐probe误差，不调ridge或生产阈值。
+ε_train比较1训练probe与其余3的均值，测试比较4训练probe模板；属于经验诊断，不作generated域覆盖承诺。ε_test_max仅描述。
+
+完整真实shape和失败路径22项CPU测试（含真实上游float64整数span元数据兼容回归）；最终证据见TEST_RESULTS.json。独立review签审后，由root决定实际远端CPU运行。实际输入、tensor、NPZ留.81，小summary/STATUS/receipts回本地。
+当前没有GPU调用、模型加载、实际概率解码或收益标签选择。
+
+首次真实入口因上游span保存为float64被dtype检查拒绝，零分析产物；原失败保留attempts/metadata_dtype_rejected。只修dtype兼容，冻结span逐值相等、POLICY与core不变。
