@@ -1,0 +1,4845 @@
+{
+  "schema": "h3-actual-architecture-execution-facts-v1",
+  "recorded_at": 1792843390.699219,
+  "cohort": "interval_short0177_20261024",
+  "attempt_runtime": "interval_short0177_20261024_v3",
+  "identity": {
+    "core_version": "0.35.0",
+    "core_commit": null,
+    "core_commit_reason": "Actual copied runtime has no .git directory. Source file SHA256 is the identity anchor.",
+    "python": "3.10.12",
+    "torch_observed_actual": "2.11.0+cu130",
+    "comfy_kitchen": "0.2.33",
+    "transformers": "5.5.3",
+    "tokenizers": "0.22.2",
+    "actual_source_comparison_files": 21,
+    "all_21_match_prior_actual_runtime": true
+  },
+  "static_collection_scope": {
+    "core_python_closure": 384,
+    "semantics": "AST-local import closure from H3/loader/sampler/media entry points. Conditional branches and other model classes imported by common dispatch modules are preserved. Dynamic H3/Qwen3VL/VAE selectors are explicitly seeded.",
+    "actual_tokenizer_resources": [
+      "core/comfy/text_encoders/qwen25_tokenizer/tokenizer_config.json",
+      "core/comfy/text_encoders/qwen25_tokenizer/vocab.json",
+      "core/comfy/text_encoders/qwen25_tokenizer/merges.txt"
+    ],
+    "optional_not_selected": [
+      "SageAttention",
+      "HIP backend",
+      "other tokenizer data resources"
+    ],
+    "third_party_boundary": "PyTorch/Transformers/Tokenizers and standard runtime packages are pinned in metadata; full framework source trees are external dependencies."
+  },
+  "models": [
+    {
+      "file": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "header": "headers/minimax_h3_ref2va_pruned_int8_convrot.safetensors.header.json",
+      "header_sha256": "c1a65ff59085cbed8a6ea7c935ae7e58b1d2f870239df54c58a68fb7989e1cd8",
+      "file_bytes": 20970379616,
+      "tensor_count": 932,
+      "dtype_summary": {
+        "F32": {
+          "tensors": 210,
+          "stored_elements": 4441752,
+          "data_bytes": 17767008
+        },
+        "BF16": {
+          "tensors": 220,
+          "stored_elements": 798817024,
+          "data_bytes": 1597634048
+        },
+        "F16": {
+          "tensors": 102,
+          "stored_elements": 43642368,
+          "data_bytes": 87284736
+        },
+        "I8": {
+          "tensors": 200,
+          "stored_elements": 19267584000,
+          "data_bytes": 19267584000
+        },
+        "U8": {
+          "tensors": 200,
+          "stored_elements": 14400,
+          "data_bytes": 14400
+        }
+      },
+      "layer_families": {
+        "blocks.": {
+          "count": 50,
+          "first": 0,
+          "last": 49
+        },
+        "token_refiner.blocks.": {
+          "count": 2,
+          "first": 0,
+          "last": 1
+        }
+      },
+      "cache_named_keys": [],
+      "historical_full_weight_sha256": "9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779",
+      "selected_tensors": {
+        "adaln_t_table": {
+          "dtype": "F32",
+          "shape": [
+            1025,
+            8
+          ],
+          "data_offsets": [
+            0,
+            32800
+          ]
+        },
+        "video_patch_proj.weight": {
+          "dtype": "F32",
+          "shape": [
+            5376,
+            96
+          ],
+          "data_offsets": [
+            15702624,
+            17767008
+          ]
+        },
+        "audio_patch_proj.weight": {
+          "dtype": "F32",
+          "shape": [
+            5376,
+            32
+          ],
+          "data_offsets": [
+            54304,
+            742432
+          ]
+        },
+        "condition_proj.weight": {
+          "dtype": "BF16",
+          "shape": [
+            5376,
+            5120
+          ],
+          "data_offsets": [
+            18878560,
+            73928800
+          ]
+        },
+        "blocks.0.attn.qkv_proj.weight": {
+          "dtype": "I8",
+          "shape": [
+            21504,
+            5376
+          ],
+          "data_offsets": [
+            1741220960,
+            1856826464
+          ]
+        },
+        "blocks.0.attn.out_proj.weight": {
+          "dtype": "I8",
+          "shape": [
+            5376,
+            7168
+          ],
+          "data_offsets": [
+            1702685792,
+            1741220960
+          ]
+        },
+        "blocks.0.mlp.fc1.weight": {
+          "dtype": "I8",
+          "shape": [
+            28672,
+            5376
+          ],
+          "data_offsets": [
+            1856826464,
+            2010967136
+          ]
+        },
+        "blocks.0.mlp.fc2.weight": {
+          "dtype": "I8",
+          "shape": [
+            5376,
+            14336
+          ],
+          "data_offsets": [
+            2010967136,
+            2088037472
+          ]
+        },
+        "blocks.0.attn.q_norm.weight": {
+          "dtype": "BF16",
+          "shape": [
+            128
+          ],
+          "data_offsets": [
+            17767264,
+            17767520
+          ]
+        },
+        "blocks.0.adaln_proj.linear.weight": {
+          "dtype": "F16",
+          "shape": [
+            96768,
+            8
+          ],
+          "data_offsets": [
+            1615594592,
+            1617142880
+          ]
+        },
+        "final_layer.adaln_proj.linear.weight": {
+          "dtype": "F16",
+          "shape": [
+            10752,
+            8
+          ],
+          "data_offsets": [
+            1702513760,
+            1702685792
+          ]
+        },
+        "rope.inv_freq": {
+          "dtype": "F32",
+          "shape": [
+            16
+          ],
+          "data_offsets": [
+            15681056,
+            15681120
+          ]
+        }
+      },
+      "time_embedder_keys": [],
+      "gate_compress_keys": []
+    },
+    {
+      "file": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "header": "headers/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors.header.json",
+      "header_sha256": "729000e5ec8a807f763398c5668d504d12d8b5bb56c8d6ffca009638a18b3ca0",
+      "file_bytes": 15687142551,
+      "tensor_count": 2054,
+      "dtype_summary": {
+        "F32": {
+          "tensors": 351,
+          "stored_elements": 152286,
+          "data_bytes": 609144
+        },
+        "BF16": {
+          "tensors": 651,
+          "stored_elements": 597481200,
+          "data_bytes": 1194962400
+        },
+        "F8_E4M3": {
+          "tensors": 350,
+          "stored_elements": 1523712000,
+          "data_bytes": 1523712000
+        },
+        "I8": {
+          "tensors": 1,
+          "stored_elements": 777912320,
+          "data_bytes": 777912320
+        },
+        "U8": {
+          "tensors": 701,
+          "stored_elements": 12189715279,
+          "data_bytes": 12189715279
+        }
+      },
+      "layer_families": {
+        "model.layers.": {
+          "count": 50,
+          "first": 0,
+          "last": 49
+        },
+        "visual.blocks.": {
+          "count": 27,
+          "first": 0,
+          "last": 26
+        }
+      },
+      "cache_named_keys": [],
+      "historical_full_weight_sha256": "35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6"
+    },
+    {
+      "file": "minimax_h3_video_vae_fp16.safetensors",
+      "header": "headers/minimax_h3_video_vae_fp16.safetensors.header.json",
+      "header_sha256": "7bd6afbb1b2cfbf7c19901869eb224ec1b3e2a8cdbd8516d18f515c60f157c26",
+      "file_bytes": 5207808496,
+      "tensor_count": 562,
+      "dtype_summary": {
+        "F16": {
+          "tensors": 562,
+          "stored_elements": 2603871080,
+          "data_bytes": 5207742160
+        }
+      },
+      "layer_families": {},
+      "cache_named_keys": [],
+      "historical_full_weight_sha256": "7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522"
+    },
+    {
+      "file": "minimax_h3_audio_vae_fp32.safetensors",
+      "header": "headers/minimax_h3_audio_vae_fp32.safetensors.header.json",
+      "header_sha256": "23fb27ab02c45d7c6f5dfe5c3255ef956a5a13853c869b784bf8de4a1537d06b",
+      "file_bytes": 605254808,
+      "tensor_count": 917,
+      "dtype_summary": {
+        "F32": {
+          "tensors": 917,
+          "stored_elements": 151287320,
+          "data_bytes": 605149280
+        }
+      },
+      "layer_families": {},
+      "cache_named_keys": [],
+      "historical_full_weight_sha256": "8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48"
+    }
+  ],
+  "quantization": [
+    {
+      "path": "/data3/research-user/ComfyUI-H3/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "realpath": "/data3/research-user/h3_staging_20260819/models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "header_sha256": "c1a65ff59085cbed8a6ea7c935ae7e58b1d2f870239df54c58a68fb7989e1cd8",
+      "header_bytes": 95416,
+      "configuration_payload_bytes_read": 14400,
+      "configuration_tensor_count": 200,
+      "configuration_counts": {
+        "{\"convrot\": true, \"convrot_groupsize\": 256, \"format\": \"int8_tensorwise\"}": 200
+      }
+    },
+    {
+      "path": "/data3/research-user/ComfyUI-H3/models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "realpath": "/data3/research-user/h3_staging_20260819/models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "header_sha256": "729000e5ec8a807f763398c5668d504d12d8b5bb56c8d6ffca009638a18b3ca0",
+      "header_bytes": 231400,
+      "configuration_payload_bytes_read": 19279,
+      "configuration_tensor_count": 351,
+      "configuration_counts": {
+        "{\"format\": \"int8_tensorwise\"}": 1,
+        "{\"format\": \"nvfp4\", \"full_precision_matrix_mult\": true}": 350
+      }
+    }
+  ],
+  "mechanism_facts": [
+    {
+      "fact": "Main DiT uses 50 blocks, 2 token-refiner blocks, hidden width 5376, 56 attention heads of dimension128, FFN width14336, video latent24, audio latent32 and text feature5120.",
+      "evidence": [
+        "core/comfy/model_detection.py:390",
+        "core/comfy/ldm/minimax/model.py:473",
+        "headers/minimax_h3_ref2va_pruned_int8_convrot.safetensors.header.json"
+      ]
+    },
+    {
+      "fact": "This pruned checkpoint replaces the standard time embedder with a [1025,8] precomputed AdaLN time-curve basis. Each block AdaLN linear maps8 features; the code interpolates the time grid and evaluates AdaLN in FP32.",
+      "evidence": [
+        "core/comfy/model_detection.py:403",
+        "core/comfy/ldm/minimax/model.py:490",
+        "core/comfy/ldm/minimax/model.py:736",
+        "headers/minimax_h3_ref2va_pruned_int8_convrot.safetensors.header.json"
+      ]
+    },
+    {
+      "fact": "The 200 main DiT linear weights are I8 with per-output-row FP32 scales. All200 comfy_quant configs set int8_tensorwise, convrot=true, group size256. ConvRot applies matching groupwise Hadamard rotations in the quantized linear pipeline. Other model parameters retain BF16/F16/F32 storage according to the header.",
+      "evidence": [
+        "QUANTIZATION_METADATA.json",
+        "core/comfy/ops.py:1176",
+        "overlay/comfy_kitchen/tensor/int8.py"
+      ]
+    },
+    {
+      "fact": "The actual text encoder exposes unnormalized final hidden states from50 Qwen3-VL language layers. Its visual encoder has27 blocks.350 language linear weights use packed NVFP4 storage, each config sets full_precision_matrix_mult=true; the loader dequantizes weights for compute-dtype GEMM.100 pre_quant_scale tensors provide channel scaling; the embedding matrix is INT8.",
+      "evidence": [
+        "QUANTIZATION_METADATA.json",
+        "headers/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors.header.json",
+        "core/comfy/text_encoders/minimax.py",
+        "core/comfy/ops.py:1150",
+        "core/comfy/ops.py:1355",
+        "core/comfy/ops.py:1376"
+      ]
+    },
+    {
+      "fact": "Native short0177 audit records4000 successful cuda.int8_linear calls,0 failed,0 Triton or eager calls. The first input is BF16[45552,5376], weight INT8[21504,5376] and scale FP32[21504,1]. The installed Triton row guard remains part of launch configuration; this run selected CUDA dispatch.",
+      "evidence": [
+        "evidence/native_backend.json",
+        "lane_gpu7/BACKEND_CONTRACT.json",
+        "lane_gpu7/scripts/backend_dispatch_audit.py",
+        "lane_gpu7/scripts/int8_row_chunking.py"
+      ]
+    },
+    {
+      "fact": "The attention hook uses the actual aten Flash Attention output and log-sum-exp. Reference-video token bins and target-query membership are computed by H3Study layout; schedule chooses native/full interval/weak routing on each physical Euler forward.",
+      "evidence": [
+        "lane_gpu7/custom_nodes/H3Study/core.py",
+        "lane_gpu7/custom_nodes/H3Study/layout.py",
+        "lane_gpu7/custom_nodes/H3Study/schedule.py",
+        "evidence/native_router.json"
+      ]
+    }
+  ],
+  "inference_chain": [
+    {
+      "stage": "launch_and_load",
+      "paths": [
+        "lane_gpu7/scripts/manage_service.py",
+        "lane_gpu7/scripts/compatibility_bootstrap.py",
+        "core/main.py",
+        "core/execution.py",
+        "core/nodes.py"
+      ],
+      "detail": "Isolated service uses the actual shared CORE and dependency overlay. The task queue submits frozen graph and metadata; native backend contract is observed from the first full forward."
+    },
+    {
+      "stage": "checkpoint_dispatch_and_quantized_load",
+      "paths": [
+        "core/comfy/sd.py",
+        "core/comfy/model_detection.py",
+        "core/comfy/supported_models.py",
+        "core/comfy/model_base.py",
+        "core/comfy/ops.py",
+        "core/comfy/quant_ops.py",
+        "overlay/comfy_kitchen/tensor/int8.py",
+        "overlay/comfy_kitchen/tensor/nvfp4.py"
+      ],
+      "detail": "Loader detects MiniMax H3 keys, derives dimensions and AdaLN curve settings from tensor shapes, selects quant layouts from comfy_quant JSON and loads models with stored scales."
+    },
+    {
+      "stage": "reference_media_and_tokenization",
+      "paths": [
+        "core/comfy_extras/nodes_video.py",
+        "lane_gpu7/custom_nodes/H3Study/__init__.py",
+        "core/comfy_extras/nodes_minimax_h3.py",
+        "core/comfy/text_encoders/minimax.py",
+        "core/comfy/text_encoders/qwen3vl.py",
+        "core/comfy/text_encoders/qwen35.py",
+        "core/comfy/text_encoders/qwen_vl.py",
+        "core/comfy/text_encoders/llama.py",
+        "external/transformers/models/qwen2/tokenization_qwen2.py",
+        "external/transformers/tokenization_utils_tokenizers.py",
+        "core/comfy/text_encoders/qwen25_tokenizer"
+      ],
+      "detail": "Reference video is decoded/resized, tokenized with the actual Qwen vocabulary/merges and H3 special token additions, and encoded into language/vision states plus VAE condition latents."
+    },
+    {
+      "stage": "vae_condition_latents",
+      "paths": [
+        "core/comfy/sd.py",
+        "core/comfy/ldm/minimax/vae.py",
+        "core/comfy/ldm/minimax/audio_vae.py",
+        "headers/minimax_h3_video_vae_fp16.safetensors.header.json",
+        "headers/minimax_h3_audio_vae_fp32.safetensors.header.json"
+      ],
+      "detail": "VAE metadata selects video encoder/ViT decoder and audio encoder/BigVGAN decoder. H3 packed video/audio latents include preserved reference conditions."
+    },
+    {
+      "stage": "noise_sigmas_and_euler",
+      "paths": [
+        "core/comfy_extras/nodes_custom_sampler.py",
+        "core/comfy_extras/nodes_minimax_h3.py",
+        "core/comfy/model_sampling.py",
+        "core/comfy/samplers.py",
+        "core/comfy/k_diffusion/sampling.py",
+        "lane_gpu7/graphs/interval_short_0177_native.json"
+      ],
+      "detail": "RandomNoise seed2026101701, explicit20-step sigma list, video shift12/audio3, BasicGuider and Euler invoke20 physical DiT forwards."
+    },
+    {
+      "stage": "packed_multimodal_dit",
+      "paths": [
+        "core/comfy/ldm/minimax/model.py",
+        "core/comfy/ldm/modules/attention.py",
+        "core/comfy/ops.py",
+        "lane_gpu7/custom_nodes/H3Study/core.py",
+        "lane_gpu7/custom_nodes/H3Study/layout.py",
+        "lane_gpu7/custom_nodes/H3Study/schedule.py"
+      ],
+      "detail": "Token refinement, packed layout, partial 3-axis RoPE, QK normalization, MM self-attention, AdaLN and gated MLP run50 blocks per forward; H3Study routes reference contribution according to the frozen schedule."
+    },
+    {
+      "stage": "decode_video_audio_and_save",
+      "paths": [
+        "core/nodes.py",
+        "core/comfy_extras/nodes_audio.py",
+        "core/comfy_extras/nodes_video.py",
+        "core/comfy/ldm/minimax/vae.py",
+        "core/comfy/ldm/minimax/audio_vae.py"
+      ],
+      "detail": "Video/audio VAE decode, CreateVideo24fps and SaveVideo h264/CRF16 produce the task output. Task audits bind73 generatedframes,60 valid referenceframes and video SHA."
+    }
+  ],
+  "gaps": [
+    {
+      "component": "comfy-kitchen CUDA kernels",
+      "status": "Installed wheel provides Python dispatcher and C++/CUDA headers; compiled _C.so implements CUDA kernels. .so is inventoried by SHA only.",
+      "needed_reference": "Matching v0.2.33 published source should be kept separately from exact runtime originals. Parent owns retrieval and match checking."
+    },
+    {
+      "component": "runtime commit",
+      "status": "Copied ComfyUI core has no Git metadata;0.35.0 version and per-file SHA anchor the snapshot."
+    },
+    {
+      "component": "framework internals",
+      "status": "PyTorch CUDA/ATen and Rust Tokenizers executable implementations remain version-pinned external packages; no binaries or full framework trees were transferred."
+    },
+    {
+      "component": "quantization-generation provenance",
+      "status": "Collected runtime loader, quant layouts, header and tiny JSON establish the deployed format. Original checkpoint conversion/training scripts are outside this source collection."
+    }
+  ],
+  "evidence": [
+    {
+      "original_local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/v2/ACTUAL_RUNTIME.json",
+      "local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/runtime_code_publication_20261024/raw/evidence/ACTUAL_RUNTIME.json",
+      "sha256": "e88d0a376fcb6522964c54c1220bce1c02b3355a6d9e064dcf4c9a70646470a7",
+      "bytes": 44775
+    },
+    {
+      "original_local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/ROOT_SIX_ARMS_VERIFIED.json",
+      "local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/runtime_code_publication_20261024/raw/evidence/ROOT_SIX_ARMS_VERIFIED.json",
+      "sha256": "09680f300958527f8a0dabaa4d24fcea284eeca899f0a8df56fe2c96afada7dd",
+      "bytes": 40277
+    },
+    {
+      "original_local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/collection/native/backend.json",
+      "local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/runtime_code_publication_20261024/raw/evidence/native_backend.json",
+      "sha256": "84b743550a9ad47753063ddd41544f540136fd394717343030908f66e5b099b2",
+      "bytes": 2607
+    },
+    {
+      "original_local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/collection/native/router.json",
+      "local_path": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/runtime_code_publication_20261024/raw/evidence/native_router.json",
+      "sha256": "404e539d003eb44abc4a33ba748131404feea0d09884161d760aa5099dd02a26",
+      "bytes": 107334
+    }
+  ],
+  "collection_operations": {
+    "remote_cpu_only": true,
+    "remote_writes": 0,
+    "torch_cuda_imports": 0,
+    "gpu_jobs_started": 0,
+    "weight_matrix_payload_bytes_read": 0,
+    "tiny_quantization_config_bytes_read": 33679
+  },
+  "critical_symbol_index": {
+    "core/comfy/k_diffusion/sampling.py": [
+      {
+        "kind": "function",
+        "name": "append_zero",
+        "line": 19
+      },
+      {
+        "kind": "function",
+        "name": "get_sigmas_karras",
+        "line": 23
+      },
+      {
+        "kind": "function",
+        "name": "get_sigmas_exponential",
+        "line": 32
+      },
+      {
+        "kind": "function",
+        "name": "get_sigmas_polyexponential",
+        "line": 38
+      },
+      {
+        "kind": "function",
+        "name": "get_sigmas_vp",
+        "line": 45
+      },
+      {
+        "kind": "function",
+        "name": "get_sigmas_laplace",
+        "line": 52
+      },
+      {
+        "kind": "function",
+        "name": "to_d",
+        "line": 63
+      },
+      {
+        "kind": "function",
+        "name": "get_ancestral_step",
+        "line": 68
+      },
+      {
+        "kind": "function",
+        "name": "default_noise_sampler",
+        "line": 78
+      },
+      {
+        "kind": "class",
+        "name": "BatchedBrownianTree",
+        "line": 91
+      },
+      {
+        "kind": "class",
+        "name": "BrownianTreeNoiseSampler",
+        "line": 127
+      },
+      {
+        "kind": "function",
+        "name": "sigma_to_half_log_snr",
+        "line": 152
+      },
+      {
+        "kind": "function",
+        "name": "half_log_snr_to_sigma",
+        "line": 160
+      },
+      {
+        "kind": "function",
+        "name": "offset_first_sigma_for_snr",
+        "line": 168
+      },
+      {
+        "kind": "function",
+        "name": "ei_h_phi_1",
+        "line": 179
+      },
+      {
+        "kind": "function",
+        "name": "ei_h_phi_2",
+        "line": 184
+      },
+      {
+        "kind": "function",
+        "name": "sample_euler",
+        "line": 190
+      },
+      {
+        "kind": "function",
+        "name": "sample_euler_ancestral",
+        "line": 216
+      },
+      {
+        "kind": "function",
+        "name": "sample_euler_ancestral_RF",
+        "line": 240
+      },
+      {
+        "kind": "function",
+        "name": "sample_heun",
+        "line": 269
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpm_2",
+        "line": 304
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpm_2_ancestral",
+        "line": 340
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpm_2_ancestral_RF",
+        "line": 372
+      },
+      {
+        "kind": "function",
+        "name": "linear_multistep_coeff",
+        "line": 406
+      },
+      {
+        "kind": "function",
+        "name": "_sample_cfgpp_history",
+        "line": 419
+      },
+      {
+        "kind": "function",
+        "name": "sample_cfgpp_ud10_ab",
+        "line": 483
+      },
+      {
+        "kind": "function",
+        "name": "sample_lms",
+        "line": 488
+      },
+      {
+        "kind": "class",
+        "name": "PIDStepSizeController",
+        "line": 511
+      },
+      {
+        "kind": "class",
+        "name": "DPMSolver",
+        "line": 540
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpm_fast",
+        "line": 689
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpm_adaptive",
+        "line": 701
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2s_ancestral",
+        "line": 716
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2s_ancestral_RF",
+        "line": 754
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_sde",
+        "line": 806
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2m",
+        "line": 864
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2m_sde",
+        "line": 890
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2m_sde_heun",
+        "line": 945
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_3m_sde",
+        "line": 950
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_3m_sde_gpu",
+        "line": 1013
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2m_sde_heun_gpu",
+        "line": 1023
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2m_sde_gpu",
+        "line": 1033
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_sde_gpu",
+        "line": 1043
+      },
+      {
+        "kind": "function",
+        "name": "DDPMSampler_step",
+        "line": 1052
+      },
+      {
+        "kind": "function",
+        "name": "generic_step_sampler",
+        "line": 1062
+      },
+      {
+        "kind": "function",
+        "name": "sample_ddpm",
+        "line": 1079
+      },
+      {
+        "kind": "function",
+        "name": "sample_lcm",
+        "line": 1083
+      },
+      {
+        "kind": "function",
+        "name": "sample_heunpp2",
+        "line": 1117
+      },
+      {
+        "kind": "function",
+        "name": "sample_ipndm",
+        "line": 1175
+      },
+      {
+        "kind": "function",
+        "name": "sample_ipndm_v",
+        "line": 1218
+      },
+      {
+        "kind": "function",
+        "name": "sample_deis",
+        "line": 1285
+      },
+      {
+        "kind": "function",
+        "name": "sample_euler_ancestral_cfg_pp",
+        "line": 1334
+      },
+      {
+        "kind": "function",
+        "name": "sample_euler_cfg_pp",
+        "line": 1379
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2s_ancestral_cfg_pp",
+        "line": 1385
+      },
+      {
+        "kind": "function",
+        "name": "sample_dpmpp_2m_cfg_pp",
+        "line": 1429
+      },
+      {
+        "kind": "function",
+        "name": "res_multistep",
+        "line": 1462
+      },
+      {
+        "kind": "function",
+        "name": "sample_res_multistep",
+        "line": 1527
+      },
+      {
+        "kind": "function",
+        "name": "sample_res_multistep_cfg_pp",
+        "line": 1531
+      },
+      {
+        "kind": "function",
+        "name": "sample_res_multistep_ancestral",
+        "line": 1535
+      },
+      {
+        "kind": "function",
+        "name": "sample_res_multistep_ancestral_cfg_pp",
+        "line": 1539
+      },
+      {
+        "kind": "function",
+        "name": "sample_gradient_estimation",
+        "line": 1544
+      },
+      {
+        "kind": "function",
+        "name": "sample_gradient_estimation_cfg_pp",
+        "line": 1588
+      },
+      {
+        "kind": "function",
+        "name": "sample_er_sde",
+        "line": 1593
+      },
+      {
+        "kind": "function",
+        "name": "sample_seeds_2",
+        "line": 1660
+      },
+      {
+        "kind": "function",
+        "name": "sample_exp_heun_2_x0",
+        "line": 1723
+      },
+      {
+        "kind": "function",
+        "name": "sample_exp_heun_2_x0_sde",
+        "line": 1729
+      },
+      {
+        "kind": "function",
+        "name": "sample_seeds_3",
+        "line": 1735
+      },
+      {
+        "kind": "function",
+        "name": "sample_sa_solver",
+        "line": 1802
+      },
+      {
+        "kind": "function",
+        "name": "sample_sa_solver_pece",
+        "line": 1907
+      },
+      {
+        "kind": "function",
+        "name": "sample_ar_video",
+        "line": 1913
+      }
+    ],
+    "core/comfy/ldm/minimax/audio_vae.py": [
+      {
+        "kind": "function",
+        "name": "snake",
+        "line": 24
+      },
+      {
+        "kind": "class",
+        "name": "Snake1d",
+        "line": 30
+      },
+      {
+        "kind": "class",
+        "name": "SnakeBeta",
+        "line": 42
+      },
+      {
+        "kind": "function",
+        "name": "kaiser_sinc_filter1d",
+        "line": 58
+      },
+      {
+        "kind": "class",
+        "name": "UpSample1d",
+        "line": 86
+      },
+      {
+        "kind": "class",
+        "name": "LowPassFilter1d",
+        "line": 107
+      },
+      {
+        "kind": "class",
+        "name": "DownSample1d",
+        "line": 121
+      },
+      {
+        "kind": "class",
+        "name": "Activation1d",
+        "line": 137
+      },
+      {
+        "kind": "class",
+        "name": "ResidualUnit",
+        "line": 155
+      },
+      {
+        "kind": "class",
+        "name": "EncoderBlock",
+        "line": 174
+      },
+      {
+        "kind": "class",
+        "name": "Encoder",
+        "line": 195
+      },
+      {
+        "kind": "class",
+        "name": "GeGluMlp",
+        "line": 214
+      },
+      {
+        "kind": "class",
+        "name": "CausalAttention",
+        "line": 228
+      },
+      {
+        "kind": "class",
+        "name": "AttnProjection",
+        "line": 253
+      },
+      {
+        "kind": "function",
+        "name": "get_padding",
+        "line": 273
+      },
+      {
+        "kind": "class",
+        "name": "AMPBlock1",
+        "line": 277
+      },
+      {
+        "kind": "class",
+        "name": "BigVGAN",
+        "line": 308
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3AudioVAE",
+        "line": 374
+      }
+    ],
+    "core/comfy/ldm/minimax/model.py": [
+      {
+        "kind": "function",
+        "name": "time_shift_sigma",
+        "line": 36
+      },
+      {
+        "kind": "function",
+        "name": "patchify_video",
+        "line": 42
+      },
+      {
+        "kind": "function",
+        "name": "unpatchify_video",
+        "line": 52
+      },
+      {
+        "kind": "function",
+        "name": "pack_audio",
+        "line": 59
+      },
+      {
+        "kind": "function",
+        "name": "unpack_audio",
+        "line": 65
+      },
+      {
+        "kind": "function",
+        "name": "_axis_from_sqrt_area",
+        "line": 70
+      },
+      {
+        "kind": "function",
+        "name": "mask_row_values",
+        "line": 77
+      },
+      {
+        "kind": "function",
+        "name": "_frame_grid",
+        "line": 88
+      },
+      {
+        "kind": "function",
+        "name": "_video_t_spans",
+        "line": 95
+      },
+      {
+        "kind": "function",
+        "name": "_video_t_grid",
+        "line": 99
+      },
+      {
+        "kind": "function",
+        "name": "_ref_t_span",
+        "line": 105
+      },
+      {
+        "kind": "function",
+        "name": "_audio_grid",
+        "line": 117
+      },
+      {
+        "kind": "function",
+        "name": "_video_grid",
+        "line": 126
+      },
+      {
+        "kind": "class",
+        "name": "TimeEmbedder",
+        "line": 133
+      },
+      {
+        "kind": "function",
+        "name": "rope_rotation_table",
+        "line": 149
+      },
+      {
+        "kind": "class",
+        "name": "Attention",
+        "line": 158
+      },
+      {
+        "kind": "class",
+        "name": "MLP",
+        "line": 203
+      },
+      {
+        "kind": "class",
+        "name": "AdalnProj",
+        "line": 213
+      },
+      {
+        "kind": "function",
+        "name": "_mod_row",
+        "line": 230
+      },
+      {
+        "kind": "function",
+        "name": "_mod_scale_shift",
+        "line": 235
+      },
+      {
+        "kind": "function",
+        "name": "_mod_gate",
+        "line": 242
+      },
+      {
+        "kind": "class",
+        "name": "RefinerBlock",
+        "line": 249
+      },
+      {
+        "kind": "class",
+        "name": "TokenRefiner",
+        "line": 263
+      },
+      {
+        "kind": "class",
+        "name": "DiTBlock",
+        "line": 278
+      },
+      {
+        "kind": "class",
+        "name": "FinalLayer",
+        "line": 300
+      },
+      {
+        "kind": "function",
+        "name": "_pdd_head",
+        "line": 338
+      },
+      {
+        "kind": "class",
+        "name": "PackedLayout",
+        "line": 350
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3Model",
+        "line": 473
+      }
+    ],
+    "core/comfy/ldm/minimax/vae.py": [
+      {
+        "kind": "class",
+        "name": "CausalConv3d",
+        "line": 41
+      },
+      {
+        "kind": "class",
+        "name": "TemporalIsolatedGroupNorm",
+        "line": 59
+      },
+      {
+        "kind": "function",
+        "name": "group_norm_3d",
+        "line": 70
+      },
+      {
+        "kind": "class",
+        "name": "Downsample3D",
+        "line": 74
+      },
+      {
+        "kind": "class",
+        "name": "ResnetBlock3D",
+        "line": 92
+      },
+      {
+        "kind": "class",
+        "name": "EncoderFCN3D",
+        "line": 114
+      },
+      {
+        "kind": "function",
+        "name": "create_token_ids",
+        "line": 169
+      },
+      {
+        "kind": "class",
+        "name": "RotaryEmbeddingND",
+        "line": 180
+      },
+      {
+        "kind": "class",
+        "name": "FeedForward",
+        "line": 201
+      },
+      {
+        "kind": "class",
+        "name": "Attention",
+        "line": 214
+      },
+      {
+        "kind": "class",
+        "name": "TransformerBlock",
+        "line": 245
+      },
+      {
+        "kind": "class",
+        "name": "ViT3DDecoder",
+        "line": 261
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3VideoVAE",
+        "line": 324
+      }
+    ],
+    "core/comfy/ldm/modules/attention.py": [
+      {
+        "kind": "function",
+        "name": "register_attention_function",
+        "line": 57
+      },
+      {
+        "kind": "function",
+        "name": "get_attention_function",
+        "line": 64
+      },
+      {
+        "kind": "function",
+        "name": "get_attn_precision",
+        "line": 80
+      },
+      {
+        "kind": "function",
+        "name": "exists",
+        "line": 88
+      },
+      {
+        "kind": "function",
+        "name": "default",
+        "line": 92
+      },
+      {
+        "kind": "function",
+        "name": "_heads_from_dim",
+        "line": 97
+      },
+      {
+        "kind": "function",
+        "name": "_reshape_qkv_to_heads",
+        "line": 103
+      },
+      {
+        "kind": "class",
+        "name": "GEGLU",
+        "line": 119
+      },
+      {
+        "kind": "class",
+        "name": "FeedForward",
+        "line": 129
+      },
+      {
+        "kind": "function",
+        "name": "Normalize",
+        "line": 148
+      },
+      {
+        "kind": "class",
+        "name": "AttentionTensorContainer",
+        "line": 152
+      },
+      {
+        "kind": "function",
+        "name": "wrap_attn",
+        "line": 171
+      },
+      {
+        "kind": "function",
+        "name": "attention_basic",
+        "line": 207
+      },
+      {
+        "kind": "function",
+        "name": "attention_sub_quad",
+        "line": 272
+      },
+      {
+        "kind": "function",
+        "name": "attention_split",
+        "line": 350
+      },
+      {
+        "kind": "function",
+        "name": "attention_xformers",
+        "line": 477
+      },
+      {
+        "kind": "function",
+        "name": "attention_pytorch",
+        "line": 545
+      },
+      {
+        "kind": "function",
+        "name": "_comfy_kitchen_int8_inputs",
+        "line": 588
+      },
+      {
+        "kind": "function",
+        "name": "attention_comfy_kitchen_int8",
+        "line": 605
+      },
+      {
+        "kind": "function",
+        "name": "_attention_comfy_kitchen_int8_containers",
+        "line": 623
+      },
+      {
+        "kind": "function",
+        "name": "attention_sage",
+        "line": 650
+      },
+      {
+        "kind": "function",
+        "name": "attention3_sage",
+        "line": 704
+      },
+      {
+        "kind": "function",
+        "name": "attention_flash",
+        "line": 814
+      },
+      {
+        "kind": "function",
+        "name": "optimized_attention_for_device",
+        "line": 906
+      },
+      {
+        "kind": "class",
+        "name": "CrossAttention",
+        "line": 922
+      },
+      {
+        "kind": "class",
+        "name": "BasicTransformerBlock",
+        "line": 955
+      },
+      {
+        "kind": "class",
+        "name": "SpatialTransformer",
+        "line": 1112
+      },
+      {
+        "kind": "class",
+        "name": "SpatialVideoTransformer",
+        "line": 1178
+      }
+    ],
+    "core/comfy/model_base.py": [
+      {
+        "kind": "class",
+        "name": "ModelType",
+        "line": 98
+      },
+      {
+        "kind": "function",
+        "name": "model_sampling",
+        "line": 114
+      },
+      {
+        "kind": "function",
+        "name": "convert_tensor",
+        "line": 158
+      },
+      {
+        "kind": "class",
+        "name": "BaseModel",
+        "line": 167
+      },
+      {
+        "kind": "function",
+        "name": "unclip_adm",
+        "line": 445
+      },
+      {
+        "kind": "class",
+        "name": "SD21UNCLIP",
+        "line": 469
+      },
+      {
+        "kind": "function",
+        "name": "sdxl_pooled",
+        "line": 482
+      },
+      {
+        "kind": "class",
+        "name": "SDXLRefiner",
+        "line": 488
+      },
+      {
+        "kind": "class",
+        "name": "SDXL",
+        "line": 515
+      },
+      {
+        "kind": "class",
+        "name": "SVD_img2vid",
+        "line": 541
+      },
+      {
+        "kind": "class",
+        "name": "SV3D_u",
+        "line": 588
+      },
+      {
+        "kind": "class",
+        "name": "SV3D_p",
+        "line": 598
+      },
+      {
+        "kind": "class",
+        "name": "Stable_Zero123",
+        "line": 618
+      },
+      {
+        "kind": "class",
+        "name": "SD_X4Upscaler",
+        "line": 648
+      },
+      {
+        "kind": "class",
+        "name": "IP2P",
+        "line": 684
+      },
+      {
+        "kind": "class",
+        "name": "SD15_instructpix2pix",
+        "line": 702
+      },
+      {
+        "kind": "class",
+        "name": "SDXL_instructpix2pix",
+        "line": 708
+      },
+      {
+        "kind": "class",
+        "name": "Lotus",
+        "line": 716
+      },
+      {
+        "kind": "class",
+        "name": "StableCascade_C",
+        "line": 730
+      },
+      {
+        "kind": "class",
+        "name": "StableCascade_B",
+        "line": 758
+      },
+      {
+        "kind": "class",
+        "name": "SD3",
+        "line": 778
+      },
+      {
+        "kind": "class",
+        "name": "AuraFlow",
+        "line": 793
+      },
+      {
+        "kind": "class",
+        "name": "StableAudio1",
+        "line": 805
+      },
+      {
+        "kind": "class",
+        "name": "StableAudio3",
+        "line": 843
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanDiT",
+        "line": 923
+      },
+      {
+        "kind": "class",
+        "name": "SeedVR2",
+        "line": 953
+      },
+      {
+        "kind": "class",
+        "name": "PixArt",
+        "line": 964
+      },
+      {
+        "kind": "class",
+        "name": "Flux",
+        "line": 983
+      },
+      {
+        "kind": "class",
+        "name": "LongCatImage",
+        "line": 1068
+      },
+      {
+        "kind": "class",
+        "name": "Flux2",
+        "line": 1088
+      },
+      {
+        "kind": "class",
+        "name": "Lens",
+        "line": 1100
+      },
+      {
+        "kind": "class",
+        "name": "GenmoMochi",
+        "line": 1120
+      },
+      {
+        "kind": "class",
+        "name": "LTXV",
+        "line": 1135
+      },
+      {
+        "kind": "class",
+        "name": "LTXAV",
+        "line": 1176
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideo",
+        "line": 1367
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideoI2V",
+        "line": 1400
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideoSkyreelsI2V",
+        "line": 1408
+      },
+      {
+        "kind": "class",
+        "name": "CosmosVideo",
+        "line": 1416
+      },
+      {
+        "kind": "class",
+        "name": "CosmosPredict2",
+        "line": 1443
+      },
+      {
+        "kind": "class",
+        "name": "Anima",
+        "line": 1482
+      },
+      {
+        "kind": "class",
+        "name": "Lumina2",
+        "line": 1507
+      },
+      {
+        "kind": "class",
+        "name": "ZImagePixelSpace",
+        "line": 1561
+      },
+      {
+        "kind": "class",
+        "name": "PixelDiTT2I",
+        "line": 1567
+      },
+      {
+        "kind": "class",
+        "name": "PiD",
+        "line": 1580
+      },
+      {
+        "kind": "class",
+        "name": "WAN21",
+        "line": 1613
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_CausalAR",
+        "line": 1704
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_Vace",
+        "line": 1711
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_Camera",
+        "line": 1750
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_HuMo",
+        "line": 1762
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_Animate",
+        "line": 1807
+      },
+      {
+        "kind": "class",
+        "name": "WAN_Animate2",
+        "line": 1831
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_S2V",
+        "line": 1866
+      },
+      {
+        "kind": "class",
+        "name": "WAN22",
+        "line": 1907
+      },
+      {
+        "kind": "class",
+        "name": "Trellis2",
+        "line": 1928
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_FlowRVS",
+        "line": 1945
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_SCAIL",
+        "line": 1951
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_SCAIL2",
+        "line": 1993
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_WanDancer",
+        "line": 2086
+      },
+      {
+        "kind": "class",
+        "name": "Hunyuan3Dv2",
+        "line": 2110
+      },
+      {
+        "kind": "class",
+        "name": "Hunyuan3Dv2_1",
+        "line": 2125
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3",
+        "line": 2140
+      },
+      {
+        "kind": "class",
+        "name": "TripoSplat",
+        "line": 2278
+      },
+      {
+        "kind": "class",
+        "name": "HiDream",
+        "line": 2296
+      },
+      {
+        "kind": "class",
+        "name": "HiDreamO1",
+        "line": 2316
+      },
+      {
+        "kind": "class",
+        "name": "SenseNovaSharedRegular",
+        "line": 2349
+      },
+      {
+        "kind": "class",
+        "name": "SenseNovaSharedList",
+        "line": 2355
+      },
+      {
+        "kind": "class",
+        "name": "SenseNovaU15",
+        "line": 2359
+      },
+      {
+        "kind": "class",
+        "name": "Chroma",
+        "line": 2477
+      },
+      {
+        "kind": "class",
+        "name": "ChromaRadiance",
+        "line": 2489
+      },
+      {
+        "kind": "class",
+        "name": "ACEStep",
+        "line": 2493
+      },
+      {
+        "kind": "class",
+        "name": "ACEStep15",
+        "line": 2512
+      },
+      {
+        "kind": "class",
+        "name": "YuE2",
+        "line": 2555
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxMusic3",
+        "line": 2574
+      },
+      {
+        "kind": "class",
+        "name": "Omnigen2",
+        "line": 2586
+      },
+      {
+        "kind": "class",
+        "name": "Boogu",
+        "line": 2613
+      },
+      {
+        "kind": "class",
+        "name": "QwenImage",
+        "line": 2618
+      },
+      {
+        "kind": "class",
+        "name": "MageFlow",
+        "line": 2650
+      },
+      {
+        "kind": "class",
+        "name": "JoyImage",
+        "line": 2665
+      },
+      {
+        "kind": "class",
+        "name": "Ideogram4",
+        "line": 2687
+      },
+      {
+        "kind": "class",
+        "name": "Krea2",
+        "line": 2702
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanImage21",
+        "line": 2731
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanImage21Refiner",
+        "line": 2755
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideo15",
+        "line": 2783
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideo15_SR_Distilled",
+        "line": 2843
+      },
+      {
+        "kind": "class",
+        "name": "Kandinsky5",
+        "line": 2874
+      },
+      {
+        "kind": "class",
+        "name": "Kandinsky5Image",
+        "line": 2913
+      },
+      {
+        "kind": "class",
+        "name": "RT_DETR_v4",
+        "line": 2920
+      },
+      {
+        "kind": "class",
+        "name": "DepthAnything3",
+        "line": 2925
+      },
+      {
+        "kind": "class",
+        "name": "ErnieImage",
+        "line": 2930
+      },
+      {
+        "kind": "class",
+        "name": "SAM3",
+        "line": 2941
+      },
+      {
+        "kind": "class",
+        "name": "CogVideoX",
+        "line": 2945
+      }
+    ],
+    "core/comfy/model_detection.py": [
+      {
+        "kind": "function",
+        "name": "count_blocks",
+        "line": 10
+      },
+      {
+        "kind": "function",
+        "name": "any_suffix_in",
+        "line": 23
+      },
+      {
+        "kind": "function",
+        "name": "calculate_transformer_depth",
+        "line": 29
+      },
+      {
+        "kind": "function",
+        "name": "detect_unet_config",
+        "line": 44
+      },
+      {
+        "kind": "function",
+        "name": "model_config_from_unet_config",
+        "line": 1292
+      },
+      {
+        "kind": "function",
+        "name": "model_config_from_unet",
+        "line": 1300
+      },
+      {
+        "kind": "function",
+        "name": "unet_prefix_from_state_dict",
+        "line": 1316
+      },
+      {
+        "kind": "function",
+        "name": "convert_config",
+        "line": 1346
+      },
+      {
+        "kind": "function",
+        "name": "unet_config_from_diffusers_unet",
+        "line": 1384
+      },
+      {
+        "kind": "function",
+        "name": "model_config_from_diffusers_unet",
+        "line": 1537
+      },
+      {
+        "kind": "function",
+        "name": "convert_diffusers_mmdit",
+        "line": 1543
+      }
+    ],
+    "core/comfy/model_sampling.py": [
+      {
+        "kind": "function",
+        "name": "rescale_zero_terminal_snr_sigmas",
+        "line": 5
+      },
+      {
+        "kind": "function",
+        "name": "reshape_sigma",
+        "line": 24
+      },
+      {
+        "kind": "class",
+        "name": "EPS",
+        "line": 30
+      },
+      {
+        "kind": "class",
+        "name": "V_PREDICTION",
+        "line": 52
+      },
+      {
+        "kind": "class",
+        "name": "V_PREDICTION_DDPM",
+        "line": 57
+      },
+      {
+        "kind": "class",
+        "name": "EDM",
+        "line": 81
+      },
+      {
+        "kind": "class",
+        "name": "CONST",
+        "line": 86
+      },
+      {
+        "kind": "class",
+        "name": "X0",
+        "line": 103
+      },
+      {
+        "kind": "class",
+        "name": "IMG_TO_IMG",
+        "line": 107
+      },
+      {
+        "kind": "class",
+        "name": "IMG_TO_IMG_FLOW",
+        "line": 111
+      },
+      {
+        "kind": "class",
+        "name": "IMG_TO_IMG_VELOCITY",
+        "line": 121
+      },
+      {
+        "kind": "class",
+        "name": "COSMOS_RFLOW",
+        "line": 131
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingDiscrete",
+        "line": 151
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingDiscreteEDM",
+        "line": 229
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingContinuousEDM",
+        "line": 236
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingContinuousV",
+        "line": 281
+      },
+      {
+        "kind": "function",
+        "name": "time_snr_shift",
+        "line": 289
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingDiscreteFlow",
+        "line": 294
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingAV",
+        "line": 338
+      },
+      {
+        "kind": "class",
+        "name": "StableCascadeSampling",
+        "line": 359
+      },
+      {
+        "kind": "function",
+        "name": "flux_time_shift",
+        "line": 413
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingFlux",
+        "line": 416
+      },
+      {
+        "kind": "class",
+        "name": "ModelSamplingCosmosRFlow",
+        "line": 453
+      }
+    ],
+    "core/comfy/ops.py": [
+      {
+        "kind": "function",
+        "name": "run_every_op",
+        "line": 34
+      },
+      {
+        "kind": "function",
+        "name": "gqa_repeat_factor",
+        "line": 40
+      },
+      {
+        "kind": "function",
+        "name": "repeat_kv_for_gqa",
+        "line": 49
+      },
+      {
+        "kind": "function",
+        "name": "scaled_dot_product_attention",
+        "line": 56
+      },
+      {
+        "kind": "function",
+        "name": "cast_to_input",
+        "line": 114
+      },
+      {
+        "kind": "function",
+        "name": "materialize_meta_param",
+        "line": 118
+      },
+      {
+        "kind": "function",
+        "name": "cast_modules_with_vbar",
+        "line": 126
+      },
+      {
+        "kind": "function",
+        "name": "resolve_cast_module_with_vbar",
+        "line": 267
+      },
+      {
+        "kind": "function",
+        "name": "cast_bias_weight",
+        "line": 337
+      },
+      {
+        "kind": "function",
+        "name": "uncast_bias_weight",
+        "line": 441
+      },
+      {
+        "kind": "class",
+        "name": "CastBiasWeightContext",
+        "line": 461
+      },
+      {
+        "kind": "class",
+        "name": "CastWeightBiasOp",
+        "line": 482
+      },
+      {
+        "kind": "class",
+        "name": "disable_weight_init",
+        "line": 487
+      },
+      {
+        "kind": "class",
+        "name": "manual_cast",
+        "line": 817
+      },
+      {
+        "kind": "function",
+        "name": "fp8_linear",
+        "line": 852
+      },
+      {
+        "kind": "class",
+        "name": "fp8_ops",
+        "line": 892
+      },
+      {
+        "kind": "function",
+        "name": "_swiglu_eager",
+        "line": 947
+      },
+      {
+        "kind": "function",
+        "name": "linear_input_act",
+        "line": 958
+      },
+      {
+        "kind": "class",
+        "name": "QuantLinearFunc",
+        "line": 994
+      },
+      {
+        "kind": "function",
+        "name": "_quantized_apply",
+        "line": 1093
+      },
+      {
+        "kind": "function",
+        "name": "_load_quantized_module",
+        "line": 1111
+      },
+      {
+        "kind": "function",
+        "name": "_quantized_weight_state_dict",
+        "line": 1250
+      },
+      {
+        "kind": "class",
+        "name": "MixedPrecisionOp",
+        "line": 1290
+      },
+      {
+        "kind": "function",
+        "name": "mixed_precision_ops",
+        "line": 1300
+      },
+      {
+        "kind": "function",
+        "name": "get_disabled_quant_formats",
+        "line": 1663
+      },
+      {
+        "kind": "function",
+        "name": "use_quantized_matmul",
+        "line": 1680
+      },
+      {
+        "kind": "function",
+        "name": "pick_operations",
+        "line": 1694
+      }
+    ],
+    "core/comfy/quant_ops.py": [
+      {
+        "kind": "class",
+        "name": "_TensorCoreFP8LayoutBase",
+        "line": 90
+      },
+      {
+        "kind": "class",
+        "name": "TensorCoreMXFP8Layout",
+        "line": 125
+      },
+      {
+        "kind": "class",
+        "name": "TensorCoreNVFP4Layout",
+        "line": 150
+      },
+      {
+        "kind": "class",
+        "name": "TensorCoreFP8E4M3Layout",
+        "line": 183
+      },
+      {
+        "kind": "class",
+        "name": "TensorCoreFP8E5M2Layout",
+        "line": 187
+      }
+    ],
+    "core/comfy/samplers.py": [
+      {
+        "kind": "function",
+        "name": "add_area_dims",
+        "line": 28
+      },
+      {
+        "kind": "function",
+        "name": "get_area_and_mult",
+        "line": 33
+      },
+      {
+        "kind": "function",
+        "name": "cond_equal_size",
+        "line": 118
+      },
+      {
+        "kind": "function",
+        "name": "can_concat_cond",
+        "line": 128
+      },
+      {
+        "kind": "function",
+        "name": "cond_cat",
+        "line": 148
+      },
+      {
+        "kind": "function",
+        "name": "finalize_default_conds",
+        "line": 165
+      },
+      {
+        "kind": "function",
+        "name": "calc_cond_batch",
+        "line": 208
+      },
+      {
+        "kind": "function",
+        "name": "_calc_cond_batch_outer",
+        "line": 214
+      },
+      {
+        "kind": "function",
+        "name": "_calc_cond_batch",
+        "line": 221
+      },
+      {
+        "kind": "function",
+        "name": "_calc_cond_batch_multigpu",
+        "line": 358
+      },
+      {
+        "kind": "function",
+        "name": "calc_cond_uncond_batch",
+        "line": 588
+      },
+      {
+        "kind": "function",
+        "name": "cfg_function",
+        "line": 592
+      },
+      {
+        "kind": "function",
+        "name": "sampling_function",
+        "line": 609
+      },
+      {
+        "kind": "class",
+        "name": "KSamplerX0Inpaint",
+        "line": 630
+      },
+      {
+        "kind": "function",
+        "name": "simple_scheduler",
+        "line": 645
+      },
+      {
+        "kind": "function",
+        "name": "ddim_scheduler",
+        "line": 654
+      },
+      {
+        "kind": "function",
+        "name": "normal_scheduler",
+        "line": 671
+      },
+      {
+        "kind": "function",
+        "name": "beta_scheduler",
+        "line": 696
+      },
+      {
+        "kind": "function",
+        "name": "linear_quadratic_schedule",
+        "line": 711
+      },
+      {
+        "kind": "function",
+        "name": "kl_optimal_scheduler",
+        "line": 732
+      },
+      {
+        "kind": "function",
+        "name": "get_mask_aabb",
+        "line": 738
+      },
+      {
+        "kind": "function",
+        "name": "resolve_areas_and_cond_masks_multidim",
+        "line": 761
+      },
+      {
+        "kind": "function",
+        "name": "resolve_areas_and_cond_masks",
+        "line": 811
+      },
+      {
+        "kind": "function",
+        "name": "create_cond_with_same_area_if_none",
+        "line": 815
+      },
+      {
+        "kind": "function",
+        "name": "calculate_start_end_timesteps",
+        "line": 859
+      },
+      {
+        "kind": "function",
+        "name": "pre_run_control",
+        "line": 884
+      },
+      {
+        "kind": "function",
+        "name": "apply_empty_x_to_equal_area",
+        "line": 902
+      },
+      {
+        "kind": "function",
+        "name": "encode_model_conds",
+        "line": 937
+      },
+      {
+        "kind": "class",
+        "name": "Sampler",
+        "line": 962
+      },
+      {
+        "kind": "class",
+        "name": "KSAMPLER",
+        "line": 977
+      },
+      {
+        "kind": "function",
+        "name": "ksampler",
+        "line": 1010
+      },
+      {
+        "kind": "function",
+        "name": "process_conds",
+        "line": 1038
+      },
+      {
+        "kind": "function",
+        "name": "preprocess_conds_hooks",
+        "line": 1076
+      },
+      {
+        "kind": "function",
+        "name": "filter_registered_hooks_on_conds",
+        "line": 1103
+      },
+      {
+        "kind": "function",
+        "name": "get_total_hook_groups_in_conds",
+        "line": 1131
+      },
+      {
+        "kind": "function",
+        "name": "cast_to_load_options",
+        "line": 1139
+      },
+      {
+        "kind": "function",
+        "name": "cast_transformer_options",
+        "line": 1150
+      },
+      {
+        "kind": "class",
+        "name": "CFGGuider",
+        "line": 1188
+      },
+      {
+        "kind": "function",
+        "name": "sample",
+        "line": 1349
+      },
+      {
+        "kind": "class",
+        "name": "SchedulerHandler",
+        "line": 1358
+      },
+      {
+        "kind": "function",
+        "name": "calculate_sigmas",
+        "line": 1378
+      },
+      {
+        "kind": "function",
+        "name": "sampler_object",
+        "line": 1388
+      },
+      {
+        "kind": "class",
+        "name": "KSampler",
+        "line": 1399
+      }
+    ],
+    "core/comfy/sd.py": [
+      {
+        "kind": "function",
+        "name": "load_lora_for_models",
+        "line": 104
+      },
+      {
+        "kind": "function",
+        "name": "load_bypass_lora_for_models",
+        "line": 139
+      },
+      {
+        "kind": "class",
+        "name": "CLIP",
+        "line": 238
+      },
+      {
+        "kind": "class",
+        "name": "VAE",
+        "line": 488
+      },
+      {
+        "kind": "class",
+        "name": "StyleModel",
+        "line": 1508
+      },
+      {
+        "kind": "function",
+        "name": "load_style_model",
+        "line": 1516
+      },
+      {
+        "kind": "class",
+        "name": "CLIPType",
+        "line": 1528
+      },
+      {
+        "kind": "function",
+        "name": "load_clip_model_patcher",
+        "line": 1568
+      },
+      {
+        "kind": "function",
+        "name": "load_clip",
+        "line": 1572
+      },
+      {
+        "kind": "class",
+        "name": "TEModel",
+        "line": 1584
+      },
+      {
+        "kind": "function",
+        "name": "detect_te_model",
+        "line": 1624
+      },
+      {
+        "kind": "function",
+        "name": "t5xxl_detect",
+        "line": 1714
+      },
+      {
+        "kind": "function",
+        "name": "llama_detect",
+        "line": 1724
+      },
+      {
+        "kind": "function",
+        "name": "load_text_encoder_state_dicts",
+        "line": 1734
+      },
+      {
+        "kind": "function",
+        "name": "load_gligen",
+        "line": 2070
+      },
+      {
+        "kind": "function",
+        "name": "model_detection_error_hint",
+        "line": 2077
+      },
+      {
+        "kind": "function",
+        "name": "load_checkpoint",
+        "line": 2083
+      },
+      {
+        "kind": "function",
+        "name": "load_checkpoint_guess_config",
+        "line": 2107
+      },
+      {
+        "kind": "function",
+        "name": "load_checkpoint_clip_patcher",
+        "line": 2125
+      },
+      {
+        "kind": "function",
+        "name": "load_checkpoint_vae_patcher",
+        "line": 2142
+      },
+      {
+        "kind": "function",
+        "name": "load_checkpoint_guess_config_model_only",
+        "line": 2158
+      },
+      {
+        "kind": "function",
+        "name": "load_checkpoint_guess_config_clip_only",
+        "line": 2166
+      },
+      {
+        "kind": "function",
+        "name": "load_state_dict_guess_config",
+        "line": 2174
+      },
+      {
+        "kind": "function",
+        "name": "load_diffusion_model_state_dict",
+        "line": 2277
+      },
+      {
+        "kind": "function",
+        "name": "load_diffusion_model",
+        "line": 2374
+      },
+      {
+        "kind": "function",
+        "name": "load_vae_patcher",
+        "line": 2384
+      },
+      {
+        "kind": "function",
+        "name": "load_unet",
+        "line": 2403
+      },
+      {
+        "kind": "function",
+        "name": "load_unet_state_dict",
+        "line": 2407
+      },
+      {
+        "kind": "function",
+        "name": "save_checkpoint",
+        "line": 2411
+      }
+    ],
+    "core/comfy/supported_models.py": [
+      {
+        "kind": "class",
+        "name": "SD15",
+        "line": 50
+      },
+      {
+        "kind": "class",
+        "name": "SD20",
+        "line": 96
+      },
+      {
+        "kind": "class",
+        "name": "SD21UnclipL",
+        "line": 140
+      },
+      {
+        "kind": "class",
+        "name": "SD21UnclipH",
+        "line": 153
+      },
+      {
+        "kind": "class",
+        "name": "SDXLRefiner",
+        "line": 165
+      },
+      {
+        "kind": "class",
+        "name": "SDXL",
+        "line": 203
+      },
+      {
+        "kind": "class",
+        "name": "SSD1B",
+        "line": 275
+      },
+      {
+        "kind": "class",
+        "name": "Segmind_Vega",
+        "line": 285
+      },
+      {
+        "kind": "class",
+        "name": "KOALA_700M",
+        "line": 295
+      },
+      {
+        "kind": "class",
+        "name": "KOALA_1B",
+        "line": 305
+      },
+      {
+        "kind": "class",
+        "name": "SVD_img2vid",
+        "line": 315
+      },
+      {
+        "kind": "class",
+        "name": "SV3D_u",
+        "line": 346
+      },
+      {
+        "kind": "class",
+        "name": "SV3D_p",
+        "line": 364
+      },
+      {
+        "kind": "class",
+        "name": "Stable_Zero123",
+        "line": 381
+      },
+      {
+        "kind": "class",
+        "name": "SD_X4Upscaler",
+        "line": 412
+      },
+      {
+        "kind": "class",
+        "name": "Stable_Cascade_C",
+        "line": 440
+      },
+      {
+        "kind": "class",
+        "name": "Stable_Cascade_B",
+        "line": 486
+      },
+      {
+        "kind": "class",
+        "name": "SD15_instructpix2pix",
+        "line": 506
+      },
+      {
+        "kind": "class",
+        "name": "SDXL_instructpix2pix",
+        "line": 519
+      },
+      {
+        "kind": "class",
+        "name": "LotusD",
+        "line": 533
+      },
+      {
+        "kind": "class",
+        "name": "SD3",
+        "line": 550
+      },
+      {
+        "kind": "class",
+        "name": "StableAudio",
+        "line": 586
+      },
+      {
+        "kind": "class",
+        "name": "StableAudio3",
+        "line": 617
+      },
+      {
+        "kind": "class",
+        "name": "AuraFlow",
+        "line": 640
+      },
+      {
+        "kind": "class",
+        "name": "PixArtAlpha",
+        "line": 663
+      },
+      {
+        "kind": "class",
+        "name": "PixArtSigma",
+        "line": 690
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanDiT",
+        "line": 696
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanDiT1",
+        "line": 724
+      },
+      {
+        "kind": "class",
+        "name": "Flux",
+        "line": 736
+      },
+      {
+        "kind": "class",
+        "name": "FluxInpaint",
+        "line": 773
+      },
+      {
+        "kind": "class",
+        "name": "FluxSchnell",
+        "line": 782
+      },
+      {
+        "kind": "class",
+        "name": "Flux2",
+        "line": 797
+      },
+      {
+        "kind": "class",
+        "name": "Lens",
+        "line": 843
+      },
+      {
+        "kind": "class",
+        "name": "GenmoMochi",
+        "line": 886
+      },
+      {
+        "kind": "class",
+        "name": "LTXV",
+        "line": 915
+      },
+      {
+        "kind": "class",
+        "name": "LTXAV",
+        "line": 947
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3",
+        "line": 962
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideo",
+        "line": 990
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideoI2V",
+        "line": 1040
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideoSkyreelsI2V",
+        "line": 1050
+      },
+      {
+        "kind": "class",
+        "name": "CosmosT2V",
+        "line": 1060
+      },
+      {
+        "kind": "class",
+        "name": "CosmosI2V",
+        "line": 1091
+      },
+      {
+        "kind": "class",
+        "name": "CosmosT2IPredict2",
+        "line": 1101
+      },
+      {
+        "kind": "class",
+        "name": "Anima",
+        "line": 1133
+      },
+      {
+        "kind": "class",
+        "name": "CosmosI2VPredict2",
+        "line": 1165
+      },
+      {
+        "kind": "class",
+        "name": "Lumina2",
+        "line": 1175
+      },
+      {
+        "kind": "class",
+        "name": "ZImage",
+        "line": 1204
+      },
+      {
+        "kind": "class",
+        "name": "ZImagePixelSpace",
+        "line": 1230
+      },
+      {
+        "kind": "class",
+        "name": "PixelDiTT2I",
+        "line": 1244
+      },
+      {
+        "kind": "class",
+        "name": "PiD",
+        "line": 1296
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_T2V",
+        "line": 1310
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_CausalAR_T2V",
+        "line": 1343
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_I2V",
+        "line": 1362
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_FunControl2V",
+        "line": 1373
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_Camera",
+        "line": 1384
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_Camera",
+        "line": 1395
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_Vace",
+        "line": 1406
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_HuMo",
+        "line": 1420
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_S2V",
+        "line": 1430
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_Animate",
+        "line": 1443
+      },
+      {
+        "kind": "class",
+        "name": "WAN_Animate2",
+        "line": 1456
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_T2V",
+        "line": 1470
+      },
+      {
+        "kind": "class",
+        "name": "Trellis2",
+        "line": 1483
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_FlowRVS",
+        "line": 1508
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_SCAIL",
+        "line": 1518
+      },
+      {
+        "kind": "class",
+        "name": "WAN21_SCAIL2",
+        "line": 1529
+      },
+      {
+        "kind": "class",
+        "name": "WAN22_WanDancer",
+        "line": 1539
+      },
+      {
+        "kind": "class",
+        "name": "Hunyuan3Dv2",
+        "line": 1570
+      },
+      {
+        "kind": "class",
+        "name": "Hunyuan3Dv2_1",
+        "line": 1609
+      },
+      {
+        "kind": "class",
+        "name": "Hunyuan3Dv2mini",
+        "line": 1620
+      },
+      {
+        "kind": "class",
+        "name": "TripoSplat",
+        "line": 1628
+      },
+      {
+        "kind": "class",
+        "name": "HiDream",
+        "line": 1652
+      },
+      {
+        "kind": "class",
+        "name": "HiDreamO1",
+        "line": 1681
+      },
+      {
+        "kind": "class",
+        "name": "SenseNovaU15",
+        "line": 1725
+      },
+      {
+        "kind": "class",
+        "name": "Chroma",
+        "line": 1763
+      },
+      {
+        "kind": "class",
+        "name": "SeedVR2",
+        "line": 1799
+      },
+      {
+        "kind": "class",
+        "name": "ChromaRadiance",
+        "line": 1833
+      },
+      {
+        "kind": "class",
+        "name": "ACEStep",
+        "line": 1846
+      },
+      {
+        "kind": "class",
+        "name": "Omnigen2",
+        "line": 1874
+      },
+      {
+        "kind": "class",
+        "name": "Boogu",
+        "line": 1908
+      },
+      {
+        "kind": "class",
+        "name": "Ideogram4",
+        "line": 1929
+      },
+      {
+        "kind": "class",
+        "name": "Krea2",
+        "line": 1968
+      },
+      {
+        "kind": "class",
+        "name": "MageFlow",
+        "line": 1996
+      },
+      {
+        "kind": "class",
+        "name": "QwenImage",
+        "line": 2025
+      },
+      {
+        "kind": "class",
+        "name": "JoyImage",
+        "line": 2054
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanImage21",
+        "line": 2086
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanImage21Refiner",
+        "line": 2111
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideo15",
+        "line": 2128
+      },
+      {
+        "kind": "class",
+        "name": "HunyuanVideo15_SR_Distilled",
+        "line": 2152
+      },
+      {
+        "kind": "class",
+        "name": "Kandinsky5",
+        "line": 2177
+      },
+      {
+        "kind": "class",
+        "name": "Kandinsky5Image",
+        "line": 2206
+      },
+      {
+        "kind": "class",
+        "name": "ACEStep15",
+        "line": 2230
+      },
+      {
+        "kind": "class",
+        "name": "YuE2",
+        "line": 2269
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxMusic3",
+        "line": 2290
+      },
+      {
+        "kind": "class",
+        "name": "LongCatImage",
+        "line": 2313
+      },
+      {
+        "kind": "class",
+        "name": "RT_DETR_v4",
+        "line": 2345
+      },
+      {
+        "kind": "class",
+        "name": "DepthAnything3",
+        "line": 2360
+      },
+      {
+        "kind": "class",
+        "name": "ErnieImage",
+        "line": 2377
+      },
+      {
+        "kind": "class",
+        "name": "SAM3",
+        "line": 2407
+      },
+      {
+        "kind": "class",
+        "name": "SAM31",
+        "line": 2454
+      },
+      {
+        "kind": "class",
+        "name": "CogVideoX_T2V",
+        "line": 2458
+      },
+      {
+        "kind": "class",
+        "name": "CogVideoX_I2V",
+        "line": 2498
+      },
+      {
+        "kind": "class",
+        "name": "CogVideoX_Inpaint",
+        "line": 2512
+      }
+    ],
+    "core/comfy/text_encoders/llama.py": [
+      {
+        "kind": "class",
+        "name": "FixedKV",
+        "line": 21
+      },
+      {
+        "kind": "class",
+        "name": "Llama2Config",
+        "line": 36
+      },
+      {
+        "kind": "class",
+        "name": "Mistral3Small24BConfig",
+        "line": 59
+      },
+      {
+        "kind": "class",
+        "name": "Ministral3_3BConfig",
+        "line": 82
+      },
+      {
+        "kind": "class",
+        "name": "Qwen25_3BConfig",
+        "line": 106
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_06BConfig",
+        "line": 129
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_06B_ACE15_Config",
+        "line": 153
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_2B_ACE15_lm_Config",
+        "line": 177
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_4B_ACE15_lm_Config",
+        "line": 201
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_4BConfig",
+        "line": 225
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_8BConfig",
+        "line": 249
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VL_8BConfig",
+        "line": 276
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VL_4BConfig",
+        "line": 283
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VL_32BConfig",
+        "line": 289
+      },
+      {
+        "kind": "class",
+        "name": "Ovis25_2BConfig",
+        "line": 300
+      },
+      {
+        "kind": "class",
+        "name": "Qwen25_7BVLI_Config",
+        "line": 323
+      },
+      {
+        "kind": "class",
+        "name": "Gemma2_2B_Config",
+        "line": 346
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3_4B_Config",
+        "line": 371
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3_4B_Vision_Config",
+        "line": 398
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3_12B_Config",
+        "line": 403
+      },
+      {
+        "kind": "class",
+        "name": "RMSNorm",
+        "line": 429
+      },
+      {
+        "kind": "function",
+        "name": "precompute_freqs_cis",
+        "line": 445
+      },
+      {
+        "kind": "function",
+        "name": "apply_rope",
+        "line": 492
+      },
+      {
+        "kind": "class",
+        "name": "Attention",
+        "line": 511
+      },
+      {
+        "kind": "class",
+        "name": "MLP",
+        "line": 626
+      },
+      {
+        "kind": "class",
+        "name": "TransformerBlock",
+        "line": 653
+      },
+      {
+        "kind": "class",
+        "name": "TransformerBlockGemma2",
+        "line": 690
+      },
+      {
+        "kind": "function",
+        "name": "_make_scaled_embedding",
+        "line": 755
+      },
+      {
+        "kind": "class",
+        "name": "Llama2_",
+        "line": 762
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3MultiModalProjector",
+        "line": 944
+      },
+      {
+        "kind": "class",
+        "name": "BaseLlama",
+        "line": 978
+      },
+      {
+        "kind": "class",
+        "name": "BaseGenerate",
+        "line": 988
+      },
+      {
+        "kind": "class",
+        "name": "BaseQwen3",
+        "line": 1132
+      },
+      {
+        "kind": "class",
+        "name": "Llama2",
+        "line": 1151
+      },
+      {
+        "kind": "class",
+        "name": "Mistral3Small24B",
+        "line": 1160
+      },
+      {
+        "kind": "class",
+        "name": "Ministral3_3B",
+        "line": 1169
+      },
+      {
+        "kind": "class",
+        "name": "Qwen25_3B",
+        "line": 1178
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_06B",
+        "line": 1187
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_06B_ACE15",
+        "line": 1196
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_2B_ACE15_lm",
+        "line": 1205
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_4B",
+        "line": 1214
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_4B_ACE15_lm",
+        "line": 1223
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3_8B",
+        "line": 1232
+      },
+      {
+        "kind": "class",
+        "name": "Ovis25_2B",
+        "line": 1241
+      },
+      {
+        "kind": "class",
+        "name": "Qwen25_7BVLI",
+        "line": 1250
+      },
+      {
+        "kind": "class",
+        "name": "Gemma2_2B",
+        "line": 1303
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3_4B",
+        "line": 1312
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3_4B_Vision",
+        "line": 1321
+      },
+      {
+        "kind": "class",
+        "name": "Gemma3_12B",
+        "line": 1339
+      }
+    ],
+    "core/comfy/text_encoders/minimax.py": [
+      {
+        "kind": "function",
+        "name": "process_video_block",
+        "line": 39
+      },
+      {
+        "kind": "function",
+        "name": "token_tags_from_embeds_info",
+        "line": 75
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxQwen3VL",
+        "line": 85
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3ClipModel",
+        "line": 106
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3TEModel",
+        "line": 123
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxQwenSDTokenizer",
+        "line": 129
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3Tokenizer",
+        "line": 136
+      },
+      {
+        "kind": "function",
+        "name": "te",
+        "line": 208
+      }
+    ],
+    "core/comfy/text_encoders/qwen35.py": [
+      {
+        "kind": "function",
+        "name": "_qwen35_layer_types",
+        "line": 15
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35Config",
+        "line": 19
+      },
+      {
+        "kind": "function",
+        "name": "_make_config",
+        "line": 63
+      },
+      {
+        "kind": "class",
+        "name": "RMSNormGated",
+        "line": 72
+      },
+      {
+        "kind": "function",
+        "name": "torch_chunk_gated_delta_rule",
+        "line": 76
+      },
+      {
+        "kind": "function",
+        "name": "torch_causal_conv1d_update",
+        "line": 138
+      },
+      {
+        "kind": "class",
+        "name": "GatedDeltaNet",
+        "line": 152
+      },
+      {
+        "kind": "function",
+        "name": "precompute_partial_rope",
+        "line": 274
+      },
+      {
+        "kind": "function",
+        "name": "apply_partial_rope",
+        "line": 297
+      },
+      {
+        "kind": "class",
+        "name": "GatedAttention",
+        "line": 311
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35TransformerBlock",
+        "line": 377
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35Transformer",
+        "line": 401
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionPatchEmbed",
+        "line": 438
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionMLP",
+        "line": 453
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionRotaryEmbedding",
+        "line": 464
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionAttention",
+        "line": 477
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionBlock",
+        "line": 512
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionPatchMerger",
+        "line": 526
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35VisionModel",
+        "line": 541
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35",
+        "line": 675
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35Tokenizer",
+        "line": 723
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35ImageTokenizer",
+        "line": 731
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35ClipModel",
+        "line": 779
+      },
+      {
+        "kind": "class",
+        "name": "Qwen35TEModel",
+        "line": 790
+      },
+      {
+        "kind": "function",
+        "name": "tokenizer",
+        "line": 796
+      },
+      {
+        "kind": "function",
+        "name": "te",
+        "line": 803
+      }
+    ],
+    "core/comfy/text_encoders/qwen3vl.py": [
+      {
+        "kind": "class",
+        "name": "Qwen3VLDeepstackMerger",
+        "line": 25
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VLVisionModel",
+        "line": 39
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VL",
+        "line": 50
+      },
+      {
+        "kind": "function",
+        "name": "_make_qwen3vl_model",
+        "line": 116
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VLClipModel",
+        "line": 123
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VLTEModel",
+        "line": 141
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VLSDTokenizer",
+        "line": 147
+      },
+      {
+        "kind": "class",
+        "name": "Qwen3VLTokenizer",
+        "line": 154
+      },
+      {
+        "kind": "function",
+        "name": "tokenizer",
+        "line": 199
+      },
+      {
+        "kind": "function",
+        "name": "te",
+        "line": 206
+      }
+    ],
+    "core/comfy/text_encoders/qwen_vl.py": [
+      {
+        "kind": "function",
+        "name": "process_qwen2vl_images",
+        "line": 9
+      },
+      {
+        "kind": "function",
+        "name": "qwen2vl_mrope_position_ids",
+        "line": 91
+      },
+      {
+        "kind": "class",
+        "name": "VisionPatchEmbed",
+        "line": 117
+      },
+      {
+        "kind": "function",
+        "name": "rotate_half",
+        "line": 153
+      },
+      {
+        "kind": "function",
+        "name": "apply_rotary_pos_emb_vision",
+        "line": 159
+      },
+      {
+        "kind": "class",
+        "name": "VisionRotaryEmbedding",
+        "line": 166
+      },
+      {
+        "kind": "class",
+        "name": "PatchMerger",
+        "line": 179
+      },
+      {
+        "kind": "class",
+        "name": "VisionAttention",
+        "line": 196
+      },
+      {
+        "kind": "class",
+        "name": "VisionMLP",
+        "line": 249
+      },
+      {
+        "kind": "class",
+        "name": "VisionBlock",
+        "line": 261
+      },
+      {
+        "kind": "class",
+        "name": "Qwen2VLVisionTransformer",
+        "line": 289
+      }
+    ],
+    "core/comfy_extras/nodes_audio.py": [
+      {
+        "kind": "class",
+        "name": "EmptyLatentAudio",
+        "line": 13
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningStableAudio",
+        "line": 39
+      },
+      {
+        "kind": "class",
+        "name": "VAEEncodeAudio",
+        "line": 66
+      },
+      {
+        "kind": "function",
+        "name": "vae_decode_audio",
+        "line": 98
+      },
+      {
+        "kind": "class",
+        "name": "VAEDecodeAudio",
+        "line": 115
+      },
+      {
+        "kind": "class",
+        "name": "VAEDecodeAudioTiled",
+        "line": 137
+      },
+      {
+        "kind": "class",
+        "name": "SaveAudio",
+        "line": 159
+      },
+      {
+        "kind": "class",
+        "name": "SaveAudioMP3",
+        "line": 188
+      },
+      {
+        "kind": "class",
+        "name": "SaveAudioOpus",
+        "line": 220
+      },
+      {
+        "kind": "class",
+        "name": "SaveAudioAdvanced",
+        "line": 251
+      },
+      {
+        "kind": "class",
+        "name": "PreviewAudio",
+        "line": 297
+      },
+      {
+        "kind": "function",
+        "name": "f32_pcm",
+        "line": 323
+      },
+      {
+        "kind": "function",
+        "name": "load",
+        "line": 333
+      },
+      {
+        "kind": "class",
+        "name": "LoadAudio",
+        "line": 359
+      },
+      {
+        "kind": "class",
+        "name": "RecordAudio",
+        "line": 401
+      },
+      {
+        "kind": "class",
+        "name": "TrimAudioDuration",
+        "line": 426
+      },
+      {
+        "kind": "class",
+        "name": "SplitAudioChannels",
+        "line": 484
+      },
+      {
+        "kind": "class",
+        "name": "JoinAudioChannels",
+        "line": 519
+      },
+      {
+        "kind": "function",
+        "name": "match_audio_sample_rates",
+        "line": 578
+      },
+      {
+        "kind": "class",
+        "name": "AudioConcat",
+        "line": 593
+      },
+      {
+        "kind": "class",
+        "name": "AudioMerge",
+        "line": 647
+      },
+      {
+        "kind": "class",
+        "name": "AudioAdjustVolume",
+        "line": 717
+      },
+      {
+        "kind": "class",
+        "name": "EmptyAudio",
+        "line": 756
+      },
+      {
+        "kind": "class",
+        "name": "AudioEqualizer3Band",
+        "line": 802
+      },
+      {
+        "kind": "class",
+        "name": "AudioExtension",
+        "line": 869
+      },
+      {
+        "kind": "function",
+        "name": "comfy_entrypoint",
+        "line": 895
+      }
+    ],
+    "core/comfy_extras/nodes_custom_sampler.py": [
+      {
+        "kind": "class",
+        "name": "BasicScheduler",
+        "line": 17
+      },
+      {
+        "kind": "class",
+        "name": "KarrasScheduler",
+        "line": 47
+      },
+      {
+        "kind": "class",
+        "name": "ExponentialScheduler",
+        "line": 69
+      },
+      {
+        "kind": "class",
+        "name": "PolyexponentialScheduler",
+        "line": 90
+      },
+      {
+        "kind": "class",
+        "name": "LaplaceScheduler",
+        "line": 112
+      },
+      {
+        "kind": "class",
+        "name": "SDTurboScheduler",
+        "line": 136
+      },
+      {
+        "kind": "class",
+        "name": "BetaSamplingScheduler",
+        "line": 160
+      },
+      {
+        "kind": "class",
+        "name": "VPScheduler",
+        "line": 182
+      },
+      {
+        "kind": "class",
+        "name": "SplitSigmas",
+        "line": 204
+      },
+      {
+        "kind": "class",
+        "name": "SplitSigmasDenoise",
+        "line": 228
+      },
+      {
+        "kind": "class",
+        "name": "FlipSigmas",
+        "line": 254
+      },
+      {
+        "kind": "class",
+        "name": "SetFirstSigma",
+        "line": 276
+      },
+      {
+        "kind": "class",
+        "name": "ExtendIntermediateSigmas",
+        "line": 297
+      },
+      {
+        "kind": "class",
+        "name": "SamplingPercentToSigma",
+        "line": 351
+      },
+      {
+        "kind": "class",
+        "name": "KSamplerSelect",
+        "line": 379
+      },
+      {
+        "kind": "class",
+        "name": "SamplerDPMPP_3M_SDE",
+        "line": 396
+      },
+      {
+        "kind": "class",
+        "name": "SamplerDPMPP_2M_SDE",
+        "line": 421
+      },
+      {
+        "kind": "class",
+        "name": "SamplerDPMPP_SDE",
+        "line": 448
+      },
+      {
+        "kind": "class",
+        "name": "SamplerDPMPP_2S_Ancestral",
+        "line": 474
+      },
+      {
+        "kind": "class",
+        "name": "SamplerEulerAncestral",
+        "line": 494
+      },
+      {
+        "kind": "class",
+        "name": "SamplerEulerAncestralCFGPP",
+        "line": 514
+      },
+      {
+        "kind": "class",
+        "name": "SamplerLMS",
+        "line": 537
+      },
+      {
+        "kind": "class",
+        "name": "SamplerDPMAdaptative",
+        "line": 554
+      },
+      {
+        "kind": "class",
+        "name": "SamplerER_SDE",
+        "line": 585
+      },
+      {
+        "kind": "class",
+        "name": "SamplerSASolver",
+        "line": 636
+      },
+      {
+        "kind": "class",
+        "name": "SamplerSEEDS2",
+        "line": 681
+      },
+      {
+        "kind": "class",
+        "name": "Noise_EmptyNoise",
+        "line": 716
+      },
+      {
+        "kind": "class",
+        "name": "Noise_RandomNoise",
+        "line": 724
+      },
+      {
+        "kind": "class",
+        "name": "SamplerCustom",
+        "line": 733
+      },
+      {
+        "kind": "class",
+        "name": "Guider_Basic",
+        "line": 797
+      },
+      {
+        "kind": "class",
+        "name": "BasicGuider",
+        "line": 801
+      },
+      {
+        "kind": "class",
+        "name": "CFGGuider",
+        "line": 823
+      },
+      {
+        "kind": "class",
+        "name": "Guider_DualCFG",
+        "line": 848
+      },
+      {
+        "kind": "class",
+        "name": "DualCFGGuider",
+        "line": 877
+      },
+      {
+        "kind": "class",
+        "name": "Guider_DualModel",
+        "line": 906
+      },
+      {
+        "kind": "class",
+        "name": "DualModelGuider",
+        "line": 955
+      },
+      {
+        "kind": "class",
+        "name": "DisableNoise",
+        "line": 985
+      },
+      {
+        "kind": "class",
+        "name": "RandomNoise",
+        "line": 1003
+      },
+      {
+        "kind": "class",
+        "name": "SamplerCustomAdvanced",
+        "line": 1020
+      },
+      {
+        "kind": "class",
+        "name": "AddNoise",
+        "line": 1076
+      },
+      {
+        "kind": "class",
+        "name": "ManualSigmas",
+        "line": 1125
+      },
+      {
+        "kind": "class",
+        "name": "CFGOverride",
+        "line": 1146
+      },
+      {
+        "kind": "class",
+        "name": "CustomSamplersExtension",
+        "line": 1187
+      },
+      {
+        "kind": "function",
+        "name": "comfy_entrypoint",
+        "line": 1231
+      }
+    ],
+    "core/comfy_extras/nodes_minimax_h3.py": [
+      {
+        "kind": "function",
+        "name": "align_frame_count",
+        "line": 37
+      },
+      {
+        "kind": "function",
+        "name": "video_latent_t",
+        "line": 43
+      },
+      {
+        "kind": "function",
+        "name": "temporal_shape",
+        "line": 47
+      },
+      {
+        "kind": "function",
+        "name": "adapt_canvas",
+        "line": 53
+      },
+      {
+        "kind": "function",
+        "name": "_resize",
+        "line": 67
+      },
+      {
+        "kind": "function",
+        "name": "_encode_ref_audio",
+        "line": 74
+      },
+      {
+        "kind": "function",
+        "name": "_empty_av_latent",
+        "line": 84
+      },
+      {
+        "kind": "class",
+        "name": "EmptyMiniMaxH3LatentAV",
+        "line": 93
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3ImageToVideo",
+        "line": 115
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3AddGuide",
+        "line": 165
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3ReferenceToVideo",
+        "line": 242
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3SigmaShift",
+        "line": 366
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3FunControlPatch",
+        "line": 410
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3FunControlBlockPatch",
+        "line": 538
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3FunControlNetApply",
+        "line": 573
+      },
+      {
+        "kind": "class",
+        "name": "MiniMaxH3Extension",
+        "line": 618
+      },
+      {
+        "kind": "function",
+        "name": "comfy_entrypoint",
+        "line": 630
+      }
+    ],
+    "core/comfy_extras/nodes_video.py": [
+      {
+        "kind": "class",
+        "name": "SaveWEBM",
+        "line": 13
+      },
+      {
+        "kind": "function",
+        "name": "_save_video_codec_input",
+        "line": 76
+      },
+      {
+        "kind": "class",
+        "name": "SaveVideo",
+        "line": 135
+      },
+      {
+        "kind": "class",
+        "name": "CreateVideo",
+        "line": 206
+      },
+      {
+        "kind": "class",
+        "name": "ConcatenateVideo",
+        "line": 264
+      },
+      {
+        "kind": "class",
+        "name": "GetVideoComponents",
+        "line": 308
+      },
+      {
+        "kind": "class",
+        "name": "LoadVideo",
+        "line": 341
+      },
+      {
+        "kind": "function",
+        "name": "preview_input_video",
+        "line": 386
+      },
+      {
+        "kind": "function",
+        "name": "save_video_preview",
+        "line": 395
+      },
+      {
+        "kind": "function",
+        "name": "apply_video_trim",
+        "line": 417
+      },
+      {
+        "kind": "function",
+        "name": "apply_video_crop",
+        "line": 434
+      },
+      {
+        "kind": "class",
+        "name": "VideoSlice",
+        "line": 444
+      },
+      {
+        "kind": "class",
+        "name": "VideoTrim",
+        "line": 491
+      },
+      {
+        "kind": "class",
+        "name": "VideoCrop",
+        "line": 528
+      },
+      {
+        "kind": "class",
+        "name": "VideoExtension",
+        "line": 559
+      },
+      {
+        "kind": "function",
+        "name": "comfy_entrypoint",
+        "line": 574
+      }
+    ],
+    "core/execution.py": [
+      {
+        "kind": "class",
+        "name": "ExecutionResult",
+        "line": 52
+      },
+      {
+        "kind": "class",
+        "name": "DuplicateNodeError",
+        "line": 57
+      },
+      {
+        "kind": "class",
+        "name": "IsChangedCache",
+        "line": 60
+      },
+      {
+        "kind": "class",
+        "name": "CacheEntry",
+        "line": 104
+      },
+      {
+        "kind": "class",
+        "name": "CacheType",
+        "line": 109
+      },
+      {
+        "kind": "class",
+        "name": "CacheSet",
+        "line": 116
+      },
+      {
+        "kind": "function",
+        "name": "get_input_data",
+        "line": 159
+      },
+      {
+        "kind": "function",
+        "name": "resolve_map_node_over_list_results",
+        "line": 231
+      },
+      {
+        "kind": "function",
+        "name": "_async_map_node_over_list",
+        "line": 243
+      },
+      {
+        "kind": "function",
+        "name": "merge_result_data",
+        "line": 322
+      },
+      {
+        "kind": "function",
+        "name": "get_output_data",
+        "line": 343
+      },
+      {
+        "kind": "function",
+        "name": "get_output_from_returns",
+        "line": 351
+      },
+      {
+        "kind": "function",
+        "name": "format_value",
+        "line": 416
+      },
+      {
+        "kind": "function",
+        "name": "_is_intermediate_output",
+        "line": 424
+      },
+      {
+        "kind": "function",
+        "name": "_send_cached_ui",
+        "line": 430
+      },
+      {
+        "kind": "function",
+        "name": "execute",
+        "line": 438
+      },
+      {
+        "kind": "class",
+        "name": "PromptExecutor",
+        "line": 664
+      },
+      {
+        "kind": "function",
+        "name": "validate_inputs",
+        "line": 846
+      },
+      {
+        "kind": "function",
+        "name": "full_type_name",
+        "line": 1122
+      },
+      {
+        "kind": "function",
+        "name": "validate_prompt",
+        "line": 1128
+      },
+      {
+        "kind": "class",
+        "name": "PromptQueue",
+        "line": 1251
+      }
+    ],
+    "core/main.py": [
+      {
+        "kind": "function",
+        "name": "handle_comfyui_manager_unavailable",
+        "line": 117
+      },
+      {
+        "kind": "function",
+        "name": "apply_custom_paths",
+        "line": 140
+      },
+      {
+        "kind": "function",
+        "name": "execute_prestartup_script",
+        "line": 183
+      },
+      {
+        "kind": "function",
+        "name": "dynamic_vram_supported",
+        "line": 264
+      },
+      {
+        "kind": "function",
+        "name": "cuda_malloc_warning",
+        "line": 307
+      },
+      {
+        "kind": "function",
+        "name": "_collect_output_absolute_paths",
+        "line": 319
+      },
+      {
+        "kind": "function",
+        "name": "prompt_worker",
+        "line": 351
+      },
+      {
+        "kind": "function",
+        "name": "run",
+        "line": 449
+      },
+      {
+        "kind": "function",
+        "name": "hijack_progress",
+        "line": 457
+      },
+      {
+        "kind": "function",
+        "name": "cleanup_temp",
+        "line": 489
+      },
+      {
+        "kind": "function",
+        "name": "setup_database",
+        "line": 495
+      },
+      {
+        "kind": "function",
+        "name": "start_comfyui",
+        "line": 523
+      }
+    ],
+    "core/nodes.py": [
+      {
+        "kind": "function",
+        "name": "before_node_execution",
+        "line": 48
+      },
+      {
+        "kind": "function",
+        "name": "interrupt_processing",
+        "line": 51
+      },
+      {
+        "kind": "class",
+        "name": "CLIPTextEncode",
+        "line": 56
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningCombine",
+        "line": 80
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningAverage",
+        "line": 94
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningConcat",
+        "line": 134
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningMultiply",
+        "line": 162
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningSetArea",
+        "line": 185
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningSetAreaPercentage",
+        "line": 208
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningSetAreaStrength",
+        "line": 229
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningSetMask",
+        "line": 245
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningZeroOut",
+        "line": 272
+      },
+      {
+        "kind": "class",
+        "name": "ConditioningSetTimestepRange",
+        "line": 300
+      },
+      {
+        "kind": "class",
+        "name": "VAEDecode",
+        "line": 316
+      },
+      {
+        "kind": "class",
+        "name": "VAEDecodeTiled",
+        "line": 343
+      },
+      {
+        "kind": "class",
+        "name": "VAEEncode",
+        "line": 380
+      },
+      {
+        "kind": "class",
+        "name": "VAEEncodeTiled",
+        "line": 394
+      },
+      {
+        "kind": "class",
+        "name": "VAEEncodeForInpaint",
+        "line": 412
+      },
+      {
+        "kind": "class",
+        "name": "InpaintModelConditioning",
+        "line": 453
+      },
+      {
+        "kind": "class",
+        "name": "SaveLatent",
+        "line": 505
+      },
+      {
+        "kind": "class",
+        "name": "LoadLatent",
+        "line": 560
+      },
+      {
+        "kind": "class",
+        "name": "CheckpointLoader",
+        "line": 598
+      },
+      {
+        "kind": "class",
+        "name": "CheckpointLoaderSimple",
+        "line": 616
+      },
+      {
+        "kind": "class",
+        "name": "DiffusersLoader",
+        "line": 639
+      },
+      {
+        "kind": "class",
+        "name": "unCLIPCheckpointLoader",
+        "line": 678
+      },
+      {
+        "kind": "class",
+        "name": "CLIPSetLastLayer",
+        "line": 693
+      },
+      {
+        "kind": "class",
+        "name": "LoraLoader",
+        "line": 709
+      },
+      {
+        "kind": "class",
+        "name": "LoraLoaderModelOnly",
+        "line": 756
+      },
+      {
+        "kind": "class",
+        "name": "VAELoader",
+        "line": 771
+      },
+      {
+        "kind": "class",
+        "name": "ControlNetLoader",
+        "line": 866
+      },
+      {
+        "kind": "class",
+        "name": "DiffControlNetLoader",
+        "line": 884
+      },
+      {
+        "kind": "class",
+        "name": "ControlNetApply",
+        "line": 901
+      },
+      {
+        "kind": "class",
+        "name": "ControlNetApplyAdvanced",
+        "line": 932
+      },
+      {
+        "kind": "class",
+        "name": "UNETLoader",
+        "line": 983
+      },
+      {
+        "kind": "class",
+        "name": "CLIPLoader",
+        "line": 1008
+      },
+      {
+        "kind": "class",
+        "name": "DualCLIPLoader",
+        "line": 1035
+      },
+      {
+        "kind": "class",
+        "name": "CLIPVisionLoader",
+        "line": 1065
+      },
+      {
+        "kind": "class",
+        "name": "CLIPVisionEncode",
+        "line": 1082
+      },
+      {
+        "kind": "class",
+        "name": "StyleModelLoader",
+        "line": 1101
+      },
+      {
+        "kind": "class",
+        "name": "StyleModelApply",
+        "line": 1117
+      },
+      {
+        "kind": "class",
+        "name": "unCLIPConditioning",
+        "line": 1180
+      },
+      {
+        "kind": "class",
+        "name": "GLIGENLoader",
+        "line": 1200
+      },
+      {
+        "kind": "class",
+        "name": "GLIGENTextBoxApply",
+        "line": 1215
+      },
+      {
+        "kind": "class",
+        "name": "EmptyLatentImage",
+        "line": 1246
+      },
+      {
+        "kind": "class",
+        "name": "LatentFromBatch",
+        "line": 1269
+      },
+      {
+        "kind": "class",
+        "name": "RepeatLatentBatch",
+        "line": 1305
+      },
+      {
+        "kind": "class",
+        "name": "LatentUpscale",
+        "line": 1333
+      },
+      {
+        "kind": "class",
+        "name": "LatentUpscaleBy",
+        "line": 1369
+      },
+      {
+        "kind": "class",
+        "name": "LatentRotate",
+        "line": 1390
+      },
+      {
+        "kind": "class",
+        "name": "LatentFlip",
+        "line": 1414
+      },
+      {
+        "kind": "class",
+        "name": "LatentComposite",
+        "line": 1436
+      },
+      {
+        "kind": "class",
+        "name": "LatentBlend",
+        "line": 1480
+      },
+      {
+        "kind": "class",
+        "name": "LatentCrop",
+        "line": 1523
+      },
+      {
+        "kind": "class",
+        "name": "SetLatentNoiseMask",
+        "line": 1558
+      },
+      {
+        "kind": "function",
+        "name": "common_ksampler",
+        "line": 1572
+      },
+      {
+        "kind": "class",
+        "name": "KSampler",
+        "line": 1597
+      },
+      {
+        "kind": "class",
+        "name": "KSamplerAdvanced",
+        "line": 1626
+      },
+      {
+        "kind": "class",
+        "name": "SaveImage",
+        "line": 1660
+      },
+      {
+        "kind": "class",
+        "name": "PreviewImage",
+        "line": 1721
+      },
+      {
+        "kind": "class",
+        "name": "LoadImage",
+        "line": 1738
+      },
+      {
+        "kind": "class",
+        "name": "LoadImageMask",
+        "line": 1815
+      },
+      {
+        "kind": "class",
+        "name": "LoadImageOutput",
+        "line": 1859
+      },
+      {
+        "kind": "class",
+        "name": "ImageScale",
+        "line": 1883
+      },
+      {
+        "kind": "class",
+        "name": "ImageScaleBy",
+        "line": 1915
+      },
+      {
+        "kind": "class",
+        "name": "ImageInvert",
+        "line": 1936
+      },
+      {
+        "kind": "class",
+        "name": "ImageBatch",
+        "line": 1955
+      },
+      {
+        "kind": "class",
+        "name": "EmptyImage",
+        "line": 1979
+      },
+      {
+        "kind": "class",
+        "name": "ImagePadForOutpaint",
+        "line": 2003
+      },
+      {
+        "kind": "function",
+        "name": "get_module_name",
+        "line": 2224
+      },
+      {
+        "kind": "function",
+        "name": "load_custom_node",
+        "line": 2246
+      },
+      {
+        "kind": "function",
+        "name": "init_external_custom_nodes",
+        "line": 2344
+      },
+      {
+        "kind": "function",
+        "name": "init_builtin_extra_nodes",
+        "line": 2394
+      },
+      {
+        "kind": "function",
+        "name": "init_builtin_api_nodes",
+        "line": 2554
+      },
+      {
+        "kind": "function",
+        "name": "init_public_apis",
+        "line": 2565
+      },
+      {
+        "kind": "function",
+        "name": "init_extra_nodes",
+        "line": 2573
+      }
+    ],
+    "external/transformers/models/qwen2/tokenization_qwen2.py": [
+      {
+        "kind": "class",
+        "name": "Qwen2Tokenizer",
+        "line": 36
+      }
+    ],
+    "external/transformers/tokenization_utils_tokenizers.py": [
+      {
+        "kind": "class",
+        "name": "TokenizersBackend",
+        "line": 84
+      }
+    ],
+    "lane_gpu7/custom_nodes/H3Study/__init__.py": [
+      {
+        "kind": "function",
+        "name": "atomic",
+        "line": 8
+      },
+      {
+        "kind": "class",
+        "name": "H3StudyReference",
+        "line": 12
+      },
+      {
+        "kind": "class",
+        "name": "H3StudySchedule",
+        "line": 22
+      },
+      {
+        "kind": "class",
+        "name": "Timer",
+        "line": 39
+      },
+      {
+        "kind": "class",
+        "name": "H3StudyTiming",
+        "line": 56
+      }
+    ],
+    "lane_gpu7/custom_nodes/H3Study/core.py": [
+      {
+        "kind": "function",
+        "name": "temporal_neighborhood",
+        "line": 23
+      },
+      {
+        "kind": "function",
+        "name": "flash_attention_lse",
+        "line": 36
+      },
+      {
+        "kind": "function",
+        "name": "_aligned_attention",
+        "line": 53
+      },
+      {
+        "kind": "function",
+        "name": "reference_value_component",
+        "line": 87
+      },
+      {
+        "kind": "function",
+        "name": "_value_split_stats",
+        "line": 120
+      },
+      {
+        "kind": "function",
+        "name": "_bounded_stats",
+        "line": 136
+      },
+      {
+        "kind": "function",
+        "name": "temporal_readout",
+        "line": 153
+      },
+      {
+        "kind": "function",
+        "name": "route_attention",
+        "line": 203
+      },
+      {
+        "kind": "class",
+        "name": "RouterState",
+        "line": 279
+      },
+      {
+        "kind": "class",
+        "name": "TemporalAttentionOverride",
+        "line": 393
+      },
+      {
+        "kind": "class",
+        "name": "EventBlockPatch",
+        "line": 433
+      }
+    ],
+    "lane_gpu7/custom_nodes/H3Study/layout.py": [
+      {
+        "kind": "function",
+        "name": "frame_spans",
+        "line": 14
+      },
+      {
+        "kind": "function",
+        "name": "event_latent_range",
+        "line": 20
+      },
+      {
+        "kind": "function",
+        "name": "_positive_int",
+        "line": 38
+      },
+      {
+        "kind": "function",
+        "name": "conditioning_metadata",
+        "line": 44
+      },
+      {
+        "kind": "function",
+        "name": "_reference_span",
+        "line": 92
+      },
+      {
+        "kind": "function",
+        "name": "validate_layout",
+        "line": 100
+      }
+    ],
+    "lane_gpu7/custom_nodes/H3Study/schedule.py": [
+      {
+        "kind": "class",
+        "name": "ScheduleState",
+        "line": 9
+      },
+      {
+        "kind": "class",
+        "name": "ScheduleBlockPatch",
+        "line": 34
+      }
+    ],
+    "lane_gpu7/scripts/compatibility_bootstrap.py": [
+      {
+        "kind": "function",
+        "name": "normalize",
+        "line": 22
+      },
+      {
+        "kind": "function",
+        "name": "install",
+        "line": 39
+      },
+      {
+        "kind": "function",
+        "name": "install_video_compat",
+        "line": 63
+      },
+      {
+        "kind": "function",
+        "name": "main",
+        "line": 161
+      }
+    ],
+    "lane_gpu7/scripts/manage_service.py": [
+      {
+        "kind": "function",
+        "name": "read_record",
+        "line": 11
+      },
+      {
+        "kind": "function",
+        "name": "alive",
+        "line": 13
+      },
+      {
+        "kind": "function",
+        "name": "api",
+        "line": 19
+      },
+      {
+        "kind": "function",
+        "name": "wait_ready",
+        "line": 20
+      },
+      {
+        "kind": "function",
+        "name": "stop",
+        "line": 29
+      },
+      {
+        "kind": "function",
+        "name": "start",
+        "line": 43
+      }
+    ],
+    "overlay/comfy_kitchen/tensor/int8.py": [
+      {
+        "kind": "function",
+        "name": "_dtype_code",
+        "line": 36
+      },
+      {
+        "kind": "class",
+        "name": "TensorWiseINT8Layout",
+        "line": 46
+      },
+      {
+        "kind": "function",
+        "name": "_handle_int8_transpose",
+        "line": 249
+      },
+      {
+        "kind": "function",
+        "name": "_handle_int8_linear_tensorwise",
+        "line": 265
+      },
+      {
+        "kind": "function",
+        "name": "_handle_int8_mm_tensorwise",
+        "line": 299
+      },
+      {
+        "kind": "function",
+        "name": "_handle_int8_addmm_tensorwise",
+        "line": 342
+      }
+    ],
+    "overlay/comfy_kitchen/tensor/nvfp4.py": [
+      {
+        "kind": "class",
+        "name": "TensorCoreNVFP4Layout",
+        "line": 23
+      },
+      {
+        "kind": "function",
+        "name": "_handle_nvfp4_transpose",
+        "line": 127
+      },
+      {
+        "kind": "function",
+        "name": "_slice_to_original_shape",
+        "line": 149
+      },
+      {
+        "kind": "function",
+        "name": "_handle_nvfp4_mm",
+        "line": 161
+      },
+      {
+        "kind": "function",
+        "name": "_handle_nvfp4_linear",
+        "line": 213
+      }
+    ]
+  }
+}

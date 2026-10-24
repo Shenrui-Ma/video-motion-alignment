@@ -1,0 +1,96 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>引导步区间对照 · 10 项任务</title>
+<style>
+:root{color-scheme:light;font:16px/1.6 system-ui,-apple-system,"PingFang SC",sans-serif;color:#202c3c;background:#edf1f5}*{box-sizing:border-box}body{margin:0}main{max-width:1600px;margin:auto;padding:32px 24px 80px}h1{font-size:30px;margin:0 0 10px}h2{font-size:23px;margin:0 0 10px}p{margin:8px 0}.intro,.task{background:white;border:1px solid #dce3eb;border-radius:12px;padding:24px;margin-bottom:26px}.muted{color:#5f6e80;font-size:14px}.diagram{max-width:1150px;margin:20px 0}.diagram svg{width:100%;min-width:740px}.scroll{overflow:auto}.viewport{overflow:auto;background:#101010;border-radius:6px;margin:12px 0}.viewport img,.viewport video{display:block;width:100%;height:auto;max-width:none}.viewport.zoom img{width:4480px}.viewport.zoom video{width:1920px}.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}button,select{font:inherit;padding:5px 12px;background:#f7f9fc;border:1px solid #c4cedb;border-radius:5px;cursor:pointer}table{border-collapse:collapse;width:100%;font-size:14px;margin:14px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #e2e7ee;padding:8px 10px;min-width:105px}th{background:#f2f5f8;font-weight:600}.best td{background:#edf7ef;font-weight:650}.ranking{font-size:17px}.ranking th,.ranking td{padding:12px 16px}th:first-child,td:first-child{min-width:150px}details{margin:16px 0;border-top:1px solid #e2e7ee;padding-top:12px}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,monospace;background:#f5f7fa;padding:14px}nav{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}nav a{color:#1b5b91;text-decoration:none;font-size:14px}.pending{padding:20px;background:#f4f6f8;border-radius:6px}.summary{border-left:3px solid #5d8bb4;padding-left:12px;margin:12px 0}.notes{font-size:14px;color:#526174}@media(max-width:700px){main{padding:18px 10px}.task,.intro{padding:16px}h1{font-size:24px}h2{font-size:20px}}
+</style>
+<style>
+.metric-primary{display:block;font-size:11px;font-weight:600;color:#387b4d;line-height:1.35;margin-top:3px}.official-metrics tr>*:nth-child(10){border-left:2px solid #a6d5b3;border-right:2px solid #a6d5b3;background:#f3faf5}.official-metrics tr:first-child>*:nth-child(10){border-top:2px solid #a6d5b3}.official-metrics tr:last-child>*:nth-child(10){border-bottom:2px solid #a6d5b3}.mf-row>*{border-top:2px solid #a6d5b3;border-bottom:2px solid #a6d5b3;background:#f3faf5}.mf-row>*:first-child{border-left:2px solid #a6d5b3}.mf-row>*:last-child{border-right:2px solid #a6d5b3}.metric-cn{display:block;font-size:11px;font-weight:400;color:#657387;line-height:1.35;margin-top:3px}.metric-best{color:#189444;font-size:13px;font-weight:750;margin-left:4px}.player{margin:8px 0 12px;background:#101010;border-radius:6px;overflow:hidden}
+.player-screen{min-height:0;display:flex;align-items:center;justify-content:center;background:#000}
+.player video{display:block;width:100%;height:auto;max-height:80vh;object-fit:contain}
+.player video:fullscreen{width:100%;height:100%;max-height:100vh;object-fit:contain}
+</style>
+<main><section class="intro"><h1>引导步区间对照</h1>
+<div class="toolbar"><label>统计范围 <select id="metric-scope"><option value="main_all">主10组（9 IVEBench＋1 FlexiAct）</option><option value="main_IVEBench">纯IVEBench 9组</option></select></label></div><div id="outcomes"></div>
+<details><summary>引导区间与评价口径</summary><div class="diagram scroll">__SCHEDULE_SVG__</div>
+<p class="muted">分段引导各启用9步、α=1。全程弱引导启用20步、α=0.25，覆盖全部有效视频帧。各配置对应的σ跨度与作用帧范围记在每组参数中。</p>
+<p class="muted">主10组：9组IVEBench与1组FlexiAct。其后保留4组历史自有素材。动作偏移沿用已完成的逐帧测量；主10组中4组有完整测量，其余6组暂未测。</p>
+<p class="muted">MF采用IVEBench官方实现。参考列为源视频与自身的分数；其余列为该版本MF减去参考MF。动作偏移：正值表示延后，负值表示提前，0表示对齐。</p></details>
+<nav id="nav"></nav></section><div id="cases"></div><section class="intro" id="paper-comparison"><h2>公开论文结果</h2><p class="muted">文献对照整理中。</p></section>
+</main>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D=JSON.parse(document.getElementById('data').textContent);
+const roles=D.roles, labels={source:'参考视频',native:'普通编辑',early:'1–9 步',fixed:'7–15 步',late:'12–20 步',split:'1–4＋16–20 步',global_weak:'全程弱引导'};
+const arms=['early','late','split','global_weak'];
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const verdict=x=>({PASS_CORE_EDIT:'编辑成功',PARTIAL_EDIT:'部分完成／有副作用',FAIL_CORE_EDIT:'编辑失败',FAIL_POSITION_EDIT:'位置编辑失败'}[x]||x||'待审阅');
+const signed=(value,digits=2)=>{if(value==null)return'未测';const v=Number(Number(value).toFixed(digits));return(v>0?'+':'')+v};
+const metricDefs=[['subject_consistency','SC'],['background_consistency','BC'],['temporal_flickering','TF'],['motion_smoothness','MS'],['vtss','VTSS'],['overall_semantic_consistency','OSC'],['phrase_semantic_consistency','PSC'],['semantic_fidelity','SF'],['motion_fidelity','MF'],['instruction_satisfaction','IS'],['quantity_accuracy','QA'],['content_fidelity','CF']];
+const metricChinese={SC:'主体一致性',BC:'背景一致性',TF:'闪烁质量',MS:'运动平滑',VTSS:'综合画质',OSC:'整体语义一致',PSC:'编辑短语一致',IS:'指令完成',QA:'数量准确',SF:'语义保真',MF:'运动保真',CF:'内容保真'};
+const metricHeading=(name,delta=false)=>name+(delta?' Δ':'')+'<small class="metric-cn">'+metricChinese[name]+'</small>'+(name==='MF'?'<small class="metric-primary">主要参考</small>':'');
+function metricNumber(row,key){const x=row?.[key];if(!x)return null;const v=x.score??x.mean;return typeof v==='number'&&Number.isFinite(v)?v:null}
+function bestMetricRoles(rows,key){const values=roles.filter(r=>r!=='source').map(r=>[r,metricNumber(rows[r],key)]).filter(([,v])=>v!=null);if(!values.length)return[];const top=Math.max(...values.map(([,v])=>v));return values.filter(([,v])=>Math.abs(v-top)<=1e-12).map(([r])=>r)}
+const checkMark='<span class="metric-best" aria-label="本列六种编辑方法最高分">✓</span>';
+const fixedSigned=v=>(v>=0?'+':'')+Number(v).toFixed(4);
+function metricValue(row,key,source=false,reference=1){const v=metricNumber(row,key);if(v==null)return key==='quantity_accuracy'?'N/A':key==='instruction_satisfaction'||key==='content_fidelity'?'待Qwen72B资源':'未测';if(key==='motion_fidelity'){const delta=source?0:(row.motion_fidelity_delta_from_reference?.mean??(v-reference));return fixedSigned(delta)}return v.toFixed(4)}
+function metricCell(rows,role,key){const reference=metricNumber(rows.source,key);return metricValue(rows[role],key,role==='source',reference??1)+(bestMetricRoles(rows,key).includes(role)?checkMark:'')}
+function actionOffsetSummary(cases,scope){
+ const editRoles=roles.filter(r=>r!=='source');
+ const eligible=cases.filter(c=>c.main_cohort&&(scope!=='main_IVEBench'||c.dataset==='IVEBench'));
+ const measured=eligible.filter(c=>editRoles.every(r=>typeof c.mean_absolute_offset?.[r]==='number'&&Number.isFinite(c.mean_absolute_offset[r])));
+ const means=Object.fromEntries(roles.map(r=>[r,measured.length?(r==='source'?0:measured.reduce((sum,c)=>sum+c.mean_absolute_offset[r],0)/measured.length):null]));
+ const minimum=measured.length?Math.min(...editRoles.map(r=>means[r])):null;
+ return {count:measured.length,total:eligible.length,means,best:measured.length?editRoles.filter(r=>Math.abs(means[r]-minimum)<=1e-12):[]};
+}
+function actionOffsetCell(summary,role){return summary.means[role]==null?'未测':(Math.round((summary.means[role]+Number.EPSILON)*100)/100).toFixed(2)+(summary.best.includes(role)?'<span class="metric-best" aria-label="平均动作偏移最小">✓</span>':'')}
+function outcomeTable(){
+ const scope=document.getElementById('metric-scope').value;const n=scope==='main_IVEBench'?9:10;const means=D.metric_scopes[scope];const offsets=actionOffsetSummary(D.cases,scope);
+ const header='<tr><th>方法</th>'+metricDefs.map(([k,n])=>'<th>'+metricHeading(n,k==='motion_fidelity')+'</th>').join('')+'<th>平均动作偏移（帧）↓<small class="metric-cn">自定义 · '+offsets.count+'/'+offsets.total+'组</small></th></tr>';
+ const rows=roles.map(r=>'<tr><td>'+labels[r]+'</td>'+metricDefs.map(([k,n])=>'<td>'+metricCell(means,r,k)+'</td>').join('')+'<td>'+actionOffsetCell(offsets,r)+'</td></tr>').join('');
+ const rank=roles.filter(r=>r!=='source').sort((a,b)=>means[b].motion_fidelity.mean-means[a].motion_fidelity.mean);
+ document.getElementById('outcomes').innerHTML='<h2>'+n+'组 · 指标均值</h2><p>'+n*6+'条编辑视频与'+n+'条参考视频；九项官方数值指标已完成'+n*7*9+'项，每个均值采用'+n+'/'+n+'组。自定义动作偏移采用'+offsets.count+'/'+offsets.total+'组。QA不适用于本批任务；IS与CF等待Qwen72B资源。</p><div class="scroll"><table class="official-metrics">'+header+rows+'</table></div><p class="muted">MF从高到低：'+rank.map(r=>labels[r]+' '+metricValue(means[r],'motion_fidelity')).join(' ＞ ')+'</p><p class="muted">MF显示相对参考的平均差值，参考行为+0.0000。九项指标均为越高越好；绿色勾标记六种编辑方法中的列最高分，并列均标记。其他指标显示绝对值。动作偏移先在六种编辑共同可定位的事件上计算绝对帧差，再按视频等权平均；数值越小越好。未出现或无法定位的动作单独列出。</p>';
+}
+function timingStatus(value){if(value&&typeof value==='object')value=value.status;const status={measured:'已测',missing:'动作未出现',missing_action:'动作未出现',unobservable_changed_composition:'构图改变，无法定位',unobservable_boundary:'遮挡无法定位',occluded:'遮挡无法定位',not_corresponding:'动作已改变',non_corresponding:'动作已改变',non_corresponding_action_sequence:'动作改变，时差不可测',unmeasurable:'无法定位',unobservable:'无法定位'};return status[value]||value||'无法定位'}
+function eventCell(c,e,r){
+ if(e.measurement_kind==='previously_reviewed_broad_phase_interval')return'未测';
+ const value=c.event_offsets[e.id][r];
+ return value==null?esc(timingStatus(e.status_by_role?.[r])):signed(value)+' 帧';
+}
+function lagCell(c,r){const v=c.arm_offsets[r];return v==null?'未测':signed(v)+' 帧'}
+function table(c){const head='<tr><th>评估项</th>'+roles.map(r=>'<th>'+labels[r]+'</th>').join('')+'</tr>';let rows='';
+ if(!c.new_batch)rows+='<tr><td>编辑结果</td>'+roles.map(r=>'<td>'+(r==='source'?'参考':r==='native'||r==='fixed'?verdict(c.control_verdicts[r]):verdict(c.arms[r].review?.task_verdict))+'</td>').join('')+'</tr>';
+ for(const e of c.events)rows+='<tr><td>'+esc(e.label)+'</td>'+roles.map(r=>'<td>'+eventCell(c,e,r)+'</td>').join('')+'</tr>';
+ if(!c.events.length)rows+='<tr><td>动作时间偏移（帧）</td>'+roles.map(r=>'<td>'+lagCell(c,r)+'</td>').join('')+'</tr>';
+ if(roles.some(r=>c.mean_absolute_offset[r]!=null))rows+='<tr><td>平均绝对偏移 ↓</td>'+roles.map(r=>'<td>'+(c.mean_absolute_offset[r]==null?'未测':c.mean_absolute_offset[r].toFixed(2)+' 帧')+'</td>').join('')+'</tr>';
+ if(c.timing_measurement)rows+='<tr><td>可定位事件数</td>'+roles.map(r=>'<td>'+c.timing_measurement.coverage[r]+'/'+c.events.length+'</td>').join('')+'</tr>';
+ const mfRows=Object.fromEntries(roles.map(r=>[r,{motion_fidelity:{score:r==='source'?c.source_MF:r==='native'||r==='fixed'?c.old_MF[r]:c.arms[r]?.score}}]));rows+='<tr class="mf-row"><td>'+metricHeading('MF',true)+'</td>'+roles.map(r=>'<td>'+metricCell(mfRows,r,'motion_fidelity')+'</td>').join('')+'</tr>';
+ 
+ return'<div class="scroll"><table>'+head+rows+'</table></div>'}
+function officialTable(c){
+ if(!c.main_cohort)return'<p class="muted">历史自有素材：保留已有MF与动作偏移记录，其余官方指标未评测。</p>';
+ const header='<tr><th>方法</th>'+metricDefs.map(([k,n])=>'<th>'+metricHeading(n,k==='motion_fidelity')+'</th>').join('')+'</tr>';
+ const rows=roles.map(r=>'<tr><td>'+labels[r]+'</td>'+metricDefs.map(([k,n])=>'<td>'+metricCell(c.official_metrics,r,k)+'</td>').join('')+'</tr>').join('');
+ return'<h3>官方指标</h3><p class="muted">每列对应同一条成片。九项数值指标均为越高越好；MF显示相对参考的差值。绿色勾标记六种编辑方法中的列最高分。</p><div class="scroll"><table class="official-metrics">'+header+rows+'</table></div>';
+}
+function draw(c,i){const section=document.createElement('section');section.className='task';section.id='case-'+i;
+ const link=document.createElement('a');link.href='#'+section.id;link.textContent=`${i+1}. ${c.title}`;document.getElementById('nav').appendChild(link);
+ section.innerHTML=(i===10?'<h2>历史自有素材</h2>':'')+'<h2>'+esc(c.title)+'</h2>';
+ if(c.pending){section.innerHTML+='<div class="pending">'+esc(c.reason)+'</div>';return section}
+ section.innerHTML+='<p class="muted">'+esc(c.dataset)+' · '+c.geometry.valid_frames+' 有效帧 · 24 fps'+(c.preservation?' · 动作保持性检验':'')+'</p>';
+ if(c.overview){section.innerHTML+='<div class="toolbar"><label>同帧截图 <select class="frame"></select></label><button class="zoom">放大／适应宽度</button><button class="full">视频全屏</button></div><div class="viewport shots"><img alt="七列同帧对照，黑底中文标签"></div><div class="player"><div class="player-screen"><video controls preload="metadata" playsinline></video></div></div>';
+ const select=section.querySelector('.frame');for(const f of c.overview.frames){const op=document.createElement('option');op.value=f.url;op.textContent='第 '+f.frame+' 帧';op.selected=f.frame===c.overview.default_frame;select.appendChild(op)}const img=section.querySelector('img');if(select.value)img.src=select.value;select.onchange=()=>img.src=select.value;
+ const video=section.querySelector('video');video.src=c.overview.video;
+ }else section.innerHTML+='<p class="pending">完整七列视频将在本组各版本到齐后显示。</p>';
+ if(c.timing_measurement)section.innerHTML+='<p class="muted">已逐帧检查动作偏移；表中正数为延后，负数为提前。均值使用六种编辑共同可定位的 '+c.timing_measurement.common_events.length+'/'+c.events.length+' 个动作事件。</p>';
+ section.innerHTML+=table(c)+officialTable(c);
+ section.innerHTML+='<p class="summary">'+esc(c.display_summary)+'</p>';
+ const actualSchedules=Object.fromEntries(arms.filter(a=>c.arms[a].schedule_parameters).map(a=>[labels[a],c.arms[a].schedule_parameters]));
+ if(Object.keys(actualSchedules).length)section.innerHTML+='<details><summary>实际引导步、强度与 σ 积分跨度</summary><p class="notes">下列参数来自各成片运行记录。actual_routed_steps_zero_based 使用从 0 开始的采样步编号；physical_query_window 是从 0 开始的物理视频帧范围。</p><pre>'+esc(JSON.stringify(actualSchedules,null,2))+'</pre></details>';
+ section.innerHTML+='<details><summary>提示词、参考图与测量说明</summary><p>'+esc(c.prompt_source_label)+'；'+(c.reference_image?'使用人物参考图':'无人物参考图')+'。</p><pre>'+esc(c.prompt)+'</pre><p class="notes">表内时差为对应动作时间之差。动作未出现时单独标出。动作时间采用AI逐帧标注的可见过渡区间中点；完整区间与缺失原因保存在测量记录中。各任务沿用其真实历史提示词、输入和噪声条件。</p></details>';
+ // Bind after assembling the section because innerHTML append recreates media nodes.
+ if(c.overview){const sel=section.querySelector('.frame'),img=section.querySelector('img'),player=section.querySelector('.player');const chosen=c.overview.frames.find(f=>f.frame===c.overview.default_frame);if(chosen){sel.value=chosen.url;img.src=chosen.url}sel.onchange=()=>img.src=sel.value;section.querySelector('.zoom').onclick=()=>section.querySelector('.shots').classList.toggle('zoom');section.querySelector('.full').onclick=()=>{const video=player.querySelector('video');if(video.requestFullscreen)video.requestFullscreen();else if(video.webkitEnterFullscreen)video.webkitEnterFullscreen()}}
+ return section}
+outcomeTable();
+document.getElementById('metric-scope').onchange=outcomeTable;
+D.cases.forEach((c,i)=>document.getElementById('cases').appendChild(draw(c,i)));
+</script></html>

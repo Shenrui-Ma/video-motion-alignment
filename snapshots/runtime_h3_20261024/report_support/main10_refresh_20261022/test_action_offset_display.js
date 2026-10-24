@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const root='/workspace/research-user/DevProjects/h3-guidance-schedule-eval-r150-20261021/main10_refresh_20261022/';
+const html=fs.readFileSync('/workspace/research-user/DevProjects/video-motion-alignment/reports/R150_十组引导区间对照_单文件.html','utf8');
+const json=html.match(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/)[1];
+const script=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
+const elems={data:{textContent:json},outcomes:{innerHTML:''},'metric-scope':{value:'main_all'}};const ctx={document:{getElementById:id=>elems[id]},console};vm.createContext(ctx);vm.runInContext(script.slice(0,script.lastIndexOf('outcomeTable();')),ctx);
+const run=s=>vm.runInContext(s,ctx);
+const expected={source:0,native:42.8/6,early:8/9,fixed:19.7/6,late:41.36666666666667/6,split:13.1/6,global_weak:5/18};
+for(const [scope,total] of [['main_all',10],['main_IVEBench',9]]){ctx.scope=scope;const actual=run('actionOffsetSummary(D.cases,scope)');assert.strictEqual(actual.count,6);assert.strictEqual(actual.total,total);for(const [r,v] of Object.entries(expected))assert(Math.abs(actual.means[r]-v)<1e-10);assert.deepStrictEqual([...actual.best],['global_weak']);elems['metric-scope'].value=scope;run('outcomeTable()');assert(elems.outcomes.innerHTML.includes('自定义 · 6/'+total+'组'));assert(elems.outcomes.innerHTML.includes('7.13'));assert(elems.outcomes.innerHTML.includes('平均动作偏移（帧）↓'));}
+const base={main_cohort:true,dataset:'IVEBench',mean_absolute_offset:{source:0,native:3,early:2,fixed:2,late:3,split:4,global_weak:2}};
+ctx.synthetic=[base,{...base,mean_absolute_offset:{...base.mean_absolute_offset,native:null}},{...base,mean_absolute_offset:{...base.mean_absolute_offset,late:undefined}},{...base,mean_absolute_offset:{...base.mean_absolute_offset,early:NaN}},{...base,mean_absolute_offset:{...base.mean_absolute_offset,fixed:Infinity}},{...base,main_cohort:false}];
+let actual=run("actionOffsetSummary(synthetic,'main_all')");assert.strictEqual(actual.count,1);assert.strictEqual(actual.total,5);assert.strictEqual(actual.means.native,3);assert.deepStrictEqual([...actual.best],['early','fixed','global_weak']);
+ctx.synthetic=[{...base,dataset:'FlexiAct'}];assert.strictEqual(run("actionOffsetSummary(synthetic,'main_IVEBench').count"),0);assert.strictEqual(run("actionOffsetCell(actionOffsetSummary(synthetic,'main_IVEBench'),'source')"),'未测');
+ctx.rounding={means:{fixed:4.925,split:3.275},best:[]};assert.strictEqual(run("actionOffsetCell(rounding,'fixed')"),'4.93');assert.strictEqual(run("actionOffsetCell(rounding,'split')"),'3.28');
+const result={rounding_checks:['4.925→4.93','3.275→3.28'],passed:true,measured_cases:6,total_cases:{main_all:10,main_IVEBench:9},expected_means:expected,synthetic_checks:['null_excluded','different_role_missing_excluded','NaN_excluded','Infinity_excluded','historical_excluded','dataset_scope','tie','empty_not_zero'],video_count:JSON.parse(json).cases.length};fs.writeFileSync(root+'ACTION_OFFSET_DISPLAY_VALIDATION.json',JSON.stringify(result,null,2));console.log(result);
