@@ -1,0 +1,221 @@
+{
+  "schema": "interval-short0177-preparation-v1",
+  "prepared_unix": 1792835082.2207968,
+  "local_package": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/package",
+  "remote_root": "/data4/research-user/h3_runs/interval_short0177_20261024",
+  "source_runtime": "/data4/research-user/h3_runs/benchmark_schedule_20261022",
+  "expected_boot_id": "67231bde-c973-4243-9ca1-df676a3d855c",
+  "expected_uid": 1004,
+  "execution_owner": "root; preparation agent performed local writes and remote read-only checks only",
+  "package_files": 59,
+  "package_manifest_sha256": "45b7291a05dd8dc18ab889904d7a2769f98a080d87de70b139c43c8bf24f8a01",
+  "graph_input_sha256": "d5da95935608029e1c458def4cb1c09a3ce42ea7e6d60cc9a44c9c6575f801f2",
+  "lanes": {
+    "gpu7": {
+      "port": 8677,
+      "arms": [
+        "native",
+        "global_weak"
+      ],
+      "pilot_first": true
+    },
+    "gpu5": {
+      "port": 8675,
+      "arms": [
+        "early",
+        "fixed"
+      ]
+    },
+    "gpu6": {
+      "port": 8676,
+      "arms": [
+        "late",
+        "split"
+      ]
+    }
+  },
+  "frozen_axes": {
+    "steps": 20,
+    "sampler": "euler",
+    "video_shift": 12,
+    "audio_shift": 3,
+    "seed": 2026101701,
+    "width": 1312,
+    "height": 736,
+    "sampled_frames": 73,
+    "source_valid_frames": 60,
+    "prompt": "Replace the tiger with a lion",
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "text_encoder": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "lora": null,
+    "route_blocks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
+    ],
+    "schedules": {
+      "native": [],
+      "early": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "fixed": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "late": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "split": [
+        0,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "global_weak": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    "alphas": {
+      "native": 1,
+      "early": 1,
+      "fixed": 1,
+      "late": 1,
+      "split": 1,
+      "global_weak": 0.25
+    }
+  },
+  "admission": {
+    "mem_available_gib_min": 80,
+    "disk_free_gib_min": 80,
+    "target_free_mib_min": 47000,
+    "target_max_temp_c": 65,
+    "target_max_utilization_percent": 5,
+    "target_power_limit_w": 450,
+    "host_load1_max_fraction_cpu_count": 0.8,
+    "checks": "exact boot/UID/root/input SHA, fresh selected UUID N/A-free telemetry and empty compute process list, empty port, per-UUID service lock, one-launch receipt, per-lane worker lock"
+  },
+  "single_attempt": {
+    "queue_max_attempts": 1,
+    "max_service_restarts": 0,
+    "no_restart_command": true,
+    "queue_stall_timeout_s": 900,
+    "arm_timeout_s": 7200,
+    "second_arm_after": "complete 20x50 routing, timing, backend contract, SHA and 73-frame geometry gate",
+    "cleanup": "verified own service UID/start/boot/root only"
+  },
+  "backend_observation": {
+    "record": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/REAL_SCHEMA_CHECK.json",
+    "original_0370_last_dispatch": {
+      "cuda": 3000,
+      "triton": 0,
+      "eager": 0
+    },
+    "contract_rule": "Read-only pilot_check outputs contract_to_freeze from new native first completed 50-block forward. Root writes it to all three lane BACKEND_CONTRACT.json before native finishes. All six arms require exact backend (CUDA or Triton), no mixed/eager/failed dispatch. No registry selection code changed."
+  },
+  "validation": {
+    "python_syntax": "all package Python compiled in memory",
+    "graph_axes": "all non-schedule/output/audit graph nodes equal original template",
+    "source_sha": "H3Study, compatibility bootstrap, row guard, backend auditor and durable queue match live remote bytes",
+    "real_schema_check": "0230 native and weak runtime audits/results fully checked, including actual video SHA; field types align with new gates",
+    "cpu_tests": {
+      "count": 11,
+      "result": "passed",
+      "scope": "six arm acceptance plus incomplete forward, wrong routing, mixed/eager/failed backend, wrong boot, missing contract, incomplete timing, wrong geometry and changed SHA failures",
+      "source": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/test_verify_result.py"
+    }
+  }
+}

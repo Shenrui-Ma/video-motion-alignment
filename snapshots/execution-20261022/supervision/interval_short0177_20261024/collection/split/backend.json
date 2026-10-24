@@ -1,0 +1,100 @@
+{
+  "schema": "h3-backend-dispatch-audit-v1",
+  "pid": 1569879,
+  "started_unix_ns": 1792839035644872532,
+  "flush_every": 1000,
+  "count_semantics": "Attempted calls to backend exports, including nested backend delegation.",
+  "count_freshness": "Periodic snapshots may lag; flush() or normal process exit captures current counts.",
+  "backends": {
+    "cuda": {
+      "status": "imported"
+    },
+    "triton": {
+      "status": "imported"
+    },
+    "eager": {
+      "status": "imported"
+    }
+  },
+  "operations": {
+    "cuda.int8_linear": {
+      "status": "installed",
+      "attempted_calls": 8000,
+      "successful_calls": 8000,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": false,
+      "first_call": {
+        "unix_ns": 1792839094772921004,
+        "tensor_arguments": {
+          "x": {
+            "shape": [
+              45552,
+              5376
+            ],
+            "dtype": "torch.bfloat16",
+            "device": "cuda:0"
+          },
+          "weight": {
+            "shape": [
+              21504,
+              5376
+            ],
+            "dtype": "torch.int8",
+            "device": "cuda:0"
+          },
+          "weight_scale": {
+            "shape": [
+              21504,
+              1
+            ],
+            "dtype": "torch.float32",
+            "device": "cuda:0"
+          }
+        },
+        "outcome": "returned"
+      }
+    },
+    "cuda.w4a8_int8_linear": {
+      "status": "installed",
+      "attempted_calls": 0,
+      "successful_calls": 0,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": false
+    },
+    "triton.int8_linear": {
+      "status": "installed",
+      "attempted_calls": 0,
+      "successful_calls": 0,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": true
+    },
+    "triton.w4a8_int8_linear": {
+      "status": "installed",
+      "attempted_calls": 0,
+      "successful_calls": 0,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": false
+    },
+    "eager.int8_linear": {
+      "status": "installed",
+      "attempted_calls": 0,
+      "successful_calls": 0,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": false
+    },
+    "eager.w4a8_int8_linear": {
+      "status": "installed",
+      "attempted_calls": 0,
+      "successful_calls": 0,
+      "failed_calls": 0,
+      "registry_resolves_wrapper": true,
+      "wraps_existing_row_guard": false
+    }
+  },
+  "logging_errors": []
+}

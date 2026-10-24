@@ -1,0 +1,108 @@
+# short_0177 六配置区间对照
+
+- 六路完整验收与媒体绑定：`ROOT_SIX_ARMS_VERIFIED.json`、`ROOT_SIX_ARMS_BINDINGS.json`；逐项校验代码 `verify_six_local.py`。
+- 三条运行通道退出：`ALL_LANES_EXIT_VERIFIED.json`；对照媒体视觉检查：`report/MEDIA_VISUAL_VERDICT.json`。
+- 配置、提示词与输出 SHA：`report/INPUT.json`、`collection/*/{result,verified,manifest}.json`。
+- 完整路由、逐步计时、后端证据：`collection/*/{router,timing,backend,backend_contract}.json`。
+- 本轮模型图与运行实现：`runtime/v3/package/`。
+- 逐条官方指标与评分作业绑定：`metrics/`；精确入口见 `report/INPUT.json`。
+- 冻结源事件：`SOURCE_EVENTS.json`；成片事件与新汇总见 `report/INPUT.json` 的 annotation 入口及 `report/staging/ACTION_OFFSET_SUMMARY.json`。
+- `EXPORT_MANIFEST.json` 逐文件记录原始 SHA、导出 SHA、原路径及媒体路径。
+- 以下媒体使用相同原始字节。下载仓库并保持目录结构即可离线查看。
+
+- [source](../../../../reports/cloud/assets/d5da95935608029e1c458def4cb1c09a3ce42ea7e6d60cc9a44c9c6575f801f2.mp4) · 17720446 bytes · `d5da95935608029e1c458def4cb1c09a3ce42ea7e6d60cc9a44c9c6575f801f2`
+- [native](../../../../reports/cloud/assets/787685976c4833599225ef8da6c9f3d734b8ad38129facdca652ed39eda54c45.mp4) · 2806661 bytes · `787685976c4833599225ef8da6c9f3d734b8ad38129facdca652ed39eda54c45`
+- [early](../../../../reports/cloud/assets/cf0d9ba9afa424e9d923d89c5bd8a342ec41658c5a05bbeedf3f529eacb9d441.mp4) · 2716577 bytes · `cf0d9ba9afa424e9d923d89c5bd8a342ec41658c5a05bbeedf3f529eacb9d441`
+- [fixed](../../../../reports/cloud/assets/3cb538e9607d6dc52948a8aa247313b03a7a6c386fc6712abf5289c0c6083720.mp4) · 2817300 bytes · `3cb538e9607d6dc52948a8aa247313b03a7a6c386fc6712abf5289c0c6083720`
+- [late](../../../../reports/cloud/assets/dfc20a47a3a3aa4c03864b16a9520213992547c59909e338ba89ed41691b1eb0.mp4) · 2938324 bytes · `dfc20a47a3a3aa4c03864b16a9520213992547c59909e338ba89ed41691b1eb0`
+- [split](../../../../reports/cloud/assets/725b1f65c22e836e39ef959cf44ebde6f638d221da789fb44e40b0db7b9f3e5f.mp4) · 2850038 bytes · `725b1f65c22e836e39ef959cf44ebde6f638d221da789fb44e40b0db7b9f3e5f`
+- [global_weak](../../../../reports/cloud/assets/182651102ac0988dd944780dc879c382a04cd5cd6b7ba3a5a5d7bf088f62d3d4.mp4) · 2776662 bytes · `182651102ac0988dd944780dc879c382a04cd5cd6b7ba3a5a5d7bf088f62d3d4`
+- [comparison.mp4](../../../../reports/cloud/assets/4fe946d659d77b480b4d8f6bda113d258d6b9d2dffb42ff08841b15cd193b9a9.mp4) · 2408689 bytes · `4fe946d659d77b480b4d8f6bda113d258d6b9d2dffb42ff08841b15cd193b9a9`
+- [same_frame.jpg](../../../../reports/cloud/assets/195c731d7cf4280c5736511178f31cae59d175af43c4a68d4ee46ef70cd226cf.jpg) · 358087 bytes · `195c731d7cf4280c5736511178f31cae59d175af43c4a68d4ee46ef70cd226cf`
+- [visual/early/all_000_019.jpg](../../../../reports/cloud/assets/118154fd26293731461e64856a34720b7b61d83302b0f2bf1b5d35f15173acef.jpg) · 549812 bytes · `118154fd26293731461e64856a34720b7b61d83302b0f2bf1b5d35f15173acef`
+- [visual/early/all_020_039.jpg](../../../../reports/cloud/assets/d8ad7bccabb0cf00a9cec116d1a874b1b4e89dd15b1bb910c3eedf5474f24503.jpg) · 552784 bytes · `d8ad7bccabb0cf00a9cec116d1a874b1b4e89dd15b1bb910c3eedf5474f24503`
+- [visual/early/all_040_059.jpg](../../../../reports/cloud/assets/1582cc63cca3e3b1c3628a4ec2289fb78bb245b180a6a81da29e82137253c102.jpg) · 555161 bytes · `1582cc63cca3e3b1c3628a4ec2289fb78bb245b180a6a81da29e82137253c102`
+- [visual/fixed/all_000_019.jpg](../../../../reports/cloud/assets/a6ae06fc32b0e5e6e988133dab83baa1bc4be0e3d8f5580224f3d287bd40c4bf.jpg) · 550118 bytes · `a6ae06fc32b0e5e6e988133dab83baa1bc4be0e3d8f5580224f3d287bd40c4bf`
+- [visual/fixed/all_020_039.jpg](../../../../reports/cloud/assets/538260f294bd0e10cc03ff0d373adad08984b9e7a01923f753f77ecaec9cc65c.jpg) · 554395 bytes · `538260f294bd0e10cc03ff0d373adad08984b9e7a01923f753f77ecaec9cc65c`
+- [visual/fixed/all_040_059.jpg](../../../../reports/cloud/assets/399085eb54cc36aea2c39653b806a0cfd61b436fa7da2bdd9c81d9d69fb46326.jpg) · 554078 bytes · `399085eb54cc36aea2c39653b806a0cfd61b436fa7da2bdd9c81d9d69fb46326`
+- [visual/global_weak/all_000_019.jpg](../../../../reports/cloud/assets/d89e849479d95e54897bbed99893697578f7e2b3c0a99756c4fc84f25b49436e.jpg) · 567930 bytes · `d89e849479d95e54897bbed99893697578f7e2b3c0a99756c4fc84f25b49436e`
+- [visual/global_weak/all_020_039.jpg](../../../../reports/cloud/assets/f4c2e01fca70f974ac171afe42f0790f4880a11f894f88248b6342bf0333ade3.jpg) · 571323 bytes · `f4c2e01fca70f974ac171afe42f0790f4880a11f894f88248b6342bf0333ade3`
+- [visual/global_weak/all_040_059.jpg](../../../../reports/cloud/assets/58b87f6707a183782196516c8b883af125f43e6ab4966eadf44ed804893c8924.jpg) · 572026 bytes · `58b87f6707a183782196516c8b883af125f43e6ab4966eadf44ed804893c8924`
+- [visual/late/all_000_019.jpg](../../../../reports/cloud/assets/bb038d40545d929e87286d14f303329e1241f5fd8b5b0de141d92515f6dd08f9.jpg) · 538347 bytes · `bb038d40545d929e87286d14f303329e1241f5fd8b5b0de141d92515f6dd08f9`
+- [visual/late/all_020_039.jpg](../../../../reports/cloud/assets/c6b1b934a557a79ec97fac8be69f5c70416653b52a6990ba3b8e6651d253194b.jpg) · 540247 bytes · `c6b1b934a557a79ec97fac8be69f5c70416653b52a6990ba3b8e6651d253194b`
+- [visual/late/all_040_059.jpg](../../../../reports/cloud/assets/d4e628c8bb417527b0c27fd5c228bbc8d950323e2d3be175d7c3670443f007c2.jpg) · 542721 bytes · `d4e628c8bb417527b0c27fd5c228bbc8d950323e2d3be175d7c3670443f007c2`
+- [visual/native/all_000_019.jpg](../../../../reports/cloud/assets/4fc4c3f3faee5fc5abbd1b16f329c6fbb72fe282d072be8b43d78fb0e7a87d29.jpg) · 555891 bytes · `4fc4c3f3faee5fc5abbd1b16f329c6fbb72fe282d072be8b43d78fb0e7a87d29`
+- [visual/native/all_020_039.jpg](../../../../reports/cloud/assets/1d87b24ae5d6355942525a67d0385ad722b5bc2b4e73ea1ef3065b5aad705d7d.jpg) · 557829 bytes · `1d87b24ae5d6355942525a67d0385ad722b5bc2b4e73ea1ef3065b5aad705d7d`
+- [visual/native/all_040_059.jpg](../../../../reports/cloud/assets/647009f90e37a518d84b92a1d8c0ad77fa5ecfe63625336514325d590c8f8d2f.jpg) · 558623 bytes · `647009f90e37a518d84b92a1d8c0ad77fa5ecfe63625336514325d590c8f8d2f`
+- [visual/source/all_000_019.jpg](../../../../reports/cloud/assets/0ed8d97c92b87ee85ba0b2bee735c8540ac333c3f7d1a4dc995444dc0e18c1cb.jpg) · 219409 bytes · `0ed8d97c92b87ee85ba0b2bee735c8540ac333c3f7d1a4dc995444dc0e18c1cb`
+- [visual/source/all_020_039.jpg](../../../../reports/cloud/assets/3ef0d7774cc7df36ae3fb047346d020ada41332221ea686efc0ba1be5a95ce9f.jpg) · 196242 bytes · `3ef0d7774cc7df36ae3fb047346d020ada41332221ea686efc0ba1be5a95ce9f`
+- [visual/source/all_040_059.jpg](../../../../reports/cloud/assets/849d464036905d238c695260d6fc6c75a0c6232e3c76b4a7f5d95ee2d9c5c16b.jpg) · 198831 bytes · `849d464036905d238c695260d6fc6c75a0c6232e3c76b4a7f5d95ee2d9c5c16b`
+- [visual/split/all_000_019.jpg](../../../../reports/cloud/assets/60e72617dc86b39b01de1e656996469ce148b03da4d33e838e521f2e24d576b2.jpg) · 546165 bytes · `60e72617dc86b39b01de1e656996469ce148b03da4d33e838e521f2e24d576b2`
+- [visual/split/all_020_039.jpg](../../../../reports/cloud/assets/aa77063139845c531648da73e6ecfa6d6644f4bf8e4a9105eee44a757437aa6e.jpg) · 545882 bytes · `aa77063139845c531648da73e6ecfa6d6644f4bf8e4a9105eee44a757437aa6e`
+- [visual/split/all_040_059.jpg](../../../../reports/cloud/assets/c46de94689bdce547a7348b805d4de780a0663237de017fa3fad345d8ed9c674.jpg) · 545777 bytes · `c46de94689bdce547a7348b805d4de780a0663237de017fa3fad345d8ed9c674`
+- [visual/native/frame_000.jpg](../../../../reports/cloud/assets/d157597dde621e2a550f2e091ac2a86aa3d699bafc285d27315fd59551784936.jpg) · 81844 bytes · `d157597dde621e2a550f2e091ac2a86aa3d699bafc285d27315fd59551784936`
+- [visual/native/frame_025.jpg](../../../../reports/cloud/assets/ab33decca4dc17dc4d2a66d739c8003899da6bf47ed5178eb887f6335431a817.jpg) · 75616 bytes · `ab33decca4dc17dc4d2a66d739c8003899da6bf47ed5178eb887f6335431a817`
+- [visual/native/frame_040.jpg](../../../../reports/cloud/assets/361d7175b87fc19416ad05eeaae933ecf870d1085ebe9aedb9746fd0a6dc0955.jpg) · 87143 bytes · `361d7175b87fc19416ad05eeaae933ecf870d1085ebe9aedb9746fd0a6dc0955`
+- [visual/native/frame_047.jpg](../../../../reports/cloud/assets/1b2c856d2dca0a89f8fd37296dcd6bbb461b0ecfafec016811da2c161d1f4f3f.jpg) · 75299 bytes · `1b2c856d2dca0a89f8fd37296dcd6bbb461b0ecfafec016811da2c161d1f4f3f`
+- [visual/native/frame_048.jpg](../../../../reports/cloud/assets/1d58e0d78ce0747832085d83a034fa8c6e349a5c3a8500bcdcb93fa769647d7b.jpg) · 77308 bytes · `1d58e0d78ce0747832085d83a034fa8c6e349a5c3a8500bcdcb93fa769647d7b`
+- [visual/native/frame_049.jpg](../../../../reports/cloud/assets/81d09b86457427de6623ded2e9227ab9260ce66a32e65371de91e1c71936babf.jpg) · 74701 bytes · `81d09b86457427de6623ded2e9227ab9260ce66a32e65371de91e1c71936babf`
+- [visual/native/frame_050.jpg](../../../../reports/cloud/assets/61ed13d90fc6b41ce9723e6be221f1351e5e6827b478c392a6371e8b0a0594c7.jpg) · 76622 bytes · `61ed13d90fc6b41ce9723e6be221f1351e5e6827b478c392a6371e8b0a0594c7`
+- [visual/native/frame_051.jpg](../../../../reports/cloud/assets/d6bd531d1e8a47e1d738c67fe713e9656426dd2dd0319f6260be5fa5c191feff.jpg) · 77334 bytes · `d6bd531d1e8a47e1d738c67fe713e9656426dd2dd0319f6260be5fa5c191feff`
+- [visual/native/frame_052.jpg](../../../../reports/cloud/assets/60c6bd2365f5de328c12ac2b3ad7a0e4476c0937c3b558f9478e7bfb7e5edfb6.jpg) · 80612 bytes · `60c6bd2365f5de328c12ac2b3ad7a0e4476c0937c3b558f9478e7bfb7e5edfb6`
+- [visual/native/frame_053.jpg](../../../../reports/cloud/assets/36243d17ed8788f9ea6a919b522926629c228a60414e10429563a86d1f66fe00.jpg) · 79179 bytes · `36243d17ed8788f9ea6a919b522926629c228a60414e10429563a86d1f66fe00`
+- [visual/native/frame_054.jpg](../../../../reports/cloud/assets/e80390742c3e4f73219b16352b3ae22231cd16b5be550e3df0a1378f68394ffa.jpg) · 81285 bytes · `e80390742c3e4f73219b16352b3ae22231cd16b5be550e3df0a1378f68394ffa`
+- [visual/native/frame_055.jpg](../../../../reports/cloud/assets/e4abca6ee0726fae211d1896e0df3f955db7aeb84af5ba9dac2440dfbd51a3eb.jpg) · 82343 bytes · `e4abca6ee0726fae211d1896e0df3f955db7aeb84af5ba9dac2440dfbd51a3eb`
+- [visual/native/frame_059.jpg](../../../../reports/cloud/assets/c69fa61e42ae8196fc41cbdf8da973400d657784091e3eccd19e28bc4c9af925.jpg) · 88282 bytes · `c69fa61e42ae8196fc41cbdf8da973400d657784091e3eccd19e28bc4c9af925`
+- [visual/early/frame_000.jpg](../../../../reports/cloud/assets/a8393593f1fb27eddeb2949a949f4d695d6bdc7660cd8fb18f7fcbbec24bf2cf.jpg) · 80104 bytes · `a8393593f1fb27eddeb2949a949f4d695d6bdc7660cd8fb18f7fcbbec24bf2cf`
+- [visual/early/frame_018.jpg](../../../../reports/cloud/assets/f31f69e387cb0a3d5d5d2a903508109611681b165c818665cdf5c08b75a706a6.jpg) · 79503 bytes · `f31f69e387cb0a3d5d5d2a903508109611681b165c818665cdf5c08b75a706a6`
+- [visual/early/frame_030.jpg](../../../../reports/cloud/assets/b051017fb77e42aef097a1dc6ddedde617649db9ee276ef841c56b3c93ad9ee0.jpg) · 79421 bytes · `b051017fb77e42aef097a1dc6ddedde617649db9ee276ef841c56b3c93ad9ee0`
+- [visual/early/frame_035.jpg](../../../../reports/cloud/assets/c6744430cccdb0fbc4789835a95c2fa84283b8a5a76ee9916658556e919d0d8a.jpg) · 82949 bytes · `c6744430cccdb0fbc4789835a95c2fa84283b8a5a76ee9916658556e919d0d8a`
+- [visual/early/frame_040.jpg](../../../../reports/cloud/assets/31e1e6682070435f08a0c4bc348b45e39f377c773ad7b55f9ee4038ed3922a20.jpg) · 86944 bytes · `31e1e6682070435f08a0c4bc348b45e39f377c773ad7b55f9ee4038ed3922a20`
+- [visual/early/frame_048.jpg](../../../../reports/cloud/assets/b9f9243b96525c00ce4341d109b71f82341e70625bed82072c0731c6dbb220f5.jpg) · 75831 bytes · `b9f9243b96525c00ce4341d109b71f82341e70625bed82072c0731c6dbb220f5`
+- [visual/early/frame_050.jpg](../../../../reports/cloud/assets/d34643394e3bdd1fc801168b1c3d79d82f4ce3bec6d75e7e9f1457170354e755.jpg) · 74298 bytes · `d34643394e3bdd1fc801168b1c3d79d82f4ce3bec6d75e7e9f1457170354e755`
+- [visual/early/frame_059.jpg](../../../../reports/cloud/assets/20fe3baf6ed7d290959984895f52bbb7809f7070d57d6d3e16f6932793803094.jpg) · 89350 bytes · `20fe3baf6ed7d290959984895f52bbb7809f7070d57d6d3e16f6932793803094`
+- [visual/fixed/frame_000.jpg](../../../../reports/cloud/assets/d538f5cf0ce292fe7e542638d9123aff93c610c6c185a085128de286d893c575.jpg) · 80956 bytes · `d538f5cf0ce292fe7e542638d9123aff93c610c6c185a085128de286d893c575`
+- [visual/fixed/frame_020.jpg](../../../../reports/cloud/assets/3133091938fa2b3bfefbf30fd6978a8c5e82c5e245b824a74f902f527a67ead7.jpg) · 75775 bytes · `3133091938fa2b3bfefbf30fd6978a8c5e82c5e245b824a74f902f527a67ead7`
+- [visual/fixed/frame_035.jpg](../../../../reports/cloud/assets/e479c0546b09a748c3fc89c1c1da08b03fdb714611357a4c2566572f4966f673.jpg) · 84752 bytes · `e479c0546b09a748c3fc89c1c1da08b03fdb714611357a4c2566572f4966f673`
+- [visual/fixed/frame_040.jpg](../../../../reports/cloud/assets/f2dfd905af80077914f4512b17a5429532e5adc72cc452d9e6057940bc1ae1c0.jpg) · 86671 bytes · `f2dfd905af80077914f4512b17a5429532e5adc72cc452d9e6057940bc1ae1c0`
+- [visual/fixed/frame_047.jpg](../../../../reports/cloud/assets/8a6f27bd8c866eea8d3aa2ba0cd698099e5dffadcaff496b1b654594d06b18ea.jpg) · 74663 bytes · `8a6f27bd8c866eea8d3aa2ba0cd698099e5dffadcaff496b1b654594d06b18ea`
+- [visual/fixed/frame_048.jpg](../../../../reports/cloud/assets/5ce8da75aa9cd4e36479992bb73bdc77cbf96a6daa5b4f853b76a239aaabe4f8.jpg) · 76829 bytes · `5ce8da75aa9cd4e36479992bb73bdc77cbf96a6daa5b4f853b76a239aaabe4f8`
+- [visual/fixed/frame_049.jpg](../../../../reports/cloud/assets/286890faad5419de6fc24bdf5db4346d688a46034bad9620f7b87b19c453ca61.jpg) · 74194 bytes · `286890faad5419de6fc24bdf5db4346d688a46034bad9620f7b87b19c453ca61`
+- [visual/fixed/frame_050.jpg](../../../../reports/cloud/assets/4e2042b1a8e1ffe74bb3f238bd668edcc7f2b9c5077a60cc49307da1432ba016.jpg) · 76616 bytes · `4e2042b1a8e1ffe74bb3f238bd668edcc7f2b9c5077a60cc49307da1432ba016`
+- [visual/fixed/frame_051.jpg](../../../../reports/cloud/assets/8639c48637d6fcacb906cca13315aaf6d597d75afb562171701fcc830f13d1f9.jpg) · 77374 bytes · `8639c48637d6fcacb906cca13315aaf6d597d75afb562171701fcc830f13d1f9`
+- [visual/fixed/frame_052.jpg](../../../../reports/cloud/assets/4e4a5f5a610218342d78fac428b5d5cee5c188bccfc1598eb24589abe75aaa7a.jpg) · 81535 bytes · `4e4a5f5a610218342d78fac428b5d5cee5c188bccfc1598eb24589abe75aaa7a`
+- [visual/fixed/frame_053.jpg](../../../../reports/cloud/assets/bc17c1c08a54f581fa1fda38f74f8de6b56d0f4c68d07d1ceb3f25aa5f060756.jpg) · 79803 bytes · `bc17c1c08a54f581fa1fda38f74f8de6b56d0f4c68d07d1ceb3f25aa5f060756`
+- [visual/fixed/frame_054.jpg](../../../../reports/cloud/assets/20297e35e40c424f4f2ebf9c1972dff7d61268ad3ac2910f30694381d7a0b6d5.jpg) · 82415 bytes · `20297e35e40c424f4f2ebf9c1972dff7d61268ad3ac2910f30694381d7a0b6d5`
+- [visual/fixed/frame_059.jpg](../../../../reports/cloud/assets/7813ce0161f7f491fd90a1c0bac85c8766e09102ce667619e149e6ff1fb8c72c.jpg) · 88172 bytes · `7813ce0161f7f491fd90a1c0bac85c8766e09102ce667619e149e6ff1fb8c72c`
+- [visual/late/frame_000.jpg](../../../../reports/cloud/assets/46a2511051c65561f6d2f0ad71b8708d062bdf38f6756c49a696e00730f0854c.jpg) · 79103 bytes · `46a2511051c65561f6d2f0ad71b8708d062bdf38f6756c49a696e00730f0854c`
+- [visual/late/frame_020.jpg](../../../../reports/cloud/assets/185b9cd6bc07b9a70b85b37a0ffa2e38de74a0221d783e181286b6f82247648d.jpg) · 75473 bytes · `185b9cd6bc07b9a70b85b37a0ffa2e38de74a0221d783e181286b6f82247648d`
+- [visual/late/frame_035.jpg](../../../../reports/cloud/assets/4f5c21cffab6edae4d0e5f09ebe230d859dad3447dabda54b3ee37de16774fae.jpg) · 83850 bytes · `4f5c21cffab6edae4d0e5f09ebe230d859dad3447dabda54b3ee37de16774fae`
+- [visual/late/frame_040.jpg](../../../../reports/cloud/assets/252f163ecbf8b4d61e07d04410de88edde0f6bb9cf3bab562537fadc5232c3c0.jpg) · 85616 bytes · `252f163ecbf8b4d61e07d04410de88edde0f6bb9cf3bab562537fadc5232c3c0`
+- [visual/late/frame_047.jpg](../../../../reports/cloud/assets/4e833402ed317d977dbc4b2ba84f7c05b44adbc565f0ecab17c54c3f1a20ae92.jpg) · 73755 bytes · `4e833402ed317d977dbc4b2ba84f7c05b44adbc565f0ecab17c54c3f1a20ae92`
+- [visual/late/frame_048.jpg](../../../../reports/cloud/assets/6999b18a165ac6e4857e687289ea755f1f862b19796744ca4903d9d3aad7341d.jpg) · 75835 bytes · `6999b18a165ac6e4857e687289ea755f1f862b19796744ca4903d9d3aad7341d`
+- [visual/late/frame_049.jpg](../../../../reports/cloud/assets/810a550794105727280d9b46dbae3d5ca8dd4d9ca531608b5e23836497a6ee12.jpg) · 73632 bytes · `810a550794105727280d9b46dbae3d5ca8dd4d9ca531608b5e23836497a6ee12`
+- [visual/late/frame_050.jpg](../../../../reports/cloud/assets/b04cc99be10e17d117eb82a7c86537317c9633fdb89f6bc4d093fa1c13dfbaee.jpg) · 75654 bytes · `b04cc99be10e17d117eb82a7c86537317c9633fdb89f6bc4d093fa1c13dfbaee`
+- [visual/late/frame_051.jpg](../../../../reports/cloud/assets/fac1bf4c0d4bad5e9614bd8176037ba1403272bb5a2d65dbc16adca9b4c1c3a3.jpg) · 76931 bytes · `fac1bf4c0d4bad5e9614bd8176037ba1403272bb5a2d65dbc16adca9b4c1c3a3`
+- [visual/late/frame_052.jpg](../../../../reports/cloud/assets/d675108696647a967243f5ae9a5a7f9ddb42116e9df4aed3ad26316781dfb1e6.jpg) · 80691 bytes · `d675108696647a967243f5ae9a5a7f9ddb42116e9df4aed3ad26316781dfb1e6`
+- [visual/late/frame_053.jpg](../../../../reports/cloud/assets/ad4a5cb3630d45ed56f0062496647e2eeb0ea362393a23846a0bf448497f5da0.jpg) · 79148 bytes · `ad4a5cb3630d45ed56f0062496647e2eeb0ea362393a23846a0bf448497f5da0`
+- [visual/late/frame_054.jpg](../../../../reports/cloud/assets/cba3bcc23e2d1d6aa7d7390c937ef7f9c2670a80cd22879116ccefa44524f7ec.jpg) · 81988 bytes · `cba3bcc23e2d1d6aa7d7390c937ef7f9c2670a80cd22879116ccefa44524f7ec`
+- [visual/late/frame_059.jpg](../../../../reports/cloud/assets/87371028b5e5e55f1e54c2c1ea6b13ff65bff24c47b3301dd59342a330cb93ff.jpg) · 88798 bytes · `87371028b5e5e55f1e54c2c1ea6b13ff65bff24c47b3301dd59342a330cb93ff`
+- [visual/split/frame_000.jpg](../../../../reports/cloud/assets/dbfc023d1b9b3b35fa6b02e24c9fa69c76251ae8632e0a6e337cb2a1469f3905.jpg) · 80547 bytes · `dbfc023d1b9b3b35fa6b02e24c9fa69c76251ae8632e0a6e337cb2a1469f3905`
+- [visual/split/frame_035.jpg](../../../../reports/cloud/assets/94922faa714e8bec1eca679f73e736959ba78e2a29008e6bb47dd3d1d0f08e0e.jpg) · 84165 bytes · `94922faa714e8bec1eca679f73e736959ba78e2a29008e6bb47dd3d1d0f08e0e`
+- [visual/split/frame_040.jpg](../../../../reports/cloud/assets/56a799b137b4592a780bf93e9eac0341ec7467fada631c629998b8919808da25.jpg) · 87744 bytes · `56a799b137b4592a780bf93e9eac0341ec7467fada631c629998b8919808da25`
+- [visual/split/frame_047.jpg](../../../../reports/cloud/assets/580796f3d83a5e65b24f9d3aec5b366bd78a76155e0bdc80748ee8a38682b103.jpg) · 72957 bytes · `580796f3d83a5e65b24f9d3aec5b366bd78a76155e0bdc80748ee8a38682b103`
+- [visual/split/frame_048.jpg](../../../../reports/cloud/assets/3f69246993fe2c8f4e3cb20f250200ff0e261c65a7068ecd2081d696aef0cd08.jpg) · 74141 bytes · `3f69246993fe2c8f4e3cb20f250200ff0e261c65a7068ecd2081d696aef0cd08`
+- [visual/split/frame_049.jpg](../../../../reports/cloud/assets/a2ac6461fb745685df12b5e626c767b50e0931951a8eb11c9e4673d0cc7a3f8a.jpg) · 71666 bytes · `a2ac6461fb745685df12b5e626c767b50e0931951a8eb11c9e4673d0cc7a3f8a`
+- [visual/split/frame_050.jpg](../../../../reports/cloud/assets/02065866048a86f93a6fc0f9d6389b363d5580d406502d8cd4fa70872cb9c421.jpg) · 72938 bytes · `02065866048a86f93a6fc0f9d6389b363d5580d406502d8cd4fa70872cb9c421`
+- [visual/split/frame_051.jpg](../../../../reports/cloud/assets/b73a455e8a9bf63dad481e6427db576cf2e4882064c78a8868af58490d10baf9.jpg) · 74175 bytes · `b73a455e8a9bf63dad481e6427db576cf2e4882064c78a8868af58490d10baf9`
+- [visual/split/frame_052.jpg](../../../../reports/cloud/assets/ded94a1806162f14b276f4e8ae1f9f730ba16517d959d515c6be4c3850f2747e.jpg) · 77858 bytes · `ded94a1806162f14b276f4e8ae1f9f730ba16517d959d515c6be4c3850f2747e`
+- [visual/split/frame_053.jpg](../../../../reports/cloud/assets/199e24b6e19b2e5e1a42a4518ebaadb6029a6be7cac3ac34a57f38b9c67cfcdc.jpg) · 76226 bytes · `199e24b6e19b2e5e1a42a4518ebaadb6029a6be7cac3ac34a57f38b9c67cfcdc`
+- [visual/split/frame_054.jpg](../../../../reports/cloud/assets/1ae7ce5456f630fda57bd71538a0be0ad111a6f39bff2836ed8229c0da644149.jpg) · 79295 bytes · `1ae7ce5456f630fda57bd71538a0be0ad111a6f39bff2836ed8229c0da644149`
+- [visual/split/frame_059.jpg](../../../../reports/cloud/assets/99a6dab1c8e18aa295a557e33c84ee3fa31f2e37b727fb4492032592279b78b7.jpg) · 88942 bytes · `99a6dab1c8e18aa295a557e33c84ee3fa31f2e37b727fb4492032592279b78b7`
+- [visual/global_weak/frame_000.jpg](../../../../reports/cloud/assets/bf660440e416e1f4cbeb355c17209258f30f2705c9d10c44c21603e19a65c385.jpg) · 80362 bytes · `bf660440e416e1f4cbeb355c17209258f30f2705c9d10c44c21603e19a65c385`
+- [visual/global_weak/frame_020.jpg](../../../../reports/cloud/assets/0ccefa8549b22a85f56ca361e536e55d7ec019eb76f533cc24c1461ac59fef36.jpg) · 76130 bytes · `0ccefa8549b22a85f56ca361e536e55d7ec019eb76f533cc24c1461ac59fef36`
+- [visual/global_weak/frame_035.jpg](../../../../reports/cloud/assets/1c6855be2e68a659bce5774c75b09d996b9d0cf0bb7d6f2c7fa8a20cf1aeda1e.jpg) · 85198 bytes · `1c6855be2e68a659bce5774c75b09d996b9d0cf0bb7d6f2c7fa8a20cf1aeda1e`
+- [visual/global_weak/frame_040.jpg](../../../../reports/cloud/assets/96dd9043c45ff3e0122fb84fd11b4dd9013ed69505fe35daf286fea573090e42.jpg) · 87710 bytes · `96dd9043c45ff3e0122fb84fd11b4dd9013ed69505fe35daf286fea573090e42`
+- [visual/global_weak/frame_048.jpg](../../../../reports/cloud/assets/b747a5bb9103ab81f3f7d7a6ff2aaa0687d5d84c9765c82c30a3241e7ef8c2c8.jpg) · 76017 bytes · `b747a5bb9103ab81f3f7d7a6ff2aaa0687d5d84c9765c82c30a3241e7ef8c2c8`
+- [visual/global_weak/frame_050.jpg](../../../../reports/cloud/assets/68c8ee9ba8b80a34aae3436ac123bbd7928f53827d0ef70a8b12e8f0c127eb28.jpg) · 75360 bytes · `68c8ee9ba8b80a34aae3436ac123bbd7928f53827d0ef70a8b12e8f0c127eb28`
+- [visual/global_weak/frame_059.jpg](../../../../reports/cloud/assets/27d5e75660a85c44b524faafd0f336453e04c92f2ee5ad84abd14ae33631bc4e.jpg) · 87190 bytes · `27d5e75660a85c44b524faafd0f336453e04c92f2ee5ad84abd14ae33631bc4e`

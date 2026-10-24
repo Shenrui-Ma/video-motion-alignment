@@ -1,0 +1,121 @@
+{
+  "schema": "interval-short0177-prelaunch-contract-review-v1",
+  "reviewed_at": "2026-10-24T18:12:50.723420+08:00",
+  "scope": "v2 failure evidence; v3 package data contracts; collector and report builder. Local read-only review and CPU fixtures only.",
+  "decision": "No additional launch blocker found after the reported v3 collector-root correction.",
+  "launch_blockers": [],
+  "finding": {
+    "id": "collector_old_remote_root",
+    "severity": "postprocessing_blocker",
+    "observed": "collect_completed.py initially queried and validated only the v2 remote root, so it would not collect v3 outputs.",
+    "resolution": "Parent updated the collector to v3 during review.",
+    "verified_current_remote_root": "/data4/research-user/h3_runs/interval_short0177_20261024_v3"
+  },
+  "known_failure_confirmed": {
+    "v2_worker_status": "failed",
+    "queue_status": "waiting_stalled",
+    "completed_forwards": 15,
+    "completed_blocks": 750,
+    "timer_status": "sampling",
+    "timer_step_records": 15,
+    "control_behavior": "Worker stops its owned service when the queue exits stalled. The v2 audit contains 15 complete forwards at shutdown."
+  },
+  "checked_contracts": [
+    {
+      "area": "attempt_id and metadata",
+      "result": "pass",
+      "evidence": "All six v3 manifest job IDs produce __a1; queue attempt_values expands result metadata, graph run_id, timing_file, router path, and output filename consistently. State metadata remains the original manifest template; result metadata is expanded.",
+      "locations": [
+        "gpu7/queue/durable_comfy_queue.py:178",
+        "gpu7/queue/durable_comfy_queue.py:375",
+        "gpu7/queue/durable_comfy_queue.py:405"
+      ]
+    },
+    {
+      "area": "progress binding",
+      "result": "pass",
+      "evidence": "All six v3 progress_file values exactly equal the expanded metadata.route_audit for their a1 attempt."
+    },
+    {
+      "area": "20-step synchronized timing",
+      "result": "pass",
+      "evidence": "Timer records one callback per physical Euler step; final JSON writes status/ passed/ sampler_wall_seconds/ per_step_seconds/ steps/ mean_sampling_step_seconds. Queue timing reads those fields and verify_result requires 20 positive finite intervals. CPU fixture with 20 callbacks passed. Intermediate sampling JSON intentionally exposes steps rather than per_step_seconds.",
+      "locations": [
+        "gpu7/custom_nodes/H3Study/__init__.py:39",
+        "gpu7/queue/durable_comfy_queue.py:125",
+        "gpu7/scripts/verify_result.py:21"
+      ]
+    },
+    {
+      "area": "router verification",
+      "result": "pass",
+      "evidence": "core increments native_override_calls for every overridden attention call, including routed calls. Verification expects 20 completed forwards, 1000 calls, 50 per forward, exact selected-step routed counts, alpha, bins, and 50 blocks; these match writer fields. Router status remains sampling at the final forward, and verifier appropriately relies on final counts plus completed timing.",
+      "locations": [
+        "gpu7/custom_nodes/H3Study/core.py:417",
+        "gpu7/custom_nodes/H3Study/core.py:470",
+        "gpu7/scripts/verify_result.py:11"
+      ]
+    },
+    {
+      "area": "output and probe",
+      "result": "pass",
+      "evidence": "SaveVideo emits into expected_output_prefix. Queue file entries carry path/bytes/sha256/probe; selected video stream has width,height,nb_frames. Both verifier and collector expect raw 1312x736x73, while metrics/report use the 60 valid frames and [16,8,1280,720] crop.",
+      "locations": [
+        "gpu7/queue/durable_comfy_queue.py:91",
+        "gpu7/scripts/verify_result.py:23",
+        "collect_completed.py:134"
+      ]
+    },
+    {
+      "area": "backend contract and cumulative counts",
+      "result": "pass",
+      "evidence": "global_weak reuses the native service. Verification accepts growing process-cumulative successful counts for the frozen backend and zero calls to alternate backends; it does not require counters to reset between arms. Collector freezes the verified receipt and labels later backend.json as service-cumulative.",
+      "locations": [
+        "gpu7/scripts/verify_result.py:28",
+        "collect_completed.py:141"
+      ]
+    },
+    {
+      "area": "next arm and cleanup",
+      "result": "pass",
+      "evidence": "Each arm runs once; the next arm starts after queue success plus verify_result. Each manifest has one distinct ID, so prior completed state does not suppress the next arm. The service remains live across the pair; finally stops the owned service after both arms or a failure. No retry or cross-lane launch is added.",
+      "locations": [
+        "gpu7/scripts/single_attempt_worker.py:30",
+        "gpu7/scripts/single_attempt_worker.py:39",
+        "gpu7/scripts/single_attempt_worker.py:42",
+        "gpu7/queue/durable_comfy_queue.py:439"
+      ]
+    },
+    {
+      "area": "report integration",
+      "result": "pass",
+      "evidence": "Report supports distinct metric and inference job IDs, expanded result metadata, current cohort hashes, all six router files and seven source/output metric bindings. It preserves the old 14 cases, adds 0177 to IVE10, retains Flex events separately, and writes new timing summaries outside the old frozen directory. Six report contract tests passed.",
+      "locations": [
+        "report/build_reports.py:80",
+        "report/test_reports.py"
+      ]
+    }
+  ],
+  "existing_operational_gate": {
+    "requirement": "Freeze the new native pilot BACKEND_CONTRACT.json from its first completed forward and make the same observed backend contract available to each lane before complete-arm verification.",
+    "reason": "verify_result reads this explicit file at completion.",
+    "source": "gpu7/scripts/verify_result.py:30"
+  },
+  "tests": {
+    "six_arm_attempt_progress_graph_output_binding": "passed",
+    "Timer_20_callback_CPU_fixture": "passed",
+    "report_unittests": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
+  "reviewed_file_sha256": {
+    "collect_completed.py": "8d0e0f8410e9d122e398542bab92984168f5d7768976b2317a2f0b529485eee4",
+    "report/build_reports.py": "db90df259ea39ced83e99878ac798f93fe900270373a3ed1c2a8ffaefae78cd9",
+    "runtime/v3/package/gpu7/queue/durable_comfy_queue.py": "49627b5484db0799bf775133b5d3cdb8681a40ce7a87bc01f1e194b1667a2efd",
+    "runtime/v3/package/gpu7/scripts/single_attempt_worker.py": "d607e23098b9d7a581696bdaa82921fefdac04762d85bf1dcad7314e510348e6",
+    "runtime/v3/package/gpu7/scripts/verify_result.py": "3abe9dcf55b2027900fd09d1e6babbe7aa5b9d2c04b9846b42b9ad95c8464b32",
+    "runtime/v3/package/gpu7/custom_nodes/H3Study/__init__.py": "f54d172fb9918e6ffdfed007e013a9005cb7c7a9c16374d718f31f6824ab2154"
+  },
+  "mutations": "Only this PRELAUNCH_REVIEW.json was written by this review; temporary CPU fixture files were deleted. No live service, graph, scientific code or formal report changed."
+}

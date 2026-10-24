@@ -1,0 +1,49 @@
+{
+  "case_id": "short_0177",
+  "title": "老虎打哈欠改为狮子",
+  "frozen_at": "2026-10-24T17:37:03.223481+08:00",
+  "fps": 24,
+  "generated_frames": 73,
+  "valid_frames": 60,
+  "frame_index": "zero-based inclusive",
+  "source_video": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/inference/host9b/input/short_0177_video.mp4",
+  "source_sha256": "d5da95935608029e1c458def4cb1c09a3ce42ea7e6d60cc9a44c9c6575f801f2",
+  "source_crop": [
+    16,
+    8,
+    1280,
+    720
+  ],
+  "reviewed_frames": [
+    0,
+    59
+  ],
+  "events": [
+    {
+      "id": "yawn_peak",
+      "label": "仰头张口达到最大阶段",
+      "definition": "嘴部开度达到本次哈欠最大阶段，头部仰起；标记最大开口的连续短区间。",
+      "source": [
+        35,
+        40
+      ]
+    },
+    {
+      "id": "mouth_closes",
+      "label": "哈欠后闭嘴",
+      "definition": "下颌回收，持续的大张口结束并闭合至休息状态的转折区间。",
+      "source": [
+        48,
+        50
+      ]
+    }
+  ],
+  "protocol": "六配置沿用相同事件定义，逐帧人工视觉标注零基闭区间；偏移为输出与源区间中点之差。共同可见事件取绝对偏移均值，并保留缺失事件状态。",
+  "source_evidence": [
+    "visual/source/all_000_019.jpg",
+    "visual/source/all_020_039.jpg",
+    "visual/source/all_040_059.jpg"
+  ],
+  "annotation_source": "AI visual frame review",
+  "frozen_before_new_outputs": true
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "interval-short0177-queue-false-stall-diagnosis-v1",
+  "root_cause": "Manifest omitted top-level progress_file. Original queue.poll watched queue/history and optional progress_file mtime. Comfy retained one running entry and no completed history while sampling; router/timing metadata was not used as a progress signal.",
+  "attempt_id": "interval_short_0177_native__a1",
+  "prompt_id": "cb4f02b3-c89a-4942-81c5-534f6be7e63b",
+  "evidence_directory": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/v3/queue_fix/evidence_v2",
+  "timing": {
+    "submitted_unix": 1792835307.251466,
+    "running_event_unix": 1792835307.3414316,
+    "stalled_event_unix": 1792836207.3979661,
+    "unchanged_api_signal_seconds": 900.0565345287323,
+    "router_updated_unix": 1792836187.1212904,
+    "age_of_last_completed_forward_at_false_stall_seconds": 20.276675701141357,
+    "timing_elapsed_seconds": 354.59179027700156,
+    "minimum_step_seconds": 23.407607337998343,
+    "maximum_step_seconds": 23.95621208200464
+  },
+  "observed_progress": {
+    "status": "sampling",
+    "completed_forward_calls": 15,
+    "completed_calls": 750,
+    "calls_by_forward": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "router_error": null,
+    "timing_status": "sampling",
+    "timing_steps": 15
+  },
+  "queue_binding": {
+    "top_level_progress_file": null,
+    "metadata_route_audit": "/data4/research-user/h3_runs/interval_short0177_20261024_v2/gpu7/audit/router/{attempt_id}.json",
+    "metadata_timing_file": "/data4/research-user/h3_runs/interval_short0177_20261024_v2/gpu7/audit/timing/{attempt_id}.json"
+  },
+  "consequence": {
+    "queue_status": "waiting_stalled",
+    "queue_error": "No new history, queue transition, or progress-file update before stall timeout",
+    "worker_failure": {
+      "type": "AssertionError",
+      "error": "Queue failed: 2",
+      "traceback": "Traceback (most recent call last):\n  File \"/data4/research-user/h3_runs/interval_short0177_20261024_v2/gpu7/scripts/single_attempt_worker.py\", line 38, in main\n    assert result==0, 'Queue failed: '+str(result)\nAssertionError: Queue failed: 2\n"
+    },
+    "worker_cleanup_stopped": true
+  },
+  "minimal_repair": {
+    "queue_source_changed": false,
+    "queue_sha256": "49627b5484db0799bf775133b5d3cdb8681a40ce7a87bc01f1e194b1667a2efd",
+    "manifest_top_level_progress_file": "<new lane>/audit/router/interval_short_0177_<arm>__a1.json",
+    "stall_timeout_seconds": 1800,
+    "timeout_semantics": "One unchanged progress-signal threshold for loading and sampling; fresh router writes reset it.",
+    "existing_worker_absolute_timeout_seconds": 7200,
+    "max_attempts": 1,
+    "max_service_restarts": 0,
+    "router_write_semantics": [
+      "RouterState initialization",
+      "ScheduleState initialization",
+      "After each completed 50-block forward via finish_forward",
+      "Exception recording"
+    ],
+    "periodic_idle_router_writes": false,
+    "preflight_helper": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/v3/queue_fix/progress_binding.py",
+    "preflight_helper_sha256": "d45d543d4bcb9a841c4abff9ac536eaa68a664b01ccc874dcc936c2111b279fb",
+    "integration": "from progress_binding import validate_progress_bindings; call validate_progress_bindings(root) in admission.preflight before starting any service."
+  },
+  "tests": {
+    "test_file": "/workspace/research-user/DevProjects/video-motion-alignment/execution-20261022/supervision/interval_short0177_20261024/runtime/v3/queue_fix/test_poll_progress.py",
+    "sha256": "eea1dd2861e2810ef250fa79b9b96e31c9c6612030ba6ff4b015d0a069dfc533",
+    "passed": 15,
+    "failed": 0,
+    "queue_source": "Unmodified v2 durable_comfy_queue.py; real Runner.poll invoked with fake clock/API and actual filesystem mtime updates.",
+    "cases": [
+      "old missing binding reproduces false stall",
+      "binding refreshes progress for 4800 simulated seconds",
+      "1200-second cold load fits 1800 budget",
+      "same cold load fails old900 budget",
+      "no cold-load progress stalls",
+      "genuine sampling stop stalls",
+      "explicit API error returns failed immediately",
+      "all six fresh bindings pass",
+      "oldv2/a2/missing bindings fail",
+      "existing audit fails",
+      "wrong graph audit_dir/run_id fail",
+      "symlink audit directory fails"
+    ]
+  },
+  "operations": {
+    "remote_mutations": false,
+    "live_source_changed": false,
+    "new_inference_started": false,
+    "old_attempt_preserved": true
+  }
+}
