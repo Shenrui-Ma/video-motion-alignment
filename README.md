@@ -1,6 +1,6 @@
 # Video Motion Alignment
 
-面向 CVPR 2027 的动作细粒度控制视频编辑研究。现有实现基于 MiniMax H3，在 MM Self-Attention 中调节生成视频 query 对参考视频 tokens 的时间读取；数据与任务来自 FlexiAct、IVEBench 及记录在案的历史素材。
+动作细粒度控制视频编辑研究。现有实现基于 MiniMax H3，在 MM Self-Attention 中调节生成视频 query 对参考视频 tokens 的时间读取；数据与任务来自 FlexiAct、IVEBench 及记录在案的历史素材。
 
 ## 报告与已有结果
 
